@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin | Agendatina</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-2.5 5.43l-4.57 4.57-2.43-2.43 1.41-1.41 1.02 1.02 3.16-3.16 1.41 1.41z'/></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style> body { font-family: 'Inter', sans-serif; } </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800" style="display: none;">
+
+<nav class="bg-slate-900 text-white p-4 sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-blue-400 text-3xl">admin_panel_settings</span>
+            <span class="font-bold text-xl tracking-tight">Agendatina <span class="text-blue-400">SuperAdmin</span></span>
+        </div>
+        <div class="flex items-center gap-6">
+            <a href="../index.html" target="_blank" class="text-sm font-semibold text-slate-400 hover:text-white transition-colors items-center gap-1 hidden sm:flex">
+                Ir a la web principal <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+            </a>
+            <button onclick="logoutAdmin()" class="text-sm font-semibold text-red-400 hover:text-red-300 transition-colors flex items-center gap-1">
+                Cerrar Sesión <span class="material-symbols-outlined text-[16px]">logout</span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<main class="max-w-7xl mx-auto p-6 md:p-10">
+    <div id="adminAlerts"></div>
+
+    <!-- Sección de Reportes de Error (Responsiva) -->
+    <div class="bg-white p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 mb-8 w-full overflow-hidden">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-6">
+            <div class="w-12 h-12 shrink-0 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center">
+                <span class="material-symbols-outlined text-2xl">bug_report</span>
+            </div>
+            <div>
+                <h2 class="text-lg sm:text-xl font-bold text-slate-800">Reportes de Error</h2>
+                <p class="text-xs sm:text-sm text-slate-500">Problemas reportados por los usuarios en la plataforma</p>
+            </div>
+        </div>
+        <div id="adminReportsList" class="space-y-4 max-h-[350px] overflow-y-auto pr-1 sm:pr-2 w-full">
+            <div class="p-6 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-100">
+                <span class="material-symbols-outlined text-4xl mb-2 text-slate-300 animate-spin">refresh</span>
+                <p class="font-medium text-sm">Cargando reportes...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+            <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Directorio de Negocios</h1>
+            <p class="text-slate-500 text-sm mt-1">Gestiona los clientes registrados, sus negocios y estados de suscripción.</p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <div class="relative w-full sm:w-64">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
+                <input type="text" id="searchInput" placeholder="Buscar negocio..." class="w-full bg-white border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm shadow-sm">
+            </div>
+            <select id="statusFilter" class="w-full sm:w-auto bg-white border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm shadow-sm text-slate-600 font-medium">
+                <option value="">Todos los estados</option>
+                <option value="pendiente_revision">En Revisión</option>
+                <option value="activo">Activos</option>
+                <option value="prueba">En Prueba</option>
+                <option value="vencido">Vencidos</option>
+                <option value="suspendido">Suspendidos</option>
+            </select>
+            <button onclick="openNotificationModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5 whitespace-nowrap">
+                <span class="material-symbols-outlined text-[20px]">campaign</span> Avisos
+            </button>
+            <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-0.5 whitespace-nowrap">
+                <span class="material-symbols-outlined text-[20px]">add</span> Nuevo Negocio
+            </button>
+        </div>
+    </div>
+
+    <!-- Estadísticas y Gráficos -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <div>
+                <h2 class="text-xl font-bold text-slate-800">Estadísticas de Negocios</h2>
+                <p class="text-sm text-slate-500 mt-1">Distribución de los negocios mostrados en la tabla.</p>
+            </div>
+            <!-- Pestañas -->
+            <div class="flex bg-slate-100 p-1 rounded-xl">
+                <button onclick="updateChartTab('estados')" id="tab-estados" class="px-4 py-1.5 text-xs font-bold bg-white text-blue-600 shadow-sm rounded-lg transition-all">Estados</button>
+                <button onclick="updateChartTab('planes')" id="tab-planes" class="px-4 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 rounded-lg transition-all">Planes</button>
+                <button onclick="updateChartTab('calendarios')" id="tab-calendarios" class="px-4 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 rounded-lg transition-all">Calendarios</button>
+            </div>
+        </div>
+        <div class="w-full h-56 relative flex justify-center">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Tabla de negocios -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto max-h-[700px] overflow-y-auto relative">
+            <table class="w-full text-left text-sm whitespace-nowrap">
+                <thead class="bg-slate-50 text-slate-600 border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+                    <tr>
+                        <th class="p-5 font-bold">Negocio / Enlace</th>
+                        <th class="p-5 font-bold">Cliente (Dueño)</th>
+                        <th class="p-5 font-bold">Suscripción</th>
+                        <th class="p-5 font-bold">Estado de Pago</th>
+                        <th class="p-5 font-bold">Calendario</th>
+                        <th class="p-5 font-bold text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="clientsList" class="divide-y divide-slate-100 text-slate-700">
+                    <tr>
+                        <td colspan="6" class="p-8 text-center text-slate-500 font-medium flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined animate-spin">refresh</span> Cargando datos...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<!-- Modal Nuevo Negocio -->
+<div id="newClientModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full p-8 transform scale-95 transition-transform duration-300" id="modalContent">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><span class="material-symbols-outlined">storefront</span></div>
+                Alta de Cliente y Negocio
+            </h2>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-red-500 bg-slate-100 hover:bg-red-50 rounded-full p-1.5 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <form id="newClientForm" class="space-y-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Datos del Cliente -->
+                <div class="space-y-4">
+                    <h3 class="font-bold text-slate-700 border-b border-slate-100 pb-2">1. Credenciales de Acceso</h3>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-600 mb-1.5">Nombre Completo</label>
+                        <input type="text" name="nombre_completo" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-600 mb-1.5">Correo Electrónico</label>
+                        <input type="email" name="email" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-600 mb-1.5">Contraseña Asignada</label>
+                        <input type="text" name="password" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Ej: agendatina123">
+                    </div>
+                </div>
+
+                <!-- Datos del Negocio -->
+                <div class="space-y-4">
+                    <h3 class="font-bold text-slate-700 border-b border-slate-100 pb-2">2. Información del Local</h3>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-600 mb-1.5">Nombre de Fantasía</label>
+                        <input type="text" name="nombre_fantasia" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Ej: Estética Bella">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-600 mb-1.5">Enlace Personalizado</label>
+                        <div class="flex items-center">
+                            <span class="bg-slate-100 text-slate-500 border border-r-0 border-slate-200 rounded-l-xl px-4 py-2.5 text-sm font-semibold">agendatina.site/</span>
+                            <input type="text" name="ruta" required class="w-full bg-slate-50 border border-slate-200 rounded-r-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-blue-600" placeholder="estetica-bella">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-1.5">Plan Contratado</label>
+                            <select name="plan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
+                                <option value="Basico">Básico</option>
+                                <option value="Intermedio">Intermedio</option>
+                                <option value="Completo">Completo</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-1.5">Estado</label>
+                            <select name="estado_pago" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
+                                <option value="prueba">Prueba (Trial)</option>
+                                <option value="pendiente_revision">En Revisión</option>
+                                <option value="activo">Activo (Pagado)</option>
+                                <option value="vencido">Impago/Vencido</option>
+                                <option value="suspendido">Suspendido (Bloqueado)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="formMessage" class="hidden p-4 rounded-xl text-sm font-medium text-center"></div>
+
+            <div class="flex justify-end gap-3 pt-6 border-t border-slate-100">
+                <button type="button" onclick="closeModal()" class="px-6 py-3 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancelar</button>
+                <button type="submit" id="btnSubmit" class="px-6 py-3 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-0.5 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px]">save</span> Crear Cuenta y Negocio
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar Negocio -->
+<div id="editClientModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 transform scale-95 transition-transform duration-300" id="editModalContent">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><span class="material-symbols-outlined">edit</span></div>
+                Editar Suscripción
+            </h2>
+            <button onclick="closeEditModal()" class="text-slate-400 hover:text-red-500 bg-slate-100 hover:bg-red-50 rounded-full p-1.5 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <form id="editClientForm" class="space-y-6">
+            <input type="hidden" name="id_negocio" id="edit_id_negocio">
+            
+            <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-1.5">Negocio</label>
+                <input type="text" id="edit_nombre_fantasia" disabled class="w-full bg-slate-100 text-slate-500 border border-slate-200 rounded-xl px-4 py-2.5 font-medium cursor-not-allowed">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-1.5">Plan Contratado</label>
+                <select name="plan" id="edit_plan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
+                    <option value="Basico">Básico</option>
+                    <option value="Intermedio">Intermedio</option>
+                    <option value="Completo">Completo</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-1.5">Estado de Pago</label>
+                <select name="estado_pago" id="edit_estado_pago" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
+                    <option value="prueba">Prueba (Trial)</option>
+                    <option value="pendiente_revision">En Revisión (Subió comprobante)</option>
+                    <option value="activo">Activo (Pagado)</option>
+                    <option value="vencido">Impago (Vencido)</option>
+                    <option value="suspendido">Suspendido (Bloqueado)</option>
+                </select>
+            </div>
+
+            <div id="editFormMessage" class="hidden p-4 rounded-xl text-sm font-medium text-center"></div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button type="button" onclick="closeEditModal()" class="px-6 py-3 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancelar</button>
+                <button type="submit" id="btnEditSubmit" class="px-6 py-3 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-0.5 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px]">save</span> Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar Info Cliente -->
+<div id="editInfoModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-8 transform scale-95 transition-transform duration-300" id="editInfoModalContent">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><span class="material-symbols-outlined">manage_accounts</span></div>
+                Editar Datos del Cliente
+            </h2>
+            <button onclick="closeEditInfoModal()" class="text-slate-400 hover:text-red-500 bg-slate-100 hover:bg-red-50 rounded-full p-1.5 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <form id="editInfoForm" class="space-y-6">
+            <input type="hidden" id="editInfoIdNegocio">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Nombre Completo</label>
+                    <input type="text" id="editNombreDueno" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Correo Electrónico</label>
+                    <input type="email" id="editEmail" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Nombre de Fantasía</label>
+                    <input type="text" id="editNombreNegocio" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Enlace Personalizado</label>
+                    <div class="flex items-center">
+                        <span class="bg-slate-100 text-slate-500 border border-r-0 border-slate-200 rounded-l-xl px-4 py-2.5 text-sm font-semibold">agendatina.site/</span>
+                        <input type="text" id="editRutaWeb" required class="w-full bg-slate-50 border border-slate-200 rounded-r-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-blue-600">
+                    </div>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Nueva Contraseña (Opcional)</label>
+                    <input type="text" id="editPassword" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Dejar en blanco para mantener la actual">
+                </div>
+            </div>
+
+            <div id="editInfoFormMessage" class="hidden p-4 rounded-xl text-sm font-medium text-center"></div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button type="button" onclick="closeEditInfoModal()" class="px-6 py-3 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancelar</button>
+                <button type="submit" id="btnEditInfoSubmit" class="px-6 py-3 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-0.5 flex items-center gap-2"><span class="material-symbols-outlined text-[20px]">save</span> Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Comprobante -->
+<div id="receiptModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]" id="receiptModalContent">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2"><span class="material-symbols-outlined text-purple-600">receipt_long</span> Comprobante de Pago</h2>
+            <button onclick="closeReceiptModal()" class="text-slate-400 hover:text-red-500 bg-slate-100 hover:bg-red-50 rounded-full p-1.5 transition-colors"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="flex-1 overflow-auto bg-slate-50 rounded-xl border border-slate-200 mb-4 flex items-center justify-center min-h-[300px]">
+            <img id="receiptImage" src="" class="max-w-full max-h-[50vh] object-contain hidden">
+            <iframe id="receiptPdf" src="" class="w-full h-[50vh] hidden border-0"></iframe>
+        </div>
+        <div class="flex justify-end gap-3 pt-2">
+            <button id="btnRejectReceipt" onclick="rechazarComprobante()" class="px-5 py-2.5 font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors">Rechazar y Suspender</button>
+            <button id="btnApproveReceipt" onclick="aprobarComprobante()" class="px-5 py-2.5 font-bold text-white bg-green-600 hover:bg-green-700 rounded-xl shadow-lg transition-all flex items-center gap-1"><span class="material-symbols-outlined text-[20px]">check</span> Aprobar Pago</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmación Eliminar -->
+<div id="confirmDeleteModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full p-6 transform scale-95 transition-transform duration-300 text-center" id="confirmDeleteModalContent">
+        <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="material-symbols-outlined text-3xl">warning</span>
+        </div>
+        <h3 class="text-xl font-bold text-slate-800 mb-2">Eliminar Negocio</h3>
+        <p class="text-slate-500 text-sm mb-6">¿Deseas eliminar permanentemente este negocio y todos sus datos?<br><br><strong class="text-red-600">Esta acción NO se puede deshacer.</strong></p>
+        <div class="flex gap-3 justify-center">
+            <button onclick="closeConfirmDelete()" class="px-4 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors flex-1">Cancelar</button>
+            <button id="btnConfirmDelete" onclick="executeDeleteNegocio()" class="px-4 py-2.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors flex-1 flex justify-center items-center gap-1">Eliminar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Enviar Notificación Personalizada -->
+<div id="notificationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 transform scale-95 transition-transform duration-300" id="notificationModalContent">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center"><span class="material-symbols-outlined">campaign</span></div>
+                Enviar Aviso Global
+            </h2>
+            <button onclick="closeNotificationModal()" class="text-slate-400 hover:text-red-500 bg-slate-100 hover:bg-red-50 rounded-full p-1.5 transition-colors"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <form id="notificationForm" class="space-y-4">
+            <input type="hidden" name="action" value="send_notification">
+            <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-1.5">Destinatario</label>
+                <select name="id_negocio" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 outline-none font-medium text-sm">
+                    <option value="">TODOS LOS CLIENTES</option>
+                    <!-- Opciones cargadas por JS -->
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-1.5">Título</label>
+                <input type="text" name="titulo" required placeholder="Ej: ¡Nueva Actualización!" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-1.5">Mensaje</label>
+                <textarea name="mensaje" required rows="4" placeholder="Escribe el aviso que aparecerá en su campanita..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"></textarea>
+            </div>
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button type="submit" id="btnSendNotif" class="w-full py-3 font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">Enviar Notificación</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    fetch('../backend/admin_auth.php')
+        .then(res => res.json())
+        .then(data => {
+            if (!data.logged_in) {
+                window.location.href = 'login.html';
+            } else {
+                document.body.style.display = 'block';
+                fetchClients();
+            }
+        })
+        .catch(() => {
+            window.location.href = 'login.html';
+        });
+});
+
+let clientsData = [];
+let statusChartInstance = null;
+let currentChartTab = 'estados';
+
+function updateChartTab(tab) {
+    currentChartTab = tab;
+    
+    // Estilos de pestañas
+    ['estados', 'planes', 'calendarios'].forEach(t => {
+        const btn = document.getElementById('tab-' + t);
+        if (t === tab) {
+            btn.className = 'px-4 py-1.5 text-xs font-bold bg-white text-blue-600 shadow-sm rounded-lg transition-all';
+        } else {
+            btn.className = 'px-4 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 rounded-lg transition-all';
+        }
+    });
+
+    // Renderizar usando los datos actualmente filtrados
+    filterClients(); 
+}
+
+function updateChart(data) {
+    let labels = [];
+    let chartData = [];
+    let bgColors = [];
+
+    if (currentChartTab === 'estados') {
+        let countActivo = 0, countPrueba = 0, countRevision = 0, countVencido = 0;
+        data.forEach(client => {
+            let diasRestantes = 15;
+            if (client.fecha_alta) {
+                const fAlta = new Date(client.fecha_alta.replace(/-/g, '/'));
+                fAlta.setHours(0,0,0,0);
+                const hoy = new Date();
+                hoy.setHours(0,0,0,0);
+                diasRestantes = 15 - Math.floor((hoy - fAlta) / (1000 * 60 * 60 * 24));
+            }
+            if (client.estado_pago === 'activo' || client.estado_pago === 'pagado') countActivo++;
+            else if (client.estado_pago === 'pendiente_revision') countRevision++;
+            else if (client.estado_pago === 'prueba') {
+                if (client.fecha_alta && diasRestantes < 0) countVencido++; 
+                else countPrueba++; 
+            } 
+            else countVencido++;
+        });
+        labels = ['Activos', 'En Prueba', 'En Revisión', 'Vencidos/Suspendidos'];
+        chartData = [countActivo, countPrueba, countRevision, countVencido];
+        bgColors = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444'];
+    } 
+    else if (currentChartTab === 'planes') {
+        let countBasico = 0, countIntermedio = 0, countPremium = 0;
+        data.forEach(c => {
+            const p = (c.plan || '').toLowerCase();
+            if (p.includes('completo') || p.includes('premium')) countPremium++;
+            else if (p.includes('intermedio')) countIntermedio++;
+            else countBasico++;
+        });
+        labels = ['Plan Básico', 'Plan Intermedio', 'Plan Premium'];
+        chartData = [countBasico, countIntermedio, countPremium];
+        bgColors = ['#94a3b8', '#3b82f6', '#8b5cf6'];
+    }
+    else if (currentChartTab === 'calendarios') {
+        let countClasico = 0, countSemanal = 0;
+        data.forEach(c => {
+            if (c.tipo_calendario === 'semanal') countSemanal++;
+            else countClasico++;
+        });
+        labels = ['Vista Clásica (Mensual)', 'Vista Grilla (Semanal)'];
+        chartData = [countClasico, countSemanal];
+        bgColors = ['#3b82f6', '#a855f7'];
+    }
+
+    const ctx = document.getElementById('statusChart');
+    if (!ctx) return;
+
+    if (statusChartInstance) {
+        statusChartInstance.destroy();
+    }
+    
+    statusChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: chartData,
+                backgroundColor: bgColors,
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { font: { family: 'Inter', size: 12 }, usePointStyle: true, padding: 15 } }
+                },
+                cutout: '65%' // Grosor del anillo
+            }
+        });
+}
+
+function renderTable(dataToRender) {
+    updateChart(dataToRender); // Actualiza el gráfico con los datos que se van a renderizar
+
+    const tbody = document.getElementById('clientsList');
+    const alertDiv = document.getElementById('adminAlerts');
+    
+    if (alertDiv) {
+        const pendientes = clientsData.filter(c => c.estado_pago === 'pendiente_revision').length;
+        if (pendientes > 0) {
+            alertDiv.innerHTML = `<div class="bg-amber-100 border-l-4 border-amber-500 text-amber-800 p-4 rounded-xl shadow-sm mb-6 flex items-center gap-3">
+                <span class="material-symbols-outlined text-2xl animate-pulse">notifications_active</span>
+                <p class="font-bold text-sm">¡Atención! Tienes ${pendientes} comprobante(s) de pago pendiente(s) de revisión.</p>
+            </div>`;
+        } else {
+            alertDiv.innerHTML = '';
+        }
+    }
+
+    tbody.innerHTML = '';
+    
+    if (dataToRender.length > 0) {
+        dataToRender.forEach((client) => {
+            const originalIndex = clientsData.indexOf(client);
+                let fechaAltaText = '';
+                let diasRestantes = 15;
+                
+                if (client.fecha_alta) {
+                    const fAlta = new Date(client.fecha_alta.replace(/-/g, '/')); // Reemplazo por compatibilidad de navegadores
+                    fAlta.setHours(0,0,0,0);
+                    const hoy = new Date();
+                    hoy.setHours(0,0,0,0);
+                    const diffDays = Math.floor((hoy - fAlta) / (1000 * 60 * 60 * 24));
+                    diasRestantes = 15 - diffDays;
+                    fechaAltaText = `<p class="text-[11px] text-slate-400 mt-1.5 font-medium">Alta: ${fAlta.toLocaleDateString('es-AR')}</p>`;
+                }
+
+                let badgeStatus = '';
+                if (client.estado_pago === 'activo') {
+                    badgeStatus = '<span class="bg-green-100 text-green-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-green-200 flex items-center w-fit gap-1"><span class="material-symbols-outlined text-[14px]">check_circle</span> Activo</span>';
+                } else if (client.estado_pago === 'pendiente_revision') {
+                    badgeStatus = '<span class="bg-amber-100 text-amber-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-amber-200 flex items-center w-fit gap-1"><span class="material-symbols-outlined text-[14px]">hourglass_empty</span> En Revisión</span>';
+                } else if (client.estado_pago === 'prueba') {
+                    if (client.fecha_alta && diasRestantes < 0) {
+                        badgeStatus = '<span class="bg-red-100 text-red-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-red-200 flex items-center w-fit gap-1" title="El periodo de prueba finalizó"><span class="material-symbols-outlined text-[14px]">error</span> Prueba Vencida</span>';
+                    } else if (client.fecha_alta) {
+                        badgeStatus = `<span class="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-200 flex items-center w-fit gap-1" title="Quedan ${diasRestantes} días de prueba"><span class="material-symbols-outlined text-[14px]">schedule</span> Prueba (${diasRestantes}d)</span>`;
+                    } else {
+                        badgeStatus = '<span class="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-200 flex items-center w-fit gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span> Prueba</span>';
+                    }
+                } else if (client.estado_pago === 'suspendido') {
+                    badgeStatus = '<span class="bg-red-100 text-red-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-red-200 flex items-center w-fit gap-1"><span class="material-symbols-outlined text-[14px]">block</span> Suspendido</span>';
+                } else {
+                    badgeStatus = '<span class="bg-red-100 text-red-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-red-200 flex items-center w-fit gap-1"><span class="material-symbols-outlined text-[14px]">error</span> Vencido</span>';
+                }
+                
+                let badgeCalendario = '';
+                if (client.tipo_calendario === 'semanal') {
+                    badgeCalendario = '<span class="bg-purple-100 text-purple-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-purple-200 flex items-center w-fit gap-1"><span class="material-symbols-outlined text-[14px]">view_week</span> Semanal</span>';
+                } else {
+                    badgeCalendario = '<span class="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-blue-200 flex items-center w-fit gap-1"><span class="material-symbols-outlined text-[14px]">calendar_month</span> Clásico</span>';
+                }
+
+                const urlRuta = client.ruta || client.subdominio;
+                
+                let actionsHtml = `
+                    <button onclick="openEditInfoModal(${originalIndex})" class="text-slate-400 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 p-2 rounded-lg transition-colors border border-slate-100" title="Editar Información del Cliente"><span class="material-symbols-outlined text-[20px]">manage_accounts</span></button>
+                    <button onclick="openEditModal(${originalIndex})" class="text-slate-400 hover:text-amber-600 bg-slate-50 hover:bg-amber-50 p-2 rounded-lg transition-colors border border-slate-100 ml-1" title="Suscripción y Estado"><span class="material-symbols-outlined text-[20px]">payments</span></button>
+                `;
+                
+                if (client.estado_pago === 'pendiente_revision' || client.estado_pago === 'suspendido' || client.estado_pago === 'vencido' || diasRestantes < 0) {
+                     actionsHtml += `<button onclick="registrarPago(${client.id})" class="text-slate-400 hover:text-green-600 bg-slate-50 hover:bg-green-50 p-2 rounded-lg transition-colors border border-slate-100 ml-1" title="Registrar Pago (Desbloquear)"><span class="material-symbols-outlined text-[20px]">check_circle</span></button>`;
+                }
+                if (client.estado_pago === 'activo') {
+                     actionsHtml += `<button onclick="suspenderNegocio(${client.id})" class="text-slate-400 hover:text-orange-600 bg-slate-50 hover:bg-orange-50 p-2 rounded-lg transition-colors border border-slate-100 ml-1" title="Suspender (Impago)"><span class="material-symbols-outlined text-[20px]">pause_circle</span></button>`;
+                }
+                if (client.comprobante) {
+                     actionsHtml += `<button onclick="openReceiptModal('${client.comprobante}', ${client.id})" class="text-slate-400 hover:text-purple-600 bg-slate-50 hover:bg-purple-50 p-2 rounded-lg transition-colors border border-slate-100 ml-1" title="Ver Comprobante de Pago"><span class="material-symbols-outlined text-[20px]">receipt_long</span></button>`;
+                }
+                
+                actionsHtml += `<button onclick="eliminarNegocio(${client.id})" class="text-slate-400 hover:text-red-600 bg-slate-50 hover:bg-red-50 p-2 rounded-lg transition-colors border border-slate-100 ml-1" title="Eliminar Negocio"><span class="material-symbols-outlined text-[20px]">delete</span></button>`;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-5">
+                            <p class="font-bold text-slate-900 text-base mb-1">${client.nombre_fantasia}</p>
+                            <a href="../calendario.html?n=${urlRuta}" target="_blank" class="text-xs font-semibold text-blue-500 hover:text-blue-700 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">link</span> agendatina.site/${urlRuta}</a>
+                        </td>
+                        <td class="p-5">
+                            <p class="font-bold text-slate-800">${client.nombre_completo || 'Sin nombre'}</p>
+                            <p class="text-xs text-slate-500 font-medium">${client.email || 'N/A'}</p>
+                        </td>
+                        <td class="p-5"><span class="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200">${client.plan || 'Básico'}</span></td>
+                        <td class="p-5">${badgeStatus} ${fechaAltaText}</td>
+                        <td class="p-5">${badgeCalendario}</td>
+                        <td class="p-5 text-right whitespace-nowrap">${actionsHtml}</td>
+                    </tr>
+                `;
+            });
+    } else {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500 font-medium">No se encontraron negocios con ese término.</td></tr>';
+    }
+}
+
+function fetchClients() {
+    fetch('../backend/admin_api.php')
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (data.data.length > 0) {
+                clientsData = data.data;
+                renderTable(clientsData);
+            } else {
+                document.getElementById('clientsList').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500 font-medium">Aún no hay clientes registrados en el sistema.</td></tr>';
+            }
+            // Renderizar los reportes de error que devuelve la API
+            if (data.notificaciones) {
+                renderAdminReports(data.notificaciones);
+            }
+        } else {
+            document.getElementById('clientsList').innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-500 font-medium flex items-center justify-center gap-2"><span class="material-symbols-outlined">warning</span> Error de BD: ${data.error || 'No se pudieron cargar los datos.'}</td></tr>`;
+        }
+    })
+    .catch(err => {
+        document.getElementById('clientsList').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-red-500 font-medium flex items-center justify-center gap-2"><span class="material-symbols-outlined">warning</span> Error al cargar los datos desde la BD.</td></tr>';
+    });
+}
+
+function filterClients() {
+    const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+    const statusTerm = document.getElementById('statusFilter')?.value || '';
+    
+    const filtered = clientsData.filter(client => {
+        const matchesSearch = (client.nombre_fantasia && client.nombre_fantasia.toLowerCase().includes(searchTerm)) || 
+                              ((client.ruta || client.subdominio) && (client.ruta || client.subdominio).toLowerCase().includes(searchTerm)) ||
+                              (client.nombre_completo && client.nombre_completo.toLowerCase().includes(searchTerm)) ||
+                              (client.email && client.email.toLowerCase().includes(searchTerm));
+        const matchesStatus = statusTerm === '' || client.estado_pago === statusTerm;
+        return matchesSearch && matchesStatus;
+    });
+    renderTable(filtered);
+}
+
+document.getElementById('searchInput')?.addEventListener('input', filterClients);
+document.getElementById('statusFilter')?.addEventListener('change', filterClients);
+
+function openModal() {
+    const modal = document.getElementById('newClientModal');
+    const content = document.getElementById('modalContent');
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+    }, 10);
+}
+
+function closeModal() {
+    const modal = document.getElementById('newClientModal');
+    const content = document.getElementById('modalContent');
+    modal.classList.add('opacity-0');
+    content.classList.add('scale-95');
+    setTimeout(() => { 
+        modal.classList.add('hidden'); 
+        document.getElementById('newClientForm').reset();
+        document.getElementById('formMessage').classList.add('hidden');
+    }, 300);
+}
+
+function openEditModal(index) {
+    const client = clientsData[index];
+    if (!client) return;
+    
+    document.getElementById('edit_id_negocio').value = client.id;
+    document.getElementById('edit_nombre_fantasia').value = client.nombre_fantasia;
+    
+    const planSelect = document.getElementById('edit_plan');
+    planSelect.value = client.plan || 'Basico';
+    if(!planSelect.value) planSelect.value = 'Basico';
+
+    const estadoSelect = document.getElementById('edit_estado_pago');
+    estadoSelect.value = client.estado_pago || 'prueba';
+    if(!estadoSelect.value) estadoSelect.value = 'prueba';
+
+    const modal = document.getElementById('editClientModal');
+    const content = document.getElementById('editModalContent');
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+    }, 10);
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editClientModal');
+    const content = document.getElementById('editModalContent');
+    modal.classList.add('opacity-0');
+    content.classList.add('scale-95');
+    setTimeout(() => { 
+        modal.classList.add('hidden'); 
+        document.getElementById('editClientForm').reset();
+        document.getElementById('editFormMessage').classList.add('hidden');
+    }, 300);
+}
+
+function openNotificationModal() {
+    const select = document.querySelector('#notificationForm select[name="id_negocio"]');
+    select.innerHTML = '<option value="">A TODOS LOS CLIENTES GLOBALES</option>';
+    clientsData.forEach(c => select.innerHTML += `<option value="${c.id}">${c.nombre_fantasia} (${c.nombre_completo})</option>`);
+    const modal = document.getElementById('notificationModal');
+    const content = document.getElementById('notificationModalContent');
+    modal.classList.remove('hidden');
+    setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+}
+
+function closeNotificationModal() {
+    const modal = document.getElementById('notificationModal');
+    const content = document.getElementById('notificationModalContent');
+    modal.classList.add('opacity-0'); content.classList.add('scale-95');
+    setTimeout(() => { modal.classList.add('hidden'); document.getElementById('notificationForm').reset(); }, 300);
+}
+
+document.getElementById('notificationForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSendNotif'); btn.disabled = true; btn.textContent = 'Enviando...';
+    fetch('../backend/admin_api.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(this))) })
+    .then(res => res.json()).then(data => { if(data.success){ alert('¡Notificación enviada!'); closeNotificationModal(); } else alert(data.error); })
+    .finally(() => { btn.disabled = false; btn.innerHTML = 'Enviar Notificación'; });
+});
+
+document.getElementById('editClientForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btnSubmit = document.getElementById('btnEditSubmit');
+    const msgDiv = document.getElementById('editFormMessage');
+    
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span> Guardando...';
+    msgDiv.classList.add('hidden');
+
+    const formData = new FormData(this);
+    const dataObj = Object.fromEntries(formData.entries());
+
+    fetch('../backend/admin_api.php', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataObj)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            msgDiv.innerHTML = '<span class="material-symbols-outlined align-middle mr-1">check_circle</span> ¡Suscripción actualizada!';
+            msgDiv.className = 'p-4 rounded-xl text-sm font-bold text-center bg-green-100 text-green-800 border border-green-200';
+            msgDiv.classList.remove('hidden');
+            fetchClients(); // Refrescar la tabla automáticamente
+            setTimeout(() => closeEditModal(), 1500);
+        } else {
+            msgDiv.innerHTML = '<span class="material-symbols-outlined align-middle mr-1">error</span> ' + (data.error || 'Ocurrió un error.');
+            msgDiv.className = 'p-4 rounded-xl text-sm font-bold text-center bg-red-100 text-red-800 border border-red-200';
+            msgDiv.classList.remove('hidden');
+        }
+    })
+    .catch(err => {
+        msgDiv.innerHTML = '<span class="material-symbols-outlined align-middle mr-1">wifi_off</span> Error de conexión con el servidor.';
+        msgDiv.className = 'p-4 rounded-xl text-sm font-bold text-center bg-red-100 text-red-800 border border-red-200';
+        msgDiv.classList.remove('hidden');
+    })
+    .finally(() => {
+        if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<span class="material-symbols-outlined text-[20px]">save</span> Guardar';
+        }
+    });
+});
+
+document.getElementById('newClientForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btnSubmit = document.getElementById('btnSubmit');
+    const msgDiv = document.getElementById('formMessage');
+    
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span> Creando...';
+    msgDiv.classList.add('hidden');
+
+    const formData = new FormData(this);
+    const dataObj = Object.fromEntries(formData.entries());
+
+    fetch('../backend/admin_api.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataObj)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            msgDiv.innerHTML = '<span class="material-symbols-outlined align-middle mr-1">check_circle</span> ¡Negocio y usuario registrados exitosamente!';
+            msgDiv.className = 'p-4 rounded-xl text-sm font-bold text-center bg-green-100 text-green-800 border border-green-200';
+            msgDiv.classList.remove('hidden');
+            fetchClients();
+            setTimeout(() => {
+                closeModal();
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = '<span class="material-symbols-outlined text-[20px]">save</span> Crear Cuenta y Negocio';
+            }, 2000);
+        } else {
+            msgDiv.innerHTML = '<span class="material-symbols-outlined align-middle mr-1">error</span> ' + (data.error || 'Ocurrió un error.');
+            msgDiv.className = 'p-4 rounded-xl text-sm font-bold text-center bg-red-100 text-red-800 border border-red-200';
+            msgDiv.classList.remove('hidden');
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<span class="material-symbols-outlined text-[20px]">save</span> Crear Cuenta y Negocio';
+        }
+    })
+    .catch(err => {
+        msgDiv.innerHTML = '<span class="material-symbols-outlined align-middle mr-1">wifi_off</span> Error de conexión con el servidor.';
+        msgDiv.className = 'p-4 rounded-xl text-sm font-bold text-center bg-red-100 text-red-800 border border-red-200';
+        msgDiv.classList.remove('hidden');
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = '<span class="material-symbols-outlined text-[20px]">save</span> Crear Cuenta y Negocio';
+    });
+});
+
+// ==========================================
+// EDICIÓN DE INFORMACIÓN BÁSICA DEL CLIENTE
+// ==========================================
+function openEditInfoModal(index) {
+    const client = clientsData[index];
+    if (!client) return;
+    
+    document.getElementById('editInfoIdNegocio').value = client.id;
+    document.getElementById('editNombreDueno').value = client.nombre_completo || '';
+    document.getElementById('editEmail').value = client.email || '';
+    document.getElementById('editNombreNegocio').value = client.nombre_fantasia || '';
+    document.getElementById('editRutaWeb').value = client.ruta || client.subdominio || '';
+    document.getElementById('editPassword').value = ''; 
+
+    const modal = document.getElementById('editInfoModal');
+    const content = document.getElementById('editInfoModalContent');
+    modal.classList.remove('hidden');
+    setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+}
+
+function closeEditInfoModal() {
+    const modal = document.getElementById('editInfoModal');
+    const content = document.getElementById('editInfoModalContent');
+    modal.classList.add('opacity-0');
+    content.classList.add('scale-95');
+    setTimeout(() => { 
+        modal.classList.add('hidden'); 
+        document.getElementById('editInfoForm').reset();
+        document.getElementById('editInfoFormMessage').classList.add('hidden');
+    }, 300);
+}
+
+document.getElementById('editInfoForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btnSubmit = document.getElementById('btnEditInfoSubmit');
+    const msgDiv = document.getElementById('editInfoFormMessage');
+    
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span> Guardando...';
+    msgDiv.classList.add('hidden');
+
+    const payload = {
+        id_negocio: document.getElementById('editInfoIdNegocio').value,
+        action: 'edit_client',
+        nombre_completo: document.getElementById('editNombreDueno').value,
+        email: document.getElementById('editEmail').value,
+        nombre_fantasia: document.getElementById('editNombreNegocio').value,
+        ruta: document.getElementById('editRutaWeb').value,
+        password: document.getElementById('editPassword').value
+    };
+
+    fetch('../backend/admin_api.php', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    }).then(res => res.json()).then(data => {
+        if (data.success) {
+            msgDiv.innerHTML = '<span class="material-symbols-outlined align-middle mr-1">check_circle</span> ¡Información actualizada!';
+            msgDiv.className = 'p-4 rounded-xl text-sm font-bold text-center bg-green-100 text-green-800 border border-green-200';
+            msgDiv.classList.remove('hidden');
+            fetchClients();
+            setTimeout(() => closeEditInfoModal(), 1500);
+        } else {
+            msgDiv.innerHTML = '<span class="material-symbols-outlined align-middle mr-1">error</span> ' + (data.error || 'Ocurrió un error.');
+            msgDiv.className = 'p-4 rounded-xl text-sm font-bold text-center bg-red-100 text-red-800 border border-red-200';
+            msgDiv.classList.remove('hidden');
+        }
+    }).catch(err => {
+        msgDiv.innerHTML = '<span class="material-symbols-outlined align-middle mr-1">wifi_off</span> Error de conexión con el servidor.';
+        msgDiv.className = 'p-4 rounded-xl text-sm font-bold text-center bg-red-100 text-red-800 border border-red-200';
+        msgDiv.classList.remove('hidden');
+    }).finally(() => {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = '<span class="material-symbols-outlined text-[20px]">save</span> Guardar Cambios';
+    });
+});
+
+// ==========================================
+// ACCIONES RÁPIDAS
+// ==========================================
+function registrarPago(idNegocio) {
+    if (!confirm('✅ ¿Registrar nuevo pago mensual?\n\nEsto actualizará la fecha de último pago a hoy y desbloqueará el sistema automáticamente para este cliente.')) return;
+    fetch('../backend/admin_api.php', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_negocio: idNegocio, action: 'registrar_pago' }) }).then(res => res.json()).then(data => { if (data.success) fetchClients(); else alert(data.error); });
+}
+
+function suspenderNegocio(idNegocio) {
+    if (!confirm('⚠️ ¿Estás seguro de que deseas SUSPENDER este negocio?\n\nEl dueño conservará sus datos, pero su sistema quedará marcado como impago.')) return;
+    fetch('../backend/admin_api.php', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_negocio: idNegocio, estado_pago: 'suspendido' }) }).then(res => res.json()).then(data => { if (data.success) fetchClients(); else alert(data.error); });
+}
+
+let currentReceiptId = null;
+
+function openReceiptModal(url, idNegocio) {
+    currentReceiptId = idNegocio;
+    const modal = document.getElementById('receiptModal');
+    const content = document.getElementById('receiptModalContent');
+    const img = document.getElementById('receiptImage');
+    const pdf = document.getElementById('receiptPdf');
+    
+    img.classList.add('hidden');
+    pdf.classList.add('hidden');
+    
+    if(url.toLowerCase().endsWith('.pdf')) {
+        pdf.src = '../' + url;
+        pdf.classList.remove('hidden');
+    } else {
+        img.src = '../' + url;
+        img.classList.remove('hidden');
+    }
+    
+    modal.classList.remove('hidden');
+    setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+}
+
+function closeReceiptModal() {
+    const modal = document.getElementById('receiptModal');
+    const content = document.getElementById('receiptModalContent');
+    modal.classList.add('opacity-0');
+    content.classList.add('scale-95');
+    setTimeout(() => { modal.classList.add('hidden'); document.getElementById('receiptPdf').src = ''; document.getElementById('receiptImage').src = ''; currentReceiptId = null; }, 300);
+}
+
+function aprobarComprobante() {
+    if(!currentReceiptId) return;
+    const btn = document.getElementById('btnApproveReceipt'); btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span> Procesando...';
+    fetch('../backend/admin_api.php', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_negocio: currentReceiptId, action: 'registrar_pago' }) }).then(res => res.json()).then(data => { if (data.success) { fetchClients(); closeReceiptModal(); } else alert(data.error); }).finally(() => { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">check</span> Aprobar Pago'; });
+}
+
+function rechazarComprobante() {
+    if(!currentReceiptId) return;
+    if(!confirm('¿Estás seguro de RECHAZAR este comprobante? El negocio quedará suspendido hasta que suba uno nuevo.')) return;
+    const btn = document.getElementById('btnRejectReceipt'); btn.disabled = true; btn.innerHTML = 'Procesando...';
+    fetch('../backend/admin_api.php', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_negocio: currentReceiptId, estado_pago: 'suspendido' }) }).then(res => res.json()).then(data => { if (data.success) { fetchClients(); closeReceiptModal(); } else alert(data.error); }).finally(() => { btn.disabled = false; btn.innerHTML = 'Rechazar y Suspender'; });
+}
+
+let negocioToDelete = null;
+
+function eliminarNegocio(idNegocio) {
+    negocioToDelete = idNegocio;
+    const modal = document.getElementById('confirmDeleteModal');
+    const content = document.getElementById('confirmDeleteModalContent');
+    modal.classList.remove('hidden');
+    setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+}
+
+function closeConfirmDelete() {
+    const modal = document.getElementById('confirmDeleteModal');
+    const content = document.getElementById('confirmDeleteModalContent');
+    modal.classList.add('opacity-0');
+    content.classList.add('scale-95');
+    setTimeout(() => { 
+        modal.classList.add('hidden'); 
+        negocioToDelete = null;
+        const btn = document.getElementById('btnConfirmDelete');
+        btn.disabled = false;
+        btn.innerHTML = 'Eliminar';
+    }, 300);
+}
+
+function executeDeleteNegocio() {
+    if (!negocioToDelete) return;
+    const btn = document.getElementById('btnConfirmDelete');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px] align-middle">refresh</span> Procesando...';
+    
+    fetch(`../backend/admin_api.php?id=${negocioToDelete}`, { method: 'DELETE' })
+    .then(res => res.json())
+    .then(data => { 
+        if (data.success) { closeConfirmDelete(); fetchClients(); } 
+        else { alert(data.error); btn.disabled = false; btn.innerHTML = 'Eliminar'; }
+    }).catch(err => { alert('Error de conexión.'); btn.disabled = false; btn.innerHTML = 'Eliminar'; });
+}
+
+function logoutAdmin() {
+    fetch('../backend/admin_auth.php', { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) window.location.href = 'login.html';
+        })
+        .catch(() => {
+            window.location.href = 'login.html';
+        });
+}
+
+// ==========================================
+// RENDERIZADO DE REPORTES DE ERROR
+// ==========================================
+function renderAdminReports(notificaciones) {
+    const listContainer = document.getElementById('adminReportsList');
+    if (!listContainer) return;
+    listContainer.innerHTML = '';
+
+    if (!notificaciones || notificaciones.length === 0) {
+        listContainer.innerHTML = `<div class="p-6 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-300"><span class="material-symbols-outlined text-4xl mb-2 text-slate-300">check_circle</span><p class="font-medium text-sm">Todo funciona perfecto. No hay reportes recientes.</p></div>`;
+        return;
+    }
+
+    notificaciones.forEach(notif => {
+        // Reemplazar guiones por barras para compatibilidad con Safari/iOS
+        const dateObj = new Date(notif.fecha.replace(/-/g, '/')); 
+        const fechaFormat = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+        const horaFormat = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+        listContainer.innerHTML += `
+            <div class="bg-slate-50 border-l-4 border-red-500 p-4 sm:p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow relative group mb-4 w-full">
+                <div class="flex flex-col sm:flex-row sm:justify-between items-start gap-3 mb-3">
+                    <span class="text-[10px] font-bold text-red-700 bg-red-100 px-2.5 py-1 rounded-md uppercase tracking-wider">📍 Segmento: ${notif.segmento}</span>
+                    <div class="flex items-center gap-2 self-end sm:self-auto mt-2 sm:mt-0">
+                        <span class="text-xs font-semibold text-slate-500 bg-white px-2 py-1 rounded-md border border-slate-200">${fechaFormat} - ${horaFormat}</span>
+                        <button onclick="deleteAdminReport(${notif.id})" class="text-slate-400 hover:text-red-500 bg-white p-1 rounded-md border border-slate-200 transition-colors" title="Eliminar reporte (Ya solucionado)"><span class="material-symbols-outlined text-[16px] block">delete</span></button>
+                    </div>
+                </div>
+                <div class="mb-3 flex items-center flex-wrap gap-2"><span class="material-symbols-outlined text-[16px] text-slate-400 shrink-0">storefront</span><span class="text-sm font-bold text-slate-700 break-all">ID del Negocio: <span class="text-primary">${notif.id_negocio || 'Usuario Desconocido'}</span></span></div>
+                <div class="bg-white p-3 sm:p-4 rounded-lg border border-slate-200 text-sm text-slate-600 relative overflow-hidden"><span class="material-symbols-outlined absolute text-slate-100 text-4xl -top-2 -left-2 rotate-180 z-0">format_quote</span><p class="relative z-10 italic break-words">${notif.mensaje}</p></div>
+            </div>`;
+    });
+}
+
+function deleteAdminReport(id) {
+    if (confirm('¿Marcar como solucionado y eliminar este reporte?')) {
+        fetch('../backend/admin_api.php?id_reporte=' + id, { method: 'DELETE' })
+        .then(res => res.json())
+        .then(data => { 
+            if (data.success) fetchClients(); // Refrescar silenciosamente (API devolverá la nueva lista sin recargar toda la web)
+            else alert(data.error || 'Error al eliminar el reporte.'); 
+        }).catch(() => alert('Error de conexión al eliminar.'));
+    }
+}
+</script>
+</body>
+</html>

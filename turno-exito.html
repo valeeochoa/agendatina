@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: { extend: { colors: { primary: "#ec135b" }, fontFamily: { display: ["Plus Jakarta Sans", "sans-serif"] } } }
+    };
+  </script>
+  <title>Turno Confirmado</title>
+</head>
+<body class="bg-[#fcfafa] dark:bg-black font-display text-slate-800 dark:text-slate-100 min-h-screen flex flex-col items-center justify-center p-6">
+  
+  <div class="max-w-md w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-10 shadow-xl text-center">
+    <!-- Logo/Header del local -->
+    <div class="flex justify-center mb-6">
+        <div id="navIconContainer" class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
+          <span id="navIcon" class="material-symbols-outlined text-3xl">auto_awesome</span>
+        </div>
+        <img id="navLogoImg" src="" alt="Logo" class="hidden h-16 w-auto object-contain rounded-xl">
+    </div>
+
+    <div class="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+        <span class="material-symbols-outlined text-green-500 text-4xl">check_circle</span>
+    </div>
+    
+    <h1 class="text-3xl font-extrabold tracking-tight mb-4">¡Turno Solicitado!</h1>
+    <p class="text-slate-500 dark:text-slate-400 mb-8">Tu solicitud ha sido enviada con éxito al negocio. Te contactarán a la brevedad para confirmar tu horario.</p>
+    
+    <a id="btnVolver" href="#" class="inline-block w-full bg-primary text-white py-4 rounded-[1.5rem] font-bold text-lg shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all">
+      Volver a la página
+    </a>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const negocioSlug = urlParams.get('n') || '';
+        const btnVolver = document.getElementById('btnVolver');
+        
+        // Configurar el botón de volver para que redirija amigablemente
+        if (negocioSlug) btnVolver.href = `/${negocioSlug}`;
+        else btnVolver.href = 'index.html';
+
+        if (negocioSlug) {
+            fetch(`backend/guardar_web.php?n=${negocioSlug}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && !data.error) {
+                        if (data.titulo) document.title = `${data.titulo} | Turno Solicitado`;
+                        if (data.logo) {
+                            const favicon = document.querySelector('link[rel="icon"]');
+                            if (favicon) favicon.href = data.logo;
+                            document.getElementById('navIconContainer').classList.add('hidden');
+                            const navLogoImg = document.getElementById('navLogoImg');
+                            navLogoImg.src = data.logo; navLogoImg.classList.remove('hidden');
+                        }
+                        if (data.color_primario || data.color_fondo) {
+                            const pColor = data.color_primario || '#ec135b';
+                            const style = document.createElement('style');
+                            let styleHTML = `.bg-primary { background-color: ${pColor} !important; } .text-primary { color: ${pColor} !important; } .shadow-primary\\/30 { --tw-shadow-color: ${pColor}4d !important; } .bg-primary\\/10 { background-color: ${pColor}1a !important; }`;
+                            if (data.color_fondo) styleHTML += `body, .bg-[#fcfafa] { background-color: ${data.color_fondo} !important; }`;
+                            style.innerHTML = styleHTML;
+                            document.head.appendChild(style);
+                        }
+                    }
+                })
+                .catch(err => console.error('Error al cargar personalización:', err));
+        }
+    });
+  </script>
+</body>
+</html>

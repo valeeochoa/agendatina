@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Editor Web | Agendatina</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-2.5 5.43l-4.57 4.57-2.43-2.43 1.41-1.41 1.02 1.02 3.16-3.16 1.41 1.41z'/></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Manrope', 'sans-serif'] }, colors: { primary: '#3b82f6', secondary: '#8b5cf6' } } }
+        }
+    </script>
+    <style>
+        input[type="file"] { width: auto !important; max-width: 100%; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-900 antialiased">
+
+    <!-- Navbar del Dashboard -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-3xl">event_available</span>
+                <span class="font-bold text-xl tracking-tight hidden sm:block">Agendatina</span>
+            </div>
+            <div class="flex items-center flex-wrap justify-end gap-2 sm:gap-4">
+                <button onclick="openReportErrorModal('Editor Web')" class="text-[11px] sm:text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-2.5 sm:px-3 py-2 rounded-lg flex items-center gap-1 transition-colors whitespace-nowrap">
+                    <span class="material-symbols-outlined text-[16px]">bug_report</span> <span class="hidden sm:inline">Reportar Error</span>
+                </button>
+                <a href="dashboard.html" class="text-xs sm:text-sm font-semibold hover:text-primary transition-colors flex items-center gap-1 whitespace-nowrap">
+                   <span class="material-symbols-outlined text-sm">arrow_back</span> <span class="hidden sm:inline">Volver al panel</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto w-full px-6 py-12">
+        <!-- Estado de Carga Inicial -->
+        <div id="webLoader" class="flex flex-col items-center justify-center py-24 text-slate-400 transition-all duration-300">
+            <span class="material-symbols-outlined text-5xl animate-spin mb-4 text-primary">refresh</span>
+            <p class="font-bold text-lg text-slate-600">Cargando tu configuración...</p>
+        </div>
+
+        <div id="webMainContent" class="hidden opacity-0 transition-opacity duration-500">
+            <div class="flex justify-between items-center mb-10">
+                <div>
+                    <h1 class="text-3xl font-extrabold font-display mb-2">Editor de mi Página Web</h1>
+                    <p class="text-slate-500">Personaliza cómo los clientes ven tu página de presentación.</p>
+                </div>
+                <a href="web.html" target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg text-sm flex items-center gap-2">
+                    <span class="material-symbols-outlined text-base">visibility</span>
+                    Ver mi página
+                </a>
+            </div>
+
+            <div class="space-y-12">
+            <!-- Sección Portada -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold mb-4">Sección de Portada</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Título Principal</label>
+                        <input type="text" id="webTitulo" value="Mi Centro de Estética" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all">
+                        <p class="text-xs text-slate-500 mt-1">El nombre de tu negocio que se muestra en grande.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Subtítulo o Slogan</label>
+                        <input type="text" id="webSubtitulo" value="Expertos en realzar tu belleza natural." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all">
+                        <p class="text-xs text-slate-500 mt-1">Una frase corta que te describa.</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Imagen de fondo (Portada)</label>
+                        <input type="file" id="webFondoFile" accept="image/png, image/jpeg, image/webp" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                        <input type="hidden" id="webFondo">
+                        <p class="text-xs text-slate-500 mt-1">Sube una imagen para el fondo de tu página (se reemplazará si subes otra).</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Logo de tu negocio</label>
+                        <input type="file" id="webLogo" accept="image/png, image/jpeg, image/svg+xml" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                        <p class="text-xs text-slate-500 mt-1">Sube tu logo (recomendado formato PNG transparente).</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Local y Mapa -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold mb-4">Información del Local</h2>
+                <div class="grid grid-cols-1 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Descripción del Local (Sobre Nosotros)</label>
+                        <textarea id="webTextoLocal" rows="4" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all resize-none" placeholder="Cuéntale a tus clientes sobre tu negocio, historia y valores..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Ubicación (Google Maps)</label>
+                        <input type="text" id="webUbicacionMaps" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Pega aquí el enlace de Google Maps o código de iframe">
+                        <p class="text-xs text-slate-500 mt-1">Ayuda a tus clientes a encontrarte fácilmente insertando tu link de Maps.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de Profesionales -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Nuestro Equipo (Profesionales)</h2>
+                    <button type="button" id="addProfWebBtn" class="bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-lg text-sm">Añadir Profesional</button>
+                </div>
+                <p class="text-sm text-slate-500 mb-6">Muestra quiénes integran tu equipo, sus fotos de perfil y a qué se dedican.</p>
+                
+                <!-- Lista de Profesionales dinámica -->
+                <div id="profesionalesWebList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Insertado por JS -->
+                </div>
+            </div>
+
+            <!-- Sección Servicios -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Mis Servicios</h2>
+                    <button id="addServiceBtn" class="bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-lg text-sm">Añadir Servicio</button>
+                </div>
+                <p class="text-sm text-slate-500 mb-6">Aquí puedes listar los servicios que ofreces. Haz clic en uno para editar sus detalles, precio, duración y fotos.</p>
+                
+                <!-- Listado de servicios (ejemplo) -->
+                <div id="servicesList" class="space-y-4">
+                    <!-- Los servicios se cargarán aquí dinámicamente desde servicios.json -->
+                </div>
+            </div>
+
+            <!-- Cursos y Certificados -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold">Cursos y Certificados</h2>
+                    <button type="button" id="addCursoWebBtn" onclick="openCursoWebModal(-1)" class="bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">Añadir Certificado</button>
+                </div>
+                <p class="text-sm text-slate-500 mb-4">Destaca tus conocimientos, certificaciones o cursos que ofreces (puedes usar la lista visual o el editor clásico abajo).</p>
+                
+                <div id="cursosWebList" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <!-- La lista visual se inyectará aquí vía JS -->
+                </div>
+
+                <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+                    <div class="bg-slate-200 p-2 flex gap-2 border-b border-slate-300">
+                        <button type="button" onmousedown="event.preventDefault();" onclick="document.execCommand('bold',false,null)" class="p-1 hover:bg-white rounded px-2 font-bold transition-colors">B</button>
+                        <button type="button" onmousedown="event.preventDefault();" onclick="document.execCommand('italic',false,null)" class="p-1 hover:bg-white rounded px-2 italic transition-colors">I</button>
+                        <button type="button" onmousedown="event.preventDefault();" onclick="document.execCommand('underline',false,null)" class="p-1 hover:bg-white rounded px-2 underline transition-colors">U</button>
+                        <div class="w-px bg-slate-300 mx-1"></div>
+                        <button type="button" onmousedown="event.preventDefault();" onclick="document.execCommand('insertUnorderedList',false,null)" class="p-1 hover:bg-white rounded px-2 transition-colors" title="Viñetas"><span class="material-symbols-outlined text-[18px]">format_list_bulleted</span></button>
+                    </div>
+                    <div id="cursosEditor" contenteditable="true" class="p-4 min-h-[150px] text-sm outline-none focus:ring-2 focus:ring-primary/50 bg-white text-slate-700"></div>
+                </div>
+            </div>
+
+             <!-- Sección Colores (Futuro) -->
+            <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-xl font-bold mb-4">Paleta de Colores</h2>
+                <p class="text-sm text-slate-500 mb-6">Personaliza los colores de tu página para que coincidan con tu marca.</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="flex items-center gap-4">
+                        <input type="color" id="webColorPrimario" value="#3b82f6" class="w-12 h-12 rounded-lg border-none cursor-pointer p-0 bg-transparent">
+                        <div>
+                            <label for="webColorPrimario" class="block text-sm font-semibold text-slate-700">Color Principal</label>
+                            <p class="text-xs text-slate-500">Usado en botones y enlaces principales.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <input type="color" id="webColorSecundario" value="#8b5cf6" class="w-12 h-12 rounded-lg border-none cursor-pointer p-0 bg-transparent">
+                        <div>
+                            <label for="webColorSecundario" class="block text-sm font-semibold text-slate-700">Color Secundario (Decoración)</label>
+                            <p class="text-xs text-slate-500">Usado para destacar elementos.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <input type="color" id="webColorFondo" value="#f8fafc" class="w-12 h-12 rounded-lg border-none cursor-pointer p-0 bg-transparent">
+                        <div>
+                            <label for="webColorFondo" class="block text-sm font-semibold text-slate-700">Color de Fondo</label>
+                            <p class="text-xs text-slate-500">Color base de tu página.</p>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2 mt-4 pt-4 border-t border-slate-100">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Alineación de los Servicios</label>
+                        <select id="webAlineacion" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all">
+                            <option value="left">Alineados a la Izquierda</option>
+                            <option value="center">Centrados</option>
+                            <option value="right">Alineados a la Derecha</option>
+                        </select>
+                        <p class="text-xs text-slate-500 mt-1">Cómo se mostrará el texto en las tarjetas de los servicios de tu web.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-12 text-right">
+            <button id="saveWebDataBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg text-base transition-colors">Guardar Cambios</button>
+        </div>
+        </div>
+    </main>
+
+    <!-- Modal para Editar/Añadir Servicio -->
+    <div id="serviceDetailModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 transform scale-95 transition-transform duration-300" id="serviceDetailModalContent">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="serviceModalTitle" class="text-2xl font-bold font-display text-slate-800">Editar Servicio</h2>
+                <button id="closeServiceModalBtn" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="serviceDetailForm" class="flex flex-col gap-4 max-h-[70vh] overflow-y-auto pr-2">
+                <input type="hidden" name="id" id="serviceIdInput">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Nombre</label>
+                        <input type="text" name="nombre" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Profesional (Opcional)</label>
+                        <input type="text" name="profesional" placeholder="Ej: Ana" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Email del Profesional</label>
+                        <input type="email" name="email_profesional" placeholder="ana@ejemplo.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all text-sm">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Foto del Profesional</label>
+                        <div class="space-y-2">
+                            <input type="file" name="foto_profesional_file" accept="image/png, image/jpeg, image/webp" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                            <input type="text" name="foto_profesional" placeholder="O pega una URL directa..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Duración</label>
+                        <div class="flex items-center gap-2">
+                            <input type="number" id="duracionH" min="0" placeholder="Horas" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all">
+                            <span class="text-sm font-bold text-slate-500">h</span>
+                            <input type="number" id="duracionM" min="0" max="59" step="5" placeholder="Min" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all">
+                            <span class="text-sm font-bold text-slate-500">m</span>
+                        </div>
+                        <input type="hidden" name="duracion" id="duracionFinal">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Precio ($)</label>
+                        <input type="number" name="precio" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Descripción Detallada</label>
+                    <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+                        <div class="bg-slate-200 p-2 flex gap-2 border-b border-slate-300">
+                            <button type="button" onmousedown="event.preventDefault();" onclick="document.execCommand('bold',false,null)" class="p-1 hover:bg-white rounded px-2 font-bold transition-colors">B</button>
+                            <button type="button" onmousedown="event.preventDefault();" onclick="document.execCommand('italic',false,null)" class="p-1 hover:bg-white rounded px-2 italic transition-colors">I</button>
+                            <button type="button" onmousedown="event.preventDefault();" onclick="document.execCommand('underline',false,null)" class="p-1 hover:bg-white rounded px-2 underline transition-colors">U</button>
+                            <div class="w-px bg-slate-300 mx-1"></div>
+                            <input type="color" onmousedown="event.preventDefault();" onchange="document.execCommand('foreColor',false,this.value)" class="w-8 h-8 p-0 border-0 rounded cursor-pointer bg-transparent">
+                        </div>
+                        <div id="descEditor" contenteditable="true" class="p-4 min-h-[120px] text-sm outline-none focus:ring-2 focus:ring-primary/50 bg-white text-slate-700"></div>
+                    </div>
+                    <input type="hidden" name="descripcion" id="hiddenDesc">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Imágenes del Servicio (Máx 3 fotos)</label>
+                    <div class="space-y-2">
+                        <input type="hidden" name="imagen1" id="hiddenImagen1">
+                        <input type="hidden" name="imagen2" id="hiddenImagen2">
+                        <input type="hidden" name="imagen3" id="hiddenImagen3">
+                        <input type="file" name="imagen1_file" accept="image/*" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                        <input type="file" name="imagen2_file" accept="image/*" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                        <input type="file" name="imagen3_file" accept="image/*" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                    </div>
+                </div>
+                <div class="mt-4 text-right">
+                    <button type="submit" class="bg-primary text-white font-bold py-2.5 px-6 rounded-lg">Guardar Servicio</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Añadir/Editar Profesionales (Web) -->
+    <div id="profWebModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform scale-95 transition-transform duration-300" id="profWebModalContent">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-slate-800">Detalles del Profesional</h2>
+                <button type="button" onclick="closeProfWebModal()" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <form id="profWebForm" class="flex flex-col gap-4">
+                <input type="hidden" id="profWebIndex">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nombre del Profesional</label>
+                    <input type="text" id="profWebName" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Descripción / A qué se dedica</label>
+                    <textarea id="profWebDesc" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none resize-none" placeholder="Breve descripción de su especialidad y experiencia..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">URL de Foto de Perfil</label>
+                    <input type="url" id="profWebPhoto" placeholder="https://ejemplo.com/foto.jpg" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none">
+                </div>
+                <button type="submit" class="w-full bg-primary text-white font-bold py-3 rounded-xl mt-2 hover:bg-primary/90 transition-colors">Guardar Profesional</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Añadir/Editar Cursos (Web) -->
+    <div id="cursoWebModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 transform scale-95 transition-transform duration-300" id="cursoWebModalContent">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-slate-800">Detalles del Certificado</h2>
+                <button type="button" onclick="closeCursoWebModal()" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <form id="cursoWebForm" class="flex flex-col gap-4">
+                <input type="hidden" id="cursoWebIndex">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nombre del Curso / Certificado</label>
+                    <input type="text" id="cursoWebName" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Descripción (Opcional)</label>
+                    <textarea id="cursoWebDesc" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none resize-none" placeholder="Breve descripción..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Foto del Certificado</label>
+                    <input type="file" id="cursoWebPhoto" accept="image/png, image/jpeg, image/webp" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                    <input type="hidden" id="cursoWebPhotoBase64">
+                </div>
+                <button type="submit" class="w-full bg-primary text-white font-bold py-3 rounded-xl mt-2 hover:bg-primary/90 transition-colors">Guardar Certificado</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Reportar Error -->
+    <div id="reportErrorModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 max-w-md w-full p-8 transform scale-95 transition-transform duration-300" id="reportErrorModalContent">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold font-display text-slate-800 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-red-500">bug_report</span> Reportar Error
+                </h2>
+                <button onclick="closeReportErrorModal()" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <form id="reportErrorForm" class="space-y-4">
+                <input type="hidden" id="reportSegment" name="segmento" value="">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Sección donde ocurrió:</label>
+                    <input type="text" id="reportSegmentDisplay" class="w-full bg-slate-100 text-slate-500 px-4 py-3 rounded-xl cursor-not-allowed border-none font-medium text-sm" readonly>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Describe el problema:</label>
+                    <textarea name="mensaje" rows="4" required placeholder="¿Qué estabas intentando hacer y qué ocurrió?" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700 resize-none"></textarea>
+                </div>
+                <button type="submit" id="btnReportSubmit" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl mt-2 transition-all flex items-center justify-center gap-2">Enviar Reporte</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="backend/js/script.js" defer></script>
+    <script src="backend/js/mi-web.js" defer></script>
+</body>
+</html>

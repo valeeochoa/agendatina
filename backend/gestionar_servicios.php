@@ -1,0 +1,211 @@
+<?php
+session_start();
+header('Content-Type: application/json; charset=utf-8');
+
+require_once __DIR__ . '/conexion.php';
+
+// =========================================================================
+// Asegurar que las nuevas columnas existan dinámicamente (Migración)
+// =========================================================================
+try { $pdo->query("SELECT descripcion FROM servicios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN descripcion TEXT DEFAULT NULL"); }
+
+try { $pdo->query("SELECT imagen1 FROM servicios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN imagen1 VARCHAR(255) DEFAULT NULL"); }
+
+try { $pdo->query("SELECT imagen2 FROM servicios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN imagen2 VARCHAR(255) DEFAULT NULL"); }
+
+try { $pdo->query("SELECT imagen3 FROM servicios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN imagen3 VARCHAR(255) DEFAULT NULL"); }
+
+try { $pdo->query("SELECT profesional FROM servicios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN profesional VARCHAR(255) DEFAULT ''"); }
+
+try { $pdo->query("SELECT foto_profesional FROM servicios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN foto_profesional VARCHAR(255) DEFAULT NULL"); }
+
+try { $pdo->query("SELECT email_profesional FROM servicios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN email_profesional VARCHAR(255) DEFAULT ''"); }
+
+try { $pdo->query("SELECT token_seguridad FROM negocios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN token_seguridad VARCHAR(255) DEFAULT 'AgendatinaSec_2024'"); }
+
+$method = $_SERVER['REQUEST_METHOD'];
+
+// =========================================================================
+// OBTENER SERVICIOS (MÉTODO GET)
+// =========================================================================
+if ($method === 'GET') {
+    try {
+        $id_negocio = null;
+
+        // 1. Extraer el ID del negocio usando la ruta enviada en la URL (?n=tu-negocio)
+        if (!empty($_GET['n'])) {
+            $ruta = trim($_GET['n']);
+            $stmtNegocio = $pdo->prepare("SELECT id FROM negocios WHERE ruta = :ruta LIMIT 1");
+            $stmtNegocio->execute(['ruta' => $ruta]);
+            $negocio = $stmtNegocio->fetch(PDO::FETCH_ASSOC);
+            
+            if ($negocio) {
+                $id_negocio = $negocio['id'];
+            }
+        } 
+        // 2. Si no hay 'n', verificar si hay una sesión de administrador activa
+        else if (isset($_SESSION['id_negocio'])) {
+            $id_negocio = $_SESSION['id_negocio'];
+        }
+
+        // 3. Si no logramos identificar el negocio, devolvemos vacío
+        if (!$id_negocio) {
+            echo json_encode([]);
+            exit;
+        }
+
+        // 4. Obtener solo los servicios que pertenecen a ese negocio
+        $stmt = $pdo->prepare("SELECT id, id_negocio, nombre_servicio AS nombre, descripcion, duracion_minutos AS duracion, precio, profesional, email_profesional, foto_profesional, imagen1, imagen2, imagen3 FROM servicios WHERE id_negocio = :id_negocio ORDER BY id DESC");
+        $stmt->execute(['id_negocio' => $id_negocio]);
+        $servicios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Obtener ruta del negocio y token para armar los enlaces de agenda de cada profesional
+        $stmtNeg = $pdo->prepare("SELECT ruta, token_seguridad FROM negocios WHERE id = :id LIMIT 1");
+        $stmtNeg->execute(['id' => $id_negocio]);
+        $negData = $stmtNeg->fetch(PDO::FETCH_ASSOC);
+        
+        $ruta_negocio = $negData ? $negData['ruta'] : '';
+        $secret = !empty($negData['token_seguridad']) ? $negData['token_seguridad'] : 'AgendatinaSec_2024'; // Clave secreta para firmar los enlaces
+        
+        // Obtener el nombre del dueño del negocio como profesional por defecto
+        $stmtOwner = $pdo->prepare("SELECT u.nombre_completo FROM usuarios u JOIN personal_negocio pn ON u.id = pn.id_usuario WHERE pn.id_negocio = :id AND pn.rol_en_local = 'admin' LIMIT 1");
+        $stmtOwner->execute(['id' => $id_negocio]);
+        $ownerName = $stmtOwner->fetchColumn();
+        
+        foreach ($servicios as &$serv) {
+            if (empty($serv['profesional'])) { $serv['profesional'] = $ownerName; }
+            if (!empty($serv['profesional'])) {
+                $profKey = strtolower(trim($serv['profesional']));
+                $token = hash('sha256', $id_negocio . '|' . $profKey . '|' . $secret);
+                $serv['enlace_agenda'] = "agenda-profesional.html?n=" . urlencode($ruta_negocio) . "&p=" . urlencode($serv['profesional']) . "&token=" . $token;
+            } else {
+                $serv['enlace_agenda'] = "";
+            }
+        }
+
+        echo json_encode($servicios);
+
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'error' => 'Error al obtener servicios: ' . $e->getMessage()]);
+    }
+    exit;
+}
+
+// =========================================================================
+// CREAR O ACTUALIZAR SERVICIO (MÉTODO POST)
+// =========================================================================
+if ($method === 'POST') {
+    if (!isset($_SESSION['id_negocio'])) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'error' => 'No autorizado.']);
+        exit;
+    }
+
+    $contentType = isset($_SERVER["CONTENT_TYPE"]) ? trim($_SERVER["CONTENT_TYPE"]) : '';
+    if (strpos($contentType, 'application/json') !== false) {
+        $data = json_decode(file_get_contents('php://input'), true);
+    } else {
+        $data = $_POST;
+    }
+
+    $id_negocio = $_SESSION['id_negocio'];
+    
+    // Asegurarse de tomar el ID, venga por JSON o por Formulario Multipart
+    $id = !empty($_POST['id']) ? $_POST['id'] : (!empty($data['id']) ? $data['id'] : null);
+    $nombre = $data['nombre'] ?? '';
+    $duracion = $data['duracion'] ?? 0;
+    $precio = $data['precio'] ?? 0;
+    $descripcion = $data['descripcion'] ?? '';
+    $profesional = $data['profesional'] ?? '';
+    $email_profesional = $data['email_profesional'] ?? '';
+    $foto_profesional = $data['foto_profesional'] ?? '';
+    $imagen1 = $data['imagen1'] ?? $_POST['imagen1'] ?? '';
+    $imagen2 = $data['imagen2'] ?? $_POST['imagen2'] ?? '';
+    $imagen3 = $data['imagen3'] ?? $_POST['imagen3'] ?? '';
+
+    // Procesar archivo de foto si se envió uno desde la computadora
+    if (isset($_FILES['foto_profesional_file']) && $_FILES['foto_profesional_file']['error'] === UPLOAD_ERR_OK) {
+        $file = $_FILES['foto_profesional_file'];
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        
+        if (in_array($file['type'], $allowedTypes) && $file['size'] <= 2 * 1024 * 1024) {
+            $uploadDir = __DIR__ . '/uploads/profesionales/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $filename = 'prof_' . $id_negocio . '_' . time() . '_' . rand(100,999) . '.' . $extension;
+            if (move_uploaded_file($file['tmp_name'], $uploadDir . $filename)) {
+                $foto_profesional = 'backend/uploads/profesionales/' . $filename;
+            }
+        }
+    }
+
+    // Procesar imágenes del servicio
+    $uploadDirServ = __DIR__ . '/uploads/servicios/';
+    if (!is_dir($uploadDirServ)) mkdir($uploadDirServ, 0755, true);
+    
+    for ($i = 1; $i <= 3; $i++) {
+        $key = "imagen{$i}_file";
+        if (isset($_FILES[$key]) && $_FILES[$key]['error'] === UPLOAD_ERR_OK) {
+            $ext = pathinfo($_FILES[$key]['name'], PATHINFO_EXTENSION);
+            $filename = "serv_{$id_negocio}_{$i}_" . time() . ".$ext";
+            if (move_uploaded_file($_FILES[$key]['tmp_name'], $uploadDirServ . $filename)) {
+                ${"imagen".$i} = 'backend/uploads/servicios/' . $filename;
+            }
+        }
+    }
+
+    try {
+        // Verificar si ya existe un servicio idéntico (mismo nombre, duración y profesional)
+        if ($id) {
+            $stmtCheck = $pdo->prepare("SELECT id FROM servicios WHERE id_negocio = :id_negocio AND nombre_servicio = :nombre AND duracion_minutos = :duracion AND profesional = :profesional AND id != :id LIMIT 1");
+            $stmtCheck->execute(['id_negocio' => $id_negocio, 'nombre' => $nombre, 'duracion' => $duracion, 'profesional' => $profesional, 'id' => $id]);
+        } else {
+            $stmtCheck = $pdo->prepare("SELECT id FROM servicios WHERE id_negocio = :id_negocio AND nombre_servicio = :nombre AND duracion_minutos = :duracion AND profesional = :profesional LIMIT 1");
+            $stmtCheck->execute(['id_negocio' => $id_negocio, 'nombre' => $nombre, 'duracion' => $duracion, 'profesional' => $profesional]);
+        }
+
+        if ($stmtCheck->fetch()) {
+            echo json_encode(['success' => false, 'error' => 'Este servicio ya se encuentra registrado para este mismo profesional con la misma duración.']);
+            exit;
+        }
+
+        if ($id) {
+            $stmt = $pdo->prepare("UPDATE servicios SET nombre_servicio = :nombre, duracion_minutos = :duracion, precio = :precio, descripcion = :descripcion, profesional = :profesional, email_profesional = :email_profesional, foto_profesional = :foto_profesional, imagen1 = :imagen1, imagen2 = :imagen2, imagen3 = :imagen3 WHERE id = :id AND id_negocio = :id_negocio");
+            $stmt->execute(['nombre' => $nombre, 'duracion' => $duracion, 'precio' => $precio, 'descripcion' => $descripcion, 'profesional' => $profesional, 'email_profesional' => $email_profesional, 'foto_profesional' => $foto_profesional, 'imagen1' => $imagen1, 'imagen2' => $imagen2, 'imagen3' => $imagen3, 'id' => $id, 'id_negocio' => $id_negocio]);
+        } else {
+            $stmt = $pdo->prepare("INSERT INTO servicios (id_negocio, nombre_servicio, duracion_minutos, precio, descripcion, profesional, email_profesional, foto_profesional, imagen1, imagen2, imagen3) VALUES (:id_negocio, :nombre, :duracion, :precio, :descripcion, :profesional, :email_profesional, :foto_profesional, :imagen1, :imagen2, :imagen3)");
+            $stmt->execute(['id_negocio' => $id_negocio, 'nombre' => $nombre, 'duracion' => $duracion, 'precio' => $precio, 'descripcion' => $descripcion, 'profesional' => $profesional, 'email_profesional' => $email_profesional, 'foto_profesional' => $foto_profesional, 'imagen1' => $imagen1, 'imagen2' => $imagen2, 'imagen3' => $imagen3]);
+        }
+        echo json_encode(['success' => true]);
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'error' => 'Error al guardar el servicio: ' . $e->getMessage()]);
+    }
+    exit;
+}
+
+// =========================================================================
+// ELIMINAR SERVICIO (MÉTODO DELETE)
+// =========================================================================
+if ($method === 'DELETE') {
+    if (!isset($_SESSION['id_negocio'])) {
+        echo json_encode(['success' => false, 'error' => 'No autorizado.']);
+        exit;
+    }
+    $id = $_GET['id'] ?? null;
+    $id_negocio = $_SESSION['id_negocio'];
+
+    $stmt = $pdo->prepare("DELETE FROM servicios WHERE id = :id AND id_negocio = :id_negocio");
+    $stmt->execute(['id' => $id, 'id_negocio' => $id_negocio]);
+    echo json_encode(['success' => true]);
+}

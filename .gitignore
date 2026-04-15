@@ -1,0 +1,11 @@
+# Ignorar credenciales y autenticación
+backend/conexion.php
+backend/admin_auth.php
+
+# Ignorar archivos subidos por los usuarios/negocios
+backend/uploads/
+demo_reset.txt
+
+# Ignorar archivos del sistema operativo
+.DS_Store
+Thumbs.db

@@ -1,0 +1,178 @@
+// backend/js/web.js
+
+document.addEventListener('DOMContentLoaded', () => {
+    const yearEl = document.getElementById('year');
+    if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+    // Extraer el identificador del negocio desde la URL
+    let negocioSlug = '';
+    if (typeof window.NEGOCIO_SLUG !== 'undefined') {
+        negocioSlug = window.NEGOCIO_SLUG;
+    } else {
+        const urlParams = new URLSearchParams(window.location.search);
+        negocioSlug = urlParams.get('n');
+        if (!negocioSlug) {
+            const pathParts = window.location.pathname.split('/').filter(p => p && !p.includes('.html') && !p.includes('.php'));
+            const ignoreDirs = ['backend', 'css', 'js', 'public', 'agendatina', 'calendario', 'web'];
+            const validParts = pathParts.filter(p => !ignoreDirs.includes(p));
+            if (validParts.length > 0) {
+                negocioSlug = validParts[validParts.length - 1];
+            }
+        }
+    }
+    if (!negocioSlug) negocioSlug = '';
+    const queryParam = negocioSlug ? `?n=${negocioSlug}` : '';
+
+    // Cargar configuración de la web (Textos, logos, colores)
+    fetch('backend/guardar_web.php' + queryParam)
+        .then(res => res.json())
+        .then(data => {
+            if (data && !data.error) {
+                // Redirigir al calendario si el plan no incluye la mini-web
+                const planStr = (data.plan || '').toLowerCase();
+                if (planStr.includes('básico') || planStr.includes('basico') || planStr.includes('simple') || planStr.includes('intermedio')) {
+                    window.location.replace(negocioSlug ? `${negocioSlug}/calendario.html` : 'calendario.html');
+                    return;
+                }
+
+                // Actualizar enlaces al calendario
+                const linkCalendario = negocioSlug ? `${negocioSlug}/calendario.html` : 'calendario.html';
+                if (document.getElementById('navReservarBtn')) document.getElementById('navReservarBtn').href = linkCalendario;
+                if (document.getElementById('heroReservarBtn')) document.getElementById('heroReservarBtn').href = linkCalendario;
+
+                const title = data.titulo || 'Mi Negocio';
+                document.title = title;
+                if (document.getElementById('navTitle')) document.getElementById('navTitle').textContent = title;
+                if (document.getElementById('heroTitle')) document.getElementById('heroTitle').textContent = title;
+                if (document.getElementById('footerName')) document.getElementById('footerName').textContent = title;
+                if (data.subtitulo && document.getElementById('heroSubtitle')) document.getElementById('heroSubtitle').textContent = data.subtitulo;
+
+                if (data.fondo && document.getElementById('heroBackground')) {
+                    document.getElementById('heroBackground').style.backgroundImage = `url('${data.fondo}')`;
+                    document.getElementById('heroBackground').classList.remove('opacity-40');
+                    document.getElementById('heroBackground').classList.add('opacity-50');
+                }
+
+                if (data.logo) {
+                    if (document.getElementById('navIcon')) document.getElementById('navIcon').classList.add('hidden');
+                    const navLogo = document.getElementById('navLogo');
+                    if (navLogo) { navLogo.src = data.logo; navLogo.classList.remove('hidden'); }
+                    const favicon = document.querySelector('link[rel="icon"]');
+                    if (favicon) favicon.href = data.logo;
+                }
+
+                // Aplicar colores personalizados a la landing page
+                if (data.color_primario_web || data.color_secundario_web || data.color_fondo) {
+                    const pColor = data.color_primario_web || data.color_primario || '#3b82f6';
+                    const sColor = data.color_secundario_web || data.color_secundario || '#8b5cf6';
+                    const style = document.getElementById('custom-styles');
+                    if (style) {
+                        let stylesHTML = `
+                            .text-primary { color: ${pColor} !important; }
+                            .bg-primary { background-color: ${pColor} !important; }
+                            .border-primary { border-color: ${pColor} !important; }
+                            .hover\\:bg-primary:hover { background-color: ${pColor} !important; }
+                            .hover\\:shadow-primary\\/30:hover { --tw-shadow-color: ${pColor}4d !important; }
+                            .text-secondary { color: ${sColor} !important; }
+                            .bg-secondary { background-color: ${sColor} !important; }
+                        `;
+                        if (data.color_fondo) stylesHTML += `body, .bg-slate-50 { background-color: ${data.color_fondo} !important; }`;
+                        style.innerHTML = stylesHTML;
+                    }
+                }
+
+                if (data.alineacion_servicios) {
+                    const styleAlign = document.createElement('style');
+                    styleAlign.innerHTML = `.service-card { text-align: ${data.alineacion_servicios}; }`;
+                    document.head.appendChild(styleAlign);
+                }
+            }
+        })
+        .catch(err => console.error('Error al cargar la configuración web:', err));
+
+    // Cargar servicios en la web pública
+    fetch('backend/gestionar_servicios.php' + queryParam)
+        .then(res => res.json())
+        .then(data => {
+            const grid = document.getElementById('servicesGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                grid.innerHTML = '<p class="text-center text-slate-500 col-span-full py-10">No hay servicios disponibles por el momento.</p>';
+                return;
+            }
+            window.webServicesData = data;
+
+            data.forEach(service => {
+                const precio = service.precio ? `<span class="font-bold text-lg text-primary">$${service.precio}</span>` : '';
+                const imgs = [service.imagen1, service.imagen2, service.imagen3].filter(Boolean);
+                let imagesHtml = `<div class="h-48 w-full bg-slate-100 flex items-center justify-center text-slate-400"><span class="material-symbols-outlined text-4xl">spa</span></div>`;
+                if (imgs.length > 0) {
+                    const imgsHtml = imgs.map((img, i) => `<img src="${img}" alt="${service.nombre}" class="card-carousel-img absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${i === 0 ? 'opacity-100' : 'opacity-0'}">`).join('');
+                    const controls = imgs.length > 1
+                        ? `<button type="button" onclick="prevCardImg(event, '${service.id}')" class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white rounded-full p-1.5 z-10"><span class="material-symbols-outlined">chevron_left</span></button>
+                           <button type="button" onclick="nextCardImg(event, '${service.id}')" class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white rounded-full p-1.5 z-10"><span class="material-symbols-outlined">chevron_right</span></button>`
+                        : '';
+                    imagesHtml = `<div id="card-carousel-${service.id}" data-index="0" class="h-48 w-full bg-slate-200 overflow-hidden relative">${imgsHtml}${controls}</div>`;
+                }
+
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = service.descripcion || '';
+                const plainTextDesc = tempDiv.textContent || tempDiv.innerText || 'Sin descripción detallada.';
+
+                grid.innerHTML += `
+                    <div onclick="openWebModalService('${service.id}')" class="service-card cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                        ${imagesHtml}
+                        <div class="p-6 flex flex-col flex-1">
+                            <h3 class="text-xl font-bold text-slate-800 leading-tight mb-2">${service.nombre}</h3>
+                            <div class="flex items-center gap-2 text-sm font-medium text-slate-500 mb-4"><span class="material-symbols-outlined text-base">schedule</span> ${service.duracion} min</div>
+                            <div class="text-slate-500 text-sm mb-6 flex-1 line-clamp-3 overflow-hidden" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;" title="Clic para leer más">${plainTextDesc}</div>
+                            <div class="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
+                                ${precio}
+                                <span class="text-primary font-bold text-sm flex items-center gap-1">Ver detalles <span class="material-symbols-outlined text-sm">visibility</span></span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            const cards = document.querySelectorAll('.service-card');
+            if(cards.length > 0 && window.IntersectionObserver) {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach((entry, index) => {
+                        if (entry.isIntersecting) {
+                            setTimeout(() => { entry.target.classList.add('is-visible'); }, index * 100);
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.1 });
+                cards.forEach(card => observer.observe(card));
+            }
+        })
+        .catch(err => {
+            const grid = document.getElementById('servicesGrid');
+            if (grid) grid.innerHTML = '<p class="text-center text-red-500 col-span-full py-10">Ocurrió un error al cargar los servicios.</p>';
+        });
+});
+
+let currentCarouselImg = 0;
+let carouselInterval;
+
+window.openWebModalService = function(id) {
+    const service = window.webServicesData.find(s => s.id == id);
+    if(!service) return;
+    document.getElementById('webServiceModalTitle').textContent = service.nombre;
+    document.getElementById('webServiceModalDuration').innerHTML = `<span class="material-symbols-outlined text-base">schedule</span> ${service.duracion} min`;
+    document.getElementById('webServiceModalPrice').textContent = service.precio ? `$${service.precio}` : '';
+    document.getElementById('webServiceModalDesc').innerHTML = service.descripcion || 'Sin descripción detallada.';
+    
+    const negocioSlug = new URLSearchParams(window.location.search).get('n') || '';
+    document.getElementById('webServiceModalBtn').href = `${negocioSlug ? `${negocioSlug}/calendario.html` : 'calendario.html'}?servicio=${encodeURIComponent(service.nombre)}`;
+    
+    const modal = document.getElementById('webServiceModal'); 
+    const content = document.getElementById('webServiceModalContent');
+    modal.classList.remove('hidden'); 
+    setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10); 
+    document.body.style.overflow = 'hidden';
+};

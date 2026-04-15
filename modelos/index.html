@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelos Web | Desarrollos a Medida</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: "#ec135b" },
+                    fontFamily: { display: ["Plus Jakarta Sans", "sans-serif"] },
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-primary selection:text-white">
+
+    <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center gap-2">
+                    <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/30">
+                        <span class="material-symbols-outlined">web</span>
+                    </div>
+                    <span class="font-extrabold text-xl tracking-tight">Studio<span class="text-primary">Web</span></span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#modelos" class="text-sm font-bold text-slate-600 hover:text-primary transition-colors">Modelos</a>
+                    <a href="#planes" class="text-sm font-bold text-slate-600 hover:text-primary transition-colors">Planes</a>
+                    <a href="#contacto" class="text-sm font-bold text-slate-600 hover:text-primary transition-colors">Contacto</a>
+                </div>
+                <a href="#contacto" class="hidden md:inline-flex bg-slate-900 text-white px-5 py-2.5 rounded-full text-sm font-bold hover:bg-primary transition-colors shadow-md">
+                    Cotizar Proyecto
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-purple-500/5 -z-10"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <span class="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-wider uppercase mb-6 border border-primary/20">
+                Desarrollo Profesional
+            </span>
+            <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight mb-8">
+                Impulsa tu negocio con una <br class="hidden md:block"/> <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">web a medida</span>
+            </h1>
+            <p class="mt-4 text-xl text-slate-500 max-w-2xl mx-auto font-medium mb-10">
+                Elige entre nuestros modelos optimizados o personaliza cada detalle según las necesidades específicas de tu empresa.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="#modelos" class="bg-primary text-white px-8 py-4 rounded-full text-base font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 hover:-translate-y-1">
+                    Ver Modelos Demo
+                </a>
+                <a href="#planes" class="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-full text-base font-bold hover:border-primary hover:text-primary transition-all shadow-sm">
+                    Ver Planes y Precios
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section id="modelos" class="py-24 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Explora nuestros modelos</h2>
+                <p class="text-slate-500 text-lg">Haz clic en "Ver Demo" para navegar por una previsualización real.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="group rounded-3xl border border-slate-100 bg-slate-50 overflow-hidden hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300">
+                    <div class="aspect-video bg-slate-200 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+                            <span class="text-white font-bold text-lg">Institucional Clásico</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-slate-500 mb-4">Ideal para profesionales y negocios que necesitan presencia rápida y efectiva.</p>
+                        <a href="/modelos/modelo-1.html" target="_blank" class="w-full flex items-center justify-center gap-2 bg-white border-2 border-slate-200 text-slate-700 py-2.5 rounded-xl font-bold hover:border-primary hover:text-primary transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">visibility</span> Ver Demo
+                        </a>
+                    </div>
+                </div>
+
+                <div class="group rounded-3xl border border-slate-100 bg-slate-50 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300">
+                    <div class="aspect-video bg-slate-200 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+                            <span class="text-white font-bold text-lg">Catálogo Dinámico</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-slate-500 mb-4">Perfecto para mostrar múltiples productos con formularios de consulta por ítem.</p>
+                        <a href="/modelos/modelo-2.html" target="_blank" class="w-full flex items-center justify-center gap-2 bg-white border-2 border-slate-200 text-slate-700 py-2.5 rounded-xl font-bold hover:border-purple-500 hover:text-purple-600 transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">visibility</span> Ver Demo
+                        </a>
+                    </div>
+                </div>
+
+                <div class="group rounded-3xl border border-slate-100 bg-slate-50 overflow-hidden hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-300">
+                    <div class="aspect-video bg-slate-200 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+                            <span class="text-white font-bold text-lg">Portal Inmobiliario</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-sm text-slate-500 mb-4">Sistema completo con gestión de propiedades, estadísticas y panel de interesados.</p>
+                        <a href="/modelos/modelo-3.html" target="_blank" class="w-full flex items-center justify-center gap-2 bg-white border-2 border-slate-200 text-slate-700 py-2.5 rounded-xl font-bold hover:border-amber-500 hover:text-amber-600 transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">visibility</span> Ver Demo
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-12 text-center bg-blue-50 border border-blue-100 rounded-2xl p-6">
+                <p class="text-blue-800 font-medium flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">design_services</span> 
+                    ¿Necesitas algo distinto? Todos los modelos son 100% personalizables a la identidad de tu marca.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="planes" class="py-24 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Planes de Desarrollo</h2>
+                <p class="text-slate-500 text-lg">Inversión transparente para el crecimiento de tu empresa.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <div class="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm relative flex flex-col">
+                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
+                        <span class="material-symbols-outlined">storefront</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-slate-900 mb-2">Presencia Online</h3>
+                    <div class="flex items-baseline gap-2 mb-6 border-b border-slate-100 pb-6">
+                        <span class="text-4xl font-black text-slate-900">$200.000</span>
+                        <span class="text-sm font-bold text-slate-400">ARS</span>
+                    </div>
+                    <ul class="space-y-4 mb-8 flex-1">
+                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Página web institucional (hasta 3 secciones: inicio, catálogo, contacto)</span></li>
+                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Formulario de contacto</span></li>
+                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Botón de WhatsApp directo</span></li>
+                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Diseño Responsive (adaptable a móviles)</span></li>
+                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Configuración SEO básico</span></li>
+                    </ul>
+                    <div class="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100">
+                        <p class="text-xs font-bold text-slate-800 uppercase tracking-wide mb-1">Mantenimiento Mensual</p>
+                        <p class="text-lg font-black text-blue-600">$30.000 <span class="text-xs font-medium text-slate-500">ARS/mes</span></p>
+                        <p class="text-xs text-slate-500 mt-2">Incluye: Hosting, configuración, soporte técnico y pequeños cambios estéticos.</p>
+                    </div>
+                    <a href="#contacto" class="w-full text-center bg-slate-900 text-white py-3.5 rounded-xl font-bold hover:bg-slate-800 transition-colors">Seleccionar Plan</a>
+                </div>
+
+                <div class="bg-white rounded-[2rem] p-8 border-2 border-purple-500 shadow-xl relative flex flex-col transform md:-translate-y-4">
+                    <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-primary text-white text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-wider shadow-md">
+                        Más Elegido
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mb-6">
+                        <span class="material-symbols-outlined">group_add</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-slate-900 mb-2">Captación de Clientes</h3>
+                    <div class="flex items-baseline gap-2 mb-6 border-b border-slate-100 pb-6">
+                        <span class="text-4xl font-black text-slate-900">$500.000</span>
+                        <span class="text-sm font-bold text-slate-400">ARS</span>
+                    </div>
+                    <ul class="space-y-4 mb-8 flex-1">
+                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-purple-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm font-medium">Todo lo del plan anterior</span></li>
+                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Hasta 5 secciones personalizadas</span></li>
+                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Sistema CMS para cargar y editar información (1 usuario)</span></li>
+                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Formularios de consulta personalizados por producto/servicio</span></li>
+                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Integración automática de leads con Email o WhatsApp</span></li>
+                    </ul>
+                    <div class="bg-purple-50 rounded-xl p-4 mb-6 border border-purple-100">
+                        <p class="text-xs font-bold text-slate-800 uppercase tracking-wide mb-1">Mantenimiento Mensual</p>
+                        <p class="text-lg font-black text-purple-600">$40.000 <span class="text-xs font-medium text-slate-500">ARS/mes</span></p>
+                        <p class="text-xs text-slate-500 mt-2">Incluye: Hosting, sistema CMS, soporte técnico y actualizaciones.</p>
+                    </div>
+                    <a href="#contacto" class="w-full text-center bg-purple-600 text-white py-3.5 rounded-xl font-bold hover:bg-purple-700 transition-colors shadow-lg shadow-purple-600/30">Seleccionar Plan</a>
+                </div>
+
+                <div class="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm relative flex flex-col">
+                    <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mb-6">
+                        <span class="material-symbols-outlined">real_estate_agent</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-slate-900 mb-2">Gestión Inmobiliaria</h3>
+                    <div class="flex items-baseline gap-2 mb-6 border-b border-slate-100 pb-6">
+                        <span class="text-4xl font-black text-slate-900">$900.000</span>
+                        <span class="text-sm font-bold text-slate-400">ARS</span>
+                    </div>
+                    <ul class="space-y-4 mb-8 flex-1">
+                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-amber-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm font-medium">Todo lo del plan anterior</span></li>
+                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Hasta 6 secciones institucionales</span></li>
+                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Sistema CMS multi-agente (hasta 5 usuarios)</span></li>
+                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Panel avanzado de gestión de interesados por propiedad</span></li>
+                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Panel de estadísticas básicas de visitas y consultas</span></li>
+                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Panel centralizado de consultas de clientes</span></li>
+                    </ul>
+                    <div class="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100">
+                        <p class="text-xs font-bold text-slate-800 uppercase tracking-wide mb-1">Mantenimiento Mensual</p>
+                        <p class="text-lg font-black text-amber-600">$50.000 <span class="text-xs font-medium text-slate-500">ARS/mes</span></p>
+                        <p class="text-xs text-slate-500 mt-2">Incluye: Hosting premium, soporte prioritario y bases de datos dinámicas.</p>
+                    </div>
+                    <a href="#contacto" class="w-full text-center bg-slate-900 text-white py-3.5 rounded-xl font-bold hover:bg-slate-800 transition-colors">Seleccionar Plan</a>
+                </div>
+
+            </div>
+
+            <div class="mt-12 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-4xl mx-auto flex gap-4 items-start">
+                <span class="material-symbols-outlined text-primary mt-1">info</span>
+                <div>
+                    <h4 class="font-bold text-slate-800 mb-1">Información importante sobre el Mantenimiento</h4>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        El mantenimiento mensual incluye la bonificación del nombre de dominio, válido únicamente con las extensiones: <strong class="text-slate-800">.website, .online, .store, .uno, .site</strong>. 
+                        Los precios de mantenimiento se actualizan semestralmente (cada 6 meses) para garantizar la calidad del servicio de servidores.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contacto" class="py-24 bg-white relative overflow-hidden">
+        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-purple-500/5 blur-3xl"></div>
+        
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Empecemos tu proyecto</h2>
+                <p class="text-slate-500 text-lg">Déjame tus datos, el plan que te interesa y me pondré en contacto contigo a la brevedad.</p>
+            </div>
+
+            <div class="bg-white rounded-[2rem] shadow-xl border border-slate-100 p-8 md:p-10">
+                <form action="#" method="POST" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nombre completo</label>
+                            <input type="text" required class="w-full px-4 py-3.5 rounded-xl border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary text-sm font-medium transition-colors" placeholder="Ej: Juan Pérez">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">WhatsApp / Celular</label>
+                            <input type="tel" required class="w-full px-4 py-3.5 rounded-xl border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary text-sm font-medium transition-colors" placeholder="+54 9 ...">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Plan de interés</label>
+                        <select class="w-full px-4 py-3.5 rounded-xl border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary text-sm font-medium transition-colors">
+                            <option value="" disabled selected>Selecciona un plan o modelo</option>
+                            <option value="presencia">🟦 Plan Presencia Online ($200.000)</option>
+                            <option value="captacion">🟪 Plan Captación de Clientes ($500.000)</option>
+                            <option value="inmobiliaria">🟨 Plan Gestión Inmobiliaria ($900.000)</option>
+                            <option value="medida">🛠️ Proyecto a Medida (Cotizar)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Cuéntame sobre tu negocio</label>
+                        <textarea rows="4" class="w-full px-4 py-3.5 rounded-xl border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary text-sm font-medium transition-colors resize-none" placeholder="¿A qué se dedica tu empresa? ¿Tienes alguna referencia de diseño?"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined">send</span> Enviar Consulta
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="flex items-center justify-center gap-2 text-white mb-6">
+                <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg">
+                    <span class="material-symbols-outlined text-[18px]">web</span>
+                </div>
+                <span class="font-extrabold text-lg tracking-tight">Studio<span class="text-primary">Web</span></span>
+            </div>
+            <p class="text-sm mb-4">Desarrollo web a medida para negocios que buscan crecer.</p>
+            <p class="text-xs text-slate-500">© 2026 Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda del Profesional | Agendatina</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Manrope', 'sans-serif'] }, colors: { primary: 'var(--color-primario, #3b82f6)' } } } };
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased">
+    <header class="bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img id="logoNegocio" src="" alt="Logo" class="h-10 w-10 object-cover rounded-lg hidden">
+                <div>
+                    <h1 id="nombreNegocio" class="font-bold text-lg text-slate-800 leading-tight">Cargando...</h1>
+                    <p id="nombreProfesional" class="text-sm text-slate-500 flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">person</span> ...</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-4xl mx-auto w-full px-4 py-8">
+        <div class="mb-8">
+            <h2 class="text-2xl font-black text-slate-800 mb-2">Tus Próximos Turnos</h2>
+            <p id="serviciosProfesional" class="text-sm text-slate-500 font-medium bg-white px-3 py-1.5 rounded-lg border border-slate-200 inline-block shadow-sm">...</p>
+        </div>
+
+        <div id="listaTurnos" class="space-y-6">
+            <div class="p-8 text-center text-slate-500 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                <span class="material-symbols-outlined text-4xl mb-2 animate-spin">refresh</span>
+                <p>Cargando agenda...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Contenedor para Toasts -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[60] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- Modal Confirmación -->
+    <div id="confirmModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full p-6 transform scale-95 transition-transform duration-300 text-center" id="confirmModalContent">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-3xl">cancel</span>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2" id="confirmTitle">Confirmar Acción</h3>
+            <p class="text-slate-500 text-sm mb-6" id="confirmMessage">¿Estás seguro?</p>
+            <div class="flex gap-3 justify-center">
+                <button id="btnCancelConfirm" onclick="closeConfirm()" class="px-4 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors flex-1">Volver</button>
+                <button id="btnAcceptConfirm" class="px-4 py-2.5 text-sm font-bold text-white bg-red-500 hover:bg-red-600 rounded-xl transition-colors flex-1">Sí, Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let confirmActionCallback = null;
+
+        function showToast(message, type = 'success') {
+            let container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-600' : 'bg-red-600';
+            const icon = type === 'success' ? 'check_circle' : 'error';
+            toast.className = `${bgColor} text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 transform transition-all duration-300 translate-y-12 opacity-0 font-medium text-sm`;
+            toast.innerHTML = `<span class="material-symbols-outlined">${icon}</span> <span>${message}</span>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.remove('translate-y-12', 'opacity-0'));
+            setTimeout(() => { toast.classList.add('translate-y-12', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        function showConfirm(title, message, callback) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').innerHTML = message;
+            confirmActionCallback = callback;
+            const modal = document.getElementById('confirmModal');
+            const content = document.getElementById('confirmModalContent');
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+        }
+
+        function closeConfirm() {
+            const modal = document.getElementById('confirmModal');
+            const content = document.getElementById('confirmModalContent');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
+        }
+
+        document.getElementById('btnAcceptConfirm').addEventListener('click', async () => {
+            if (confirmActionCallback) {
+                const btn = document.getElementById('btnAcceptConfirm');
+                const orig = btn.textContent;
+                btn.disabled = true; btn.textContent = '...';
+                try { await confirmActionCallback(); } catch(e) {}
+                btn.disabled = false; btn.textContent = orig;
+                closeConfirm();
+            }
+        });
+
+        window.cancelarTurno = function(id) {
+            showConfirm('Cancelar Turno', '¿Estás seguro de que deseas cancelar este turno? El cliente perderá su reserva.', () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const formData = new URLSearchParams();
+                formData.append('id', id);
+                formData.append('n', urlParams.get('n'));
+                formData.append('p', urlParams.get('p'));
+                formData.append('token', urlParams.get('token'));
+
+                return fetch('backend/cancelar_turno_profesional.php', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast('Turno cancelado exitosamente', 'success');
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        showToast(data.error || 'Error al cancelar', 'error');
+                    }
+                }).catch(() => showToast('Error de conexión', 'error'));
+            });
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const n = urlParams.get('n');
+            const p = urlParams.get('p');
+            const token = urlParams.get('token');
+
+            if (!n || !p || !token) {
+                document.getElementById('listaTurnos').innerHTML = '<div class="p-8 text-center text-red-500 bg-red-50 rounded-2xl border border-red-200 font-bold">Enlace inválido o incompleto.</div>';
+                return;
+            }
+
+            document.getElementById('nombreProfesional').innerHTML = `<span class="material-symbols-outlined text-[16px]">person</span> ${p}`;
+
+            fetch(`backend/obtener_agenda_profesional.php?n=${n}&p=${encodeURIComponent(p)}&token=${token}`)
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    document.getElementById('listaTurnos').innerHTML = `<div class="p-8 text-center text-red-500 bg-red-50 rounded-2xl border border-red-200 font-bold">${data.error}</div>`;
+                    return;
+                }
+
+                document.documentElement.style.setProperty('--color-primario', data.color_primario || '#3b82f6');
+                document.getElementById('nombreNegocio').textContent = data.negocio;
+                if (data.logo) {
+                    const logoImg = document.getElementById('logoNegocio');
+                    logoImg.src = data.logo;
+                    logoImg.classList.remove('hidden');
+                }
+                document.getElementById('serviciosProfesional').textContent = data.servicios || 'Servicios generales';
+
+                const lista = document.getElementById('listaTurnos');
+                lista.innerHTML = '';
+
+                if (!data.data || data.data.length === 0) {
+                    lista.innerHTML = '<div class="p-10 text-center text-slate-500 bg-white rounded-2xl border border-slate-200 shadow-sm"><span class="material-symbols-outlined text-4xl mb-2 text-slate-300">event_available</span><p class="font-medium">No tienes turnos confirmados próximos.</p></div>';
+                    return;
+                }
+
+                const grupos = {};
+                data.data.forEach(t => {
+                    if (!grupos[t.fecha]) grupos[t.fecha] = [];
+                    grupos[t.fecha].push(t);
+                });
+
+                Object.keys(grupos).sort().forEach(fecha => {
+                    const [y, m, d] = fecha.split('-');
+                    const dateObj = new Date(y, m - 1, d);
+                    const esHoy = new Date().toDateString() === dateObj.toDateString();
+                    const formatFecha = `${d}/${m}/${y}`;
+
+                    let html = `
+                        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div class="bg-slate-50 px-5 py-3 border-b border-slate-200 font-bold text-slate-700 flex items-center gap-2 ${esHoy ? 'text-primary' : ''}">
+                                <span class="material-symbols-outlined">${esHoy ? 'today' : 'event'}</span>
+                                ${esHoy ? 'Hoy, ' + formatFecha : formatFecha}
+                            </div>
+                            <div class="divide-y divide-slate-100">`;
+                    
+                    grupos[fecha].forEach(t => {
+                        html += `
+                            <div class="p-5 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div>
+                                    <p class="text-xs font-black text-primary mb-1 uppercase tracking-wide">${t.hora} hs</p>
+                                    <p class="text-base font-bold text-slate-800 mb-1">${t.cliente_nombre}</p>
+                                    <p class="text-sm font-medium text-slate-600 flex items-center gap-1 mb-2"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular}</p>
+                                    <span class="bg-primary/10 text-primary font-bold px-2.5 py-1.5 rounded-md text-xs inline-block border border-primary/20 shadow-sm"><span class="material-symbols-outlined text-[14px] align-middle mr-1">spa</span> ${t.servicio}</span>
+                                </div>
+                                <div class="flex flex-col sm:flex-row gap-2 mt-3 sm:mt-0 w-full sm:w-auto">
+                                    <a href="https://wa.me/${t.cliente_celular.replace(/\D/g, '')}?text=Hola%20${encodeURIComponent(t.cliente_nombre)},%20te%20escribo%20por%20tu%20turno%20del%20${formatFecha}%20a%20las%20${t.hora}hs" target="_blank" class="bg-[#25D366]/10 border border-[#25D366]/30 text-[#128C7E] hover:bg-[#25D366]/20 px-4 py-2.5 rounded-xl font-bold transition-all hover:shadow-md text-sm flex items-center justify-center gap-2 flex-1 sm:flex-none"><span class="material-symbols-outlined text-[18px]">chat</span> Contactar</a>
+                                    <button onclick="cancelarTurno('${t.id}')" class="bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 px-4 py-2.5 rounded-xl font-bold transition-all hover:shadow-md text-sm flex items-center justify-center gap-2 flex-1 sm:flex-none"><span class="material-symbols-outlined text-[18px]">cancel</span> Cancelar</button>
+                                </div>
+                            </div>`;
+                    });
+
+                    html += `</div></div>`;
+                    lista.innerHTML += html;
+                });
+            });
+        });
+    </script>
+</body>
+</html>

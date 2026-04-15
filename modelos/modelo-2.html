@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda Boutique | Modelo Captación</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Poppins', sans-serif; }</style>
+</head>
+<body class="bg-white text-slate-800">
+    <div class="bg-purple-900 text-white text-center py-2 text-sm font-bold z-50 relative">
+        Estás viendo una DEMO del Plan Captación de Clientes. <a href="../" class="text-purple-300 underline ml-2">Volver a Modelos</a>
+    </div>
+
+    <header class="max-w-7xl mx-auto px-6 py-6 flex justify-between items-center">
+        <div class="font-bold text-2xl text-purple-600 tracking-widest uppercase">Boutique</div>
+        <nav class="hidden md:flex gap-8 text-sm font-medium">
+            <a href="#inicio" class="hover:text-purple-600">Inicio</a>
+            <a href="#nosotros" class="hover:text-purple-600">Nosotros</a>
+            <a href="#catalogo" class="hover:text-purple-600">Catálogo</a>
+            <a href="#contacto" class="hover:text-purple-600">Contacto</a>
+        </nav>
+    </header>
+
+    <section id="inicio" class="bg-purple-50 py-24 px-6 text-center rounded-b-[3rem]">
+        <h1 class="text-4xl md:text-6xl font-bold text-slate-900 mb-6">Encuentra tu estilo <br/>único y exclusivo</h1>
+        <p class="text-slate-600 mb-8 max-w-lg mx-auto">Explora nuestra nueva colección de temporada. Calidad premium y diseño de autor.</p>
+        <a href="#catalogo" class="bg-purple-600 text-white px-8 py-4 rounded-full font-bold shadow-lg hover:bg-purple-700 transition">Ver Colección</a>
+    </section>
+
+    <section id="catalogo" class="py-24 max-w-7xl mx-auto px-6">
+        <h2 class="text-3xl font-bold text-center mb-12">Productos Destacados</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition">
+                <div class="h-64 bg-slate-200 flex items-center justify-center text-slate-400">Imagen Producto</div>
+                <div class="p-6">
+                    <h3 class="font-bold text-lg mb-2">Vestido de Noche "Stella"</h3>
+                    <p class="text-purple-600 font-bold text-xl mb-4">$85.000</p>
+                    <button onclick="abrirModalProducto('Vestido Stella')" class="w-full bg-slate-900 text-white py-2 rounded-lg font-medium hover:bg-slate-800">Consultar Disponibilidad</button>
+                </div>
+            </div>
+            <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition">
+                <div class="h-64 bg-slate-200 flex items-center justify-center text-slate-400">Imagen Producto</div>
+                <div class="p-6">
+                    <h3 class="font-bold text-lg mb-2">Chaqueta de Cuero "Urban"</h3>
+                    <p class="text-purple-600 font-bold text-xl mb-4">$120.000</p>
+                    <button onclick="abrirModalProducto('Chaqueta Urban')" class="w-full bg-slate-900 text-white py-2 rounded-lg font-medium hover:bg-slate-800">Consultar Disponibilidad</button>
+                </div>
+            </div>
+            <div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition">
+                <div class="h-64 bg-slate-200 flex items-center justify-center text-slate-400">Imagen Producto</div>
+                <div class="p-6">
+                    <h3 class="font-bold text-lg mb-2">Bolso Tote "Classic"</h3>
+                    <p class="text-purple-600 font-bold text-xl mb-4">$45.000</p>
+                    <button onclick="abrirModalProducto('Bolso Tote')" class="w-full bg-slate-900 text-white py-2 rounded-lg font-medium hover:bg-slate-800">Consultar Disponibilidad</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div id="productoModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full relative">
+            <button onclick="cerrarModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 font-bold">X</button>
+            <h3 class="text-xl font-bold mb-4">Consulta sobre: <span id="nombreProductoModal" class="text-purple-600"></span></h3>
+            <form class="demo-form space-y-4">
+                <input type="hidden" id="inputProducto">
+                <input type="text" placeholder="Tu Nombre" class="w-full p-3 rounded-lg bg-slate-50 border border-slate-200" required>
+                <input type="tel" placeholder="WhatsApp" class="w-full p-3 rounded-lg bg-slate-50 border border-slate-200" required>
+                <button type="submit" class="w-full bg-purple-600 text-white font-bold py-3 rounded-lg hover:bg-purple-700">Enviar Consulta</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../js/script.js"></script>
+</body>
+</html>

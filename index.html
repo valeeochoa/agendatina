@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendatina | Gestión Inteligente para tu Negocio</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-2.5 5.43l-4.57 4.57-2.43-2.43 1.41-1.41 1.02 1.02 3.16-3.16 1.41 1.41z'/></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Manrope', 'sans-serif'],
+                        headline: ['Plus Jakarta Sans', 'sans-serif']
+                    },
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#8b5cf6',
+                        accent: "#ec135b",
+                        "on-background": "#1e1b4b"
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .text-gradient {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .signature-glow {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        }
+
+        .mockup-shadow {
+            filter: drop-shadow(0 25px 50px rgba(59, 130, 246, 0.2));
+        }
+
+        /* Estilos Mini-Calendario para los Mockups */
+        .mini-calendar-day {
+            aspect-ratio: 1/1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            font-weight: 700;
+            border-radius: 0.3rem;
+            cursor: pointer;
+            background: #ffdae6;
+            color: #b30e44;
+            transition: all 0.2s;
+        }
+
+        .mini-calendar-day.selected {
+            background: #ec135b;
+            color: white;
+        }
+
+        .mini-disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: #f1f5f9;
+            color: #94a3b8;
+            font-size: 0.6rem;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mini-time-slot {
+            font-size: 0.55rem;
+            padding: 0.3rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.3rem;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .mini-time-slot.selected {
+            background: #ec135b;
+            color: white;
+            border-color: #ec135b;
+        }
+
+        .device-content::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .device-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        /* Animación Fade-in para las imágenes del carrusel */
+        @keyframes fadeInImg {
+            from {
+                opacity: 0.2;
+                transform: scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .fade-in {
+            animation: fadeInImg 0.4s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-900 antialiased selection:bg-primary/10">
+
+    <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-3xl">event_available</span>
+                <span class="font-bold text-xl tracking-tight">Agenda<span class="text-secondary">tina</span></span>
+            </div>
+            <div class="hidden md:flex gap-8 font-medium text-sm text-slate-600">
+                <a href="#inicio" class="hover:text-primary transition-colors">Inicio</a>
+                <a href="#visualizar" class="hover:text-primary transition-colors">Demo</a>
+                <a href="#planes" class="hover:text-primary transition-colors">Planes</a>
+                <a href="#contacto" onclick="resetForm()" class="hover:text-primary transition-colors">Contacto</a>
+            </div>
+            <a href="login.html"
+                class="signature-glow text-white px-5 py-2.5 rounded-full font-semibold text-sm hover:shadow-lg transition-all">
+                Iniciar Sesión
+            </a>
+        </div>
+    </nav>
+
+    <section id="inicio" class="pt-32 pb-20 px-6 relative overflow-hidden flex flex-col items-center">
+        <div
+            class="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]">
+        </div>
+        <div
+            class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/10 rounded-full blur-[100px] z-0">
+        </div>
+
+        <div class="max-w-5xl mx-auto text-center relative z-10 mt-10">
+            <div
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 font-semibold text-sm mb-8 shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                El sistema ideal para gestionar tu negocio sin complicaciones
+            </div>
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-8 text-slate-900">
+                Tu agenda bajo control, <br /><span class="text-gradient">100% automatizada</span>
+            </h1>
+            <p class="text-lg md:text-xl text-slate-600 mb-10 max-w-2xl mx-auto">
+                Ofrecé a tus clientes una experiencia de reserva profesional, simple y rápida las 24 horas.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
+                <a href="#planes"
+                    class="signature-glow text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-xl transition-all hover:-translate-y-1">Explorar
+                    planes</a>
+                <a href="#contacto" onclick="resetForm()"
+                    class="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all shadow-sm">Contactar asesor</a>
+            </div>
+            <p class="font-semibold text-secondary"><span
+                    class="material-symbols-outlined text-base align-middle">workspace_premium</span> ¡Todos los planes
+                incluyen 15 días de prueba GRATIS!</p>
+        </div>
+    </section>
+    <!-- Visualización del Panel -->
+    <section id="visualizar" class="py-24 bg-[#f5eeff] overflow-hidden relative">
+        <div class="max-w-7xl mx-auto px-8">
+            <div class="mb-16">
+                <h2 class="font-headline text-3xl md:text-4xl font-bold text-slate-900 mb-2">Visualizá tu éxito</h2>
+                <p class="text-slate-500">Explorá cómo se verá tu negocio con cada uno de nuestros niveles.</p>
+            </div>
+
+            <div class="relative">
+                <div class="carousel-item active grid grid-cols-1 lg:grid-cols-2 gap-20 items-center transition-opacity duration-300"
+                    id="carouselContent">
+
+                    <div class="relative">
+                        <div class="absolute -inset-10 signature-glow opacity-10 blur-[100px] rounded-full"></div>
+                        <div class="relative flex items-end justify-center lg:justify-start">
+
+                            <!-- Laptop Mockup -->
+                            <a href="demo.php" target="_blank" class="block w-full max-w-[500px] mockup-shadow relative z-0 hover:scale-[1.02] transition-transform duration-300">
+                                <div class="bg-slate-800 rounded-t-2xl p-2 pb-0">
+                                    <div
+                                        class="bg-white rounded-t-lg aspect-[16/10] overflow-hidden flex flex-col relative">
+                                        <div class="bg-slate-100 border-b p-2 flex items-center gap-2">
+                                            <div class="flex gap-1">
+                                                <div class="w-2 h-2 rounded-full bg-red-400"></div>
+                                                <div class="w-2 h-2 rounded-full bg-amber-400"></div>
+                                                <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                                            </div>
+                                            <div
+                                                class="mx-auto bg-white border rounded px-2 py-0.5 text-[8px] text-slate-400 w-32 text-center">
+                                                tu-negocio.agendatina.site</div>
+                                        </div>
+                                        <!--Aca estaria la imagen del calendario-->
+                                        <img id="mockup-desktop"
+                                            src="https://placehold.co/800x500/f8fafc/94a3b8?text=Demo+Desktop" 
+                                            alt="Demo Desktop" class="w-full h-full object-cover">
+                                    </div>
+                                </div>
+                                <div class="h-4 bg-slate-800 rounded-b-2xl w-[105%] -ml-[2.5%] relative">
+                                    <div
+                                        class="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-slate-600 rounded-b-md">
+                                    </div>
+                                </div>
+                            </a>
+
+                            <!-- Phone Mockup -->
+                            <a href="demo.php" target="_blank" class="block absolute -right-2 sm:-right-4 -bottom-6 sm:-bottom-10 w-[28%] max-w-[140px] min-w-[90px] mockup-shadow z-10 hover:scale-105 transition-transform duration-300">
+                                <div
+                                    class="bg-slate-800 p-1.5 rounded-[2rem] aspect-[9/19] border-2 border-slate-700 relative">
+                                    <div
+                                        class="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-4 bg-slate-800 rounded-b-xl z-20">
+                                    </div>
+                                    <div class="bg-white h-full rounded-[1.5rem] overflow-hidden relative">
+                                        <img id="mockup-mobile"
+                                            src="https://placehold.co/300x600/f8fafc/94a3b8?text=Demo+Mobile"
+                                            alt="Demo Mobile" class="w-full h-full object-cover">
+                                    </div>
+                                </div>
+                            </a>
+
+                        </div>
+
+                        <div class="mt-12 text-center lg:text-left flex justify-center lg:justify-start">
+                            <a href="demo.php" target="_blank" class="inline-flex items-center gap-2 bg-slate-900 text-white px-8 py-4 rounded-full font-bold text-sm hover:bg-primary hover:shadow-lg hover:-translate-y-1 transition-all shadow-md">
+                                <span class="material-symbols-outlined text-[20px]">play_arrow</span> PRUÉBALO AHORA (VER DEMO)
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8" id="carouselTextContent">
+                        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-sm uppercase tracking-widest"
+                            id="carouselTag">
+                            <span class="material-symbols-outlined text-sm" id="carouselTagIcon">stars</span> <span
+                                id="carouselTagText">Recomendado</span>
+                        </div>
+                        <h3 class="font-headline text-5xl font-extrabold text-slate-900 leading-tight"
+                            id="carouselTitle">Plan Básico</h3>
+                        <p class="text-xl text-slate-600 leading-relaxed" id="carouselDesc">
+                            La solución ideal para profesionales que buscan una presencia digital impactante y
+                            personalizada sin complicaciones.
+                        </p>
+                        <ul class="space-y-4 font-medium text-slate-700" id="carouselFeatures">
+                            <li class="flex items-center gap-4"><span
+                                    class="material-symbols-outlined text-primary">check_circle</span> Página de inicio
+                                100% personalizada</li>
+                            <li class="flex items-center gap-4"><span
+                                    class="material-symbols-outlined text-primary">check_circle</span> Imagen de portada
+                                y descripción</li>
+                            <li class="flex items-center gap-4"><span
+                                    class="material-symbols-outlined text-primary">check_circle</span> Agenda
+                                inteligente con recordatorios</li>
+                        </ul>
+                        <div class="flex items-center gap-8 pt-4">
+                            <button id="carouselActionBtn"
+                                class="px-8 py-4 rounded-xl signature-glow text-white font-bold text-lg hover:shadow-xl transition-all"
+                                onclick="selectPlan('Plan Básico')">Elegir este plan</button>
+                            <div class="text-2xl font-bold" id="carouselPrice">Consultar<span
+                                    class="text-sm font-normal text-slate-400"></span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-row items-center justify-center gap-6 mt-16">
+                    <button id="prevCarouselBtn" class="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+                    <div class="flex justify-center gap-3" id="carouselDots">
+                        <button class="w-2.5 h-2.5 rounded-full bg-slate-300" onclick="setCarouselIndex(0)"></button>
+                        <button class="w-8 h-2.5 rounded-full bg-primary" onclick="setCarouselIndex(1)"></button>
+                        <button class="w-2.5 h-2.5 rounded-full bg-slate-300" onclick="setCarouselIndex(2)"></button>
+                    </div>
+                    <button id="nextCarouselBtn" class="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Planes -->
+    <section id="planes" class="py-24 bg-white px-6 border-t border-slate-100">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-extrabold mb-4">Elegí el plan ideal para tu negocio</h2>
+                <p class="text-slate-500 text-lg max-w-2xl mx-auto">
+                    Sin comisiones por reserva. Un precio fijo mensual.
+                    <br>
+                    <span class="font-bold text-primary">Probá cualquier plan GRATIS por 15 días</span>
+                </p>
+            </div>
+            <!-- Planes -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- PLAN SIMPLE -->
+                <div
+                    class="bg-slate-50 rounded-3xl p-8 border border-slate-200 hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col">
+                    <span class="text-xs font-semibold text-primary uppercase mb-2">
+                        Ideal para comenzar
+                    </span>
+                    <h3 class="text-2xl font-bold mb-2">Plan Simple</h3>
+                    <p class="text-slate-500 text-sm mb-6">
+                        Calendario online para que tus clientes puedan solicitar turnos de forma rápida y organizada.
+                    </p>
+                    <div class="flex flex-col mb-8">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-sm text-slate-400 line-through font-medium">$13.288</span>
+                            <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-20% OFF</span>
+                        </div>
+                        <div class="text-3xl font-bold text-slate-800">
+                            $10.630<span class="text-sm font-normal text-slate-500 ml-1">/mes</span>
+                        </div>
+                    </div>
+                    <ul class="space-y-4 mb-8 flex-1 text-sm text-slate-600">
+                        <li class="flex gap-2">
+                            <span class="material-symbols-outlined text-primary text-sm">done</span>
+                            Calendario de turnos personalizado
+                        </li>
+
+                        <li class="flex gap-2">
+                            <span class="material-symbols-outlined text-primary text-sm">done</span>
+                            Logo y colores del negocio
+                        </li>
+
+                        <li class="flex gap-2">
+                            <span class="material-symbols-outlined text-primary text-sm">done</span>
+                            Configuración de días y horarios disponibles
+                        </li>
+
+                        <li class="flex gap-2">
+                            <span class="material-symbols-outlined text-primary text-sm">done</span>
+                            Solicitud de turnos por clientes
+                        </li>
+
+                        <li class="flex gap-2">
+                            <span class="material-symbols-outlined text-primary text-sm">done</span>
+                            Notificaciones automáticas por email
+                        </li>
+
+                    </ul>
+
+                    <button onclick="selectPlan('Plan Simple')"
+                        class="w-full py-4 rounded-xl border-2 border-primary text-primary font-bold hover:bg-primary hover:text-white transition-all">
+                        Solicitar
+                    </button>
+
+                </div>
+
+
+                <!-- PLAN INTERMEDIO -->
+                <div
+                    class="signature-glow rounded-3xl p-8 text-white flex flex-col transform md:-translate-y-4 shadow-2xl relative transition-all duration-300 hover:scale-105 hover:shadow-primary/50">
+
+                    <div
+                        class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white text-primary px-4 py-1 rounded-full text-xs font-black uppercase shadow-md">
+                        Más Elegido
+                    </div>
+
+                    <span class="text-xs font-semibold text-white/80 uppercase mb-2">
+                        Gestión completa
+                    </span>
+
+                    <h3 class="text-2xl font-bold mb-2">Plan Intermedio</h3>
+
+                    <p class="text-white/80 text-sm mb-6">
+                        Sistema de turnos con agenda virtual para administrar todas tus reservas desde un solo lugar.
+                    </p>
+
+                    <div class="flex flex-col mb-8">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-sm text-white/60 line-through font-medium">$20.563</span>
+                            <span class="bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 px-2 py-0.5 rounded-md text-xs font-bold">-20% OFF</span>
+                        </div>
+                        <div class="text-3xl font-bold text-white">
+                            $16.450<span class="text-sm font-normal text-white/80 ml-1">/mes</span>
+                        </div>
+                    </div>
+
+                    <ul class="space-y-4 mb-8 flex-1 text-sm">
+
+                        <li class="flex gap-2">
+                            <span class="material-symbols-outlined text-white text-sm">done</span>
+                            Calendario de turnos online
+                        </li>
+
+                        <li class="flex gap-2">
+                            <span class="material-symbols-outlined text-white text-sm">done</span>
+                            Agenda virtual con listado de reservas
+                        </li>
+
+                        <li class="flex gap-2">
+                            <span class="material-symbols-outlined text-white text-sm">done</span>
+                            Visualización de turnos confirmados y pendientes
+                        </li>
+
+                        <li class="flex gap-2">
+                            <span class="material-symbols-outlined text-white text-sm">done</span>
+                            Gestión manual de disponibilidad
+                        </li>
+
+                        <li class="flex gap-2">
+                            <span class="material-symbols-outlined text-white text-sm">done</span>
+                            Notificaciones por correo
+                        </li>
+                    </ul>
+                    <button onclick="selectPlan('Plan Intermedio')"
+                        class="w-full py-4 rounded-xl bg-white text-primary font-bold hover:bg-slate-50 transition-all">
+                        Solicitar
+                    </button>
+                </div>
+                <!-- PLAN COMPLETO -->
+                <div
+                    class="bg-slate-50 rounded-3xl p-8 border border-slate-200 hover:border-secondary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col">
+
+                    <span class="text-xs font-semibold text-secondary uppercase mb-2">
+                        Presencia online
+                    </span>
+
+                    <h3 class="text-2xl font-bold mb-2">Plan Premium</h3>
+
+                    <p class="text-slate-500 text-sm mb-6">
+                        Plataforma completa con turnero y mini página para mostrar tu negocio y captar más clientes.
+                    </p>
+
+                    <div class="flex flex-col mb-8">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-sm text-slate-400 line-through font-medium">$28.188</span>
+                            <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-20% OFF</span>
+                        </div>
+                        <div class="text-3xl font-bold text-slate-800">
+                            $22.550<span class="text-sm font-normal text-slate-500 ml-1">/mes</span>
+                        </div>
+                    </div>
+
+                    <ul class="space-y-4 mb-8 flex-1 text-sm text-slate-600">
+
+                        <li class="flex gap-2">
+                            <span class="material-symbols-outlined text-secondary text-sm">done_all</span>
+                            Calendario de turnos online
+                        </li>
+
+                        <li class="flex gap-2">
+                            <span class="material-symbols-outlined text-secondary text-sm">done_all</span>
+                            Agenda virtual para gestionar reservas
+                        </li>
+
+                        <li class="flex gap-2">
+                            <span class="material-symbols-outlined text-secondary text-sm">done_all</span>
+                            Mini página personalizada del negocio
+                        </li>
+
+                        <li class="flex gap-2">
+                            <span class="material-symbols-outlined text-secondary text-sm">done_all</span>
+                            Imagen de portada destacada
+                        </li>
+
+                        <li class="flex gap-2">
+                            <span class="material-symbols-outlined text-secondary text-sm">done_all</span>
+                            Listado de servicios y descripción
+                        </li>
+
+                    </ul>
+
+                    <button onclick="selectPlan('Plan Premium')"
+                        class="w-full py-4 rounded-xl border-2 border-secondary text-secondary font-bold hover:bg-secondary hover:text-white transition-all">
+                        Solicitar
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- Confianza -->
+            <p class="text-center text-sm text-slate-500 mt-12">
+                Sin contratos. Podés cancelar cuando quieras.
+            </p>
+
+            <!-- Extras -->
+            <div class="mt-16 bg-slate-50 rounded-3xl p-8 border border-slate-200 max-w-4xl mx-auto">
+
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="material-symbols-outlined text-primary text-3xl">extension</span>
+                    <h3 class="text-2xl font-bold">Extras (Opcionales)</h3>
+                </div>
+
+                <p class="text-slate-600 mb-4">
+                    Podés ampliar tu sistema con funcionalidades adicionales según las necesidades de tu negocio:
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-slate-700 font-medium">
+
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">add_circle</span>
+                        Formularios personalizados
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">add_circle</span>
+                        Botón de WhatsApp
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">add_circle</span>
+                        Integraciones a medida
+                    </div>
+
+                </div>
+
+                <p class="text-sm text-slate-500 mt-6 italic">
+                    * Los extras se cotizan por separado según los requerimientos.
+                </p>
+
+            </div>
+
+        </div>
+    </section>
+    <!-- Formulario de Contacto -->
+    <section id="contacto" class="py-24 bg-slate-100 px-6">
+        <div class="max-w-3xl mx-auto">
+            <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 p-8 md:p-12">
+                <div class="text-center mb-10">
+                    <h2 id="formTitle" class="text-3xl font-extrabold mb-2">Envíanos tu consulta</h2>
+                    <p id="formSubtitle" class="text-slate-500">Nos comunicaremos a la brevedad.</p>
+                </div>
+                <form id="mainContactForm" class="space-y-6">
+                    <!-- Campo dinámico para Plan (oculto por defecto) -->
+                    <div id="planSelectionBox"
+                        class="hidden bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-center justify-between mb-2">
+                        <div>
+                            <p class="text-xs font-bold text-primary uppercase tracking-wider mb-1">Plan seleccionado
+                            </p>
+                            <p class="font-bold text-lg text-slate-800" id="selectedPlanName">Plan Simple</p>
+                            <input type="hidden" id="inputPlan" name="plan" value="">
+                        </div>
+                        <button type="button" onclick="resetForm()" class="text-slate-400 hover:text-red-500">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <input type="text" name="nombre" placeholder="Nombre completo" required
+                            class="w-full bg-slate-50 border-slate-200 rounded-xl px-4 py-3 focus:ring-primary">
+                        <input type="text" name="negocio" placeholder="Nombre del negocio" required
+                            class="w-full bg-slate-50 border-slate-200 rounded-xl px-4 py-3 focus:ring-primary">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <input type="tel" name="celular" placeholder="WhatsApp" required
+                            class="w-full bg-slate-50 border-slate-200 rounded-xl px-4 py-3 focus:ring-primary">
+                        <input type="email" name="email" placeholder="Email" required
+                            class="w-full bg-slate-50 border-slate-200 rounded-xl px-4 py-3 focus:ring-primary">
+                    </div>
+                    <textarea name="mensaje" placeholder="¿En qué podemos ayudarte?" rows="4" required
+                        class="w-full bg-slate-50 border-slate-200 rounded-xl px-4 py-3 focus:ring-primary"></textarea>
+                    
+                    <div id="contactMessage" class="hidden p-4 rounded-xl text-sm font-medium"></div>
+
+                    <button type="submit" id="submitBtn"
+                        class="w-full signature-glow text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-primary/20 hover:scale-[1.01] transition-all">Enviar
+                        consulta</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-slate-900 text-slate-400 py-12 text-center">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2 text-white">
+                <span class="material-symbols-outlined text-primary">event_available</span>
+                <span class="font-bold">Agenda<span class="text-secondary">tina</span></span>
+            </div>
+            <div class="flex flex-col items-center md:items-end gap-1 text-sm">
+                <p>© 2026. Diseñado para potenciar tu negocio.</p>
+                <p>Desarrollado por <span class="text-white font-bold"><a href="mailto:vochoaolguin@gmail.com" class="text-primary hover:text-white transition-colors hover:underline">Valentina Ochoa</a></span></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal de Éxito Contacto -->
+    <div id="contactSuccessModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full p-8 transform scale-95 transition-transform duration-300 text-center" id="contactSuccessModalContent">
+            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-4xl">check_circle</span>
+            </div>
+            <h3 class="text-2xl font-bold text-slate-800 mb-2">¡Consulta Enviada!</h3>
+            <p class="text-slate-500 text-sm mb-6">Hemos recibido tu mensaje correctamente. Un asesor se comunicará contigo a la brevedad.</p>
+            <button onclick="closeContactSuccessModal()" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-primary/20">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+    <script src="backend/js/script.js" defer></script>
+</body>
+
+</html>

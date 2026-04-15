@@ -1,0 +1,42 @@
+# 1. Seguridad básica
+Options -Indexes
+ServerSignature Off
+
+# 2. Forzar HTTPS (Redirigir todo tráfico HTTP a seguro)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# 3. Cabeceras de Seguridad (Previenen ataques comunes)
+<IfModule mod_headers.c>
+    # Evita que tu sitio sea cargado en iframes de otros dominios (Clickjacking)
+    Header set X-Frame-Options "SAMEORIGIN"
+    # Fuerza al navegador a respetar el tipo de archivo (Evita inyección de scripts)
+    Header set X-Content-Type-Options "nosniff"
+    # Activa el filtro XSS del navegador
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# 4. Bloqueo de archivos sensibles
+<FilesMatch "^(conexion\.php|web_data\.json|\.htaccess|crear_usuario\.php|demo_reset\.txt)$">
+    Require all denied
+</FilesMatch>
+
+# 5. Configuración de Redirecciones Dinámicas
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Evitar reescribir si el archivo o directorio existe físicamente
+    RewriteCond %{REQUEST_FILENAME} -d [OR]
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+
+    # A. Caso: agendatina.site/tu-negocio/calendario
+    RewriteRule ^([a-zA-Z0-9-]+)/calendario(?:\.html)?/?$ index.php?n=$1&v=calendario [L,QSA]
+    
+    # B. Caso: agendatina.site/tu-negocio
+    RewriteRule ^([a-zA-Z0-9-]+)/?$ index.php?n=$1 [L,QSA]
+</IfModule>

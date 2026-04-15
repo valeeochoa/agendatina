@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargando... | Agendatina</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-2.5 5.43l-4.57 4.57-2.43-2.43 1.41-1.41 1.02 1.02 3.16-3.16 1.41 1.41z'/></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    
+    <script>
+        // Fuerza a que las rutas relativas se carguen desde la carpeta correcta (Evita error 404)
+        const basePath = window.location.pathname.includes('/agendatina/') ? '/agendatina/' : '/';
+        const baseEl = document.createElement('base');
+        baseEl.href = basePath;
+        document.head.insertBefore(baseEl, document.head.firstChild);
+    </script>
+
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Manrope', 'sans-serif'] }, colors: { primary: '#3b82f6', secondary: '#8b5cf6' } } }
+        }
+    </script>
+    <style id="custom-styles"></style>
+    <style>
+        .service-card {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        }
+        .service-card.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar -->
+    <nav class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-3xl" id="navIcon">spa</span>
+                <img id="navLogo" src="" alt="Logo" class="hidden h-10 w-auto object-contain">
+                <span class="font-bold text-xl tracking-tight hidden sm:block" id="navTitle">Mi Negocio</span>
+            </div>
+            <a id="navReservarBtn" href="calendario.html" class="bg-primary text-white px-5 py-2.5 rounded-full font-bold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all">
+                Reservar Turno
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section (Portada) -->
+    <header class="relative pt-32 pb-40 px-6 flex items-center justify-center overflow-hidden bg-slate-900 text-white min-h-[60vh]">
+        <!-- Fondo (Imagen o color) -->
+        <div id="heroBackground" class="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-40 transition-opacity duration-700"></div>
+        <!-- Overlay gradiente -->
+        <div class="absolute inset-0 z-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent"></div>
+        
+        <div class="relative z-10 text-center max-w-3xl mx-auto">
+            <h1 id="heroTitle" class="text-5xl md:text-7xl font-extrabold font-display mb-6 tracking-tight drop-shadow-lg">Bienvenidos</h1>
+            <p id="heroSubtitle" class="text-lg md:text-2xl text-slate-200 mb-10 drop-shadow-md">El mejor servicio para vos.</p>
+            <a id="heroReservarBtn" href="calendario.html" class="inline-block bg-primary text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-2xl hover:shadow-primary/30 hover:-translate-y-1 transition-all">
+                Solicitar un Turno Ahora
+            </a>
+        </div>
+    </header>
+
+    <!-- Services Section -->
+    <main class="flex-1 max-w-7xl mx-auto w-full px-6 py-20">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-extrabold font-display mb-4 text-slate-800">Nuestros Servicios</h2>
+            <div class="w-24 h-1 bg-primary mx-auto rounded-full"></div>
+        </div>
+
+        <div id="servicesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Los servicios se renderizarán aquí -->
+            <p class="text-center text-slate-500 col-span-full py-10">Cargando servicios...</p>
+        </div>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-10 text-center text-slate-500">
+        <p>&copy; <span id="year"></span> <span id="footerName">Mi Negocio</span>. Todos los derechos reservados.</p>
+        <p class="text-xs mt-2">
+            Desarrollado con <a href="index.html" target="_blank" class="font-semibold text-primary hover:underline">Agendatina</a>
+        </p>
+    </footer>
+
+    <!-- Modal Detalles del Servicio -->
+    <div id="webServiceModal" onclick="if(event.target === this) closeWebModalService()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 cursor-pointer">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full p-6 md:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto flex flex-col cursor-default" id="webServiceModalContent">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h2 id="webServiceModalTitle" class="text-3xl font-extrabold font-display text-slate-800 leading-tight">Nombre del Servicio</h2>
+                    <div class="flex items-center gap-4 text-sm font-medium text-slate-500 mt-2">
+                        <span id="webServiceModalDuration" class="flex items-center gap-1"><span class="material-symbols-outlined text-base">schedule</span> -- min</span>
+                        <span id="webServiceModalPrice" class="text-primary font-bold text-lg">$--</span>
+                    </div>
+                </div>
+                <button onclick="closeWebModalService()" class="text-slate-400 hover:text-red-500 bg-slate-100 hover:bg-red-50 rounded-full p-2 transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div id="webServiceModalImages" class="w-full h-64 md:h-80 bg-slate-100 rounded-2xl mb-6 overflow-hidden hidden relative"></div>
+            
+            <div id="webServiceModalDesc" class="prose prose-slate max-w-none text-slate-600 mb-8 flex-1 text-sm md:text-base"></div>
+            
+            <div class="mt-auto border-t border-slate-100 pt-6 text-right">
+                <a id="webServiceModalBtn" href="#" class="inline-flex bg-primary text-white px-8 py-3.5 rounded-xl font-bold text-lg hover:shadow-lg hover:-translate-y-0.5 transition-all">Reservar este servicio</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Extraer el identificador del negocio desde la URL
+        let negocioSlug = '';
+        if (typeof window.NEGOCIO_SLUG !== 'undefined') {
+            negocioSlug = window.NEGOCIO_SLUG;
+        } else {
+            const urlParams = new URLSearchParams(window.location.search);
+            negocioSlug = urlParams.get('n');
+            if (!negocioSlug) {
+                const pathParts = window.location.pathname.split('/').filter(p => p && !p.includes('.html') && !p.includes('.php'));
+                const ignoreDirs = ['backend', 'css', 'js', 'public', 'agendatina', 'calendario', 'web'];
+                const validParts = pathParts.filter(p => !ignoreDirs.includes(p));
+                if (validParts.length > 0) {
+                    negocioSlug = validParts[validParts.length - 1];
+                }
+            }
+        }
+        if (!negocioSlug) negocioSlug = '';
+        const queryParam = negocioSlug ? `?n=${negocioSlug}` : '';
+
+        // Cargar configuración de la web (Textos, logos, colores)
+        fetch('backend/guardar_web.php' + queryParam)
+            .then(res => res.json())
+            .then(data => {
+                if (data && !data.error) {
+                    // Redirigir al calendario si el plan no incluye la mini-web
+                    const planStr = (data.plan || '').toLowerCase();
+                    if (planStr.includes('básico') || planStr.includes('basico') || planStr.includes('simple') || planStr.includes('intermedio')) {
+                        window.location.replace(negocioSlug ? `${negocioSlug}/calendario.html` : 'calendario.html');
+                        return;
+                    }
+
+                    // Actualizar enlaces al calendario usando la ruta dinámica
+                    const linkCalendario = negocioSlug ? `${negocioSlug}/calendario.html` : 'calendario.html';
+                    document.getElementById('navReservarBtn').href = linkCalendario;
+                    document.getElementById('heroReservarBtn').href = linkCalendario;
+
+                    const title = data.titulo || 'Mi Negocio';
+                    document.title = title;
+                    document.getElementById('navTitle').textContent = title;
+                    document.getElementById('heroTitle').textContent = title;
+                    document.getElementById('footerName').textContent = title;
+
+                    if (data.subtitulo) {
+                        document.getElementById('heroSubtitle').textContent = data.subtitulo;
+                    }
+
+                    if (data.fondo) {
+                        document.getElementById('heroBackground').style.backgroundImage = `url('${data.fondo}')`;
+                        document.getElementById('heroBackground').classList.remove('opacity-40');
+                        document.getElementById('heroBackground').classList.add('opacity-50');
+                    }
+
+                    if (data.logo) {
+                        document.getElementById('navIcon').classList.add('hidden');
+                        const navLogo = document.getElementById('navLogo');
+                        navLogo.src = data.logo;
+                        navLogo.classList.remove('hidden');
+
+                        const favicon = document.querySelector('link[rel="icon"]');
+                        if (favicon) favicon.href = data.logo;
+                    }
+
+                    // Aplicar colores personalizados
+                    if (data.color_primario_web || data.color_secundario_web || data.color_fondo) {
+                        const pColor = data.color_primario_web || data.color_primario || '#3b82f6';
+                        const sColor = data.color_secundario_web || data.color_secundario || '#8b5cf6';
+                        const style = document.getElementById('custom-styles');
+                        let stylesHTML = `
+                            .text-primary { color: ${pColor} !important; }
+                            .bg-primary { background-color: ${pColor} !important; }
+                            .border-primary { border-color: ${pColor} !important; }
+                            .hover\\:bg-primary:hover { background-color: ${pColor} !important; }
+                            .hover\\:shadow-primary\\/30:hover { --tw-shadow-color: ${pColor}4d !important; }
+                            .text-secondary { color: ${sColor} !important; }
+                            .bg-secondary { background-color: ${sColor} !important; }
+                        `;
+                        if (data.color_fondo) {
+                            stylesHTML += `body, .bg-slate-50 { background-color: ${data.color_fondo} !important; }`;
+                        }
+                        style.innerHTML = stylesHTML;
+                    }
+
+                    if (data.alineacion_servicios) {
+                        const styleAlign = document.createElement('style');
+                        styleAlign.innerHTML = `.service-card { text-align: ${data.alineacion_servicios}; }`;
+                        document.head.appendChild(styleAlign);
+                    }
+                }
+            })
+            .catch(err => console.error('Error al cargar la configuración web:', err));
+
+        // Cargar servicios
+        fetch('backend/gestionar_servicios.php' + queryParam)
+            .then(res => res.json())
+            .then(data => {
+                const grid = document.getElementById('servicesGrid');
+                grid.innerHTML = '';
+
+                if (!data || data.length === 0) {
+                    grid.innerHTML = '<p class="text-center text-slate-500 col-span-full py-10">No hay servicios disponibles por el momento.</p>';
+                    return;
+                }
+
+                window.webServicesData = data;
+
+                data.forEach(service => {
+                    const precio = service.precio ? `<span class="font-bold text-lg text-primary">$${service.precio}</span>` : '';
+                    const imgs = [service.imagen1, service.imagen2, service.imagen3].filter(Boolean);
+                    let imagesHtml = `<div class="h-48 w-full bg-slate-100 flex items-center justify-center text-slate-400"><span class="material-symbols-outlined text-4xl">spa</span></div>`;
+                    if (imgs.length > 0) {
+                        const imgsHtml = imgs.map((img, i) => `<img src="${img}" alt="${service.nombre}" class="card-carousel-img absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${i === 0 ? 'opacity-100' : 'opacity-0'}">`).join('');
+                        const controls = imgs.length > 1
+                            ? `<button type="button" onclick="prevCardImg(event, '${service.id}')" class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white rounded-full p-1.5 z-10"><span class="material-symbols-outlined">chevron_left</span></button>
+                               <button type="button" onclick="nextCardImg(event, '${service.id}')" class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 hover:bg-white rounded-full p-1.5 z-10"><span class="material-symbols-outlined">chevron_right</span></button>`
+                            : '';
+                        imagesHtml = `<div id="card-carousel-${service.id}" data-index="0" class="h-48 w-full bg-slate-200 overflow-hidden relative">${imgsHtml}${controls}</div>`;
+                    }
+
+                // Extraer solo el texto sin HTML para la tarjeta de resumen
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = service.descripcion || '';
+                const plainTextDesc = tempDiv.textContent || tempDiv.innerText || 'Sin descripción detallada.';
+
+                    grid.innerHTML += `
+                        <div onclick="openWebModalService('${service.id}')" class="service-card cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            ${imagesHtml}
+                            <div class="p-6 flex flex-col flex-1">
+                                <h3 class="text-xl font-bold text-slate-800 leading-tight mb-2">${service.nombre}</h3>
+                                <div class="flex items-center gap-2 text-sm font-medium text-slate-500 mb-4"><span class="material-symbols-outlined text-base">schedule</span> ${service.duracion} min</div>
+                            <div class="text-slate-500 text-sm mb-6 flex-1 line-clamp-3 overflow-hidden" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;" title="Clic para leer más">${plainTextDesc}</div>
+                                <div class="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
+                                    ${precio}
+                                    <span class="text-primary font-bold text-sm flex items-center gap-1">Ver detalles <span class="material-symbols-outlined text-sm">visibility</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                // Intersection Observer para animar las tarjetas al hacer scroll
+                const cards = document.querySelectorAll('.service-card');
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach((entry, index) => {
+                        if (entry.isIntersecting) {
+                            // Añadir un pequeño retraso escalonado para un efecto más dinámico
+                            setTimeout(() => {
+                                entry.target.classList.add('is-visible');
+                            }, index * 100);
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.1 });
+                cards.forEach(card => {
+                    observer.observe(card);
+                });
+
+                // Auto-play del carrusel en tarjetas cada 30s
+                setInterval(() => {
+                    document.querySelectorAll('[id^="card-carousel-"]').forEach(el => {
+                        const imgs = el.querySelectorAll('.card-carousel-img');
+                        if (imgs.length <= 1) return;
+                        let idx = parseInt(el.dataset.index || '0', 10);
+                        imgs[idx].classList.replace('opacity-100', 'opacity-0');
+                        idx = (idx + 1) % imgs.length;
+                        imgs[idx].classList.replace('opacity-0', 'opacity-100');
+                        el.dataset.index = String(idx);
+                    });
+                }, 30000);
+            })
+            .catch(err => {
+                document.getElementById('servicesGrid').innerHTML = '<p class="text-center text-red-500 col-span-full py-10">Ocurrió un error al cargar los servicios.</p>';
+            });
+            
+        let currentCarouselImg = 0;
+        let carouselInterval;
+
+        window.nextCardImg = function(e, id) {
+            if (e) e.stopPropagation();
+            const el = document.getElementById(`card-carousel-${id}`);
+            if (!el) return;
+            const imgs = el.querySelectorAll('.card-carousel-img');
+            if (imgs.length <= 1) return;
+            let idx = parseInt(el.dataset.index || '0', 10);
+            imgs[idx].classList.replace('opacity-100', 'opacity-0');
+            idx = (idx + 1) % imgs.length;
+            imgs[idx].classList.replace('opacity-0', 'opacity-100');
+            el.dataset.index = String(idx);
+        };
+
+        window.prevCardImg = function(e, id) {
+            if (e) e.stopPropagation();
+            const el = document.getElementById(`card-carousel-${id}`);
+            if (!el) return;
+            const imgs = el.querySelectorAll('.card-carousel-img');
+            if (imgs.length <= 1) return;
+            let idx = parseInt(el.dataset.index || '0', 10);
+            imgs[idx].classList.replace('opacity-100', 'opacity-0');
+            idx = (idx - 1 + imgs.length) % imgs.length;
+            imgs[idx].classList.replace('opacity-0', 'opacity-100');
+            el.dataset.index = String(idx);
+        };
+
+        window.nextServiceImg = function(e) {
+            if(e) e.stopPropagation();
+            const imgs = document.querySelectorAll('#webServiceModalImages .carousel-img');
+            if(imgs.length <= 1) return;
+            imgs[currentCarouselImg].classList.replace('opacity-100', 'opacity-0');
+            currentCarouselImg = (currentCarouselImg + 1) % imgs.length;
+            imgs[currentCarouselImg].classList.replace('opacity-0', 'opacity-100');
+        };
+
+        window.prevServiceImg = function(e) {
+            if(e) e.stopPropagation();
+            const imgs = document.querySelectorAll('#webServiceModalImages .carousel-img');
+            if(imgs.length <= 1) return;
+            imgs[currentCarouselImg].classList.replace('opacity-100', 'opacity-0');
+            currentCarouselImg = (currentCarouselImg - 1 + imgs.length) % imgs.length;
+            imgs[currentCarouselImg].classList.replace('opacity-0', 'opacity-100');
+        };
+
+        window.openWebModalService = function(id) {
+            const service = window.webServicesData.find(s => s.id == id);
+            if(!service) return;
+            document.getElementById('webServiceModalTitle').textContent = service.nombre;
+            document.getElementById('webServiceModalDuration').innerHTML = `<span class="material-symbols-outlined text-base">schedule</span> ${service.duracion} min`;
+            document.getElementById('webServiceModalPrice').textContent = service.precio ? `$${service.precio}` : '';
+            document.getElementById('webServiceModalDesc').innerHTML = service.descripcion || 'Sin descripción detallada.';
+            const imgContainer = document.getElementById('webServiceModalImages');
+            
+            clearInterval(carouselInterval);
+            currentCarouselImg = 0;
+            
+            if (service.imagen1 || service.imagen2 || service.imagen3) {
+                let imgs = '';
+                let count = 0;
+                if(service.imagen1) { imgs += `<img src="${service.imagen1}" class="carousel-img absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${count===0?'opacity-100':'opacity-0'}">`; count++; }
+                if(service.imagen2) { imgs += `<img src="${service.imagen2}" class="carousel-img absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${count===0?'opacity-100':'opacity-0'}">`; count++; }
+                if(service.imagen3) { imgs += `<img src="${service.imagen3}" class="carousel-img absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${count===0?'opacity-100':'opacity-0'}">`; count++; }
+                
+                let controls = '';
+                if (count > 1) {
+                    controls = `<button onclick="prevServiceImg(event)" class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/50 hover:bg-white rounded-full p-1.5 z-10 transition-colors"><span class="material-symbols-outlined">chevron_left</span></button><button onclick="nextServiceImg(event)" class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/50 hover:bg-white rounded-full p-1.5 z-10 transition-colors"><span class="material-symbols-outlined">chevron_right</span></button>`;
+                    carouselInterval = setInterval(() => { window.nextServiceImg(); }, 30000);
+                }
+                imgContainer.innerHTML = imgs + controls; imgContainer.classList.remove('hidden');
+            } else { 
+                imgContainer.classList.add('hidden'); 
+            }
+                    document.getElementById('webServiceModalBtn').href = `${negocioSlug ? `${negocioSlug}/calendario.html` : 'calendario.html'}?servicio=${encodeURIComponent(service.nombre)}`;
+            const modal = document.getElementById('webServiceModal'); const content = document.getElementById('webServiceModalContent');
+            modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10); document.body.style.overflow = 'hidden';
+        }
+        window.closeWebModalService = function() {
+            const modal = document.getElementById('webServiceModal'); const content = document.getElementById('webServiceModalContent');
+            modal.classList.add('opacity-0'); content.classList.add('scale-95'); setTimeout(() => { modal.classList.add('hidden'); document.body.style.overflow = ''; }, 300);
+        }
+    </script>
+</body>
+</html>

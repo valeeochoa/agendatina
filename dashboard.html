@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Panel de Control | Agendatina</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-2.5 5.43l-4.57 4.57-2.43-2.43 1.41-1.41 1.02 1.02 3.16-3.16 1.41 1.41z'/></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Manrope', 'sans-serif'] }, colors: { primary: '#3b82f6', secondary: '#8b5cf6' } } }
+        }
+    </script>
+    <style>
+        .signature-glow { background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased min-h-screen flex flex-col">
+
+    <!-- Navbar del Dashboard -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                 <span class="material-symbols-outlined text-primary text-3xl">event_available</span>
+                 <span class="font-bold text-xl tracking-tight hidden sm:block">Agendatina</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden sm:block">
+                    <p class="text-sm font-bold text-slate-800 flex items-center gap-2" id="dashboardBusinessName">
+                        Cargando... 
+                    </p>
+                    <p class="text-xs text-slate-500" id="navPlanName">Cargando plan...</p>
+                </div>
+                <div id="navAvatar" class="w-10 h-10 rounded-full signature-glow text-white flex items-center justify-center font-bold shadow-md cursor-pointer overflow-hidden">
+                    ML
+                </div>
+
+                <!-- Campanita de Notificaciones -->
+                <div class="relative cursor-pointer text-slate-400 hover:text-primary transition-colors flex items-center ml-2" title="Notificaciones" onclick="toggleNotifications(event)">
+                    <span class="material-symbols-outlined text-[28px]">notifications</span>
+                    <span id="notifBadge" class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full hidden"></span>
+                    
+                    <!-- Dropdown de notificaciones -->
+                    <div id="notifDropdown" class="absolute right-0 top-10 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-100 hidden flex-col z-50 overflow-hidden cursor-default text-left" onclick="event.stopPropagation()">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                            <h4 class="font-bold text-slate-800 text-sm">Notificaciones</h4>
+                            <div class="flex items-center gap-3">
+                                <button class="text-xs text-primary font-semibold hover:underline" onclick="markAllRead(event)">Marcar leídas</button>
+                                <button class="text-slate-400 hover:text-red-500 transition-colors flex" onclick="deleteAllNotifs(event)" title="Borrar todas">
+                                    <span class="material-symbols-outlined text-[18px]">delete_sweep</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="notifList" class="max-h-72 overflow-y-auto p-2 space-y-1">
+                            <div class="p-4 text-center text-sm text-slate-400">No hay notificaciones nuevas</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="logoutDashboard()" class="text-slate-400 hover:text-red-500 transition-colors ml-2" title="Cerrar sesión">
+                    <span class="material-symbols-outlined">logout</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 max-w-5xl mx-auto w-full px-6 py-12">
+        <!-- Estado de Carga Inicial -->
+        <div id="dashboardLoader" class="flex flex-col items-center justify-center py-24 text-slate-400 transition-all duration-300">
+            <span class="material-symbols-outlined text-5xl animate-spin mb-4 text-primary">refresh</span>
+            <p class="font-bold text-lg text-slate-600">Cargando tu panel...</p>
+        </div>
+
+        <!-- Contenido Real del Dashboard (Oculto por defecto) -->
+        <div id="dashboardMainContent" class="hidden opacity-0 transition-opacity duration-500">
+            <!-- Banner de Suscripción -->
+            <div id="subscriptionBanner" class="hidden mb-8 p-4 rounded-2xl shadow-sm text-sm font-semibold flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined text-2xl" id="subIcon">info</span>
+                    <span id="subMessage" class="text-base"></span>
+                </div>
+                <button id="subActionBtn" class="px-5 py-2.5 rounded-xl text-white text-sm font-bold hidden whitespace-nowrap transition-transform hover:-translate-y-0.5"></button>
+            </div>
+
+            <div class="mb-10 flex justify-between items-start flex-wrap gap-4">
+                <div>
+                    <h1 class="text-3xl font-extrabold font-display mb-2" id="dashGreeting">¡Hola, bienvenido!</h1>
+                    <p class="text-slate-500" id="dashSubGreeting">¿Qué deseas hacer hoy? Gestiona tu negocio desde aquí.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <!-- Acceso a la Agenda Virtual (Admin) -->
+            <a href="agenda.html" id="cardAgenda" class="group bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-primary/50 transition-all flex flex-col relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <span class="material-symbols-outlined text-9xl text-primary">menu_book</span>
+                </div>
+                <div class="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
+                    <span class="material-symbols-outlined text-3xl">menu_book</span>
+                </div>
+                <h2 class="text-2xl font-bold mb-3 z-10">Mi Agenda Virtual</h2>
+                <p class="text-slate-500 flex-1 z-10">Administra los turnos de tus clientes, confirma reservas pendientes y bloquea horarios manualmente.</p>
+                <div class="mt-8 flex items-center gap-2 text-primary font-semibold z-10">
+                    Ingresar a la agenda <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </div>
+            </a>
+
+            <!-- Gestionar Calendario y Servicios -->
+            <a href="calendario.html" id="cardCalendario" class="group bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-secondary/50 transition-all flex flex-col relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <span class="material-symbols-outlined text-9xl text-secondary">edit_calendar</span>
+                </div>
+                <div class="w-14 h-14 rounded-2xl bg-secondary/10 text-secondary flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
+                    <span class="material-symbols-outlined text-3xl">edit_calendar</span>
+                </div>
+                <h2 class="text-2xl font-bold mb-3 z-10">Gestionar Calendario</h2>
+                <p class="text-slate-500 flex-1 z-10">Define tus horarios, bloquea fechas, y administra los servicios ofrecidos, su duración y precios.</p>
+                <div class="mt-8 flex items-center gap-2 text-secondary font-semibold z-10">
+                    Configurar mi calendario <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </div>
+            </a>
+
+            <!-- Gestionar mi Web Pública -->
+            <a href="mi-web.html" id="cardWeb" class="group bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-emerald-500/50 transition-all flex flex-col relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <span class="material-symbols-outlined text-9xl text-emerald-500">dvr</span>
+                </div>
+                <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
+                    <span class="material-symbols-outlined text-3xl">dvr</span>
+                </div>
+                <h2 class="text-2xl font-bold mb-3 z-10">Mi Página Web</h2>
+                <p class="text-slate-500 flex-1 z-10">Edita la portada, colores y servicios de tu página pública. Añade fotos, precios y descripciones detalladas.</p>
+                <div class="mt-8 flex items-center gap-2 text-emerald-500 font-semibold z-10">
+                    Personalizar mi página <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </div>
+            </a>
+
+            <!-- Mi Perfil -->
+            <a href="javascript:void(0)" onclick="openProfileModal()" class="group bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-400 transition-all flex flex-col relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <span class="material-symbols-outlined text-9xl text-slate-800">account_circle</span>
+                </div>
+                <div class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-800 flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
+                    <span class="material-symbols-outlined text-3xl">account_circle</span>
+                </div>
+                <h2 class="text-2xl font-bold mb-3 z-10">Mi Perfil</h2>
+                <p class="text-slate-500 flex-1 z-10">Edita tus datos personales y contraseña.</p>
+                <div class="mt-8 flex items-center gap-2 text-slate-800 font-semibold z-10">
+                    Configurar perfil <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </div>
+            </a>
+
+        <!-- Ajustes -->
+        <a href="ajustes.html" class="group bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-amber-400 transition-all flex flex-col relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                <span class="material-symbols-outlined text-9xl text-amber-500">settings_suggest</span>
+            </div>
+            <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
+                <span class="material-symbols-outlined text-3xl">settings_suggest</span>
+            </div>
+            <h2 class="text-2xl font-bold mb-3 z-10">Ajustes</h2>
+            <p class="text-slate-500 flex-1 z-10">Configura colores, horarios de atención, turnos y modalidad de trabajo.</p>
+            <div class="mt-8 flex items-center gap-2 text-amber-600 font-semibold z-10">
+                Configurar ajustes <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </div>
+        </a>
+
+            <!-- Soporte y Sugerencias -->
+            <a href="javascript:void(0)" onclick="openSupportModal()" class="group bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-400 transition-all flex flex-col relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <span class="material-symbols-outlined text-9xl text-blue-500">support_agent</span>
+                </div>
+                <div class="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
+                    <span class="material-symbols-outlined text-3xl">support_agent</span>
+                </div>
+                <h2 class="text-2xl font-bold mb-3 z-10">Soporte y Mejoras</h2>
+                <p class="text-slate-500 flex-1 z-10">¿Tienes alguna sugerencia, mejora o encontraste un error? Contáctanos directamente.</p>
+                <div class="mt-8 flex items-center gap-2 text-blue-600 font-semibold z-10">
+                    Contactar soporte <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </div>
+            </a>
+        </div>
+        </div>
+    </main>
+
+    <!-- Modal de Perfil -->
+    <div id="profileModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="profileModalContent">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold font-display text-slate-800">Mi Perfil</h2>
+                <button onclick="closeProfileModal()" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="profileForm" class="flex flex-col gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nombre Completo</label>
+                    <input type="text" id="profileName" name="nombre" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Logo del Negocio</label>
+                    <div class="flex items-center gap-4">
+                        <img id="profileLogoPreview" class="w-12 h-12 rounded-full object-cover hidden border border-slate-200 shadow-sm">
+                        <input type="file" id="profileLogo" name="logo" accept="image/png, image/jpeg, image/webp" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Color Principal (Panel y Agenda)</label>
+                    <div class="flex items-center gap-4">
+                        <input type="color" id="profileColor" name="color_primario" value="#3b82f6" class="w-12 h-12 rounded-lg border-none cursor-pointer p-0 bg-transparent">
+                        <span class="text-xs text-slate-500">Se aplicará a botones y elementos destacados.</span>
+                    </div>
+                </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-1">Color Secundario (Detalles)</label>
+                <div class="flex items-center gap-4">
+                    <input type="color" id="profileColorSecundario" name="color_secundario" value="#8b5cf6" class="w-12 h-12 rounded-lg border-none cursor-pointer p-0 bg-transparent">
+                    <span class="text-xs text-slate-500">Se utilizará para detalles e iconos suaves.</span>
+                </div>
+            </div>
+                <div class="border-t border-slate-100 pt-4 mt-2" id="securitySection">
+                    <h3 class="font-bold text-slate-800 mb-3">Seguridad</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Contraseña Actual</label>
+                            <input type="password" id="currentPassword" name="current_password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Requerida para cambiar la contraseña">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Nueva Contraseña</label>
+                            <input type="password" id="newPassword" name="new_password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Mínimo 6, máximo 14 caracteres" minlength="6" maxlength="14">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Confirmar Nueva Contraseña</label>
+                            <input type="password" id="confirmPassword" name="confirm_password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Repite la nueva contraseña" minlength="6" maxlength="14">
+                        </div>
+                    </div>
+                </div>
+                <div id="profileMessage" class="hidden p-3 rounded-lg text-sm font-medium text-center mt-2"></div>
+                <button type="submit" id="btnProfileSubmit" class="w-full signature-glow text-white py-3.5 rounded-xl font-bold text-lg mt-2 shadow-lg shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all">
+                    Guardar Cambios
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Pagar Suscripción / Enviar Comprobante -->
+    <div id="paymentModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 my-8 max-h-[90vh] overflow-y-auto" id="paymentModalContent">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold font-display text-slate-800">Abonar Suscripción</h2>
+                <button onclick="closePaymentModal()" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div id="paymentFormContainer" class="space-y-6">
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
+                    <p class="text-sm text-slate-500">Estás por abonar el</p>
+                    <p class="text-lg font-bold text-primary" id="paymentPlanName">Plan Básico</p>
+                    <p class="text-3xl font-extrabold font-display my-2" id="paymentPrice"><span class="text-base font-normal text-slate-400">Calculando...</span></p>
+                </div>
+                
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-blue-800 text-sm">
+                    <p class="font-bold mb-2">Datos para transferencia:</p>
+                    <p class="flex justify-between"><span>CBU:</span> <span class="font-mono font-medium">0000003100000000000000</span></p>
+                    <p class="flex justify-between"><span>Alias:</span> <span class="font-mono font-medium">AGENDATINA.PAGOS</span></p>
+                    <p class="flex justify-between"><span>Titular:</span> <span class="font-mono font-medium">Agendatina S.A.</span></p>
+                </div>
+
+                <form id="receiptForm" class="flex flex-col gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Adjuntar Comprobante</label>
+                        <input type="file" id="comprobanteInput" accept="image/*,.pdf" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer">
+                        <p class="text-xs text-slate-500 mt-2">Formatos aceptados: JPG, PNG o PDF.</p>
+                    </div>
+                    <button type="submit" id="btnSubmitReceipt" class="w-full bg-primary hover:bg-primary/90 text-white py-3.5 rounded-xl font-bold text-lg mt-2 shadow-lg shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                        Enviar Comprobante
+                    </button>
+                </form>
+            </div>
+
+            <!-- Mensaje de éxito (Oculto inicialmente) -->
+            <div id="paymentSuccessMessage" class="hidden flex-col items-center text-center py-6">
+                <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-4xl">check_circle</span>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">¡Comprobante Enviado!</h3>
+                <p class="text-slate-500 text-sm">Estamos verificando tu pago. En un plazo máximo de <strong>24 horas</strong> verás el cambio reflejado en tu cuenta y desaparecerá el aviso de pago.</p>
+                <button onclick="closePaymentModal()" class="mt-6 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-6 rounded-xl transition-colors">
+                    Entendido
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Primera Configuración -->
+    <div id="firstSetupModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-500">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 transform scale-95 transition-transform duration-500">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="material-symbols-outlined text-4xl">rocket_launch</span>
+                </div>
+                <h2 class="text-2xl font-bold font-display text-slate-800">¡Bienvenido a Agendatina!</h2>
+                <p class="text-slate-500 text-sm mt-2">Configuremos lo básico para que empieces a recibir turnos.</p>
+            </div>
+            <form id="firstSetupForm" class="flex flex-col gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Color de tu marca (Calendario)</label>
+                    <input type="color" id="setupColor" required value="#ec135b" class="w-full h-12 rounded-xl border-none cursor-pointer p-0 bg-transparent">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Apertura</label>
+                        <input type="time" id="setupApertura" required value="09:00" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Cierre</label>
+                        <input type="time" id="setupCierre" required value="18:00" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Duración estándar del turno</label>
+                    <select id="setupIntervalo" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none">
+                        <option value="15">15 minutos</option>
+                        <option value="30" selected>30 minutos</option>
+                        <option value="45">45 minutos</option>
+                        <option value="60">1 hora</option>
+                        <option value="90">1 hora y media</option>
+                        <option value="120">2 horas</option>
+                    </select>
+                </div>
+                <button type="submit" id="btnSetupSubmit" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/30 mt-4 transition-all">
+                    Guardar y Comenzar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación Genérico -->
+    <div id="confirmModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full p-6 transform scale-95 transition-transform duration-300 text-center" id="confirmModalContent">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-3xl">logout</span>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2" id="confirmTitle">Confirmar Acción</h3>
+            <p class="text-slate-500 text-sm mb-6" id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
+            <div class="flex gap-3 justify-center">
+                <button id="btnCancelConfirm" onclick="closeConfirm()" class="px-4 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors flex-1">Cancelar</button>
+                <button id="btnAcceptConfirm" class="px-4 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-xl transition-colors flex-1">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Soporte -->
+    <div id="supportModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="supportModalContent">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold font-display text-slate-800">Soporte y Sugerencias</h2>
+                <button onclick="closeSupportModal()" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <form id="supportForm" class="flex flex-col gap-4">
+                <p class="text-sm text-slate-500 mb-2">Envíanos tus sugerencias de mejora o repórtanos si encontraste algún problema en la plataforma. Tu opinión nos ayuda a crecer.</p>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Mensaje</label>
+                    <textarea id="supportMessage" name="mensaje" rows="4" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all resize-none" placeholder="Escribe aquí tu sugerencia o reporte..."></textarea>
+                </div>
+                <button type="submit" id="btnSupportSubmit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-lg mt-2 shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all">
+                    Enviar mensaje
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Reportar Error -->
+    <div id="reportErrorModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="reportErrorModalContent">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold font-display text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-red-500">bug_report</span> Reportar Error
+                </h2>
+                <button onclick="closeReportErrorModal()" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <form id="reportErrorForm" class="space-y-4">
+                <input type="hidden" id="reportSegment" name="segmento" value="">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Sección donde ocurrió:</label>
+                    <input type="text" id="reportSegmentDisplay" class="w-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-4 py-3 rounded-xl cursor-not-allowed border-none font-medium text-sm" readonly>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Describe el problema:</label>
+                    <textarea name="mensaje" rows="4" required placeholder="¿Qué estabas intentando hacer y qué ocurrió?" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700 dark:text-slate-300 resize-none"></textarea>
+                </div>
+                <button type="submit" id="btnReportSubmit" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl mt-2 transition-all flex items-center justify-center gap-2">Enviar Reporte</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="backend/js/script.js" defer></script>
+    <script src="backend/js/dashboard.js" defer></script>
+</body>
+</html>

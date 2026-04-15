@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <link rel="icon" id="favicon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ec135b'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-2.5 5.43l-4.57 4.57-2.43-2.43 1.41-1.41 1.02 1.02 3.16-3.16 1.41 1.41z'/></svg>">
+  
+  <script>
+      // Fuerza a que las rutas relativas se carguen desde la carpeta correcta (Evita error 404)
+      const basePath = window.location.pathname.includes('/agendatina/') ? '/agendatina/' : '/';
+      const baseEl = document.createElement('base');
+      baseEl.href = basePath;
+      document.head.insertBefore(baseEl, document.head.firstChild);
+      
+      const scriptEl = document.createElement('script');
+      scriptEl.src = 'backend/js/script.js';
+      scriptEl.defer = true;
+      document.head.appendChild(scriptEl);
+  </script>
+
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            primary: "#ec135b",
+            secondary: "#fce7f3",
+            "surface-light": "#ffffff",
+            "surface-dark": "#1a1a1a",
+          },
+          fontFamily: {
+            display: ["Plus Jakarta Sans", "sans-serif"],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* Estética del Calendario */
+    .calendar-day { 
+      aspect-ratio: 1 / 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      font-size: 0.9rem;
+      border: 2px solid transparent;
+    }
+    
+    .calendar-day:not(.disabled) {
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      cursor: pointer;
+      border-color: var(--color-secundario, #fce7f3);
+    }
+
+    .calendar-day:not(.disabled):hover {
+      transform: translateY(-2px);
+      border-color: var(--color-primario, #ec135b);
+      color: var(--color-primario, #ec135b);
+    }
+
+    .calendar-day.selected {
+      background: var(--color-primario, #ec135b) !important;
+      color: white !important;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .calendar-day.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: #fff;
+      border-color: #fff;
+    }
+
+    /* Horarios Estilo Pastilla */
+    .time-slot {
+      padding: 12px;
+      border-radius: 14px;
+      text-align: center;
+      font-weight: 600;
+      background: #f8fafc;
+      border: 2px solid #f1f5f9;
+      transition: all 0.2s;
+    }
+
+    .time-slot:hover:not(.booked) {
+      border-color: #ec135b;
+      background: white;
+      color: #ec135b;
+    }
+
+    .time-slot.selected {
+      background: #ec135b;
+      color: white;
+      border-color: #ec135b;
+    }
+
+    .time-slot.booked {
+      background: #e2e8f0;
+      color: #94a3b8;
+      text-decoration: line-through;
+      cursor: not-allowed;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  </style>
+</head>
+
+<body class="bg-[#fcfafa] dark:bg-black font-display text-slate-800 dark:text-slate-100">
+
+  <header class="sticky top-0 z-50 bg-white/70 dark:bg-black/70 backdrop-blur-xl border-b border-slate-100 dark:border-white/10 px-6 py-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2 tracking-tighter">
+        <div id="navIconContainer" class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white">
+          <span id="navIcon" class="material-symbols-outlined">auto_awesome</span>
+        </div>
+        <img id="navLogoImg" src="" alt="Logo" class="hidden h-10 w-auto object-contain rounded-lg">
+        <span class="text-xl font-bold uppercase tracking-widest" id="navBrandText">
+          <span id="navBusinessName">STUDIO</span><span class="text-primary" id="navBrandAccent">GLAM</span>
+        </span>
+      </a>
+
+      <div id="adminProfileMenu" class="hidden items-center gap-3 bg-slate-100 dark:bg-white/5 p-1.5 pl-4 rounded-2xl">
+        <button onclick="openReportErrorModal('Calendario Semanal')" class="text-xs font-bold text-red-500 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors">
+            <span class="material-symbols-outlined text-[16px]">bug_report</span> <span class="hidden sm:inline">Reportar Error</span>
+        </button>
+        <a href="dashboard.html" class="text-xs font-bold text-slate-500 hover:text-primary uppercase tracking-wider flex items-center gap-1 transition-colors">
+          <span class="material-symbols-outlined text-sm">arrow_back</span> <span class="hidden sm:inline">Volver</span>
+        </a>
+        <button onclick="logout()" class="bg-white dark:bg-white/10 p-2 rounded-xl shadow-sm hover:scale-105 hover:text-red-500 transition-all text-primary flex items-center justify-center" title="Cerrar Sesión">
+          <span class="material-symbols-outlined text-[20px]">logout</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-12" id="weeklyCalendarView">
+      
+    <!-- Admin Controls -->
+    <div id="adminControls" class="hidden mb-6 p-4 bg-primary/5 rounded-2xl border border-primary/20">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <span class="text-sm font-semibold text-primary flex items-center gap-2">
+          <span class="material-symbols-outlined text-sm">settings</span> Vista Administrador
+        </span>
+        
+        <div class="flex items-center gap-2">
+          <button onclick="copyMyLink()" class="text-xs font-bold bg-white text-primary border border-primary/20 px-4 py-2 rounded-lg hover:bg-primary/10 transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">share</span> <span class="hidden sm:inline">Compartir Enlace</span>
+          </button>
+          <button id="previewClientBtnWeekly" class="text-xs font-bold bg-white text-primary border border-primary/20 px-4 py-2 rounded-lg hover:bg-primary/10 transition-colors flex items-center gap-1">
+            <span class="material-symbols-outlined text-sm">visibility</span> Vista Cliente
+          </button>
+        </div>
+      </div>
+    </div>
+      
+    <!-- Wizard Overlay -->
+    <div id="wizardOverlay" class="hidden animate-in fade-in duration-500">
+        <div id="step1Modal" class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-6 sm:p-10 shadow-xl mb-8 max-w-3xl mx-auto">
+            <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">1. Elige un servicio</h2>
+            <p class="text-slate-500 mb-8 text-lg">¿Qué te gustaría hacerte hoy?</p>
+            <div id="wizardServicesList" class="space-y-4"></div>
+        </div>
+        <div id="step2Modal" class="hidden bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-6 sm:p-10 shadow-xl mb-8 max-w-3xl mx-auto">
+            <button onclick="backToStep1()" class="text-sm font-bold text-slate-500 hover:text-primary mb-6 flex items-center gap-1 transition-colors"><span class="material-symbols-outlined text-[18px]">arrow_back</span> Volver a servicios</button>
+            <h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-2">2. Elige un profesional</h2>
+            <p class="text-slate-500 mb-8 text-lg">Selecciona con quién te gustaría atenderte.</p>
+            <div id="wizardProfList" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="hidden animate-in fade-in duration-500">
+        <div class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-6 sm:p-10 shadow-xl mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 pb-6 border-b border-slate-100 dark:border-white/10">
+                <div class="w-full flex-1">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
+                        <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white transition-all">Reserva tu cita</h1>
+                        <button type="button" onclick="resetWizard()" class="text-sm font-bold text-primary hover:bg-primary/10 px-4 py-2 rounded-xl transition-colors flex items-center gap-1 border border-primary/20 bg-primary/5 w-full sm:w-auto justify-center"><span class="material-symbols-outlined text-[18px]">restart_alt</span> Empezar de nuevo</button>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl">
+                        <div>
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">Servicio</label>
+                            <select id="serviceSelect" name="servicio_filter" class="w-full mt-1.5 px-4 py-3 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary focus:border-primary text-sm font-medium">
+                                <option value="" disabled selected>¿Qué servicio deseas?</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">Profesional</label>
+                            <select id="profesionalSelect" name="profesional_filter" class="w-full mt-1.5 px-4 py-3 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary focus:border-primary text-sm font-medium">
+                                <option value="Cualquiera" selected>Cualquiera (Sin preferencia)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendario Semanal (7 días) -->
+            <div class="mb-10">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="weekMonthYear" class="font-bold text-xl uppercase tracking-widest text-slate-800 dark:text-slate-200">Mes Año</h2>
+                    <div class="flex gap-2">
+                        <button id="prevWeek" class="w-12 h-12 flex items-center justify-center border border-slate-200 dark:border-white/10 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"><span class="material-symbols-outlined text-slate-400">chevron_left</span></button>
+                        <button id="nextWeek" class="w-12 h-12 flex items-center justify-center border border-slate-200 dark:border-white/10 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"><span class="material-symbols-outlined text-slate-400">chevron_right</span></button>
+                    </div>
+                </div>
+                <div id="weeklyCalendarDays" class="grid grid-cols-7 gap-2 sm:gap-4">
+                    <!-- Insertado vía JS -->
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 border-t border-slate-100 dark:border-white/10 pt-10">
+                <!-- Horarios Disponibles -->
+                <div>
+                    <h3 class="font-bold text-xl mb-6 flex items-center gap-2"><span class="material-symbols-outlined text-primary">schedule</span> <span id="selectedDateLabel">Selecciona un día</span></h3>
+                    
+                    <!-- Banner de próximo horario encontrado -->
+                    <div id="nextAvailableBanner" class="hidden mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-2xl text-green-800 dark:text-green-400 text-sm font-medium flex items-center gap-2 shadow-sm">
+                        <span class="material-symbols-outlined text-xl">bolt</span> Próximo turno libre: <strong id="nextAvailableText"></strong>
+                    </div>
+                    
+                    <div id="weeklyTimeSlots" class="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[350px] overflow-y-auto pr-2 pb-2">
+                        <div class="col-span-full p-8 text-center text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">Cargando disponibilidad...</div>
+                    </div>
+                </div>
+
+                <!-- Formulario Final de Reserva -->
+                <div class="bg-slate-50 dark:bg-white/5 p-8 rounded-3xl border border-slate-200 dark:border-white/10 h-max">
+                    <h3 class="font-bold text-xl mb-6">Tus Datos</h3>
+                    <form id="weeklyBookingForm" class="space-y-5">
+                        <input type="hidden" id="weeklyFecha" name="fecha">
+                        <input type="hidden" id="weeklyHora" name="hora" required>
+                        <input type="hidden" id="weeklyServicio" name="servicio">
+                        <input type="hidden" id="weeklyProfesional" name="profesional">
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <input type="text" id="weeklyNombre" name="nombre" placeholder="Nombre" required class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm focus:ring-primary outline-none shadow-sm transition-all">
+                            <input type="text" id="weeklyApellido" name="apellido" placeholder="Apellido" required class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm focus:ring-primary outline-none shadow-sm transition-all">
+                        </div>
+                        <input type="tel" id="weeklyCelular" name="celular" placeholder="WhatsApp / Celular" required class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm focus:ring-primary outline-none shadow-sm transition-all">
+                        
+                        <div id="weeklyFormMessage" class="hidden"></div>
+                        <button type="submit" id="btnWeeklySubmit" class="w-full bg-primary text-white py-4 mt-2 rounded-2xl font-bold text-lg shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
+                            Confirmar Reserva <span class="material-symbols-outlined text-xl">check_circle</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Weekly View (Exclusiva de Negocio) -->
+    <div id="adminWeeklyView" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-8 bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
+            <div class="flex justify-between items-center mb-6 min-w-[700px]">
+                <h2 id="adminWeekMonthYear" class="font-bold text-xl uppercase tracking-widest text-slate-800 dark:text-slate-200">Mes Año</h2>
+                <div class="flex gap-2">
+                    <button id="adminPrevWeekBtn" class="w-10 h-10 flex items-center justify-center border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"><span class="material-symbols-outlined text-slate-400">chevron_left</span></button>
+                    <button id="adminNextWeekBtn" class="w-10 h-10 flex items-center justify-center border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"><span class="material-symbols-outlined text-slate-400">chevron_right</span></button>
+                </div>
+            </div>
+            <div id="adminWeeklyGrid" class="flex gap-3 min-w-[700px]">
+                <!-- Se inyectan las 7 columnas desde JS -->
+            </div>
+        </div>
+        <div class="lg:col-span-4 space-y-6">
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg text-slate-800 dark:text-slate-100">1. Servicios</h3>
+                    <button onclick="openServicesModal()" class="text-xs font-bold bg-primary text-white px-3 py-1.5 rounded-lg flex items-center gap-1 hover:bg-primary/90 transition-colors shadow-sm"><span class="material-symbols-outlined text-[16px]">add</span> Nuevo</button>
+                </div>
+                <div id="adminWeeklyServices" class="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar"></div>
+            </div>
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700">
+                <h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-slate-100">2. Profesionales</h3>
+                <div id="adminWeeklyProfs" class="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                    <p class="text-sm text-slate-400 text-center py-4">Selecciona un servicio primero</p>
+                </div>
+            </div>
+        </div>
+    </div>
+  </main>
+
+  <!-- Modal de Éxito Turno -->
+  <div id="bookingSuccessModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+      <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-8 transform scale-95 transition-transform duration-300 text-center" id="bookingSuccessModalContent">
+          <div class="w-20 h-20 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span class="material-symbols-outlined text-4xl">check_circle</span>
+          </div>
+          <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">¡Turno Solicitado!</h3>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mb-8">Tu solicitud fue enviada al profesional. Pronto se comunicarán para confirmarte.</p>
+          <button onclick="closeBookingSuccessModal()" class="w-full bg-primary text-white font-bold py-3.5 rounded-xl transition-all hover:bg-primary/90">
+              Entendido
+          </button>
+      </div>
+  </div>
+
+  <!-- Modal para Gestionar Servicios -->
+  <div id="servicesModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl max-w-2xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="servicesModalContent">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold font-display text-slate-800 dark:text-slate-100">Gestionar Servicios</h2>
+            <button id="closeServicesModalBtn" class="text-slate-400 hover:text-red-500 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <div id="servicesListContainer" class="max-h-[40vh] overflow-y-auto pr-2 space-y-3">
+          <!-- La lista de servicios se renderizará aquí -->
+        </div>
+
+        <form id="serviceForm" class="mt-6 border-t border-slate-200 dark:border-slate-700 pt-6">
+            <h3 id="serviceFormTitle" class="font-bold mb-4 text-slate-800 dark:text-slate-200">Añadir Nuevo Servicio</h3>
+            <input type="hidden" id="serviceId" name="id">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input type="text" id="serviceName" name="nombre" placeholder="Nombre del Servicio" required class="w-full px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary text-sm">
+              <div class="flex items-center gap-2">
+                  <input type="number" id="serviceDurationH" min="0" placeholder="Horas" class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-600 focus:ring-2 focus:ring-primary outline-none bg-background-light dark:bg-slate-900 transition-all text-sm">
+                  <span class="text-sm font-bold text-slate-500">h</span>
+                  <input type="number" id="serviceDurationM" min="0" max="59" step="5" placeholder="Min" class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-600 focus:ring-2 focus:ring-primary outline-none bg-background-light dark:bg-slate-900 transition-all text-sm">
+                  <span class="text-sm font-bold text-slate-500">m</span>
+                  <input type="hidden" id="serviceDuration" name="duracion" required>
+              </div>
+              <input type="email" id="serviceProfessionalEmail" name="email_profesional" placeholder="Email del Profesional (Opcional)" class="w-full md:col-span-2 px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary text-sm">
+              <div class="col-span-1 md:col-span-2 bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-200 dark:border-white/10">
+                  <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Foto del Profesional</label>
+                  <input type="file" id="serviceProfessionalFile" name="foto_profesional_file" accept="image/png, image/jpeg, image/webp" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer mb-2">
+                  <input type="text" id="serviceProfessionalPhoto" name="foto_profesional" placeholder="O pega una URL directa de la imagen..." class="w-full px-4 py-2 rounded-xl border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-primary text-sm">
+              </div>
+              <input type="number" min="0" step="0.01" id="servicePrice" name="precio" placeholder="Precio ($)" required class="w-full px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary text-sm">
+              <div>
+                  <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Profesional a cargo</label>
+                  <input type="text" id="serviceProfessional" name="profesional" list="profesionalesList" placeholder="Ej: Juan (o deja vacío para ti)" class="w-full px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary text-sm">
+                  <datalist id="profesionalesList"></datalist>
+              </div>
+            </div>
+            <div class="flex items-center gap-4 mt-6">
+              <button type="submit" class="bg-primary text-white font-bold py-3 px-6 rounded-2xl hover:shadow-lg transition-all text-sm">Guardar Servicio</button>
+              <button type="button" id="cancelEditBtn" class="hidden text-sm font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">Cancelar Edición</button>
+            </div>
+        </form>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmación Genérico -->
+  <div id="confirmModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+      <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 transform scale-95 transition-transform duration-300 text-center" id="confirmModalContent">
+          <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span class="material-symbols-outlined text-3xl">logout</span>
+          </div>
+          <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2" id="confirmTitle">Confirmar Acción</h3>
+          <p class="text-slate-500 dark:text-slate-400 text-sm mb-6" id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
+          <div class="flex gap-3 justify-center">
+              <button id="btnCancelConfirm" onclick="closeConfirm()" class="px-4 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl transition-colors flex-1">Cancelar</button>
+              <button id="btnAcceptConfirm" class="px-4 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-xl transition-colors flex-1">Aceptar</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- Modal para Turnos Manuales / Bloquear Horarios -->
+  <div id="manualTurnoModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+      <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="manualTurnoModalContent">
+          <div class="flex justify-between items-center mb-6">
+              <h2 class="text-xl font-bold font-display text-slate-800 dark:text-slate-100">Gestionar Horario</h2>
+              <button onclick="closeManualTurnoModal()" class="text-slate-400 hover:text-red-500 transition-colors">
+                  <span class="material-symbols-outlined">close</span>
+              </button>
+          </div>
+          
+          <div class="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-xl mb-6">
+              <button type="button" id="tabManualTurno" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-slate-800 shadow-sm text-primary" onclick="setManualModalMode('turno')">Agendar Cliente</button>
+              <button type="button" id="tabManualBlock" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-300" onclick="setManualModalMode('block')">Bloquear Horario</button>
+          </div>
+
+          <form id="manualTurnoForm" class="space-y-4">
+              <input type="hidden" id="manualAction" name="action" value="add_manual">
+              <input type="hidden" id="manualFecha" name="fecha">
+
+              <div class="grid grid-cols-2 gap-4">
+                  <div>
+                      <label class="block text-xs font-bold text-slate-500 mb-1">Hora</label>
+                      <select id="manualHora" name="hora" required class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm"></select>
+                  </div>
+                  <div>
+                      <label class="block text-xs font-bold text-slate-500 mb-1">Profesional</label>
+                      <select id="manualProfesional" name="profesional" class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm"></select>
+                  </div>
+              </div>
+              <div id="manualTurnoFields" class="space-y-4">
+                  <div>
+                      <label class="block text-xs font-bold text-slate-500 mb-1">Servicio</label>
+                      <select id="manualServicio" name="servicio" required class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm"></select>
+                  </div>
+                  <div class="grid grid-cols-2 gap-4">
+                      <input type="text" id="manualNombre" name="nombre" placeholder="Nombre" required class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm">
+                      <input type="text" id="manualApellido" name="apellido" placeholder="Apellido" required class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm">
+                  </div>
+                  <input type="tel" id="manualCelular" name="celular" placeholder="Celular" required class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm">
+              </div>
+              <button type="submit" class="w-full bg-primary text-white font-bold py-3.5 rounded-xl mt-4 hover:brightness-110 active:scale-[0.98] transition-all">Guardar</button>
+          </form>
+      </div>
+  </div>
+
+  <!-- Modal Reportar Error -->
+  <div id="reportErrorModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+      <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 max-w-md w-full p-8 transform scale-95 transition-transform duration-300" id="reportErrorModalContent">
+          <div class="flex justify-between items-center mb-6">
+              <h2 class="text-xl font-bold font-display text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                  <span class="material-symbols-outlined text-red-500">bug_report</span> Reportar Error
+              </h2>
+              <button onclick="closeReportErrorModal()" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined">close</span></button>
+          </div>
+          <form id="reportErrorForm" class="space-y-4">
+              <input type="hidden" id="reportSegment" name="segmento" value="">
+              <div>
+                  <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Sección donde ocurrió:</label>
+                  <input type="text" id="reportSegmentDisplay" class="w-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-4 py-3 rounded-xl cursor-not-allowed border-none font-medium text-sm" readonly>
+              </div>
+              <div>
+                  <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Describe el problema:</label>
+                  <textarea name="mensaje" rows="4" required placeholder="¿Qué estabas intentando hacer y qué ocurrió?" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700 dark:text-slate-300 resize-none"></textarea>
+              </div>
+              <button type="submit" id="btnReportSubmit" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl mt-2 transition-all flex items-center justify-center gap-2">Enviar Reporte</button>
+          </form>
+      </div>
+  </div>
+
+  <script src="backend/js/calendario.js" defer></script>
+  </body>
+</html>
