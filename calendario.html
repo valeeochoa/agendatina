@@ -14,12 +14,8 @@
       const baseEl = document.createElement('base');
       baseEl.href = basePath;
       document.head.insertBefore(baseEl, document.head.firstChild);
-      
-      const scriptEl = document.createElement('script');
-      scriptEl.src = 'backend/js/script.js';
-      scriptEl.defer = true;
-      document.head.appendChild(scriptEl);
   </script>
+  <script src="backend/js/script.js" defer></script>
 
   <script id="tailwind-config">
     tailwind.config = {
@@ -119,7 +115,7 @@
   </style>
 </head>
 
-<body class="bg-[#fcfafa] dark:bg-black font-display text-slate-800 dark:text-slate-100">
+<body class="bg-[#fcfafa] dark:bg-black font-display text-slate-800 dark:text-slate-100 overflow-x-hidden">
 
   <header class="sticky top-0 z-50 bg-white/70 dark:bg-black/70 backdrop-blur-xl border-b border-slate-100 dark:border-white/10 px-6 py-4">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
@@ -150,7 +146,7 @@
   <main class="max-w-5xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
     
     <div class="lg:col-span-7">
-      <div class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-8 shadow-sm">
+      <div class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-6 sm:p-8 shadow-sm">
         <div class="flex justify-between items-center mb-8">
           <div class="flex-1 mr-4">
             <h1 id="mainCalendarTitle" class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white transition-all">Reserva tu cita</h1>
@@ -208,7 +204,7 @@
             <input type="hidden" id="fechaSeleccionada" name="fecha">
             <input type="hidden" id="horaSeleccionada" name="hora" required>
 
-            <div id="timeSlots" class="grid grid-cols-3 gap-3"></div>
+            <div id="timeSlots" class="grid grid-cols-3 sm:grid-cols-4 gap-3"></div>
 
             <div class="space-y-4">
               <div>
@@ -423,5 +419,6 @@
       </div>
   </div>
 
-  </body>
+  <script src="backend/js/calendario.js" defer></script>
+</body>
 </html>
