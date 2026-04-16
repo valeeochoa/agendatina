@@ -34,9 +34,14 @@ ServerSignature Off
     RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^ - [L]
 
+    # NUEVO: Excepción explícita si el administrador entra directamente a /calendario
+    RewriteRule ^calendario(?:\.html)?/?$ index.php?v=calendario [L,QSA]
+
     # A. Caso: agendatina.site/tu-negocio/calendario
     RewriteRule ^([a-zA-Z0-9-]+)/calendario(?:\.html)?/?$ index.php?n=$1&v=calendario [L,QSA]
     
     # B. Caso: agendatina.site/tu-negocio
+    # (Condición: Evita que confunda rutas del sistema con nombres de negocios)
+    RewriteCond %{REQUEST_URI} !^/(calendario|dashboard|login|backend|public|modelos) [NC]
     RewriteRule ^([a-zA-Z0-9-]+)/?$ index.php?n=$1 [L,QSA]
 </IfModule>

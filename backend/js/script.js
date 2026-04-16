@@ -193,8 +193,7 @@ function loadDashboardData() {
                 
                 // Actualizar el enlace al calendario con la ruta amigable del negocio
                 if (cardCalendario) {
-                    const calType = webData.tipo_calendario === 'semanal' ? 'calendario2.html' : 'calendario.html';
-                    cardCalendario.href = calType;
+                    cardCalendario.href = business.ruta ? `${business.ruta}/calendario` : 'calendario'; 
                 }
 
                 if (cardAgenda && cardWeb) {
@@ -1365,6 +1364,123 @@ window.enableImagePreview = function(input) {
 };
 
 // ==========================================
+// LÓGICA DEL CARRUSEL Y PLANES (LANDING)
+// ==========================================
+
+const carouselData = [
+    { 
+        title: 'Plan Simple', 
+        desc: 'Calendario online para que tus clientes puedan solicitar turnos de forma rápida y organizada.', 
+        oldPrice: '$13.288',
+        price: '$10.630', 
+        tag: 'Ideal para comenzar',
+        mockupDesktop: 'public/mockup_calendar_computer.png',
+        mockupMobile: 'public/mockup_calendar_phone.png',
+        features: [
+            'Calendario de turnos personalizado',
+            'Logo y colores del negocio',
+            'Configuración de días y horarios disponibles',
+            'Notificaciones automáticas por email'
+        ]
+    },
+    { 
+        title: 'Plan Intermedio', 
+        desc: 'Sistema de turnos con agenda virtual para administrar todas tus reservas desde un solo lugar.', 
+        oldPrice: '$20.563',
+        price: '$16.450', 
+        tag: 'Más Elegido',
+        mockupDesktop: 'public/mockup_miagenda_computer.png',
+        mockupMobile: 'public/mockup_miagenda_phone.png',
+        features: [
+            'Todo lo del Plan Simple',
+            'Agenda virtual con listado de reservas',
+            'Visualización de turnos confirmados y pendientes',
+            'Gestión manual de disponibilidad'
+        ]
+    },
+    { 
+        title: 'Plan Premium', 
+        desc: 'Plataforma completa con turnero y mini página para mostrar tu negocio y captar más clientes.', 
+        oldPrice: '$28.188',
+        price: '$22.550', 
+        tag: 'Presencia Online',
+        mockupDesktop: 'public/mockup_miagenda_computer.png',
+        mockupMobile: 'public/mockup_miagenda_phone.png',
+        features: [
+            'Todo lo del Plan Intermedio',
+            'Mini página personalizada del negocio',
+            'Imagen de portada destacada',
+            'Listado de servicios y descripción'
+        ]
+    }
+];
+
+let currentCarouselIndex = 1;
+
+window.setCarouselIndex = function(index) {
+    const titleEl = document.getElementById('carouselTitle');
+    if (!titleEl) return; // Salir si no estamos en la landing
+
+    currentCarouselIndex = index;
+    document.getElementById('carouselTitle').textContent = carouselData[index].title;
+    document.getElementById('carouselDesc').textContent = carouselData[index].desc;
+    
+    // Renderizar Nuevo y Viejo Precio con el 20% OFF
+    document.getElementById('carouselPrice').innerHTML = `
+        <div class="flex flex-col">
+            <span class="text-sm text-slate-400 line-through font-medium leading-none">${carouselData[index].oldPrice}</span>
+            <div class="flex items-baseline gap-2 mt-1">
+                ${carouselData[index].price} <span class="text-sm font-normal text-slate-400">/mes</span>
+                <span class="bg-green-100 text-green-700 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider">-20% OFF</span>
+            </div>
+        </div>`;
+        
+    document.getElementById('carouselTagText').textContent = carouselData[index].tag;
+    
+    // Actualizar imágenes de los mockups (si existen en el HTML)
+    const mockupPc = document.getElementById('mockupDesktopImg');
+    const mockupCel = document.getElementById('mockupMobileImg');
+    if(mockupPc) mockupPc.src = carouselData[index].mockupDesktop;
+    if(mockupCel) mockupCel.src = carouselData[index].mockupMobile;
+    
+    const actionBtn = document.getElementById('carouselActionBtn');
+    if (actionBtn) {
+        actionBtn.onclick = () => selectPlan(carouselData[index].title);
+    }
+
+    const dotsContainer = document.getElementById('carouselDots');
+    if (dotsContainer) {
+        const dots = dotsContainer.children;
+        for (let i = 0; i < dots.length; i++) {
+            dots[i].className = i === index ? 'w-8 h-2.5 rounded-full bg-primary transition-all' : 'w-2.5 h-2.5 rounded-full bg-slate-300 transition-all';
+        }
+    }
+};
+
+window.selectPlan = function(planName) {
+    const planBox = document.getElementById('planSelectionBox');
+    const planNameEl = document.getElementById('selectedPlanName');
+    const inputPlan = document.getElementById('inputPlan');
+    
+    if (planBox && planNameEl && inputPlan) {
+        planNameEl.textContent = planName;
+        inputPlan.value = planName;
+        planBox.classList.remove('hidden');
+    }
+    
+    const contactSection = document.getElementById('contacto');
+    if (contactSection) {
+        contactSection.scrollIntoView({ behavior: 'smooth' });
+    }
+};
+
+window.resetForm = function() {
+    const planBox = document.getElementById('planSelectionBox');
+    const inputPlan = document.getElementById('inputPlan');
+    if (planBox) planBox.classList.add('hidden');
+    if (inputPlan) inputPlan.value = '';
+};
+// ==========================================
 // INICIALIZACIÓN GENERAL AL CARGAR EL DOM
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -1413,6 +1529,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof enableImagePreview === 'function') {
         document.querySelectorAll('input[type="file"]').forEach(enableImagePreview);
     }
+
+        // --- Inicialización del Carrusel (Landing Page) ---
+        if (document.getElementById('carouselTitle')) {
+            setCarouselIndex(1); // Inicia en Plan Intermedio
+
+            const prevBtn = document.getElementById('prevCarouselBtn');
+            const nextBtn = document.getElementById('nextCarouselBtn');
+            
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    setCarouselIndex(currentCarouselIndex - 1 < 0 ? carouselData.length - 1 : currentCarouselIndex - 1);
+                });
+            }
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    setCarouselIndex(currentCarouselIndex + 1 >= carouselData.length ? 0 : currentCarouselIndex + 1);
+                });
+            }
+        }
 });
 
 function openWebModal() {

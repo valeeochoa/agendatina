@@ -124,12 +124,23 @@
         .fade-in {
             animation: fadeInImg 0.4s ease-out forwards;
         }
+
+        /* Animaciones de Scroll */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-on-scroll.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 
 <body class="bg-slate-50 text-slate-900 antialiased selection:bg-primary/10">
 
-    <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/50">
+    <nav id="mainNav" class="fixed w-full z-50 bg-white/70 backdrop-blur-lg border-b border-slate-200/50 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-primary text-3xl">event_available</span>
@@ -156,7 +167,7 @@
             class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/10 rounded-full blur-[100px] z-0">
         </div>
 
-        <div class="max-w-5xl mx-auto text-center relative z-10 mt-10">
+        <div class="max-w-5xl mx-auto text-center relative z-10 mt-10 reveal-on-scroll">
             <div
                 class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 text-slate-700 font-semibold text-sm mb-8 shadow-sm">
                 <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
@@ -182,7 +193,7 @@
     </section>
     <!-- Visualización del Panel -->
     <section id="visualizar" class="py-24 bg-[#f5eeff] overflow-hidden relative">
-        <div class="max-w-7xl mx-auto px-8">
+        <div class="max-w-7xl mx-auto px-8 reveal-on-scroll">
             <div class="mb-16">
                 <h2 class="font-headline text-3xl md:text-4xl font-bold text-slate-900 mb-2">Visualizá tu éxito</h2>
                 <p class="text-slate-500">Explorá cómo se verá tu negocio con cada uno de nuestros niveles.</p>
@@ -301,7 +312,7 @@
     <section id="planes" class="py-24 bg-white px-6 border-t border-slate-100">
         <div class="max-w-7xl mx-auto">
             <!-- Header -->
-            <div class="text-center mb-16">
+            <div class="text-center mb-16 reveal-on-scroll">
                 <h2 class="text-4xl font-extrabold mb-4">Elegí el plan ideal para tu negocio</h2>
                 <p class="text-slate-500 text-lg max-w-2xl mx-auto">
                     Sin comisiones por reserva. Un precio fijo mensual.
@@ -313,7 +324,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- PLAN SIMPLE -->
                 <div
-                    class="bg-slate-50 rounded-3xl p-8 border border-slate-200 hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col">
+                    class="reveal-on-scroll bg-slate-50 rounded-3xl p-8 border border-slate-200 hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col" style="transition-delay: 100ms;">
                     <span class="text-xs font-semibold text-primary uppercase mb-2">
                         Ideal para comenzar
                     </span>
@@ -368,7 +379,7 @@
 
                 <!-- PLAN INTERMEDIO -->
                 <div
-                    class="signature-glow rounded-3xl p-8 text-white flex flex-col transform md:-translate-y-4 shadow-2xl relative transition-all duration-300 hover:scale-105 hover:shadow-primary/50">
+                    class="reveal-on-scroll signature-glow rounded-3xl p-8 text-white flex flex-col transform md:-translate-y-4 shadow-2xl relative transition-all duration-300 hover:scale-105 hover:shadow-primary/50" style="transition-delay: 200ms;">
 
                     <div
                         class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white text-primary px-4 py-1 rounded-full text-xs font-black uppercase shadow-md">
@@ -429,7 +440,7 @@
                 </div>
                 <!-- PLAN COMPLETO -->
                 <div
-                    class="bg-slate-50 rounded-3xl p-8 border border-slate-200 hover:border-secondary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col">
+                    class="reveal-on-scroll bg-slate-50 rounded-3xl p-8 border border-slate-200 hover:border-secondary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col" style="transition-delay: 300ms;">
 
                     <span class="text-xs font-semibold text-secondary uppercase mb-2">
                         Presencia online
@@ -495,7 +506,7 @@
             </p>
 
             <!-- Extras -->
-            <div class="mt-16 bg-slate-50 rounded-3xl p-8 border border-slate-200 max-w-4xl mx-auto">
+            <div class="mt-16 bg-slate-50 rounded-3xl p-8 border border-slate-200 max-w-4xl mx-auto reveal-on-scroll">
 
                 <div class="flex items-center gap-3 mb-4">
                     <span class="material-symbols-outlined text-primary text-3xl">extension</span>
@@ -536,7 +547,7 @@
     <!-- Formulario de Contacto -->
     <section id="contacto" class="py-24 bg-slate-100 px-6">
         <div class="max-w-3xl mx-auto">
-            <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 p-8 md:p-12">
+            <div class="bg-white rounded-[2.5rem] shadow-xl border border-slate-200 p-8 md:p-12 reveal-on-scroll">
                 <div class="text-center mb-10">
                     <h2 id="formTitle" class="text-3xl font-extrabold mb-2">Envíanos tu consulta</h2>
                     <p id="formSubtitle" class="text-slate-500">Nos comunicaremos a la brevedad.</p>
@@ -609,6 +620,34 @@
     </div>
 
     <script src="backend/js/script.js" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Navbar con efecto cristalino al hacer scroll
+            const mainNav = document.getElementById('mainNav');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 20) {
+                    mainNav.classList.add('shadow-md', 'bg-white/95');
+                    mainNav.classList.remove('bg-white/70');
+                } else {
+                    mainNav.classList.remove('shadow-md', 'bg-white/95');
+                    mainNav.classList.add('bg-white/70');
+                }
+            });
+
+            // 2. Animaciones al aparecer en pantalla (Intersection Observer)
+            const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target); // Animar solo una vez
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
+        });
+    </script>
 </body>
 
 </html>

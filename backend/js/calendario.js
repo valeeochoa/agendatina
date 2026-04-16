@@ -162,9 +162,15 @@ function cal_renderCalendar() {
             dayDiv.classList.add('calendar-day');
         }
         
-        if (cal_selectedDate && date.getTime() === cal_selectedDate.getTime()) dayDiv.classList.add('selected');
-        if (isClickable) dayDiv.addEventListener('click', () => cal_selectDate(date));
-        
+        // Multi-select / Single select styling
+        if (isMultiSelectMode && selectedDates.includes(dateString)) {
+            dayDiv.style.border = '2px solid var(--primary-color, #ec135b)';
+            dayDiv.style.backgroundColor = 'rgba(236, 19, 91, 0.1)';
+        } else if (cal_selectedDate && date.getTime() === cal_selectedDate.getTime() && !isMultiSelectMode) {
+            dayDiv.classList.add('selected');
+        }
+
+        if (isClickable) dayDiv.addEventListener('click', () => handleDayClick(date));
         calendarDays.appendChild(dayDiv);
     }
 }
@@ -308,131 +314,106 @@ function fetchAllAppointments() {
 }
 
 function renderAdminDayView(dateString) {
-    const listContainer = document.getElementById('adminAppointmentsList');
-    if (!listContainer) return;
-
-    let appointmentsForDay = allAppointments.filter(t => t.fecha === dateString);
-    if (typeof globalSelectedProfessional !== 'undefined' && globalSelectedProfessional !== '' && globalSelectedProfessional !== 'columnas') {
-        appointmentsForDay = appointmentsForDay.filter(t => !t.profesional || t.profesional === globalSelectedProfessional || t.profesional === 'Cualquiera (Sin preferencia)');
-    }
-
-    const adminSelectedProfText = document.getElementById('adminSelectedProfText');
-    if (adminSelectedProfText) {
-        if (globalSelectedProfessional && globalSelectedProfessional !== 'columnas') {
-            const profServs = services.filter(s => s.profesional === globalSelectedProfessional).map(s => s.nombre);
-            const uniqueProfServs = [...new Set(profServs)].join(' • ');
-            const servText = uniqueProfServs ? ` <span class="text-white/80 font-normal ml-1">(${uniqueProfServs})</span>` : '';
-            adminSelectedProfText.innerHTML = `<span class="bg-white/20 text-white shadow-sm border border-white/30 px-2 py-0.5 rounded-md inline-flex items-center gap-1 mt-1">👤 ${globalSelectedProfessional}${servText}</span>`;
-            adminSelectedProfText.classList.remove('hidden');
-        } else {
-            adminSelectedProfText.classList.add('hidden');
-        }
-    }
-    
-    const toggleBtn = document.getElementById('toggleDayBlockBtn');
-    const isGeneralBlock = cal_bookedSlots[dateString] && cal_bookedSlots[dateString].includes('blocked_day');
-    const isProfBlock = cal_bookedSlots[dateString] && cal_bookedSlots[dateString].includes('blocked_day_prof');
-    const isDayBlocked = isGeneralBlock || isProfBlock;
-
-    if (toggleBtn) {
-        if (isDayBlocked) {
-            toggleBtn.textContent = (isGeneralBlock && globalSelectedProfessional && globalSelectedProfessional !== 'columnas') ? 'Desbloquear Día (General)' : (globalSelectedProfessional && globalSelectedProfessional !== 'columnas' ? 'Desbloquear Día (Prof.)' : 'Desbloquear Día');
-            toggleBtn.className = 'bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all shadow-md border border-white/50 hover:border-white';
-        } else {
-            toggleBtn.textContent = (globalSelectedProfessional && globalSelectedProfessional !== 'columnas') ? 'Bloquear Día (Prof.)' : 'Bloquear Día';
-            toggleBtn.className = 'bg-red-500 hover:bg-red-600 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all shadow-md border border-white/50 hover:border-white';
-        }
-        toggleBtn.disabled = false;
-        toggleBtn.onclick = () => toggleDayBlock(dateString, !isDayBlocked);
-    }
-
-    listContainer.innerHTML = '';
-
-    let adminInterval = 30;
-    if (window.businessWebConfig && window.businessWebConfig.intervalo_turnos && window.businessWebConfig.intervalo_turnos !== 'servicio') {
-        adminInterval = parseInt(window.businessWebConfig.intervalo_turnos) || 30;
-    }
-    generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, adminInterval);
-
-    const adminTimeSlotsContainer = document.getElementById('adminTimeSlotsContainer');
     const adminTimeSlots = document.getElementById('adminTimeSlots');
+    const adminAppointmentsList = document.getElementById('adminAppointmentsList');
     
-    if (adminTimeSlotsContainer && adminTimeSlots) {
-        if (globalSelectedProfessional === 'columnas' || isDayBlocked) {
-            adminTimeSlotsContainer.classList.add('hidden');
-        } else {
-            adminTimeSlotsContainer.classList.remove('hidden');
-            adminTimeSlots.innerHTML = '';
-            adminTimeSlots.className = 'space-y-2 max-h-[300px] overflow-y-auto pr-2 border border-slate-200 bg-slate-50/50 rounded-xl p-2';
-            const horasOcupadas = [...(cal_bookedSlots[dateString] || []), ...window.getBreakTimes()];
-            
-            cal_availableTimes.forEach(time => {
-                if (window.isTimeInBreak(time)) return;
-                const isBooked = horasOcupadas.includes(time.substring(0, 5));
-                const slotDiv = document.createElement('div');
-                slotDiv.className = 'bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:border-primary/40 transition-colors';
+    if (!adminTimeSlots) return;
 
-                if (isBooked) {
-                    const apt = appointmentsForDay.find(t => t.hora.substring(0, 5) === time.substring(0, 5));
-                    let detailsHTML = '<p class="text-sm text-slate-500">Ocupado</p>';
-                    if (apt) {
-                        if (apt.estado === 'bloqueado') {
-                            detailsHTML = `<div class="flex items-center gap-2 mb-1"><span class="material-symbols-outlined text-red-500 text-[18px]">lock</span><p class="text-sm font-bold text-red-500">Bloqueado Manualmente</p></div>${apt.profesional && apt.profesional !== 'Cualquiera (Sin preferencia)' ? `<p class="text-xs text-slate-500">👤 ${apt.profesional}</p>` : ''}`;
-                        } else {
-                            detailsHTML = `<p class="text-sm font-bold text-slate-800 mb-1">${apt.cliente_nombre || (apt.nombre + ' ' + (apt.apellido || ''))}</p><div class="flex items-center gap-2 mb-1"><p class="text-xs text-slate-500 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">call</span> ${apt.cliente_celular || apt.celular}</p><button onclick="contactarWhatsApp('${apt.id}')" class="text-[#128C7E] hover:bg-[#25D366]/20 bg-[#25D366]/10 p-0.5 px-1.5 rounded-md transition-colors" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[14px]">chat</span></button></div><p class="text-xs text-slate-500 mb-1 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">spa</span> ${apt.servicio}</p>${apt.profesional && apt.profesional !== 'Cualquiera (Sin preferencia)' ? `<p class="text-xs text-slate-500 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> ${apt.profesional}</p>` : ''}`;
-                        }
-                    }
-                    slotDiv.innerHTML = `<div class="flex items-center justify-between p-3 cursor-pointer hover:bg-slate-50 transition-colors" onclick="this.nextElementSibling.classList.toggle('hidden')"><div class="flex items-center gap-3"><span class="text-sm font-bold text-slate-700">${time}</span><span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide">Ocupado</span></div><button class="text-slate-400 hover:text-primary transition-colors flex items-center justify-center" title="Desplegar detalle"><span class="material-symbols-outlined text-[20px]">visibility</span></button></div><div class="hidden p-3 border-t border-slate-100 bg-slate-50/80">${detailsHTML}</div>`;
-                } else {
-                    slotDiv.innerHTML = `<div class="flex items-center justify-between p-3 cursor-pointer hover:bg-primary/10 transition-colors group" onclick="openManualTurnoModal('${time}')"><div class="flex items-center gap-3"><span class="text-sm font-bold text-slate-700 group-hover:text-primary transition-colors">${time}</span><span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wide">Disponible</span></div><button class="text-slate-400 group-hover:text-primary transition-colors flex items-center justify-center" title="Agendar Turno"><span class="material-symbols-outlined text-[20px]">add_circle</span></button></div>`;
+    // 1. Filtrar turnos del día
+    let appointmentsForDay = allAppointments.filter(t => t.fecha === dateString);
+    
+    // 2. Mapear dueños de slots (propagación de duración)
+    const slotOwnership = {};
+    const adminInterval = window.businessWebConfig?.intervalo_turnos === 'servicio' ? 30 : (parseInt(window.businessWebConfig?.intervalo_turnos) || 30);
+    
+    appointmentsForDay.forEach(apt => {
+        const start = apt.hora.substring(0, 5);
+        const duration = parseInt(apt.duracion_minutos || apt.duracion || 30);
+        const blocks = Math.ceil(duration / adminInterval);
+        const startIndex = cal_availableTimes.findIndex(t => t.substring(0, 5) === start);
+        if (startIndex !== -1) {
+            for (let i = 0; i < blocks; i++) {
+                if (startIndex + i < cal_availableTimes.length) {
+                    slotOwnership[cal_availableTimes[startIndex + i].substring(0, 5)] = apt;
                 }
-                adminTimeSlots.appendChild(slotDiv);
-            });
-        }
-    }
-
-    if (globalSelectedProfessional === 'columnas') {
-        const allProfs = [...new Set(services.map(s => s.profesional).filter(p => p && p.trim() !== ''))];
-        const uniqueProfsForDay = [...new Set(appointmentsForDay.map(t => t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? t.profesional : 'Sin asignar'))];
-        const displayProfs = [...new Set([...allProfs, ...uniqueProfsForDay])];
-
-        let html = '<div class="flex gap-4 overflow-x-auto pb-4 w-full">';
-        displayProfs.forEach(prof => {
-            const profAppointments = appointmentsForDay.filter(t => {
-                if (prof === 'Sin asignar') return !t.profesional || t.profesional === 'Cualquiera (Sin preferencia)';
-                return t.profesional === prof;
-            });
-            profAppointments.sort((a, b) => a.hora.localeCompare(b.hora));
-
-            const profServs = services.filter(s => s.profesional === prof).map(s => s.nombre);
-            const uniqueProfServs = [...new Set(profServs)].join(' • ');
-            const servText = uniqueProfServs ? `<div class="text-[10px] font-normal text-slate-400 mt-1 truncate px-2 w-full text-center" title="${uniqueProfServs}">${uniqueProfServs}</div>` : '';
-            const profLink = (typeof buildProfessionalLinkButton === 'function') ? buildProfessionalLinkButton(prof) : '';
-
-            html += `<div class="min-w-[260px] flex-1 bg-white shadow-sm rounded-2xl p-4 border border-slate-200 h-max"><h4 class="font-bold text-center mb-4 text-slate-700 border-b border-slate-100 pb-2 flex flex-col items-center justify-center gap-1"><div class="flex items-center justify-center flex-wrap gap-2"><span class="material-symbols-outlined text-[18px]">person</span> ${prof} ${profLink}</div>${servText}</h4><div class="space-y-3">`;
-            
-            if (profAppointments.length === 0) {
-                html += '<p class="text-sm text-center text-slate-500">Sin turnos</p>';
-            } else {
-                const pendientes = profAppointments.filter(t => t.estado === 'pendiente');
-                const confirmados = profAppointments.filter(t => t.estado === 'confirmado');
-                const bloqueados = profAppointments.filter(t => t.estado === 'bloqueado');
-                
-                pendientes.forEach(t => {
-                    html += `<div class="bg-slate-50 border-l-4 border-amber-400 shadow-sm rounded-xl p-3 border border-slate-100 border-l-amber-400"><p class="text-xs font-bold text-amber-600 mb-1 uppercase tracking-wide">${t.hora} hs (Pendiente)</p><p class="text-sm font-bold text-slate-800 mb-1">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p><div class="flex items-center gap-2 mb-1"><p class="text-xs text-slate-600 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">call</span> ${t.cliente_celular || t.celular}</p><button onclick="contactarWhatsApp('${t.id}')" class="text-[#128C7E] hover:bg-[#25D366]/20 bg-[#25D366]/10 p-0.5 px-1.5 rounded-md transition-colors" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[14px]">chat</span></button></div><p class="text-xs text-slate-500 mb-2 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">spa</span> ${t.servicio}</p><button onclick="confirmarTurnoAdmin('${t.id}')" class="w-full bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold py-1.5 rounded-lg transition-colors">Confirmar</button></div>`;
-                });
-                confirmados.forEach(t => {
-                    html += `<div class="bg-slate-50 border-l-4 border-green-400 shadow-sm rounded-xl p-3 relative border border-slate-100 border-l-green-400"><button onclick="cancelarTurnoAdmin('${t.id}')" class="absolute top-2 right-2 text-slate-400 hover:text-red-500 transition-colors" title="Cancelar Turno"><span class="material-symbols-outlined text-[16px]">cancel</span></button><p class="text-xs font-bold text-green-600 mb-1 uppercase tracking-wide">${t.hora} hs</p><p class="text-sm font-bold text-slate-800 mb-1 pr-6">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p><div class="flex items-center gap-2 mb-1"><p class="text-xs text-slate-600 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">call</span> ${t.cliente_celular || t.celular}</p><button onclick="contactarWhatsApp('${t.id}')" class="text-[#128C7E] hover:bg-[#25D366]/20 bg-[#25D366]/10 p-0.5 px-1.5 rounded-md transition-colors" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[14px]">chat</span></button></div><p class="text-xs text-slate-500 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">spa</span> ${t.servicio}</p></div>`;
-                });
-                bloqueados.forEach(t => {
-                    html += `<div class="bg-slate-50 border-l-4 border-red-500 shadow-sm rounded-xl p-3 border border-slate-100 border-l-red-500"><p class="text-xs font-bold text-red-500 mb-1 uppercase tracking-wide">${t.hora} hs</p><p class="text-sm font-bold text-slate-700 mb-2">Bloqueado</p><button onclick="cancelarTurnoAdmin('${t.id}')" class="w-full bg-red-100 hover:bg-red-200 text-red-700 text-xs font-bold py-1.5 rounded-lg transition-colors">Liberar Horario</button></div>`;
-                });
             }
-            html += `</div></div>`;
-        });
-        html += '</div>';
-        listContainer.innerHTML += html;
-        return;
+        }
+    });
+
+    // Limpiamos AMBOS contenedores
+    adminTimeSlots.innerHTML = '';
+    if (adminAppointmentsList) adminAppointmentsList.innerHTML = '';
+
+    const horasOcupadas = [...(cal_bookedSlots[dateString] || []), ...window.getBreakTimes()];
+
+    // --- PARTE A: GRILLA DE HORARIOS (Uno debajo del otro) ---
+    cal_availableTimes.forEach(time => {
+        if (window.isTimeInBreak(time)) return;
+        const timeKey = time.substring(0, 5);
+        const isBooked = horasOcupadas.includes(timeKey);
+        const apt = slotOwnership[timeKey];
+        
+        const slotDiv = document.createElement('div');
+        // Usamos w-full y mb-2 para asegurar que estén uno debajo del otro ocupando todo el ancho
+        slotDiv.className = 'bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex items-center justify-between w-full mb-2';
+
+        if (isBooked || apt) {
+            let badgeClass = 'bg-slate-100 text-slate-700';
+            let badgeText = 'Ocupado';
+            if (apt) {
+                const isPend = apt.estado === 'pendiente';
+                badgeClass = isPend ? 'bg-amber-100 text-amber-700' : (apt.estado === 'bloqueado' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700');
+                badgeText = isPend ? 'Pendiente' : (apt.estado === 'bloqueado' ? 'Bloqueado' : 'Confirmado');
+            }
+            slotDiv.innerHTML = `<span class="text-sm font-bold text-slate-700">${time}</span><span class="${badgeClass} text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">${badgeText}</span>`;
+        } else {
+            // Se añaden clases de flex center para forzar que los botones SIEMPRE se vean
+            slotDiv.innerHTML = `
+                <span class="text-sm font-bold text-slate-700">${time}</span>
+                <div class="flex items-center gap-3 shrink-0">
+                    <button onclick="openManualTurnoModal('${time}')" class="text-primary hover:bg-primary/10 p-1.5 rounded-lg transition-colors flex items-center justify-center" title="Agregar turno">
+                        <span class="material-symbols-outlined text-[20px]">add_circle</span>
+                    </button>
+                    <button onclick="bloquearHorario('${dateString}', '${time}')" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg transition-colors flex items-center justify-center" title="Bloquear horario">
+                        <span class="material-symbols-outlined text-[20px]">block</span>
+                    </button>
+                </div>`;
+        }
+        adminTimeSlots.appendChild(slotDiv);
+    });
+
+    // --- PARTE B: LISTADO DE TURNOS (En su propio contenedor abajo) ---
+    if (adminAppointmentsList) {
+        if (appointmentsForDay.length > 0) {
+            adminAppointmentsList.innerHTML = `<h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Turnos del Día</h3>`;
+            
+            appointmentsForDay.forEach(apt => {
+                const isPend = apt.estado === 'pendiente';
+                const border = isPend ? 'border-amber-400' : (apt.estado === 'bloqueado' ? 'border-red-400' : 'border-green-500');
+                const nombre = apt.cliente_nombre || (apt.nombre + ' ' + (apt.apellido || '')) || 'Sin Nombre';
+                const cel = apt.cliente_celular || apt.celular || '';
+                
+                adminAppointmentsList.innerHTML += `
+                    <div class="bg-white border-l-4 ${border} rounded-xl p-4 shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-4 border border-slate-100 mb-3">
+                        <div>
+                            <p class="text-xs font-bold text-slate-400 uppercase">${apt.hora} hs</p>
+                            <p class="text-base font-bold text-slate-800">${nombre}</p>
+                            <p class="text-xs text-slate-500">${apt.servicio || 'Bloqueo Manual'}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            ${isPend ? `<button onclick="confirmarTurnoAdmin('${apt.id}')" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors">Confirmar</button>` : ''}
+                            ${apt.estado !== 'bloqueado' ? `<button onclick="contactarWhatsApp('${cel}', '${nombre}')" class="bg-slate-50 hover:bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 transition-colors">WhatsApp</button>` : ''}
+                            <button onclick="cancelarTurnoAdmin('${apt.id}')" class="text-red-500 hover:bg-red-50 px-2 py-1.5 rounded-lg transition-colors" title="Eliminar/Liberar"><span class="material-symbols-outlined text-[16px]">delete</span></button>
+                        </div>
+                    </div>`;
+            });
+        } else {
+            adminAppointmentsList.innerHTML = `
+                <div class="flex flex-col items-center justify-center p-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <span class="material-symbols-outlined text-3xl text-slate-300 mb-2">event_busy</span>
+                    <p class="text-center text-slate-400 text-sm font-medium">No hay turnos registrados para este día.</p>
+                </div>`;
+        }
     }
 }
 
@@ -1536,6 +1517,156 @@ function findNextAvailableSlot() {
     }
 }
 
+// --- LÓGICA DE SELECCIÓN MÚLTIPLE Y BLOQUEOS ---
+let isMultiSelectMode = false;
+let selectedDates = [];
+
+function toggleMultiSelectMode() {
+    isMultiSelectMode = !isMultiSelectMode;
+    selectedDates = [];
+    
+    const multiSelectActions = document.getElementById('multiSelectActions');
+    if (multiSelectActions) {
+        if (isMultiSelectMode) {
+            multiSelectActions.classList.remove('hidden');
+            multiSelectActions.classList.add('flex');
+        } else {
+            multiSelectActions.classList.add('hidden');
+            multiSelectActions.classList.remove('flex');
+        }
+    }
+    
+    const btnMultiSelect = document.getElementById('btnMultiSelect');
+    if (btnMultiSelect) {
+        btnMultiSelect.classList.toggle('bg-primary', isMultiSelectMode);
+        btnMultiSelect.classList.toggle('text-white', isMultiSelectMode);
+    }
+    
+    if (typeof updateMultiSelectUI === 'function') {
+        updateMultiSelectUI();
+    }
+    cal_renderCalendar();
+}
+
+window.updateMultiSelectUI = function() {
+    const instruction = document.getElementById('multiSelectInstruction');
+    const activeDiv = document.getElementById('multiSelectActive');
+    const btnBlock = document.getElementById('btnBulkBlock');
+    const btnUnblock = document.getElementById('btnBulkUnblock');
+    const countSpan = document.getElementById('selectedDaysCount');
+
+    if (!instruction || !activeDiv) return;
+
+    if (selectedDates.length === 0) {
+        instruction.classList.remove('hidden');
+        activeDiv.classList.add('hidden');
+        activeDiv.classList.remove('flex');
+    } else {
+        instruction.classList.add('hidden');
+        activeDiv.classList.remove('hidden');
+        activeDiv.classList.add('flex');
+        if (countSpan) countSpan.textContent = selectedDates.length;
+
+        let hasBlocked = false;
+        let hasUnblocked = false;
+
+        selectedDates.forEach(dateStr => {
+            const isGeneralBlock = cal_bookedSlots[dateStr] && cal_bookedSlots[dateStr].includes('blocked_day');
+            let isProfBlock = cal_bookedSlots[dateStr] && cal_bookedSlots[dateStr].includes('blocked_day_prof');
+            if (!globalSelectedProfessional || globalSelectedProfessional === 'columnas' || globalSelectedProfessional === 'Cualquiera (Sin preferencia)') {
+                isProfBlock = false;
+            }
+            
+            if (isGeneralBlock || isProfBlock) {
+                hasBlocked = true;
+            } else {
+                hasUnblocked = true;
+            }
+        });
+
+        if (btnBlock) btnBlock.classList.toggle('hidden', !hasUnblocked);
+        if (btnUnblock) btnUnblock.classList.toggle('hidden', !hasBlocked);
+    }
+};
+
+window.handleDayClick = function(date) {
+    if (isMultiSelectMode) {
+        const dStr = toYYYYMMDD(date);
+        const index = selectedDates.indexOf(dStr);
+        if (index > -1) selectedDates.splice(index, 1);
+        else selectedDates.push(dStr);
+        
+        updateMultiSelectUI();
+        cal_renderCalendar(); 
+        return;
+    }
+    cal_selectDate(date); // Si no está en multiselección, se comporta normal
+};
+
+window.bulkAction = function(action) { // action = 'block_day' o 'unblock_day'
+    if (selectedDates.length === 0) {
+        showToast('Selecciona al menos un día.', 'error');
+        return;
+    }
+    
+    const actionText = action === 'block_day' ? 'Bloquear Todos' : 'Desbloquear Todos';
+    const title = action === 'block_day' ? 'Bloqueo Múltiple' : 'Desbloqueo Múltiple';
+    const msg = action === 'block_day' 
+        ? `¿Bloquear los ${selectedDates.length} días seleccionados?` 
+        : `¿Desbloquear los ${selectedDates.length} días seleccionados?`;
+    const btnColor = action === 'block_day' ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600';
+    
+    showConfirm(title, msg, actionText, btnColor, () => {
+        const promises = selectedDates.map(dateStr => {
+            let bodyParams = `fecha=${dateStr}&action=${action}`;
+            if (globalSelectedProfessional && globalSelectedProfessional !== 'columnas' && globalSelectedProfessional !== 'Cualquiera (Sin preferencia)') {
+                bodyParams += `&profesional=${encodeURIComponent(globalSelectedProfessional)}`;
+            }
+            return fetch('backend/gestionar_turnos.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: bodyParams
+            }).then(r => r.json());
+        });
+
+        return Promise.all(promises).then(() => {
+            showToast(`Días ${action === 'block_day' ? 'bloqueados' : 'desbloqueados'} exitosamente`, 'success');
+            toggleMultiSelectMode();
+            cal_fetchBookedTimes();
+        }).catch(() => showToast('Hubo errores al procesar la acción', 'error'));
+    });
+};
+
+window.bloquearHorario = function(fecha, hora) {
+    showConfirm('Bloquear Horario', `¿Deseas bloquear las ${hora} del día ${fecha}?`, 'Bloquear', 'bg-red-500 hover:bg-red-600', () => {
+        const formData = new FormData();
+        formData.append('action', 'block_time');
+        formData.append('fecha', fecha);
+        formData.append('hora', hora);
+        if (globalSelectedProfessional && globalSelectedProfessional !== 'Cualquiera (Sin preferencia)' && globalSelectedProfessional !== 'columnas') {
+            formData.append('profesional', globalSelectedProfessional);
+        }
+
+        return fetch('backend/gestionar_turnos.php', { method: 'POST', body: formData })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Horario bloqueado', 'success');
+                fetchAllAppointments().then(() => cal_fetchBookedTimes());
+            } else {
+                showToast(data.error || 'Error al bloquear', 'error');
+            }
+        }).catch(() => showToast('Error de red', 'error'));
+    });
+};
+
+window.contactarWhatsApp = function(cel, nombre) {
+    if (!cel) { showToast('Este cliente no tiene celular registrado.', 'error'); return; }
+    let numero = cel.replace(/\D/g, '');
+    let url = `https://wa.me/${numero}?text=Hola ${nombre}, te contacto desde la agenda de turnos.`;
+    window.open(url, '_blank');
+};
+
 function toYYYYMMDD(date) {
     return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
 }
@@ -1543,9 +1674,13 @@ function toYYYYMMDD(date) {
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof applyWebCustomization === 'function') applyWebCustomization();
     if (typeof fetchServices === 'function') fetchServices();
-    if (isAdmin && typeof fetchAllAppointments === 'function') fetchAllAppointments();
-
-    // Extraer el slug del negocio de la URL (ej: calendario.html?n=demo)
+    
+    if (isAdmin) {
+        fetchAllAppointments(); 
+        const adminMenu = document.getElementById('adminProfileMenu');
+        if (adminMenu) adminMenu.classList.replace('hidden', 'flex');
+    }
+    
     const form = document.getElementById('weeklyBookingForm');
     if (form) {
         document.getElementById('prevWeek').addEventListener('click', () => { weekStartDate.setDate(weekStartDate.getDate() - 7); renderWeeklyCalendar(); });

@@ -112,6 +112,10 @@
     
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
   </style>
 </head>
 
@@ -157,7 +161,23 @@
             <button id="nextMonth" class="w-12 h-12 flex items-center justify-center border border-slate-100 dark:border-white/10 rounded-2xl hover:bg-slate-50 transition-colors"><span class="material-symbols-outlined text-slate-400">chevron_right</span></button>
           </div>
         </div>
+        <button id="btnMultiSelect" onclick="toggleMultiSelectMode()" class="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-sm transition-all">
+    <span class="material-symbols-outlined text-[20px]">checklist</span> Seleccionar días
+</button>
 
+<div id="multiSelectActions" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 shadow-2xl border border-slate-200 dark:border-slate-700 rounded-2xl px-6 py-4 hidden z-[100] flex-col items-center gap-3 animate-bounce-in min-w-[320px]">
+    <div id="multiSelectState" class="flex flex-col items-center gap-2 w-full">
+        <span id="multiSelectInstruction" class="text-sm font-medium text-slate-500 dark:text-slate-400 text-center">Selecciona días en el calendario<br>para bloquear o desbloquear</span>
+        <div id="multiSelectActive" class="hidden w-full items-center justify-between gap-4">
+            <span class="text-sm font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap"><span id="selectedDaysCount">0</span> seleccionados</span>
+            <div class="flex gap-2">
+                <button id="btnBulkBlock" onclick="bulkAction('block_day')" class="hidden bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors">Bloquear</button>
+                <button id="btnBulkUnblock" onclick="bulkAction('unblock_day')" class="hidden bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors">Desbloquear</button>
+            </div>
+        </div>
+    </div>
+    <button onclick="toggleMultiSelectMode()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold text-sm w-full border-t border-slate-100 dark:border-slate-700 pt-3 mt-1">Cancelar selección</button>
+</div>
         <div class="mb-4">
            <h2 id="monthYear" class="text-center font-bold text-lg uppercase tracking-widest text-primary mb-1">Abril 2024</h2>
            <div class="grid grid-cols-7 gap-2 text-center text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4">
@@ -418,7 +438,12 @@
           </form>
       </div>
   </div>
-
+  
+<footer class="mt-12 py-6 text-center border-t border-slate-100">
+    <p class="text-slate-400 text-xs font-medium tracking-widest uppercase">Creado con <span class="text-primary font-bold">agendatina</span></p>
+</footer>
   <script src="backend/js/calendario.js" defer></script>
+
 </body>
+
 </html>

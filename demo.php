@@ -79,30 +79,52 @@ $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_
                VALUES (?, '#ec135b', '#fce7f3', 'Agendatina', 'Sesión de demostración', 'Agendatina')
                ON DUPLICATE KEY UPDATE mensaje_bienvenida = 'Agendatina', subtitulo = 'Sesión de demostración', titulo = 'Agendatina'")->execute([$negocioId]);
 
-// RESET AUTOMÁTICO CADA 20 MINUTOS
+// RESET AUTOMÁTICO CADA 10 MINUTOS
 $resetFile = __DIR__ . '/demo_reset.txt';
 $shouldReset = false;
 $lastReset = @file_get_contents($resetFile);
-if (!$lastReset || !is_numeric($lastReset) || (time() - intval($lastReset) > 1200)) {
+if (!$lastReset || !is_numeric($lastReset) || (time() - intval($lastReset) > 600)) {
+    $shouldReset = true;
+}
+// RESET AUTOMÁTICO CADA 10 MINUTOS
+$resetFile = __DIR__ . '/demo_reset.txt';
+$shouldReset = false;
+$lastReset = @file_get_contents($resetFile);
+if (!$lastReset || !is_numeric($lastReset) || (time() - intval($lastReset) > 600)) { // 600 segundos = 10 min
     $shouldReset = true;
 }
 
 if ($shouldReset && $negocioId) {
+    // 1. Limpiar Base de Datos
     $pdo->prepare("DELETE FROM turnos WHERE id_negocio = ?")->execute([$negocioId]);
     $pdo->prepare("DELETE FROM servicios WHERE id_negocio = ?")->execute([$negocioId]);
     $pdo->prepare("DELETE FROM notificaciones WHERE id_negocio = ?")->execute([$negocioId]);
+    $pdo->prepare("DELETE FROM dias_bloqueados WHERE id_negocio = ?")->execute([$negocioId]); // Resetear bloqueos
     
+    // 2. Limpiar imágenes físicas subidas por el negocio Demo
+    $uploadDir = __DIR__ . '/backend/uploads/';
+    if (is_dir($uploadDir)) {
+        // Busca cualquier archivo que contenga el ID del negocio en su nombre (ej: logo_15.jpg)
+        $files = glob($uploadDir . '*_' . $negocioId . '.*');
+        foreach ($files as $file) {
+            if (is_file($file)) {
+                @unlink($file); // Borra el archivo
+            }
+        }
+    }
+
+    // 3. Recrear Servicios por defecto
     $pdo->prepare("INSERT INTO servicios (id_negocio, nombre_servicio, duracion_minutos, precio, descripcion, profesional) VALUES 
         (?, 'Corte de Demostración', 30, 8000, 'Servicio de prueba para el plan Premium.', 'Valentina'),
         (?, 'Masaje Relajante', 60, 15000, 'Relajate con nuestros masajes de prueba.', 'Valentina')")->execute([$negocioId, $negocioId]);
 
-    // Obtener IDs de los servicios creados para asociarlos a los turnos falsos
     $stmtServ = $pdo->prepare("SELECT id FROM servicios WHERE id_negocio = ?");
     $stmtServ->execute([$negocioId]);
     $servs = $stmtServ->fetchAll();
     $idServ1 = $servs[0]['id'] ?? null;
     $idServ2 = $servs[1]['id'] ?? null;
     
+    // 4. Recrear Turnos de prueba
     $hoy = date('Y-m-d');
     $manana = date('Y-m-d', strtotime('+1 day'));
     
@@ -119,7 +141,7 @@ if ($shouldReset && $negocioId) {
         (?, '¡Bienvenido a Agendatina!', 'Prueba todas las funciones premium desde este panel de control interactivo.'),
         (?, 'Nuevas solicitudes', 'Tienes 2 turnos pendientes por confirmar. Revisa tu Agenda Virtual.')")->execute([$negocioId, $negocioId]);
 
-    // Única llamada a configuracion_web (modificacion 3 por gemini)
+    // 5. Restaurar Configuración Web a fábrica (Sin afectar url_portada)
     $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, intervalo_turnos, tipo_calendario, titulo)
                    VALUES (?, '#ec135b', '#fce7f3', 'Agendatina', '30', 'clasico', 'Agendatina')
                    ON DUPLICATE KEY UPDATE color_primario='#ec135b', color_secundario='#fce7f3', mensaje_bienvenida='Agendatina', titulo='Agendatina', url_logo=NULL, tipo_calendario='clasico'")->execute([$negocioId]);

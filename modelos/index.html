@@ -21,11 +21,22 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
         .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+        
+        /* Animaciones de Scroll */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-on-scroll.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased selection:bg-primary selection:text-white">
 
-    <nav class="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 transition-all">
+    <nav id="modelosNav" class="fixed w-full z-50 bg-white/70 backdrop-blur-lg border-b border-slate-200/50 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 <div class="flex items-center gap-2">
@@ -48,7 +59,7 @@
 
     <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-purple-500/5 -z-10"></div>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center reveal-on-scroll">
             <span class="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-wider uppercase mb-6 border border-primary/20">
                 Desarrollo Profesional
             </span>
@@ -71,56 +82,56 @@
 
     <section id="modelos" class="py-24 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
+            <div class="text-center mb-16 reveal-on-scroll">
                 <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Explora nuestros modelos</h2>
                 <p class="text-slate-500 text-lg">Haz clic en "Ver Demo" para navegar por una previsualización real.</p>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="group rounded-3xl border border-slate-100 bg-slate-50 overflow-hidden hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300">
+                <div class="reveal-on-scroll group rounded-3xl border border-slate-100 bg-slate-50 overflow-hidden hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 hover:-translate-y-2" style="transition-delay: 100ms;">
                     <div class="aspect-video bg-slate-200 relative overflow-hidden">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-6 group-hover:from-primary/90 transition-all duration-500">
                             <span class="text-white font-bold text-lg">Institucional Clásico</span>
                         </div>
                     </div>
                     <div class="p-6">
                         <p class="text-sm text-slate-500 mb-4">Ideal para profesionales y negocios que necesitan presencia rápida y efectiva.</p>
-                        <a href="/modelos/modelo-1.html" target="_blank" class="w-full flex items-center justify-center gap-2 bg-white border-2 border-slate-200 text-slate-700 py-2.5 rounded-xl font-bold hover:border-primary hover:text-primary transition-colors">
+                        <a href="modelo-1.html" target="_blank" class="w-full flex items-center justify-center gap-2 bg-white border-2 border-slate-200 text-slate-700 py-2.5 rounded-xl font-bold hover:border-primary hover:text-primary transition-colors">
                             <span class="material-symbols-outlined text-[18px]">visibility</span> Ver Demo
                         </a>
                     </div>
                 </div>
 
-                <div class="group rounded-3xl border border-slate-100 bg-slate-50 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300">
+                <div class="reveal-on-scroll group rounded-3xl border border-slate-100 bg-slate-50 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-300 hover:-translate-y-2" style="transition-delay: 200ms;">
                     <div class="aspect-video bg-slate-200 relative overflow-hidden">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-6 group-hover:from-purple-600/90 transition-all duration-500">
                             <span class="text-white font-bold text-lg">Catálogo Dinámico</span>
                         </div>
                     </div>
                     <div class="p-6">
                         <p class="text-sm text-slate-500 mb-4">Perfecto para mostrar múltiples productos con formularios de consulta por ítem.</p>
-                        <a href="/modelos/modelo-2.html" target="_blank" class="w-full flex items-center justify-center gap-2 bg-white border-2 border-slate-200 text-slate-700 py-2.5 rounded-xl font-bold hover:border-purple-500 hover:text-purple-600 transition-colors">
+                        <a href="modelo-2.html" target="_blank" class="w-full flex items-center justify-center gap-2 bg-white border-2 border-slate-200 text-slate-700 py-2.5 rounded-xl font-bold hover:border-purple-500 hover:text-purple-600 transition-colors">
                             <span class="material-symbols-outlined text-[18px]">visibility</span> Ver Demo
                         </a>
                     </div>
                 </div>
 
-                <div class="group rounded-3xl border border-slate-100 bg-slate-50 overflow-hidden hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-300">
+                <div class="reveal-on-scroll group rounded-3xl border border-slate-100 bg-slate-50 overflow-hidden hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-300 hover:-translate-y-2" style="transition-delay: 300ms;">
                     <div class="aspect-video bg-slate-200 relative overflow-hidden">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end p-6 group-hover:from-amber-500/90 transition-all duration-500">
                             <span class="text-white font-bold text-lg">Portal Inmobiliario</span>
                         </div>
                     </div>
                     <div class="p-6">
                         <p class="text-sm text-slate-500 mb-4">Sistema completo con gestión de propiedades, estadísticas y panel de interesados.</p>
-                        <a href="/modelos/modelo-3.html" target="_blank" class="w-full flex items-center justify-center gap-2 bg-white border-2 border-slate-200 text-slate-700 py-2.5 rounded-xl font-bold hover:border-amber-500 hover:text-amber-600 transition-colors">
+                        <a href="modelo-3.html" target="_blank" class="w-full flex items-center justify-center gap-2 bg-white border-2 border-slate-200 text-slate-700 py-2.5 rounded-xl font-bold hover:border-amber-500 hover:text-amber-600 transition-colors">
                             <span class="material-symbols-outlined text-[18px]">visibility</span> Ver Demo
                         </a>
                     </div>
                 </div>
             </div>
             
-            <div class="mt-12 text-center bg-blue-50 border border-blue-100 rounded-2xl p-6">
+            <div class="mt-12 text-center bg-blue-50 border border-blue-100 rounded-2xl p-6 reveal-on-scroll">
                 <p class="text-blue-800 font-medium flex items-center justify-center gap-2">
                     <span class="material-symbols-outlined">design_services</span> 
                     ¿Necesitas algo distinto? Todos los modelos son 100% personalizables a la identidad de tu marca.
@@ -131,14 +142,14 @@
 
     <section id="planes" class="py-24 bg-slate-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
+            <div class="text-center mb-16 reveal-on-scroll">
                 <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Planes de Desarrollo</h2>
                 <p class="text-slate-500 text-lg">Inversión transparente para el crecimiento de tu empresa.</p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
-                <div class="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm relative flex flex-col">
+                <div class="reveal-on-scroll bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 relative flex flex-col" style="transition-delay: 100ms;">
                     <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
                         <span class="material-symbols-outlined">storefront</span>
                     </div>
@@ -162,7 +173,7 @@
                     <a href="#contacto" class="w-full text-center bg-slate-900 text-white py-3.5 rounded-xl font-bold hover:bg-slate-800 transition-colors">Seleccionar Plan</a>
                 </div>
 
-                <div class="bg-white rounded-[2rem] p-8 border-2 border-purple-500 shadow-xl relative flex flex-col transform md:-translate-y-4">
+                <div class="reveal-on-scroll bg-white rounded-[2rem] p-8 border-2 border-purple-500 shadow-xl relative flex flex-col transform md:-translate-y-4 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300" style="transition-delay: 200ms;">
                     <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-primary text-white text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-wider shadow-md">
                         Más Elegido
                     </div>
@@ -189,7 +200,7 @@
                     <a href="#contacto" class="w-full text-center bg-purple-600 text-white py-3.5 rounded-xl font-bold hover:bg-purple-700 transition-colors shadow-lg shadow-purple-600/30">Seleccionar Plan</a>
                 </div>
 
-                <div class="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm relative flex flex-col">
+                <div class="reveal-on-scroll bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 relative flex flex-col" style="transition-delay: 300ms;">
                     <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mb-6">
                         <span class="material-symbols-outlined">real_estate_agent</span>
                     </div>
@@ -216,7 +227,7 @@
 
             </div>
 
-            <div class="mt-12 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-4xl mx-auto flex gap-4 items-start">
+            <div class="mt-12 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-4xl mx-auto flex gap-4 items-start reveal-on-scroll">
                 <span class="material-symbols-outlined text-primary mt-1">info</span>
                 <div>
                     <h4 class="font-bold text-slate-800 mb-1">Información importante sobre el Mantenimiento</h4>
@@ -234,12 +245,12 @@
         <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-purple-500/5 blur-3xl"></div>
         
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="text-center mb-12">
+            <div class="text-center mb-12 reveal-on-scroll">
                 <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Empecemos tu proyecto</h2>
                 <p class="text-slate-500 text-lg">Déjame tus datos, el plan que te interesa y me pondré en contacto contigo a la brevedad.</p>
             </div>
 
-            <div class="bg-white rounded-[2rem] shadow-xl border border-slate-100 p-8 md:p-10">
+            <div class="bg-white rounded-[2rem] shadow-xl border border-slate-100 p-8 md:p-10 reveal-on-scroll" style="transition-delay: 150ms;">
                 <form action="#" method="POST" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
@@ -289,5 +300,33 @@
         </div>
     </footer>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Navbar con efecto cristalino al hacer scroll
+            const modelosNav = document.getElementById('modelosNav');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 20) {
+                    modelosNav.classList.add('shadow-md', 'bg-white/95');
+                    modelosNav.classList.remove('bg-white/70');
+                } else {
+                    modelosNav.classList.remove('shadow-md', 'bg-white/95');
+                    modelosNav.classList.add('bg-white/70');
+                }
+            });
+
+            // 2. Animaciones al aparecer en pantalla (Intersection Observer)
+            const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target); // Animar solo una vez
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
+        });
+    </script>
 </body>
 </html>
