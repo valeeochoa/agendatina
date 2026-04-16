@@ -38,8 +38,11 @@ ServerSignature Off
     RewriteRule ^calendario(?:\.html)?/?$ index.php?v=calendario [L,QSA]
 
     # A. Caso: agendatina.site/tu-negocio/calendario
-    RewriteRule ^([a-zA-Z0-9-]+)/calendario(?:\.html)?/?$ index.php?n=$1&v=calendario [L,QSA]
-    
+   # Regla para el calendario mensual (Existente)
+RewriteRule ^([a-zA-Z0-9_-]+)/calendario$ calendario.html [L,QSA]
+
+# NUEVA REGLA: para el calendario semanal
+RewriteRule ^([a-zA-Z0-9_-]+)/calendario-semanal$ calendario2.html [L,QSA] 
     # B. Caso: agendatina.site/tu-negocio
     # (Condición: Evita que confunda rutas del sistema con nombres de negocios)
     RewriteCond %{REQUEST_URI} !^/(calendario|dashboard|login|backend|public|modelos) [NC]

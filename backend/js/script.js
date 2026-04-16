@@ -192,9 +192,17 @@ function loadDashboardData() {
                 const cardWeb = document.getElementById('cardWeb');
                 const cardCalendario = document.getElementById('cardCalendario');
                 
-                // Actualizar el enlace al calendario con la ruta amigable del negocio
+                // Actualizar el enlace al calendario detectando si es mensual o semanal
                 if (cardCalendario) {
-                    cardCalendario.href = business.ruta ? `${business.ruta}/calendario` : 'calendario'; 
+                    const isWeekly = webData.tipo_calendario === 'semanal';
+                    
+                    if (business.ruta) {
+                        // Si usa URL amigable (ej: agendatina.site/demo/calendario)
+                        cardCalendario.href = isWeekly ? `${business.ruta}/calendario-semanal` : `${business.ruta}/calendario`;
+                    } else {
+                        // Si usa archivos directos
+                        cardCalendario.href = isWeekly ? 'calendario2.html' : 'calendario.html';
+                    }
                 }
 
                 if (cardAgenda && cardWeb) {
