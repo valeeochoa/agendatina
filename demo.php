@@ -24,7 +24,10 @@ try { $pdo->query("SELECT titulo FROM configuracion_web LIMIT 1"); } catch(Excep
 try { $pdo->query("SELECT subtitulo FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN subtitulo VARCHAR(255) DEFAULT ''"); }
 try { $pdo->query("SELECT url_logo FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN url_logo VARCHAR(255) DEFAULT NULL"); }
 try { $pdo->query("SELECT color_fondo FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN color_fondo VARCHAR(20) DEFAULT '#ffffff'"); }
-
+try { $pdo->query("SELECT url_portada FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN url_portada VARCHAR(255) DEFAULT NULL"); }
+try { $pdo->query("SELECT url_cursos FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN url_cursos VARCHAR(255) DEFAULT NULL"); }
+try { $pdo->query("SELECT texto_cursos FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN texto_cursos TEXT DEFAULT NULL"); }
+try { $pdo->query("SELECT url_certificados FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN url_certificados VARCHAR(255) DEFAULT NULL"); }
 // NUEVAS BARRERAS (Evitan error 500 si la base es nueva)
 try { $pdo->query("SELECT plan FROM negocios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN plan VARCHAR(50) DEFAULT 'Basico'"); }
 try { $pdo->query("SELECT estado_pago FROM negocios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN estado_pago VARCHAR(50) DEFAULT 'prueba'"); }
@@ -86,13 +89,7 @@ $lastReset = @file_get_contents($resetFile);
 if (!$lastReset || !is_numeric($lastReset) || (time() - intval($lastReset) > 600)) {
     $shouldReset = true;
 }
-// RESET AUTOMÁTICO CADA 10 MINUTOS
-$resetFile = __DIR__ . '/demo_reset.txt';
-$shouldReset = false;
-$lastReset = @file_get_contents($resetFile);
-if (!$lastReset || !is_numeric($lastReset) || (time() - intval($lastReset) > 600)) { // 600 segundos = 10 min
-    $shouldReset = true;
-}
+
 
 if ($shouldReset && $negocioId) {
     // 1. Limpiar Base de Datos
@@ -141,11 +138,22 @@ if ($shouldReset && $negocioId) {
         (?, '¡Bienvenido a Agendatina!', 'Prueba todas las funciones premium desde este panel de control interactivo.'),
         (?, 'Nuevas solicitudes', 'Tienes 2 turnos pendientes por confirmar. Revisa tu Agenda Virtual.')")->execute([$negocioId, $negocioId]);
 
-    // 5. Restaurar Configuración Web a fábrica (Sin afectar url_portada)
-    $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, intervalo_turnos, tipo_calendario, titulo)
-                   VALUES (?, '#ec135b', '#fce7f3', 'Agendatina', '30', 'clasico', 'Agendatina')
-                   ON DUPLICATE KEY UPDATE color_primario='#ec135b', color_secundario='#fce7f3', mensaje_bienvenida='Agendatina', titulo='Agendatina', url_logo=NULL, tipo_calendario='clasico'")->execute([$negocioId]);
-                   
+   // 5. Restaurar Configuración Web a fábrica (Borrando TODAS las imágenes y JSONs)
+$pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, intervalo_turnos, tipo_calendario, titulo)
+               VALUES (?, '#ec135b', '#fce7f3', 'Agendatina', '30', 'clasico', 'Agendatina')
+               ON DUPLICATE KEY UPDATE 
+               color_primario='#ec135b', 
+               color_secundario='#fce7f3', 
+               mensaje_bienvenida='Agendatina', 
+               titulo='Agendatina', 
+               tipo_calendario='clasico',
+               url_logo=NULL, 
+               url_portada=NULL,
+               cursos_json=NULL, 
+               profesionales_json=NULL,
+               url_cursos=NULL,
+               url_certificados=NULL")->execute([$negocioId]);
+               
     @file_put_contents($resetFile, time());
 }
 

@@ -131,6 +131,7 @@
             transform: translateY(40px);
             transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
         .reveal-on-scroll.is-visible {
             opacity: 1;
             transform: translateY(0);
@@ -140,7 +141,8 @@
 
 <body class="bg-slate-50 text-slate-900 antialiased selection:bg-primary/10">
 
-    <nav id="mainNav" class="fixed w-full z-50 bg-white/70 backdrop-blur-lg border-b border-slate-200/50 transition-all duration-300">
+    <nav id="mainNav"
+        class="fixed w-full z-50 bg-white/70 backdrop-blur-lg border-b border-slate-200/50 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center gap-2">
                 <span class="material-symbols-outlined text-primary text-3xl">event_available</span>
@@ -184,7 +186,8 @@
                     class="signature-glow text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-xl transition-all hover:-translate-y-1">Explorar
                     planes</a>
                 <a href="#contacto" onclick="resetForm()"
-                    class="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all shadow-sm">Contactar asesor</a>
+                    class="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all shadow-sm">Contactar
+                    asesor</a>
             </div>
             <p class="font-semibold text-secondary"><span
                     class="material-symbols-outlined text-base align-middle">workspace_premium</span> ¡Todos los planes
@@ -193,6 +196,13 @@
     </section>
     <!-- Visualización del Panel -->
     <section id="visualizar" class="py-24 bg-[#f5eeff] overflow-hidden relative">
+                    <div class="mt-10 text-center reveal-on-scroll">
+                <a href="#tabla-comparativa"
+                    class="inline-flex items-center gap-2 bg-slate-100 text-slate-700 px-8 py-3 rounded-full font-bold text-sm hover:bg-slate-200 transition-all border border-slate-300">
+                    <span class="material-symbols-outlined text-[20px]">compare_arrows</span>
+                    Comparar todos los planes
+                </a>
+            </div>
         <div class="max-w-7xl mx-auto px-8 reveal-on-scroll">
             <div class="mb-16">
                 <h2 class="font-headline text-3xl md:text-4xl font-bold text-slate-900 mb-2">Visualizá tu éxito</h2>
@@ -208,7 +218,8 @@
                         <div class="relative flex items-end justify-center lg:justify-start">
 
                             <!-- Laptop Mockup -->
-                            <a href="demo.php" target="_blank" class="block w-full max-w-[500px] mockup-shadow relative z-0 hover:scale-[1.02] transition-transform duration-300">
+                            <a href="demo.php" target="_blank"
+                                class="block w-full max-w-[500px] mockup-shadow relative z-0 hover:scale-[1.02] transition-transform duration-300">
                                 <div class="bg-slate-800 rounded-t-2xl p-2 pb-0">
                                     <div
                                         class="bg-white rounded-t-lg aspect-[16/10] overflow-hidden flex flex-col relative">
@@ -220,11 +231,11 @@
                                             </div>
                                             <div
                                                 class="mx-auto bg-white border rounded px-2 py-0.5 text-[8px] text-slate-400 w-32 text-center">
-                                                tu-negocio.agendatina.site</div>
+                                                agendatina.site/tu-negocio</div>
                                         </div>
                                         <!--Aca estaria la imagen del calendario-->
                                         <img id="mockup-desktop"
-                                            src="https://placehold.co/800x500/f8fafc/94a3b8?text=Demo+Desktop" 
+                                            src="https://placehold.co/800x500/f8fafc/94a3b8?text=Demo+Desktop"
                                             alt="Demo Desktop" class="w-full h-full object-cover">
                                     </div>
                                 </div>
@@ -236,7 +247,8 @@
                             </a>
 
                             <!-- Phone Mockup -->
-                            <a href="demo.php" target="_blank" class="block absolute -right-2 sm:-right-4 -bottom-6 sm:-bottom-10 w-[28%] max-w-[140px] min-w-[90px] mockup-shadow z-10 hover:scale-105 transition-transform duration-300">
+                            <a href="demo.php" target="_blank"
+                                class="block absolute -right-2 sm:-right-4 -bottom-6 sm:-bottom-10 w-[28%] max-w-[140px] min-w-[90px] mockup-shadow z-10 hover:scale-105 transition-transform duration-300">
                                 <div
                                     class="bg-slate-800 p-1.5 rounded-[2rem] aspect-[9/19] border-2 border-slate-700 relative">
                                     <div
@@ -253,8 +265,10 @@
                         </div>
 
                         <div class="mt-12 text-center lg:text-left flex justify-center lg:justify-start">
-                            <a href="demo.php" target="_blank" class="inline-flex items-center gap-2 bg-slate-900 text-white px-8 py-4 rounded-full font-bold text-sm hover:bg-primary hover:shadow-lg hover:-translate-y-1 transition-all shadow-md">
-                                <span class="material-symbols-outlined text-[20px]">play_arrow</span> PRUÉBALO AHORA (VER DEMO)
+                            <a href="demo.php" target="_blank"
+                                class="inline-flex items-center gap-2 bg-slate-900 text-white px-8 py-4 rounded-full font-bold text-sm hover:bg-primary hover:shadow-lg hover:-translate-y-1 transition-all shadow-md">
+                                <span class="material-symbols-outlined text-[20px]">play_arrow</span> PRUÉBALO AHORA
+                                (VER DEMO)
                             </a>
                         </div>
                     </div>
@@ -286,14 +300,26 @@
                             <button id="carouselActionBtn"
                                 class="px-8 py-4 rounded-xl signature-glow text-white font-bold text-lg hover:shadow-xl transition-all"
                                 onclick="selectPlan('Plan Básico')">Elegir este plan</button>
-                            <div class="text-2xl font-bold" id="carouselPrice">Consultar<span
-                                    class="text-sm font-normal text-slate-400"></span></div>
+
+                            <div class="flex flex-col">
+                                <div class="flex items-center gap-2 mb-1" id="carouselOldPriceContainer">
+                                    <span class="text-sm text-slate-400 line-through font-medium"
+                                        id="carouselOldPrice">$13.288</span>
+                                    <span
+                                        class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold whitespace-nowrap">-20% OFF</span>
+                                </div>
+                                <div class="text-3xl font-bold text-slate-800">
+                                    <span id="carouselPrice">$10.630</span><span
+                                        class="text-sm font-normal text-slate-500 ml-1">/mes</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="flex flex-row items-center justify-center gap-6 mt-16">
-                    <button id="prevCarouselBtn" class="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
+                    <button id="prevCarouselBtn"
+                        class="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
                         <span class="material-symbols-outlined">chevron_left</span>
                     </button>
                     <div class="flex justify-center gap-3" id="carouselDots">
@@ -301,7 +327,8 @@
                         <button class="w-8 h-2.5 rounded-full bg-primary" onclick="setCarouselIndex(1)"></button>
                         <button class="w-2.5 h-2.5 rounded-full bg-slate-300" onclick="setCarouselIndex(2)"></button>
                     </div>
-                    <button id="nextCarouselBtn" class="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
+                    <button id="nextCarouselBtn"
+                        class="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
                         <span class="material-symbols-outlined">chevron_right</span>
                     </button>
                 </div>
@@ -323,8 +350,8 @@
             <!-- Planes -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- PLAN SIMPLE -->
-                <div
-                    class="reveal-on-scroll bg-slate-50 rounded-3xl p-8 border border-slate-200 hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col" style="transition-delay: 100ms;">
+                <div class="reveal-on-scroll bg-slate-50 rounded-3xl p-8 border border-slate-200 hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col"
+                    style="transition-delay: 100ms;">
                     <span class="text-xs font-semibold text-primary uppercase mb-2">
                         Ideal para comenzar
                     </span>
@@ -335,7 +362,8 @@
                     <div class="flex flex-col mb-8">
                         <div class="flex items-center gap-2 mb-1">
                             <span class="text-sm text-slate-400 line-through font-medium">$13.288</span>
-                            <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-20% OFF</span>
+                            <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-20%
+                                OFF</span>
                         </div>
                         <div class="text-3xl font-bold text-slate-800">
                             $10.630<span class="text-sm font-normal text-slate-500 ml-1">/mes</span>
@@ -378,8 +406,8 @@
 
 
                 <!-- PLAN INTERMEDIO -->
-                <div
-                    class="reveal-on-scroll signature-glow rounded-3xl p-8 text-white flex flex-col transform md:-translate-y-4 shadow-2xl relative transition-all duration-300 hover:scale-105 hover:shadow-primary/50" style="transition-delay: 200ms;">
+                <div class="reveal-on-scroll signature-glow rounded-3xl p-8 text-white flex flex-col transform md:-translate-y-4 shadow-2xl relative transition-all duration-300 hover:scale-105 hover:shadow-primary/50"
+                    style="transition-delay: 200ms;">
 
                     <div
                         class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white text-primary px-4 py-1 rounded-full text-xs font-black uppercase shadow-md">
@@ -399,7 +427,9 @@
                     <div class="flex flex-col mb-8">
                         <div class="flex items-center gap-2 mb-1">
                             <span class="text-sm text-white/60 line-through font-medium">$20.563</span>
-                            <span class="bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 px-2 py-0.5 rounded-md text-xs font-bold">-20% OFF</span>
+                            <span
+                                class="bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 px-2 py-0.5 rounded-md text-xs font-bold">-20%
+                                OFF</span>
                         </div>
                         <div class="text-3xl font-bold text-white">
                             $16.450<span class="text-sm font-normal text-white/80 ml-1">/mes</span>
@@ -439,8 +469,8 @@
                     </button>
                 </div>
                 <!-- PLAN COMPLETO -->
-                <div
-                    class="reveal-on-scroll bg-slate-50 rounded-3xl p-8 border border-slate-200 hover:border-secondary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col" style="transition-delay: 300ms;">
+                <div class="reveal-on-scroll bg-slate-50 rounded-3xl p-8 border border-slate-200 hover:border-secondary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col"
+                    style="transition-delay: 300ms;">
 
                     <span class="text-xs font-semibold text-secondary uppercase mb-2">
                         Presencia online
@@ -455,7 +485,8 @@
                     <div class="flex flex-col mb-8">
                         <div class="flex items-center gap-2 mb-1">
                             <span class="text-sm text-slate-400 line-through font-medium">$28.188</span>
-                            <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-20% OFF</span>
+                            <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-20%
+                                OFF</span>
                         </div>
                         <div class="text-3xl font-bold text-slate-800">
                             $22.550<span class="text-sm font-normal text-slate-500 ml-1">/mes</span>
@@ -504,7 +535,66 @@
             <p class="text-center text-sm text-slate-500 mt-12">
                 Sin contratos. Podés cancelar cuando quieras.
             </p>
-
+            
+            <div id="tabla-comparativa" class="mt-20 max-w-5xl mx-auto reveal-on-scroll scroll-mt-24">
+                <div class="text-center mb-8">
+                    <h3 class="text-2xl font-bold text-slate-800">Comparativa detallada de funciones</h3>
+                </div>
+                <div class="overflow-x-auto bg-white rounded-3xl border border-slate-200 shadow-sm">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200">
+                                <th class="p-4 md:p-6 font-bold text-slate-600">Características</th>
+                                <th class="p-4 md:p-6 font-bold text-center text-slate-800">Simple</th>
+                                <th class="p-4 md:p-6 font-bold text-center text-primary">Intermedio</th>
+                                <th class="p-4 md:p-6 font-bold text-center text-secondary">Premium</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-sm text-slate-600">
+                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                <td class="p-4 md:px-6 font-medium">Calendario de turnos online</td>
+                                <td class="p-4 text-center"><span
+                                        class="material-symbols-outlined text-green-500 font-bold">check</span></td>
+                                <td class="p-4 text-center"><span
+                                        class="material-symbols-outlined text-green-500 font-bold">check</span></td>
+                                <td class="p-4 text-center"><span
+                                        class="material-symbols-outlined text-green-500 font-bold">check</span></td>
+                            </tr>
+                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                <td class="p-4 md:px-6 font-medium">Notificaciones por email</td>
+                                <td class="p-4 text-center"><span
+                                        class="material-symbols-outlined text-green-500 font-bold">check</span></td>
+                                <td class="p-4 text-center"><span
+                                        class="material-symbols-outlined text-green-500 font-bold">check</span></td>
+                                <td class="p-4 text-center"><span
+                                        class="material-symbols-outlined text-green-500 font-bold">check</span></td>
+                            </tr>
+                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                <td class="p-4 md:px-6 font-medium">Agenda Virtual de reservas</td>
+                                <td class="p-4 text-center text-slate-300">-</td>
+                                <td class="p-4 text-center"><span
+                                        class="material-symbols-outlined text-green-500 font-bold">check</span></td>
+                                <td class="p-4 text-center"><span
+                                        class="material-symbols-outlined text-green-500 font-bold">check</span></td>
+                            </tr>
+                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                                <td class="p-4 md:px-6 font-medium">Mini página web del negocio</td>
+                                <td class="p-4 text-center text-slate-300">-</td>
+                                <td class="p-4 text-center text-slate-300">-</td>
+                                <td class="p-4 text-center"><span
+                                        class="material-symbols-outlined text-green-500 font-bold">check</span></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-4 md:px-6 font-medium">Listado detallado de servicios y portada</td>
+                                <td class="p-4 text-center text-slate-300">-</td>
+                                <td class="p-4 text-center text-slate-300">-</td>
+                                <td class="p-4 text-center"><span
+                                        class="material-symbols-outlined text-green-500 font-bold">check</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
             <!-- Extras -->
             <div class="mt-16 bg-slate-50 rounded-3xl p-8 border border-slate-200 max-w-4xl mx-auto reveal-on-scroll">
 
@@ -581,7 +671,7 @@
                     </div>
                     <textarea name="mensaje" placeholder="¿En qué podemos ayudarte?" rows="4" required
                         class="w-full bg-slate-50 border-slate-200 rounded-xl px-4 py-3 focus:ring-primary"></textarea>
-                    
+
                     <div id="contactMessage" class="hidden p-4 rounded-xl text-sm font-medium"></div>
 
                     <button type="submit" id="submitBtn"
@@ -600,20 +690,27 @@
             </div>
             <div class="flex flex-col items-center md:items-end gap-1 text-sm">
                 <p>© 2026. Diseñado para potenciar tu negocio.</p>
-                <p>Desarrollado por <span class="text-white font-bold"><a href="mailto:vochoaolguin@gmail.com" class="text-primary hover:text-white transition-colors hover:underline">Valentina Ochoa</a></span></p>
+                <p>Desarrollado por <span class="text-white font-bold"><a href="mailto:vochoaolguin@gmail.com"
+                            class="text-primary hover:text-white transition-colors hover:underline">Valentina
+                            Ochoa</a></span></p>
             </div>
         </div>
     </footer>
 
     <!-- Modal de Éxito Contacto -->
-    <div id="contactSuccessModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full p-8 transform scale-95 transition-transform duration-300 text-center" id="contactSuccessModalContent">
-            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+    <div id="contactSuccessModal"
+        class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full p-8 transform scale-95 transition-transform duration-300 text-center"
+            id="contactSuccessModalContent">
+            <div
+                class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span class="material-symbols-outlined text-4xl">check_circle</span>
             </div>
             <h3 class="text-2xl font-bold text-slate-800 mb-2">¡Consulta Enviada!</h3>
-            <p class="text-slate-500 text-sm mb-6">Hemos recibido tu mensaje correctamente. Un asesor se comunicará contigo a la brevedad.</p>
-            <button onclick="closeContactSuccessModal()" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-primary/20">
+            <p class="text-slate-500 text-sm mb-6">Hemos recibido tu mensaje correctamente. Un asesor se comunicará
+                contigo a la brevedad.</p>
+            <button onclick="closeContactSuccessModal()"
+                class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-primary/20">
                 Entendido
             </button>
         </div>

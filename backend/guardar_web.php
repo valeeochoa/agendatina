@@ -176,9 +176,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtOld->execute([$id_negocio]);
         $oldData = $stmtOld->fetch() ?: [];
         
+        $maxSize = 2 * 1024 * 1024; // Límite de 2MB
+
         // Subir LOGO si fue enviado por archivo
         if (isset($_FILES['logo_file']) && $_FILES['logo_file']['error'] === UPLOAD_ERR_OK) {
             $fileL = $_FILES['logo_file'];
+
+            if ($fileL['size'] > $maxSize) {
+                http_response_code(413); // Payload Too Large
+                echo json_encode(['success' => false, 'error' => 'El logo es demasiado pesado. El límite es 2MB.']);
+                exit;
+            }
+
             $uploadDirL = __DIR__ . '/uploads/logos/';
             if (!is_dir($uploadDirL)) mkdir($uploadDirL, 0755, true);
             $extL = pathinfo($fileL['name'], PATHINFO_EXTENSION);
@@ -191,6 +200,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Subir FONDO si fue enviado por archivo
         if (isset($_FILES['fondo_file']) && $_FILES['fondo_file']['error'] === UPLOAD_ERR_OK) {
             $fileF = $_FILES['fondo_file'];
+
+            if ($fileF['size'] > $maxSize) {
+                http_response_code(413);
+                echo json_encode(['success' => false, 'error' => 'La imagen de fondo es demasiado pesada. El límite es 2MB.']);
+                exit;
+            }
+
             $uploadDirF = __DIR__ . '/uploads/fondos/';
             if (!is_dir($uploadDirF)) mkdir($uploadDirF, 0755, true);
             $extF = pathinfo($fileF['name'], PATHINFO_EXTENSION);

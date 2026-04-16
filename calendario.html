@@ -1,19 +1,25 @@
 <!doctype html>
 <html lang="es" class="scroll-smooth">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-  <link rel="icon" id="favicon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ec135b'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-2.5 5.43l-4.57 4.57-2.43-2.43 1.41-1.41 1.02 1.02 3.16-3.16 1.41 1.41z'/></svg>">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+    rel="stylesheet" />
+  <link rel="icon" id="favicon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ec135b'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-2.5 5.43l-4.57 4.57-2.43-2.43 1.41-1.41 1.02 1.02 3.16-3.16 1.41 1.41z'/></svg>" />
+
   <script>
-      // Fuerza a que las rutas relativas se carguen desde la carpeta correcta (Evita error 404)
-      const basePath = window.location.pathname.includes('/agendatina/') ? '/agendatina/' : '/';
-      const baseEl = document.createElement('base');
-      baseEl.href = basePath;
-      document.head.insertBefore(baseEl, document.head.firstChild);
+    // Fuerza a que las rutas relativas se carguen desde la carpeta correcta (Evita error 404)
+    const basePath = window.location.pathname.includes("/agendatina/")
+      ? "/agendatina/"
+      : "/";
+    const baseEl = document.createElement("base");
+    baseEl.href = basePath;
+    document.head.insertBefore(baseEl, document.head.firstChild);
   </script>
   <script src="backend/js/script.js" defer></script>
 
@@ -38,7 +44,7 @@
 
   <style>
     /* Estética del Calendario */
-    .calendar-day { 
+    .calendar-day {
       aspect-ratio: 1 / 1;
       display: flex;
       align-items: center;
@@ -49,10 +55,10 @@
       font-size: 0.9rem;
       border: 2px solid transparent;
     }
-    
+
     .calendar-day:not(.disabled) {
       background: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
       cursor: pointer;
       border-color: var(--color-secundario, #fce7f3);
     }
@@ -107,40 +113,71 @@
     }
 
     /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-    
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #e2e8f0;
+      border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #e2e8f0;
+      border-radius: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #cbd5e1;
+    }
   </style>
 </head>
 
 <body class="bg-[#fcfafa] dark:bg-black font-display text-slate-800 dark:text-slate-100 overflow-x-hidden">
-
-  <header class="sticky top-0 z-50 bg-white/70 dark:bg-black/70 backdrop-blur-xl border-b border-slate-100 dark:border-white/10 px-6 py-4">
+  <header
+    class="sticky top-0 z-50 bg-white/70 dark:bg-black/70 backdrop-blur-xl border-b border-slate-100 dark:border-white/10 px-6 py-4">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
       <a href="#" class="flex items-center gap-2 tracking-tighter">
         <div id="navIconContainer" class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white">
           <span id="navIcon" class="material-symbols-outlined">event_available</span>
         </div>
-        <img id="navLogoImg" src="" alt="Logo" class="hidden h-10 w-auto object-contain rounded-lg">
+        <img id="navLogoImg" src="" alt="Logo" class="hidden h-10 w-auto object-contain rounded-lg" />
         <span class="text-xl font-bold uppercase tracking-widest" id="navBrandText">
           <span id="navBusinessName">STUDIO</span><span class="text-primary" id="navBrandAccent">GLAM</span>
         </span>
       </a>
 
       <div id="adminProfileMenu" class="hidden items-center gap-3 bg-slate-100 dark:bg-white/5 p-1.5 pl-4 rounded-2xl">
-        <button onclick="openReportErrorModal('Calendario Mensual')" class="text-xs font-bold text-red-500 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors">
-            <span class="material-symbols-outlined text-[16px]">bug_report</span> <span class="hidden sm:inline">Reportar Error</span>
+        <button onclick="openReportErrorModal('Calendario Mensual')"
+          class="text-xs font-bold text-red-500 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors">
+          <span class="material-symbols-outlined text-[16px]">bug_report</span>
+          <span class="hidden sm:inline">Reportar Error</span>
         </button>
-        <a href="dashboard.html" class="text-xs font-bold text-slate-500 hover:text-primary uppercase tracking-wider flex items-center gap-1 transition-colors">
-          <span class="material-symbols-outlined text-sm">arrow_back</span> <span class="hidden sm:inline">Volver</span>
+        <a href="dashboard.html"
+          class="text-xs font-bold text-slate-500 hover:text-primary uppercase tracking-wider flex items-center gap-1 transition-colors">
+          <span class="material-symbols-outlined text-sm">arrow_back</span>
+          <span class="hidden sm:inline">Volver</span>
         </a>
-        <button onclick="logout()" class="bg-white dark:bg-white/10 p-2 rounded-xl shadow-sm hover:scale-105 hover:text-red-500 transition-all text-primary flex items-center justify-center" title="Cerrar Sesión">
+        <button onclick="logout()"
+          class="bg-white dark:bg-white/10 p-2 rounded-xl shadow-sm hover:scale-105 hover:text-red-500 transition-all text-primary flex items-center justify-center"
+          title="Cerrar Sesión">
           <span class="material-symbols-outlined text-[20px]">logout</span>
         </button>
       </div>
@@ -148,302 +185,446 @@
   </header>
 
   <main class="max-w-5xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
-    
     <div class="lg:col-span-7">
-      <div class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-6 sm:p-8 shadow-sm">
+      <div
+        class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-6 sm:p-8 shadow-sm">
         <div class="flex justify-between items-center mb-8">
           <div class="flex-1 mr-4">
-            <h1 id="mainCalendarTitle" class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white transition-all">Reserva tu cita</h1>
-            <p id="mainCalendarSubtitle" class="text-slate-500 mt-1 text-sm md:text-base transition-all">Selecciona el día que mejor te quede.</p>
+            <h1 id="mainCalendarTitle"
+              class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white transition-all">
+              Reserva tu cita
+            </h1>
+            <p id="mainCalendarSubtitle" class="text-slate-500 mt-1 text-sm md:text-base transition-all">
+              Selecciona el día que mejor te quede.
+            </p>
           </div>
-          <div class="flex gap-2">
-            <button id="prevMonth" class="w-12 h-12 flex items-center justify-center border border-slate-100 dark:border-white/10 rounded-2xl hover:bg-slate-50 transition-colors"><span class="material-symbols-outlined text-slate-400">chevron_left</span></button>
-            <button id="nextMonth" class="w-12 h-12 flex items-center justify-center border border-slate-100 dark:border-white/10 rounded-2xl hover:bg-slate-50 transition-colors"><span class="material-symbols-outlined text-slate-400">chevron_right</span></button>
+          <div class="flex items-center gap-2">
+            <button id="prevMonth"
+              class="w-12 h-12 flex items-center justify-center border border-slate-100 dark:border-white/10 rounded-2xl hover:bg-slate-50 transition-colors"><span
+                class="material-symbols-outlined text-slate-400">chevron_left</span></button>
+            <button id="nextMonth"
+              class="w-12 h-12 flex items-center justify-center border border-slate-100 dark:border-white/10 rounded-2xl hover:bg-slate-50 transition-colors"><span
+                class="material-symbols-outlined text-slate-400">chevron_right</span></button>
           </div>
         </div>
-        <button id="btnMultiSelect" onclick="toggleMultiSelectMode()" class="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-sm transition-all">
-    <span class="material-symbols-outlined text-[20px]">checklist</span> Seleccionar días
-</button>
+        <button id="btnMultiSelect" onclick="toggleMultiSelectMode()"
+          class="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-sm transition-all">
+          <span class="material-symbols-outlined text-[20px]">checklist</span>
+          Seleccionar días
+        </button>
 
-<div id="multiSelectActions" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 shadow-2xl border border-slate-200 dark:border-slate-700 rounded-2xl px-6 py-4 hidden z-[100] flex-col items-center gap-3 animate-bounce-in min-w-[320px]">
-    <div id="multiSelectState" class="flex flex-col items-center gap-2 w-full">
-        <span id="multiSelectInstruction" class="text-sm font-medium text-slate-500 dark:text-slate-400 text-center">Selecciona días en el calendario<br>para bloquear o desbloquear</span>
-        <div id="multiSelectActive" class="hidden w-full items-center justify-between gap-4">
-            <span class="text-sm font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap"><span id="selectedDaysCount">0</span> seleccionados</span>
-            <div class="flex gap-2">
-                <button id="btnBulkBlock" onclick="bulkAction('block_day')" class="hidden bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors">Bloquear</button>
-                <button id="btnBulkUnblock" onclick="bulkAction('unblock_day')" class="hidden bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors">Desbloquear</button>
+        <div id="multiSelectActions"
+          class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 shadow-2xl border border-slate-200 dark:border-slate-700 rounded-2xl px-6 py-4 hidden z-[100] flex-col items-center gap-3 animate-bounce-in min-w-[320px]">
+          <div id="multiSelectState" class="flex flex-col items-center gap-2 w-full">
+            <span id="multiSelectInstruction"
+              class="text-sm font-medium text-slate-500 dark:text-slate-400 text-center">Selecciona días en el
+              calendario<br />para bloquear o
+              desbloquear</span>
+            <div id="multiSelectActive" class="hidden w-full items-center justify-between gap-4">
+              <span class="text-sm font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap"><span
+                  id="selectedDaysCount">0</span> seleccionados</span>
+              <div class="flex gap-2">
+                <button id="btnBulkBlock" onclick="bulkAction('block_day')"
+                  class="hidden bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors">
+                  Bloquear
+                </button>
+                <button id="btnBulkUnblock" onclick="bulkAction('unblock_day')"
+                  class="hidden bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors">
+                  Desbloquear
+                </button>
+              </div>
             </div>
+          </div>
+          <button onclick="toggleMultiSelectMode()"
+            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold text-sm w-full border-t border-slate-100 dark:border-slate-700 pt-3 mt-1">
+            Cancelar selección
+          </button>
         </div>
-    </div>
-    <button onclick="toggleMultiSelectMode()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold text-sm w-full border-t border-slate-100 dark:border-slate-700 pt-3 mt-1">Cancelar selección</button>
-</div>
         <div class="mb-4">
-           <h2 id="monthYear" class="text-center font-bold text-lg uppercase tracking-widest text-primary mb-1">Abril 2024</h2>
-           <div class="grid grid-cols-7 gap-2 text-center text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4">
-             <div>Dom</div><div>Lun</div><div>Mar</div><div>Mie</div><div>Jue</div><div>Vie</div><div>Sab</div>
-           </div>
-           <div id="calendarDays" class="grid grid-cols-7 gap-1 sm:gap-2 md:gap-3">
-             </div>
+          <h2 id="monthYear" class="text-center font-bold text-lg uppercase tracking-widest text-primary mb-1">
+            Abril 2024
+          </h2>
+          <div
+            class="grid grid-cols-7 gap-2 text-center text-[10px] font-black uppercase text-slate-400 tracking-widest mb-4">
+            <div>Dom</div>
+            <div>Lun</div>
+            <div>Mar</div>
+            <div>Mie</div>
+            <div>Jue</div>
+            <div>Vie</div>
+            <div>Sab</div>
+          </div>
+          <div id="calendarDays" class="grid grid-cols-7 gap-1 sm:gap-2 md:gap-3"></div>
         </div>
 
-        <div id="adminControls" class="hidden mt-8 p-4 bg-primary/5 rounded-2xl border border-primary/20">
-          <div class="flex items-center justify-between flex-wrap gap-4">
-            <span class="text-sm font-semibold text-primary flex items-center gap-2">
-              <span class="material-symbols-outlined text-sm">settings</span> Control de Fechas
-            </span>
-            <div class="flex items-center gap-2">
-              <button onclick="copyMyLink()" class="text-xs font-bold bg-white text-primary border border-primary/20 px-4 py-2 rounded-lg hover:bg-primary/10 transition-colors flex items-center gap-1">
-                <span class="material-symbols-outlined text-sm">share</span> Compartir Enlace
-              </button>
-              <button id="previewClientBtn" class="text-xs font-bold bg-white text-primary border border-primary/20 px-4 py-2 rounded-lg hover:bg-primary/10 transition-colors flex items-center gap-1">
-                <span class="material-symbols-outlined text-sm">visibility</span> Vista Cliente
-              </button>
-              <button id="manageServicesBtn" class="text-xs font-bold bg-primary text-white px-4 py-2 rounded-lg">Configurar Servicios</button>
-            </div>
-          </div>
+        <div class="hidden mt-8 pt-6 border-t border-slate-200 flex-wrap items-center justify-center sm:justify-start gap-3" id="adminControls">
+          <button onclick="copyMyLink()"
+            class="text-sm font-bold bg-white text-slate-600 border border-slate-200 px-5 py-3 rounded-xl hover:text-primary transition-colors flex items-center gap-2 shadow-sm"
+            title="Copiar enlace para clientes">
+            <span class="material-symbols-outlined text-[20px]">share</span> Compartir Enlace
+          </button>
+          <button id="previewClientBtn"
+            class="text-sm font-bold bg-white text-slate-600 border border-slate-200 px-5 py-3 rounded-xl hover:text-primary transition-colors flex items-center gap-2 shadow-sm"
+            title="Ver como cliente">
+            <span class="material-symbols-outlined text-[20px]">visibility</span> Vista Cliente
+          </button>
+          <button id="manageServicesBtn"
+            class="text-sm font-bold bg-primary text-white px-6 py-3 rounded-xl hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-sm">
+            <span class="material-symbols-outlined text-[20px]">design_services</span> Gestionar Servicios
+          </button>
         </div>
       </div>
     </div>
 
     <div class="lg:col-span-5">
       <div id="dayDetailsContainer" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-        
-        <div id="clientBookingView" class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-8 shadow-xl">
+        <div id="clientBookingView"
+          class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-8 shadow-xl">
           <div class="flex items-center gap-4 mb-8">
             <div class="w-12 h-12 bg-secondary rounded-2xl flex items-center justify-center text-primary">
               <span class="material-symbols-outlined">schedule</span>
             </div>
             <div>
-              <h3 class="font-bold text-xl" id="selectedDateText">14 de Abril</h3>
-              <p class="text-sm text-slate-500">Elige la hora y profesional</p>
+              <h3 class="font-bold text-xl" id="selectedDateText">
+                14 de Abril
+              </h3>
+              <p class="text-sm text-slate-500">
+                Elige la hora y profesional
+              </p>
             </div>
           </div>
 
           <form id="bookingForm" class="space-y-6">
-            <input type="hidden" id="fechaSeleccionada" name="fecha">
-            <input type="hidden" id="horaSeleccionada" name="hora" required>
+            <input type="hidden" id="fechaSeleccionada" name="fecha" />
+            <input type="hidden" id="horaSeleccionada" name="hora" required />
 
             <div id="timeSlots" class="grid grid-cols-3 sm:grid-cols-4 gap-3"></div>
 
             <div class="space-y-4">
               <div>
                 <label class="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">Servicio</label>
-                <select id="serviceSelect" name="servicio" required class="w-full mt-1.5 px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary focus:border-primary text-sm font-medium">
-                  <option value="" disabled selected>¿Qué servicio deseas?</option>
+                <select id="serviceSelect" name="servicio" required
+                  class="w-full mt-1.5 px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary focus:border-primary text-sm font-medium">
+                  <option value="" disabled selected>
+                    ¿Qué servicio deseas?
+                  </option>
                 </select>
               </div>
 
               <div>
                 <label class="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">Profesional</label>
-                <select id="profesionalSelect" name="profesional" class="w-full mt-1.5 px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary focus:border-primary text-sm font-medium">
-                  <option value="Cualquiera" selected>Cualquiera (Sin preferencia)</option>
+                <select id="profesionalSelect" name="profesional"
+                  class="w-full mt-1.5 px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary focus:border-primary text-sm font-medium">
+                  <option value="Cualquiera" selected>
+                    Cualquiera (Sin preferencia)
+                  </option>
                 </select>
               </div>
 
               <div class="grid grid-cols-2 gap-4">
-                <input type="text" id="bookingNombre" name="nombre" placeholder="Nombre" required class="w-full px-4 py-3.5 rounded-2xl border-slate-200 bg-slate-50 dark:bg-white/5 text-sm">
-                <input type="text" id="bookingApellido" name="apellido" placeholder="Apellido" required class="w-full px-4 py-3.5 rounded-2xl border-slate-200 bg-slate-50 dark:bg-white/5 text-sm">
+                <input type="text" id="bookingNombre" name="nombre" placeholder="Nombre" required
+                  class="w-full px-4 py-3.5 rounded-2xl border-slate-200 bg-slate-50 dark:bg-white/5 text-sm" />
+                <input type="text" id="bookingApellido" name="apellido" placeholder="Apellido" required
+                  class="w-full px-4 py-3.5 rounded-2xl border-slate-200 bg-slate-50 dark:bg-white/5 text-sm" />
               </div>
-              
-              <input type="tel" id="bookingCelular" name="celular" placeholder="WhatsApp / Celular" required class="w-full px-4 py-3.5 rounded-2xl border-slate-200 bg-slate-50 dark:bg-white/5 text-sm">
+
+              <input type="tel" id="bookingCelular" name="celular" placeholder="WhatsApp / Celular" required
+                class="w-full px-4 py-3.5 rounded-2xl border-slate-200 bg-slate-50 dark:bg-white/5 text-sm" />
             </div>
 
             <div id="formMessage" class="hidden"></div>
 
-            <button type="submit" id="btnSubmit" class="w-full bg-primary text-white py-4 rounded-[1.5rem] font-bold text-lg shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all">
+            <button type="submit" id="btnSubmit"
+              class="w-full bg-primary text-white py-4 rounded-[1.5rem] font-bold text-lg shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all">
               Solicitar Turno
             </button>
           </form>
         </div>
 
-        <div id="adminDayView" class="hidden bg-white text-slate-800 border border-slate-200 rounded-[2.5rem] p-8 shadow-xl transition-all">
+        <div id="adminDayView"
+          class="hidden bg-white text-slate-800 border border-slate-200 rounded-[2.5rem] p-8 shadow-xl transition-all">
           <div class="flex justify-between items-start mb-6">
-            <h3 class="text-xl font-bold">Agenda del día<br>
-                <span id="adminSelectedDateText" class="text-primary font-medium text-sm"></span>
-                <div id="adminSelectedProfText" class="text-purple-400 font-medium text-xs hidden mt-1"></div>
+            <h3 class="text-xl font-bold">
+              Agenda del día<br />
+              <span id="adminSelectedDateText" class="text-primary font-medium text-sm"></span>
+              <div id="adminSelectedProfText" class="text-purple-400 font-medium text-xs hidden mt-1"></div>
             </h3>
             <div class="flex gap-2">
-                <button onclick="openManualTurnoModal()" class="bg-white/10 hover:bg-primary text-white p-2 rounded-xl transition-colors" title="Añadir Turno / Bloquear Horario">
-                   <span class="material-symbols-outlined">add</span>
-                </button>
-                <button id="toggleDayBlockBtn" class="bg-white/10 hover:bg-red-500 p-2 rounded-xl transition-colors" title="Bloquear todo el día">
-                   <span class="material-symbols-outlined">block</span>
-                </button>
+              <button onclick="openManualTurnoModal()"
+                class="bg-white/10 hover:bg-primary text-white p-2 rounded-xl transition-colors"
+                title="Añadir Turno / Bloquear Horario">
+                <span class="material-symbols-outlined">add</span>
+              </button>
+              <button id="toggleDayBlockBtn" class="bg-white/10 hover:bg-red-500 p-2 rounded-xl transition-colors"
+                title="Bloquear todo el día">
+                <span class="material-symbols-outlined">block</span>
+              </button>
             </div>
           </div>
-          
+
           <div id="adminTimeSlotsContainer" class="mb-6">
-              <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Grilla de Horarios</h4>
-              <div id="adminTimeSlots" class="space-y-2 max-h-[300px] overflow-y-auto pr-2 border border-slate-800 rounded-xl p-2"></div>
+            <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">
+              Grilla de Horarios
+            </h4>
+            <div id="adminTimeSlots"
+              class="space-y-2 max-h-[300px] overflow-y-auto pr-2 border border-slate-800 rounded-xl p-2"></div>
           </div>
 
-          <div id="adminAppointmentsList" class="space-y-4 max-h-[400px] overflow-y-auto pr-2 border-t border-slate-800 pt-6">
-              </div>
+          <div id="adminAppointmentsList"
+            class="space-y-4 max-h-[400px] overflow-y-auto pr-2 border-t border-slate-800 pt-6"></div>
         </div>
-
       </div>
 
-      <div id="emptyState" class="flex flex-col items-center justify-center h-full text-center p-12 border-2 border-dashed border-slate-200 rounded-[2.5rem]">
+      <div id="emptyState"
+        class="flex flex-col items-center justify-center h-full text-center p-12 border-2 border-dashed border-slate-200 rounded-[2.5rem]">
         <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 mb-4">
           <span class="material-symbols-outlined text-3xl">calendar_month</span>
         </div>
-        <p class="text-slate-400 font-medium">Selecciona un día en el calendario para ver los horarios disponibles</p>
+        <p class="text-slate-400 font-medium">
+          Selecciona un día en el calendario para ver los horarios disponibles
+        </p>
       </div>
-
     </div>
   </main>
 
   <!-- Modal para Gestionar Servicios -->
-  <div id="servicesModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-    <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl max-w-2xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="servicesModalContent">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold font-display text-slate-800 dark:text-slate-100">Gestionar Servicios</h2>
-            <button id="closeServicesModalBtn" class="text-slate-400 hover:text-red-500 transition-colors">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-        </div>
-        
-        <div id="servicesListContainer" class="max-h-[25vh] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
-          <!-- La lista de servicios se renderizará aquí -->
-        </div>
+  <div id="servicesModal"
+    class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div
+      class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl max-w-2xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar"
+      id="servicesModalContent">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold font-display text-slate-800 dark:text-slate-100">
+          Gestionar Servicios
+        </h2>
+        <button id="closeServicesModalBtn" class="text-slate-400 hover:text-red-500 transition-colors">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
 
-        <form id="serviceForm" class="mt-6 border-t border-slate-200 dark:border-slate-700 pt-6">
-            <h3 id="serviceFormTitle" class="font-bold mb-4 text-slate-800 dark:text-slate-200">Añadir Nuevo Servicio</h3>
-            <input type="hidden" id="serviceId" name="id">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input type="text" id="serviceName" name="nombre" placeholder="Nombre del Servicio" required class="w-full px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary text-sm">
-              <div class="flex items-center gap-2">
-                  <input type="number" id="serviceDurationH" min="0" placeholder="Horas" class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-600 focus:ring-2 focus:ring-primary outline-none bg-background-light dark:bg-slate-900 transition-all text-sm">
-                  <span class="text-sm font-bold text-slate-500">h</span>
-                  <input type="number" id="serviceDurationM" min="0" max="59" step="5" placeholder="Min" class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-600 focus:ring-2 focus:ring-primary outline-none bg-background-light dark:bg-slate-900 transition-all text-sm">
-                  <span class="text-sm font-bold text-slate-500">m</span>
-                  <input type="hidden" id="serviceDuration" name="duracion" required>
-              </div>
-              <input type="email" id="serviceProfessionalEmail" name="email_profesional" placeholder="Email del Profesional (Opcional)" class="w-full md:col-span-2 px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary text-sm">
-              <div class="col-span-1 md:col-span-2 bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-200 dark:border-white/10">
-                  <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Foto del Profesional</label>
-                  <input type="file" id="serviceProfessionalFile" name="foto_profesional_file" accept="image/png, image/jpeg, image/webp" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer mb-2">
-                  <input type="text" id="serviceProfessionalPhoto" name="foto_profesional" placeholder="O pega una URL directa de la imagen..." class="w-full px-4 py-2 rounded-xl border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-primary text-sm">
-              </div>
-              <input type="number" min="0" step="0.01" id="servicePrice" name="precio" placeholder="Precio ($)" required class="w-full px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary text-sm">
-              <div>
-                  <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Profesional a cargo</label>
-                  <input type="text" id="serviceProfessional" name="profesional" list="profesionalesList" placeholder="Ej: Juan (o deja vacío para ti)" class="w-full px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary text-sm">
-                  <datalist id="profesionalesList"></datalist>
-              </div>
-            </div>
-            <div class="flex items-center gap-4 mt-6">
-              <button type="submit" class="bg-primary text-white font-bold py-3 px-6 rounded-2xl hover:shadow-lg transition-all text-sm">Guardar Servicio</button>
-              <button type="button" id="cancelEditBtn" class="hidden text-sm font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">Cancelar Edición</button>
-            </div>
-        </form>
+      <div id="servicesListContainer" class="max-h-[25vh] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+        <!-- La lista de servicios se renderizará aquí -->
+      </div>
+
+      <form id="serviceForm" class="mt-6 border-t border-slate-200 dark:border-slate-700 pt-6">
+        <h3 id="serviceFormTitle" class="font-bold mb-4 text-slate-800 dark:text-slate-200">
+          Añadir Nuevo Servicio
+        </h3>
+        <input type="hidden" id="serviceId" name="id" />
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <input type="text" id="serviceName" name="nombre" placeholder="Nombre del Servicio" required
+            class="w-full px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary text-sm" />
+          <div class="flex items-center gap-2">
+            <input type="number" id="serviceDurationH" min="0" placeholder="Horas"
+              class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-600 focus:ring-2 focus:ring-primary outline-none bg-background-light dark:bg-slate-900 transition-all text-sm" />
+            <span class="text-sm font-bold text-slate-500">h</span>
+            <input type="number" id="serviceDurationM" min="0" max="59" step="5" placeholder="Min"
+              class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-600 focus:ring-2 focus:ring-primary outline-none bg-background-light dark:bg-slate-900 transition-all text-sm" />
+            <span class="text-sm font-bold text-slate-500">m</span>
+            <input type="hidden" id="serviceDuration" name="duracion" required />
+          </div>
+          <input type="email" id="serviceProfessionalEmail" name="email_profesional"
+            placeholder="Email del Profesional (Opcional)"
+            class="w-full md:col-span-2 px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary text-sm" />
+          <div
+            class="col-span-1 md:col-span-2 bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-200 dark:border-white/10">
+            <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Foto del Profesional</label>
+            <input type="file" id="serviceProfessionalFile" name="foto_profesional_file"
+              accept="image/png, image/jpeg, image/webp"
+              class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer mb-2" />
+            <input type="text" id="serviceProfessionalPhoto" name="foto_profesional"
+              placeholder="O pega una URL directa de la imagen..."
+              class="w-full px-4 py-2 rounded-xl border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-primary text-sm" />
+          </div>
+          <input type="number" min="0" step="0.01" id="servicePrice" name="precio" placeholder="Precio ($)" required
+            class="w-full px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary text-sm" />
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Profesional a
+              cargo</label>
+            <input type="text" id="serviceProfessional" name="profesional" list="profesionalesList"
+              placeholder="Ej: Juan (o deja vacío para ti)"
+              class="w-full px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary text-sm" />
+            <datalist id="profesionalesList"></datalist>
+          </div>
+        </div>
+        <div class="flex items-center gap-4 mt-6">
+          <button type="submit"
+            class="bg-primary text-white font-bold py-3 px-6 rounded-2xl hover:shadow-lg transition-all text-sm">
+            Guardar Servicio
+          </button>
+          <button type="button" id="cancelEditBtn"
+            class="hidden text-sm font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
+            Cancelar Edición
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
   <!-- Modal para Turnos Manuales / Bloquear Horarios -->
-  <div id="manualTurnoModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-      <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="manualTurnoModalContent">
-          <div class="flex justify-between items-center mb-6">
-              <h2 class="text-xl font-bold font-display text-slate-800 dark:text-slate-100">Gestionar Horario</h2>
-              <button onclick="closeManualTurnoModal()" class="text-slate-400 hover:text-red-500 transition-colors">
-                  <span class="material-symbols-outlined">close</span>
-              </button>
-          </div>
-          
-          <div class="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-xl mb-6">
-              <button type="button" id="tabManualTurno" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-slate-800 shadow-sm text-primary" onclick="setManualModalMode('turno')">Agendar Cliente</button>
-              <button type="button" id="tabManualBlock" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-300" onclick="setManualModalMode('block')">Bloquear Horario</button>
-          </div>
-
-          <form id="manualTurnoForm" class="space-y-4">
-              <input type="hidden" id="manualAction" name="action" value="add_manual">
-              <input type="hidden" id="manualFecha" name="fecha">
-
-              <div class="grid grid-cols-2 gap-4">
-                  <div>
-                      <label class="block text-xs font-bold text-slate-500 mb-1">Hora</label>
-                      <select id="manualHora" name="hora" required class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm"></select>
-                  </div>
-                  <div>
-                      <label class="block text-xs font-bold text-slate-500 mb-1">Profesional</label>
-                      <select id="manualProfesional" name="profesional" class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm"></select>
-                  </div>
-              </div>
-              <div id="manualTurnoFields" class="space-y-4">
-                  <div>
-                      <label class="block text-xs font-bold text-slate-500 mb-1">Servicio</label>
-                      <select id="manualServicio" name="servicio" required class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm"></select>
-                  </div>
-                  <div class="grid grid-cols-2 gap-4">
-                      <input type="text" id="manualNombre" name="nombre" placeholder="Nombre" required class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm">
-                      <input type="text" id="manualApellido" name="apellido" placeholder="Apellido" required class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm">
-                  </div>
-                  <input type="tel" id="manualCelular" name="celular" placeholder="Celular" required class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm">
-              </div>
-              <button type="submit" class="w-full bg-primary text-white font-bold py-3.5 rounded-xl mt-4 hover:brightness-110 active:scale-[0.98] transition-all">Guardar</button>
-          </form>
+  <div id="manualTurnoModal"
+    class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div
+      class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar"
+      id="manualTurnoModalContent">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold font-display text-slate-800 dark:text-slate-100">
+          Gestionar Horario
+        </h2>
+        <button onclick="closeManualTurnoModal()" class="text-slate-400 hover:text-red-500 transition-colors">
+          <span class="material-symbols-outlined">close</span>
+        </button>
       </div>
+
+      <div class="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-xl mb-6">
+        <button type="button" id="tabManualTurno"
+          class="flex-1 py-2 text-sm font-bold rounded-lg bg-white dark:bg-slate-800 shadow-sm text-primary"
+          onclick="setManualModalMode('turno')">
+          Agendar Cliente
+        </button>
+        <button type="button" id="tabManualBlock"
+          class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-300"
+          onclick="setManualModalMode('block')">
+          Bloquear Horario
+        </button>
+      </div>
+
+      <form id="manualTurnoForm" class="space-y-4">
+        <input type="hidden" id="manualAction" name="action" value="add_manual" />
+        <input type="hidden" id="manualFecha" name="fecha" />
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Hora</label>
+            <select id="manualHora" name="hora" required
+              class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Profesional</label>
+            <select id="manualProfesional" name="profesional"
+              class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm"></select>
+          </div>
+        </div>
+        <div id="manualTurnoFields" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 mb-1">Servicio</label>
+            <select id="manualServicio" name="servicio" required
+              class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm"></select>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <input type="text" id="manualNombre" name="nombre" placeholder="Nombre" required
+              class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm" />
+            <input type="text" id="manualApellido" name="apellido" placeholder="Apellido" required
+              class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm" />
+          </div>
+          <input type="tel" id="manualCelular" name="celular" placeholder="Celular" required
+            class="w-full px-4 py-3 rounded-xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-sm" />
+        </div>
+        <button type="submit"
+          class="w-full bg-primary text-white font-bold py-3.5 rounded-xl mt-4 hover:brightness-110 active:scale-[0.98] transition-all">
+          Guardar
+        </button>
+      </form>
+    </div>
   </div>
 
   <!-- Modal de Confirmación Genérico -->
-  <div id="confirmModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-      <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 transform scale-95 transition-transform duration-300 text-center" id="confirmModalContent">
-          <div class="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span class="material-symbols-outlined text-3xl">logout</span>
-          </div>
-          <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2" id="confirmTitle">Confirmar Acción</h3>
-          <p class="text-slate-500 dark:text-slate-400 text-sm mb-6" id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
-          <div class="flex gap-3 justify-center">
-              <button id="btnCancelConfirm" onclick="closeConfirm()" class="px-4 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl transition-colors flex-1">Cancelar</button>
-              <button id="btnAcceptConfirm" class="px-4 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-xl transition-colors flex-1">Aceptar</button>
-          </div>
+  <div id="confirmModal"
+    class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div
+      class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-6 transform scale-95 transition-transform duration-300 text-center"
+      id="confirmModalContent">
+      <div
+        class="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
+        <span class="material-symbols-outlined text-3xl">logout</span>
       </div>
+      <h3 class="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2" id="confirmTitle">
+        Confirmar Acción
+      </h3>
+      <p class="text-slate-500 dark:text-slate-400 text-sm mb-6" id="confirmMessage">
+        ¿Estás seguro de que deseas realizar esta acción?
+      </p>
+      <div class="flex gap-3 justify-center">
+        <button id="btnCancelConfirm" onclick="closeConfirm()"
+          class="px-4 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl transition-colors flex-1">
+          Cancelar
+        </button>
+        <button id="btnAcceptConfirm"
+          class="px-4 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-xl transition-colors flex-1">
+          Aceptar
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Modal de Éxito Turno -->
-  <div id="bookingSuccessModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-      <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-8 transform scale-95 transition-transform duration-300 text-center" id="bookingSuccessModalContent">
-          <div class="w-20 h-20 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span class="material-symbols-outlined text-4xl">check_circle</span>
-          </div>
-          <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">¡Turno Solicitado!</h3>
-          <p class="text-slate-500 dark:text-slate-400 text-sm mb-8">Tu solicitud fue enviada al profesional. Pronto se comunicarán para confirmarte.</p>
-          <button onclick="closeBookingSuccessModal()" class="w-full bg-primary text-white font-bold py-3.5 rounded-xl transition-all hover:bg-primary/90">
-              Entendido
-          </button>
+  <div id="bookingSuccessModal"
+    class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div
+      class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 max-w-sm w-full p-8 transform scale-95 transition-transform duration-300 text-center"
+      id="bookingSuccessModalContent">
+      <div
+        class="w-20 h-20 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6">
+        <span class="material-symbols-outlined text-4xl">check_circle</span>
       </div>
+      <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+        ¡Turno Solicitado!
+      </h3>
+      <p class="text-slate-500 dark:text-slate-400 text-sm mb-8">
+        Tu solicitud fue enviada al profesional. Pronto se comunicarán para
+        confirmarte.
+      </p>
+      <button onclick="closeBookingSuccessModal()"
+        class="w-full bg-primary text-white font-bold py-3.5 rounded-xl transition-all hover:bg-primary/90">
+        Entendido
+      </button>
+    </div>
   </div>
 
   <!-- Modal Reportar Error -->
-  <div id="reportErrorModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-      <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 max-w-md w-full p-8 transform scale-95 transition-transform duration-300" id="reportErrorModalContent">
-          <div class="flex justify-between items-center mb-6">
-              <h2 class="text-xl font-bold font-display text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                  <span class="material-symbols-outlined text-red-500">bug_report</span> Reportar Error
-              </h2>
-              <button onclick="closeReportErrorModal()" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined">close</span></button>
-          </div>
-          <form id="reportErrorForm" class="space-y-4">
-              <input type="hidden" id="reportSegment" name="segmento" value="">
-              <div>
-                  <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Sección donde ocurrió:</label>
-                  <input type="text" id="reportSegmentDisplay" class="w-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-4 py-3 rounded-xl cursor-not-allowed border-none font-medium text-sm" readonly>
-              </div>
-              <div>
-                  <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Describe el problema:</label>
-                  <textarea name="mensaje" rows="4" required placeholder="¿Qué estabas intentando hacer y qué ocurrió?" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700 dark:text-slate-300 resize-none"></textarea>
-              </div>
-              <button type="submit" id="btnReportSubmit" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl mt-2 transition-all flex items-center justify-center gap-2">Enviar Reporte</button>
-          </form>
+  <div id="reportErrorModal"
+    class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div
+      class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 max-w-md w-full p-8 transform scale-95 transition-transform duration-300"
+      id="reportErrorModalContent">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold font-display text-slate-800 dark:text-slate-100 flex items-center gap-2">
+          <span class="material-symbols-outlined text-red-500">bug_report</span>
+          Reportar Error
+        </h2>
+        <button onclick="closeReportErrorModal()" class="text-slate-400 hover:text-red-500 transition-colors">
+          <span class="material-symbols-outlined">close</span>
+        </button>
       </div>
+      <form id="reportErrorForm" class="space-y-4">
+        <input type="hidden" id="reportSegment" name="segmento" value="" />
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Sección donde
+            ocurrió:</label>
+          <input type="text" id="reportSegmentDisplay"
+            class="w-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-4 py-3 rounded-xl cursor-not-allowed border-none font-medium text-sm"
+            readonly />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Describe el
+            problema:</label>
+          <textarea name="mensaje" rows="4" required placeholder="¿Qué estabas intentando hacer y qué ocurrió?"
+            class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700 dark:text-slate-300 resize-none"></textarea>
+        </div>
+        <button type="submit" id="btnReportSubmit"
+          class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl mt-2 transition-all flex items-center justify-center gap-2">
+          Enviar Reporte
+        </button>
+      </form>
+    </div>
   </div>
-  
-<footer class="mt-12 py-6 text-center border-t border-slate-100">
-    <p class="text-slate-400 text-xs font-medium tracking-widest uppercase">Creado con <span class="text-primary font-bold">agendatina</span></p>
-</footer>
-  <script src="backend/js/calendario.js" defer></script>
 
+  <footer class="mt-12 py-6 text-center border-t border-slate-100">
+    <p class="text-slate-400 text-xs font-medium tracking-widest uppercase">
+      Creado con <span class="text-primary font-bold">agendatina</span>
+    </p>
+  </footer>
+  <script src="backend/js/calendario.js" defer></script>
 </body>
 
 </html>

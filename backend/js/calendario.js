@@ -6,7 +6,7 @@ var globalSelectedProfessional = '';
 var isPreviewMode = false;
 var services = [];
 var allAppointments = [];
-var isAdmin = !urlParams.has('n');
+var isAdmin = !urlParams.has('n') || sessionStorage.getItem('agendatina_session') === 'active';
 
 let cal_currentDate = new Date();
 let cal_selectedDate = null;
@@ -1679,6 +1679,11 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchAllAppointments(); 
         const adminMenu = document.getElementById('adminProfileMenu');
         if (adminMenu) adminMenu.classList.replace('hidden', 'flex');
+        const adminControls = document.getElementById('adminControls');
+        if (adminControls) {
+            adminControls.classList.remove('hidden');
+            if (adminControls.classList.contains('flex-wrap')) adminControls.classList.add('flex');
+        }
     }
     
     const form = document.getElementById('weeklyBookingForm');
@@ -1735,22 +1740,35 @@ document.addEventListener('DOMContentLoaded', () => {
     if (previewClientBtn) {
         previewClientBtn.addEventListener('click', () => {
             isPreviewMode = !isPreviewMode;
+            const shareBtn = document.querySelector('#adminControls button[onclick="copyMyLink()"]');
+            const manageBtn = document.getElementById('manageServicesBtn');
+            const multiSelectBtn = document.getElementById('btnMultiSelect');
+
             if (isPreviewMode) {
-                previewClientBtn.innerHTML = '<span class="material-symbols-outlined text-sm">visibility_off</span> Salir de Vista Cliente';
+                // --- Entrando en Vista Cliente ---
+                if(shareBtn) shareBtn.classList.add('hidden');
+                if(manageBtn) manageBtn.classList.add('hidden');
+                if(multiSelectBtn) multiSelectBtn.classList.add('hidden');
+
+                previewClientBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">visibility_off</span> Salir de Vista Cliente';
                 previewClientBtn.classList.replace('bg-white', 'bg-slate-800');
-                previewClientBtn.classList.replace('text-primary', 'text-white');
-                const manageServicesBtn = document.getElementById('manageServicesBtn');
-                if(manageServicesBtn) manageServicesBtn.classList.add('hidden');
+                previewClientBtn.classList.replace('text-slate-600', 'text-white');
+                previewClientBtn.classList.remove('hover:text-primary');
+                
                 if (globalSelectedProfessional === 'columnas') {
                     globalSelectedProfessional = '';
                     cal_fetchBookedTimes();
                 }
             } else {
-                previewClientBtn.innerHTML = '<span class="material-symbols-outlined text-sm">visibility</span> Vista Cliente';
+                // --- Saliendo de Vista Cliente ---
+                if(shareBtn) shareBtn.classList.remove('hidden');
+                if(manageBtn) manageBtn.classList.remove('hidden');
+                if(multiSelectBtn) multiSelectBtn.classList.remove('hidden');
+
+                previewClientBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">visibility</span> Vista Cliente';
                 previewClientBtn.classList.replace('bg-slate-800', 'bg-white');
-                previewClientBtn.classList.replace('text-white', 'text-primary');
-                const manageServicesBtn = document.getElementById('manageServicesBtn');
-                if(manageServicesBtn) manageServicesBtn.classList.remove('hidden');
+                previewClientBtn.classList.replace('text-white', 'text-slate-600');
+                previewClientBtn.classList.add('hover:text-primary');
             }
             populateCalendarViewFilter();
             updateServiceDropdown();

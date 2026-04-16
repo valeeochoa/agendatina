@@ -153,12 +153,21 @@ if ($method === 'POST') {
     // Procesar imágenes del servicio
     $uploadDirServ = __DIR__ . '/uploads/servicios/';
     if (!is_dir($uploadDirServ)) mkdir($uploadDirServ, 0755, true);
+    $maxSize = 2 * 1024 * 1024; // Límite de 2MB
     
     for ($i = 1; $i <= 3; $i++) {
         $key = "imagen{$i}_file";
         if (isset($_FILES[$key]) && $_FILES[$key]['error'] === UPLOAD_ERR_OK) {
+            $file = $_FILES[$key];
+            if ($file['size'] > $maxSize) {
+                http_response_code(413);
+                echo json_encode(['success' => false, 'error' => "La imagen {$i} del servicio es demasiado pesada. El límite es 2MB."]);
+                exit;
+            }
+
             $ext = pathinfo($_FILES[$key]['name'], PATHINFO_EXTENSION);
             $filename = "serv_{$id_negocio}_{$i}_" . time() . ".$ext";
+
             if (move_uploaded_file($_FILES[$key]['tmp_name'], $uploadDirServ . $filename)) {
                 ${"imagen".$i} = 'backend/uploads/servicios/' . $filename;
             }

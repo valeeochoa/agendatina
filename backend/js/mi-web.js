@@ -266,13 +266,24 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         if (fileInput && fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            if (file.size > 2 * 1024 * 1024) { // Límite de 2MB
+                if (typeof showToast === 'function') {
+                    showToast('La imagen del certificado es muy pesada (máx 2MB).', 'error');
+                } else {
+                    alert('La imagen del certificado es muy pesada (máx 2MB).');
+                }
+                fileInput.value = ''; // Limpiar el input
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = (e) => saveCurso(e.target.result);
-            reader.readAsDataURL(fileInput.files[0]);
+            reader.readAsDataURL(file);
         } else {
             saveCurso(photoBase64);
-            }
-        });
+        }
+    });
 
     window.deleteCursoWeb = function(index) {
         if(confirm('¿Eliminar este certificado?')) {

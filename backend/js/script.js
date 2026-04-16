@@ -72,6 +72,7 @@ function handleWebConfigSubmit(e) {
 function logout(redirect = 'login.html') {
     showConfirm('Cerrar sesión', '¿Estás seguro que deseas salir de tu cuenta?', 'Cerrar sesión', 'bg-red-600 hover:bg-red-700', () => {
         Object.keys(localStorage).forEach(k => { if (k.startsWith('agendatina_notifs_state_')) localStorage.removeItem(k); });
+        sessionStorage.removeItem('agendatina_session');
         return fetch('backend/logout.php').then(() => window.location.href = redirect);
     });
 }
@@ -1426,14 +1427,12 @@ window.setCarouselIndex = function(index) {
     document.getElementById('carouselDesc').textContent = carouselData[index].desc;
     
     // Renderizar Nuevo y Viejo Precio con el 20% OFF
-    document.getElementById('carouselPrice').innerHTML = `
-        <div class="flex flex-col">
-            <span class="text-sm text-slate-400 line-through font-medium leading-none">${carouselData[index].oldPrice}</span>
-            <div class="flex items-baseline gap-2 mt-1">
-                ${carouselData[index].price} <span class="text-sm font-normal text-slate-400">/mes</span>
-                <span class="bg-green-100 text-green-700 text-[10px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-wider">-20% OFF</span>
-            </div>
-        </div>`;
+    // Actualizar precios dinámicamente respetando la estructura HTML de index.html
+    const oldPriceEl = document.getElementById('carouselOldPrice');
+    const priceEl = document.getElementById('carouselPrice');
+    
+    if (oldPriceEl) oldPriceEl.textContent = carouselData[index].oldPrice;
+    if (priceEl) priceEl.textContent = carouselData[index].price;
         
     document.getElementById('carouselTagText').textContent = carouselData[index].tag;
     
