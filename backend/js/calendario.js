@@ -1541,7 +1541,9 @@ function toYYYYMMDD(date) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (typeof applyWebCustomization === 'function') applyWebCustomization();
     if (typeof fetchServices === 'function') fetchServices();
+    if (isAdmin && typeof fetchAllAppointments === 'function') fetchAllAppointments();
 
     // Extraer el slug del negocio de la URL (ej: calendario.html?n=demo)
     const form = document.getElementById('weeklyBookingForm');

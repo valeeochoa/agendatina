@@ -75,9 +75,9 @@ if (!$user) {
 
 // Blindaje: en cada acceso demo, normalizar identidad del negocio demo
 $pdo->prepare("UPDATE negocios SET nombre_fantasia = 'Agendatina', ruta = 'demo', plan = 'Completo', estado_pago = 'activo', ultimo_pago = NOW() WHERE id = ?")->execute([$negocioId]);
-$pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, subtitulo)
-               VALUES (?, '#ec135b', '#fce7f3', 'Agendatina', 'Sesión de demostración')
-               ON DUPLICATE KEY UPDATE mensaje_bienvenida = 'Agendatina', subtitulo = 'Sesión de demostración'")->execute([$negocioId]);
+$pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, subtitulo, titulo)
+               VALUES (?, '#ec135b', '#fce7f3', 'Agendatina', 'Sesión de demostración', 'Agendatina')
+               ON DUPLICATE KEY UPDATE mensaje_bienvenida = 'Agendatina', subtitulo = 'Sesión de demostración', titulo = 'Agendatina'")->execute([$negocioId]);
 
 // RESET AUTOMÁTICO CADA 20 MINUTOS
 $resetFile = __DIR__ . '/demo_reset.txt';
@@ -120,9 +120,9 @@ if ($shouldReset && $negocioId) {
         (?, 'Nuevas solicitudes', 'Tienes 2 turnos pendientes por confirmar. Revisa tu Agenda Virtual.')")->execute([$negocioId, $negocioId]);
 
     // Única llamada a configuracion_web (modificacion 3 por gemini)
-    $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, intervalo_turnos, tipo_calendario)
-                   VALUES (?, '#ec135b', '#fce7f3', 'Agendatina', '30', 'clasico')
-                   ON DUPLICATE KEY UPDATE color_primario='#ec135b', color_secundario='#fce7f3', mensaje_bienvenida='Agendatina', url_logo=NULL, tipo_calendario='clasico'")->execute([$negocioId]);
+    $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, intervalo_turnos, tipo_calendario, titulo)
+                   VALUES (?, '#ec135b', '#fce7f3', 'Agendatina', '30', 'clasico', 'Agendatina')
+                   ON DUPLICATE KEY UPDATE color_primario='#ec135b', color_secundario='#fce7f3', mensaje_bienvenida='Agendatina', titulo='Agendatina', url_logo=NULL, tipo_calendario='clasico'")->execute([$negocioId]);
                    
     @file_put_contents($resetFile, time());
 }
