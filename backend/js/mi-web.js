@@ -147,6 +147,11 @@ document.addEventListener('DOMContentLoaded', () => {
             saveWebDataBtn.disabled = false;
         });
     });
+    
+    const navSaveWebDataBtn = document.getElementById('navSaveWebDataBtn');
+    if (navSaveWebDataBtn) {
+        navSaveWebDataBtn.addEventListener('click', () => saveWebDataBtn.click());
+    }
 
     // ==========================================
     // SECCIÓN EQUIPO (PROFESIONALES)

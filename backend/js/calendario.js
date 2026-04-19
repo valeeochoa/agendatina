@@ -983,7 +983,7 @@ window.copyMyLink = function() {
     if (!ruta) return;
     const link = window.location.origin + '/' + ruta;
     navigator.clipboard.writeText(link).then(() => {
-        showToast('¡Enlace de reservas copiado!', 'success');
+        showToast('Se copió el enlace', 'success');
     }).catch(() => { prompt('Copia tu enlace manualmente:', link); });
 };
 
@@ -1353,7 +1353,13 @@ function cal_fetchBookedTimesWeeklyAdmin() {
     if (adminWeeklySelectedProf && adminWeeklySelectedProf !== 'Cualquiera (Sin preferencia)' && adminWeeklySelectedProf !== 'columnas') {
         url += (url.includes('?') ? '&' : '?') + `p=${encodeURIComponent(adminWeeklySelectedProf)}`;
     }
-    fetch(url).then(res => res.json()).then(data => { cal_bookedSlots = data; renderAdminWeeklyGrid(); }).catch(err => console.error('Error:', err));
+    Promise.all([
+        fetch(url).then(res => res.json()),
+        fetchAllAppointments() // Asegura que los detalles de los turnos estén listos
+    ]).then(([bookedData]) => { 
+        cal_bookedSlots = bookedData; 
+        renderAdminWeeklyGrid(); 
+    }).catch(err => console.error('Error:', err));
 }
 
 function renderAdminWeeklyGrid() {
@@ -1418,7 +1424,27 @@ function renderAdminWeeklyGrid() {
                         openManualTurnoModal(time);
                         setTimeout(() => { const servSelect = document.getElementById('manualServicio'); if (servSelect) servSelect.value = adminWeeklySelectedService; }, 100);
                     };
-                } else { slot.innerHTML = `${time} <span class="block text-[9px] font-normal mt-0.5 opacity-80">Ocupado</span>`; }
+                } else { 
+                    const apt = allAppointments.find(a => a.fecha === dateString && a.hora.substring(0,5) === time && (a.profesional === adminWeeklySelectedProf || !adminWeeklySelectedProf));
+                    
+                    if (apt) {
+                        const clientName = apt.cliente_nombre || (apt.nombre + ' ' + (apt.apellido || '')) || 'Sin Nombre';
+                        const isPend = apt.estado === 'pendiente';
+                        const bgClass = isPend ? 'bg-amber-100 dark:bg-amber-900/40 border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-300' : 'bg-blue-50 dark:bg-blue-900/40 border-blue-200 dark:border-blue-700 text-blue-800 dark:text-blue-300';
+                        
+                        slot.className = `p-2 text-left text-xs rounded-lg border cursor-pointer transition-colors shadow-sm ${bgClass}`;
+                        slot.innerHTML = `<div class="font-bold mb-0.5">${time}</div><div class="truncate text-[10px] leading-tight" title="${clientName}">${clientName}</div><div class="truncate text-[9px] opacity-80">${apt.servicio || ''}</div>`;
+                        
+                        slot.onclick = () => {
+                            showConfirm('Detalles del Turno', 
+                                `<div class="text-left bg-slate-50 p-4 rounded-xl mt-4 border border-slate-200 text-slate-700"><p class="mb-2"><strong>Cliente:</strong> ${clientName}</p><p class="mb-2"><strong>Teléfono:</strong> <a href="https://wa.me/${(apt.cliente_celular || '').replace(/\D/g, '')}" target="_blank" class="text-emerald-600 font-bold hover:underline">${apt.cliente_celular || '-'}</a></p><p class="mb-2"><strong>Servicio:</strong> ${apt.servicio || '-'}</p><p class="mb-2"><strong>Profesional:</strong> ${apt.profesional || '-'}</p><p><strong>Estado:</strong> <span class="uppercase text-[10px] px-2 py-1 rounded-md font-bold ${isPend ? 'bg-amber-200 text-amber-800' : 'bg-green-200 text-green-800'}">${apt.estado}</span></p></div>`, 
+                                'Cerrar', 'bg-slate-800 hover:bg-slate-900', () => {}
+                            );
+                        };
+                    } else {
+                        slot.innerHTML = `${time} <span class="block text-[9px] font-normal mt-0.5 opacity-80">Bloqueado</span>`; 
+                    }
+                }
                 slotsContainer.appendChild(slot);
             });
             if (cal_availableTimes.length === 0) slotsContainer.innerHTML = `<div class="text-center p-4 text-xs font-bold text-slate-400 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">Sin horarios</div>`;
@@ -1833,6 +1859,8 @@ document.addEventListener('DOMContentLoaded', () => {
             adminControls.classList.remove('hidden');
             if (adminControls.classList.contains('flex-wrap')) adminControls.classList.add('flex');
         }
+        const btnMultiSelect = document.getElementById('btnMultiSelect');
+        if (btnMultiSelect && !document.getElementById('weeklyCalendarView')) { btnMultiSelect.classList.remove('hidden'); btnMultiSelect.classList.add('flex'); }
     }
     
     const form = document.getElementById('weeklyBookingForm');

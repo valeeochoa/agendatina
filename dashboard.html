@@ -66,7 +66,7 @@
         </div>
     </nav>
 
-    <main class="flex-1 max-w-5xl mx-auto w-full px-6 py-12">
+    <main class="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 overflow-x-hidden">
         <!-- Estado de Carga Inicial -->
         <div id="dashboardLoader" class="flex flex-col items-center justify-center py-24 text-slate-400 transition-all duration-300">
             <span class="material-symbols-outlined text-5xl animate-spin mb-4 text-primary">refresh</span>
@@ -94,7 +94,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             
             <!-- Acceso a la Agenda Virtual (Admin) -->
-            <a href="agenda.html" id="cardAgenda" class="group bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-primary/50 transition-all flex flex-col relative overflow-hidden">
+            <a href="agenda.html" id="cardAgenda" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-primary/50 transition-all flex flex-col relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                     <span class="material-symbols-outlined text-9xl text-primary">menu_book</span>
                 </div>
@@ -109,7 +109,7 @@
             </a>
 
             <!-- Gestionar Calendario y Servicios -->
-            <a href="calendarioMensual" id="cardCalendario" class="group bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-secondary/50 transition-all flex flex-col relative overflow-hidden">
+            <a href="calendarioMensual" id="cardCalendario" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-secondary/50 transition-all flex flex-col relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                     <span class="material-symbols-outlined text-9xl text-secondary">edit_calendar</span>
                 </div>
@@ -124,7 +124,7 @@
             </a>
 
             <!-- Gestionar mi Web Pública -->
-            <a href="mi-web.html" id="cardWeb" class="group bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-emerald-500/50 transition-all flex flex-col relative overflow-hidden">
+            <a href="mi-web.html" id="cardWeb" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-emerald-500/50 transition-all flex flex-col relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                     <span class="material-symbols-outlined text-9xl text-emerald-500">dvr</span>
                 </div>
@@ -139,7 +139,7 @@
             </a>
 
             <!-- Mi Perfil -->
-            <a href="javascript:void(0)" onclick="openProfileModal()" class="group bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-400 transition-all flex flex-col relative overflow-hidden">
+            <a href="javascript:void(0)" onclick="openProfileModal()" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-400 transition-all flex flex-col relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                     <span class="material-symbols-outlined text-9xl text-slate-800">account_circle</span>
                 </div>
@@ -154,7 +154,7 @@
             </a>
 
         <!-- Ajustes -->
-        <a href="ajustes.html" class="group bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-amber-400 transition-all flex flex-col relative overflow-hidden">
+        <a href="ajustes.html" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-amber-400 transition-all flex flex-col relative overflow-hidden">
             <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                 <span class="material-symbols-outlined text-9xl text-amber-500">settings_suggest</span>
             </div>
@@ -169,7 +169,7 @@
         </a>
 
             <!-- Soporte y Sugerencias -->
-            <a href="javascript:void(0)" onclick="openSupportModal()" class="group bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-400 transition-all flex flex-col relative overflow-hidden">
+            <a href="javascript:void(0)" onclick="openSupportModal()" id="cardSupport" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-400 transition-all flex flex-col relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                     <span class="material-symbols-outlined text-9xl text-blue-500">support_agent</span>
                 </div>
@@ -188,7 +188,7 @@
 
     <!-- Modal de Perfil -->
     <div id="profileModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="profileModalContent">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="profileModalContent">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold font-display text-slate-800">Mi Perfil</h2>
                 <button onclick="closeProfileModal()" class="text-slate-400 hover:text-red-500 transition-colors">
@@ -298,7 +298,7 @@
 
     <!-- Modal de Primera Configuración -->
     <div id="firstSetupModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-500">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 transform scale-95 transition-transform duration-500">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-500">
             <div class="text-center mb-6">
                 <div class="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
                     <span class="material-symbols-outlined text-4xl">rocket_launch</span>
@@ -341,7 +341,7 @@
 
     <!-- Modal de Confirmación Genérico -->
     <div id="confirmModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full p-6 transform scale-95 transition-transform duration-300 text-center" id="confirmModalContent">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 text-center" id="confirmModalContent">
             <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span class="material-symbols-outlined text-3xl">logout</span>
             </div>
@@ -356,7 +356,7 @@
 
     <!-- Modal de Soporte -->
     <div id="supportModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="supportModalContent">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="supportModalContent">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold font-display text-slate-800">Soporte y Sugerencias</h2>
                 <button onclick="closeSupportModal()" class="text-slate-400 hover:text-red-500 transition-colors">
@@ -373,6 +373,23 @@
                     Enviar mensaje
                 </button>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal Notificación Completa (Textos largos) -->
+    <div id="customNotifModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[200] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300" id="customNotifModalContent">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><span class="material-symbols-outlined">campaign</span></div>
+                    <h2 class="text-xl font-bold text-slate-800" id="customNotifTitle">Aviso</h2>
+                </div>
+                <button onclick="closeCustomNotifModal()" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="bg-slate-50 p-4 rounded-xl text-slate-700 text-sm leading-relaxed whitespace-pre-wrap max-h-[50vh] overflow-y-auto custom-scrollbar" id="customNotifMessage"></div>
+            <div class="mt-6 flex justify-end">
+                <button onclick="closeCustomNotifModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-6 rounded-xl transition-colors">Entendido</button>
+            </div>
         </div>
     </div>
 

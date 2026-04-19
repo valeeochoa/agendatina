@@ -4,6 +4,54 @@
 // LÓGICA COMPARTIDA Y UTILIDADES
 // ==========================================
 
+window.confirmActionCallback = null;
+
+window.showToast = function(message, type = 'success') {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'fixed bottom-6 right-6 z-[60] flex flex-col gap-3 pointer-events-none';
+        document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    const bgColor = type === 'success' ? 'bg-green-600' : 'bg-red-600';
+    const icon = type === 'success' ? 'check_circle' : 'error';
+    
+    toast.className = `${bgColor} text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 transform transition-all duration-300 translate-y-12 opacity-0 font-medium text-sm`;
+    toast.innerHTML = `<span class="material-symbols-outlined">${icon}</span> <span>${message}</span>`;
+    container.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.remove('translate-y-12', 'opacity-0'));
+    setTimeout(() => { toast.classList.add('translate-y-12', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
+};
+
+window.showConfirm = function(title, message, acceptText, acceptColorClass, callback, extraHtml = '') {
+    const confirmTitle = document.getElementById('confirmTitle');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const btnAccept = document.getElementById('btnAcceptConfirm');
+    if(!confirmTitle || !confirmMessage || !btnAccept) return;
+    confirmTitle.textContent = title;
+    confirmMessage.innerHTML = message + extraHtml;
+    btnAccept.textContent = acceptText;
+    btnAccept.className = `px-4 py-2.5 text-sm font-bold text-white rounded-xl transition-colors flex-1 ${acceptColorClass}`;
+    window.confirmActionCallback = callback;
+    const modal = document.getElementById('confirmModal');
+    const content = document.getElementById('confirmModalContent');
+    if(modal) modal.classList.remove('hidden');
+    setTimeout(() => {
+        if(modal) modal.classList.remove('opacity-0');
+        if(content) content.classList.remove('scale-95');
+    }, 10);
+};
+
+window.closeConfirm = function() {
+    const modal = document.getElementById('confirmModal');
+    const content = document.getElementById('confirmModalContent');
+    if(modal) modal.classList.add('opacity-0');
+    if(content) content.classList.add('scale-95');
+    setTimeout(() => { if(modal) modal.classList.add('hidden'); }, 300);
+};
+
 // Función global para iniciar demostración interactiva (Botón Pruébalo ahora)
 window.iniciarDemo = function() {
     const btn = document.activeElement;
@@ -134,6 +182,13 @@ function loadDashboardData() {
         } else if (!localStorage.getItem('welcomed_' + (business.id || 'new'))) {
                     localStorage.setItem('welcomed_' + (business.id || 'new'), 'true');
                     setTimeout(() => showWelcomeAnimation(business.plan, false), 300);
+                }
+                
+                // Modo DEMO: Ocultar botones de reporte y soporte
+                if (window.currentUserData && window.currentUserData.email === 'demo@agendatina.site') {
+                    const cardSupport = document.getElementById('cardSupport');
+                    if (cardSupport) cardSupport.style.display = 'none';
+                    document.querySelectorAll('button[onclick^="openReportErrorModal"]').forEach(btn => btn.style.display = 'none');
                 }
 
                 // Actualizar Nombre en el Navbar como fallback rápido si tarda en cargar la web
@@ -636,6 +691,7 @@ document.addEventListener('keydown', (e) => {
             { id: 'receiptModal', closeFn: () => { if(typeof closeReceiptModal === 'function') closeReceiptModal(); } },
             { id: 'calendarConfigModal', closeFn: () => { if(typeof closeCalendarConfigModal === 'function') closeCalendarConfigModal(); } },
             { id: 'confirmDeleteModal', closeFn: () => { if(typeof closeConfirmDelete === 'function') closeConfirmDelete(); } },
+            { id: 'customNotifModal', closeFn: () => { if(typeof closeCustomNotifModal === 'function') closeCustomNotifModal(); } },
             { id: 'reportErrorModal', closeFn: () => { if(typeof closeReportErrorModal === 'function') closeReportErrorModal(); } }
         ];
         modalsToClose.forEach(m => {

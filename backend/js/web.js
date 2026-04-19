@@ -25,17 +25,19 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json())
         .then(data => {
             if (data && !data.error) {
-                // Redirigir al calendario si el plan no incluye la mini-web
                 const planStr = (data.plan || '').toLowerCase();
+                const calSegment = data.tipo_calendario === 'semanal' ? 'calendarioSemanal' : 'calendarioMensual';
+                const cleanLink = negocioSlug ? `/${negocioSlug}/${calSegment}` : `${calSegment}.html${queryParam}`;
+
+                // Redirigir al calendario si el plan no incluye la mini-web
                 if (planStr.includes('básico') || planStr.includes('basico') || planStr.includes('simple') || planStr.includes('intermedio')) {
-                    window.location.replace(`calendarioMensual.html${queryParam}`);
+                    window.location.replace(cleanLink);
                     return;
                 }
 
                 // Actualizar enlaces al calendario usando la ruta dinámica
-                const linkCalendario = `calendarioMensual.html${queryParam}`;
-                document.getElementById('navReservarBtn').href = linkCalendario;
-                document.getElementById('heroReservarBtn').href = linkCalendario;
+                document.getElementById('navReservarBtn').href = cleanLink;
+                document.getElementById('heroReservarBtn').href = cleanLink;
 
                 const title = data.titulo || 'Mi Negocio';
                 document.title = title;
