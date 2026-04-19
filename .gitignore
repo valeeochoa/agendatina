@@ -6,6 +6,9 @@ backend/admin_auth.php
 backend/uploads/
 demo_reset.txt
 
+#Ignorar copia calendario
+copiacalendario.html
+
 # Ignorar archivos del sistema operativo
 .DS_Store
 Thumbs.db
