@@ -130,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
         
         // Si el título de la página web está vacío, podemos usar el nombre del negocio de la BD como alternativa
-        $stmtN = $pdo->prepare("SELECT nombre_fantasia, plan, estado_pago, ultimo_pago, fecha_alta FROM negocios WHERE id = :id");
+        $stmtN = $pdo->prepare("SELECT nombre_fantasia, plan, estado_pago, ultimo_pago, fecha_alta, ruta FROM negocios WHERE id = :id");
         $stmtN->execute(['id' => $id_negocio]);
         $n = $stmtN->fetch();
         
@@ -142,6 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $config['estado_pago'] = $n['estado_pago'] ?? 'prueba';
             $config['ultimo_pago'] = $n['ultimo_pago'] ?? null;
             $config['fecha_alta'] = $n['fecha_alta'] ?? null;
+            $config['ruta'] = $n['ruta'] ?? '';
         }
         
         echo json_encode($config);

@@ -53,7 +53,7 @@
                     <h1 class="text-3xl font-extrabold font-display mb-2">Editor de mi Página Web</h1>
                     <p class="text-slate-500">Personaliza cómo los clientes ven tu página de presentación.</p>
                 </div>
-                <a href="web.html" target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg text-sm flex items-center gap-2">
+                <a id="btnVerMiPagina" href="web.html" target="_blank" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg text-sm flex items-center gap-2">
                     <span class="material-symbols-outlined text-base">visibility</span>
                     Ver mi página
                 </a>
@@ -99,15 +99,23 @@
             <!-- Información del Local y Mapa -->
             <div class="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-slate-200">
                 <h2 class="text-xl font-bold mb-4">Información del Local</h2>
-                <div class="grid grid-cols-1 gap-5 sm:gap-6">
-                    <div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+                    <div class="md:col-span-2">
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Descripción del Local (Sobre Nosotros)</label>
                         <textarea id="webTextoLocal" rows="4" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all resize-none" placeholder="Cuéntale a tus clientes sobre tu negocio, historia y valores..."></textarea>
                     </div>
-                    <div>
+                    <div class="md:col-span-2">
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Ubicación (Google Maps)</label>
                         <input type="text" id="webUbicacionMaps" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Pega aquí el enlace de Google Maps o código de iframe">
                         <p class="text-xs text-slate-500 mt-1">Ayuda a tus clientes a encontrarte fácilmente insertando tu link de Maps.</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Enlace de Instagram</label>
+                        <input type="url" id="webInstagramUrl" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Ej: https://instagram.com/tu_negocio">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">WhatsApp de Contacto</label>
+                        <input type="tel" id="webWhatsappContacto" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Ej: +5491123456789">
                     </div>
                 </div>
             </div>
@@ -146,21 +154,10 @@
                     <h2 class="text-xl font-bold">Cursos y Certificados</h2>
                     <button type="button" id="addCursoWebBtn" onclick="openCursoWebModal(-1)" class="bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-lg text-sm transition-colors">Añadir Certificado</button>
                 </div>
-                <p class="text-sm text-slate-500 mb-4">Destaca tus conocimientos, certificaciones o cursos que ofreces (puedes usar la lista visual o el editor clásico abajo).</p>
+                <p class="text-sm text-slate-500 mb-4">Destaca tus conocimientos, certificaciones o cursos que ofreces.</p>
                 
                 <div id="cursosWebList" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                     <!-- La lista visual se inyectará aquí vía JS -->
-                </div>
-
-                <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
-                    <div class="bg-slate-200 p-2 flex gap-2 border-b border-slate-300">
-                        <button type="button" onmousedown="event.preventDefault();" onclick="document.execCommand('bold',false,null)" class="p-1 hover:bg-white rounded px-2 font-bold transition-colors">B</button>
-                        <button type="button" onmousedown="event.preventDefault();" onclick="document.execCommand('italic',false,null)" class="p-1 hover:bg-white rounded px-2 italic transition-colors">I</button>
-                        <button type="button" onmousedown="event.preventDefault();" onclick="document.execCommand('underline',false,null)" class="p-1 hover:bg-white rounded px-2 underline transition-colors">U</button>
-                        <div class="w-px bg-slate-300 mx-1"></div>
-                        <button type="button" onmousedown="event.preventDefault();" onclick="document.execCommand('insertUnorderedList',false,null)" class="p-1 hover:bg-white rounded px-2 transition-colors" title="Viñetas"><span class="material-symbols-outlined text-[18px]">format_list_bulleted</span></button>
-                    </div>
-                    <div id="cursosEditor" contenteditable="true" class="p-4 min-h-[150px] text-sm outline-none focus:ring-2 focus:ring-primary/50 bg-white text-slate-700"></div>
                 </div>
             </div>
 
@@ -263,7 +260,8 @@
                             <button type="button" onmousedown="event.preventDefault();" onclick="document.execCommand('italic',false,null)" class="p-1 hover:bg-white rounded px-2 italic transition-colors">I</button>
                             <button type="button" onmousedown="event.preventDefault();" onclick="document.execCommand('underline',false,null)" class="p-1 hover:bg-white rounded px-2 underline transition-colors">U</button>
                             <div class="w-px bg-slate-300 mx-1"></div>
-                            <input type="color" onmousedown="event.preventDefault();" onchange="document.execCommand('foreColor',false,this.value)" class="w-8 h-8 p-0 border-0 rounded cursor-pointer bg-transparent">
+                            <span class="text-xs font-bold text-slate-500 self-center ml-1">Color:</span>
+                            <input type="color" onmousedown="event.preventDefault();" onchange="document.execCommand('foreColor',false,this.value)" class="w-8 h-8 p-0 border-0 rounded cursor-pointer bg-transparent" title="Color del texto">
                         </div>
                         <div id="descEditor" contenteditable="true" class="p-4 min-h-[120px] text-sm outline-none focus:ring-2 focus:ring-primary/50 bg-white text-slate-700"></div>
                     </div>

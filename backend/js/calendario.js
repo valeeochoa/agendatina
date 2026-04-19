@@ -1,12 +1,22 @@
 // backend/js/calendario.js
+let negocioSlug = '';
 const urlParams = new URLSearchParams(window.location.search);
-const negocioSlug = urlParams.get('n') || '';
+negocioSlug = urlParams.get('n');
+if (!negocioSlug) {
+    const pathParts = window.location.pathname.split('/').filter(p => p && !p.includes('.html') && !p.includes('.php'));
+    const ignoreDirs = ['backend', 'css', 'js', 'public', 'agendatina', 'calendario', 'web', 'calendarioMensual', 'calendarioSemanal', 'calendario2'];
+    const validParts = pathParts.filter(p => !ignoreDirs.includes(p));
+    if (validParts.length > 0) {
+        negocioSlug = validParts[validParts.length - 1];
+    }
+}
+if (!negocioSlug) negocioSlug = '';
 
 var globalSelectedProfessional = '';
 var isPreviewMode = false;
 var services = [];
 var allAppointments = [];
-var isAdmin = !urlParams.has('n') || sessionStorage.getItem('agendatina_session') === 'active';
+var isAdmin = sessionStorage.getItem('agendatina_session') === 'active' || (negocioSlug === '');
 
 let cal_currentDate = new Date();
 let cal_selectedDate = null;
@@ -393,20 +403,28 @@ function renderAdminDayView(dateString) {
                 slotDiv.className = 'bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-2 shadow-sm flex flex-col justify-between w-full mb-2 gap-1.5';
 
                 if (apt) {
-                    let badgeClass = 'bg-slate-100 text-slate-700';
-                    let badgeText = 'Ocupado';
                     const isPend = apt.estado === 'pendiente';
-                    badgeClass = isPend ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : (apt.estado === 'bloqueado' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400');
-                    badgeText = isPend ? 'Pendiente' : (apt.estado === 'bloqueado' ? 'Bloqueado' : 'Confirmado');
+                    const badgeClass = isPend ? 'bg-amber-200/50 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400' : (apt.estado === 'bloqueado' ? 'bg-red-200/50 text-red-800 dark:bg-red-900/30 dark:text-red-400' : 'bg-indigo-200/50 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400');
+                    const badgeText = isPend ? 'Pendiente' : (apt.estado === 'bloqueado' ? 'Bloqueado' : 'Confirmado');
+                    const bgSlotClass = isPend ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' : (apt.estado === 'bloqueado' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800');
                     const clientName = apt.cliente_nombre || (apt.nombre + ' ' + (apt.apellido || '')) || 'Sin Nombre';
 
+                    slotDiv.className = `rounded-xl border p-2 shadow-sm flex flex-col justify-between w-full mb-2 gap-1.5 cursor-pointer hover:shadow-md transition-all ${bgSlotClass}`;
+                    
                     slotDiv.innerHTML = `
                         <div class="flex justify-between items-center w-full">
                             <span class="text-sm font-bold text-slate-700 dark:text-slate-300">${time}</span>
                             <span class="${badgeClass} text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">${badgeText}</span>
                         </div>
                         <div class="text-xs text-slate-600 dark:text-slate-400 font-medium truncate w-full" title="${clientName}">${clientName}</div>
+                        <div class="text-[9px] opacity-80 truncate w-full">${apt.servicio || ''}</div>
                     `;
+                    slotDiv.onclick = () => {
+                        showConfirm('Detalles del Turno', 
+                            `<div class="text-left bg-white dark:bg-slate-800 p-4 rounded-xl mt-4 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 shadow-sm"><p class="mb-2"><strong>Cliente:</strong> ${clientName}</p><p class="mb-2"><strong>Teléfono:</strong> <a href="https://wa.me/${(apt.cliente_celular || '').replace(/\D/g, '')}" target="_blank" class="text-emerald-600 font-bold hover:underline">${apt.cliente_celular || '-'}</a></p><p class="mb-2"><strong>Servicio:</strong> ${apt.servicio || '-'}</p><p class="mb-2"><strong>Profesional:</strong> ${apt.profesional || '-'}</p><p><strong>Estado:</strong> <span class="uppercase text-[10px] px-2 py-1 rounded-md font-bold ${badgeClass}">${apt.estado}</span></p></div>`, 
+                            'Cerrar', 'bg-slate-800 hover:bg-slate-900', () => {}
+                        );
+                    };
                 } else if (isBooked) {
                     slotDiv.innerHTML = `
                         <div class="flex justify-between items-center w-full">
@@ -507,14 +525,31 @@ function renderAdminDayView(dateString) {
         slotDiv.className = 'bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex items-center justify-between w-full mb-2';
 
         if (isBooked || apt) {
-            let badgeClass = 'bg-slate-100 text-slate-700';
-            let badgeText = 'Ocupado';
             if (apt) {
                 const isPend = apt.estado === 'pendiente';
-                badgeClass = isPend ? 'bg-amber-100 text-amber-700' : (apt.estado === 'bloqueado' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700');
-                badgeText = isPend ? 'Pendiente' : (apt.estado === 'bloqueado' ? 'Bloqueado' : 'Confirmado');
+                const bgClass = isPend ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-indigo-50 border-indigo-200 text-indigo-800';
+                const badgeClass = isPend ? 'bg-amber-200/50 text-amber-800' : 'bg-indigo-200/50 text-indigo-800';
+                const badgeText = isPend ? 'Pendiente' : 'Confirmado';
+                const clientName = apt.cliente_nombre || (apt.nombre + ' ' + (apt.apellido || '')) || 'Sin Nombre';
+
+                slotDiv.className = `rounded-xl border p-3 shadow-sm flex flex-col w-full mb-2 cursor-pointer hover:shadow-md transition-all ${bgClass}`;
+                slotDiv.innerHTML = `
+                    <div class="flex justify-between items-center w-full mb-1">
+                        <span class="text-sm font-bold">${time}</span>
+                        <span class="text-[9px] font-bold px-2 py-0.5 rounded uppercase ${badgeClass}">${badgeText}</span>
+                    </div>
+                    <div class="text-xs font-bold truncate w-full" title="${clientName}">${clientName}</div>
+                    <div class="text-[10px] opacity-80 truncate w-full">${apt.servicio || ''}</div>
+                `;
+                slotDiv.onclick = () => {
+                    showConfirm('Detalles del Turno', 
+                        `<div class="text-left bg-white p-4 rounded-xl mt-4 border border-slate-200 text-slate-700 shadow-sm"><p class="mb-2"><strong>Cliente:</strong> ${clientName}</p><p class="mb-2"><strong>Teléfono:</strong> <a href="https://wa.me/${(apt.cliente_celular || '').replace(/\D/g, '')}" target="_blank" class="text-emerald-600 font-bold hover:underline">${apt.cliente_celular || '-'}</a></p><p class="mb-2"><strong>Servicio:</strong> ${apt.servicio || '-'}</p><p class="mb-2"><strong>Profesional:</strong> ${apt.profesional || '-'}</p><p><strong>Estado:</strong> <span class="uppercase text-[10px] px-2 py-1 rounded-md font-bold ${badgeClass}">${apt.estado}</span></p></div>`, 
+                        'Cerrar', 'bg-slate-800 hover:bg-slate-900', () => {}
+                    );
+                };
+            } else if (isBooked) {
+                slotDiv.innerHTML = `<span class="text-sm font-bold text-slate-400">${time}</span><span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">Ocupado</span>`;
             }
-            slotDiv.innerHTML = `<span class="text-sm font-bold text-slate-700">${time}</span><span class="${badgeClass} text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">${badgeText}</span>`;
         } else {
             // Se añaden clases de flex center para forzar que los botones SIEMPRE se vean
             slotDiv.innerHTML = `
@@ -1430,14 +1465,15 @@ function renderAdminWeeklyGrid() {
                     if (apt) {
                         const clientName = apt.cliente_nombre || (apt.nombre + ' ' + (apt.apellido || '')) || 'Sin Nombre';
                         const isPend = apt.estado === 'pendiente';
-                        const bgClass = isPend ? 'bg-amber-100 dark:bg-amber-900/40 border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-300' : 'bg-blue-50 dark:bg-blue-900/40 border-blue-200 dark:border-blue-700 text-blue-800 dark:text-blue-300';
+                        const bgClass = isPend ? 'bg-amber-50 dark:bg-amber-900/40 border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-300' : 'bg-indigo-50 dark:bg-indigo-900/40 border-indigo-200 dark:border-indigo-700 text-indigo-800 dark:text-indigo-300';
+                        const badgeClass = isPend ? 'bg-amber-200 text-amber-800' : 'bg-indigo-200 text-indigo-800';
                         
                         slot.className = `p-2 text-left text-xs rounded-lg border cursor-pointer transition-colors shadow-sm ${bgClass}`;
                         slot.innerHTML = `<div class="font-bold mb-0.5">${time}</div><div class="truncate text-[10px] leading-tight" title="${clientName}">${clientName}</div><div class="truncate text-[9px] opacity-80">${apt.servicio || ''}</div>`;
                         
                         slot.onclick = () => {
                             showConfirm('Detalles del Turno', 
-                                `<div class="text-left bg-slate-50 p-4 rounded-xl mt-4 border border-slate-200 text-slate-700"><p class="mb-2"><strong>Cliente:</strong> ${clientName}</p><p class="mb-2"><strong>Teléfono:</strong> <a href="https://wa.me/${(apt.cliente_celular || '').replace(/\D/g, '')}" target="_blank" class="text-emerald-600 font-bold hover:underline">${apt.cliente_celular || '-'}</a></p><p class="mb-2"><strong>Servicio:</strong> ${apt.servicio || '-'}</p><p class="mb-2"><strong>Profesional:</strong> ${apt.profesional || '-'}</p><p><strong>Estado:</strong> <span class="uppercase text-[10px] px-2 py-1 rounded-md font-bold ${isPend ? 'bg-amber-200 text-amber-800' : 'bg-green-200 text-green-800'}">${apt.estado}</span></p></div>`, 
+                                `<div class="text-left bg-white dark:bg-slate-800 p-4 rounded-xl mt-4 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"><p class="mb-2"><strong>Cliente:</strong> ${clientName}</p><p class="mb-2"><strong>Teléfono:</strong> <a href="https://wa.me/${(apt.cliente_celular || '').replace(/\D/g, '')}" target="_blank" class="text-emerald-600 font-bold hover:underline">${apt.cliente_celular || '-'}</a></p><p class="mb-2"><strong>Servicio:</strong> ${apt.servicio || '-'}</p><p class="mb-2"><strong>Profesional:</strong> ${apt.profesional || '-'}</p><p><strong>Estado:</strong> <span class="uppercase text-[10px] px-2 py-1 rounded-md font-bold ${badgeClass}">${apt.estado}</span></p></div>`, 
                                 'Cerrar', 'bg-slate-800 hover:bg-slate-900', () => {}
                             );
                         };

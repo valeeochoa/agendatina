@@ -216,6 +216,18 @@ function loadDashboardData() {
                 }
                 if (navPlanName) navPlanName.textContent = displayPlan;
 
+                // Alerta si los días de trabajo están vacíos
+                const configAlertBanner = document.getElementById('configAlertBanner');
+                if (configAlertBanner) {
+                    if (!webData.dias_trabajo || String(webData.dias_trabajo).trim() === '') {
+                        configAlertBanner.classList.remove('hidden');
+                        configAlertBanner.classList.add('flex');
+                    } else {
+                        configAlertBanner.classList.add('hidden');
+                        configAlertBanner.classList.remove('flex');
+                    }
+                }
+
                 // Configurar modal de pago con el plan correcto
                 const paymentPlanName = document.getElementById('paymentPlanName');
                 if (paymentPlanName) paymentPlanName.textContent = displayPlan;

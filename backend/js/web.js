@@ -20,10 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!negocioSlug) negocioSlug = '';
     const queryParam = negocioSlug ? `?n=${negocioSlug}` : '';
 
-    // Cargar configuración de la web (Textos, logos, colores)
-    fetch('backend/guardar_web.php' + queryParam)
-        .then(res => res.json())
-        .then(data => {
+    // Cargar configuración de la web y servicios en paralelo
+    Promise.all([
+        fetch('backend/guardar_web.php' + queryParam).then(res => res.json()),
+        fetch('backend/gestionar_servicios.php' + queryParam).then(res => res.json())
+    ])
+    .then(([data, servicesData]) => {
+        // --- 1. PROCESAR CONFIGURACIÓN WEB ---
             if (data && !data.error) {
                 const planStr = (data.plan || '').toLowerCase();
                 const calSegment = data.tipo_calendario === 'semanal' ? 'calendarioSemanal' : 'calendarioMensual';
@@ -90,25 +93,84 @@ document.addEventListener('DOMContentLoaded', () => {
                     styleAlign.innerHTML = `.service-card { text-align: ${data.alineacion_servicios}; }`;
                     document.head.appendChild(styleAlign);
                 }
-            }
-        })
-        .catch(err => console.error('Error al cargar la configuración web:', err));
 
-    // Cargar servicios
-    fetch('backend/gestionar_servicios.php' + queryParam)
-        .then(res => res.json())
-        .then(data => {
+                // Inyectar Secciones de Información Dinámica
+                if (data.texto_local && document.getElementById('publicTextoLocal')) {
+                    document.getElementById('publicTextoLocal').textContent = data.texto_local;
+                    document.getElementById('sectionTextoLocal')?.classList.remove('hidden');
+                }
+                if (data.ubicacion_maps && document.getElementById('publicUbicacionMaps')) {
+                    const mapsContainer = document.getElementById('publicUbicacionMaps');
+                    if (data.ubicacion_maps.includes('<iframe')) {
+                        mapsContainer.innerHTML = data.ubicacion_maps;
+                    } else {
+                        mapsContainer.innerHTML = `<a href="${data.ubicacion_maps}" target="_blank" class="text-primary hover:underline flex items-center gap-2 justify-center p-4 bg-slate-50 rounded-xl font-bold"><span class="material-symbols-outlined">map</span> Abrir en Google Maps</a>`;
+                    }
+                    document.getElementById('sectionUbicacionMaps')?.classList.remove('hidden');
+                }
+                if (data.cursos_html && document.getElementById('publicCursos')) {
+                    document.getElementById('publicCursos').innerHTML = data.cursos_html;
+                    document.getElementById('sectionCursos')?.classList.remove('hidden');
+                }
+                if (data.cursos_json && document.getElementById('publicCursosList')) {
+                    try {
+                        const cursos = JSON.parse(data.cursos_json);
+                        const container = document.getElementById('publicCursosList');
+                        container.innerHTML = '';
+                        if (cursos.length > 0) {
+                            cursos.forEach(c => {
+                                const img = c.foto ? `<img src="${c.foto}" alt="${c.nombre}" class="w-full h-48 object-cover rounded-2xl mb-4 shadow-sm">` : '';
+                                container.innerHTML += `<div class="bg-white rounded-3xl p-6 text-left border border-slate-100 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1">${img}<h3 class="text-xl font-bold text-slate-800">${c.nombre}</h3>${c.descripcion ? `<p class="text-sm text-slate-500 mt-3 leading-relaxed">${c.descripcion}</p>` : ''}</div>`;
+                            });
+                            document.getElementById('sectionCursos')?.classList.remove('hidden');
+                        }
+                    } catch (e) {}
+                }
+                if (data.profesionales_json && document.getElementById('publicProfesionalesList')) {
+                    try {
+                        const profs = JSON.parse(data.profesionales_json);
+                        const container = document.getElementById('publicProfesionalesList');
+                        container.innerHTML = '';
+                        if (profs.length > 0) {
+                            profs.forEach(p => {
+                                const img = p.foto ? `<img src="${p.foto}" alt="${p.nombre}" class="w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-slate-100 shadow-md">` : `<div class="w-32 h-32 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 border-4 border-slate-100 shadow-md"><span class="material-symbols-outlined text-5xl">person</span></div>`;
+                                container.innerHTML += `<div class="bg-white rounded-3xl p-6 text-center border border-slate-100 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1">${img}<h3 class="text-xl font-bold text-slate-800">${p.nombre}</h3><p class="text-sm text-slate-500 mt-3 leading-relaxed">${p.descripcion}</p></div>`;
+                            });
+                            document.getElementById('sectionProfesionales')?.classList.remove('hidden');
+                        }
+                    } catch (e) {}
+                }
+
+                // Redes Sociales
+                if ((data.instagram_url || data.whatsapp_contacto) && document.getElementById('publicSocialLinks')) {
+                    const socialContainer = document.getElementById('publicSocialLinks');
+                    socialContainer.innerHTML = '';
+                    
+                    if (data.instagram_url) {
+                        socialContainer.innerHTML += `<a href="${data.instagram_url}" target="_blank" class="text-slate-400 hover:text-primary transition-colors flex items-center justify-center p-2" title="Instagram">
+                            <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                        </a>`;
+                    }
+                    if (data.whatsapp_contacto) {
+                        const waNum = data.whatsapp_contacto.replace(/\D/g, '');
+                        socialContainer.innerHTML += `<a href="https://wa.me/${waNum}" target="_blank" class="text-slate-400 hover:text-emerald-500 transition-colors flex items-center justify-center p-2" title="WhatsApp">
+                            <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        </a>`;
+                    }
+                    socialContainer.classList.remove('hidden');
+                    socialContainer.classList.add('flex');
+                }
+            }
+
+        // --- 2. PROCESAR SERVICIOS ---
             const grid = document.getElementById('servicesGrid');
             grid.innerHTML = '';
 
-            if (!data || data.length === 0) {
+            if (!servicesData || servicesData.length === 0) {
                 grid.innerHTML = '<p class="text-center text-slate-500 col-span-full py-10">No hay servicios disponibles por el momento.</p>';
-                return;
-            }
-
-            window.webServicesData = data;
-
-            data.forEach(service => {
+            } else {
+                window.webServicesData = servicesData;
+                servicesData.forEach(service => {
                 const precio = service.precio ? `<span class="font-bold text-lg text-primary">$${service.precio}</span>` : '';
                 const imgs = [service.imagen1, service.imagen2, service.imagen3].filter(Boolean);
                 let imagesHtml = `<div class="h-48 w-full bg-slate-100 flex items-center justify-center text-slate-400"><span class="material-symbols-outlined text-4xl">spa</span></div>`;
@@ -167,10 +229,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     el.dataset.index = String(idx);
                 });
             }, 30000);
-        })
-        .catch(err => {
-            document.getElementById('servicesGrid').innerHTML = '<p class="text-center text-red-500 col-span-full py-10">Ocurrió un error al cargar los servicios.</p>';
-        });
+            }
+
+        // --- 3. OCULTAR PANTALLA DE CARGA ---
+        const gl = document.getElementById('globalLoader');
+        if (gl) {
+            gl.classList.add('opacity-0');
+            setTimeout(() => gl.classList.add('hidden'), 500);
+        }
+    }).catch(err => {
+        console.error('Error al cargar datos:', err);
+    });
 });
     
 let currentCarouselImg = 0;

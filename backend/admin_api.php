@@ -104,7 +104,12 @@ if ($method === 'GET') {
         $negocios = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         // Obtener notificaciones de errores recientes para el SuperAdmin
-        $stmtNotifs = $pdo->query("SELECT * FROM notificaciones_admin ORDER BY fecha DESC LIMIT 50");
+        $stmtNotifs = $pdo->query("
+            SELECT na.*, n.nombre_fantasia 
+            FROM notificaciones_admin na 
+            LEFT JOIN negocios n ON na.id_negocio = n.id 
+            ORDER BY na.fecha DESC LIMIT 50
+        ");
         $notifs_admin = $stmtNotifs->fetchAll(PDO::FETCH_ASSOC);
         
         echo json_encode(['success' => true, 'data' => $negocios, 'notificaciones' => $notifs_admin]);

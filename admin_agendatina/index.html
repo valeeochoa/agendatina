@@ -30,7 +30,7 @@
     </div>
 </nav>
 
-<main class="max-w-7xl mx-auto p-6 md:p-10">
+<main class="max-w-7xl mx-auto p-4 sm:p-6 md:p-10">
     <div id="adminAlerts"></div>
 
     <!-- Sección de Reportes de Error (Responsiva) -->
@@ -105,7 +105,7 @@
             <table class="w-full text-left text-sm whitespace-nowrap">
                 <thead class="bg-slate-50 text-slate-600 border-b border-slate-200 sticky top-0 z-10 shadow-sm">
                     <tr>
-                        <th class="p-5 font-bold">Negocio / Enlace</th>
+                        <th class="p-5 font-bold">ID / Negocio / Enlace</th>
                         <th class="p-5 font-bold">Cliente (Dueño)</th>
                         <th class="p-5 font-bold">Suscripción</th>
                         <th class="p-5 font-bold">Estado de Pago</th>
@@ -589,7 +589,10 @@ function renderTable(dataToRender) {
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="p-5">
-                            <p class="font-bold text-slate-900 text-base mb-1">${client.nombre_fantasia}</p>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="bg-slate-200 text-slate-600 text-[10px] font-black px-2 py-0.5 rounded-md">ID: ${client.id}</span>
+                                <p class="font-bold text-slate-900 text-base">${client.nombre_fantasia}</p>
+                            </div>
                             <a href="../calendarioMensual.html?n=${urlRuta}" target="_blank" class="text-xs font-semibold text-blue-500 hover:text-blue-700 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">link</span> agendatina.site/${urlRuta}</a>
                         </td>
                         <td class="p-5">
@@ -1027,15 +1030,15 @@ function renderAdminReports(notificaciones) {
         const horaFormat = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
         listContainer.innerHTML += `
-            <div class="bg-slate-50 border-l-4 border-red-500 p-4 sm:p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow relative group mb-4 w-full">
+            <div class="bg-slate-50 border-l-4 border-red-500 p-4 sm:p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow relative mb-4 w-full">
                 <div class="flex flex-col sm:flex-row sm:justify-between items-start gap-3 mb-3">
-                    <span class="text-[10px] font-bold text-red-700 bg-red-100 px-2.5 py-1 rounded-md uppercase tracking-wider">📍 Segmento: ${notif.segmento}</span>
-                    <div class="flex items-center gap-2 self-end sm:self-auto mt-2 sm:mt-0">
-                        <span class="text-xs font-semibold text-slate-500 bg-white px-2 py-1 rounded-md border border-slate-200">${fechaFormat} - ${horaFormat}</span>
+                    <span class="text-[10px] font-bold text-red-700 bg-red-100 px-2.5 py-1 rounded-md uppercase tracking-wider inline-block">📍 Segmento: ${notif.segmento}</span>
+                    <div class="flex items-center justify-end gap-2 self-end sm:self-auto mt-1 sm:mt-0 w-full sm:w-auto">
+                        <span class="text-[11px] sm:text-xs font-semibold text-slate-500 bg-white px-2 py-1 rounded-md border border-slate-200 whitespace-nowrap">${fechaFormat} - ${horaFormat}</span>
                         <button onclick="deleteAdminReport(${notif.id})" class="text-slate-400 hover:text-red-500 bg-white p-1 rounded-md border border-slate-200 transition-colors" title="Eliminar reporte (Ya solucionado)"><span class="material-symbols-outlined text-[16px] block">delete</span></button>
                     </div>
                 </div>
-                <div class="mb-3 flex items-center flex-wrap gap-2"><span class="material-symbols-outlined text-[16px] text-slate-400 shrink-0">storefront</span><span class="text-sm font-bold text-slate-700 break-all">ID del Negocio: <span class="text-primary">${notif.id_negocio || 'Usuario Desconocido'}</span></span></div>
+                <div class="mb-3 flex items-start gap-2"><span class="material-symbols-outlined text-[16px] text-slate-400 shrink-0 mt-0.5">storefront</span><span class="text-sm font-bold text-slate-700 break-words">Negocio: <span class="text-primary">#${notif.id_negocio || '?'} - ${notif.nombre_fantasia || 'Usuario Desconocido'}</span></span></div>
                 <div class="bg-white p-3 sm:p-4 rounded-lg border border-slate-200 text-sm text-slate-600 relative overflow-hidden"><span class="material-symbols-outlined absolute text-slate-100 text-4xl -top-2 -left-2 rotate-180 z-0">format_quote</span><p class="relative z-10 italic break-words">${notif.mensaje}</p></div>
             </div>`;
     });

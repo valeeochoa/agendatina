@@ -116,6 +116,11 @@
 </head>
 
 <body class="bg-[#fcfafa] dark:bg-black font-display text-slate-800 dark:text-slate-100 overflow-x-hidden">
+  <!-- Pantalla de carga (Loader) -->
+  <div id="globalLoader" class="fixed inset-0 bg-slate-50 dark:bg-black z-[150] flex flex-col items-center justify-center transition-opacity duration-500">
+      <span class="material-symbols-outlined text-primary text-6xl animate-spin mb-4">refresh</span>
+      <h2 class="text-2xl font-bold text-slate-800 dark:text-white font-display">Cargando calendario...</h2>
+  </div>
 
   <header class="sticky top-0 z-50 bg-white/70 dark:bg-black/70 backdrop-blur-xl border-b border-slate-100 dark:border-white/10 px-6 py-4">
     <div class="max-w-6xl mx-auto flex items-center justify-between">
@@ -187,20 +192,13 @@
                         <h1 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white transition-all">Reserva tu cita</h1>
                         <button type="button" onclick="resetWizard()" class="text-sm font-bold text-primary hover:bg-primary/10 px-4 py-2 rounded-xl transition-colors flex items-center gap-1 border border-primary/20 bg-primary/5 w-full sm:w-auto justify-center"><span class="material-symbols-outlined text-[18px]">restart_alt</span> Empezar de nuevo</button>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl">
-                        <div>
-                            <label class="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">Servicio</label>
-                            <select id="serviceSelect" name="servicio_filter" tabindex="-1" class="appearance-none pointer-events-none w-full mt-1.5 px-4 py-3 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-800 dark:text-slate-100 focus:ring-primary focus:border-primary text-sm font-bold opacity-100">
-                                <option value="" disabled selected>¿Qué servicio deseas?</option>
-                            </select>
+                    <div class="flex flex-col sm:flex-row gap-6 sm:gap-12 w-full max-w-2xl mt-2 pl-1">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Servicio</span>
+                            <p id="summaryService" class="font-extrabold text-slate-800 dark:text-slate-100 text-lg sm:text-xl">...</p>
+                            <select id="serviceSelect" name="servicio_filter" class="hidden"><option value="" disabled selected></option></select>
                         </div>
-                        <div>
-                            <label class="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">Profesional</label>
-                            <select id="profesionalSelect" name="profesional_filter" tabindex="-1" class="appearance-none pointer-events-none w-full mt-1.5 px-4 py-3 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-800 dark:text-slate-100 focus:ring-primary focus:border-primary text-sm font-bold opacity-100">
-                                <option value="" disabled selected>Elige un profesional</option>
-                            </select>
-                        </div>
-                    </div>
+                        <div
                 </div>
             </div>
 

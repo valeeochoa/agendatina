@@ -17,7 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const webAlineacion = document.getElementById('webAlineacion');
     const webTextoLocal = document.getElementById('webTextoLocal');
     const webUbicacionMaps = document.getElementById('webUbicacionMaps');
-    const cursosEditor = document.getElementById('cursosEditor');
+    const webInstagramUrl = document.getElementById('webInstagramUrl');
+    const webWhatsappContacto = document.getElementById('webWhatsappContacto');
     const saveWebDataBtn = document.getElementById('saveWebDataBtn');
 
     // Inicializar previsualizaciones de imágenes
@@ -45,13 +46,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             if (data && !data.error) {
+            if (data.ruta) {
+                const btnVer = document.getElementById('btnVerMiPagina');
+                if (btnVer) btnVer.href = '/' + data.ruta;
+            }
                 window.currentWebData = data;
                 if (data.titulo) webTitulo.value = data.titulo;
                 if (data.subtitulo) webSubtitulo.value = data.subtitulo;
                 if (data.fondo && webFondo) webFondo.value = data.fondo;
                 if (data.texto_local && webTextoLocal) webTextoLocal.value = data.texto_local;
                 if (data.ubicacion_maps && webUbicacionMaps) webUbicacionMaps.value = data.ubicacion_maps;
-                if (data.cursos_html && cursosEditor) cursosEditor.innerHTML = data.cursos_html;
+                if (data.instagram_url && webInstagramUrl) webInstagramUrl.value = data.instagram_url;
+                if (data.whatsapp_contacto && webWhatsappContacto) webWhatsappContacto.value = data.whatsapp_contacto;
                 if (data.alineacion_servicios && webAlineacion) webAlineacion.value = data.alineacion_servicios;
 
                 if (data.color_primario_web) webColorPrimario.value = data.color_primario_web;
@@ -97,7 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (webTextoLocal) formData.append('texto_local', webTextoLocal.value);
         if (webUbicacionMaps) formData.append('ubicacion_maps', webUbicacionMaps.value);
-        if (cursosEditor) formData.append('cursos_html', cursosEditor.innerHTML);
+        if (webInstagramUrl) formData.append('instagram_url', webInstagramUrl.value);
+        if (webWhatsappContacto) formData.append('whatsapp_contacto', webWhatsappContacto.value);
         formData.append('profesionales_json', JSON.stringify(window.profesionalesWebData));
         formData.append('cursos_json', JSON.stringify(window.cursosWebData));
         if (webAlineacion) formData.append('alineacion_servicios', webAlineacion.value);
@@ -482,6 +489,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 servicesListContainer.appendChild(serviceItemDiv);
             });
             
+            if (typeof window.updateProfesionalesDatalist === 'function') {
+                window.updateProfesionalesDatalist(data);
+            }
+
             makeServicesSortable();
 
         } catch (error) {
