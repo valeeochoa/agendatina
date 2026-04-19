@@ -31,7 +31,12 @@ try {
     if ($dbStatus === 'prueba') {
         $fechaAltaStr = !empty($negocio['fecha_alta']) ? $negocio['fecha_alta'] : 'now';
         $fechaAlta = new DateTime($fechaAltaStr);
-        $fechaAlta->modify('+40 days');
+        $fechaAlta->modify('+15 days');
+        if ($today > $fechaAlta) { $isSuspended = true; }
+    } elseif ($dbStatus === 'beta') {
+        $fechaAltaStr = !empty($negocio['fecha_alta']) ? $negocio['fecha_alta'] : 'now';
+        $fechaAlta = new DateTime($fechaAltaStr);
+        $fechaAlta->modify('+30 days');
         if ($today > $fechaAlta) { $isSuspended = true; }
     } elseif ($dbStatus === 'activo' || $dbStatus === 'pagado') {
         $ultimoPagoStr = !empty($negocio['ultimo_pago']) ? $negocio['ultimo_pago'] : '2000-01-01';

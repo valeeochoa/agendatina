@@ -94,7 +94,7 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN profe
 // Suspende si pasaron > 40 días de prueba (30 días + 10 de gracia para pagar)
 // Suspende si están Activos y pasaron > 40 días desde su último pago
 try {
-    $pdo->exec("UPDATE negocios SET estado_pago = 'suspendido' WHERE (estado_pago = 'prueba' AND DATEDIFF(NOW(), fecha_alta) > 40) OR (estado_pago IN ('activo', 'pagado') AND ultimo_pago IS NOT NULL AND DATEDIFF(NOW(), ultimo_pago) > 40)");
+    $pdo->exec("UPDATE negocios SET estado_pago = 'suspendido' WHERE (estado_pago = 'prueba' AND DATEDIFF(NOW(), fecha_alta) > 15) OR (estado_pago = 'beta' AND DATEDIFF(NOW(), fecha_alta) > 30) OR (estado_pago IN ('activo', 'pagado') AND ultimo_pago IS NOT NULL AND DATEDIFF(NOW(), ultimo_pago) > 40)");
 } catch(Exception $e) { /* Ejecución silenciosa */ }
 
 // Petición GET: Devolver los datos actuales desde la BD
@@ -214,6 +214,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (move_uploaded_file($fileF['tmp_name'], $uploadDirF . $filenameF)) {
                 $data['fondo'] = 'backend/uploads/fondos/' . $filenameF;
             }
+        }
+        
+        if (isset($data['remove_logo']) && $data['remove_logo'] == '1') {
+            $url_logo = '';
+        }
+        if (isset($data['remove_fondo']) && $data['remove_fondo'] == '1') {
+            $url_fondo = '';
         }
         
         $color_primario = isset($data['color_primario']) ? $data['color_primario'] : ($oldData['color_primario'] ?? '#3b82f6');

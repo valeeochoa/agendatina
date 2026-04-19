@@ -14,12 +14,8 @@
       const baseEl = document.createElement('base');
       baseEl.href = basePath;
       document.head.insertBefore(baseEl, document.head.firstChild);
-      
-      const scriptEl = document.createElement('script');
-      scriptEl.src = 'backend/js/script.js';
-      scriptEl.defer = true;
-      document.head.appendChild(scriptEl);
   </script>
+  <script src="backend/js/script.js" defer></script>
 
   <script id="tailwind-config">
     tailwind.config = {
@@ -125,7 +121,7 @@
     <div class="max-w-6xl mx-auto flex items-center justify-between">
       <a href="#" class="flex items-center gap-2 tracking-tighter">
         <div id="navIconContainer" class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white">
-          <span id="navIcon" class="material-symbols-outlined">auto_awesome</span>
+          <span id="navIcon" class="material-symbols-outlined">event_available</span>
         </div>
         <img id="navLogoImg" src="" alt="Logo" class="hidden h-10 w-auto object-contain rounded-lg">
         <span class="text-xl font-bold uppercase tracking-widest" id="navBrandText">
@@ -194,14 +190,14 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl">
                         <div>
                             <label class="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">Servicio</label>
-                            <select id="serviceSelect" name="servicio_filter" class="w-full mt-1.5 px-4 py-3 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary focus:border-primary text-sm font-medium">
+                            <select id="serviceSelect" name="servicio_filter" tabindex="-1" class="appearance-none pointer-events-none w-full mt-1.5 px-4 py-3 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-800 dark:text-slate-100 focus:ring-primary focus:border-primary text-sm font-bold opacity-100">
                                 <option value="" disabled selected>¿Qué servicio deseas?</option>
                             </select>
                         </div>
                         <div>
                             <label class="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">Profesional</label>
-                            <select id="profesionalSelect" name="profesional_filter" class="w-full mt-1.5 px-4 py-3 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary focus:border-primary text-sm font-medium">
-                                <option value="Cualquiera" selected>Cualquiera (Sin preferencia)</option>
+                            <select id="profesionalSelect" name="profesional_filter" tabindex="-1" class="appearance-none pointer-events-none w-full mt-1.5 px-4 py-3 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-800 dark:text-slate-100 focus:ring-primary focus:border-primary text-sm font-bold opacity-100">
+                                <option value="" disabled selected>Elige un profesional</option>
                             </select>
                         </div>
                     </div>
@@ -264,26 +260,14 @@
 
     <!-- Admin Weekly View (Exclusiva de Negocio) -->
     <div id="adminWeeklyView" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <button id="btnMultiSelect" onclick="toggleMultiSelectMode()" class="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-sm transition-all">
-    <span class="material-symbols-outlined text-[20px]">checklist</span> Seleccionar días
-</button>
-
-<div id="multiSelectActions" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 shadow-2xl border border-slate-200 dark:border-slate-700 rounded-2xl px-6 py-4 hidden z-[100] flex-col items-center gap-3 animate-bounce-in min-w-[320px]">
-    <div id="multiSelectState" class="flex flex-col items-center gap-2 w-full">
-        <span id="multiSelectInstruction" class="text-sm font-medium text-slate-500 dark:text-slate-400 text-center">Selecciona días en el calendario<br>para bloquear o desbloquear</span>
-        <div id="multiSelectActive" class="hidden w-full items-center justify-between gap-4">
-            <span class="text-sm font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap"><span id="selectedDaysCount">0</span> seleccionados</span>
-            <div class="flex gap-2">
-                <button id="btnBulkBlock" onclick="bulkAction('block_day')" class="hidden bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors">Bloquear</button>
-                <button id="btnBulkUnblock" onclick="bulkAction('unblock_day')" class="hidden bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors">Desbloquear</button>
-            </div>
-        </div>
-    </div>
-    <button onclick="toggleMultiSelectMode()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold text-sm w-full border-t border-slate-100 dark:border-slate-700 pt-3 mt-1">Cancelar selección</button>
-</div>
         <div class="lg:col-span-8 bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
             <div class="flex justify-between items-center mb-6 min-w-[700px]">
-                <h2 id="adminWeekMonthYear" class="font-bold text-xl uppercase tracking-widest text-slate-800 dark:text-slate-200">Mes Año</h2>
+                <div class="flex items-center gap-4">
+                    <h2 id="adminWeekMonthYear" class="font-bold text-xl uppercase tracking-widest text-slate-800 dark:text-slate-200">Mes Año</h2>
+                    <button id="btnMultiSelect" onclick="toggleMultiSelectMode()" class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-bold text-sm transition-all">
+                        <span class="material-symbols-outlined text-[18px]">checklist</span> <span class="hidden sm:inline">Seleccionar días</span>
+                    </button>
+                </div>
                 <div class="flex gap-2">
                     <button id="adminPrevWeekBtn" class="w-10 h-10 flex items-center justify-center border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"><span class="material-symbols-outlined text-slate-400">chevron_left</span></button>
                     <button id="adminNextWeekBtn" class="w-10 h-10 flex items-center justify-center border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"><span class="material-symbols-outlined text-slate-400">chevron_right</span></button>
@@ -308,6 +292,21 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Modal flotante de MultiSelect Actions (fuera de la grilla) -->
+    <div id="multiSelectActions" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 shadow-2xl border border-slate-200 dark:border-slate-700 rounded-2xl px-6 py-4 hidden z-[100] flex-col items-center gap-3 animate-bounce-in min-w-[320px]">
+        <div id="multiSelectState" class="flex flex-col items-center gap-2 w-full">
+            <span id="multiSelectInstruction" class="text-sm font-medium text-slate-500 dark:text-slate-400 text-center">Selecciona días en el calendario<br>para bloquear o desbloquear</span>
+            <div id="multiSelectActive" class="hidden w-full items-center justify-between gap-4">
+                <span class="text-sm font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap"><span id="selectedDaysCount">0</span> seleccionados</span>
+                <div class="flex gap-2">
+                    <button id="btnBulkBlock" onclick="bulkAction('block_day')" class="hidden bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors">Bloquear</button>
+                    <button id="btnBulkUnblock" onclick="bulkAction('unblock_day')" class="hidden bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors">Desbloquear</button>
+                </div>
+            </div>
+        </div>
+        <button onclick="toggleMultiSelectMode()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold text-sm w-full border-t border-slate-100 dark:border-slate-700 pt-3 mt-1">Cancelar selección</button>
     </div>
   </main>
 

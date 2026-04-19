@@ -60,11 +60,18 @@ try {
 
     } elseif ($action === 'add_manual') {
         $cliente_nombre = trim($nombre . ' ' . $apellido);
-        $stmt = $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, estado) 
-                               VALUES (:id_negocio, :cliente_nombre, :cliente_celular, :fecha, :hora, :servicio, :profesional, 'confirmado')");
+        
+        // Encontrar el ID del servicio para que los calendarios puedan saber su duración
+        $stmtServ = $pdo->prepare("SELECT id FROM servicios WHERE id_negocio = :id_negocio AND nombre_servicio = :servicio LIMIT 1");
+        $stmtServ->execute(['id_negocio' => $id_negocio, 'servicio' => $servicio]);
+        $servRow = $stmtServ->fetch();
+        $id_servicio = $servRow ? $servRow['id'] : null;
+        
+        $stmt = $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, estado) 
+                               VALUES (:id_negocio, :cliente_nombre, :cliente_celular, :fecha, :hora, :servicio, :profesional, :id_servicio, 'confirmado')");
         $stmt->execute([
             'id_negocio' => $id_negocio, 'cliente_nombre' => $cliente_nombre, 'cliente_celular' => $celular,
-            'fecha' => $fecha, 'hora' => $hora, 'servicio' => $servicio, 'profesional' => $profesional
+            'fecha' => $fecha, 'hora' => $hora, 'servicio' => $servicio, 'profesional' => $profesional, 'id_servicio' => $id_servicio
         ]);
         
     } elseif ($action === 'block_time') {

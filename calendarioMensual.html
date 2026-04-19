@@ -257,19 +257,19 @@
           <div id="calendarDays" class="grid grid-cols-7 gap-1 sm:gap-2 md:gap-3"></div>
         </div>
 
-        <div class="hidden mt-8 pt-6 border-t border-slate-200 flex-wrap items-center justify-center sm:justify-start gap-3" id="adminControls">
+        <div class="hidden mt-8 pt-6 border-t border-slate-200 flex-wrap sm:flex-nowrap flex-col sm:flex-row items-center justify-between gap-3 w-full" id="adminControls">
           <button onclick="copyMyLink()"
-            class="text-sm font-bold bg-white text-slate-600 border border-slate-200 px-5 py-3 rounded-xl hover:text-primary transition-colors flex items-center gap-2 shadow-sm"
+            class="w-full sm:flex-1 text-sm font-bold bg-white text-slate-600 border border-slate-200 px-3 py-2.5 rounded-xl hover:text-primary transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap"
             title="Copiar enlace para clientes">
             <span class="material-symbols-outlined text-[20px]">share</span> Compartir Enlace
           </button>
           <button id="previewClientBtn"
-            class="text-sm font-bold bg-white text-slate-600 border border-slate-200 px-5 py-3 rounded-xl hover:text-primary transition-colors flex items-center gap-2 shadow-sm"
+            class="w-full sm:flex-1 text-sm font-bold bg-white text-slate-600 border border-slate-200 px-3 py-2.5 rounded-xl hover:text-primary transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap"
             title="Ver como cliente">
             <span class="material-symbols-outlined text-[20px]">visibility</span> Vista Cliente
           </button>
           <button id="manageServicesBtn"
-            class="text-sm font-bold bg-primary text-white px-6 py-3 rounded-xl hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-sm">
+            class="w-full sm:flex-1 text-sm font-bold bg-primary text-white px-3 py-2.5 rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
             <span class="material-symbols-outlined text-[20px]">design_services</span> Gestionar Servicios
           </button>
         </div>
@@ -314,9 +314,12 @@
               <div>
                 <label class="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">Profesional</label>
                 <select id="profesionalSelect" name="profesional"
+                <select id="profesionalSelect" name="profesional" required
                   class="w-full mt-1.5 px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary focus:border-primary text-sm font-medium">
                   <option value="Cualquiera" selected>
                     Cualquiera (Sin preferencia)
+                  <option value="" disabled selected>
+                    Elige un profesional
                   </option>
                 </select>
               </div>
@@ -351,11 +354,11 @@
             </h3>
             <div class="flex gap-2">
               <button onclick="openManualTurnoModal()"
-                class="bg-white/10 hover:bg-primary text-white p-2 rounded-xl transition-colors"
+                class="bg-slate-100 hover:bg-primary text-slate-600 hover:text-white p-2 rounded-xl transition-colors"
                 title="Añadir Turno / Bloquear Horario">
                 <span class="material-symbols-outlined">add</span>
               </button>
-              <button id="toggleDayBlockBtn" class="bg-white/10 hover:bg-red-500 p-2 rounded-xl transition-colors"
+              <button id="toggleDayBlockBtn" class="bg-slate-100 hover:bg-red-500 text-slate-600 hover:text-white p-2 rounded-xl transition-colors"
                 title="Bloquear todo el día">
                 <span class="material-symbols-outlined">block</span>
               </button>
@@ -429,9 +432,10 @@
           <div
             class="col-span-1 md:col-span-2 bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-200 dark:border-white/10">
             <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Foto del Profesional</label>
-            <input type="file" id="serviceProfessionalFile" name="foto_profesional_file"
-              accept="image/png, image/jpeg, image/webp"
-              class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer mb-2" />
+            <div class="flex items-center gap-2 mb-2">
+              <input type="file" id="serviceProfessionalFile" name="foto_profesional_file" accept="image/png, image/jpeg, image/webp" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer" />
+              <button type="button" onclick="document.getElementById('serviceProfessionalFile').value=''; document.getElementById('serviceProfessionalPhoto').value='';" class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+            </div>
             <input type="text" id="serviceProfessionalPhoto" name="foto_profesional"
               placeholder="O pega una URL directa de la imagen..."
               class="w-full px-4 py-2 rounded-xl border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 focus:ring-primary text-sm" />

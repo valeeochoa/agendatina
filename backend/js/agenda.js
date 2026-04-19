@@ -78,6 +78,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
 
     let pendientes = data.filter(t => t.estado === 'pendiente');
     let confirmados = data.filter(t => t.estado === 'confirmado');
+    let eliminados = data.filter(t => t.estado === 'eliminado');
     
     if (searchTerm) {
         const term = searchTerm.toLowerCase();
@@ -91,6 +92,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
             
         pendientes = pendientes.filter(filterFn);
         confirmados = confirmados.filter(filterFn);
+        eliminados = eliminados.filter(filterFn);
     }
     
     const urlParams = new URLSearchParams(window.location.search);
@@ -103,27 +105,28 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
     const listPend = document.getElementById('lista-pendientes');
     if (listPend) {
         listPend.innerHTML = '';
-        if (pendientes.length === 0) listPend.innerHTML = `<div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 text-center"><p class="text-sm font-medium text-slate-400">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'No hay turnos pendientes'}</p></div>`;
+        if (pendientes.length === 0) listPend.innerHTML = `<div class="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 text-center"><p class="text-sm font-medium text-slate-400">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'No hay turnos pendientes'}</p></div>`;
         
         pendientes.forEach(t => {
             const fParts = t.fecha.split('-');
             const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}/${fParts[0]}` : t.fecha;
             const focusClass = focusId == t.id ? 'ring-4 ring-primary ring-offset-2 scale-[1.02] transition-transform duration-500' : '';
             listPend.innerHTML += `
-                <div id="turno-${t.id}" class="bg-white border-l-4 border-amber-400 shadow-sm rounded-xl p-5 hover:shadow-md transition-all ${focusClass}">
+                <div id="turno-${t.id}" class="bg-white dark:bg-slate-800 border-l-4 border-amber-400 shadow-sm rounded-xl p-5 hover:shadow-md transition-all ${focusClass}">
                     <p class="text-xs font-bold text-amber-500 mb-2 uppercase tracking-wide">${fDisplay} • ${t.hora} hs</p>
-                    <p class="text-base font-bold text-slate-800 mb-1">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
-                    <div class="flex items-center gap-2 mb-1">
-                        <p class="text-sm font-medium text-slate-600 flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular}</p>
-                        <button onclick="window.contactarWhatsApp('${t.id}')" class="text-[#128C7E] hover:bg-[#25D366]/20 bg-[#25D366]/10 p-1.5 rounded-md transition-colors" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
-                    </div>
-                    <p class="text-sm text-slate-500 mb-3 mt-2 flex items-center flex-wrap gap-1"><span class="material-symbols-outlined text-[14px]">spa</span> ${t.servicio} ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? '<span class="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 rounded-md text-xs font-semibold">👤 ' + t.profesional + '</span>' : ''}</p>
-                    <div class="flex items-center gap-2 mt-2">
-                        <button onclick="window.confirmarTurnoAdmin('${t.id}')" class="flex-1 bg-amber-100 hover:bg-amber-200 text-amber-800 text-sm font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
+                    <p class="text-base font-bold text-slate-800 dark:text-slate-100 mb-1">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">spa</span> ${t.servicio}</p>
+                    ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<p class="text-sm text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">person</span> ${t.profesional}</p>` : '<div class="mb-3"></div>'}
+                    
+                    <div class="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                        <button onclick="window.confirmarTurnoAdmin('${t.id}')" class="flex-1 bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-500/20 dark:hover:bg-amber-500/40 dark:text-amber-400 text-sm font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-1 whitespace-nowrap">
                             <span class="material-symbols-outlined text-[18px]">check</span> Confirmar
                         </button>
-                        <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="bg-slate-100 hover:bg-red-100 text-slate-500 hover:text-red-600 text-sm font-bold py-2 px-3 rounded-lg transition-colors flex items-center justify-center" title="Rechazar solicitud">
-                            <span class="material-symbols-outlined text-[18px]">close</span>
+                        <button onclick="window.contactarWhatsApp('${t.id}')" class="flex-1 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 text-sm font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-1 whitespace-nowrap" title="Contactar por WhatsApp">
+                            <span class="material-symbols-outlined text-[18px]">chat</span> WhatsApp
+                        </button>
+                        <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="bg-slate-100 dark:bg-slate-700 hover:bg-red-100 dark:hover:bg-red-500/20 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 text-sm font-bold py-2 px-3 rounded-lg transition-colors flex items-center justify-center" title="Eliminar turno">
+                            <span class="material-symbols-outlined text-[18px]">delete</span>
                         </button>
                     </div>
                 </div>
@@ -143,7 +146,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
     if (listConf) {
         listConf.innerHTML = '';
         if (confirmados.length === 0) {
-            listConf.innerHTML = `<div class="p-8 text-center text-sm font-medium text-slate-400 bg-slate-50 rounded-xl border border-slate-200">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'Aún no tienes turnos confirmados.'}</div>`;
+            listConf.innerHTML = `<div class="p-8 text-center text-sm font-medium text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'Aún no tienes turnos confirmados.'}</div>`;
         } else {
             const gruposConf = {};
             confirmados.forEach(t => {
@@ -159,8 +162,8 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
                 const formatFecha = `${dd}/${mm}/${yyyy}`;
                 
                 let htmlDia = `
-                    <div class="mb-6">
-                        <h3 class="font-bold text-slate-800 mb-3 flex items-center gap-2 ${esHoy ? 'text-primary' : ''}">
+                    <div class="mb-8">
+                        <h3 class="font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2 ${esHoy ? 'text-primary' : ''}">
                             <span class="material-symbols-outlined text-[20px]">${esHoy ? 'today' : 'event'}</span> 
                             ${esHoy ? 'Hoy, ' + formatFecha : formatFecha}
                         </h3>
@@ -169,21 +172,18 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
                 
                 gruposConf[fecha].forEach(t => {
                     htmlDia += `
-                        <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:shadow-md transition-shadow">
-                            <div>
+                        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:shadow-md transition-shadow">
+                            <div class="flex-1 min-w-0">
                                 <p class="text-xs font-bold text-green-600 mb-1 uppercase tracking-wide">${t.hora} hs</p>
-                                <p class="text-base font-bold text-slate-800 mb-1">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
-                                <p class="text-sm font-medium text-slate-600 mb-2 flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular}</p>
-                                <div class="flex items-center flex-wrap gap-2">
-                                    <span class="bg-blue-50 text-blue-700 font-medium px-2.5 py-1 rounded-md text-xs border border-blue-100">${t.servicio}</span>
-                                    ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="bg-purple-50 text-purple-700 font-medium px-2.5 py-1 rounded-md text-xs border border-purple-100">👤 ${t.profesional}</span>` : ''}
-                                </div>
+                                <p class="text-base font-bold text-slate-800 dark:text-slate-100 mb-1 truncate" title="${t.cliente_nombre || ''}">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                                <p class="text-sm text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1.5 truncate" title="${t.servicio}"><span class="material-symbols-outlined text-[16px]">spa</span> ${t.servicio}</p>
+                                ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<p class="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1.5 truncate" title="${t.profesional}"><span class="material-symbols-outlined text-[16px]">person</span> ${t.profesional}</p>` : ''}
                             </div>
-                            <div class="flex flex-row sm:flex-col gap-2 mt-2 sm:mt-0 w-full sm:w-auto border-t sm:border-t-0 border-slate-100 pt-3 sm:pt-0">
-                                <button onclick="window.contactarWhatsApp('${t.id}')" class="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-[#25D366]/10 text-[#128C7E] hover:bg-[#25D366]/20 px-3 py-2 rounded-lg font-bold transition-colors text-sm"><span class="material-symbols-outlined text-[18px]">chat</span> Contactar</button>
-                                <button onclick="window.recordatorioWhatsApp('${t.id}')" class="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-2 rounded-lg font-bold transition-colors text-sm" title="Enviar recordatorio"><span class="material-symbols-outlined text-[18px]">notifications_active</span> Recordar</button>
-                                <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="flex-1 sm:flex-none flex items-center justify-center gap-1 text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg font-bold transition-colors text-sm" title="Cancelar turno">
-                                    <span class="material-symbols-outlined text-[18px]">cancel</span> Cancelar
+                            <div class="flex flex-wrap sm:flex-col gap-2 mt-2 sm:mt-0 w-full sm:w-auto border-t sm:border-t-0 border-slate-100 dark:border-slate-700 pt-3 sm:pt-0">
+                                <button onclick="window.contactarWhatsApp('${t.id}')" class="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 px-3 py-2 rounded-lg font-bold transition-colors text-sm whitespace-nowrap"><span class="material-symbols-outlined text-[18px]">chat</span> WhatsApp</button>
+                                <button onclick="window.recordatorioWhatsApp('${t.id}')" class="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 px-3 py-2 rounded-lg font-bold transition-colors text-sm whitespace-nowrap" title="Enviar recordatorio"><span class="material-symbols-outlined text-[18px]">notifications_active</span> Recordar</button>
+                                <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="flex-1 sm:flex-none flex items-center justify-center gap-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 px-3 py-2 rounded-lg font-bold transition-colors text-sm whitespace-nowrap" title="Eliminar turno">
+                                    <span class="material-symbols-outlined text-[18px]">delete</span> Eliminar
                                 </button>
                             </div>
                         </div>
@@ -194,6 +194,72 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
                 listConf.innerHTML += htmlDia;
             });
         }
+    }
+
+    // DIBUJAR ELIMINADOS (PAPELERA)
+    const listElim = document.getElementById('lista-eliminados');
+    if (listElim) {
+        listElim.innerHTML = '';
+        if (eliminados.length === 0) {
+            listElim.innerHTML = `<div class="p-8 text-center text-sm font-medium text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'La papelera está vacía.'}</div>`;
+        } else {
+            eliminados.sort((a, b) => new Date(b.fecha_eliminado || 0) - new Date(a.fecha_eliminado || 0));
+            eliminados.forEach(t => {
+                const fParts = t.fecha.split('-');
+                const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}` : t.fecha;
+                listElim.innerHTML += `
+                    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 flex items-center justify-between gap-4 opacity-70 hover:opacity-100 transition-opacity mb-3">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-bold text-slate-400 uppercase">${fDisplay} • ${t.hora} hs</p>
+                            <p class="text-sm font-bold text-slate-800 dark:text-slate-100 mt-1 truncate" title="${t.cliente_nombre || ''}">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 truncate">${t.servicio}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="window.restaurarTurnoAdmin('${t.id}')" class="text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 p-2 rounded-lg transition-colors" title="Restaurar turno">
+                                <span class="material-symbols-outlined text-[18px]">restore_from_trash</span>
+                            </button>
+                            <button onclick="window.eliminarTurnoPermanente('${t.id}')" class="text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 p-2 rounded-lg transition-colors" title="Eliminar definitivamente">
+                                <span class="material-symbols-outlined text-[18px]">delete_forever</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    }
+};
+
+window.restaurarTurnoAdmin = function(id) {
+    if (typeof showConfirm === 'function') {
+        showConfirm('Restaurar Turno', '¿Deseas restaurar este turno y devolverlo a la agenda de pendientes?', 'Restaurar', 'bg-green-600 hover:bg-green-700', () => {
+            return fetch('backend/restaurar_turno.php', { method: 'POST', body: new URLSearchParams({id: id}) })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    if(typeof showToast === 'function') showToast('Turno restaurado exitosamente', 'success');
+                    window.cargarAgenda();
+                } else {
+                    if(typeof showToast === 'function') showToast(data.error || 'Error al restaurar.', 'error');
+                }
+            }).catch(() => { if(typeof showToast === 'function') showToast('Error de conexión', 'error'); });
+        });
+    }
+};
+
+window.eliminarTurnoPermanente = function(id) {
+    if (typeof showConfirm === 'function') {
+        showConfirm('Eliminar Permanente', '¿Seguro que deseas eliminar este turno definitivamente? Esta acción no se puede deshacer.', 'Eliminar', 'bg-red-600 hover:bg-red-700', () => {
+            return fetch('backend/eliminar_turno_permanente.php', { method: 'POST', body: new URLSearchParams({id: id}) })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    if(typeof showToast === 'function') showToast('Turno eliminado permanentemente', 'success');
+                    window.cargarAgenda();
+                } else {
+                    if(typeof showToast === 'function') showToast(data.error || 'Error al eliminar.', 'error');
+                }
+            }).catch(() => { if(typeof showToast === 'function') showToast('Error de conexión', 'error'); });
+        });
     }
 };
 
@@ -218,5 +284,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         }
+
+        // LÓGICA DE PESTAÑAS (TABS)
+        const tabs = document.querySelectorAll('[role="tab"]');
+        const panels = document.querySelectorAll('[role="tabpanel"]');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Resetear todos los tabs
+                tabs.forEach(t => {
+                    t.setAttribute('aria-selected', 'false');
+                    t.className = 'flex-1 py-2.5 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-center gap-1 transition-colors';
+                });
+                // Activar tab clickeado
+                tab.setAttribute('aria-selected', 'true');
+                tab.className = 'flex-1 py-2.5 text-sm font-bold rounded-lg bg-white dark:bg-slate-700 shadow-sm text-primary flex items-center justify-center gap-1 transition-colors';
+                
+                // Mostrar panel correspondiente
+                panels.forEach(p => p.classList.add('hidden'));
+                document.getElementById(tab.getAttribute('aria-controls')).classList.remove('hidden');
+            });
+        });
     }
 });

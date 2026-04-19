@@ -198,10 +198,10 @@ function loadDashboardData() {
                     
                     if (business.ruta) {
                         // Si usa URL amigable (ej: agendatina.site/demo/calendario)
-                        cardCalendario.href = isWeekly ? `${business.ruta}/calendario-semanal` : `${business.ruta}/calendario`;
+                        cardCalendario.href = isWeekly ? `${business.ruta}/calendarioSemanal` : `${business.ruta}/calendarioMensual`;
                     } else {
                         // Si usa archivos directos
-                        cardCalendario.href = isWeekly ? 'calendario2.html' : 'calendario.html';
+                        cardCalendario.href = isWeekly ? 'calendarioSemanal.html' : 'calendarioMensual.html';
                     }
                 }
 
@@ -477,7 +477,7 @@ function checkNotifications() {
             const pendientes = data.filter(t => t.estado === 'pendiente');
             if (pendientes.length > 0) {
                 pendientes.forEach(t => {
-                    const notifLink = isBasic ? `calendario.html?date=${t.fecha}` : `agenda.html?focus=${t.id}`;
+                    const notifLink = isBasic ? `calendarioMensual.html?date=${t.fecha}` : `agenda.html?focus=${t.id}`;
                     currentNotifs.push({ 
                         id: 'turno_' + t.id,
                         icon: 'event', 
@@ -943,7 +943,7 @@ window.handleWelcomePrimaryAction = function(isDemo) {
             } else if (typeof window.openCalendarConfigModal === 'function' && document.getElementById('calendarConfigModal')) {
                 window.openCalendarConfigModal();
             } else {
-                    const calType = window.businessWebConfig?.tipo_calendario === 'semanal' ? 'calendario2.html' : 'calendario.html';
+                    const calType = window.businessWebConfig?.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
                     window.location.href = calType;
             }
         }, 120);
@@ -1491,6 +1491,63 @@ window.resetForm = function() {
 // INICIALIZACIÓN GENERAL AL CARGAR EL DOM
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
+
+    // --- Formularios de Reporte de Error y Soporte ---
+    const reportForm = document.getElementById('reportErrorForm');
+    if (reportForm) {
+        reportForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnReportSubmit');
+            const orig = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = 'Enviando...';
+            
+            const formData = new FormData(this);
+            formData.append('action', 'report_error');
+            
+            fetch('backend/enviar_soporte.php', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof showToast === 'function') showToast('Reporte enviado con éxito.', 'success');
+                    if (typeof closeReportErrorModal === 'function') closeReportErrorModal();
+                    this.reset();
+                } else {
+                    if (typeof showToast === 'function') showToast(data.error || 'Error al enviar reporte.', 'error');
+                }
+            }).catch(() => {
+                if (typeof showToast === 'function') showToast('Error de conexión.', 'error');
+            }).finally(() => { btn.disabled = false; btn.innerHTML = orig; });
+        });
+    }
+
+    const supportForm = document.getElementById('supportForm');
+    if (supportForm) {
+        supportForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSupportSubmit');
+            const orig = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = 'Enviando...';
+            
+            const formData = new FormData(this);
+            formData.append('action', 'support_message');
+            formData.append('segmento', 'Soporte y Sugerencias');
+            
+            fetch('backend/enviar_soporte.php', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof showToast === 'function') showToast('Mensaje enviado con éxito.', 'success');
+                    if (typeof closeSupportModal === 'function') closeSupportModal();
+                    this.reset();
+                } else {
+                    if (typeof showToast === 'function') showToast(data.error || 'Error al enviar mensaje.', 'error');
+                }
+            }).catch(() => {
+                if (typeof showToast === 'function') showToast('Error de conexión.', 'error');
+            }).finally(() => { btn.disabled = false; btn.innerHTML = orig; });
+        });
+    }
+
     // --- Inicializador del Modal de Confirmación Global ---
     const btnAcceptConfirm = document.getElementById('btnAcceptConfirm');
     if (btnAcceptConfirm) {
@@ -1574,10 +1631,11 @@ function isAccountSuspended(dbStatus, lastPaymentStr, fechaAltaStr) {
     
     const today = new Date();
     
-    if (dbStatus === 'prueba') {
+    if (dbStatus === 'prueba' || dbStatus === 'beta') {
         const fechaAlta = fechaAltaStr ? new Date(fechaAltaStr.replace(/-/g, '/')) : new Date();
         const trialEnd = new Date(fechaAlta);
-        trialEnd.setDate(trialEnd.getDate() + 40); // 30 días de prueba + 10 de gracia
+        const days = dbStatus === 'beta' ? 30 : 15;
+        trialEnd.setDate(trialEnd.getDate() + days);
         return today > trialEnd;
     } 
     
@@ -1603,9 +1661,9 @@ function applyWebCustomization() {
                     const isDashboard = path.includes('dashboard');
                     
                     if (!isDashboard) {
-                        const isAdminPage = path.includes('agenda') || 
-                                            path.includes('mi-web') || 
-                                            (path.includes('calendario') && (!negocioSlug || negocioSlug === ''));
+                        const isAdminPage = path.includes('agenda') ||
+                                            path.includes('mi-web') ||
+                                            ((path.includes('calendarioMensual') || path.includes('calendarioSemanal')) && (!negocioSlug || negocioSlug === ''));
                                             
                         if (isAdminPage) {
                             alert('Tu cuenta está suspendida por falta de pago. Serás redirigido al panel de control para regularizar tu situación.');

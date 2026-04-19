@@ -31,6 +31,9 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN email_profesi
 try { $pdo->query("SELECT token_seguridad FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN token_seguridad VARCHAR(255) DEFAULT 'AgendatinaSec_2024'"); }
 
+try { $pdo->query("SELECT orden FROM servicios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN orden INT DEFAULT 0"); }
+
 $method = $_SERVER['REQUEST_METHOD'];
 
 // =========================================================================
@@ -63,7 +66,7 @@ if ($method === 'GET') {
         }
 
         // 4. Obtener solo los servicios que pertenecen a ese negocio
-        $stmt = $pdo->prepare("SELECT id, id_negocio, nombre_servicio AS nombre, descripcion, duracion_minutos AS duracion, precio, profesional, email_profesional, foto_profesional, imagen1, imagen2, imagen3 FROM servicios WHERE id_negocio = :id_negocio ORDER BY id DESC");
+        $stmt = $pdo->prepare("SELECT id, id_negocio, nombre_servicio AS nombre, descripcion, duracion_minutos AS duracion, precio, profesional, email_profesional, foto_profesional, imagen1, imagen2, imagen3 FROM servicios WHERE id_negocio = :id_negocio ORDER BY orden ASC, id DESC");
         $stmt->execute(['id_negocio' => $id_negocio]);
         $servicios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -119,6 +122,17 @@ if ($method === 'POST') {
 
     $id_negocio = $_SESSION['id_negocio'];
     
+    if (isset($data['action']) && $data['action'] === 'reorder') {
+        if (isset($data['order']) && is_array($data['order'])) {
+            foreach ($data['order'] as $index => $id_srv) {
+                $stmt = $pdo->prepare("UPDATE servicios SET orden = :orden WHERE id = :id AND id_negocio = :id_negocio");
+                $stmt->execute(['orden' => $index, 'id' => $id_srv, 'id_negocio' => $id_negocio]);
+            }
+        }
+        echo json_encode(['success' => true]);
+        exit;
+    }
+
     // Asegurarse de tomar el ID, venga por JSON o por Formulario Multipart
     $id = !empty($_POST['id']) ? $_POST['id'] : (!empty($data['id']) ? $data['id'] : null);
     $nombre = $data['nombre'] ?? '';
@@ -196,6 +210,34 @@ if ($method === 'POST') {
             $stmt = $pdo->prepare("INSERT INTO servicios (id_negocio, nombre_servicio, duracion_minutos, precio, descripcion, profesional, email_profesional, foto_profesional, imagen1, imagen2, imagen3) VALUES (:id_negocio, :nombre, :duracion, :precio, :descripcion, :profesional, :email_profesional, :foto_profesional, :imagen1, :imagen2, :imagen3)");
             $stmt->execute(['id_negocio' => $id_negocio, 'nombre' => $nombre, 'duracion' => $duracion, 'precio' => $precio, 'descripcion' => $descripcion, 'profesional' => $profesional, 'email_profesional' => $email_profesional, 'foto_profesional' => $foto_profesional, 'imagen1' => $imagen1, 'imagen2' => $imagen2, 'imagen3' => $imagen3]);
         }
+
+        // Auto-sincronizar el profesional a la página web (Mi Equipo)
+        if (!empty($profesional)) {
+            $stmtCw = $pdo->prepare("SELECT profesionales_json FROM configuracion_web WHERE id_negocio = :id_negocio");
+            $stmtCw->execute(['id_negocio' => $id_negocio]);
+            $cw = $stmtCw->fetch();
+            $profs = [];
+            if ($cw && !empty($cw['profesionales_json'])) {
+                $profs = json_decode($cw['profesionales_json'], true);
+                if (!is_array($profs)) $profs = [];
+            }
+            $found = false;
+            foreach ($profs as &$p) {
+                if ($p['nombre'] === $profesional) {
+                    $found = true;
+                    if (!empty($foto_profesional) && empty($p['foto'])) {
+                        $p['foto'] = $foto_profesional;
+                    }
+                    break;
+                }
+            }
+            if (!$found) {
+                $profs[] = ['nombre' => $profesional, 'descripcion' => '', 'foto' => $foto_profesional];
+            }
+            $pdo->prepare("UPDATE configuracion_web SET profesionales_json = :json WHERE id_negocio = :id_negocio")
+                ->execute(['json' => json_encode($profs), 'id_negocio' => $id_negocio]);
+        }
+
         echo json_encode(['success' => true]);
     } catch (PDOException $e) {
         echo json_encode(['success' => false, 'error' => 'Error al guardar el servicio: ' . $e->getMessage()]);

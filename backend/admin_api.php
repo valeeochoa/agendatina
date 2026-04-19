@@ -86,9 +86,8 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {
     // Ejecutar auto-suspensión silenciosa antes de devolver los datos a la tabla
     try {
-        // Suspende si pasaron > 40 días desde el alta (30 días de prueba + 10 de gracia)
-        // O si es un cliente activo y pasaron > 40 días desde su último pago
-        $pdo->exec("UPDATE negocios SET estado_pago = 'suspendido' WHERE (estado_pago = 'prueba' AND DATEDIFF(NOW(), fecha_alta) > 40) OR (estado_pago IN ('activo', 'pagado') AND ultimo_pago IS NOT NULL AND DATEDIFF(NOW(), ultimo_pago) > 40)");
+        // Suspende si pasaron > 15 días (prueba), > 30 días (beta), o > 40 días (activo con último pago)
+        $pdo->exec("UPDATE negocios SET estado_pago = 'suspendido' WHERE (estado_pago = 'prueba' AND DATEDIFF(NOW(), fecha_alta) > 15) OR (estado_pago = 'beta' AND DATEDIFF(NOW(), fecha_alta) > 30) OR (estado_pago IN ('activo', 'pagado') AND ultimo_pago IS NOT NULL AND DATEDIFF(NOW(), ultimo_pago) > 40)");
     } catch(Exception $e) {}
 
     try {
@@ -287,8 +286,13 @@ elseif ($method === 'PUT') {
             }
 
             // Actualizar Negocio
-            $stmtNegocio = $pdo->prepare("UPDATE negocios SET nombre_fantasia = :nf, ruta = :ruta WHERE id = :id");
-            $stmtNegocio->execute(['nf' => $nombre_fantasia, 'ruta' => $ruta, 'id' => $id_negocio]);
+            $sqlNegocio = "UPDATE negocios SET nombre_fantasia = :nf, ruta = :ruta";
+            $paramsNegocio = ['nf' => $nombre_fantasia, 'ruta' => $ruta, 'id' => $id_negocio];
+            if ($plan) { $sqlNegocio .= ", plan = :plan"; $paramsNegocio['plan'] = $plan; }
+            if ($estado_pago) { $sqlNegocio .= ", estado_pago = :estado_pago"; $paramsNegocio['estado_pago'] = $estado_pago; }
+            $sqlNegocio .= " WHERE id = :id";
+            $stmtNegocio = $pdo->prepare($sqlNegocio);
+            $stmtNegocio->execute($paramsNegocio);
 
             // Buscar y actualizar Usuario Admin
             $stmtPn = $pdo->prepare("SELECT id_usuario FROM personal_negocio WHERE id_negocio = :id_negocio AND rol_en_local = 'admin' LIMIT 1");

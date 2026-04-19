@@ -112,6 +112,13 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('fondo_file', webFondoInput.files[0]);
         }
 
+        if (document.getElementById('webLogoRemoved') && document.getElementById('webLogoRemoved').value === '1') {
+            formData.append('remove_logo', '1');
+        }
+        if (document.getElementById('webFondoRemoved') && document.getElementById('webFondoRemoved').value === '1') {
+            formData.append('remove_fondo', '1');
+        }
+
         fetch('backend/guardar_web.php', { method: 'POST', body: formData })
         .then(res => res.json())
         .then(data => {
@@ -119,7 +126,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 saveWebDataBtn.textContent = '¡Guardado!';
                 saveWebDataBtn.classList.replace('bg-green-600', 'bg-emerald-600');
                 if (typeof showToast === 'function') showToast('Cambios guardados con éxito', 'success');
-                if (typeof applyWebCustomization === 'function') applyWebCustomization();
+                
+                try { if (typeof applyWebCustomization === 'function') applyWebCustomization(); } catch(e) { console.error(e); }
+                
                 setTimeout(() => {
                     saveWebDataBtn.textContent = 'Guardar Cambios';
                     saveWebDataBtn.classList.replace('bg-emerald-600', 'bg-green-600');
@@ -132,7 +141,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         })
         .catch(err => {
-            if (typeof showToast === 'function') showToast('Error de conexión', 'error');
+            console.error('Fetch error:', err);
+            if (typeof showToast === 'function') showToast('Error al conectar con el servidor', 'error');
             saveWebDataBtn.textContent = 'Guardar Cambios';
             saveWebDataBtn.disabled = false;
         });
@@ -153,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (document.getElementById('profWebName')) document.getElementById('profWebName').value = p.nombre || '';
             if (document.getElementById('profWebDesc')) document.getElementById('profWebDesc').value = p.descripcion || '';
             if (document.getElementById('profWebPhoto')) document.getElementById('profWebPhoto').value = p.foto || '';
+            if (document.getElementById('profWebPhotoBase64')) document.getElementById('profWebPhotoBase64').value = p.foto || '';
         }
         if (profWebModal && profWebModalContent) {
             profWebModal.classList.remove('hidden');
@@ -176,12 +187,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const prof = {
             nombre: document.getElementById('profWebName').value,
             descripcion: document.getElementById('profWebDesc').value,
-            foto: document.getElementById('profWebPhoto').value
+            foto: document.getElementById('profWebPhoto').value // Backup via URL
         };
-        if (index > -1) window.profesionalesWebData[index] = prof;
-        else window.profesionalesWebData.push(prof);
-        renderProfesionalesWeb();
-        closeProfWebModal();
+        
+        let photoBase64 = document.getElementById('profWebPhotoBase64') ? document.getElementById('profWebPhotoBase64').value : '';
+
+        const saveProf = (fotoToSave) => {
+            prof.foto = fotoToSave;
+            if (index > -1) window.profesionalesWebData[index] = prof;
+            else window.profesionalesWebData.push(prof);
+            renderProfesionalesWeb();
+            closeProfWebModal();
+        };
+
+        const fileInput = document.getElementById('profWebPhotoFile');
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            if (file.size > 2 * 1024 * 1024) {
+                if (typeof showToast === 'function') showToast('La foto es muy pesada (máx 2MB).', 'error');
+                fileInput.value = ''; return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => saveProf(e.target.result);
+            reader.readAsDataURL(file);
+        } else {
+            saveProf(prof.foto || photoBase64);
+        }
     });
 
     window.deleteProfWeb = function(index) {
@@ -215,6 +246,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
         });
+        
+        makeSortable('cursosWebList', window.cursosWebData, renderCursosWeb);
     }
 
     // ==========================================
@@ -316,6 +349,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
         });
+        
+        makeSortable('profesionalesWebList', window.profesionalesWebData, renderProfesionalesWeb);
     }
 
     // ==========================================
@@ -441,6 +476,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 serviceItemDiv.addEventListener('click', () => openServiceDetailModal(service.id));
                 servicesListContainer.appendChild(serviceItemDiv);
             });
+            
+            makeServicesSortable();
 
         } catch (error) {
             console.error('Error al cargar los servicios:', error);
@@ -451,5 +488,78 @@ document.addEventListener('DOMContentLoaded', () => {
     // Iniciar carga de la lista
     if (document.getElementById('servicesList')) {
         window.fetchAndRenderWebServices();
+    }
+    
+    // ==========================================
+    // LÓGICA DE DRAG & DROP (ARRASTRAR Y SOLTAR)
+    // ==========================================
+    function makeSortable(containerId, arrayData, renderCallback) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        let draggedIndex = null;
+
+        Array.from(container.children).forEach((item, index) => {
+            item.draggable = true;
+            item.classList.add('cursor-move');
+            item.addEventListener('dragstart', function(e) {
+                draggedIndex = index;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', index);
+                setTimeout(() => this.classList.add('opacity-50'), 0);
+            });
+            item.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('border-primary', 'border-dashed');
+            });
+            item.addEventListener('dragleave', function(e) {
+                this.classList.remove('border-primary', 'border-dashed');
+            });
+            item.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('border-primary', 'border-dashed');
+                const targetIndex = index;
+                if (draggedIndex === null || draggedIndex === targetIndex) return;
+                
+                const itemToMove = arrayData.splice(draggedIndex, 1)[0];
+                arrayData.splice(targetIndex, 0, itemToMove);
+                renderCallback();
+            });
+            item.addEventListener('dragend', function() {
+                this.classList.remove('opacity-50');
+                draggedIndex = null;
+            });
+        });
+    }
+
+    function makeServicesSortable() {
+        const container = document.getElementById('servicesList');
+        if (!container) return;
+        let draggedIndex = null;
+
+        Array.from(container.children).forEach((item, index) => {
+            item.draggable = true;
+            item.classList.add('cursor-move');
+            item.addEventListener('dragstart', function(e) {
+                draggedIndex = index;
+                e.dataTransfer.effectAllowed = 'move';
+                setTimeout(() => this.classList.add('opacity-50'), 0);
+            });
+            item.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('border-primary', 'border-dashed'); });
+            item.addEventListener('dragleave', function(e) { this.classList.remove('border-primary', 'border-dashed'); });
+            item.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('border-primary', 'border-dashed');
+                const targetIndex = index;
+                if (draggedIndex === null || draggedIndex === targetIndex) return;
+                
+                const itemToMove = window.webServicesData.splice(draggedIndex, 1)[0];
+                window.webServicesData.splice(targetIndex, 0, itemToMove);
+                
+                const orderIds = window.webServicesData.map(s => s.id);
+                fetch('backend/gestionar_servicios.php', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ action: 'reorder', order: orderIds }) });
+                window.fetchAndRenderWebServices(false); // Re-render sin fetch
+            });
+            item.addEventListener('dragend', function() { this.classList.remove('opacity-50'); draggedIndex = null; });
+        });
     }
 });

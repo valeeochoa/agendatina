@@ -73,13 +73,21 @@
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Imagen de fondo (Portada)</label>
-                        <input type="file" id="webFondoFile" accept="image/png, image/jpeg, image/webp" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                        <div class="flex items-center gap-2">
+                            <input type="file" id="webFondoFile" accept="image/png, image/jpeg, image/webp" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                            <button type="button" onclick="document.getElementById('webFondoFile').value=''; document.getElementById('webFondo').value=''; document.getElementById('webFondoRemoved').value='1';" class="text-red-500 hover:bg-red-50 p-2 rounded-xl" title="Eliminar imagen"><span class="material-symbols-outlined">delete</span></button>
+                        </div>
                         <input type="hidden" id="webFondo">
+                        <input type="hidden" id="webFondoRemoved" value="0">
                         <p class="text-xs text-slate-500 mt-1">Sube una imagen para el fondo de tu página (se reemplazará si subes otra).</p>
                     </div>
                     <div class="md:col-span-2">
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Logo de tu negocio</label>
-                        <input type="file" id="webLogo" accept="image/png, image/jpeg, image/svg+xml" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                        <div class="flex items-center gap-2">
+                            <input type="file" id="webLogo" accept="image/png, image/jpeg, image/svg+xml" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                            <button type="button" onclick="document.getElementById('webLogo').value=''; document.getElementById('webLogoRemoved').value='1';" class="text-red-500 hover:bg-red-50 p-2 rounded-xl" title="Eliminar logo"><span class="material-symbols-outlined">delete</span></button>
+                        </div>
+                        <input type="hidden" id="webLogoRemoved" value="0">
                         <p class="text-xs text-slate-500 mt-1">Sube tu logo (recomendado formato PNG transparente).</p>
                     </div>
                 </div>
@@ -264,9 +272,18 @@
                         <input type="hidden" name="imagen1" id="hiddenImagen1">
                         <input type="hidden" name="imagen2" id="hiddenImagen2">
                         <input type="hidden" name="imagen3" id="hiddenImagen3">
-                        <input type="file" name="imagen1_file" accept="image/*" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
-                        <input type="file" name="imagen2_file" accept="image/*" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
-                        <input type="file" name="imagen3_file" accept="image/*" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                        <div class="flex items-center gap-2">
+                            <input type="file" name="imagen1_file" id="imagen1_file" accept="image/*" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                            <button type="button" onclick="document.getElementById('imagen1_file').value=''; document.getElementById('hiddenImagen1').value='';" class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg" title="Borrar foto"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="file" name="imagen2_file" id="imagen2_file" accept="image/*" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                            <button type="button" onclick="document.getElementById('imagen2_file').value=''; document.getElementById('hiddenImagen2').value='';" class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg" title="Borrar foto"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="file" name="imagen3_file" id="imagen3_file" accept="image/*" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                            <button type="button" onclick="document.getElementById('imagen3_file').value=''; document.getElementById('hiddenImagen3').value='';" class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg" title="Borrar foto"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                        </div>
                     </div>
                 </div>
                 <div class="mt-4 text-right">
@@ -295,7 +312,9 @@
                 </div>
                 <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-1">URL de Foto de Perfil</label>
-                    <input type="url" id="profWebPhoto" placeholder="https://ejemplo.com/foto.jpg" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none">
+                    <input type="file" id="profWebPhotoFile" accept="image/png, image/jpeg, image/webp" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                    <input type="hidden" id="profWebPhotoBase64">
+                    <input type="url" id="profWebPhoto" placeholder="O pega una URL: https://ejemplo.com/foto.jpg" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 mt-2 focus:ring-2 focus:ring-primary outline-none text-sm">
                 </div>
                 <button type="submit" class="w-full bg-primary text-white font-bold py-3 rounded-xl mt-2 hover:bg-primary/90 transition-colors">Guardar Profesional</button>
             </form>

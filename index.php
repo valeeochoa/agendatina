@@ -48,17 +48,19 @@ try {
     if ($vista === 'calendario') {
         // Están visitando /tu-negocio/calendario
         if ($tipo_calendario === 'semanal') {
-            include 'calendario2.html';
+            include 'calendarioSemanal.html';
         } else {
-            include 'calendario.html';
+            include 'calendarioMensual.html';
         }
+    } elseif ($vista === 'calendario2') {
+        include 'calendarioSemanal.html';
     } else {
         // Están visitando /tu-negocio (Portada Pública)
         if ($tiene_web && file_exists('web.html')) {
             include 'web.html';
         } else {
             // Fallback: Si no usan la web pública, van directo al calendario
-            include ($tipo_calendario === 'semanal') ? 'calendario2.html' : 'calendario.html';
+            include ($tipo_calendario === 'semanal') ? 'calendarioSemanal.html' : 'calendarioMensual.html';
         }
     }
 

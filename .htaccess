@@ -1,5 +1,6 @@
 # 1. Seguridad básica
 Options -Indexes
+Options -MultiViews
 ServerSignature Off
 
 # 2. Forzar HTTPS (Redirigir todo tráfico HTTP a seguro)
@@ -34,17 +35,22 @@ ServerSignature Off
     RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^ - [L]
 
-    # NUEVO: Excepción explícita si el administrador entra directamente a /calendario
-    RewriteRule ^calendario(?:\.html)?/?$ index.php?v=calendario [L,QSA]
+    # D. Corrección para Recursos Estáticos (Preload Scanner)
+    # Evita el error 404 si el navegador busca scripts/imágenes asumiendo la ruta del negocio (ej: /demo/backend/...)
+    RewriteRule ^[a-zA-Z0-9_-]+/(backend|public|modelos)/(.*)$ $1/$2 [L]
 
     # A. Caso: agendatina.site/tu-negocio/calendario
-   # Regla para el calendario mensual (Existente)
-RewriteRule ^([a-zA-Z0-9_-]+)/calendario$ calendario.html [L,QSA]
-
-# NUEVA REGLA: para el calendario semanal
-RewriteRule ^([a-zA-Z0-9_-]+)/calendario-semanal$ calendario2.html [L,QSA] 
+    # Regla para el calendario mensual
+    RewriteRule ^([a-zA-Z0-9_-]+)/calendarioMensual/?$ index.php?n=$1&v=calendario [L,QSA]
+    
+    # Regla para el calendario semanal
+    RewriteRule ^([a-zA-Z0-9_-]+)/calendarioSemanal/?$ index.php?n=$1&v=calendario2 [L,QSA]
+    
     # B. Caso: agendatina.site/tu-negocio
     # (Condición: Evita que confunda rutas del sistema con nombres de negocios)
-    RewriteCond %{REQUEST_URI} !^/(calendario|dashboard|login|backend|public|modelos) [NC]
+    RewriteCond %{REQUEST_URI} !^/(index\.php|web\.html|calendarioMensual|calendarioSemanal|dashboard|login|backend|public|modelos|admin_agendatina) [NC]
     RewriteRule ^([a-zA-Z0-9-]+)/?$ index.php?n=$1 [L,QSA]
+
+    # C. Evitar error 404 en consola por el Favicon
+    RewriteRule ^favicon\.ico$ - [R=204,L]
 </IfModule>

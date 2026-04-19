@@ -67,6 +67,7 @@
                 <option value="pendiente_revision">En Revisión</option>
                 <option value="activo">Activos</option>
                 <option value="prueba">En Prueba</option>
+                <option value="beta">En Beta</option>
                 <option value="vencido">Vencidos</option>
                 <option value="suspendido">Suspendidos</option>
             </select>
@@ -183,6 +184,7 @@
                             <label class="block text-sm font-semibold text-slate-600 mb-1.5">Estado</label>
                             <select name="estado_pago" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
                                 <option value="prueba">Prueba (Trial)</option>
+                                <option value="beta">Plan Beta Exclusivo (30 días)</option>
                                 <option value="pendiente_revision">En Revisión</option>
                                 <option value="activo">Activo (Pagado)</option>
                                 <option value="vencido">Impago/Vencido</option>
@@ -238,6 +240,7 @@
                 <label class="block text-sm font-semibold text-slate-600 mb-1.5">Estado de Pago</label>
                 <select name="estado_pago" id="edit_estado_pago" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
                     <option value="prueba">Prueba (Trial)</option>
+                    <option value="beta">Plan Beta Exclusivo (30 días)</option>
                     <option value="pendiente_revision">En Revisión (Subió comprobante)</option>
                     <option value="activo">Activo (Pagado)</option>
                     <option value="vencido">Impago (Vencido)</option>
@@ -427,17 +430,18 @@ function updateChart(data) {
                 fAlta.setHours(0,0,0,0);
                 const hoy = new Date();
                 hoy.setHours(0,0,0,0);
-                diasRestantes = 15 - Math.floor((hoy - fAlta) / (1000 * 60 * 60 * 24));
+                const diffDays = Math.floor((hoy - fAlta) / (1000 * 60 * 60 * 24));
+                diasRestantes = (client.estado_pago === 'beta' ? 30 : 15) - diffDays;
             }
             if (client.estado_pago === 'activo' || client.estado_pago === 'pagado') countActivo++;
             else if (client.estado_pago === 'pendiente_revision') countRevision++;
-            else if (client.estado_pago === 'prueba') {
+            else if (client.estado_pago === 'prueba' || client.estado_pago === 'beta') {
                 if (client.fecha_alta && diasRestantes < 0) countVencido++; 
                 else countPrueba++; 
             } 
             else countVencido++;
         });
-        labels = ['Activos', 'En Prueba', 'En Revisión', 'Vencidos/Suspendidos'];
+        labels = ['Activos', 'En Prueba/Beta', 'En Revisión', 'Vencidos/Suspendidos'];
         chartData = [countActivo, countPrueba, countRevision, countVencido];
         bgColors = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444'];
     } 
@@ -525,7 +529,7 @@ function renderTable(dataToRender) {
                     const hoy = new Date();
                     hoy.setHours(0,0,0,0);
                     const diffDays = Math.floor((hoy - fAlta) / (1000 * 60 * 60 * 24));
-                    diasRestantes = 15 - diffDays;
+                    diasRestantes = (client.estado_pago === 'beta' ? 30 : 15) - diffDays;
                     fechaAltaText = `<p class="text-[11px] text-slate-400 mt-1.5 font-medium">Alta: ${fAlta.toLocaleDateString('es-AR')}</p>`;
                 }
 
@@ -534,6 +538,14 @@ function renderTable(dataToRender) {
                     badgeStatus = '<span class="bg-green-100 text-green-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-green-200 flex items-center w-fit gap-1"><span class="material-symbols-outlined text-[14px]">check_circle</span> Activo</span>';
                 } else if (client.estado_pago === 'pendiente_revision') {
                     badgeStatus = '<span class="bg-amber-100 text-amber-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-amber-200 flex items-center w-fit gap-1"><span class="material-symbols-outlined text-[14px]">hourglass_empty</span> En Revisión</span>';
+                } else if (client.estado_pago === 'beta') {
+                    if (client.fecha_alta && diasRestantes < 0) {
+                        badgeStatus = '<span class="bg-red-100 text-red-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-red-200 flex items-center w-fit gap-1" title="El plan Beta finalizó"><span class="material-symbols-outlined text-[14px]">error</span> Beta Vencido</span>';
+                    } else if (client.fecha_alta) {
+                        badgeStatus = `<span class="bg-fuchsia-100 text-fuchsia-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-fuchsia-200 flex items-center w-fit gap-1" title="Quedan ${diasRestantes} días de beta"><span class="material-symbols-outlined text-[14px]">rocket_launch</span> Beta (${diasRestantes}d)</span>`;
+                    } else {
+                        badgeStatus = '<span class="bg-fuchsia-100 text-fuchsia-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-fuchsia-200 flex items-center w-fit gap-1"><span class="material-symbols-outlined text-[14px]">rocket_launch</span> Beta</span>';
+                    }
                 } else if (client.estado_pago === 'prueba') {
                     if (client.fecha_alta && diasRestantes < 0) {
                         badgeStatus = '<span class="bg-red-100 text-red-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-red-200 flex items-center w-fit gap-1" title="El periodo de prueba finalizó"><span class="material-symbols-outlined text-[14px]">error</span> Prueba Vencida</span>';
@@ -578,7 +590,7 @@ function renderTable(dataToRender) {
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="p-5">
                             <p class="font-bold text-slate-900 text-base mb-1">${client.nombre_fantasia}</p>
-                            <a href="../calendario.html?n=${urlRuta}" target="_blank" class="text-xs font-semibold text-blue-500 hover:text-blue-700 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">link</span> agendatina.site/${urlRuta}</a>
+                            <a href="../calendarioMensual.html?n=${urlRuta}" target="_blank" class="text-xs font-semibold text-blue-500 hover:text-blue-700 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">link</span> agendatina.site/${urlRuta}</a>
                         </td>
                         <td class="p-5">
                             <p class="font-bold text-slate-800">${client.nombre_completo || 'Sin nombre'}</p>

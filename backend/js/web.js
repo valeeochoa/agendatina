@@ -28,12 +28,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Redirigir al calendario si el plan no incluye la mini-web
                 const planStr = (data.plan || '').toLowerCase();
                 if (planStr.includes('básico') || planStr.includes('basico') || planStr.includes('simple') || planStr.includes('intermedio')) {
-                    window.location.replace(`calendario.html${queryParam}`);
+                    window.location.replace(`calendarioMensual.html${queryParam}`);
                     return;
                 }
 
                 // Actualizar enlaces al calendario usando la ruta dinámica
-                const linkCalendario = `calendario.html${queryParam}`;
+                const linkCalendario = `calendarioMensual.html${queryParam}`;
                 document.getElementById('navReservarBtn').href = linkCalendario;
                 document.getElementById('heroReservarBtn').href = linkCalendario;
 
@@ -247,7 +247,7 @@ window.openWebModalService = function(id) {
         imgContainer.classList.add('hidden'); 
     }
     const negocioSlug = new URLSearchParams(window.location.search).get('n') || (window.location.pathname.split('/').filter(p => p && !p.includes('.'))[0] || '');
-    document.getElementById('webServiceModalBtn').href = `calendario.html?n=${negocioSlug}&servicio=${encodeURIComponent(service.nombre)}`;
+    document.getElementById('webServiceModalBtn').href = `calendarioMensual.html?n=${negocioSlug}&servicio=${encodeURIComponent(service.nombre)}`;
     const modal = document.getElementById('webServiceModal'); const content = document.getElementById('webServiceModalContent');
     modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10); document.body.style.overflow = 'hidden';
 }

@@ -87,6 +87,26 @@ function generateTimeSlots(startStr = '09:00', endStr = '18:00', interval = 30) 
 }
 generateTimeSlots();
 
+// Función inteligente para sincronizar los calendarios en tiempo real
+window.refreshCalendarData = function() {
+    if (isAdmin) {
+        fetchAllAppointments().then(() => {
+            if (document.getElementById('weeklyCalendarView')) {
+                if (!isPreviewMode && document.getElementById('adminWeeklyGrid')) {
+                    cal_fetchBookedTimesWeeklyAdmin();
+                } else {
+                    cal_fetchBookedTimesWeekly();
+                }
+            } else {
+                cal_fetchBookedTimes();
+            }
+        });
+    } else {
+        if (document.getElementById('weeklyCalendarView')) cal_fetchBookedTimesWeekly();
+        else cal_fetchBookedTimes();
+    }
+};
+
 function cal_fetchBookedTimes() {
     let prof = globalSelectedProfessional;
     if (!prof || prof === 'columnas') {
@@ -307,7 +327,7 @@ function fetchAllAppointments() {
         .then(res => res.json())
         .then(data => {
             allAppointments = data;
-            if (isAdmin && cal_selectedDate) {
+            if (isAdmin && cal_selectedDate && !document.getElementById('weeklyCalendarView')) {
                 renderAdminDayView(toYYYYMMDD(cal_selectedDate));
             }
         });
@@ -424,16 +444,16 @@ function renderAdminDayView(dateString) {
                     const cel = apt.cliente_celular || apt.celular || '';
                     
                     adminAppointmentsList.innerHTML += `
-                        <div class="bg-white dark:bg-slate-800 border-l-4 ${border} rounded-xl p-4 shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-r border-t border-b border-slate-100 dark:border-slate-700 mb-3">
-                            <div>
-                                <p class="text-xs font-bold text-slate-400 uppercase">${apt.hora} hs <span class="ml-2 text-primary bg-primary/10 px-2 py-0.5 rounded-md font-semibold">👤 ${apt.profesional || 'General'}</span></p>
-                                <p class="text-base font-bold text-slate-800 dark:text-slate-100 mt-1">${nombre}</p>
-                                <p class="text-xs text-slate-500">${apt.servicio || 'Bloqueo Manual'}</p>
+                        <div class="bg-white dark:bg-slate-800 border-l-4 ${border} rounded-xl p-4 shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-r border-t border-b border-slate-100 dark:border-slate-700 mb-3 overflow-hidden">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-xs font-bold text-slate-400 uppercase truncate">${apt.hora} hs <span class="ml-2 text-primary bg-primary/10 px-2 py-0.5 rounded-md font-semibold">👤 ${apt.profesional || 'General'}</span></p>
+                                <p class="text-base font-bold text-slate-800 dark:text-slate-100 mt-1 truncate" title="${nombre}">${nombre}</p>
+                                <p class="text-xs text-slate-500 truncate" title="${apt.servicio || 'Bloqueo Manual'}">${apt.servicio || 'Bloqueo Manual'}</p>
                             </div>
-                            <div class="flex gap-2">
-                                ${isPend ? `<button onclick="confirmarTurnoAdmin('${apt.id}')" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors">Confirmar</button>` : ''}
-                                ${apt.estado !== 'bloqueado' ? `<button onclick="contactarWhatsApp('${cel}', '${nombre}')" class="bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-600 transition-colors">WhatsApp</button>` : ''}
-                                <button onclick="cancelarTurnoAdmin('${apt.id}')" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-2 py-1.5 rounded-lg transition-colors" title="Eliminar/Liberar"><span class="material-symbols-outlined text-[16px]">delete</span></button>
+                            <div class="flex flex-wrap gap-2 shrink-0 w-full sm:w-auto mt-2 sm:mt-0">
+                                ${isPend ? `<button onclick="confirmarTurnoAdmin('${apt.id}')" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors flex-1 sm:flex-none">Confirmar</button>` : ''}
+                                ${apt.estado !== 'bloqueado' ? `<button onclick="contactarWhatsApp('${cel}', '${nombre}')" class="bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-600 transition-colors flex-1 sm:flex-none text-center">WhatsApp</button>` : ''}
+                                <button onclick="cancelarTurnoAdmin('${apt.id}')" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors flex items-center justify-center" title="Eliminar/Liberar"><span class="material-symbols-outlined text-[18px]">delete</span></button>
                             </div>
                         </div>`;
                 });
@@ -523,16 +543,16 @@ function renderAdminDayView(dateString) {
                 const cel = apt.cliente_celular || apt.celular || '';
                 
                 adminAppointmentsList.innerHTML += `
-                    <div class="bg-white border-l-4 ${border} rounded-xl p-4 shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-4 border border-slate-100 mb-3">
-                        <div>
-                            <p class="text-xs font-bold text-slate-400 uppercase">${apt.hora} hs</p>
-                            <p class="text-base font-bold text-slate-800">${nombre}</p>
-                            <p class="text-xs text-slate-500">${apt.servicio || 'Bloqueo Manual'}</p>
+                    <div class="bg-white border-l-4 ${border} rounded-xl p-4 shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-4 border border-slate-100 mb-3 overflow-hidden">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-bold text-slate-400 uppercase truncate">${apt.hora} hs</p>
+                            <p class="text-base font-bold text-slate-800 mt-1 truncate" title="${nombre}">${nombre}</p>
+                            <p class="text-xs text-slate-500 truncate" title="${apt.servicio || 'Bloqueo Manual'}">${apt.servicio || 'Bloqueo Manual'}</p>
                         </div>
-                        <div class="flex gap-2">
-                            ${isPend ? `<button onclick="confirmarTurnoAdmin('${apt.id}')" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors">Confirmar</button>` : ''}
-                            ${apt.estado !== 'bloqueado' ? `<button onclick="contactarWhatsApp('${cel}', '${nombre}')" class="bg-slate-50 hover:bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 transition-colors">WhatsApp</button>` : ''}
-                            <button onclick="cancelarTurnoAdmin('${apt.id}')" class="text-red-500 hover:bg-red-50 px-2 py-1.5 rounded-lg transition-colors" title="Eliminar/Liberar"><span class="material-symbols-outlined text-[16px]">delete</span></button>
+                        <div class="flex flex-wrap gap-2 shrink-0 w-full sm:w-auto mt-2 sm:mt-0">
+                            ${isPend ? `<button onclick="confirmarTurnoAdmin('${apt.id}')" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors flex-1 sm:flex-none">Confirmar</button>` : ''}
+                            ${apt.estado !== 'bloqueado' ? `<button onclick="contactarWhatsApp('${cel}', '${nombre}')" class="bg-slate-50 hover:bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 transition-colors flex-1 sm:flex-none text-center">WhatsApp</button>` : ''}
+                            <button onclick="cancelarTurnoAdmin('${apt.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors flex items-center justify-center" title="Eliminar/Liberar"><span class="material-symbols-outlined text-[18px]">delete</span></button>
                         </div>
                     </div>`;
             });
@@ -553,8 +573,7 @@ function confirmarTurnoAdmin(id) {
         .then(data => {
             if(data.success) {
                 showToast('Turno confirmado exitosamente', 'success');
-                fetchAllAppointments(); 
-                cal_fetchBookedTimes(); 
+                window.refreshCalendarData();
             } else {
                 showToast(data.error || 'No se pudo confirmar el turno.', 'error');
             }
@@ -569,8 +588,7 @@ function cancelarTurnoAdmin(id) {
         .then(data => {
             if(data.success) {
                 showToast('Horario liberado exitosamente', 'success');
-                fetchAllAppointments(); 
-                cal_fetchBookedTimes(); 
+                window.refreshCalendarData();
             } else {
                 showToast(data.error || 'No se pudo cancelar el turno.', 'error');
             }
@@ -615,15 +633,15 @@ function toggleDayBlock(dateString, block) {
         .then(data => {
             if (data.success) {
                 showToast(block ? 'Día bloqueado exitosamente' : 'Día desbloqueado exitosamente', 'success');
-                cal_fetchBookedTimes(); 
+                window.refreshCalendarData();
             } else {
                 showToast(data.error || 'No se pudo realizar la operación.', 'error');
-                if (cal_selectedDate) renderAdminDayView(toYYYYMMDD(cal_selectedDate));
+                if (cal_selectedDate && !document.getElementById('weeklyCalendarView')) renderAdminDayView(toYYYYMMDD(cal_selectedDate));
             }
         })
         .catch(err => {
             showToast('Error de conexión.', 'error');
-            if (cal_selectedDate) renderAdminDayView(toYYYYMMDD(cal_selectedDate));
+            if (cal_selectedDate && !document.getElementById('weeklyCalendarView')) renderAdminDayView(toYYYYMMDD(cal_selectedDate));
         });
     });
 }
@@ -1190,7 +1208,6 @@ function selectWizardService(sName) {
         return btn;
     };
 
-    pList.appendChild(createProfBtn('Cualquiera', 'Cualquiera (Sin preferencia)', null));
     uniqueProfs.forEach(p => {
         const sMatch = services.find(s => s.nombre === sName && s.profesional === p);
         pList.appendChild(createProfBtn(p, p, sMatch ? sMatch.foto_profesional : null));
@@ -1762,7 +1779,7 @@ window.bulkAction = function(action) { // action = 'block_day' o 'unblock_day'
         return Promise.all(promises).then(() => {
             showToast(`Días ${action === 'block_day' ? 'bloqueados' : 'desbloqueados'} exitosamente`, 'success');
             toggleMultiSelectMode();
-            cal_fetchBookedTimes();
+            window.refreshCalendarData();
         }).catch(() => showToast('Hubo errores al procesar la acción', 'error'));
     });
 };
@@ -1784,7 +1801,7 @@ window.bloquearHorario = function(fecha, hora, prof = null) {
         .then(data => {
             if (data.success) {
                 showToast('Horario bloqueado', 'success');
-                fetchAllAppointments().then(() => cal_fetchBookedTimes());
+                window.refreshCalendarData();
             } else {
                 showToast(data.error || 'Error al bloquear', 'error');
             }
@@ -1924,11 +1941,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 profSelect.innerHTML = '';
                 if (uniqueProfessionals.length === 0) {
-                    profSelect.innerHTML = '<option value="Cualquiera (Sin preferencia)" selected>Cualquiera (Sin preferencia)</option>';
+                    profSelect.innerHTML = '<option value="" disabled selected>Sin profesional disponible</option>';
                 } else if (uniqueProfessionals.length === 1) {
                     profSelect.innerHTML = `<option value="${uniqueProfessionals[0]}" selected>${uniqueProfessionals[0]}</option>`;
                 } else {
-                    profSelect.innerHTML = '<option value="Cualquiera (Sin preferencia)" selected>Cualquiera (Sin preferencia)</option>';
+                    profSelect.innerHTML = '<option value="" disabled selected>Elige un profesional</option>';
                     uniqueProfessionals.forEach(prof => {
                         profSelect.innerHTML += `<option value="${prof}">${prof}</option>`;
                     });
@@ -2056,7 +2073,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.success) {
                     showToast('Guardado correctamente', 'success');
                     closeManualTurnoModal();
-                    fetchAllAppointments().then(() => cal_fetchBookedTimes());
+                    window.refreshCalendarData();
                 } else {
                     showToast(data.error || 'Ocurrió un error al guardar.', 'error');
                 }
