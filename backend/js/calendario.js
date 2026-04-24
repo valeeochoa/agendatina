@@ -100,17 +100,17 @@ generateTimeSlots();
 // Función inteligente para sincronizar los calendarios en tiempo real
 window.refreshCalendarData = function() {
     if (isAdmin) {
-        fetchAllAppointments().then(() => {
-            if (document.getElementById('weeklyCalendarView')) {
-                if (!isPreviewMode && document.getElementById('adminWeeklyGrid')) {
-                    cal_fetchBookedTimesWeeklyAdmin();
-                } else {
-                    cal_fetchBookedTimesWeekly();
-                }
+        if (document.getElementById('weeklyCalendarView')) {
+            if (!isPreviewMode && document.getElementById('adminWeeklyGrid')) {
+                cal_fetchBookedTimesWeeklyAdmin(); // Esta función ya hace Promise.all internamente
             } else {
-                cal_fetchBookedTimes();
+                fetchAllAppointments();
+                cal_fetchBookedTimesWeekly();
             }
-        });
+        } else {
+            fetchAllAppointments();
+            cal_fetchBookedTimes();
+        }
     } else {
         if (document.getElementById('weeklyCalendarView')) cal_fetchBookedTimesWeekly();
         else cal_fetchBookedTimes();
@@ -135,8 +135,21 @@ function cal_fetchBookedTimes() {
         cal_bookedSlots = data;
         if (cal_selectedDate) cal_renderTimeSlots();
         cal_renderCalendar();
+
+        const gl = document.getElementById('globalLoader');
+        if (gl) {
+            gl.classList.add('opacity-0');
+            setTimeout(() => gl.classList.add('hidden'), 150);
+        }
     })
-    .catch(err => console.error('Error al cargar turnos ocupados:', err));
+    .catch(err => {
+        console.error('Error al cargar turnos ocupados:', err);
+        const gl = document.getElementById('globalLoader');
+        if (gl) {
+            gl.classList.add('opacity-0');
+            setTimeout(() => gl.classList.add('hidden'), 150);
+        }
+    });
 }
 
 function cal_renderCalendar() {
@@ -172,7 +185,7 @@ function cal_renderCalendar() {
         
         const effectiveIsAdmin = isAdmin && !isPreviewMode;
         const visuallyDisabled = isPast || isNotWorkingDay || isDayBlocked;
-        const isClickable = effectiveIsAdmin ? !(isPast || isNotWorkingDay) : !visuallyDisabled;
+        const isClickable = effectiveIsAdmin ? true : !visuallyDisabled;
 
         const dayDiv = document.createElement('div');
         dayDiv.textContent = i;
@@ -336,11 +349,16 @@ function fetchAllAppointments() {
     return fetch('backend/obtener_agenda.php')
         .then(res => res.json())
         .then(data => {
-            allAppointments = data;
+            if (Array.isArray(data)) {
+                allAppointments = data;
+            } else {
+                allAppointments = [];
+            }
             if (isAdmin && cal_selectedDate && !document.getElementById('weeklyCalendarView')) {
                 renderAdminDayView(toYYYYMMDD(cal_selectedDate));
             }
-        });
+        })
+        .catch(err => console.error('Error al obtener agenda:', err));
 }
 
 function renderAdminDayView(dateString) {
@@ -357,6 +375,14 @@ function renderAdminDayView(dateString) {
     if (adminAppointmentsList) adminAppointmentsList.innerHTML = '';
 
     const horasOcupadas = [...(cal_bookedSlots[dateString] || []), ...window.getBreakTimes()];
+    const selectedDateObj = new Date(dateString + 'T00:00:00');
+    const todayZero = new Date(); todayZero.setHours(0,0,0,0);
+    const isPastDay = selectedDateObj < todayZero;
+
+    const dayActionBtns = document.getElementById('adminDayActionBtns');
+    if (dayActionBtns) {
+        dayActionBtns.style.display = isPastDay ? 'none' : 'flex';
+    }
 
     // ==========================================
     // MODO COLUMNAS
@@ -420,8 +446,17 @@ function renderAdminDayView(dateString) {
                         <div class="text-[9px] opacity-80 truncate w-full">${apt.servicio || ''}</div>
                     `;
                     slotDiv.onclick = () => {
+                        let extraButtons = '';
+                        if (isPend && !isPastDay) {
+                            extraButtons = `<div class="flex gap-2 mt-4"><button onclick="confirmarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 rounded-lg text-sm">Confirmar</button><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg text-sm">Cancelar</button></div>`;
+                        } else if (apt.estado === 'confirmado' || isPastDay) {
+                            extraButtons = `<div class="flex gap-2 mt-4"><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg text-sm">Cancelar Turno</button></div>`;
+                        } else if (apt.estado === 'bloqueado') {
+                            extraButtons = `<div class="flex gap-2 mt-4"><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg text-sm">Liberar Horario</button></div>`;
+                        }
+
                         showConfirm('Detalles del Turno', 
-                            `<div class="text-left bg-white dark:bg-slate-800 p-4 rounded-xl mt-4 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 shadow-sm"><p class="mb-2"><strong>Cliente:</strong> ${clientName}</p><p class="mb-2"><strong>Teléfono:</strong> <a href="https://wa.me/${(apt.cliente_celular || '').replace(/\D/g, '')}" target="_blank" class="text-emerald-600 font-bold hover:underline">${apt.cliente_celular || '-'}</a></p><p class="mb-2"><strong>Servicio:</strong> ${apt.servicio || '-'}</p><p class="mb-2"><strong>Profesional:</strong> ${apt.profesional || '-'}</p><p><strong>Estado:</strong> <span class="uppercase text-[10px] px-2 py-1 rounded-md font-bold ${badgeClass}">${apt.estado}</span></p></div>`, 
+                            `<div class="text-left bg-white dark:bg-slate-800 p-4 rounded-xl mt-4 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 shadow-sm"><p class="mb-2"><strong>Cliente:</strong> ${clientName}</p><p class="mb-2"><strong>Teléfono:</strong> <a href="https://wa.me/${(apt.cliente_celular || '').replace(/\D/g, '')}" target="_blank" class="text-emerald-600 font-bold hover:underline">${apt.cliente_celular || '-'}</a></p><p class="mb-2"><strong>Servicio:</strong> ${apt.servicio || '-'}</p><p class="mb-2"><strong>Profesional:</strong> ${apt.profesional || '-'}</p><p><strong>Estado:</strong> <span class="uppercase text-[10px] px-2 py-1 rounded-md font-bold ${badgeClass}">${apt.estado}</span></p></div>${extraButtons}`, 
                             'Cerrar', 'bg-slate-800 hover:bg-slate-900', () => {}
                         );
                     };
@@ -430,6 +465,12 @@ function renderAdminDayView(dateString) {
                         <div class="flex justify-between items-center w-full">
                             <span class="text-sm font-bold text-slate-400">${time}</span>
                             <span class="bg-slate-100 dark:bg-slate-800 text-slate-400 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">Ocupado</span>
+                        </div>`;
+                } else if (isPastDay) {
+                    slotDiv.innerHTML = `
+                        <div class="flex justify-between items-center w-full">
+                            <span class="text-sm font-bold text-slate-700 dark:text-slate-300">${time}</span>
+                            <span class="text-[10px] text-slate-400 font-medium">Pasado</span>
                         </div>`;
                 } else {
                     slotDiv.innerHTML = `
@@ -462,16 +503,16 @@ function renderAdminDayView(dateString) {
                     const cel = apt.cliente_celular || apt.celular || '';
                     
                     adminAppointmentsList.innerHTML += `
-                        <div class="bg-white dark:bg-slate-800 border-l-4 ${border} rounded-xl p-4 shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-r border-t border-b border-slate-100 dark:border-slate-700 mb-3 overflow-hidden">
-                            <div class="min-w-0 flex-1">
+                        <div class="bg-white dark:bg-slate-800 border-l-4 ${border} rounded-xl p-4 shadow-sm flex flex-col gap-3 border border-slate-100 dark:border-slate-700 mb-3 overflow-hidden">
+                            <div class="min-w-0 w-full">
                                 <p class="text-xs font-bold text-slate-400 uppercase truncate">${apt.hora} hs <span class="ml-2 text-primary bg-primary/10 px-2 py-0.5 rounded-md font-semibold">👤 ${apt.profesional || 'General'}</span></p>
-                                <p class="text-base font-bold text-slate-800 dark:text-slate-100 mt-1 truncate" title="${nombre}">${nombre}</p>
-                                <p class="text-xs text-slate-500 truncate" title="${apt.servicio || 'Bloqueo Manual'}">${apt.servicio || 'Bloqueo Manual'}</p>
+                                <p class="text-base font-bold text-slate-800 dark:text-slate-100 mt-1 whitespace-normal break-words">${nombre}</p>
+                                <p class="text-xs text-slate-500 whitespace-normal break-words">${apt.servicio || 'Bloqueo Manual'}</p>
                             </div>
-                            <div class="flex flex-wrap gap-2 shrink-0 w-full sm:w-auto mt-2 sm:mt-0">
-                                ${isPend ? `<button onclick="confirmarTurnoAdmin('${apt.id}')" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors flex-1 sm:flex-none">Confirmar</button>` : ''}
-                                ${apt.estado !== 'bloqueado' ? `<button onclick="contactarWhatsApp('${cel}', '${nombre}')" class="bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-600 transition-colors flex-1 sm:flex-none text-center">WhatsApp</button>` : ''}
-                                <button onclick="cancelarTurnoAdmin('${apt.id}')" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors flex items-center justify-center" title="Eliminar/Liberar"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                            <div class="flex flex-wrap gap-2 w-full mt-1">
+                                ${isPend && !isPastDay ? `<button onclick="confirmarTurnoAdmin('${apt.id}')" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors flex-1">Confirmar</button>` : ''}
+                                ${apt.estado !== 'bloqueado' ? `<button onclick="contactarWhatsApp('${cel}', '${nombre}')" class="bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-600 transition-colors flex-1 text-center">WhatsApp</button>` : ''}
+                                <button onclick="cancelarTurnoAdmin('${apt.id}')" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex-1 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">delete</span> Cancelar</button>
                             </div>
                         </div>`;
                 });
@@ -542,14 +583,25 @@ function renderAdminDayView(dateString) {
                     <div class="text-[10px] opacity-80 truncate w-full">${apt.servicio || ''}</div>
                 `;
                 slotDiv.onclick = () => {
+                    let extraButtons = '';
+                    if (isPend && !isPastDay) {
+                        extraButtons = `<div class="flex gap-2 mt-4"><button onclick="confirmarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 rounded-lg text-sm">Confirmar</button><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg text-sm">Cancelar</button></div>`;
+                    } else if (apt.estado === 'confirmado' || isPastDay) {
+                        extraButtons = `<div class="flex gap-2 mt-4"><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg text-sm">Cancelar Turno</button></div>`;
+                    } else if (apt.estado === 'bloqueado') {
+                        extraButtons = `<div class="flex gap-2 mt-4"><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg text-sm">Liberar Horario</button></div>`;
+                    }
+
                     showConfirm('Detalles del Turno', 
-                        `<div class="text-left bg-white p-4 rounded-xl mt-4 border border-slate-200 text-slate-700 shadow-sm"><p class="mb-2"><strong>Cliente:</strong> ${clientName}</p><p class="mb-2"><strong>Teléfono:</strong> <a href="https://wa.me/${(apt.cliente_celular || '').replace(/\D/g, '')}" target="_blank" class="text-emerald-600 font-bold hover:underline">${apt.cliente_celular || '-'}</a></p><p class="mb-2"><strong>Servicio:</strong> ${apt.servicio || '-'}</p><p class="mb-2"><strong>Profesional:</strong> ${apt.profesional || '-'}</p><p><strong>Estado:</strong> <span class="uppercase text-[10px] px-2 py-1 rounded-md font-bold ${badgeClass}">${apt.estado}</span></p></div>`, 
+                        `<div class="text-left bg-white p-4 rounded-xl mt-4 border border-slate-200 text-slate-700 shadow-sm"><p class="mb-2"><strong>Cliente:</strong> ${clientName}</p><p class="mb-2"><strong>Teléfono:</strong> <a href="https://wa.me/${(apt.cliente_celular || '').replace(/\D/g, '')}" target="_blank" class="text-emerald-600 font-bold hover:underline">${apt.cliente_celular || '-'}</a></p><p class="mb-2"><strong>Servicio:</strong> ${apt.servicio || '-'}</p><p class="mb-2"><strong>Profesional:</strong> ${apt.profesional || '-'}</p><p><strong>Estado:</strong> <span class="uppercase text-[10px] px-2 py-1 rounded-md font-bold ${badgeClass}">${apt.estado}</span></p></div>${extraButtons}`, 
                         'Cerrar', 'bg-slate-800 hover:bg-slate-900', () => {}
                     );
                 };
             } else if (isBooked) {
                 slotDiv.innerHTML = `<span class="text-sm font-bold text-slate-400">${time}</span><span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">Ocupado</span>`;
             }
+        } else if (isPastDay) {
+            slotDiv.innerHTML = `<span class="text-sm font-bold text-slate-700">${time}</span><span class="text-[10px] text-slate-400 font-medium">Pasado</span>`;
         } else {
             // Se añaden clases de flex center para forzar que los botones SIEMPRE se vean
             slotDiv.innerHTML = `
@@ -578,16 +630,16 @@ function renderAdminDayView(dateString) {
                 const cel = apt.cliente_celular || apt.celular || '';
                 
                 adminAppointmentsList.innerHTML += `
-                    <div class="bg-white border-l-4 ${border} rounded-xl p-4 shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-4 border border-slate-100 mb-3 overflow-hidden">
-                        <div class="min-w-0 flex-1">
+                    <div class="bg-white border-l-4 ${border} rounded-xl p-4 shadow-sm flex flex-col gap-3 border border-slate-100 mb-3 overflow-hidden">
+                        <div class="min-w-0 w-full">
                             <p class="text-xs font-bold text-slate-400 uppercase truncate">${apt.hora} hs</p>
-                            <p class="text-base font-bold text-slate-800 mt-1 truncate" title="${nombre}">${nombre}</p>
-                            <p class="text-xs text-slate-500 truncate" title="${apt.servicio || 'Bloqueo Manual'}">${apt.servicio || 'Bloqueo Manual'}</p>
+                            <p class="text-base font-bold text-slate-800 mt-1 whitespace-normal break-words">${nombre}</p>
+                            <p class="text-xs text-slate-500 whitespace-normal break-words">${apt.servicio || 'Bloqueo Manual'}</p>
                         </div>
-                        <div class="flex flex-wrap gap-2 shrink-0 w-full sm:w-auto mt-2 sm:mt-0">
-                            ${isPend ? `<button onclick="confirmarTurnoAdmin('${apt.id}')" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors flex-1 sm:flex-none">Confirmar</button>` : ''}
-                            ${apt.estado !== 'bloqueado' ? `<button onclick="contactarWhatsApp('${cel}', '${nombre}')" class="bg-slate-50 hover:bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 transition-colors flex-1 sm:flex-none text-center">WhatsApp</button>` : ''}
-                            <button onclick="cancelarTurnoAdmin('${apt.id}')" class="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors flex items-center justify-center" title="Eliminar/Liberar"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                        <div class="flex flex-wrap gap-2 w-full mt-1">
+                            ${isPend && !isPastDay ? `<button onclick="confirmarTurnoAdmin('${apt.id}')" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors flex-1">Confirmar</button>` : ''}
+                            ${apt.estado !== 'bloqueado' ? `<button onclick="contactarWhatsApp('${cel}', '${nombre}')" class="bg-slate-50 hover:bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 transition-colors flex-1 text-center">WhatsApp</button>` : ''}
+                            <button onclick="cancelarTurnoAdmin('${apt.id}')" class="text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex-1 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">delete</span> Cancelar</button>
                         </div>
                     </div>`;
             });
@@ -772,7 +824,12 @@ function fetchServices() {
     fetch('backend/gestionar_servicios.php' + queryParam)
         .then(res => res.json())
         .then(data => {
-            services = data;
+            if (Array.isArray(data)) {
+                services = data;
+            } else {
+                services = [];
+                console.error('Error al cargar servicios:', data);
+            }
             populateServiceSelect();
             populateCalendarViewFilter();
             if (isAdmin) renderServicesList();
@@ -786,6 +843,20 @@ function fetchServices() {
             
             if (document.getElementById('weeklyCalendarView')) {
                 initWizard();
+            }
+
+            const gl = document.getElementById('globalLoader');
+            if (gl) {
+                gl.classList.add('opacity-0');
+                setTimeout(() => gl.classList.add('hidden'), 150);
+            }
+        })
+        .catch(err => {
+            console.error('Error al cargar servicios:', err);
+            const gl = document.getElementById('globalLoader');
+            if (gl) {
+                gl.classList.add('opacity-0');
+                setTimeout(() => gl.classList.add('hidden'), 150);
             }
         });
 }
@@ -1155,11 +1226,16 @@ function initWizard() {
     }
 
     if (sList && !document.getElementById('wizardCategoryBar')) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'relative w-full mb-4';
+
         const catBar = document.createElement('div');
         catBar.id = 'wizardCategoryBar';
-        catBar.className = 'flex gap-2 overflow-x-auto pb-4 mb-4 custom-scrollbar';
+        catBar.className = 'flex gap-2 overflow-x-auto pb-2 custom-scrollbar';
         catBar.innerHTML = `<button class="px-5 py-2 rounded-full bg-primary text-white font-bold text-sm shrink-0 shadow-md">Todos los servicios</button>`;
-        sList.parentElement.insertBefore(catBar, sList);
+        
+        wrapper.appendChild(catBar);
+        sList.parentElement.insertBefore(wrapper, sList);
     }
 
     sList.innerHTML = '';
@@ -1200,7 +1276,7 @@ function initWizard() {
         const imgHtml = img ? `<img src="${img}" class="w-16 h-16 rounded-xl object-cover shrink-0 border border-slate-200">` : `<div class="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200"><span class="material-symbols-outlined text-slate-400">spa</span></div>`;
 
         const btn = document.createElement('button');
-        btn.className = 'w-full text-left p-4 rounded-2xl border border-slate-200 hover:border-primary hover:shadow-lg hover:-translate-y-0.5 transition-all bg-white flex justify-between items-center gap-4 group';
+        btn.className = 'w-full text-left p-4 rounded-2xl border border-slate-200 hover:border-primary hover:shadow-lg hover:-translate-y-0.5 transition-all bg-white flex justify-between items-center gap-4 group mb-3';
         btn.innerHTML = `
             <div class="flex items-center gap-4">
                 ${imgHtml}
@@ -1214,6 +1290,49 @@ function initWizard() {
         btn.onclick = () => selectWizardService(sName);
         sList.appendChild(btn);
     });
+    
+    setupWizardCategoryArrows();
+}
+
+function setupWizardCategoryArrows() {
+    const catBar = document.getElementById('wizardCategoryBar');
+    if (!catBar) return;
+
+    if (document.getElementById('scrollWizardCatLeft')) {
+        updateWizardCategoryArrows();
+        return;
+    }
+
+    const wrapper = catBar.parentElement;
+
+    const btnLeft = document.createElement('button');
+    btnLeft.id = 'scrollWizardCatLeft';
+    btnLeft.className = 'absolute left-0 top-1/2 -translate-y-1/2 -ml-3 sm:-ml-5 z-10 bg-white shadow-md rounded-full w-8 h-8 flex items-center justify-center text-primary border border-slate-200 hover:bg-slate-50 transition-colors hidden';
+    btnLeft.innerHTML = '<span class="material-symbols-outlined text-[20px]">chevron_left</span>';
+    btnLeft.onclick = (e) => { e.preventDefault(); catBar.scrollBy({ left: -150, behavior: 'smooth' }); };
+
+    const btnRight = document.createElement('button');
+    btnRight.id = 'scrollWizardCatRight';
+    btnRight.className = 'absolute right-0 top-1/2 -translate-y-1/2 -mr-3 sm:-mr-5 z-10 bg-white shadow-md rounded-full w-8 h-8 flex items-center justify-center text-primary border border-slate-200 hover:bg-slate-50 transition-colors hidden';
+    btnRight.innerHTML = '<span class="material-symbols-outlined text-[20px]">chevron_right</span>';
+    btnRight.onclick = (e) => { e.preventDefault(); catBar.scrollBy({ left: 150, behavior: 'smooth' }); };
+
+    wrapper.appendChild(btnLeft);
+    wrapper.appendChild(btnRight);
+
+    catBar.addEventListener('scroll', updateWizardCategoryArrows);
+    window.addEventListener('resize', updateWizardCategoryArrows);
+    setTimeout(updateWizardCategoryArrows, 150);
+}
+
+function updateWizardCategoryArrows() {
+    const catBar = document.getElementById('wizardCategoryBar');
+    const btnLeft = document.getElementById('scrollWizardCatLeft');
+    const btnRight = document.getElementById('scrollWizardCatRight');
+    if (!catBar || !btnLeft || !btnRight) return;
+
+    btnLeft.style.display = catBar.scrollLeft > 5 ? 'flex' : 'none';
+    btnRight.style.display = catBar.scrollLeft < (catBar.scrollWidth - catBar.clientWidth - 5) ? 'flex' : 'none';
 }
 
 function selectWizardService(sName) {
@@ -1229,7 +1348,7 @@ function selectWizardService(sName) {
 
     const createProfBtn = (pName, display, icon) => {
         const btn = document.createElement('button');
-        btn.className = 'w-full text-left p-4 rounded-2xl border border-slate-200 hover:border-primary hover:shadow-lg hover:-translate-y-0.5 transition-all bg-slate-50 flex items-center gap-4 group';
+        btn.className = 'w-full text-left p-4 rounded-2xl border border-slate-200 hover:border-primary hover:shadow-lg hover:-translate-y-0.5 transition-all bg-slate-50 flex items-center gap-4 group mb-3';
         btn.innerHTML = `
             <div class="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
                 ${icon ? `<img src="${icon}" class="w-full h-full rounded-full object-cover">` : `<span class="material-symbols-outlined text-2xl">${pName === 'Cualquiera' ? 'groups' : 'person'}</span>`}
@@ -1394,7 +1513,20 @@ function cal_fetchBookedTimesWeeklyAdmin() {
     ]).then(([bookedData]) => { 
         cal_bookedSlots = bookedData; 
         renderAdminWeeklyGrid(); 
-    }).catch(err => console.error('Error:', err));
+        
+        const gl = document.getElementById('globalLoader');
+        if (gl) {
+            gl.classList.add('opacity-0');
+            setTimeout(() => gl.classList.add('hidden'), 150);
+        }
+    }).catch(err => {
+        console.error('Error:', err);
+        const gl = document.getElementById('globalLoader');
+        if (gl) {
+            gl.classList.add('opacity-0');
+            setTimeout(() => gl.classList.add('hidden'), 150);
+        }
+    });
 }
 
 function renderAdminWeeklyGrid() {
@@ -1426,11 +1558,16 @@ function renderAdminWeeklyGrid() {
     for (let i = 0; i < 7; i++) {
         const date = new Date(weekStartDate); date.setDate(weekStartDate.getDate() + i);
         const dateString = toYYYYMMDD(date); const isPast = date < today;
-        const col = document.createElement('div'); col.className = 'flex-1 min-w-[100px] flex flex-col gap-2';
+        const col = document.createElement('div'); col.className = 'flex-1 min-w-[120px] shrink-0 flex flex-col gap-2';
         const dayName = new Intl.DateTimeFormat('es-ES', { weekday: 'short' }).format(date).toUpperCase();
         const isToday = date.getTime() === today.getTime();
         
-        col.innerHTML = `<div class="text-center p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 mb-2"><div class="text-xs font-bold ${isToday ? 'text-primary' : 'text-slate-400'}">${dayName}</div><div class="text-xl font-extrabold ${isToday ? 'text-primary' : 'text-slate-800 dark:text-slate-100'}">${date.getDate()}</div></div>`;
+        const colHeader = document.createElement('div');
+        colHeader.className = `text-center p-3 rounded-xl border mb-2 cursor-pointer transition-colors ${isMultiSelectMode && selectedDates.includes(dateString) ? 'bg-primary/10 border-primary text-primary' : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700'}`;
+        colHeader.innerHTML = `<div class="text-xs font-bold ${isToday && !(isMultiSelectMode && selectedDates.includes(dateString)) ? 'text-primary' : (isMultiSelectMode && selectedDates.includes(dateString) ? 'text-primary' : 'text-slate-400')}">${dayName}</div><div class="text-xl font-extrabold ${isToday && !(isMultiSelectMode && selectedDates.includes(dateString)) ? 'text-primary' : (isMultiSelectMode && selectedDates.includes(dateString) ? 'text-primary' : 'text-slate-800 dark:text-slate-100')}">${date.getDate()}</div>`;
+        colHeader.onclick = () => handleDayClick(new Date(date.getTime() + 12*60*60*1000));
+        col.appendChild(colHeader);
+        
         const slotsContainer = document.createElement('div'); slotsContainer.className = 'flex flex-col gap-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar';
         
         const horasOcupadas = [...(cal_bookedSlots[dateString] || []), ...window.getBreakTimes()];
@@ -1516,7 +1653,20 @@ function cal_fetchBookedTimesWeekly() {
         cal_bookedSlots = data;
         renderWeeklyCalendar();
         findNextAvailableSlot();
-    }).catch(err => console.error('Error:', err));
+
+        const gl = document.getElementById('globalLoader');
+        if (gl) {
+            gl.classList.add('opacity-0');
+            setTimeout(() => gl.classList.add('hidden'), 150);
+        }
+    }).catch(err => {
+        console.error('Error:', err);
+        const gl = document.getElementById('globalLoader');
+        if (gl) {
+            gl.classList.add('opacity-0');
+            setTimeout(() => gl.classList.add('hidden'), 150);
+        }
+    });
 }
 
 function renderWeeklyCalendar() {
@@ -1571,7 +1721,7 @@ function renderWeeklyCalendar() {
             borderClass = visuallyDisabled ? 'border-red-200 dark:border-red-800/50' : 'border-green-400 dark:border-green-600/50';
         }
 
-        dayDiv.className = `flex flex-col items-center justify-center py-4 px-1 rounded-2xl border-2 shadow-sm ${borderClass} ${bgClass} ${textClass}`;
+        dayDiv.className = `flex flex-col items-center justify-center py-4 px-1 rounded-2xl border-2 shadow-sm ${borderClass} ${bgClass} ${textClass} min-w-[70px] sm:min-w-[85px] shrink-0`;
         
         if (visuallyDisabled) {
             dayDiv.classList.add('opacity-50', 'cursor-not-allowed');
@@ -1585,6 +1735,57 @@ function renderWeeklyCalendar() {
         fragment.appendChild(dayDiv);
     }
     calendarDays.appendChild(fragment);
+    
+    // Llamar a la función para configurar las flechas de navegación
+    setupWeeklyScrollArrows();
+}
+
+function setupWeeklyScrollArrows() {
+    const calendarDays = document.getElementById('weeklyCalendarDays');
+    if (!calendarDays) return;
+
+    // Si las flechas ya existen, solo actualizamos su visibilidad y salimos
+    if (document.getElementById('scrollWeeklyLeft')) {
+        updateWeeklyScrollArrows();
+        return;
+    }
+
+    const wrapper = calendarDays.parentElement;
+    wrapper.classList.add('relative');
+
+    const btnLeft = document.createElement('button');
+    btnLeft.id = 'scrollWeeklyLeft';
+    btnLeft.className = 'absolute left-0 top-1/2 -translate-y-1/2 -ml-2 sm:-ml-4 z-10 bg-white shadow-lg rounded-full w-8 h-8 flex items-center justify-center text-primary border border-slate-200 hover:bg-slate-50 transition-colors hidden';
+    btnLeft.innerHTML = '<span class="material-symbols-outlined text-[20px]">chevron_left</span>';
+    btnLeft.onclick = (e) => { e.preventDefault(); calendarDays.scrollBy({ left: -150, behavior: 'smooth' }); };
+
+    const btnRight = document.createElement('button');
+    btnRight.id = 'scrollWeeklyRight';
+    btnRight.className = 'absolute right-0 top-1/2 -translate-y-1/2 -mr-2 sm:-mr-4 z-10 bg-white shadow-lg rounded-full w-8 h-8 flex items-center justify-center text-primary border border-slate-200 hover:bg-slate-50 transition-colors hidden';
+    btnRight.innerHTML = '<span class="material-symbols-outlined text-[20px]">chevron_right</span>';
+    btnRight.onclick = (e) => { e.preventDefault(); calendarDays.scrollBy({ left: 150, behavior: 'smooth' }); };
+
+    wrapper.appendChild(btnLeft);
+    wrapper.appendChild(btnRight);
+
+    calendarDays.addEventListener('scroll', updateWeeklyScrollArrows);
+    window.addEventListener('resize', updateWeeklyScrollArrows);
+    
+    // Le damos un pequeño tiempo para asegurar que el navegador ya dibujó el contenedor antes de calcular el ancho
+    setTimeout(updateWeeklyScrollArrows, 150);
+}
+
+function updateWeeklyScrollArrows() {
+    const calendarDays = document.getElementById('weeklyCalendarDays');
+    const btnLeft = document.getElementById('scrollWeeklyLeft');
+    const btnRight = document.getElementById('scrollWeeklyRight');
+    if (!calendarDays || !btnLeft || !btnRight) return;
+
+    // Mostrar flecha izquierda si hemos scrolleado más de 5px
+    btnLeft.style.display = calendarDays.scrollLeft > 5 ? 'flex' : 'none';
+    
+    // Mostrar flecha derecha si no hemos llegado al límite derecho (con 5px de tolerancia)
+    btnRight.style.display = calendarDays.scrollLeft < (calendarDays.scrollWidth - calendarDays.clientWidth - 5) ? 'flex' : 'none';
 }
 
 function checkDayHasAvailableSlots(date) {
@@ -1685,9 +1886,12 @@ function selectWeeklyDate(date) {
             slot.textContent = time;
             slot.className = 'time-slot bg-slate-100 dark:bg-slate-800 text-center py-3.5 rounded-xl text-sm font-extrabold border border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary cursor-pointer transition-all hover:shadow-md';
             slot.addEventListener('click', () => {
-                document.querySelectorAll('#weeklyTimeSlots .time-slot').forEach(el => el.classList.remove('selected', 'bg-primary', 'text-white', 'border-primary', 'shadow-md'));
+                document.querySelectorAll('#weeklyTimeSlots .time-slot').forEach(el => {
+                    el.classList.remove('selected', 'bg-primary', 'text-white', 'border-primary', 'shadow-md');
+                    el.classList.add('bg-slate-100', 'dark:bg-slate-800');
+                });
                 slot.classList.add('selected', 'bg-primary', 'text-white', 'border-primary', 'shadow-md');
-                slot.classList.remove('bg-slate-100', 'dark:bg-slate-800', 'text-slate-800', 'dark:text-slate-100');
+                slot.classList.remove('bg-slate-100', 'dark:bg-slate-800');
                 cal2_selectedTime = time;
                 document.getElementById('weeklyHora').value = time;
             });
@@ -1806,7 +2010,11 @@ window.handleDayClick = function(date) {
         else selectedDates.push(dStr);
         
         updateMultiSelectUI();
-        cal_renderCalendar(); 
+        if (document.getElementById('adminWeeklyGrid')) {
+            renderAdminWeeklyGrid(); // update weekly view
+        } else {
+            cal_renderCalendar(); // update monthly view
+        }
         return;
     }
     cal_selectDate(date); // Si no está en multiselección, se comporta normal

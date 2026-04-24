@@ -40,16 +40,22 @@
                 </div>
             </div>
 
-            <!-- CONFIRMADOS -->
+            <!-- CONFIRMADOS Y HISTORIAL -->
             <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-                <div class="p-6 border-b border-slate-100">
-                    <h2 class="text-lg font-bold flex items-center gap-2 text-green-600">
-                        <span class="material-symbols-outlined text-[20px]">event_available</span> Turnos Agendados
-                    </h2>
+                <div class="border-b border-slate-100 bg-slate-50 p-2 flex gap-2">
+                    <button id="tabProximos" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow-sm text-primary flex items-center justify-center gap-1 transition-colors" onclick="switchAgendaTab('proximos')">
+                        <span class="material-symbols-outlined text-[18px]">event_available</span> Próximos
+                    </button>
+                    <button id="tabHistorial" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1 transition-colors" onclick="switchAgendaTab('historial')">
+                        <span class="material-symbols-outlined text-[18px]">history</span> Historial
+                    </button>
                 </div>
                 <div class="p-4 md:p-6">
                     <div id="lista-confirmados" class="space-y-4">
-                        <!-- Los turnos confirmados se renderizan aquí en formato tarjeta -->
+                        <!-- Los turnos confirmados se renderizan aquí -->
+                    </div>
+                    <div id="lista-historial" class="space-y-4 hidden">
+                        <!-- Los turnos pasados se renderizan aquí -->
                     </div>
                 </div>
             </div>

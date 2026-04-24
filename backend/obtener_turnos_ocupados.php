@@ -23,6 +23,9 @@ if (empty($ruta)) {
     $id_negocio = $negocio['id'];
 }
 
+// Liberar el archivo de sesión para que el dashboard no se quede colgado
+session_write_close();
+
 try {
     $ocupados = [];
 

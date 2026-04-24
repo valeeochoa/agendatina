@@ -100,6 +100,9 @@ try {
 // Petición GET: Devolver los datos actuales desde la BD
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
+    // Liberar la sesión para permitir peticiones concurrentes
+    session_write_close();
+
     try {
         $id_negocio = null;
         
@@ -143,6 +146,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $config['ultimo_pago'] = $n['ultimo_pago'] ?? null;
             $config['fecha_alta'] = $n['fecha_alta'] ?? null;
             $config['ruta'] = $n['ruta'] ?? '';
+        }
+        
+        $config['is_demo'] = false;
+        if (isset($_SESSION['id_negocio'])) {
+            $stmtU = $pdo->prepare("SELECT email FROM usuarios u JOIN personal_negocio pn ON u.id = pn.id_usuario WHERE pn.id_negocio = :id LIMIT 1");
+            $stmtU->execute(['id' => $_SESSION['id_negocio']]);
+            if ($stmtU->fetchColumn() === 'demo@agendatina.site') {
+                $config['is_demo'] = true;
+            }
         }
         
         echo json_encode($config);

@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    session_write_close();
     $logged_in = isset($_SESSION['is_superadmin']) && $_SESSION['is_superadmin'] === true;
     echo json_encode(['success' => true, 'logged_in' => $logged_in]);
     exit;

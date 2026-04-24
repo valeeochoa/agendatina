@@ -12,6 +12,9 @@ $id_usuario = $_SESSION['user_id'];
 $id_negocio = $_SESSION['id_negocio'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    // Liberar el archivo de sesión para evitar bloqueos al navegar entre páginas
+    session_write_close();
+
     // Obtener datos de usuario
     $stmtU = $pdo->prepare("SELECT nombre_completo, email FROM usuarios WHERE id = ?");
     $stmtU->execute([$id_usuario]);

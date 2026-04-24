@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const grid = document.getElementById('servicesGrid');
             grid.innerHTML = '';
 
-            if (!servicesData || servicesData.length === 0) {
+            if (!Array.isArray(servicesData) || servicesData.length === 0) {
                 grid.innerHTML = '<p class="text-center text-slate-500 col-span-full py-10">No hay servicios disponibles por el momento.</p>';
             } else {
                 window.webServicesData = servicesData;
@@ -235,10 +235,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const gl = document.getElementById('globalLoader');
         if (gl) {
             gl.classList.add('opacity-0');
-            setTimeout(() => gl.classList.add('hidden'), 500);
+            setTimeout(() => gl.classList.add('hidden'), 150);
         }
-    }).catch(err => {
+    })
+    .catch(err => {
         console.error('Error al cargar datos:', err);
+        const gl = document.getElementById('globalLoader');
+        if (gl) {
+            gl.classList.add('opacity-0');
+            setTimeout(() => gl.classList.add('hidden'), 150);
+        }
     });
 });
     

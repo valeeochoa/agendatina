@@ -1,5 +1,21 @@
 // backend/js/agenda.js
 
+// Estilos para las animaciones de carga
+if (!document.getElementById('agenda-animations')) {
+    const style = document.createElement('style');
+    style.id = 'agenda-animations';
+    style.innerHTML = `
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: var(--target-opacity, 1); transform: translateY(0); }
+        }
+        .animate-new-item {
+            animation: fadeSlideUp 0.4s ease-out forwards;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 window.cargarAgenda = function() {
     // Auto-refresco de la agenda en segundo plano cada 30 segundos
     if (!window.agendaPollingInterval) {
@@ -98,8 +114,25 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
     const urlParams = new URLSearchParams(window.location.search);
     const focusId = urlParams.get('focus');
     
-    // Ordenar cronológicamente
-    confirmados.sort((a, b) => (a.fecha + ' ' + a.hora).localeCompare(b.fecha + ' ' + b.hora));
+    // Reseteamos el límite del historial si cambia la búsqueda para no perder resultados
+    if (typeof window.lastHistorySearchTerm === 'undefined' || window.lastHistorySearchTerm !== searchTerm) {
+        window.historyLimit = 15;
+        window.trashLimit = 15;
+        window.lastHistorySearchTerm = searchTerm;
+    }
+
+    const now = new Date();
+    const futuros = [];
+    const pasados = [];
+    
+    confirmados.forEach(t => {
+        const tDate = new Date(t.fecha.replace(/-/g, '/') + ' ' + t.hora);
+        if (tDate < now) pasados.push(t);
+        else futuros.push(t);
+    });
+    
+    futuros.sort((a, b) => (a.fecha + ' ' + a.hora).localeCompare(b.fecha + ' ' + b.hora));
+    pasados.sort((a, b) => (b.fecha + ' ' + b.hora).localeCompare(a.fecha + ' ' + a.hora));
 
     // DIBUJAR PENDIENTES
     const listPend = document.getElementById('lista-pendientes');
@@ -145,15 +178,15 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
         }, 500);
     }
 
-    // DIBUJAR CONFIRMADOS
+    // DIBUJAR CONFIRMADOS (FUTUROS)
     const listConf = document.getElementById('lista-confirmados');
     if (listConf) {
         listConf.innerHTML = '';
-        if (confirmados.length === 0) {
-            listConf.innerHTML = `<div class="p-8 text-center text-sm font-medium text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'Aún no tienes turnos confirmados.'}</div>`;
+        if (futuros.length === 0) {
+            listConf.innerHTML = `<div class="p-8 text-center text-sm font-medium text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'Aún no tienes turnos próximos.'}</div>`;
         } else {
             const gruposConf = {};
-            confirmados.forEach(t => {
+            futuros.forEach(t => {
                 if (!gruposConf[t.fecha]) gruposConf[t.fecha] = [];
                 gruposConf[t.fecha].push(t);
             });
@@ -175,8 +208,9 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
                 `;
                 
                 gruposConf[fecha].forEach(t => {
+                    const customStyle = `style="border-left-width: 4px; border-left-color: var(--color-primario, #3b82f6); background-color: color-mix(in srgb, var(--color-primario, #3b82f6) 4%, #ffffff);"`;
                     htmlDia += `
-                        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 sm:p-5 flex flex-col gap-3 hover:shadow-md transition-shadow">
+                        <div class="border border-slate-200 dark:border-slate-700 rounded-xl p-4 sm:p-5 flex flex-col gap-3 hover:shadow-md transition-shadow" ${customStyle}>
                             <div class="flex justify-between items-start">
                                 <div class="flex-1 min-w-0">
                                     <span class="text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2.5 py-1 rounded-md inline-block mb-3 uppercase tracking-wide border border-blue-200 dark:border-blue-800/50">${t.hora} hs</span>
@@ -204,6 +238,78 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
         }
     }
 
+    // DIBUJAR HISTORIAL (PASADOS)
+    const listHist = document.getElementById('lista-historial');
+    if (listHist) {
+        listHist.innerHTML = '';
+        if (pasados.length === 0) {
+            listHist.innerHTML = `<div class="p-8 text-center text-sm font-medium text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'El historial está vacío.'}</div>`;
+        } else {
+            const pasadosToShow = pasados.slice(0, window.historyLimit);
+            const hasMore = pasados.length > window.historyLimit;
+
+            const gruposHist = {};
+            pasadosToShow.forEach(t => {
+                if (!gruposHist[t.fecha]) gruposHist[t.fecha] = [];
+                gruposHist[t.fecha].push(t);
+            });
+
+            const fechasHist = Object.keys(gruposHist).sort((a, b) => b.localeCompare(a));
+            let globalHistIndex = 0;
+            fechasHist.forEach(fecha => {
+                const [yyyy, mm, dd] = fecha.split('-');
+                const formatFecha = `${dd}/${mm}/${yyyy}`;
+                
+                let htmlDia = `
+                    <div class="mb-8">
+                        <h3 class="font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2 opacity-80">
+                            <span class="material-symbols-outlined text-[20px]">history</span> 
+                            ${formatFecha}
+                        </h3>
+                        <div class="space-y-3">
+                `;
+                
+                gruposHist[fecha].forEach(t => {
+                    globalHistIndex++;
+                    const isNewLoaded = window.isLoadingMoreHistory && globalHistIndex > (window.historyLimit - 15);
+                    const animClass = isNewLoaded ? 'animate-new-item' : '';
+                    const customStyle = `style="border-left-width: 4px; border-left-color: var(--color-primario, #3b82f6); background-color: color-mix(in srgb, var(--color-primario, #3b82f6) 4%, #ffffff); --target-opacity: 0.85; ${isNewLoaded ? 'opacity: 0;' : 'opacity: 0.85;'}"`;
+                    htmlDia += `
+                        <div class="border border-slate-200 dark:border-slate-700 rounded-xl p-4 sm:p-5 flex flex-col gap-3 hover:opacity-100 transition-opacity ${animClass}" ${customStyle}>
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1 min-w-0">
+                                    <span class="text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2.5 py-1 rounded-md inline-block mb-3 uppercase tracking-wide border border-blue-200 dark:border-blue-800/50">${t.hora} hs</span>
+                                    <p class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2 leading-tight">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-1 flex items-start gap-2"><span class="material-symbols-outlined text-[18px] shrink-0 text-slate-400">spa</span> <span class="break-words">${t.servicio}</span></p>
+                                    ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<p class="text-sm text-slate-600 dark:text-slate-400 flex items-start gap-2"><span class="material-symbols-outlined text-[18px] shrink-0 text-slate-400">person</span> <span class="break-words">${t.profesional}</span></p>` : ''}
+                                </div>
+                            </div>
+                            <div class="flex flex-col sm:flex-row gap-2 mt-1 w-full border-t border-slate-100 dark:border-slate-700 pt-4">
+                                <button onclick="window.contactarWhatsApp('${t.id}')" class="w-full flex items-center justify-center gap-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20 px-3 py-2.5 rounded-xl font-bold transition-colors text-sm border border-emerald-100 dark:border-emerald-800/30"><span class="material-symbols-outlined text-[18px]">chat</span> WhatsApp</button>
+                                <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="w-full flex items-center justify-center gap-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 px-4 py-2.5 rounded-xl font-bold transition-colors text-sm border border-red-100 dark:border-red-800/30" title="Eliminar turno">
+                                    <span class="material-symbols-outlined text-[18px]">delete</span> Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                htmlDia += `</div></div>`;
+                listHist.innerHTML += htmlDia;
+            });
+            
+            if (hasMore) {
+                listHist.innerHTML += `
+                    <div class="mt-2 mb-6 flex justify-center">
+                        <button onclick="window.loadMoreHistory()" class="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl transition-colors border border-slate-200 dark:border-slate-600 flex items-center gap-2 shadow-sm">
+                            <span class="material-symbols-outlined text-[18px]">expand_more</span> Cargar más turnos
+                        </button>
+                    </div>
+                `;
+            }
+        }
+    }
+
     // DIBUJAR ELIMINADOS (PAPELERA)
     const listElim = document.getElementById('lista-eliminados');
     if (listElim) {
@@ -212,11 +318,21 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
             listElim.innerHTML = `<div class="p-8 text-center text-sm font-medium text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'La papelera está vacía.'}</div>`;
         } else {
             eliminados.sort((a, b) => new Date(b.fecha_eliminado || 0) - new Date(a.fecha_eliminado || 0));
-            eliminados.forEach(t => {
+            
+            const eliminadosToShow = eliminados.slice(0, window.trashLimit);
+            const hasMoreEliminados = eliminados.length > window.trashLimit;
+            let globalTrashIndex = 0;
+            
+            eliminadosToShow.forEach(t => {
+                globalTrashIndex++;
+                const isNewLoaded = window.isLoadingMoreTrash && globalTrashIndex > (window.trashLimit - 15);
+                const animClass = isNewLoaded ? 'animate-new-item' : '';
+                const opacityClass = isNewLoaded ? 'opacity-0' : 'opacity-70';
+                
                 const fParts = t.fecha.split('-');
                 const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}` : t.fecha;
                 listElim.innerHTML += `
-                        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 sm:p-5 flex flex-col gap-3 opacity-70 hover:opacity-100 transition-opacity mb-3">
+                        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 sm:p-5 flex flex-col gap-3 ${opacityClass} hover:opacity-100 transition-opacity mb-3 ${animClass}" style="--target-opacity: 0.7;">
                             <div class="flex justify-between items-start">
                                 <div class="flex-1 min-w-0">
                                     <span class="text-xs font-bold bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-md inline-block mb-3 uppercase tracking-wide border border-slate-200 dark:border-slate-600">${fDisplay} • ${t.hora} hs</span>
@@ -235,6 +351,16 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
                         </div>
                 `;
             });
+            
+            if (hasMoreEliminados) {
+                listElim.innerHTML += `
+                    <div class="mt-2 mb-6 flex justify-center">
+                        <button onclick="window.loadMoreTrash()" class="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl transition-colors border border-slate-200 dark:border-slate-600 flex items-center gap-2 shadow-sm">
+                            <span class="material-symbols-outlined text-[18px]">expand_more</span> Cargar más turnos eliminados
+                        </button>
+                    </div>
+                `;
+            }
         }
     }
 };
@@ -316,3 +442,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+window.loadMoreHistory = function() {
+    window.isLoadingMoreHistory = true;
+    window.historyLimit += 15;
+    const currentSearch = document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : '';
+    if (window.agendaData) {
+        window.renderAgendaTurnos(window.agendaData, currentSearch);
+    }
+    setTimeout(() => { window.isLoadingMoreHistory = false; }, 500);
+};
+
+window.loadMoreTrash = function() {
+    window.isLoadingMoreTrash = true;
+    window.trashLimit += 15;
+    const currentSearch = document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : '';
+    if (window.agendaData) {
+        window.renderAgendaTurnos(window.agendaData, currentSearch);
+    }
+    setTimeout(() => { window.isLoadingMoreTrash = false; }, 500);
+};
+
+window.switchAgendaTab = function(tab) {
+    if (tab === 'proximos') {
+        document.getElementById('tabProximos').className = 'flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow-sm text-primary flex items-center justify-center gap-1 transition-colors';
+        document.getElementById('tabHistorial').className = 'flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1 transition-colors';
+        document.getElementById('lista-confirmados').classList.remove('hidden');
+        document.getElementById('lista-historial').classList.add('hidden');
+    } else {
+        document.getElementById('tabHistorial').className = 'flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow-sm text-primary flex items-center justify-center gap-1 transition-colors';
+        document.getElementById('tabProximos').className = 'flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1 transition-colors';
+        document.getElementById('lista-historial').classList.remove('hidden');
+        document.getElementById('lista-confirmados').classList.add('hidden');
+    }
+};

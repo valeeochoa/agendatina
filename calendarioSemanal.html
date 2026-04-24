@@ -198,18 +198,21 @@
                             <p id="summaryService" class="font-extrabold text-slate-800 dark:text-slate-100 text-lg sm:text-xl">...</p>
                             <select id="serviceSelect" name="servicio_filter" class="hidden"><option value="" disabled selected></option></select>
                         </div>
-                        <div
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Profesional</span>
+                            <p id="summaryProf" class="font-extrabold text-slate-800 dark:text-slate-100 text-lg sm:text-xl flex items-center gap-2">...</p>
+                            <select id="profesionalSelect" name="profesional_filter" class="hidden"><option value="" disabled selected></option></select>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Calendario Semanal (7 días) -->
             <div class="mb-10">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 id="weekMonthYear" class="font-bold text-xl uppercase tracking-widest text-slate-800 dark:text-slate-200">Mes Año</h2>
-                    <div class="flex gap-2">
-                        <button id="prevWeek" class="w-12 h-12 flex items-center justify-center border border-slate-200 dark:border-white/10 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"><span class="material-symbols-outlined text-slate-400">chevron_left</span></button>
-                        <button id="nextWeek" class="w-12 h-12 flex items-center justify-center border border-slate-200 dark:border-white/10 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"><span class="material-symbols-outlined text-slate-400">chevron_right</span></button>
-                    </div>
+                <div class="flex justify-center items-center mb-6">
+                    <button id="prevWeek" class="w-12 h-12 flex items-center justify-center border border-slate-200 dark:border-white/10 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"><span class="material-symbols-outlined text-slate-400">chevron_left</span></button>
+                    <h2 id="weekMonthYear" class="font-bold text-xl uppercase tracking-widest text-slate-800 dark:text-slate-200 text-center w-48 mx-4">Mes Año</h2>
+                    <button id="nextWeek" class="w-12 h-12 flex items-center justify-center border border-slate-200 dark:border-white/10 rounded-2xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"><span class="material-symbols-outlined text-slate-400">chevron_right</span></button>
                 </div>
                 <div id="weeklyCalendarDays" class="grid grid-cols-7 gap-2 sm:gap-4">
                     <!-- Insertado vía JS -->
@@ -241,8 +244,8 @@
                         <input type="hidden" id="weeklyProfesional" name="profesional">
                         
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <input type="text" id="weeklyNombre" name="nombre" placeholder="Nombre" required class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm focus:ring-primary outline-none shadow-sm transition-all">
-                            <input type="text" id="weeklyApellido" name="apellido" placeholder="Apellido" required class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm focus:ring-primary outline-none shadow-sm transition-all">
+                            <input type="text" id="weeklyNombre" name="nombre" placeholder="Nombre" required maxlength="30" class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm focus:ring-primary outline-none shadow-sm transition-all">
+                            <input type="text" id="weeklyApellido" name="apellido" placeholder="Apellido" required maxlength="30" class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm focus:ring-primary outline-none shadow-sm transition-all">
                         </div>
                         <input type="tel" id="weeklyCelular" name="celular" placeholder="WhatsApp / Celular" required class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm focus:ring-primary outline-none shadow-sm transition-all">
                         
@@ -259,17 +262,13 @@
     <!-- Admin Weekly View (Exclusiva de Negocio) -->
     <div id="adminWeeklyView" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-8 bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-x-auto">
-            <div class="flex justify-between items-center mb-6 min-w-[700px]">
-                <div class="flex items-center gap-4">
-                    <h2 id="adminWeekMonthYear" class="font-bold text-xl uppercase tracking-widest text-slate-800 dark:text-slate-200">Mes Año</h2>
-                    <button id="btnMultiSelect" onclick="toggleMultiSelectMode()" class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-bold text-sm transition-all">
-                        <span class="material-symbols-outlined text-[18px]">checklist</span> <span class="hidden sm:inline">Seleccionar días</span>
-                    </button>
-                </div>
-                <div class="flex gap-2">
-                    <button id="adminPrevWeekBtn" class="w-10 h-10 flex items-center justify-center border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"><span class="material-symbols-outlined text-slate-400">chevron_left</span></button>
-                    <button id="adminNextWeekBtn" class="w-10 h-10 flex items-center justify-center border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"><span class="material-symbols-outlined text-slate-400">chevron_right</span></button>
-                </div>
+            <div class="flex justify-center items-center mb-6 min-w-[700px] relative">
+                <button id="btnMultiSelect" onclick="toggleMultiSelectMode()" class="absolute left-0 flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[18px]">checklist</span> <span class="hidden sm:inline">Seleccionar días</span>
+                </button>
+                <button id="adminPrevWeekBtn" class="w-10 h-10 flex items-center justify-center border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"><span class="material-symbols-outlined text-slate-400">chevron_left</span></button>
+                <h2 id="adminWeekMonthYear" class="font-bold text-xl uppercase tracking-widest text-slate-800 dark:text-slate-200 text-center w-48 mx-4">Mes Año</h2>
+                <button id="adminNextWeekBtn" class="w-10 h-10 flex items-center justify-center border border-slate-200 dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"><span class="material-symbols-outlined text-slate-400">chevron_right</span></button>
             </div>
             <div id="adminWeeklyGrid" class="flex gap-3 min-w-[700px]">
                 <!-- Se inyectan las 7 columnas desde JS -->

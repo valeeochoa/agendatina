@@ -40,6 +40,9 @@ $method = $_SERVER['REQUEST_METHOD'];
 // OBTENER SERVICIOS (MÉTODO GET)
 // =========================================================================
 if ($method === 'GET') {
+    // Liberar la sesión para permitir peticiones concurrentes
+    session_write_close();
+
     try {
         $id_negocio = null;
 

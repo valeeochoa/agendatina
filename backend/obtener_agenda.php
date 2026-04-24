@@ -7,6 +7,9 @@ if (!isset($_SESSION['id_negocio'])) {
     exit;
 }
 
+// Liberar la sesión para no bloquear otras peticiones AJAX (Mejora drástica de velocidad)
+session_write_close();
+
 require_once __DIR__ . '/conexion.php';
 
 try {

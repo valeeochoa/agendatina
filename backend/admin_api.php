@@ -84,6 +84,9 @@ $method = $_SERVER['REQUEST_METHOD'];
 // OBTENER TODOS LOS CLIENTES (MÉTODO GET)
 // =========================================================================
 if ($method === 'GET') {
+    // Liberar la sesión para evitar bloqueos
+    session_write_close();
+
     // Ejecutar auto-suspensión silenciosa antes de devolver los datos a la tabla
     try {
         // Suspende si pasaron > 15 días (prueba), > 30 días (beta), o > 40 días (activo con último pago)
