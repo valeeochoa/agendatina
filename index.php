@@ -52,7 +52,9 @@ try {
         } else {
             include 'calendarioMensual.html';
         }
-    } elseif ($vista === 'calendario2') {
+    } elseif ($vista === 'calendarioMensual') {
+        include 'calendarioMensual.html';
+    } elseif ($vista === 'calendarioSemanal' || $vista === 'calendario2') {
         include 'calendarioSemanal.html';
     } else {
         // Están visitando /tu-negocio (Portada Pública)

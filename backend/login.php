@@ -45,7 +45,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Conectar a la base de datos solo si es un inicio de sesión real
     require_once __DIR__ . '/conexion.php';
 
+    // =========================================================================
+    // RATE LIMITING (Prevención de Fuerza Bruta)
+    // =========================================================================
+    $ip_address = $_SERVER['REMOTE_ADDR'];
+    $max_attempts = 5;  // Máximo de intentos permitidos
+    $lockout_time = 15; // Minutos de bloqueo si se supera el límite
+
     try {
+        // 1. Crear tabla de intentos si no existe
+        try { $pdo->query("SELECT 1 FROM login_attempts LIMIT 1"); } 
+        catch(Exception $e) { 
+            $pdo->exec("CREATE TABLE login_attempts (id INT AUTO_INCREMENT PRIMARY KEY, ip_address VARCHAR(45) NOT NULL, intentos INT DEFAULT 1, ultimo_intento DATETIME, UNIQUE KEY (ip_address))"); 
+        }
+
+        // 2. Limpiar bloqueos expirados (más antiguos que $lockout_time)
+        $pdo->exec("DELETE FROM login_attempts WHERE ultimo_intento < NOW() - INTERVAL $lockout_time MINUTE");
+
+        // 3. Verificar si la IP actual está bloqueada
+        $stmtCheck = $pdo->prepare("SELECT intentos FROM login_attempts WHERE ip_address = :ip");
+        $stmtCheck->execute(['ip' => $ip_address]);
+        $attemptData = $stmtCheck->fetch();
+
+        if ($attemptData && $attemptData['intentos'] >= $max_attempts) {
+            http_response_code(429); // Código HTTP 429: Too Many Requests
+            echo json_encode(['success' => false, 'error' => "Demasiados intentos fallidos. Por seguridad, intenta de nuevo en $lockout_time minutos."]);
+            exit;
+        }
+
         // Buscamos TODOS los usuarios que coincidan con ese email
         $sql = "SELECT u.id, u.nombre_completo, u.password, pn.id_negocio, pn.rol_en_local, n.plan 
                 FROM usuarios u
@@ -58,6 +85,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $users = $stmt->fetchAll();
 
         if (empty($users)) {
+            // Registrar intento fallido
+            $stmtFail = $pdo->prepare("INSERT INTO login_attempts (ip_address, intentos, ultimo_intento) VALUES (:ip, 1, NOW()) ON DUPLICATE KEY UPDATE intentos = intentos + 1, ultimo_intento = NOW()");
+            $stmtFail->execute(['ip' => $ip_address]);
             echo json_encode(['success' => false, 'error' => 'Correo electrónico o contraseña incorrectos.']);
             exit;
         }
@@ -71,9 +101,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (!$validUser) {
+            // Registrar intento fallido
+            $stmtFail = $pdo->prepare("INSERT INTO login_attempts (ip_address, intentos, ultimo_intento) VALUES (:ip, 1, NOW()) ON DUPLICATE KEY UPDATE intentos = intentos + 1, ultimo_intento = NOW()");
+            $stmtFail->execute(['ip' => $ip_address]);
             echo json_encode(['success' => false, 'error' => 'Correo electrónico o contraseña incorrectos.']);
             exit;
         }
+
+        // Reseteamos los intentos si el login es exitoso
+        $pdo->prepare("DELETE FROM login_attempts WHERE ip_address = :ip")->execute(['ip' => $ip_address]);
 
         // Credenciales correctas: Creamos la sesión
         $_SESSION['user_id'] = $validUser['id']; 

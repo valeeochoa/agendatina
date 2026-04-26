@@ -2,6 +2,13 @@
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
+
+require_once __DIR__ . '/phpmailer/Exception.php';
+require_once __DIR__ . '/phpmailer/PHPMailer.php';
+require_once __DIR__ . '/phpmailer/SMTP.php';
+
 // Asegurarnos de que el superadministrador SIEMPRE trabaje en la base de datos real
 if (isset($_SESSION['is_demo'])) {
     unset($_SESSION['is_demo']);
@@ -75,6 +82,17 @@ catch(Exception $e) {
     )"); 
 }
 
+try { $pdo->query("SELECT 1 FROM admin_notas LIMIT 1"); } 
+catch(Exception $e) { 
+    $pdo->exec("CREATE TABLE admin_notas (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        id_negocio INT NOT NULL,
+        nota TEXT,
+        fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY (id_negocio)
+    )"); 
+}
+
 // Ampliar la columna password para que no corte la encriptación
 try { $pdo->exec("ALTER TABLE usuarios MODIFY password VARCHAR(255)"); } catch(Exception $e) {}
 
@@ -89,19 +107,21 @@ if ($method === 'GET') {
 
     // Ejecutar auto-suspensión silenciosa antes de devolver los datos a la tabla
     try {
-        // Suspende si pasaron > 15 días (prueba), > 30 días (beta), o > 40 días (activo con último pago)
-        $pdo->exec("UPDATE negocios SET estado_pago = 'suspendido' WHERE (estado_pago = 'prueba' AND DATEDIFF(NOW(), fecha_alta) > 15) OR (estado_pago = 'beta' AND DATEDIFF(NOW(), fecha_alta) > 30) OR (estado_pago IN ('activo', 'pagado') AND ultimo_pago IS NOT NULL AND DATEDIFF(NOW(), ultimo_pago) > 40)");
+        // Suspende si pasaron > 15 días (prueba), > 35 días (beta), o > 35 días (activo con último pago)
+        $pdo->exec("UPDATE negocios SET estado_pago = 'suspendido' WHERE (estado_pago = 'prueba' AND DATEDIFF(NOW(), fecha_alta) > 15) OR (estado_pago = 'beta' AND DATEDIFF(NOW(), fecha_alta) > 35) OR (estado_pago IN ('activo', 'pagado') AND ultimo_pago IS NOT NULL AND DATEDIFF(NOW(), ultimo_pago) > 35)");
     } catch(Exception $e) {}
 
     try {
         $stmt = $pdo->query("
             SELECT n.id, n.nombre_fantasia, n.ruta, n.plan, n.estado_pago, n.fecha_alta, 
                    n.ultimo_pago, n.comprobante, u.nombre_completo, u.email,
-                   COALESCE(cw.tipo_calendario, 'clasico') AS tipo_calendario
+                   COALESCE(cw.tipo_calendario, 'clasico') AS tipo_calendario,
+                   an.nota AS nota_interna
             FROM negocios n
             LEFT JOIN personal_negocio pn ON n.id = pn.id_negocio AND pn.rol_en_local = 'admin'
             LEFT JOIN usuarios u ON pn.id_usuario = u.id
             LEFT JOIN configuracion_web cw ON n.id = cw.id_negocio
+            LEFT JOIN admin_notas an ON n.id = an.id_negocio
             ORDER BY n.id DESC
         ");
         $negocios = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -115,7 +135,17 @@ if ($method === 'GET') {
         ");
         $notifs_admin = $stmtNotifs->fetchAll(PDO::FETCH_ASSOC);
         
-        echo json_encode(['success' => true, 'data' => $negocios, 'notificaciones' => $notifs_admin]);
+        // Obtener las notas internas más recientes
+        $stmtNotas = $pdo->query("
+            SELECT an.nota, an.fecha_actualizacion, n.nombre_fantasia, n.id AS id_negocio
+            FROM admin_notas an
+            LEFT JOIN negocios n ON an.id_negocio = n.id
+            WHERE an.nota IS NOT NULL AND TRIM(an.nota) != ''
+            ORDER BY an.fecha_actualizacion DESC LIMIT 10
+        ");
+        $notas_recientes = $stmtNotas->fetchAll(PDO::FETCH_ASSOC);
+        
+        echo json_encode(['success' => true, 'data' => $negocios, 'notificaciones' => $notifs_admin, 'notas_recientes' => $notas_recientes]);
     } catch (PDOException $e) {
         echo json_encode(['success' => false, 'error' => 'Error BD: ' . $e->getMessage()]);
     }
@@ -142,8 +172,7 @@ elseif ($method === 'POST') {
     }
 
     $nombre_completo = trim($data['nombre_completo'] ?? '');
-    $email = trim($data['email'] ?? '');
-    $password = trim($data['password'] ?? '');
+    $email =  = trim($data['password'] ?? '');
     $nombre_fantasia = trim($data['nombre_fantasia'] ?? '');
     $rutaRaw = $data['ruta'] ?? $data['subdominio'] ?? ''; // Compatibilidad con variables previas
     $ruta = preg_replace('/[^a-zA-Z0-9-]/', '', strtolower(trim($rutaRaw))); // Sanitizar URL
@@ -152,6 +181,11 @@ elseif ($method === 'POST') {
 
     if (!$nombre_completo || !$email || !$password || !$nombre_fantasia || !$ruta) {
         echo json_encode(['success' => false, 'error' => 'Por favor completa todos los campos obligatorios.']);
+        exit;
+    }
+    
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(['success' => false, 'error' => 'El formato del correo electrónico no es válido.']);
         exit;
     }
     
@@ -260,24 +294,52 @@ elseif ($method === 'PUT') {
     $plan = $data['plan'] ?? null;
     $estado_pago = $data['estado_pago'] ?? null;
     $action = $data['action'] ?? null;
+    $motivo_rechazo = trim($data['motivo_rechazo'] ?? '');
+    $nota_interna = $data['nota_interna'] ?? null;
 
     if (!$id_negocio) {
         echo json_encode(['success' => false, 'error' => 'Falta el ID del negocio para la actualización.']);
         exit;
     }
 
+    // Si vamos a rechazar, obtenemos los datos del usuario para notificarle por email
+    $userInfo = null;
+    if ($action === 'rechazar_pago') {
+        $stmtUser = $pdo->prepare("
+            SELECT u.email, u.nombre_completo, n.nombre_fantasia
+            FROM usuarios u
+            JOIN personal_negocio pn ON u.id = pn.id_usuario
+            JOIN negocios n ON pn.id_negocio = n.id
+            WHERE pn.id_negocio = :id_negocio AND pn.rol_en_local = 'admin'
+            LIMIT 1
+        ");
+        $stmtUser->execute(['id_negocio' => $id_negocio]);
+        $userInfo = $stmtUser->fetch(PDO::FETCH_ASSOC);
+    }
+
     try {
         $pdo->beginTransaction();
 
-        if ($action === 'edit_client') {
+        if ($action === 'save_note') {
+            if ($nota_interna !== null) {
+                $stmt = $pdo->prepare(
+                    "INSERT INTO admin_notas (id_negocio, nota) VALUES (:id_negocio, :nota)
+                     ON DUPLICATE KEY UPDATE nota = :nota"
+                );
+                $stmt->execute(['id_negocio' => $id_negocio, 'nota' => $nota_interna]);
+            }
+        } elseif ($action === 'edit_client') {
             $nombre_completo = trim($data['nombre_completo'] ?? '');
-            $email = trim($data['email'] ?? '');
-            $nombre_fantasia = trim($data['nombre_fantasia'] ?? '');
+            $email = filter_var(trim($data['email'] ?? '')ata['nombre_fantasia'] ?? '');
             $ruta = preg_replace('/[^a-zA-Z0-9-]/', '', strtolower(trim($data['ruta'] ?? '')));
             $password = trim($data['password'] ?? '');
 
             if (!$nombre_completo || !$email || !$nombre_fantasia || !$ruta) {
                 throw new Exception('Faltan datos obligatorios (Nombre, Email, Negocio o Ruta).');
+            }
+            
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new Exception('El formato del correo electrónico no es válido.');
             }
 
             // Validar ruta única
@@ -336,6 +398,9 @@ elseif ($method === 'PUT') {
             if ($action === 'registrar_pago') {
                 $updates[] = "estado_pago = 'activo'";
                 $updates[] = "ultimo_pago = NOW()";
+            } elseif ($action === 'rechazar_pago') {
+                $updates[] = "estado_pago = 'suspendido'";
+                $updates[] = "comprobante = NULL";
             } else {
                 if ($plan !== null) {
                     $updates[] = "plan = :plan";
@@ -355,6 +420,51 @@ elseif ($method === 'PUT') {
         }
 
         $pdo->commit();
+
+        // Enviar email de rechazo DESPUÉS de confirmar que la BD se actualizó
+        if ($action === 'rechazar_pago' && $userInfo && !empty($userInfo['email'])) {
+            try {
+                $mail = new PHPMailer(true);
+                $mail->isSMTP();
+                $mail->Host       = 'localhost';
+                $mail->SMTPAuth   = true;
+                $mail->Username   = 'no-reply@agendatina.site';
+                $mail->Password   = 'Tlqb*Er0kQ';
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                $mail->Port       = 587;
+                $mail->CharSet    = 'UTF-8';
+                $mail->SMTPOptions = array('ssl' => array('verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true));
+
+                $mail->setFrom('no-reply@agendatina.site', 'Agendatina Pagos');
+                $mail->addAddress($userInfo['email']);
+                $mail->isHTML(true);
+                $mail->Subject = 'Problema con tu pago en Agendatina';
+                
+                $nombre = !empty($userInfo['nombre_completo']) ? explode(' ', $userInfo['nombre_completo'])[0] : 'Usuario';
+                $nombreNegocio = $userInfo['nombre_fantasia'] ?? 'tu negocio';
+
+                $motivoHtml = '';
+                if (!empty($motivo_rechazo)) {
+                    $motivoHtml = "<div style='background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 12px 16px; margin: 20px 0; border-radius: 6px;'>
+                        <strong style='color: #991b1b; display: block; margin-bottom: 4px;'>Motivo del rechazo:</strong>
+                        <span style='color: #b91c1c;'>" . nl2br(htmlspecialchars($motivo_rechazo)) . "</span>
+                    </div>";
+                }
+
+                $mail->Body = "<div style='font-family: Arial, sans-serif; padding: 20px; background: #f8fafc; border-radius: 12px; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0;'>
+                    <h2 style='color: #ef4444;'>Hola $nombre,</h2>
+                    <p style='font-size: 16px; color: #475569;'>Te informamos que el último comprobante de pago que subiste para <strong>$nombreNegocio</strong> fue rechazado.</p>
+                    $motivoHtml
+                    <p style='font-size: 16px; color: #475569;'>Por este motivo, tu cuenta ha sido suspendida temporalmente. Para reactivarla, por favor, ingresa a tu panel de control y realiza el pago nuevamente subiendo un comprobante válido.</p>
+                    <div style='text-align: center; margin: 35px 0;'><a href='https://agendatina.site/dashboard.html' style='background-color: #3b82f6; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Ir a mi Panel</a></div>
+                    <p style='font-size: 14px; color: #94a3b8;'>Si crees que esto es un error, por favor, contacta a soporte.</p>
+                </div>";
+
+                $mail->send();
+            } catch (PHPMailerException $mailEx) {
+                error_log("Error al enviar correo de rechazo de pago: " . $mail->ErrorInfo);
+            }
+        }
 
         echo json_encode(['success' => true]);
     } catch (Exception $e) {

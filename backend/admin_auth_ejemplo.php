@@ -3,14 +3,14 @@ session_start();
 header('Content-Type: application/json; charset=utf-8');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'] ?? '';
-    $password = $_POST['password'] ?? '';
+    $username = (string)($_POST['username'] ?? '');
+    $password = (string)($_POST['password'] ?? '');
 
     // Credenciales de Super Admin
     $super_admin_user = 'valentina';
     $super_admin_pass = '';
 
-    if ($username === $super_admin_user && $password === $super_admin_pass) {
+    if (hash_equals($super_admin_user, $username) && hash_equals($super_admin_pass, $password)) {
         $_SESSION['is_superadmin'] = true;
         unset($_SESSION['is_demo']); // Asegurar que el admin opere en la BD real
         echo json_encode(['success' => true]);

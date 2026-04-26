@@ -41,12 +41,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nombre = $_POST['nombre'] ?? '';
-    $password = $_POST['password'] ?? '';
-    $ruta = preg_replace('/[^a-zA-Z0-9-]/', '', strtolower(trim($_POST['ruta'] ?? $_POST['subdominio'] ?? '')));
-    $color_primario = $_POST['color_primario'] ?? null;
-    $color_secundario = $_POST['color_secundario'] ?? null;
-    $color_fondo = $_POST['color_fondo'] ?? null;
+    $contentType = isset($_SERVER["CONTENT_TYPE"]) ? trim($_SERVER["CONTENT_TYPE"]) : '';
+    if (strpos($contentType, 'application/json') !== false) {
+        $data = json_decode(file_get_contents('php://input'), true);
+    } else {
+        $data = $_POST;
+    }
+
+    $nombre = $data['nombre'] ?? '';
+    $password = $data['password'] ?? '';
+    $rutaRaw = $data['ruta'] ?? $data['subdominio'] ?? '';
+    $ruta = preg_replace('/[^a-zA-Z0-9-]/', '', strtolower(trim($rutaRaw)));
+    $color_primario = $data['color_primario'] ?? null;
+    $color_secundario = $data['color_secundario'] ?? null;
+    $color_fondo = $data['color_fondo'] ?? null;
 
     try {
         $pdo->beginTransaction();

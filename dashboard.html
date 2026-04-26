@@ -33,9 +33,9 @@
                     </p>
                     <p class="text-xs text-slate-500" id="navPlanName">Cargando plan...</p>
                 </div>
-                <div id="navAvatar" class="w-10 h-10 rounded-full signature-glow text-white flex items-center justify-center font-bold shadow-md cursor-pointer overflow-hidden">
+                <a href="perfil.html" id="navAvatar" class="w-10 h-10 rounded-full signature-glow text-white flex items-center justify-center font-bold shadow-md cursor-pointer overflow-hidden hover:ring-2 hover:ring-primary hover:ring-offset-2 transition-all" title="Ir a Mi Perfil">
                     ML
-                </div>
+                </a>
 
                 <!-- Campanita de Notificaciones -->
                 <div class="relative cursor-pointer text-slate-400 hover:text-primary transition-colors flex items-center ml-2" title="Notificaciones" onclick="toggleNotifications(event)">
@@ -58,6 +58,10 @@
                         </div>
                     </div>
                 </div>
+
+                <a href="perfil.html" class="text-slate-400 hover:text-primary transition-colors ml-2" title="Mi Perfil">
+                    <span class="material-symbols-outlined text-[28px]">account_circle</span>
+                </a>
 
                 <button onclick="logoutDashboard()" class="text-slate-400 hover:text-red-500 transition-colors ml-2" title="Cerrar sesión">
                     <span class="material-symbols-outlined">logout</span>
@@ -148,7 +152,7 @@
             </a>
 
             <!-- Mi Perfil -->
-            <a href="javascript:void(0)" onclick="openProfileModal()" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-400 transition-all flex flex-col relative overflow-hidden">
+            <a href="perfil.html" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-400 transition-all flex flex-col relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                     <span class="material-symbols-outlined text-9xl text-slate-800">account_circle</span>
                 </div>

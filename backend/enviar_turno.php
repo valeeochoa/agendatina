@@ -66,12 +66,12 @@ if ($dbStatus === 'prueba') {
 } elseif ($dbStatus === 'beta') {
     $fechaAltaStr = !empty($negocioBD['fecha_alta']) ? $negocioBD['fecha_alta'] : 'now';
     $fechaAlta = new DateTime($fechaAltaStr);
-    $fechaAlta->modify('+30 days');
+    $fechaAlta->modify('+35 days');
     if ($today > $fechaAlta) { $isSuspended = true; }
 } elseif ($dbStatus === 'activo' || $dbStatus === 'pagado') {
     $ultimoPagoStr = !empty($negocioBD['ultimo_pago']) ? $negocioBD['ultimo_pago'] : '2000-01-01';
     $ultimoPago = new DateTime($ultimoPagoStr);
-    $ultimoPago->modify('+40 days');
+    $ultimoPago->modify('+35 days');
     if ($today > $ultimoPago) { $isSuspended = true; }
 }
 

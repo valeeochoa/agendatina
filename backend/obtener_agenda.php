@@ -13,9 +13,31 @@ session_write_close();
 require_once __DIR__ . '/conexion.php';
 
 try {
-    // Filtrar los turnos por el negocio del usuario logueado
-    $stmt = $pdo->prepare("SELECT * FROM turnos WHERE id_negocio = :id_negocio ORDER BY fecha DESC, hora ASC");
-    $stmt->execute(['id_negocio' => $_SESSION['id_negocio']]);
+    // 1. MIGRACIÓN: Crear índice compuesto si no existe (Optimización extrema de lectura)
+    try { $pdo->exec("ALTER TABLE turnos ADD INDEX idx_negocio_fecha (id_negocio, fecha)"); } 
+    catch (Exception $e) { /* El índice ya existe, continuamos silenciosamente */ }
+
+    $historial = isset($_GET['historial']) && $_GET['historial'] === '1';
+
+    if ($historial) {
+        // Sin límite de fecha para exportar el historial completo a Excel
+        $sql = "SELECT id, cliente_nombre, nombre, apellido, cliente_celular, celular, fecha, hora, servicio, profesional, estado 
+                FROM turnos 
+                WHERE id_negocio = :id_negocio 
+                ORDER BY fecha DESC, hora ASC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['id_negocio' => $_SESSION['id_negocio']]);
+    } else {
+        // Ventana de tiempo (60 días) para vista normal de agenda
+        $min_fecha = date('Y-m-d', strtotime('-60 days'));
+        $sql = "SELECT id, cliente_nombre, nombre, apellido, cliente_celular, celular, fecha, hora, servicio, profesional, estado 
+                FROM turnos 
+                WHERE id_negocio = :id_negocio AND fecha >= :min_fecha 
+                ORDER BY fecha DESC, hora ASC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['id_negocio' => $_SESSION['id_negocio'], 'min_fecha' => $min_fecha]);
+    }
+    
     $turnos = $stmt->fetchAll();
     
     echo json_encode($turnos);

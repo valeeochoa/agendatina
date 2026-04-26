@@ -149,6 +149,45 @@ if ($method === 'POST') {
     $imagen2 = $data['imagen2'] ?? $_POST['imagen2'] ?? '';
     $imagen3 = $data['imagen3'] ?? $_POST['imagen3'] ?? '';
 
+    // =========================================================================
+    // FUNCIÓN DE OPTIMIZACIÓN DE IMÁGENES (Redimensión y conversión a WebP)
+    // =========================================================================
+    function optimizarImagen($origen, $destino, $calidad = 80, $max_resolucion = 1000) {
+        $info = @getimagesize($origen);
+        if (!$info) return false;
+
+        $mime = $info['mime'];
+        switch ($mime) {
+            case 'image/jpeg': $imagen = @imagecreatefromjpeg($origen); break;
+            case 'image/png': $imagen = @imagecreatefrompng($origen); break;
+            case 'image/webp': $imagen = @imagecreatefromwebp($origen); break;
+            case 'image/gif': $imagen = @imagecreatefromgif($origen); break;
+            default: return false;
+        }
+        if (!$imagen) return false;
+
+        $ancho = imagesx($imagen);
+        $alto = imagesy($imagen);
+        $nuevo_ancho = $ancho; $nuevo_alto = $alto;
+
+        if ($ancho > $max_resolucion || $alto > $max_resolucion) {
+            $ratio = $ancho / $alto;
+            if ($ancho > $alto) { $nuevo_ancho = $max_resolucion; $nuevo_alto = $max_resolucion / $ratio; } 
+            else { $nuevo_alto = $max_resolucion; $nuevo_ancho = $max_resolucion * $ratio; }
+        }
+
+        $nueva_imagen = imagecreatetruecolor($nuevo_ancho, $nuevo_alto);
+        imagealphablending($nueva_imagen, false);
+        imagesavealpha($nueva_imagen, true);
+        $transparente = imagecolorallocatealpha($nueva_imagen, 255, 255, 255, 127);
+        imagefilledrectangle($nueva_imagen, 0, 0, $nuevo_ancho, $nuevo_alto, $transparente);
+        imagecopyresampled($nueva_imagen, $imagen, 0, 0, 0, 0, $nuevo_ancho, $nuevo_alto, $ancho, $alto);
+        imagedestroy($imagen);
+        $exito = imagewebp($nueva_imagen, $destino, $calidad);
+        imagedestroy($nueva_imagen);
+        return $exito;
+    }
+
     // Procesar archivo de foto si se envió uno desde la computadora
     if (isset($_FILES['foto_profesional_file']) && $_FILES['foto_profesional_file']['error'] === UPLOAD_ERR_OK) {
         $file = $_FILES['foto_profesional_file'];
@@ -159,9 +198,9 @@ if ($method === 'POST') {
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
-            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-            $filename = 'prof_' . $id_negocio . '_' . time() . '_' . rand(100,999) . '.' . $extension;
-            if (move_uploaded_file($file['tmp_name'], $uploadDir . $filename)) {
+            // Forzamos la extensión WebP y optimizamos (Max: 800px para perfiles)
+            $filename = 'prof_' . $id_negocio . '_' . time() . '_' . rand(100,999) . '.webp';
+            if (optimizarImagen($file['tmp_name'], $uploadDir . $filename, 80, 800)) {
                 $foto_profesional = 'backend/uploads/profesionales/' . $filename;
             }
         }
@@ -182,10 +221,10 @@ if ($method === 'POST') {
                 exit;
             }
 
-            $ext = pathinfo($_FILES[$key]['name'], PATHINFO_EXTENSION);
-            $filename = "serv_{$id_negocio}_{$i}_" . time() . ".$ext";
+            // Forzamos la extensión WebP y optimizamos (Max: 1000px para servicios)
+            $filename = "serv_{$id_negocio}_{$i}_" . time() . ".webp";
 
-            if (move_uploaded_file($_FILES[$key]['tmp_name'], $uploadDirServ . $filename)) {
+            if (optimizarImagen($_FILES[$key]['tmp_name'], $uploadDirServ . $filename, 80, 1000)) {
                 ${"imagen".$i} = 'backend/uploads/servicios/' . $filename;
             }
         }

@@ -46,16 +46,52 @@ if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
 }
 
+// =========================================================================
+// FUNCIÓN DE OPTIMIZACIÓN DE IMÁGENES (Redimensión y conversión a WebP)
+// =========================================================================
+function optimizarImagen($origen, $destino, $calidad = 85, $max_resolucion = 600) {
+    $info = @getimagesize($origen);
+    if (!$info) return false;
+
+    $mime = $info['mime'];
+    switch ($mime) {
+        case 'image/jpeg': $imagen = @imagecreatefromjpeg($origen); break;
+        case 'image/png': $imagen = @imagecreatefrompng($origen); break;
+        case 'image/webp': $imagen = @imagecreatefromwebp($origen); break;
+        case 'image/gif': $imagen = @imagecreatefromgif($origen); break;
+        default: return false;
+    }
+    if (!$imagen) return false;
+
+    $ancho = imagesx($imagen); $alto = imagesy($imagen);
+    $nuevo_ancho = $ancho; $nuevo_alto = $alto;
+
+    if ($ancho > $max_resolucion || $alto > $max_resolucion) {
+        $ratio = $ancho / $alto;
+        if ($ancho > $alto) { $nuevo_ancho = $max_resolucion; $nuevo_alto = $max_resolucion / $ratio; } 
+        else { $nuevo_alto = $max_resolucion; $nuevo_ancho = $max_resolucion * $ratio; }
+    }
+
+    $nueva_imagen = imagecreatetruecolor($nuevo_ancho, $nuevo_alto);
+    imagealphablending($nueva_imagen, false); imagesavealpha($nueva_imagen, true);
+    $transparente = imagecolorallocatealpha($nueva_imagen, 255, 255, 255, 127);
+    imagefilledrectangle($nueva_imagen, 0, 0, $nuevo_ancho, $nuevo_alto, $transparente);
+    imagecopyresampled($nueva_imagen, $imagen, 0, 0, 0, 0, $nuevo_ancho, $nuevo_alto, $ancho, $alto);
+    imagedestroy($imagen);
+    $exito = imagewebp($nueva_imagen, $destino, $calidad);
+    imagedestroy($nueva_imagen);
+    return $exito;
+}
+
 // 7. Generar un nombre de archivo único para evitar sobrescrituras
-$extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-$filename = 'logo_negocio_' . $id_negocio . '_' . time() . '.' . $extension;
+$filename = 'logo_negocio_' . $id_negocio . '_' . time() . '.webp';
 $destination = $uploadDir . $filename;
 
 // Ruta relativa pública que se guardará en la base de datos y leerá el frontend
 $publicUrl = 'backend/uploads/logos/' . $filename;
 
-// 8. Mover el archivo subido a la carpeta de destino
-if (move_uploaded_file($file['tmp_name'], $destination)) {
+// 8. Optimizar, convertir a WebP y guardar en la carpeta de destino
+if (optimizarImagen($file['tmp_name'], $destination, 85, 600)) {
     
     require_once __DIR__ . '/conexion.php';
 

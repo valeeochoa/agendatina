@@ -301,7 +301,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
             if (hasMore) {
                 listHist.innerHTML += `
                     <div class="mt-2 mb-6 flex justify-center">
-                        <button onclick="window.loadMoreHistory()" class="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl transition-colors border border-slate-200 dark:border-slate-600 flex items-center gap-2 shadow-sm">
+                        <button id="btnLoadMoreHistory" onclick="window.loadMoreHistory()" class="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl transition-colors border border-slate-200 dark:border-slate-600 flex items-center gap-2 shadow-sm">
                             <span class="material-symbols-outlined text-[18px]">expand_more</span> Cargar más turnos
                         </button>
                     </div>
@@ -355,7 +355,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
             if (hasMoreEliminados) {
                 listElim.innerHTML += `
                     <div class="mt-2 mb-6 flex justify-center">
-                        <button onclick="window.loadMoreTrash()" class="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl transition-colors border border-slate-200 dark:border-slate-600 flex items-center gap-2 shadow-sm">
+                        <button id="btnLoadMoreTrash" onclick="window.loadMoreTrash()" class="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl transition-colors border border-slate-200 dark:border-slate-600 flex items-center gap-2 shadow-sm">
                             <span class="material-symbols-outlined text-[18px]">expand_more</span> Cargar más turnos eliminados
                         </button>
                     </div>
@@ -444,23 +444,41 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.loadMoreHistory = function() {
-    window.isLoadingMoreHistory = true;
-    window.historyLimit += 15;
-    const currentSearch = document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : '';
-    if (window.agendaData) {
-        window.renderAgendaTurnos(window.agendaData, currentSearch);
+    const btn = document.getElementById('btnLoadMoreHistory');
+    if (btn) {
+        btn.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span> Cargando...`;
+        btn.classList.add('pointer-events-none', 'opacity-70');
     }
-    setTimeout(() => { window.isLoadingMoreHistory = false; }, 500);
+    
+    window.isLoadingMoreHistory = true;
+    
+    setTimeout(() => {
+        window.historyLimit += 15;
+        const currentSearch = document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : '';
+        if (window.agendaData) {
+            window.renderAgendaTurnos(window.agendaData, currentSearch);
+        }
+        setTimeout(() => { window.isLoadingMoreHistory = false; }, 50);
+    }, 500);
 };
 
 window.loadMoreTrash = function() {
-    window.isLoadingMoreTrash = true;
-    window.trashLimit += 15;
-    const currentSearch = document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : '';
-    if (window.agendaData) {
-        window.renderAgendaTurnos(window.agendaData, currentSearch);
+    const btn = document.getElementById('btnLoadMoreTrash');
+    if (btn) {
+        btn.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span> Cargando...`;
+        btn.classList.add('pointer-events-none', 'opacity-70');
     }
-    setTimeout(() => { window.isLoadingMoreTrash = false; }, 500);
+    
+    window.isLoadingMoreTrash = true;
+    
+    setTimeout(() => {
+        window.trashLimit += 15;
+        const currentSearch = document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : '';
+        if (window.agendaData) {
+            window.renderAgendaTurnos(window.agendaData, currentSearch);
+        }
+        setTimeout(() => { window.isLoadingMoreTrash = false; }, 50);
+    }, 500);
 };
 
 window.switchAgendaTab = function(tab) {

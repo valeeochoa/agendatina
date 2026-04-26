@@ -19,8 +19,8 @@ window.loadDashboardData = function() {
         if (window.currentBusinessData && window.currentBusinessData.ruta) {
             const cardCalendario = document.getElementById('cardCalendario');
             const isWeekly = window.currentWebData?.tipo_calendario === 'semanal';
-            const calPage = isWeekly ? 'calendarioSemanal' : 'calendarioMensual';
-            if (cardCalendario) cardCalendario.href = `${window.currentBusinessData.ruta}/${calPage}`;
+                const calPage = isWeekly ? 'calendarioSemanal.html' : 'calendarioMensual.html';
+                if (cardCalendario) cardCalendario.href = calPage;
         }
     }, 200);
 };

@@ -262,14 +262,7 @@ function loadDashboardData() {
                 // Actualizar el enlace al calendario detectando si es mensual o semanal
                 if (cardCalendario) {
                     const isWeekly = webData.tipo_calendario === 'semanal';
-                    
-                    if (business.ruta) {
-                        // Si usa URL amigable (ej: agendatina.site/demo/calendario)
-                        cardCalendario.href = isWeekly ? `${business.ruta}/calendarioSemanal` : `${business.ruta}/calendarioMensual`;
-                    } else {
-                        // Si usa archivos directos
-                        cardCalendario.href = isWeekly ? 'calendarioSemanal.html' : 'calendarioMensual.html';
-                    }
+                    cardCalendario.href = isWeekly ? 'calendarioSemanal.html' : 'calendarioMensual.html';
                 }
 
                 if (cardAgenda && cardWeb) {
@@ -339,16 +332,26 @@ function checkSubscription(subscriptionData) {
     const lastPayment = subscriptionData.lastPaymentDate ? new Date(subscriptionData.lastPaymentDate.replace(/-/g, '/') + ' 00:00:00') : null;
 
     let cycleStart = fechaAlta;
+    let cycleDays = 30;
+    let graceDays = 0;
+
     if (subscriptionData.status === 'activo' || subscriptionData.status === 'pagado') {
         if (lastPayment) cycleStart = lastPayment;
+        cycleDays = 30;
+        graceDays = 5;
+    } else if (subscriptionData.status === 'prueba') {
+        cycleDays = 15;
+        graceDays = 0;
+    } else if (subscriptionData.status === 'beta') {
+        cycleDays = 30;
+        graceDays = 5;
     }
 
-    // Se calculan 30 días de ciclo + 10 días de periodo de gracia para pagar
     const cycleEnd = new Date(cycleStart);
-    cycleEnd.setDate(cycleEnd.getDate() + 30);
+    cycleEnd.setDate(cycleEnd.getDate() + cycleDays);
 
     const paymentDeadline = new Date(cycleEnd);
-    paymentDeadline.setDate(paymentDeadline.getDate() + 10);
+    paymentDeadline.setDate(paymentDeadline.getDate() + graceDays);
 
     const diffToCycleEnd = Math.ceil((cycleEnd - todayZero) / (1000 * 60 * 60 * 24));
     const diffToDeadline = Math.ceil((paymentDeadline - todayZero) / (1000 * 60 * 60 * 24));
@@ -367,29 +370,48 @@ function checkSubscription(subscriptionData) {
             isDashboardBannerHidden = false;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-blue-50 border border-blue-200 text-blue-800';
             dashIcon = 'schedule';
-            dashMsg = `Estás en tu período de prueba. Te quedan ${diffToCycleEnd} días de acceso gratuito.`;
+            dashMsg = `Estás en tu período de prueba. Te quedan ${diffToCycleEnd} días de acceso gratuito. Luego, deberás abonar el mes completo, el cual correrá a partir de ese momento.`;
+            dashBtnText = 'Pagar ahora';
+            subscriptionData.status = 'suspendido'; // Lo forzamos visualmente a suspendido
+            isDashboardBannerHidden = false;
+            dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-red-50 border border-red-200 text-red-800';
+            dashIcon = 'error';
+            dashMsg = `Tu período de prueba ha finalizado. Debes abonar el mes completo para reactivar el servicio. El nuevo mes correrá a partir de que el pago sea aprobado.`;
+            dashBtnText = 'Pagar Plan';
+            dashBtnClass = 'bg-red-600 hover:bg-red-700 text-white';
+            showActionBtn = true;
+        }
+    } else if (subscriptionData.status === 'beta') {
+        if (diffToCycleEnd > 0) {
+            isDashboardBannerHidden = false;
+            dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-blue-50 border border-blue-200 text-blue-800';
+            dashIcon = 'schedule';
+            dashMsg = `Estás en la fase beta. Te quedan ${diffToCycleEnd} días gratuitos.`;
             showActionBtn = false;
         } else if (diffToDeadline >= 0) {
             isDashboardBannerHidden = false;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-amber-50 border border-amber-200 text-amber-800';
             dashIcon = 'warning';
-            dashMsg = `Tu periodo de prueba ha finalizado. Tienes <strong>${diffToDeadline} días</strong> para abonar tu primer mes antes de que se suspenda el servicio.`;
+            dashMsg = `Tu periodo beta ha finalizado. Tienes <strong>${diffToDeadline} días de gracia</strong> para abonar tu primer mes antes de que se suspenda el servicio.`;
             dashBtnText = 'Pagar ahora';
             dashBtnClass = 'bg-amber-500 hover:bg-amber-600 text-white';
             showActionBtn = true;
         } else {
-            subscriptionData.status = 'suspendido'; // Lo forzamos visualmente a suspendido
+            subscriptionData.status = 'suspendido';
         }
     } else if (subscriptionData.status === 'activo' || subscriptionData.status === 'pagado') {
         if (diffToCycleEnd > 0) {
-            // Al día, no mostramos banner o se podría mostrar uno de éxito
-            isDashboardBannerHidden = true;
+            isDashboardBannerHidden = false;
+            dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-emerald-50 border border-emerald-200 text-emerald-800';
+            dashIcon = 'check_circle';
+            dashMsg = `Tu cuenta está al día y tu pago fue aprobado. Te quedan <strong>${diffToCycleEnd} días</strong> de servicio.`;
+            showActionBtn = false;
         } else if (diffToDeadline >= 0) {
             isDashboardBannerHidden = false;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-amber-50 border border-amber-200 text-amber-800';
             dashIcon = 'warning';
-            dashMsg = `Tu mes de servicio ha finalizado. Tienes <strong>${diffToDeadline} días</strong> para renovar tu suscripción y evitar interrupciones.`;
-            dashBtnText = 'Pagar ahora';
+            dashMsg = `Tu mes de servicio ha finalizado. Tienes <strong>${diffToDeadline} días de gracia</strong> para renovar tu suscripción y evitar interrupciones.`;
+            dashBtnText = 'Renovar Plan';
             dashBtnClass = 'bg-amber-500 hover:bg-amber-600 text-white';
             showActionBtn = true;
         } else {
@@ -400,18 +422,22 @@ function checkSubscription(subscriptionData) {
         dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-amber-50 border border-amber-200 text-amber-800';
         dashIcon = 'hourglass_empty';
         dashMsg = 'Tu pago está en revisión. Pronto actualizaremos tu estado.';
-        showActionBtn = false;
+        dashBtnText = 'Ver comprobantes';
+        dashBtnClass = 'bg-amber-500 hover:bg-amber-600 text-white';
+        showActionBtn = true;
     }
 
     // Estado Impago / Suspendido
     if (subscriptionData.status === 'suspendido' || subscriptionData.status === 'unpaid') {
-        isDashboardBannerHidden = false;
-        dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-red-50 border border-red-200 text-red-800';
-        dashIcon = 'error';
-        dashMsg = `Tu cuenta registra un saldo pendiente o tu prueba expiró. Aboná tu suscripción para evitar interrupciones.`;
-        dashBtnText = 'Pagar Plan';
-        dashBtnClass = 'bg-red-600 hover:bg-red-700 text-white';
-        showActionBtn = true;
+        if (!dashMsg) {
+            isDashboardBannerHidden = false;
+            dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-red-50 border border-red-200 text-red-800';
+            dashIcon = 'error';
+            dashMsg = `Tu último comprobante fue rechazado o tu cuenta registra un saldo pendiente. Aboná para reactivar el servicio.`;
+            dashBtnText = 'Pagar Plan';
+            dashBtnClass = 'bg-red-600 hover:bg-red-700 text-white';
+            showActionBtn = true;
+        }
     }
 
     // Renderizado en Dashboard
@@ -428,32 +454,11 @@ function checkSubscription(subscriptionData) {
         subActionBtn.textContent = dashBtnText;
         subActionBtn.className = `px-5 py-2.5 rounded-xl text-sm font-bold transition-transform hover:-translate-y-0.5 ${dashBtnClass}`;
         subActionBtn.classList.remove('hidden');
-        // Reemplazamos la apertura del modal por la redirección a Mercado Pago
-        subActionBtn.onclick = () => window.payWithMercadoPago(subscriptionData.plan);
+        subActionBtn.onclick = () => window.location.href = 'pago.html';
     } else {
         subActionBtn.classList.add('hidden');
     }
 }
-
-// Función para redirigir a Mercado Pago según el plan
-window.payWithMercadoPago = function(plan) {
-    const planStr = (plan || '').toLowerCase();
-    let paymentLink = '';
-
-    if (planStr.includes('intermedio')) {
-        paymentLink = 'https://mpago.la/2f5dgBa'; // <-- Pega aquí el link del Plan Intermedio
-    } else if (planStr.includes('completo') || planStr.includes('premium')) {
-        paymentLink = 'https://mpago.la/27xF54k'; // <-- Pega aquí el link del Plan Completo
-    } else {
-        paymentLink = 'https://mpago.la/2xuupFF'; // <-- Pega aquí el link del Plan Básico
-    }
-
-    if (paymentLink && paymentLink !== '') {
-        window.open(paymentLink, '_blank'); // Abre Mercado Pago en una nueva pestaña
-    } else {
-        alert('El enlace de pago aún no ha sido configurado.');
-    }
-};
 
 // --- GRÁFICO SEMANAL (CHART.JS) ---
 function loadDashboardChart(chartColor) {
@@ -544,7 +549,8 @@ function checkNotifications() {
             const pendientes = data.filter(t => t.estado === 'pendiente');
             if (pendientes.length > 0) {
                 pendientes.forEach(t => {
-                    const notifLink = isBasic ? `calendarioMensual.html?date=${t.fecha}` : `agenda.html?focus=${t.id}`;
+                    const calPage = window.currentWebData?.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
+                    const notifLink = isBasic ? `${calPage}?date=${t.fecha}` : `agenda.html?focus=${t.id}`;
                     currentNotifs.push({ 
                         id: 'turno_' + t.id,
                         icon: 'event', 
@@ -1169,10 +1175,18 @@ function renderAgendaTurnos(data, searchTerm = '') {
             searchContainer.id = 'agendaSearchContainer';
             searchContainer.className = 'mb-6 relative w-full';
             searchContainer.innerHTML = `
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <span class="material-symbols-outlined text-slate-400 text-[20px]">search</span>
+                <div class="flex gap-2 w-full">
+                    <div class="relative w-full">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-slate-400 text-[20px]">search</span>
+                        </div>
+                        <input type="text" id="agendaSearchInput" class="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-slate-200 bg-white shadow-sm focus:ring-2 focus:ring-primary outline-none transition-all text-sm font-medium text-slate-700 placeholder-slate-400" placeholder="Buscar por cliente, teléfono o servicio...">
+                    </div>
+                    <button onclick="descargarHistorialTurnos(this)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-3.5 rounded-2xl font-bold text-sm transition-colors flex items-center justify-center gap-2 border border-slate-200 shadow-sm whitespace-nowrap shrink-0" title="Descargar Historial Completo (CSV)">
+                        <span class="material-symbols-outlined text-[20px]">download</span>
+                        <span class="hidden sm:inline">Historial</span>
+                    </button>
                 </div>
-                <input type="text" id="agendaSearchInput" class="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-slate-200 bg-white shadow-sm focus:ring-2 focus:ring-primary outline-none transition-all text-sm font-medium text-slate-700 placeholder-slate-400" placeholder="Buscar por cliente, teléfono o servicio...">
             `;
             
             // Colocar el buscador arriba de todo (antes de las pestañas si existen)
@@ -1314,6 +1328,57 @@ function renderAgendaTurnos(data, searchTerm = '') {
         }
         }
     }
+
+window.descargarHistorialTurnos = function(btn) {
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span>';
+    btn.disabled = true;
+
+    fetch('backend/obtener_agenda.php?historial=1')
+    .then(res => res.json())
+    .then(data => {
+        if (!Array.isArray(data) || data.length === 0) {
+            showToast('No hay turnos en el historial para exportar.', 'error');
+            return;
+        }
+
+        const headers = ['ID', 'Fecha', 'Hora', 'Cliente', 'Celular', 'Servicio', 'Profesional', 'Estado'];
+        const rows = data.map(t => {
+            const nombreCliente = t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''));
+            const celular = t.cliente_celular || t.celular || '';
+            return [
+                t.id,
+                `"${t.fecha}"`,
+                `"${t.hora}"`,
+                `"${nombreCliente.replace(/"/g, '""')}"`,
+                `"${celular}"`,
+                `"${(t.servicio || '').replace(/"/g, '""')}"`,
+                `"${(t.profesional || '').replace(/"/g, '""')}"`,
+                `"${t.estado || ''}"`
+            ].join(',');
+        });
+
+        const csvContent = [headers.join(','), ...rows].join('\n');
+        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const downloadUrl = URL.createObjectURL(blob);
+        link.setAttribute("href", downloadUrl);
+        link.setAttribute("download", `Historial_Turnos_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast('Historial descargado con éxito.', 'success');
+    })
+    .catch(err => {
+        console.error(err);
+        showToast('Error al descargar el historial.', 'error');
+    })
+    .finally(() => {
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+    });
+};
 
 function showToast(message, type = 'success') {
     let container = document.getElementById('toast-container');

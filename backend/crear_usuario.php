@@ -25,13 +25,18 @@ $data = json_decode(file_get_contents('php://input'), true);
 if (!$data) $data = $_POST;
 
 $nombre_completo = trim($data['nombre_completo'] ?? '');
-$email = trim($data['email'] ?? '');
+$email = filter_var(trim($data['email'] ?? ''), FILTER_SANITIZE_EMAIL);
 $password = trim($data['password'] ?? '');
 $nombre_fantasia = trim($data['nombre_negocio'] ?? $data['nombre_fantasia'] ?? '');
 $ruta = preg_replace('/[^a-zA-Z0-9-]/', '', strtolower(trim($data['ruta'] ?? '')));
 
 if (!$nombre_completo || !$email || !$password || !$nombre_fantasia || !$ruta) {
     echo json_encode(['success' => false, 'error' => 'Por favor completa todos los campos obligatorios.']);
+    exit;
+}
+
+if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    echo json_encode(['success' => false, 'error' => 'El formato del correo electrónico no es válido.']);
     exit;
 }
 

@@ -19,6 +19,20 @@ if ($file['error'] !== UPLOAD_ERR_OK) {
     exit;
 }
 
+    // Validar tipo de archivo permitido (Imágenes o PDF)
+    $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    if (!in_array($file['type'], $allowedTypes)) {
+        echo json_encode(['success' => false, 'error' => 'Formato no permitido. Utiliza JPG, PNG, WEBP o PDF.']);
+        exit;
+    }
+
+    // Validar el tamaño del archivo (Límite: 5MB)
+    $maxSize = 5 * 1024 * 1024;
+    if ($file['size'] > $maxSize) {
+        echo json_encode(['success' => false, 'error' => 'El comprobante es demasiado pesado. El tamaño máximo es 5MB.']);
+        exit;
+    }
+
 $id_negocio = $_SESSION['id_negocio'];
 $uploadDir = __DIR__ . '/uploads/comprobantes/';
 if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
