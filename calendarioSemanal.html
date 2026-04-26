@@ -38,6 +38,11 @@
 
   <style>
     /* Estética del Calendario */
+    .calendar-day, .time-slot, button, a {
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
     .calendar-day { 
       aspect-ratio: 1 / 1;
       display: flex;
@@ -57,10 +62,21 @@
       border-color: var(--color-secundario, #fce7f3);
     }
 
-    .calendar-day:not(.disabled):hover {
-      transform: translateY(-2px);
-      border-color: var(--color-primario, #ec135b);
-      color: var(--color-primario, #ec135b);
+    @media (hover: hover) {
+      .calendar-day:not(.disabled):hover {
+        transform: translateY(-2px);
+        border-color: var(--color-primario, #ec135b);
+        color: var(--color-primario, #ec135b);
+      }
+      .time-slot:hover:not(.booked) {
+        border-color: #ec135b;
+        background: white;
+        color: #ec135b;
+      }
+    }
+
+    .calendar-day:not(.disabled):active {
+      transform: scale(0.92);
     }
 
     .calendar-day.selected {
@@ -87,10 +103,8 @@
       transition: all 0.2s;
     }
 
-    .time-slot:hover:not(.booked) {
-      border-color: #ec135b;
-      background: white;
-      color: #ec135b;
+    .time-slot:not(.booked):active {
+      transform: scale(0.96);
     }
 
     .time-slot.selected {
@@ -229,7 +243,7 @@
                         <span class="material-symbols-outlined text-xl">bolt</span> Próximo turno libre: <strong id="nextAvailableText"></strong>
                     </div>
                     
-                    <div id="weeklyTimeSlots" class="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[350px] overflow-y-auto pr-2 pb-2">
+                    <div id="weeklyTimeSlots" class="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-[350px] overflow-y-auto overscroll-contain pr-2 pb-2">
                         <div class="col-span-full p-8 text-center text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">Cargando disponibilidad...</div>
                     </div>
                 </div>
@@ -244,10 +258,10 @@
                         <input type="hidden" id="weeklyProfesional" name="profesional">
                         
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <input type="text" id="weeklyNombre" name="nombre" placeholder="Nombre" required maxlength="30" class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm focus:ring-primary outline-none shadow-sm transition-all">
-                            <input type="text" id="weeklyApellido" name="apellido" placeholder="Apellido" required maxlength="30" class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm focus:ring-primary outline-none shadow-sm transition-all">
+                            <input type="text" id="weeklyNombre" name="nombre" placeholder="Nombre" required maxlength="30" autocomplete="given-name" class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm focus:ring-primary outline-none shadow-sm transition-all">
+                            <input type="text" id="weeklyApellido" name="apellido" placeholder="Apellido" required maxlength="30" autocomplete="family-name" class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm focus:ring-primary outline-none shadow-sm transition-all">
                         </div>
-                        <input type="tel" id="weeklyCelular" name="celular" placeholder="WhatsApp / Celular" required class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm focus:ring-primary outline-none shadow-sm transition-all">
+                        <input type="tel" id="weeklyCelular" name="celular" placeholder="WhatsApp / Celular" required autocomplete="tel" class="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-black/20 text-sm focus:ring-primary outline-none shadow-sm transition-all">
                         
                         <div id="weeklyFormMessage" class="hidden p-4 rounded-xl text-sm font-medium text-center" role="alert" aria-live="assertive"></div>
                         <button type="submit" id="btnWeeklySubmit" class="w-full bg-primary text-white py-4 mt-2 rounded-2xl font-bold text-lg shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
@@ -280,11 +294,11 @@
                     <h3 class="font-bold text-lg text-slate-800 dark:text-slate-100">1. Servicios</h3>
                     <button onclick="openServicesModal()" class="text-xs font-bold bg-primary text-white px-3 py-1.5 rounded-lg flex items-center gap-1 hover:bg-primary/90 transition-colors shadow-sm"><span class="material-symbols-outlined text-[16px]">add</span> Nuevo</button>
                 </div>
-                <div id="adminWeeklyServices" class="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar"></div>
+                <div id="adminWeeklyServices" class="space-y-2 max-h-[300px] overflow-y-auto overscroll-contain pr-2 custom-scrollbar"></div>
             </div>
             <div class="bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700">
                 <h3 class="font-bold text-lg mb-4 text-slate-800 dark:text-slate-100">2. Profesionales</h3>
-                <div id="adminWeeklyProfs" class="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                <div id="adminWeeklyProfs" class="space-y-2 max-h-[300px] overflow-y-auto overscroll-contain pr-2 custom-scrollbar">
                     <p class="text-sm text-slate-400 text-center py-4">Selecciona un servicio primero</p>
                 </div>
             </div>

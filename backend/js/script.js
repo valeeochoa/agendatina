@@ -1156,17 +1156,19 @@ function cargarAgenda() {
             .then(servData => {
                 if (Array.isArray(servData)) services = servData;
                 const currentSearch = document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : '';
-                renderAgendaTurnos(data, currentSearch);
+                    const currentProf = document.getElementById('agendaProfFilter') ? document.getElementById('agendaProfFilter').value : '';
+                    renderAgendaTurnos(data, currentSearch, currentProf);
             })
-            .catch(() => renderAgendaTurnos(data, document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : ''));
+                .catch(() => renderAgendaTurnos(data, document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : '', document.getElementById('agendaProfFilter') ? document.getElementById('agendaProfFilter').value : ''));
         } else {
             const currentSearch = document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : '';
-            renderAgendaTurnos(data, currentSearch);
+                const currentProf = document.getElementById('agendaProfFilter') ? document.getElementById('agendaProfFilter').value : '';
+                renderAgendaTurnos(data, currentSearch, currentProf);
         }
     }).catch(err => console.error(err));
 }
 
-function renderAgendaTurnos(data, searchTerm = '') {
+function renderAgendaTurnos(data, searchTerm = '', profTerm = '') {
     // Inyectar buscador si no existe en el DOM
     if (!document.getElementById('agendaSearchContainer')) {
         const listPend = document.getElementById('lista-pendientes');
@@ -1175,16 +1177,27 @@ function renderAgendaTurnos(data, searchTerm = '') {
             searchContainer.id = 'agendaSearchContainer';
             searchContainer.className = 'mb-6 relative w-full';
             searchContainer.innerHTML = `
-                <div class="flex gap-2 w-full">
-                    <div class="relative w-full">
+                <div class="flex flex-col sm:flex-row gap-3 w-full">
+                    <div class="relative w-full sm:flex-1">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <span class="material-symbols-outlined text-slate-400 text-[20px]">search</span>
                         </div>
                         <input type="text" id="agendaSearchInput" class="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-slate-200 bg-white shadow-sm focus:ring-2 focus:ring-primary outline-none transition-all text-sm font-medium text-slate-700 placeholder-slate-400" placeholder="Buscar por cliente, teléfono o servicio...">
                     </div>
-                    <button onclick="descargarHistorialTurnos(this)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-3.5 rounded-2xl font-bold text-sm transition-colors flex items-center justify-center gap-2 border border-slate-200 shadow-sm whitespace-nowrap shrink-0" title="Descargar Historial Completo (CSV)">
+                    <div class="relative w-full sm:w-64 hidden" id="agendaProfFilterContainer">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-slate-400 text-[20px]">person</span>
+                        </div>
+                        <select id="agendaProfFilter" class="w-full pl-11 pr-10 py-3.5 rounded-2xl border border-slate-200 bg-white shadow-sm focus:ring-2 focus:ring-primary outline-none transition-all text-sm font-medium text-slate-700 appearance-none cursor-pointer">
+                            <option value="">Todos los profesionales</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-slate-400 text-[20px]">expand_more</span>
+                        </div>
+                    </div>
+                    <button onclick="descargarHistorialTurnos(this)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-3.5 rounded-2xl font-bold text-sm transition-colors flex items-center justify-center gap-2 border border-slate-200 shadow-sm whitespace-nowrap shrink-0 w-full sm:w-auto" title="Descargar Historial Completo (CSV)">
                         <span class="material-symbols-outlined text-[20px]">download</span>
-                        <span class="hidden sm:inline">Historial</span>
+                        <span class="inline sm:hidden lg:inline">Historial</span>
                     </button>
                 </div>
             `;
@@ -1199,7 +1212,11 @@ function renderAgendaTurnos(data, searchTerm = '') {
 
             // Evento para filtrar en tiempo real
             document.getElementById('agendaSearchInput').addEventListener('input', (e) => {
-                renderAgendaTurnos(window.agendaData, e.target.value);
+                renderAgendaTurnos(window.agendaData, e.target.value, document.getElementById('agendaProfFilter').value);
+            });
+            
+            document.getElementById('agendaProfFilter').addEventListener('change', (e) => {
+                renderAgendaTurnos(window.agendaData, document.getElementById('agendaSearchInput').value, e.target.value);
             });
             
             if (searchTerm) {
@@ -1207,19 +1224,47 @@ function renderAgendaTurnos(data, searchTerm = '') {
             }
         }
     }
+    
+    // --- POBLAR SELECT DE PROFESIONALES DINÁMICAMENTE ---
+    const profFilterEl = document.getElementById('agendaProfFilter');
+    const profContainerEl = document.getElementById('agendaProfFilterContainer');
+    
+    if (profFilterEl && profContainerEl && data.length > 0) {
+        const uniqueProfs = [...new Set(data.map(t => t.profesional).filter(p => p && p !== 'Cualquiera (Sin preferencia)'))].sort();
+        
+        if (uniqueProfs.length > 0) {
+            profContainerEl.classList.remove('hidden');
+            const currentProfsStr = uniqueProfs.join(',');
+            
+            if (profFilterEl.dataset.profs !== currentProfsStr) {
+                const currentVal = profFilterEl.value;
+                let optionsHtml = '<option value="">Todos los profesionales</option>';
+                uniqueProfs.forEach(p => {
+                    optionsHtml += `<option value="${p}">${p}</option>`;
+                });
+                profFilterEl.innerHTML = optionsHtml;
+                profFilterEl.value = uniqueProfs.includes(currentVal) ? currentVal : '';
+                profFilterEl.dataset.profs = currentProfsStr;
+            }
+        } else {
+            profContainerEl.classList.add('hidden');
+        }
+    }
 
     let pendientes = data.filter(t => t.estado === 'pendiente');
     let confirmados = data.filter(t => t.estado === 'confirmado');
     
-    if (searchTerm) {
-        const term = searchTerm.toLowerCase();
-        const filterFn = t => 
-            (t.cliente_nombre && t.cliente_nombre.toLowerCase().includes(term)) ||
-            (t.nombre && t.nombre.toLowerCase().includes(term)) ||
-            (t.apellido && t.apellido.toLowerCase().includes(term)) ||
-            (t.cliente_celular && t.cliente_celular.includes(term)) ||
-            (t.celular && t.celular.includes(term)) ||
-            (t.servicio && t.servicio.toLowerCase().includes(term));
+    if (searchTerm || profTerm) {
+        const term = (searchTerm || '').toLowerCase();
+        const filterFn = t => {
+            let matchSearch = true;
+            if (term) matchSearch = (t.cliente_nombre && t.cliente_nombre.toLowerCase().includes(term)) || (t.nombre && t.nombre.toLowerCase().includes(term)) || (t.apellido && t.apellido.toLowerCase().includes(term)) || (t.cliente_celular && t.cliente_celular.includes(term)) || (t.celular && t.celular.includes(term)) || (t.servicio && t.servicio.toLowerCase().includes(term));
+            
+            let matchProf = true;
+            if (profTerm) matchProf = (t.profesional === profTerm);
+            
+            return matchSearch && matchProf;
+        };
             
         pendientes = pendientes.filter(filterFn);
         confirmados = confirmados.filter(filterFn);
@@ -1235,7 +1280,7 @@ function renderAgendaTurnos(data, searchTerm = '') {
         const listPend = document.getElementById('lista-pendientes');
         if (listPend) {
         listPend.innerHTML = '';
-        if (pendientes.length === 0) listPend.innerHTML = `<div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 text-center"><p class="text-sm font-medium text-slate-400">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'No hay turnos pendientes'}</p></div>`;
+        if (pendientes.length === 0) listPend.innerHTML = `<div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 text-center"><p class="text-sm font-medium text-slate-400">${(searchTerm || profTerm) ? 'No se encontraron resultados con los filtros aplicados' : 'No hay turnos pendientes'}</p></div>`;
         
         pendientes.forEach(t => {
             const fParts = t.fecha.split('-');
@@ -1275,7 +1320,7 @@ function renderAgendaTurnos(data, searchTerm = '') {
         if (listConf) {
         listConf.innerHTML = '';
         if (confirmados.length === 0) {
-            listConf.innerHTML = `<div class="p-8 text-center text-sm font-medium text-slate-400 bg-slate-50 rounded-xl border border-slate-200">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'Aún no tienes turnos confirmados.'}</div>`;
+                listConf.innerHTML = `<div class="p-8 text-center text-sm font-medium text-slate-400 bg-slate-50 rounded-xl border border-slate-200">${(searchTerm || profTerm) ? 'No se encontraron resultados con los filtros aplicados' : 'Aún no tienes turnos confirmados.'}</div>`;
         } else {
             const gruposConf = {};
             confirmados.forEach(t => {

@@ -17,6 +17,22 @@ try {
     try { $pdo->exec("ALTER TABLE turnos ADD INDEX idx_negocio_fecha (id_negocio, fecha)"); } 
     catch (Exception $e) { /* El índice ya existe, continuamos silenciosamente */ }
 
+    // 2. MIGRACIÓN: Asegurar que todas las columnas que vamos a leer existan en la tabla vieja
+    $columnas = [
+        'cliente_nombre' => 'VARCHAR(255) DEFAULT NULL',
+        'cliente_celular' => 'VARCHAR(255) DEFAULT NULL',
+        'nombre' => 'VARCHAR(255) DEFAULT NULL',
+        'apellido' => 'VARCHAR(255) DEFAULT NULL',
+        'celular' => 'VARCHAR(255) DEFAULT NULL',
+        'profesional' => "VARCHAR(255) DEFAULT 'Cualquiera (Sin preferencia)'",
+        'estado' => "VARCHAR(50) DEFAULT 'pendiente'"
+    ];
+
+    foreach ($columnas as $columna => $tipo) {
+        try { $pdo->query("SELECT $columna FROM turnos LIMIT 1"); } 
+        catch (Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN $columna $tipo"); }
+    }
+
     $historial = isset($_GET['historial']) && $_GET['historial'] === '1';
 
     if ($historial) {
