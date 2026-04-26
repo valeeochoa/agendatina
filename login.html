@@ -54,7 +54,7 @@
                     </button>
                 </div>
             </div>
-            <div id="loginMessage" class="hidden p-3 rounded-lg text-sm font-medium bg-red-100 text-red-800 text-center"></div>
+            <div id="loginMessage" class="hidden p-3 rounded-lg text-sm font-medium bg-red-100 text-red-800 text-center" role="alert" aria-live="assertive"></div>
             <button type="submit" id="btnSubmit" class="w-full signature-glow text-white py-3.5 rounded-xl font-bold text-lg mt-2 shadow-lg shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all">
                 Ingresar al sistema
             </button>
@@ -71,7 +71,7 @@
             <p class="text-sm text-slate-500 mb-6">Ingresa tu correo registrado y te enviaremos un enlace para restablecer tu contraseña.</p>
             <form id="forgotForm" class="flex flex-col gap-4">
                 <input type="email" name="email" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="tu@email.com">
-                <div id="forgotMessage" class="hidden p-3 rounded-lg text-sm font-medium text-center"></div>
+                <div id="forgotMessage" class="hidden p-3 rounded-lg text-sm font-medium text-center" role="alert" aria-live="assertive"></div>
                 <button type="submit" id="btnForgotSubmit" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl transition-all">Enviar enlace</button>
             </form>
         </div>
