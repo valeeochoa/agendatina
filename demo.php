@@ -15,6 +15,11 @@ $user = $stmt->fetch();
 try { $pdo->query("SELECT descripcion FROM servicios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN descripcion TEXT DEFAULT NULL"); }
 try { $pdo->query("SELECT profesional FROM servicios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN profesional VARCHAR(255) DEFAULT ''"); }
 try { $pdo->query("SELECT profesional FROM turnos LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN profesional VARCHAR(255) DEFAULT 'Cualquiera (Sin preferencia)'"); }
+try { $pdo->query("SELECT cliente_nombre FROM turnos LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_nombre VARCHAR(255) DEFAULT NULL"); }
+try { $pdo->query("SELECT cliente_celular FROM turnos LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_celular VARCHAR(255) DEFAULT NULL"); }
+try { $pdo->query("SELECT nombre FROM turnos LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN nombre VARCHAR(255) DEFAULT NULL"); }
+try { $pdo->query("SELECT apellido FROM turnos LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN apellido VARCHAR(255) DEFAULT NULL"); }
+try { $pdo->query("SELECT celular FROM turnos LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN celular VARCHAR(255) DEFAULT NULL"); }
 try { $pdo->query("SELECT intervalo_turnos FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN intervalo_turnos VARCHAR(50) DEFAULT '30'"); }
 try { $pdo->query("SELECT id_servicio FROM turnos LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN id_servicio INT DEFAULT NULL"); }
 try { $pdo->query("SELECT nombre_completo FROM usuarios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN nombre_completo VARCHAR(255) DEFAULT ''"); }
@@ -28,10 +33,22 @@ try { $pdo->query("SELECT url_portada FROM configuracion_web LIMIT 1"); } catch(
 try { $pdo->query("SELECT url_cursos FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN url_cursos VARCHAR(255) DEFAULT NULL"); }
 try { $pdo->query("SELECT texto_cursos FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN texto_cursos TEXT DEFAULT NULL"); }
 try { $pdo->query("SELECT url_certificados FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN url_certificados VARCHAR(255) DEFAULT NULL"); }
+try { $pdo->query("SELECT cursos_json FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN cursos_json LONGTEXT DEFAULT NULL"); }
+try { $pdo->query("SELECT profesionales_json FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN profesionales_json LONGTEXT DEFAULT NULL"); }
+try { $pdo->query("SELECT tipo_calendario FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN tipo_calendario VARCHAR(20) DEFAULT 'clasico'"); }
+try { $pdo->query("SELECT imagen1 FROM servicios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN imagen1 VARCHAR(255) DEFAULT NULL"); }
+try { $pdo->query("SELECT imagen2 FROM servicios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN imagen2 VARCHAR(255) DEFAULT NULL"); }
+try { $pdo->query("SELECT imagen3 FROM servicios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN imagen3 VARCHAR(255) DEFAULT NULL"); }
+try { $pdo->query("SELECT foto_profesional FROM servicios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN foto_profesional VARCHAR(255) DEFAULT NULL"); }
+try { $pdo->query("SELECT email_profesional FROM servicios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN email_profesional VARCHAR(255) DEFAULT ''"); }
+try { $pdo->query("SELECT orden FROM servicios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN orden INT DEFAULT 0"); }
 // NUEVAS BARRERAS (Evitan error 500 si la base es nueva)
 try { $pdo->query("SELECT plan FROM negocios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN plan VARCHAR(50) DEFAULT 'Basico'"); }
 try { $pdo->query("SELECT estado_pago FROM negocios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN estado_pago VARCHAR(50) DEFAULT 'prueba'"); }
 try { $pdo->query("SELECT ruta FROM negocios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN ruta VARCHAR(255) DEFAULT ''"); }
+try { $pdo->query("SELECT max_profesionales FROM negocios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN max_profesionales INT DEFAULT 1"); }
+try { $pdo->query("SELECT ultimo_pago FROM negocios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN ultimo_pago DATETIME DEFAULT NULL"); }
+try { $pdo->query("SELECT comprobante FROM negocios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN comprobante VARCHAR(255) DEFAULT NULL"); }
 try { $pdo->query("SELECT role FROM usuarios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN role VARCHAR(50) DEFAULT 'admin'"); }
 try { $pdo->query("SELECT fecha_creacion FROM usuarios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP"); }
 

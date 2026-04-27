@@ -219,13 +219,8 @@ function loadDashboardData() {
                 // Alerta si los días de trabajo están vacíos
                 const configAlertBanner = document.getElementById('configAlertBanner');
                 if (configAlertBanner) {
-                    if (!webData.dias_trabajo || String(webData.dias_trabajo).trim() === '') {
-                        configAlertBanner.classList.remove('hidden');
-                        configAlertBanner.classList.add('flex');
-                    } else {
-                        configAlertBanner.classList.add('hidden');
-                        configAlertBanner.classList.remove('flex');
-                    }
+                    configAlertBanner.classList.add('hidden');
+                    configAlertBanner.classList.remove('flex');
                 }
 
                 // Configurar modal de pago con el plan correcto
@@ -313,6 +308,54 @@ function loadDashboardData() {
                     subscriptionData.priceFormatted = formattedPrice;
                     checkSubscription(subscriptionData);
                 }).catch(e => { console.error(e); checkSubscription(subscriptionData); });
+                
+                // --- ONBOARDING WIDGET (TUTORIAL) ---
+                fetch('backend/gestionar_servicios.php').then(r=>r.json()).then(services => {
+                    const onboardingWidget = document.getElementById('onboardingWidget');
+                    if (onboardingWidget) {
+                        let hasConfig = webData.dias_trabajo && webData.dias_trabajo.trim() !== '';
+                        let hasServices = Array.isArray(services) && services.length > 0;
+                        
+                        fetch('backend/obtener_agenda.php').then(r=>r.json()).then(turnos => {
+                            let hasTurnos = Array.isArray(turnos) && turnos.length > 0;
+
+                            if (hasConfig && hasServices && hasTurnos && window.currentUserData.email !== 'demo@agendatina.site') {
+                                onboardingWidget.classList.add('hidden');
+                            } else {
+                                onboardingWidget.classList.remove('hidden');
+                                
+                                const step1Icon = document.getElementById('step1Icon');
+                                const step1Text = document.getElementById('step1Text');
+                                if (hasConfig) {
+                                    if(step1Icon) { step1Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step1Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
+                                    if(step1Text) step1Text.classList.add('line-through', 'text-slate-400');
+                                }
+
+                                const step2Icon = document.getElementById('step2Icon');
+                                const step2Text = document.getElementById('step2Text');
+                                const step2Link = document.getElementById('step2Link');
+                                if(step2Link) step2Link.href = webData.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
+                                
+                                if (hasServices) {
+                                    if(step2Icon) { step2Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step2Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
+                                    if(step2Text) step2Text.classList.add('line-through', 'text-slate-400');
+                                }
+
+                                const step3Link = document.getElementById('step3Link');
+                                const step3Icon = document.getElementById('step3Icon');
+                                const step3Text = document.getElementById('step3Text');
+                                if (hasConfig && hasServices && step3Link) {
+                                    step3Link.classList.remove('opacity-50', 'pointer-events-none');
+                                    step3Link.href = (business.ruta || business.subdominio) ? '/' + (business.ruta || business.subdominio) : '#';
+                                }
+                                if (hasTurnos) {
+                                    if(step3Icon) { step3Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step3Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
+                                    if(step3Text) step3Text.classList.add('line-through', 'text-slate-400');
+                                }
+                            }
+                        }).catch(e => console.error(e));
+                    }
+                }).catch(e => console.error(e));
 
                 checkNotifications(); // Cargar notificaciones en la campanita
                 loadDashboardChart(webData.color_primario || '#3b82f6');
@@ -747,7 +790,7 @@ function showWelcomeAnimation(plan, isDemo = false) {
     if (!planName.toLowerCase().includes('plan')) planName = 'Plan ' + planName.charAt(0).toUpperCase() + planName.slice(1);
     
     let title = '¡Bienvenido a Agendatina!';
-    let desc = `Para comenzar a recibir turnos, es fundamental que configures los horarios de atención y detalles de tu negocio en la sección de <strong>Ajustes</strong>.`;
+    let desc = `Hemos preparado una <strong>Guía de Inicio Rápido</strong> en tu panel para que dejes tu agenda lista en menos de 2 minutos.`;
     let icon = 'celebration';
     let iconColor = 'text-primary';
     let iconBg = 'bg-primary/10';
@@ -780,7 +823,7 @@ function showWelcomeAnimation(plan, isDemo = false) {
             <h2 class="text-3xl font-extrabold text-slate-800 mb-4 font-display">${title}</h2>
             <p class="text-slate-600 text-lg mb-8 leading-relaxed">${desc}</p>
             <button class="bg-primary hover:bg-primary/90 text-white font-bold py-3.5 px-8 rounded-xl w-full shadow-lg shadow-primary/30 transition-all hover:-translate-y-0.5" onclick="window.handleWelcomePrimaryAction(${isDemo ? 'true' : 'false'})">
-                ${isDemo ? 'Entendido, explorar panel' : 'Ir a Ajustes del Calendario'}
+                ${isDemo ? 'Entendido, explorar panel' : '¡Comenzar ahora!'}
             </button>
         </div>
     `;
@@ -1051,20 +1094,10 @@ window.handleWelcomePrimaryAction = function(isDemo) {
             setTimeout(() => overlay.remove(), 300);
         });
     }
-    if (!isDemo) {
-        setTimeout(() => {
-            if (document.getElementById('firstSetupModal')) {
-                const modal = document.getElementById('firstSetupModal');
-                modal.classList.remove('hidden');
-                setTimeout(() => modal.classList.remove('opacity-0'), 10);
-            } else if (typeof window.openCalendarConfigModal === 'function' && document.getElementById('calendarConfigModal')) {
-                window.openCalendarConfigModal();
-            } else {
-                    const calType = window.businessWebConfig?.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
-                    window.location.href = calType;
-            }
-        }, 120);
-    }
+    // Iniciar el Tour Virtual automáticamente al cerrar la bienvenida
+    setTimeout(() => {
+        if (typeof window.startTour === 'function') window.startTour();
+    }, 350);
 }
 
 window.closeCalendarConfigModal = function() {
@@ -1689,11 +1722,10 @@ window.setCarouselIndex = function(index) {
     
     const carouselOldPriceContainer = document.getElementById('carouselOldPriceContainer');
     if (carouselOldPriceContainer) {
-        const hasDiscount = carouselData[index].hasDiscount;
-        if (hasDiscount) {
+        if (carouselData[index].showOldPrice) {
             carouselOldPriceContainer.style.display = 'flex';
             const badge = carouselOldPriceContainer.querySelector('.bg-emerald-100');
-            if (badge) badge.textContent = `-${carouselData[index].discountPercentage}% OFF`;
+            if (badge) badge.textContent = carouselData[index].badgeText;
         } else {
             carouselOldPriceContainer.style.display = 'none';
         }
@@ -1940,32 +1972,48 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             
             window.renderPricing = function() {
-                if (!window.pricingData) return;
-                const pData = window.pricingData;
+                const pData = window.pricingData || {
+                    precio_basico: 13288,
+                    precio_intermedio: 20563,
+                    precio_premium: 28188,
+                    descuento_porcentaje: 20,
+                    descuento_hasta: null
+                };
                 
                 const b = parseFloat(pData.precio_basico);
                 const i = parseFloat(pData.precio_intermedio);
                 const p = parseFloat(pData.precio_premium);
                 
-                let baseDiscount = parseInt(pData.descuento_porcentaje) || 0;
-                if (pData.descuento_hasta) {
-                    const expiry = new Date(pData.descuento_hasta.replace(/-/g, '/'));
-                    if (new Date() > expiry) baseDiscount = 0;
-                }
-                
-                const getFinalPrice = (price, count) => {
-                    let profDiscount = count * 10;
-                    if (profDiscount > 50) profDiscount = 50; 
-                    let currentDiscount = Math.max(baseDiscount, profDiscount);
-                    let hasDiscount = currentDiscount > 0;
+                const getFinalPrice = (rawBasePrice, count) => {
+                    let globalDiscount = parseInt(pData.descuento_porcentaje) || 0;
+                    if (pData.descuento_hasta) {
+                        const expiry = new Date(pData.descuento_hasta.replace(/-/g, '/'));
+                        if (new Date() > expiry) globalDiscount = 0;
+                    }
                     
-                    let multiplied = price * count;
-                    return {
-                        final: hasDiscount ? multiplied * (1 - currentDiscount/100) : multiplied,
-                        multiplied: multiplied,
-                        hasDiscount: hasDiscount,
-                        discountPercentage: currentDiscount
-                    };
+                    let priceForOne = rawBasePrice * (1 - globalDiscount / 100);
+                    
+                    if (count === 1) {
+                        return {
+                            final: priceForOne,
+                            oldPrice: rawBasePrice,
+                            badgeText: `-${globalDiscount}% OFF`,
+                            showOldPrice: globalDiscount > 0
+                        };
+                    } else {
+                        let volumeDiscount = count * 10;
+                        if (volumeDiscount > 50) volumeDiscount = 50;
+                        
+                        let multipliedForOne = priceForOne * count;
+                        let final = multipliedForOne * (1 - volumeDiscount / 100);
+                        
+                        return {
+                            final: final,
+                            oldPrice: multipliedForOne,
+                            badgeText: `-${volumeDiscount}% POR EQUIPO`,
+                            showOldPrice: true
+                        };
+                    }
                 };
                 
                 const updateBox = (boxId, oldId, basePrice, labelClass, perPersonId, planKey) => {
@@ -1974,16 +2022,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     const perPerson = document.getElementById(perPersonId);
                     
                     let count = window.numProfessionals[planKey];
-                    let priceInfo = getFinalPrice(basePrice, count);
+                    let info = getFinalPrice(basePrice, count);
                     
-                    if (box) box.innerHTML = `$${priceInfo.final.toLocaleString('es-AR', {maximumFractionDigits:0})}<span class="text-sm font-normal ${labelClass} ml-1">/mes</span>`;
+                    if (box) box.innerHTML = `$${info.final.toLocaleString('es-AR', {maximumFractionDigits:0})}<span class="text-sm font-normal ${labelClass} ml-1">/mes</span>`;
                     if (old) {
                         const container = old.parentElement;
-                        if (priceInfo.hasDiscount) {
-                            old.textContent = `$${priceInfo.multiplied.toLocaleString('es-AR', {maximumFractionDigits:0})}`;
+                        if (info.showOldPrice) {
+                            old.textContent = `$${info.oldPrice.toLocaleString('es-AR', {maximumFractionDigits:0})}`;
                             container.style.display = 'flex';
                             const badge = container.querySelector('span:last-child');
-                            if (badge) badge.textContent = `-${priceInfo.discountPercentage}% OFF`;
+                            if (badge) badge.textContent = info.badgeText;
                         } else {
                             container.style.display = 'none';
                         }
@@ -1992,7 +2040,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Mostrar precio por cabeza
                     if (perPerson) {
                         if (count > 1) {
-                            let pricePerPerson = priceInfo.final / count;
+                            let pricePerPerson = info.final / count;
                             perPerson.textContent = `¡Queda en $${pricePerPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} p/persona!`;
                             perPerson.classList.remove('hidden');
                         } else {
@@ -2013,13 +2061,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     let k = planKeys[idx];
                     let info = getFinalPrice(prices[idx], window.numProfessionals[k]);
                     carouselData[idx].price = '$' + info.final.toLocaleString('es-AR', {maximumFractionDigits:0});
-                    carouselData[idx].oldPrice = '$' + info.multiplied.toLocaleString('es-AR', {maximumFractionDigits:0});
-                    carouselData[idx].discountPercentage = info.discountPercentage;
-                    carouselData[idx].hasDiscount = info.hasDiscount;
+                    carouselData[idx].oldPrice = '$' + info.oldPrice.toLocaleString('es-AR', {maximumFractionDigits:0});
+                    carouselData[idx].badgeText = info.badgeText;
+                    carouselData[idx].showOldPrice = info.showOldPrice;
                 }
                 
                 setCarouselIndex(currentCarouselIndex);
             };
+
+            // Renderizar de inmediato para evitar que el botón '+' no responda si el servidor tarda en contestar
+            window.renderPricing();
 
             fetch('backend/obtener_precios.php').then(res=>res.json()).then(pData => {
                 if(pData.success && pData.data) {

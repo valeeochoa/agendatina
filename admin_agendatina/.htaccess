@@ -1,9 +1,9 @@
 # Proteger la carpeta con Autenticación Básica
-AuthType Basic
-AuthName "Acceso Restringido - Solo Super Administrador"
+# AuthType Basic
+# AuthName "Acceso Restringido - Solo Super Administrador"
 # ATENCIÓN: Esta ruta debe ser absoluta. Cambiarla cuando lo subas a producción (ej: /home/usuario/public_html/agendatina/admin_agendatina/.htpasswd)
-AuthUserFile "c:/xampp/htdocs/agendatina/admin_agendatina/.htpasswd"
-Require valid-user
+# AuthUserFile "pruebas.agendatina.site/admin_agendatina/.htpasswd"
+# Require valid-user
 
 # Evitar que alguien pueda descargar o ver el archivo de contraseñas por URL
 <Files .htpasswd>
