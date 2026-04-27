@@ -198,7 +198,6 @@
                             <input type="text" name="ruta" required class="w-full bg-slate-50 border border-slate-200 rounded-r-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-blue-600" placeholder="estetica-bella">
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-semibold text-slate-600 mb-1.5">Plan Contratado</label>
                             <select name="plan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
@@ -206,6 +205,10 @@
                                 <option value="Intermedio">Intermedio</option>
                                 <option value="Completo">Completo</option>
                             </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-600 mb-1.5">Límite Profesionales</label>
+                            <input type="number" name="max_profesionales" min="1" value="1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium" placeholder="Ej: 1">
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-slate-600 mb-1.5">Estado</label>
@@ -255,24 +258,30 @@
                 <input type="text" id="edit_nombre_fantasia" disabled class="w-full bg-slate-100 text-slate-500 border border-slate-200 rounded-xl px-4 py-2.5 font-medium cursor-not-allowed">
             </div>
 
-            <div>
-                <label class="block text-sm font-semibold text-slate-600 mb-1.5">Plan Contratado</label>
-                <select name="plan" id="edit_plan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
-                    <option value="Basico">Básico</option>
-                    <option value="Intermedio">Intermedio</option>
-                    <option value="Completo">Completo</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-sm font-semibold text-slate-600 mb-1.5">Estado de Pago</label>
-                <select name="estado_pago" id="edit_estado_pago" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
-                    <option value="prueba">Prueba (Trial)</option>
-                    <option value="beta">Plan Beta Exclusivo (30 días)</option>
-                    <option value="pendiente_revision">En Revisión (Subió comprobante)</option>
-                    <option value="activo">Activo (Pagado)</option>
-                    <option value="vencido">Impago (Vencido)</option>
-                    <option value="suspendido">Suspendido (Bloqueado)</option>
-                </select>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Plan Contratado</label>
+                    <select name="plan" id="edit_plan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
+                        <option value="Basico">Básico</option>
+                        <option value="Intermedio">Intermedio</option>
+                        <option value="Completo">Completo</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Límite Profesionales</label>
+                    <input type="number" name="max_profesionales" id="edit_max_profesionales" min="1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Estado de Pago</label>
+                    <select name="estado_pago" id="edit_estado_pago" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
+                        <option value="prueba">Prueba (Trial)</option>
+                        <option value="beta">Plan Beta Exclusivo (30 días)</option>
+                        <option value="pendiente_revision">En Revisión (Subió comprobante)</option>
+                        <option value="activo">Activo (Pagado)</option>
+                        <option value="vencido">Impago (Vencido)</option>
+                        <option value="suspendido">Suspendido (Bloqueado)</option>
+                    </select>
+                </div>
             </div>
 
             <div id="editFormMessage" class="hidden p-4 rounded-xl text-sm font-medium text-center"></div>
@@ -637,6 +646,10 @@ function renderTable(dataToRender) {
                     fechaAltaText = `<p class="text-[11px] text-slate-400 mt-1.5 font-medium">Alta: ${fAlta.toLocaleDateString('es-AR')}</p>`;
                 }
 
+            const totalProfs = (client.profesionales ? client.profesionales.length : 0) + 1;
+            const maxProfs = client.max_profesionales || 1;
+            const limitClass = totalProfs >= maxProfs ? 'text-red-500 font-bold' : 'text-slate-500 font-medium';
+
                 let badgeStatus = '';
                 if (client.estado_pago === 'activo') {
                     badgeStatus = '<span class="bg-green-100 text-green-700 px-2.5 py-1 rounded-lg text-xs font-bold border border-green-200 flex items-center w-fit gap-1"><span class="material-symbols-outlined text-[14px]">check_circle</span> Activo</span>';
@@ -708,7 +721,10 @@ function renderTable(dataToRender) {
                             <p class="font-bold text-slate-800">${client.nombre_completo || 'Sin nombre'}</p>
                             <p class="text-xs text-slate-500 font-medium">${client.email || 'N/A'}</p>
                         </td>
-                        <td class="p-5"><span class="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200">${client.plan || 'Básico'}</span></td>
+                        <td class="p-5">
+                            <span class="bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200">${client.plan || 'Básico'}</span>
+                        <div class="text-[11px] ${limitClass} mt-2 flex items-center gap-1" title="Dueño + Empleados registrados"><span class="material-symbols-outlined text-[14px]">groups</span> Equipo: ${totalProfs}/${maxProfs}</div>
+                        </td>
                         <td class="p-5">${badgeStatus} ${fechaAltaText}</td>
                         <td class="p-5">${badgeCalendario}</td>
                         <td class="p-5 text-right whitespace-nowrap">${actionsHtml}</td>
@@ -831,6 +847,9 @@ function openEditModal(index) {
     const planSelect = document.getElementById('edit_plan');
     planSelect.value = client.plan || 'Basico';
     if(!planSelect.value) planSelect.value = 'Basico';
+    
+    const profInput = document.getElementById('edit_max_profesionales');
+    if(profInput) profInput.value = client.max_profesionales || 1;
 
     const estadoSelect = document.getElementById('edit_estado_pago');
     estadoSelect.value = client.estado_pago || 'prueba';

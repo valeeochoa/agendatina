@@ -1245,8 +1245,8 @@ function cargarAgenda() {
 }
 
 function renderAgendaTurnos(data, searchTerm = '', profTerm = '') {
+    let listPend = document.getElementById('lista-pendientes');
     if (!document.getElementById('agendaSearchContainer')) {
-        const listPend = document.getElementById('lista-pendientes');
         if (listPend) {
             const searchContainer = document.createElement('div');
             searchContainer.id = 'agendaSearchContainer';
@@ -1291,7 +1291,6 @@ function renderAgendaTurnos(data, searchTerm = '', profTerm = '') {
     }
     
     // --- POBLAR SELECT DE PROFESIONALES DINÁMICAMENTE ---
-    const listPend = document.getElementById('lista-pendientes');
     let profFilterContainer = document.getElementById('agendaProfFilterContainer');
     
     if (!profFilterContainer && listPend) {
@@ -1352,7 +1351,6 @@ function renderAgendaTurnos(data, searchTerm = '', profTerm = '') {
         confirmados.sort((a, b) => (a.fecha + ' ' + a.hora).localeCompare(b.fecha + ' ' + b.hora));
 
         // DIBUJAR PENDIENTES
-        const listPend = document.getElementById('lista-pendientes');
         if (listPend) {
         listPend.innerHTML = '';
         if (pendientes.length === 0) listPend.innerHTML = `<div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 text-center"><p class="text-sm font-medium text-slate-400">${(searchTerm || profTerm) ? 'No se encontraron resultados con los filtros aplicados' : 'No hay turnos pendientes'}</p></div>`;

@@ -9,10 +9,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Credenciales de Super Admin
     $super_admin_user = 'valentina';
     
-    // Reemplaza este hash con el tuyo. Este es el hash de la contraseña "Agendatina2026!"
-    $super_admin_pass_hash = '$2y$10$tZ2A9D6Y2P8p2I2fC3w4J.O5r2t5b5c5e5f5g5h5i5j5k5l5m5n5o'; 
 
-    if (hash_equals($super_admin_user, $username) && password_verify($password, $super_admin_pass_hash)) {
+    if (hash_equals($super_admin_user, $username) && $password === $super_admin_pass) {
         $_SESSION['is_superadmin'] = true;
         unset($_SESSION['is_demo']); // Asegurar que el admin opere en la BD real
         echo json_encode(['success' => true]);

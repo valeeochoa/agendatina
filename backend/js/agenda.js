@@ -59,9 +59,9 @@ window.cargarAgenda = function() {
 };
 
 window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
+    var listPend = document.getElementById('lista-pendientes');
     // Inyectar buscador si no existe en el DOM
     if (!document.getElementById('agendaSearchContainer')) {
-        const listPend = document.getElementById('lista-pendientes');
         if (listPend) {
             const searchContainer = document.createElement('div');
             searchContainer.id = 'agendaSearchContainer';
@@ -93,7 +93,6 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     }
 
     // --- POBLAR TABS DE PROFESIONALES (CARPETAS) ---
-    const listPend = document.getElementById('lista-pendientes');
     let profFilterContainer = document.getElementById('agendaProfFilterContainer');
     
     if (!profFilterContainer && listPend) {
@@ -173,7 +172,6 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     pasados.sort((a, b) => (b.fecha + ' ' + b.hora).localeCompare(a.fecha + ' ' + a.hora));
 
     // DIBUJAR PENDIENTES
-    const listPend = document.getElementById('lista-pendientes');
     if (listPend) {
         listPend.innerHTML = '';
         if (pendientes.length === 0) listPend.innerHTML = `<div class="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 text-center"><p class="text-sm font-medium text-slate-400">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'No hay turnos pendientes'}</p></div>`;
