@@ -1258,28 +1258,38 @@ function renderAgendaTurnos(data, searchTerm = '', profTerm = '') {
     }
     
     // --- POBLAR SELECT DE PROFESIONALES DINÁMICAMENTE ---
-    const profFilterEl = document.getElementById('agendaProfFilter');
-    const profContainerEl = document.getElementById('agendaProfFilterContainer');
+    const listPend = document.getElementById('lista-pendientes');
+    let profFilterContainer = document.getElementById('agendaProfFilterContainer');
     
-    if (profFilterEl && profContainerEl && data.length > 0) {
-        const uniqueProfs = [...new Set(data.map(t => t.profesional).filter(p => p && p !== 'Cualquiera (Sin preferencia)'))].sort();
-        
-        if (uniqueProfs.length > 0) {
-            profContainerEl.classList.remove('hidden');
-            const currentProfsStr = uniqueProfs.join(',');
-            
-            if (profFilterEl.dataset.profs !== currentProfsStr) {
-                const currentVal = profFilterEl.value;
-                let optionsHtml = '<option value="">Todos los profesionales</option>';
+    if (!profFilterContainer && listPend) {
+        profFilterContainer = document.createElement('div');
+        profFilterContainer.id = 'agendaProfFilterContainer';
+        profFilterContainer.className = 'mb-6 w-full';
+        const searchCont = document.getElementById('agendaSearchContainer');
+        if (searchCont && searchCont.parentNode) searchCont.parentNode.insertBefore(profFilterContainer, searchCont.nextSibling);
+        else listPend.parentNode.insertBefore(profFilterContainer, listPend);
+    }
+
+    if (profFilterContainer) {
+        if (window.currentUserData && window.currentUserData.rol_en_local === 'profesional') {
+            profFilterContainer.classList.add('hidden');
+        } else if (data.length > 0) {
+            const uniqueProfs = [...new Set(data.map(t => t.profesional).filter(p => p && p !== 'Cualquiera (Sin preferencia)'))].sort();
+            if (uniqueProfs.length > 0) {
+                profFilterContainer.classList.remove('hidden');
+                let profTabsHtml = `<div class="flex overflow-x-auto gap-3 pb-2 w-full snap-x pt-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">`;
+                let activeAll = profTerm === '' ? 'bg-primary text-white shadow-md ring-2 ring-primary/30 ring-offset-2' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200';
+                profTabsHtml += `<button onclick="window.setAgendaProfFilter('')" class="snap-start shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeAll}"><span class="material-symbols-outlined text-[18px]">groups</span> Todos los turnos</button>`;
                 uniqueProfs.forEach(p => {
-                    optionsHtml += `<option value="${p}">${p}</option>`;
+                    const count = data.filter(t => t.profesional === p && t.estado === 'pendiente').length;
+                    const countBadge = count > 0 ? `<span class="bg-amber-400 text-amber-900 px-2 py-0.5 rounded-md text-xs font-black ml-1 shadow-sm">${count}</span>` : '';
+                    const isActive = profTerm === p ? 'bg-primary text-white shadow-md ring-2 ring-primary/30 ring-offset-2' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200';
+                    const iconColor = profTerm === p ? 'text-white' : 'text-primary';
+                    profTabsHtml += `<button onclick="window.setAgendaProfFilter('${p.replace(/'/g, "\\'")}')" class="snap-start shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${isActive}"><span class="material-symbols-outlined text-[18px] ${iconColor}">person</span> ${p} ${countBadge}</button>`;
                 });
-                profFilterEl.innerHTML = optionsHtml;
-                profFilterEl.value = uniqueProfs.includes(currentVal) ? currentVal : '';
-                profFilterEl.dataset.profs = currentProfsStr;
-            }
-        } else {
-            profContainerEl.classList.add('hidden');
+                profTabsHtml += `</div>`;
+                if (profFilterContainer.innerHTML !== profTabsHtml) profFilterContainer.innerHTML = profTabsHtml;
+            } else { profFilterContainer.classList.add('hidden'); }
         }
     }
 
@@ -1319,19 +1329,24 @@ function renderAgendaTurnos(data, searchTerm = '', profTerm = '') {
             const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}/${fParts[0]}` : t.fecha;
             const focusClass = focusId == t.id ? 'ring-4 ring-primary ring-offset-2 scale-[1.02] transition-transform duration-500' : '';
             listPend.innerHTML += `
-                <div id="turno-${t.id}" class="bg-white border-l-4 border-amber-400 shadow-sm rounded-xl p-5 hover:shadow-md transition-all ${focusClass}">
-                    <p class="text-xs font-bold text-amber-500 mb-2 uppercase tracking-wide">${fDisplay} • ${t.hora} hs</p>
-                    <p class="text-base font-bold text-slate-800 mb-1">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
-                    <div class="flex items-center gap-2 mb-1">
-                        <p class="text-sm font-medium text-slate-600 flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular}</p>
-                        <button onclick="contactarWhatsApp('${t.id}')" class="text-[#128C7E] hover:bg-[#25D366]/20 bg-[#25D366]/10 p-1.5 rounded-md transition-colors" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
+                <div id="turno-${t.id}" class="bg-white border border-slate-200 shadow-sm rounded-2xl p-5 hover:shadow-lg hover:border-amber-300 transition-all relative overflow-hidden ${focusClass}">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-amber-400"></div>
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-xs font-bold bg-amber-100 text-amber-800 px-3 py-1 rounded-lg uppercase tracking-wider">${fDisplay} • ${t.hora} hs</span>
+                        ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
                     </div>
-                    <p class="text-sm text-slate-500 mb-3 mt-2 flex items-center flex-wrap gap-1"><span class="material-symbols-outlined text-[14px]">spa</span> ${t.servicio} ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? '<span class="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 rounded-md text-xs font-semibold">👤 ' + t.profesional + '</span>' + buildProfessionalLinkButton(t.profesional) : ''}</p>
-                    <div class="flex items-center gap-2 mt-2">
-                        <button onclick="confirmarTurno('${t.id}')" class="flex-1 bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-500/20 dark:hover:bg-amber-500/40 dark:text-amber-400 text-sm font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-1">
+                    <p class="text-lg font-bold text-slate-800 mb-1">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                    <div class="flex items-center gap-3 mb-4">
+                        <p class="text-sm font-medium text-slate-600 flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100"><span class="material-symbols-outlined text-[16px] text-slate-400">call</span> ${t.cliente_celular || t.celular}</p>
+                        <button onclick="contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
+                    </div>
+                    <p class="text-sm text-slate-600 mb-5 flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary">spa</span> <span class="font-medium">${t.servicio}</span></p>
+                    
+                    <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
+                        <button onclick="confirmarTurno('${t.id}')" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 shadow-sm shadow-amber-500/20">
                             <span class="material-symbols-outlined text-[18px]">check</span> Confirmar
                         </button>
-                        <button onclick="cancelarTurno('${t.id}')" class="bg-slate-100 dark:bg-slate-800 hover:bg-red-100 dark:hover:bg-red-500/20 text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 text-sm font-bold py-2 px-3 rounded-lg transition-colors flex items-center justify-center" title="Rechazar solicitud">
+                        <button onclick="cancelarTurno('${t.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-sm font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center border border-red-100" title="Rechazar solicitud">
                             <span class="material-symbols-outlined text-[18px]">close</span>
                         </button>
                     </div>
@@ -1377,22 +1392,26 @@ function renderAgendaTurnos(data, searchTerm = '', profTerm = '') {
                 `;
                 
                 gruposConf[fecha].forEach(t => {
+                    const customStyle = `style="border-left-width: 4px; border-left-color: var(--color-primario, #3b82f6); background-color: color-mix(in srgb, var(--color-primario, #3b82f6) 4%, #ffffff);"`;
                     htmlDia += `
-                        <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:shadow-md transition-shadow">
-                            <div>
-                                <p class="text-xs font-bold text-green-600 mb-1 uppercase tracking-wide">${t.hora} hs</p>
-                                <p class="text-base font-bold text-slate-800 mb-1">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
-                                <p class="text-sm font-medium text-slate-600 mb-2 flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular}</p>
-                                <div class="flex items-center flex-wrap gap-2">
-                                    <span class="bg-blue-50 text-blue-700 font-medium px-2.5 py-1 rounded-md text-xs border border-blue-100">${t.servicio}</span>
-                                    ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="bg-purple-50 text-purple-700 font-medium px-2.5 py-1 rounded-md text-xs border border-purple-100">👤 ${t.profesional}</span>${buildProfessionalLinkButton(t.profesional)}` : ''}
-                                </div>
+                        <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-5 hover:shadow-lg transition-shadow relative overflow-hidden" ${customStyle}>
+                            <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500" style="background-color: var(--color-primario, #3b82f6);"></div>
+                            <div class="flex justify-between items-start mb-3">
+                                <span class="text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1 rounded-lg uppercase tracking-wider">${t.hora} hs</span>
+                                ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
                             </div>
-                            <div class="flex flex-row sm:flex-col gap-2 mt-2 sm:mt-0 w-full sm:w-auto border-t sm:border-t-0 border-slate-100 pt-3 sm:pt-0">
-                                <button onclick="contactarWhatsApp('${t.id}')" class="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-[#25D366]/10 text-[#128C7E] hover:bg-[#25D366]/20 px-3 py-2 rounded-lg font-bold transition-colors text-sm"><span class="material-symbols-outlined text-[18px]">chat</span> Contactar</button>
-                                <button onclick="recordatorioWhatsApp('${t.id}')" class="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-2 rounded-lg font-bold transition-colors text-sm" title="Enviar recordatorio"><span class="material-symbols-outlined text-[18px]">notifications_active</span> Recordar</button>
-                                <button onclick="cancelarTurno('${t.id}')" class="flex-1 sm:flex-none flex items-center justify-center gap-1 text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-2 rounded-lg font-bold transition-colors text-sm" title="Cancelar turno">
-                                    <span class="material-symbols-outlined text-[18px]">cancel</span> Cancelar
+                            <p class="text-lg font-bold text-slate-800 mb-1">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                            <div class="flex items-center gap-3 mb-4">
+                                <p class="text-sm font-medium text-slate-600 flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100"><span class="material-symbols-outlined text-[16px] text-slate-400">call</span> ${t.cliente_celular || t.celular}</p>
+                                <button onclick="contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
+                            </div>
+                            <p class="text-sm text-slate-600 mb-5 flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary">spa</span> <span class="font-medium">${t.servicio}</span></p>
+                            <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
+                                <button onclick="recordatorioWhatsApp('${t.id}')" class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 border border-blue-100" title="Enviar recordatorio">
+                                    <span class="material-symbols-outlined text-[18px]">notifications_active</span> Recordar
+                                </button>
+                                <button onclick="cancelarTurno('${t.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-sm font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center border border-red-100" title="Eliminar turno">
+                                    <span class="material-symbols-outlined text-[18px]">delete</span>
                                 </button>
                             </div>
                         </div>

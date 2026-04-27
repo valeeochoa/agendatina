@@ -93,30 +93,38 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     }
 
     // --- POBLAR TABS DE PROFESIONALES (CARPETAS) ---
-    const tabsContainer = document.getElementById('profesionalesAgendaTabs');
-    if (tabsContainer && data.length > 0) {
-        // Chequear rol para no mostrar tabs al empleado
+    const listPend = document.getElementById('lista-pendientes');
+    let profFilterContainer = document.getElementById('agendaProfFilterContainer');
+    
+    if (!profFilterContainer && listPend) {
+        profFilterContainer = document.createElement('div');
+        profFilterContainer.id = 'agendaProfFilterContainer';
+        profFilterContainer.className = 'mb-6 w-full';
+        const searchCont = document.getElementById('agendaSearchContainer');
+        if (searchCont && searchCont.parentNode) searchCont.parentNode.insertBefore(profFilterContainer, searchCont.nextSibling);
+        else listPend.parentNode.insertBefore(profFilterContainer, listPend);
+    }
+
+    if (profFilterContainer) {
         if (window.currentUserData && window.currentUserData.rol_en_local === 'profesional') {
-            tabsContainer.classList.add('hidden');
-        } else {
+            profFilterContainer.classList.add('hidden');
+        } else if (data.length > 0) {
             const uniqueProfs = [...new Set(data.map(t => t.profesional).filter(p => p && p !== 'Cualquiera (Sin preferencia)'))].sort();
-            
             if (uniqueProfs.length > 0) {
-                tabsContainer.classList.remove('hidden');
-                const currentProfsStr = uniqueProfs.join(',');
-                
-                if (tabsContainer.dataset.profs !== currentProfsStr) {
-                    let activeTab = window.currentAgendaProfTerm || '';
-                    let optionsHtml = `<button onclick="window.setAgendaProfFilter('')" class="px-6 py-3 rounded-t-2xl font-bold text-sm whitespace-nowrap transition-all shadow-sm flex items-center gap-2 ${activeTab === '' ? 'bg-primary text-white border-b-4 border-white/20' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'}"><span class="material-symbols-outlined text-[18px]">calendar_view_week</span> Agenda General</button>`;
-                    uniqueProfs.forEach(p => {
-                        optionsHtml += `<button onclick="window.setAgendaProfFilter('${p.replace(/'/g, "\\'")}')" class="px-6 py-3 rounded-t-2xl font-bold text-sm whitespace-nowrap transition-all shadow-sm flex items-center gap-2 ${activeTab === p ? 'bg-primary text-white border-b-4 border-white/20' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'}"><span class="material-symbols-outlined text-[18px]">folder_shared</span> ${p}</button>`;
-                    });
-                    tabsContainer.innerHTML = optionsHtml;
-                    tabsContainer.dataset.profs = currentProfsStr;
-                }
-            } else {
-                tabsContainer.classList.add('hidden');
-            }
+                profFilterContainer.classList.remove('hidden');
+                let profTabsHtml = `<div class="flex overflow-x-auto gap-3 pb-2 w-full snap-x pt-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">`;
+                let activeAll = profTerm === '' ? 'bg-primary text-white shadow-md ring-2 ring-primary/30 ring-offset-2' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200';
+                profTabsHtml += `<button onclick="window.setAgendaProfFilter('')" class="snap-start shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeAll}"><span class="material-symbols-outlined text-[18px]">groups</span> Todos los turnos</button>`;
+                uniqueProfs.forEach(p => {
+                    const count = data.filter(t => t.profesional === p && t.estado === 'pendiente').length;
+                    const countBadge = count > 0 ? `<span class="bg-amber-400 text-amber-900 px-2 py-0.5 rounded-md text-xs font-black ml-1 shadow-sm">${count}</span>` : '';
+                    const isActive = profTerm === p ? 'bg-primary text-white shadow-md ring-2 ring-primary/30 ring-offset-2' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200';
+                    const iconColor = profTerm === p ? 'text-white' : 'text-primary';
+                    profTabsHtml += `<button onclick="window.setAgendaProfFilter('${p.replace(/'/g, "\\'")}')" class="snap-start shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${isActive}"><span class="material-symbols-outlined text-[18px] ${iconColor}">person</span> ${p} ${countBadge}</button>`;
+                });
+                profTabsHtml += `</div>`;
+                if (profFilterContainer.innerHTML !== profTabsHtml) profFilterContainer.innerHTML = profTabsHtml;
+            } else { profFilterContainer.classList.add('hidden'); }
         }
     }
 
@@ -175,26 +183,26 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
             const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}/${fParts[0]}` : t.fecha;
             const focusClass = focusId == t.id ? 'ring-4 ring-primary ring-offset-2 scale-[1.02] transition-transform duration-500' : '';
             listPend.innerHTML += `
-                <div id="turno-${t.id}" class="bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-900/50 shadow-sm rounded-xl p-5 hover:shadow-md transition-all ${focusClass}">
+                <div id="turno-${t.id}" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-2xl p-5 hover:shadow-lg hover:border-amber-300 dark:hover:border-amber-500/50 transition-all relative overflow-hidden ${focusClass}">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-amber-400"></div>
                     <div class="flex justify-between items-start mb-3">
-                        <span class="text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 px-2.5 py-1 rounded-md uppercase tracking-wide border border-amber-200 dark:border-amber-800/50">${fDisplay} • ${t.hora} hs</span>
+                        <span class="text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-3 py-1 rounded-lg uppercase tracking-wider">${fDisplay} • ${t.hora} hs</span>
+                        ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
                     </div>
-                    <p class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2 leading-tight">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
-                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-1 flex items-start gap-2"><span class="material-symbols-outlined text-[18px] shrink-0 text-slate-400">spa</span> <span class="break-words">${t.servicio}</span></p>
-                    ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<p class="text-sm text-slate-600 dark:text-slate-400 mb-3 flex items-start gap-2"><span class="material-symbols-outlined text-[18px] shrink-0 text-slate-400">person</span> <span class="break-words">${t.profesional}</span></p>` : '<div class="mb-3"></div>'}
+                    <p class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                    <div class="flex items-center gap-3 mb-4">
+                        <p class="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center gap-1.5 bg-slate-50 dark:bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-slate-700"><span class="material-symbols-outlined text-[16px] text-slate-400">call</span> ${t.cliente_celular || t.celular}</p>
+                        <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100 dark:border-emerald-800/30" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
+                    </div>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-5 flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary">spa</span> <span class="font-medium">${t.servicio}</span></p>
                     
-                    <div class="flex flex-col sm:flex-row items-center gap-2 mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 w-full">
-                        <button onclick="window.confirmarTurnoAdmin('${t.id}')" class="w-full sm:flex-1 bg-primary hover:bg-primary/90 text-white text-sm font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-1 shadow-sm">
+                    <div class="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
+                        <button onclick="window.confirmarTurnoAdmin('${t.id}')" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 shadow-sm shadow-amber-500/20">
                             <span class="material-symbols-outlined text-[18px]">check</span> Confirmar
                         </button>
-                        <div class="flex gap-2 w-full sm:w-auto">
-                            <button onclick="window.contactarWhatsApp('${t.id}')" class="flex-1 sm:flex-none bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 dark:text-emerald-400 text-sm font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-1 border border-emerald-100 dark:border-emerald-800/30" title="Contactar por WhatsApp">
-                                <span class="material-symbols-outlined text-[18px]">chat</span>
-                            </button>
-                            <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="flex-1 sm:flex-none bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 text-sm font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center border border-red-100 dark:border-red-800/30" title="Eliminar turno">
-                                <span class="material-symbols-outlined text-[18px]">delete</span>
-                            </button>
-                        </div>
+                        <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 text-sm font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center border border-red-100 dark:border-red-800/30" title="Eliminar turno">
+                            <span class="material-symbols-outlined text-[18px]">close</span>
+                        </button>
                     </div>
                 </div>
             `;
@@ -240,23 +248,26 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                 gruposConf[fecha].forEach(t => {
                     const customStyle = `style="border-left-width: 4px; border-left-color: var(--color-primario, #3b82f6); background-color: color-mix(in srgb, var(--color-primario, #3b82f6) 4%, #ffffff);"`;
                     htmlDia += `
-                        <div class="border border-slate-200 dark:border-slate-700 rounded-xl p-4 sm:p-5 flex flex-col gap-3 hover:shadow-md transition-shadow" ${customStyle}>
-                            <div class="flex justify-between items-start">
-                                <div class="flex-1 min-w-0">
-                                    <span class="text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2.5 py-1 rounded-md inline-block mb-3 uppercase tracking-wide border border-blue-200 dark:border-blue-800/50">${t.hora} hs</span>
-                                    <p class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2 leading-tight">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
-                                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-1 flex items-start gap-2"><span class="material-symbols-outlined text-[18px] shrink-0 text-slate-400">spa</span> <span class="break-words">${t.servicio}</span></p>
-                                    ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<p class="text-sm text-slate-600 dark:text-slate-400 flex items-start gap-2"><span class="material-symbols-outlined text-[18px] shrink-0 text-slate-400">person</span> <span class="break-words">${t.profesional}</span></p>` : ''}
-                                </div>
+                        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-2xl p-5 hover:shadow-lg transition-shadow relative overflow-hidden" ${customStyle}>
+                            <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500" style="background-color: var(--color-primario, #3b82f6);"></div>
+                            <div class="flex justify-between items-start mb-3">
+                                <span class="text-xs font-bold bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-3 py-1 rounded-lg uppercase tracking-wider">${t.hora} hs</span>
+                                ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
                             </div>
-                            <div class="flex flex-col sm:flex-row gap-2 mt-1 w-full border-t border-slate-100 dark:border-slate-700 pt-4">
-                                <button onclick="window.contactarWhatsApp('${t.id}')" class="w-full sm:flex-1 flex items-center justify-center gap-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20 px-3 py-2.5 rounded-xl font-bold transition-colors text-sm border border-emerald-100 dark:border-emerald-800/30"><span class="material-symbols-outlined text-[18px]">chat</span> WhatsApp</button>
-                                <div class="flex gap-2 w-full sm:w-auto">
-                                    <button onclick="window.recordatorioWhatsApp('${t.id}')" class="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:hover:bg-blue-500/20 px-4 py-2.5 rounded-xl font-bold transition-colors text-sm border border-blue-100 dark:border-blue-800/30" title="Enviar recordatorio"><span class="material-symbols-outlined text-[18px]">notifications_active</span></button>
-                                    <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="flex-1 sm:flex-none flex items-center justify-center gap-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 px-4 py-2.5 rounded-xl font-bold transition-colors text-sm border border-red-100 dark:border-red-800/30" title="Eliminar turno">
-                                        <span class="material-symbols-outlined text-[18px]">delete</span>
-                                    </button>
-                                </div>
+                            <p class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                            <div class="flex items-center gap-3 mb-4">
+                                <p class="text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center gap-1.5 bg-slate-50 dark:bg-slate-900/50 px-3 py-1.5 rounded-lg border border-slate-100 dark:border-slate-700"><span class="material-symbols-outlined text-[16px] text-slate-400">call</span> ${t.cliente_celular || t.celular}</p>
+                                <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100 dark:border-emerald-800/30" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
+                            </div>
+                            <p class="text-sm text-slate-600 dark:text-slate-400 mb-5 flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary">spa</span> <span class="font-medium">${t.servicio}</span></p>
+                            <div class="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
+                                <button onclick="window.recordatorioWhatsApp('${t.id}')" class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 border border-blue-100 dark:border-blue-800/30" title="Enviar recordatorio">
+                                    <span class="material-symbols-outlined text-[18px]">notifications_active</span> Recordar
+                                </button>
+                                <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 text-sm font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center border border-red-100 dark:border-red-800/30" title="Eliminar turno">
+                                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                                </button>
+                            </div>
                             </div>
                         </div>
                     `;
