@@ -1169,7 +1169,6 @@ function cargarAgenda() {
 }
 
 function renderAgendaTurnos(data, searchTerm = '', profTerm = '') {
-    // Inyectar buscador si no existe en el DOM
     if (!document.getElementById('agendaSearchContainer')) {
         const listPend = document.getElementById('lista-pendientes');
         if (listPend) {
@@ -1183,17 +1182,6 @@ function renderAgendaTurnos(data, searchTerm = '', profTerm = '') {
                             <span class="material-symbols-outlined text-slate-400 text-[20px]">search</span>
                         </div>
                         <input type="text" id="agendaSearchInput" class="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-slate-200 bg-white shadow-sm focus:ring-2 focus:ring-primary outline-none transition-all text-sm font-medium text-slate-700 placeholder-slate-400" placeholder="Buscar por cliente, teléfono o servicio...">
-                    </div>
-                    <div class="relative w-full sm:w-64 hidden" id="agendaProfFilterContainer">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <span class="material-symbols-outlined text-slate-400 text-[20px]">person</span>
-                        </div>
-                        <select id="agendaProfFilter" class="w-full pl-11 pr-10 py-3.5 rounded-2xl border border-slate-200 bg-white shadow-sm focus:ring-2 focus:ring-primary outline-none transition-all text-sm font-medium text-slate-700 appearance-none cursor-pointer">
-                            <option value="">Todos los profesionales</option>
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                            <span class="material-symbols-outlined text-slate-400 text-[20px]">expand_more</span>
-                        </div>
                     </div>
                     <button onclick="descargarHistorialTurnos(this)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-3.5 rounded-2xl font-bold text-sm transition-colors flex items-center justify-center gap-2 border border-slate-200 shadow-sm whitespace-nowrap shrink-0 w-full sm:w-auto" title="Descargar Historial Completo (CSV)">
                         <span class="material-symbols-outlined text-[20px]">download</span>
@@ -1213,6 +1201,7 @@ function renderAgendaTurnos(data, searchTerm = '', profTerm = '') {
             // Evento para filtrar en tiempo real
             document.getElementById('agendaSearchInput').addEventListener('input', (e) => {
                 renderAgendaTurnos(window.agendaData, e.target.value, document.getElementById('agendaProfFilter').value);
+                renderAgendaTurnos(window.agendaData, e.target.value, window.currentAgendaProfTerm || '');
             });
             
             document.getElementById('agendaProfFilter').addEventListener('change', (e) => {
@@ -1373,6 +1362,14 @@ function renderAgendaTurnos(data, searchTerm = '', profTerm = '') {
         }
         }
     }
+
+window.setAgendaProfFilter = function(profName) {
+    window.currentAgendaProfTerm = profName;
+    // Forzar actualización visual de las pestañas
+    const tabsContainer = document.getElementById('profesionalesAgendaTabs');
+    if (tabsContainer) tabsContainer.dataset.profs = '';
+    renderAgendaTurnos(window.agendaData, document.getElementById('agendaSearchInput')?.value || '', profName);
+};
 
 window.descargarHistorialTurnos = function(btn) {
     const originalHtml = btn.innerHTML;

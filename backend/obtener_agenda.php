@@ -34,24 +34,34 @@ try {
     }
 
     $historial = isset($_GET['historial']) && $_GET['historial'] === '1';
+    
+    $profesional_filter = "";
+    if (isset($_SESSION['rol_en_local']) && $_SESSION['rol_en_local'] === 'profesional') {
+        // Restricción: Si entra el profesional, la base de datos SOLO entrega sus turnos
+        $profesional_filter = " AND profesional = :mi_nombre ";
+    }
 
     if ($historial) {
         // Sin límite de fecha para exportar el historial completo a Excel
         $sql = "SELECT id, cliente_nombre, nombre, apellido, cliente_celular, celular, fecha, hora, servicio, profesional, estado 
                 FROM turnos 
-                WHERE id_negocio = :id_negocio 
+                WHERE id_negocio = :id_negocio $profesional_filter
                 ORDER BY fecha DESC, hora ASC";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute(['id_negocio' => $_SESSION['id_negocio']]);
+        $params = ['id_negocio' => $_SESSION['id_negocio']];
+        if ($profesional_filter) $params['mi_nombre'] = $_SESSION['nombre_completo'];
+        $stmt->execute($params);
     } else {
         // Ventana de tiempo (60 días) para vista normal de agenda
         $min_fecha = date('Y-m-d', strtotime('-60 days'));
         $sql = "SELECT id, cliente_nombre, nombre, apellido, cliente_celular, celular, fecha, hora, servicio, profesional, estado 
                 FROM turnos 
-                WHERE id_negocio = :id_negocio AND fecha >= :min_fecha 
+                WHERE id_negocio = :id_negocio AND fecha >= :min_fecha $profesional_filter
                 ORDER BY fecha DESC, hora ASC";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute(['id_negocio' => $_SESSION['id_negocio'], 'min_fecha' => $min_fecha]);
+        $params = ['id_negocio' => $_SESSION['id_negocio'], 'min_fecha' => $min_fecha];
+        if ($profesional_filter) $params['mi_nombre'] = $_SESSION['nombre_completo'];
+        $stmt->execute($params);
     }
     
     $turnos = $stmt->fetchAll();

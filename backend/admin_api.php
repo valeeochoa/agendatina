@@ -35,6 +35,9 @@ $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 try { $pdo->query("SELECT plan FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN plan VARCHAR(50) DEFAULT 'Basico'"); }
 
+try { $pdo->query("SELECT max_profesionales FROM negocios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN max_profesionales INT DEFAULT 1"); }
+
 try { $pdo->query("SELECT estado_pago FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN estado_pago VARCHAR(50) DEFAULT 'prueba'"); }
 
@@ -113,8 +116,8 @@ if ($method === 'GET') {
 
     try {
         $stmt = $pdo->query("
-            SELECT n.id, n.nombre_fantasia, n.ruta, n.plan, n.estado_pago, n.fecha_alta, 
-                   n.ultimo_pago, n.comprobante, u.nombre_completo, u.email,
+            SELECT n.id, n.nombre_fantasia, n.ruta, n.plan, n.max_profesionales, n.estado_pago, n.fecha_alta, 
+                   n.ultimo_pago, n.comprobante, u.nombre_completo, u.email, u.id AS id_usuario_admin,
                    COALESCE(cw.tipo_calendario, 'clasico') AS tipo_calendario,
                    an.nota AS nota_interna
             FROM negocios n
@@ -125,6 +128,21 @@ if ($method === 'GET') {
             ORDER BY n.id DESC
         ");
         $negocios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Obtener la lista de profesionales de cada negocio
+        $stmtProfs = $pdo->query("
+            SELECT pn.id_negocio, u.id as id_usuario, u.nombre_completo, u.email 
+            FROM usuarios u 
+            JOIN personal_negocio pn ON u.id = pn.id_usuario 
+            WHERE pn.rol_en_local = 'profesional'
+        ");
+        $todos_profesionales = $stmtProfs->fetchAll(PDO::FETCH_ASSOC);
+        
+        foreach ($negocios as &$negocio) {
+            $negocio['profesionales'] = array_values(array_filter($todos_profesionales, function($p) use ($negocio) {
+                return $p['id_negocio'] == $negocio['id'];
+            }));
+        }
         
         // Obtener notificaciones de errores recientes para el SuperAdmin
         $stmtNotifs = $pdo->query("
@@ -172,11 +190,13 @@ elseif ($method === 'POST') {
     }
 
     $nombre_completo = trim($data['nombre_completo'] ?? '');
-    $email =  = trim($data['password'] ?? '');
+    $email = filter_var(trim($data['email'] ?? ''), FILTER_SANITIZE_EMAIL);
+    $password = trim($data['password'] ?? '');
     $nombre_fantasia = trim($data['nombre_fantasia'] ?? '');
     $rutaRaw = $data['ruta'] ?? $data['subdominio'] ?? ''; // Compatibilidad con variables previas
     $ruta = preg_replace('/[^a-zA-Z0-9-]/', '', strtolower(trim($rutaRaw))); // Sanitizar URL
     $plan = trim($data['plan'] ?? 'Basico');
+    $max_profesionales = (int)($data['max_profesionales'] ?? 1);
     $estado_pago = trim($data['estado_pago'] ?? 'prueba');
 
     if (!$nombre_completo || !$email || !$password || !$nombre_fantasia || !$ruta) {
@@ -253,11 +273,12 @@ elseif ($method === 'POST') {
             throw new Exception("El enlace '$ruta' ya está en uso. Si lo eliminaste recientemente, comprueba que se haya borrado correctamente.");
         }
         
-        $stmt = $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, estado_pago) VALUES (:fantasia, :ruta, :plan, :estado_pago)");
+        $stmt = $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago) VALUES (:fantasia, :ruta, :plan, :max_profesionales, :estado_pago)");
         $stmt->execute([
             'fantasia' => $nombre_fantasia,
             'ruta' => $ruta,
             'plan' => $plan,
+            'max_profesionales' => $max_profesionales,
             'estado_pago' => $estado_pago
         ]);
         $id_negocio = $pdo->lastInsertId();
@@ -292,6 +313,7 @@ elseif ($method === 'PUT') {
     
     $id_negocio = $data['id_negocio'] ?? null;
     $plan = $data['plan'] ?? null;
+    $max_profesionales = isset($data['max_profesionales']) ? (int)$data['max_profesionales'] : null;
     $estado_pago = $data['estado_pago'] ?? null;
     $action = $data['action'] ?? null;
     $motivo_rechazo = trim($data['motivo_rechazo'] ?? '');
@@ -330,7 +352,8 @@ elseif ($method === 'PUT') {
             }
         } elseif ($action === 'edit_client') {
             $nombre_completo = trim($data['nombre_completo'] ?? '');
-            $email = filter_var(trim($data['email'] ?? '')ata['nombre_fantasia'] ?? '');
+            $email = filter_var(trim($data['email'] ?? ''), FILTER_SANITIZE_EMAIL);
+            $nombre_fantasia = trim($data['nombre_fantasia'] ?? '');
             $ruta = preg_replace('/[^a-zA-Z0-9-]/', '', strtolower(trim($data['ruta'] ?? '')));
             $password = trim($data['password'] ?? '');
 
@@ -359,6 +382,7 @@ elseif ($method === 'PUT') {
             $sqlNegocio = "UPDATE negocios SET nombre_fantasia = :nf, ruta = :ruta";
             $paramsNegocio = ['nf' => $nombre_fantasia, 'ruta' => $ruta, 'id' => $id_negocio];
             if ($plan) { $sqlNegocio .= ", plan = :plan"; $paramsNegocio['plan'] = $plan; }
+            if ($max_profesionales !== null) { $sqlNegocio .= ", max_profesionales = :max_profesionales"; $paramsNegocio['max_profesionales'] = $max_profesionales; }
             if ($estado_pago) { $sqlNegocio .= ", estado_pago = :estado_pago"; $paramsNegocio['estado_pago'] = $estado_pago; }
             $sqlNegocio .= " WHERE id = :id";
             $stmtNegocio = $pdo->prepare($sqlNegocio);
@@ -405,6 +429,10 @@ elseif ($method === 'PUT') {
                 if ($plan !== null) {
                     $updates[] = "plan = :plan";
                     $params['plan'] = $plan;
+                }
+                if ($max_profesionales !== null) {
+                    $updates[] = "max_profesionales = :max_profesionales";
+                    $params['max_profesionales'] = $max_profesionales;
                 }
                 if ($estado_pago !== null) {
                     $updates[] = "estado_pago = :estado_pago";
@@ -476,6 +504,23 @@ elseif ($method === 'PUT') {
 // ELIMINAR UN NEGOCIO Y SUS DATOS (MÉTODO DELETE)
 // =========================================================================
 elseif ($method === 'DELETE') {
+    // Eliminar profesional forzadamente desde el SuperAdmin
+    if (isset($_GET['id_profesional'])) {
+        $id_profesional = $_GET['id_profesional'];
+        try {
+            $stmtCheck = $pdo->prepare("SELECT id FROM personal_negocio WHERE id_usuario = ? AND rol_en_local = 'profesional'");
+            $stmtCheck->execute([$id_profesional]);
+            if ($stmtCheck->fetch()) {
+                $pdo->prepare("DELETE FROM usuarios WHERE id = ?")->execute([$id_profesional]);
+                $pdo->prepare("DELETE FROM personal_negocio WHERE id_usuario = ?")->execute([$id_profesional]);
+                echo json_encode(['success' => true]);
+            } else {
+                echo json_encode(['success' => false, 'error' => 'Usuario profesional no encontrado.']);
+            }
+        } catch (Exception $e) { echo json_encode(['success' => false, 'error' => $e->getMessage()]); }
+        exit;
+    }
+
     $id_reporte = $_GET['id_reporte'] ?? null;
     if ($id_reporte) {
         try {

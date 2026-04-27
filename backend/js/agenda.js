@@ -53,12 +53,12 @@ window.cargarAgenda = function() {
             .catch(() => window.renderAgendaTurnos(data, document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : ''));
         } else {
             const currentSearch = document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : '';
-            window.renderAgendaTurnos(data, currentSearch);
+            window.renderAgendaTurnos(data, currentSearch, window.currentAgendaProfTerm || '');
         }
     }).catch(err => console.error(err));
 };
 
-window.renderAgendaTurnos = function(data, searchTerm = '') {
+window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     // Inyectar buscador si no existe en el DOM
     if (!document.getElementById('agendaSearchContainer')) {
         const listPend = document.getElementById('lista-pendientes');
@@ -83,7 +83,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
 
             // Evento para filtrar en tiempo real
             document.getElementById('agendaSearchInput').addEventListener('input', (e) => {
-                window.renderAgendaTurnos(window.agendaData, e.target.value);
+                window.renderAgendaTurnos(window.agendaData, e.target.value, window.currentAgendaProfTerm || '');
             });
             
             if (searchTerm) {
@@ -92,19 +92,49 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
         }
     }
 
+    // --- POBLAR TABS DE PROFESIONALES (CARPETAS) ---
+    const tabsContainer = document.getElementById('profesionalesAgendaTabs');
+    if (tabsContainer && data.length > 0) {
+        // Chequear rol para no mostrar tabs al empleado
+        if (window.currentUserData && window.currentUserData.rol_en_local === 'profesional') {
+            tabsContainer.classList.add('hidden');
+        } else {
+            const uniqueProfs = [...new Set(data.map(t => t.profesional).filter(p => p && p !== 'Cualquiera (Sin preferencia)'))].sort();
+            
+            if (uniqueProfs.length > 0) {
+                tabsContainer.classList.remove('hidden');
+                const currentProfsStr = uniqueProfs.join(',');
+                
+                if (tabsContainer.dataset.profs !== currentProfsStr) {
+                    let activeTab = window.currentAgendaProfTerm || '';
+                    let optionsHtml = `<button onclick="window.setAgendaProfFilter('')" class="px-6 py-3 rounded-t-2xl font-bold text-sm whitespace-nowrap transition-all shadow-sm flex items-center gap-2 ${activeTab === '' ? 'bg-primary text-white border-b-4 border-white/20' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'}"><span class="material-symbols-outlined text-[18px]">calendar_view_week</span> Agenda General</button>`;
+                    uniqueProfs.forEach(p => {
+                        optionsHtml += `<button onclick="window.setAgendaProfFilter('${p.replace(/'/g, "\\'")}')" class="px-6 py-3 rounded-t-2xl font-bold text-sm whitespace-nowrap transition-all shadow-sm flex items-center gap-2 ${activeTab === p ? 'bg-primary text-white border-b-4 border-white/20' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'}"><span class="material-symbols-outlined text-[18px]">folder_shared</span> ${p}</button>`;
+                    });
+                    tabsContainer.innerHTML = optionsHtml;
+                    tabsContainer.dataset.profs = currentProfsStr;
+                }
+            } else {
+                tabsContainer.classList.add('hidden');
+            }
+        }
+    }
+
     let pendientes = data.filter(t => t.estado === 'pendiente');
     let confirmados = data.filter(t => t.estado === 'confirmado');
     let eliminados = data.filter(t => t.estado === 'eliminado');
     
-    if (searchTerm) {
-        const term = searchTerm.toLowerCase();
-        const filterFn = t => 
-            (t.cliente_nombre && t.cliente_nombre.toLowerCase().includes(term)) ||
-            (t.nombre && t.nombre.toLowerCase().includes(term)) ||
-            (t.apellido && t.apellido.toLowerCase().includes(term)) ||
-            (t.cliente_celular && t.cliente_celular.includes(term)) ||
-            (t.celular && t.celular.includes(term)) ||
-            (t.servicio && t.servicio.toLowerCase().includes(term));
+    if (searchTerm || profTerm) {
+        const term = (searchTerm || '').toLowerCase();
+        const filterFn = t => {
+            let matchSearch = true;
+            if (term) matchSearch = (t.cliente_nombre && t.cliente_nombre.toLowerCase().includes(term)) || (t.nombre && t.nombre.toLowerCase().includes(term)) || (t.apellido && t.apellido.toLowerCase().includes(term)) || (t.cliente_celular && t.cliente_celular.includes(term)) || (t.celular && t.celular.includes(term)) || (t.servicio && t.servicio.toLowerCase().includes(term));
+            
+            let matchProf = true;
+            if (profTerm) matchProf = (t.profesional === profTerm);
+            
+            return matchSearch && matchProf;
+        };
             
         pendientes = pendientes.filter(filterFn);
         confirmados = confirmados.filter(filterFn);
@@ -365,6 +395,13 @@ window.renderAgendaTurnos = function(data, searchTerm = '') {
     }
 };
 
+window.setAgendaProfFilter = function(profName) {
+    window.currentAgendaProfTerm = profName;
+    const tabsContainer = document.getElementById('profesionalesAgendaTabs');
+    if (tabsContainer) tabsContainer.dataset.profs = '';
+    window.renderAgendaTurnos(window.agendaData, document.getElementById('agendaSearchInput')?.value || '', profName);
+};
+
 window.restaurarTurnoAdmin = function(id) {
     if (typeof showConfirm === 'function') {
         showConfirm('Restaurar Turno', '¿Deseas restaurar este turno y devolverlo a la agenda de pendientes?', 'Restaurar', 'bg-green-600 hover:bg-green-700', () => {
@@ -416,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
             searchInput.addEventListener('input', (e) => {
                 // Re-renderiza la lista de turnos con el término de búsqueda
                 if (window.agendaData) {
-                    window.renderAgendaTurnos(window.agendaData, e.target.value);
+                    window.renderAgendaTurnos(window.agendaData, e.target.value, window.currentAgendaProfTerm || '');
                 }
             });
         }
