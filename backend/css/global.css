@@ -5,6 +5,7 @@
 
 .text-gradient {
     background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -15,6 +16,7 @@
 }
 ::-webkit-scrollbar-thumb {
     background: #e2e8f0;
+
     border-radius: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar {
