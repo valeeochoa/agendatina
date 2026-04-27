@@ -7,6 +7,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
   <link rel="icon" id="favicon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ec135b'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-2.5 5.43l-4.57 4.57-2.43-2.43 1.41-1.41 1.02 1.02 3.16-3.16 1.41 1.41z'/></svg>">
+  <link rel="preload" href="backend/css/global.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="backend/css/global.css"></noscript>
   
   <script>
       // Fuerza a que las rutas relativas se carguen desde la carpeta correcta (Evita error 404)
@@ -35,98 +37,6 @@
       },
     };
   </script>
-
-  <style>
-    /* Estética del Calendario */
-    .calendar-day, .time-slot, button, a {
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
-
-    .calendar-day { 
-      aspect-ratio: 1 / 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 12px;
-      transition: all 0.2s ease;
-      font-weight: 500;
-      font-size: 0.9rem;
-      border: 2px solid transparent;
-    }
-    
-    .calendar-day:not(.disabled) {
-      background: #fff;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-      cursor: pointer;
-      border-color: var(--color-secundario, #fce7f3);
-    }
-
-    @media (hover: hover) {
-      .calendar-day:not(.disabled):hover {
-        transform: translateY(-2px);
-        border-color: var(--color-primario, #ec135b);
-        color: var(--color-primario, #ec135b);
-      }
-      .time-slot:hover:not(.booked) {
-        border-color: #ec135b;
-        background: white;
-        color: #ec135b;
-      }
-    }
-
-    .calendar-day:not(.disabled):active {
-      transform: scale(0.92);
-    }
-
-    .calendar-day.selected {
-      background: var(--color-primario, #ec135b) !important;
-      color: white !important;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    }
-
-    .calendar-day.disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      background: #fff;
-      border-color: #fff;
-    }
-
-    /* Horarios Estilo Pastilla */
-    .time-slot {
-      padding: 12px;
-      border-radius: 14px;
-      text-align: center;
-      font-weight: 600;
-      background: #f8fafc;
-      border: 2px solid #f1f5f9;
-      transition: all 0.2s;
-    }
-
-    .time-slot:not(.booked):active {
-      transform: scale(0.96);
-    }
-
-    .time-slot.selected {
-      background: #ec135b;
-      color: white;
-      border-color: #ec135b;
-    }
-
-    .time-slot.booked {
-      background: #e2e8f0;
-      color: #94a3b8;
-      text-decoration: line-through;
-      cursor: not-allowed;
-    }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-    
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-  </style>
 </head>
 
 <body class="bg-[#fcfafa] dark:bg-black font-display text-slate-800 dark:text-slate-100 overflow-x-hidden">
