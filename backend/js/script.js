@@ -938,6 +938,26 @@ function openProfileModal() {
             }
         }
     }
+        
+        // Cargar estadísticas para el modal
+        fetch('backend/obtener_agenda.php')
+        .then(res => res.json())
+        .then(data => {
+            if (Array.isArray(data)) {
+                let total = data.length;
+                let confirmados = data.filter(t => t.estado === 'confirmado').length;
+                let pendientes = data.filter(t => t.estado === 'pendiente').length;
+                
+                const statTotal = document.getElementById('statTotal');
+                const statConf = document.getElementById('statConf');
+                const statPend = document.getElementById('statPend');
+                
+                if(statTotal) statTotal.textContent = total;
+                if(statConf) statConf.textContent = confirmados;
+                if(statPend) statPend.textContent = pendientes;
+            }
+        }).catch(err => console.error('Error stats:', err));
+
     modal.classList.remove('hidden');
     setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
 }
@@ -1650,20 +1670,22 @@ window.setCarouselIndex = function(index) {
     
     const carouselOldPriceContainer = document.getElementById('carouselOldPriceContainer');
     if (carouselOldPriceContainer) {
-        const hasDiscount = (window.globalDiscountPercentage || 0) > 0;
+        const hasDiscount = carouselData[index].hasDiscount;
         if (hasDiscount) {
             carouselOldPriceContainer.style.display = 'flex';
             const badge = carouselOldPriceContainer.querySelector('.bg-emerald-100');
-            if (badge) badge.textContent = `-${window.globalDiscountPercentage}% OFF`;
+            if (badge) badge.textContent = `-${carouselData[index].discountPercentage}% OFF`;
         } else {
             carouselOldPriceContainer.style.display = 'none';
         }
         
         const perPersonEl = document.getElementById('carouselPerPerson');
         if (perPersonEl) {
-            if (window.numProfessionals && window.numProfessionals > 1) {
+            const planKeys = ['basic', 'inter', 'prem'];
+            let currentCount = window.numProfessionals[planKeys[index]];
+            if (currentCount && currentCount > 1) {
                 let numericPrice = parseInt(carouselData[index].price.replace(/[^0-9]/g, ''));
-                let perPerson = numericPrice / window.numProfessionals;
+                let perPerson = numericPrice / currentCount;
                 perPersonEl.textContent = `¡Queda en $${perPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} por persona!`;
                 perPersonEl.classList.remove('hidden');
             } else {
@@ -1674,7 +1696,8 @@ window.setCarouselIndex = function(index) {
     
     const actionBtn = document.getElementById('carouselActionBtn');
     if (actionBtn) {
-        actionBtn.onclick = () => selectPlan(carouselData[index].title);
+        const planKeys = ['basic', 'inter', 'prem'];
+        actionBtn.onclick = () => selectPlan(carouselData[index].title, planKeys[index]);
     }
 
     const dotsContainer = document.getElementById('carouselDots');
@@ -1686,18 +1709,21 @@ window.setCarouselIndex = function(index) {
     }
 };
 
-window.selectPlan = function(planName) {
+window.selectPlan = function(planName, planKey = 'inter') {
     const planBox = document.getElementById('planSelectionBox');
     const planNameEl = document.getElementById('selectedPlanName');
     const inputPlan = document.getElementById('inputPlan');
+    const inputProfesionales = document.getElementById('inputProfesionales');
     
     if (planBox && planNameEl && inputPlan) {
+        let count = window.numProfessionals[planKey] || 1;
         let profText = '';
-        if (window.numProfessionals && window.numProfessionals > 1) {
-            profText = ` (Para ${window.numProfessionals} profesionales)`;
+        if (count > 1) {
+            profText = ` (Para ${count} profesionales)`;
         }
         planNameEl.textContent = planName + profText;
         inputPlan.value = planName;
+        if (inputProfesionales) inputProfesionales.value = count;
         planBox.classList.remove('hidden');
     }
     
@@ -1774,7 +1800,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    
     // --- Formulario de Contacto en Landing (Validaciones Visuales y AJAX) ---
     const mainContactForm = document.getElementById('mainContactForm');
     if (mainContactForm) {
@@ -1880,20 +1905,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- Inicialización del Carrusel (Landing Page) ---
         if (document.getElementById('carouselTitle')) {
-            window.numProfessionals = 1;
+            window.numProfessionals = { basic: 1, inter: 1, prem: 1 };
             window.pricingData = null;
             
-            window.updateProfCount = function(change) {
-                let newVal = window.numProfessionals + change;
+            window.updateProfCount = function(change, planKey) {
+                let newVal = window.numProfessionals[planKey] + change;
                 if (newVal < 1) newVal = 1;
                 if (newVal > 5) newVal = 5; // Límite de 5 profesionales (50% max) para no regalar el sistema
-                window.numProfessionals = newVal;
+                window.numProfessionals[planKey] = newVal;
                 
-                if (document.getElementById('profCountDisplay')) {
-                    document.getElementById('profCountDisplay').textContent = window.numProfessionals;
-                }
-                if (document.getElementById('inputProfesionales')) {
-                    document.getElementById('inputProfesionales').value = window.numProfessionals;
+                if (document.getElementById('profCountDisplay_' + planKey)) {
+                    document.getElementById('profCountDisplay_' + planKey).textContent = window.numProfessionals[planKey];
                 }
                 window.renderPricing();
             };
@@ -1912,37 +1934,37 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (new Date() > expiry) baseDiscount = 0;
                 }
                 
-                // Lógica de Descuento por Volumen (10% por profesional extra, topeado al 50%)
-                let profDiscount = window.numProfessionals * 10;
-                if (profDiscount > 50) profDiscount = 50; 
-                
-                // Si el SuperAdmin configuró una super promo global mayor, se respeta esa, si no, gana la de volumen.
-                window.globalDiscountPercentage = Math.max(baseDiscount, profDiscount);
-                
-                const hasDiscount = window.globalDiscountPercentage > 0;
-                
-                // Función de cálculo final
-                const getFinalPrice = (price) => {
-                    let multiplied = price * window.numProfessionals;
-                    return hasDiscount ? multiplied * (1 - window.globalDiscountPercentage/100) : multiplied;
+                const getFinalPrice = (price, count) => {
+                    let profDiscount = count * 10;
+                    if (profDiscount > 50) profDiscount = 50; 
+                    let currentDiscount = Math.max(baseDiscount, profDiscount);
+                    let hasDiscount = currentDiscount > 0;
+                    
+                    let multiplied = price * count;
+                    return {
+                        final: hasDiscount ? multiplied * (1 - currentDiscount/100) : multiplied,
+                        multiplied: multiplied,
+                        hasDiscount: hasDiscount,
+                        discountPercentage: currentDiscount
+                    };
                 };
                 
-                const updateBox = (boxId, oldId, basePrice, labelClass, perPersonId) => {
+                const updateBox = (boxId, oldId, basePrice, labelClass, perPersonId, planKey) => {
                     const box = document.getElementById(boxId);
                     const old = document.getElementById(oldId);
                     const perPerson = document.getElementById(perPersonId);
                     
-                    let multipliedBase = basePrice * window.numProfessionals;
-                    let finalPrice = getFinalPrice(basePrice);
+                    let count = window.numProfessionals[planKey];
+                    let priceInfo = getFinalPrice(basePrice, count);
                     
-                    if (box) box.innerHTML = `$${finalPrice.toLocaleString('es-AR', {maximumFractionDigits:0})}<span class="text-sm font-normal ${labelClass} ml-1">/mes</span>`;
+                    if (box) box.innerHTML = `$${priceInfo.final.toLocaleString('es-AR', {maximumFractionDigits:0})}<span class="text-sm font-normal ${labelClass} ml-1">/mes</span>`;
                     if (old) {
                         const container = old.parentElement;
-                        if (hasDiscount) {
-                            old.textContent = `$${multipliedBase.toLocaleString('es-AR', {maximumFractionDigits:0})}`;
+                        if (priceInfo.hasDiscount) {
+                            old.textContent = `$${priceInfo.multiplied.toLocaleString('es-AR', {maximumFractionDigits:0})}`;
                             container.style.display = 'flex';
                             const badge = container.querySelector('span:last-child');
-                            if (badge) badge.textContent = `-${window.globalDiscountPercentage}% OFF`;
+                            if (badge) badge.textContent = `-${priceInfo.discountPercentage}% OFF`;
                         } else {
                             container.style.display = 'none';
                         }
@@ -1950,9 +1972,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Mostrar precio por cabeza
                     if (perPerson) {
-                        if (window.numProfessionals > 1) {
-                            let pricePerPerson = finalPrice / window.numProfessionals;
-                            perPerson.textContent = `¡Queda en $${pricePerPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} por persona!`;
+                        if (count > 1) {
+                            let pricePerPerson = priceInfo.final / count;
+                            perPerson.textContent = `¡Queda en $${pricePerPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} p/persona!`;
                             perPerson.classList.remove('hidden');
                         } else {
                             perPerson.classList.add('hidden');
@@ -1960,19 +1982,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 };
                 
-                updateBox('priceBasicBox', 'priceBasicOld', b, 'text-slate-500', 'perPersonBasic');
-                updateBox('priceInterBox', 'priceInterOld', i, 'text-white/80', 'perPersonInter');
-                updateBox('pricePremBox', 'pricePremOld', p, 'text-slate-500', 'perPersonPrem');
+                updateBox('priceBasicBox', 'priceBasicOld', b, 'text-slate-500', 'perPersonBasic', 'basic');
+                updateBox('priceInterBox', 'priceInterOld', i, 'text-white/80', 'perPersonInter', 'inter');
+                updateBox('pricePremBox', 'pricePremOld', p, 'text-slate-500', 'perPersonPrem', 'prem');
                 
                 // Actualizar info para el Carrusel flotante
-                carouselData[0].price = '$' + getFinalPrice(b).toLocaleString('es-AR', {maximumFractionDigits:0});
-                carouselData[0].oldPrice = '$' + (b * window.numProfessionals).toLocaleString('es-AR', {maximumFractionDigits:0});
+                const planKeys = ['basic', 'inter', 'prem'];
+                const prices = [b, i, p];
                 
-                carouselData[1].price = '$' + getFinalPrice(i).toLocaleString('es-AR', {maximumFractionDigits:0});
-                carouselData[1].oldPrice = '$' + (i * window.numProfessionals).toLocaleString('es-AR', {maximumFractionDigits:0});
-                
-                carouselData[2].price = '$' + getFinalPrice(p).toLocaleString('es-AR', {maximumFractionDigits:0});
-                carouselData[2].oldPrice = '$' + (p * window.numProfessionals).toLocaleString('es-AR', {maximumFractionDigits:0});
+                for(let idx = 0; idx < 3; idx++) {
+                    let k = planKeys[idx];
+                    let info = getFinalPrice(prices[idx], window.numProfessionals[k]);
+                    carouselData[idx].price = '$' + info.final.toLocaleString('es-AR', {maximumFractionDigits:0});
+                    carouselData[idx].oldPrice = '$' + info.multiplied.toLocaleString('es-AR', {maximumFractionDigits:0});
+                    carouselData[idx].discountPercentage = info.discountPercentage;
+                    carouselData[idx].hasDiscount = info.hasDiscount;
+                }
                 
                 setCarouselIndex(currentCarouselIndex);
             };

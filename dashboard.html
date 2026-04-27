@@ -33,7 +33,7 @@
                     </p>
                     <p class="text-xs text-slate-500" id="navPlanName">Cargando plan...</p>
                 </div>
-                <a href="perfil.html" id="navAvatar" class="w-10 h-10 rounded-full signature-glow text-white flex items-center justify-center font-bold shadow-md cursor-pointer overflow-hidden hover:ring-2 hover:ring-primary hover:ring-offset-2 transition-all" title="Ir a Mi Perfil">
+                <a href="javascript:void(0)" onclick="openProfileModal()" id="navAvatar" class="w-10 h-10 rounded-full signature-glow text-white flex items-center justify-center font-bold shadow-md cursor-pointer overflow-hidden hover:ring-2 hover:ring-primary hover:ring-offset-2 transition-all" title="Ir a Mi Perfil">
                     ML
                 </a>
 
@@ -58,10 +58,6 @@
                         </div>
                     </div>
                 </div>
-
-                <a href="perfil.html" class="text-slate-400 hover:text-primary transition-colors ml-2" title="Mi Perfil">
-                    <span class="material-symbols-outlined text-[28px]">account_circle</span>
-                </a>
 
                 <button onclick="logoutDashboard()" class="text-slate-400 hover:text-red-500 transition-colors ml-2" title="Cerrar sesión">
                     <span class="material-symbols-outlined">logout</span>
@@ -152,7 +148,7 @@
             </a>
 
             <!-- Mi Perfil -->
-            <a href="perfil.html" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-400 transition-all flex flex-col relative overflow-hidden">
+            <a href="javascript:void(0)" onclick="openProfileModal()" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-slate-400 transition-all flex flex-col relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                     <span class="material-symbols-outlined text-9xl text-slate-800">account_circle</span>
                 </div>
@@ -201,53 +197,72 @@
 
     <!-- Modal de Perfil -->
     <div id="profileModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="profileModalContent">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-2xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="profileModalContent">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold font-display text-slate-800">Mi Perfil</h2>
                 <button onclick="closeProfileModal()" class="text-slate-400 hover:text-red-500 transition-colors">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
-            <form id="profileForm" class="flex flex-col gap-4">
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nombre Completo</label>
-                    <input type="text" id="profileName" name="nombre" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all">
+            
+            <!-- Estadísticas en tiempo real -->
+            <div id="profileStats" class="grid grid-cols-3 gap-3 mb-6">
+                <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-center">
+                    <p class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Totales</p>
+                    <p class="text-2xl font-black text-blue-700" id="statTotal">0</p>
                 </div>
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Logo del Negocio</label>
-                    <div class="flex items-center gap-4">
-                        <img id="profileLogoPreview" class="w-12 h-12 rounded-full object-cover hidden border border-slate-200 shadow-sm">
-                        <input type="file" id="profileLogo" name="logo" accept="image/png, image/jpeg, image/webp" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
-                    </div>
+                <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center">
+                    <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Confirmados</p>
+                    <p class="text-2xl font-black text-emerald-700" id="statConf">0</p>
                 </div>
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Color Principal (Panel y Agenda)</label>
-                    <div class="flex items-center gap-4">
-                        <input type="color" id="profileColor" name="color_primario" value="#3b82f6" class="w-12 h-12 rounded-lg border-none cursor-pointer p-0 bg-transparent">
-                        <span class="text-xs text-slate-500">Se aplicará a botones y elementos destacados.</span>
-                    </div>
-                </div>
-            <div>
-                <label class="block text-sm font-semibold text-slate-700 mb-1">Color Secundario (Detalles)</label>
-                <div class="flex items-center gap-4">
-                    <input type="color" id="profileColorSecundario" name="color_secundario" value="#8b5cf6" class="w-12 h-12 rounded-lg border-none cursor-pointer p-0 bg-transparent">
-                    <span class="text-xs text-slate-500">Se utilizará para detalles e iconos suaves.</span>
+                <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 text-center">
+                    <p class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Pendientes</p>
+                    <p class="text-2xl font-black text-amber-700" id="statPend">0</p>
                 </div>
             </div>
+            
+            <form id="profileForm" class="flex flex-col gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Nombre Completo</label>
+                        <input type="text" id="profileName" name="nombre" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none transition-all text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Logo del Negocio</label>
+                        <div class="flex items-center gap-3">
+                            <img id="profileLogoPreview" class="w-10 h-10 rounded-full object-cover hidden border border-slate-200 shadow-sm">
+                            <input type="file" id="profileLogo" name="logo" accept="image/png, image/jpeg, image/webp" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-primary outline-none transition-all file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer text-xs">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Color Principal (Panel)</label>
+                        <div class="flex items-center gap-3">
+                            <input type="color" id="profileColor" name="color_primario" value="#3b82f6" class="w-8 h-8 rounded border-none cursor-pointer p-0 bg-transparent">
+                            <span class="text-xs text-slate-500">Para botones y destacados.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Color Secundario (Detalles)</label>
+                        <div class="flex items-center gap-3">
+                            <input type="color" id="profileColorSecundario" name="color_secundario" value="#8b5cf6" class="w-8 h-8 rounded border-none cursor-pointer p-0 bg-transparent">
+                            <span class="text-xs text-slate-500">Para iconos suaves.</span>
+                        </div>
+                    </div>
+                </div>
                 <div class="border-t border-slate-100 pt-4 mt-2" id="securitySection">
-                    <h3 class="font-bold text-slate-800 mb-3">Seguridad</h3>
-                    <div class="space-y-3">
+                    <h3 class="font-bold text-slate-800 mb-3 text-sm">Seguridad</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Contraseña Actual</label>
-                            <input type="password" id="currentPassword" name="current_password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Requerida para cambiar la contraseña">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Contraseña Actual</label>
+                            <input type="password" id="currentPassword" name="current_password" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none transition-all text-sm" placeholder="Requerida">
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Nueva Contraseña</label>
-                            <input type="password" id="newPassword" name="new_password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Mínimo 6, máximo 14 caracteres" minlength="6" maxlength="14">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Nueva Contraseña</label>
+                            <input type="password" id="newPassword" name="new_password" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none transition-all text-sm" placeholder="Mín. 6 caracteres" minlength="6" maxlength="14">
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 mb-1">Confirmar Nueva Contraseña</label>
-                            <input type="password" id="confirmPassword" name="confirm_password" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Repite la nueva contraseña" minlength="6" maxlength="14">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Confirmar Nueva</label>
+                            <input type="password" id="confirmPassword" name="confirm_password" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none transition-all text-sm" placeholder="Repite contraseña" minlength="6" maxlength="14">
                         </div>
                     </div>
                 </div>

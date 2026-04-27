@@ -484,7 +484,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    fetch('../backend/admin_auth_ejemplo.php')
+    fetch('../backend/admin_auth.php')
         .then(res => res.json())
         .then(data => {
             if (!data.logged_in) {
@@ -1233,7 +1233,7 @@ function executeDeleteNegocio() {
 }
 
 function logoutAdmin() {
-    fetch('../backend/admin_auth_ejemplo.php', { method: 'DELETE' })
+    fetch('../backend/admin_auth.php', { method: 'DELETE' })
         .then(res => res.json())
         .then(data => {
             if(data.success) window.location.href = 'login.html';
