@@ -18,7 +18,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(data => {
                     if (data.success) {
                         sessionStorage.setItem('agendatina_session', 'active');
-                        window.location.href = 'dashboard.html'; // Acceso concedido
+                        
+                        // Redirección dinámica según el rol o la respuesta del servidor
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                        } else if (data.is_superadmin === true || data.role === 'superadmin') {
+                            window.location.href = 'admin_agendatina/index.html';
+                        } else {
+                            window.location.href = 'dashboard.html'; // Acceso a dueños y empleados
+                        }
                     } else {
                         msgDiv.textContent = data.error || 'Credenciales incorrectas.';
                         msgDiv.classList.remove('hidden');

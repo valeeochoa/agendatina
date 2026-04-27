@@ -207,6 +207,7 @@
                                     <span id="carouselPrice">$10.630</span><span
                                         class="text-sm font-normal text-slate-500 ml-1">/mes</span>
                                 </div>
+                                    <div id="carouselPerPerson" class="text-sm font-bold text-primary mt-1 hidden"></div>
                             </div>
                         </div>
                         </div>
@@ -245,13 +246,26 @@
     <section id="planes" class="py-24 bg-white px-6 border-t border-slate-100">
         <div class="max-w-7xl mx-auto">
             <!-- Header -->
-            <div class="text-center mb-16 reveal-on-scroll">
+            <div class="text-center mb-8 reveal-on-scroll">
                 <h2 class="text-4xl font-extrabold mb-4">Elegí el plan ideal para tu negocio</h2>
-                <p class="text-slate-500 text-lg max-w-2xl mx-auto">
+                <p class="text-slate-500 text-lg max-w-2xl mx-auto mb-8">
                     Sin comisiones por reserva. Un precio fijo mensual.
                     <br>
                     <span class="font-bold text-primary">Probá cualquier plan GRATIS por 15 días</span>
                 </p>
+                
+                <!-- Selector de profesionales -->
+                <div class="max-w-md mx-auto bg-slate-50 border border-slate-200 p-6 rounded-3xl mb-4 shadow-sm">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">¿Cuántos profesionales usarán el sistema?</h3>
+                    <p class="text-sm text-slate-500 mb-5">Añadí tu equipo y obtené un <strong class="text-primary">10% OFF</strong> acumulable por cada integrante.</p>
+                    <div class="flex items-center justify-center gap-4">
+                        <button onclick="window.updateProfCount(-1)" class="w-12 h-12 flex items-center justify-center bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 rounded-xl transition-colors font-bold text-2xl shadow-sm">-</button>
+                        <div class="w-20 text-center">
+                            <span id="profCountDisplay" class="text-3xl font-black text-slate-800">1</span>
+                        </div>
+                        <button onclick="window.updateProfCount(1)" class="w-12 h-12 flex items-center justify-center bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 rounded-xl transition-colors font-bold text-2xl shadow-sm">+</button>
+                    </div>
+                </div>
             </div>
             <!-- Planes -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -267,13 +281,14 @@
                     </p>
                     <div class="flex flex-col mb-8">
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="text-sm text-slate-400 line-through font-medium">$13.288</span>
+                            <span class="text-sm text-slate-400 line-through font-medium" id="priceBasicOld">$13.288</span>
                             <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-20%
                                 OFF</span>
                         </div>
-                        <div class="text-3xl font-bold text-slate-800">
+                        <div class="text-3xl font-bold text-slate-800" id="priceBasicBox">
                             $10.630<span class="text-sm font-normal text-slate-500 ml-1">/mes</span>
                         </div>
+                        <div id="perPersonBasic" class="text-sm font-bold text-primary mt-1.5 hidden"></div>
                     </div>
                     <ul class="space-y-4 mb-8 flex-1 text-sm text-slate-600">
                         <li class="flex gap-2">
@@ -332,14 +347,15 @@
 
                     <div class="flex flex-col mb-8">
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="text-sm text-white/60 line-through font-medium">$20.563</span>
+                            <span class="text-sm text-white/60 line-through font-medium" id="priceInterOld">$20.563</span>
                             <span
                                 class="bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 px-2 py-0.5 rounded-md text-xs font-bold">-20%
                                 OFF</span>
                         </div>
-                        <div class="text-3xl font-bold text-white">
+                        <div class="text-3xl font-bold text-white" id="priceInterBox">
                             $16.450<span class="text-sm font-normal text-white/80 ml-1">/mes</span>
                         </div>
+                        <div id="perPersonInter" class="text-sm font-bold text-emerald-300 mt-1.5 hidden"></div>
                     </div>
 
                     <ul class="space-y-4 mb-8 flex-1 text-sm">
@@ -390,13 +406,14 @@
 
                     <div class="flex flex-col mb-8">
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="text-sm text-slate-400 line-through font-medium">$28.188</span>
+                            <span class="text-sm text-slate-400 line-through font-medium" id="pricePremOld">$28.188</span>
                             <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-20%
                                 OFF</span>
                         </div>
-                        <div class="text-3xl font-bold text-slate-800">
+                        <div class="text-3xl font-bold text-slate-800" id="pricePremBox">
                             $22.550<span class="text-sm font-normal text-slate-500 ml-1">/mes</span>
                         </div>
+                        <div id="perPersonPrem" class="text-sm font-bold text-primary mt-1.5 hidden"></div>
                     </div>
 
                     <ul class="space-y-4 mb-8 flex-1 text-sm text-slate-600">
@@ -513,7 +530,7 @@
                     <h2 id="formTitle" class="text-3xl font-extrabold mb-2">Envíanos tu consulta</h2>
                     <p id="formSubtitle" class="text-slate-500">Nos comunicaremos a la brevedad.</p>
                 </div>
-                <form id="mainContactForm" class="space-y-6">
+                <form id="mainContactForm" class="space-y-6" novalidate>
                     <!-- Campo dinámico para Plan (oculto por defecto) -->
                     <div id="planSelectionBox"
                         class="hidden bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-center justify-between mb-2">
@@ -522,6 +539,7 @@
                             </p>
                             <p class="font-bold text-lg text-slate-800" id="selectedPlanName">Plan Simple</p>
                             <input type="hidden" id="inputPlan" name="plan" value="">
+                            <input type="hidden" id="inputProfesionales" name="profesionales" value="1">
                         </div>
                         <button type="button" onclick="resetForm()" class="text-slate-400 hover:text-red-500">
                             <span class="material-symbols-outlined">close</span>

@@ -177,9 +177,15 @@
                         <p class="text-xs text-slate-500 mt-1">Si eliges "No", al ocuparse un horario se bloqueará globalmente para ese día.</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Anticipación mínima (minutos)</label>
-                        <input type="number" id="configAnticipacionMin" name="anticipacion_turno_min" min="0" step="5" value="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
-                        <p class="text-xs text-slate-500 mt-1">Ejemplo: 120 = no permite reservar turnos con menos de 2 horas de anticipación desde la hora actual.</p>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Anticipación mínima</label>
+                        <div class="flex items-center gap-2">
+                            <input type="number" id="configAnticipacionH" min="0" placeholder="Horas" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none transition-all" oninput="document.getElementById('configAnticipacionMin').value = (parseInt(this.value || 0) * 60) + parseInt(document.getElementById('configAnticipacionM').value || 0)">
+                            <span class="text-sm font-bold text-slate-500">h</span>
+                            <input type="number" id="configAnticipacionM" min="0" max="59" step="5" placeholder="Min" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none transition-all" oninput="document.getElementById('configAnticipacionMin').value = (parseInt(document.getElementById('configAnticipacionH').value || 0) * 60) + parseInt(this.value || 0)">
+                            <span class="text-sm font-bold text-slate-500">m</span>
+                            <input type="hidden" id="configAnticipacionMin" name="anticipacion_turno_min" value="0">
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Ej: 2h 0m = no permite reservar turnos con menos de 2 horas de anticipación desde la hora actual.</p>
                     </div>
                 </div>
             </div>

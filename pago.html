@@ -50,19 +50,33 @@
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            fetch('backend/perfil.php').then(r=>r.json()).then(data => {
-                if(data.business) {
-                    const plan = (data.business.plan || 'Basico').toLowerCase();
-                    let price = 10630;
-                    if(plan.includes('intermedio')) price = 16450;
-                    if(plan.includes('completo') || plan.includes('premium')) price = 22550;
-                    
-                    // En modo prueba, quizás le cobres la mitad el primer mes o normal. Ajustalo a tu gusto:
-                    // if(data.business.estado_pago === 'prueba') price = price / 2;
-                    
-                    document.getElementById('pagoPlanNombre').textContent = 'Plan ' + plan.charAt(0).toUpperCase() + plan.slice(1);
-                    document.getElementById('pagoMonto').textContent = '$' + price.toLocaleString('es-AR');
+            fetch('backend/obtener_precios.php').then(r=>r.json()).then(priceData => {
+                let pBasico = 13288, pIntermedio = 20563, pPremium = 28188;
+                let discount = 20;
+                
+                if(priceData && priceData.success) {
+                    pBasico = parseFloat(priceData.data.precio_basico);
+                    pIntermedio = parseFloat(priceData.data.precio_intermedio);
+                    pPremium = parseFloat(priceData.data.precio_premium);
+                    discount = parseInt(priceData.data.descuento_porcentaje) || 0;
+                    if (priceData.data.descuento_hasta) {
+                        const expiry = new Date(priceData.data.descuento_hasta.replace(/-/g, '/'));
+                        if (new Date() > expiry) discount = 0;
+                    }
                 }
+                fetch('backend/perfil.php').then(r=>r.json()).then(data => {
+                    if(data.business) {
+                        const plan = (data.business.plan || 'Basico').toLowerCase();
+                        let basePrice = pBasico;
+                        if(plan.includes('intermedio')) basePrice = pIntermedio;
+                        if(plan.includes('completo') || plan.includes('premium')) basePrice = pPremium;
+                        
+                        let finalPrice = discount > 0 ? basePrice * (1 - discount/100) : basePrice;
+
+                        document.getElementById('pagoPlanNombre').textContent = 'Plan ' + plan.charAt(0).toUpperCase() + plan.slice(1);
+                        document.getElementById('pagoMonto').textContent = '$' + finalPrice.toLocaleString('es-AR', {maximumFractionDigits:0});
+                    }
+                });
             });
 
             document.getElementById('formComprobante').addEventListener('submit', (e) => {

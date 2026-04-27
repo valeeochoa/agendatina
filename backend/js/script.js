@@ -237,22 +237,6 @@ function loadDashboardData() {
                 const planStr = (business.plan || '').toLowerCase();
                 const dbStatus = business.estado_pago || 'prueba';
 
-                if (paymentPrice) {
-                    let basePrice = 10630; // Default a Simple
-                    let oldPrice = 13288;
-                    if (planStr.includes('intermedio')) { basePrice = 16450; oldPrice = 20563; }
-                    if (planStr.includes('completo')) { basePrice = 22550; oldPrice = 28188; }
-                    
-                    let finalPrice = dbStatus === 'prueba' ? basePrice / 2 : basePrice;
-                    let formattedPrice = finalPrice.toLocaleString('es-AR');
-                    let formattedOldPrice = oldPrice.toLocaleString('es-AR');
-                    
-                    let discountBadge = dbStatus === 'prueba' 
-                        ? '<span class="block text-sm font-bold text-emerald-500 mb-1">50% OFF - Primer Mes</span>' 
-                        : `<div class="flex flex-wrap items-center justify-center gap-2 mb-1"><span class="text-sm text-slate-400 line-through font-medium">$${formattedOldPrice}</span><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-20% OFF</span></div>`;
-                        
-                    paymentPrice.innerHTML = `${discountBadge}$${formattedPrice} <span class="text-base font-normal text-slate-400">/mes</span>`;
-                }
                 
                 // Ocultar funciones del dashboard según el plan contratado
                 const cardAgenda = document.getElementById('cardAgenda');
@@ -297,7 +281,39 @@ function loadDashboardData() {
                     plan: business.plan || 'Básico'
                 };
 
-                checkSubscription(subscriptionData);
+                // Integrar la carga de precios al Banner de Suscripción y al Modal de Pago
+                fetch('backend/obtener_precios.php').then(r=>r.json()).then(pData => {
+                    let basePrice = 13288;
+                    let discount = 20;
+                    
+                    if(pData && pData.success) {
+                        basePrice = parseFloat(pData.data.precio_basico);
+                        if (planStr.includes('intermedio')) basePrice = parseFloat(pData.data.precio_intermedio);
+                        if (planStr.includes('completo') || planStr.includes('premium')) basePrice = parseFloat(pData.data.precio_premium);
+                        
+                        discount = parseInt(pData.data.descuento_porcentaje) || 0;
+                        if (pData.data.descuento_hasta) {
+                            const expiry = new Date(pData.data.descuento_hasta.replace(/-/g, '/'));
+                            if (new Date() > expiry) discount = 0;
+                        }
+                    }
+                    
+                    const hasDiscount = discount > 0;
+                    let finalPrice = hasDiscount ? basePrice * (1 - discount/100) : basePrice;
+                    if (dbStatus === 'prueba') finalPrice = finalPrice / 2;
+                    let formattedPrice = finalPrice.toLocaleString('es-AR', {maximumFractionDigits:0});
+                    
+                    if (paymentPrice) {
+                        let discountBadge = '';
+                        if (dbStatus === 'prueba') discountBadge = '<span class="block text-sm font-bold text-emerald-500 mb-1">50% OFF - Primer Mes</span>';
+                        else if (hasDiscount) discountBadge = `<div class="flex flex-wrap items-center justify-center gap-2 mb-1"><span class="text-sm text-slate-400 line-through font-medium">$${basePrice.toLocaleString('es-AR', {maximumFractionDigits:0})}</span><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-${discount}% OFF</span></div>`;
+                        paymentPrice.innerHTML = `${discountBadge}$${formattedPrice} <span class="text-base font-normal text-slate-400">/mes</span>`;
+                    }
+                    
+                    subscriptionData.priceFormatted = formattedPrice;
+                    checkSubscription(subscriptionData);
+                }).catch(e => { console.error(e); checkSubscription(subscriptionData); });
+
                 checkNotifications(); // Cargar notificaciones en la campanita
                 loadDashboardChart(webData.color_primario || '#3b82f6');
                 
@@ -364,19 +380,21 @@ function checkSubscription(subscriptionData) {
     let dashBtnText = '';
     let dashBtnClass = '';
     let showActionBtn = false;
+    
+    let priceStr = subscriptionData.priceFormatted ? ` <strong>$${subscriptionData.priceFormatted}</strong>` : '';
 
     if (subscriptionData.status === 'prueba') {
         if (diffToCycleEnd > 0) {
             isDashboardBannerHidden = false;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-blue-50 border border-blue-200 text-blue-800';
             dashIcon = 'schedule';
-            dashMsg = `Estás en tu período de prueba. Te quedan ${diffToCycleEnd} días de acceso gratuito. Luego, deberás abonar el mes completo, el cual correrá a partir de ese momento.`;
+            dashMsg = `Estás en tu período de prueba. Te quedan ${diffToCycleEnd} días de acceso gratuito. Luego, deberás abonar tu primer mes${priceStr}, el cual correrá a partir de ese momento.`;
             dashBtnText = 'Pagar ahora';
             subscriptionData.status = 'suspendido'; // Lo forzamos visualmente a suspendido
             isDashboardBannerHidden = false;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-red-50 border border-red-200 text-red-800';
             dashIcon = 'error';
-            dashMsg = `Tu período de prueba ha finalizado. Debes abonar el mes completo para reactivar el servicio. El nuevo mes correrá a partir de que el pago sea aprobado.`;
+            dashMsg = `Tu período de prueba ha finalizado. Debes abonar tu primer mes${priceStr} para reactivar el servicio. El nuevo mes correrá a partir de que el pago sea aprobado.`;
             dashBtnText = 'Pagar Plan';
             dashBtnClass = 'bg-red-600 hover:bg-red-700 text-white';
             showActionBtn = true;
@@ -392,7 +410,7 @@ function checkSubscription(subscriptionData) {
             isDashboardBannerHidden = false;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-amber-50 border border-amber-200 text-amber-800';
             dashIcon = 'warning';
-            dashMsg = `Tu periodo beta ha finalizado. Tienes <strong>${diffToDeadline} días de gracia</strong> para abonar tu primer mes antes de que se suspenda el servicio.`;
+            dashMsg = `Tu periodo beta ha finalizado. Tienes <strong>${diffToDeadline} días de gracia</strong> para abonar tu primer mes${priceStr} antes de que se suspenda el servicio.`;
             dashBtnText = 'Pagar ahora';
             dashBtnClass = 'bg-amber-500 hover:bg-amber-600 text-white';
             showActionBtn = true;
@@ -410,7 +428,7 @@ function checkSubscription(subscriptionData) {
             isDashboardBannerHidden = false;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-amber-50 border border-amber-200 text-amber-800';
             dashIcon = 'warning';
-            dashMsg = `Tu mes de servicio ha finalizado. Tienes <strong>${diffToDeadline} días de gracia</strong> para renovar tu suscripción y evitar interrupciones.`;
+            dashMsg = `Tu mes de servicio ha finalizado. Tienes <strong>${diffToDeadline} días de gracia</strong> para renovar tu suscripción${priceStr} y evitar interrupciones.`;
             dashBtnText = 'Renovar Plan';
             dashBtnClass = 'bg-amber-500 hover:bg-amber-600 text-white';
             showActionBtn = true;
@@ -433,7 +451,7 @@ function checkSubscription(subscriptionData) {
             isDashboardBannerHidden = false;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-red-50 border border-red-200 text-red-800';
             dashIcon = 'error';
-            dashMsg = `Tu último comprobante fue rechazado o tu cuenta registra un saldo pendiente. Aboná para reactivar el servicio.`;
+            dashMsg = `Tu último comprobante fue rechazado o tu cuenta registra un saldo pendiente. Aboná${priceStr} para reactivar el servicio.`;
             dashBtnText = 'Pagar Plan';
             dashBtnClass = 'bg-red-600 hover:bg-red-700 text-white';
             showActionBtn = true;
@@ -961,7 +979,12 @@ function applyCalendarConfigToForm(c) {
         });
     }
     if(document.getElementById('configSimultaneos')) document.getElementById('configSimultaneos').value = c.turnos_simultaneos || 'no';
-    if(document.getElementById('configAnticipacionMin')) document.getElementById('configAnticipacionMin').value = parseInt(c.anticipacion_turno_min || 0, 10);
+    
+    const ant = parseInt(c.anticipacion_turno_min || 0, 10);
+    if(document.getElementById('configAnticipacionMin')) document.getElementById('configAnticipacionMin').value = ant;
+    if(document.getElementById('configAnticipacionH')) document.getElementById('configAnticipacionH').value = Math.floor(ant / 60);
+    if(document.getElementById('configAnticipacionM')) document.getElementById('configAnticipacionM').value = ant % 60;
+
     const selectInterval = document.getElementById('configIntervalo');
     if(selectInterval) {
         // Garantizar que la opción 'servicio' exista
@@ -1625,6 +1648,30 @@ window.setCarouselIndex = function(index) {
     if(mockupPc) mockupPc.src = carouselData[index].mockupDesktop;
     if(mockupCel) mockupCel.src = carouselData[index].mockupMobile;
     
+    const carouselOldPriceContainer = document.getElementById('carouselOldPriceContainer');
+    if (carouselOldPriceContainer) {
+        const hasDiscount = (window.globalDiscountPercentage || 0) > 0;
+        if (hasDiscount) {
+            carouselOldPriceContainer.style.display = 'flex';
+            const badge = carouselOldPriceContainer.querySelector('.bg-emerald-100');
+            if (badge) badge.textContent = `-${window.globalDiscountPercentage}% OFF`;
+        } else {
+            carouselOldPriceContainer.style.display = 'none';
+        }
+        
+        const perPersonEl = document.getElementById('carouselPerPerson');
+        if (perPersonEl) {
+            if (window.numProfessionals && window.numProfessionals > 1) {
+                let numericPrice = parseInt(carouselData[index].price.replace(/[^0-9]/g, ''));
+                let perPerson = numericPrice / window.numProfessionals;
+                perPersonEl.textContent = `¡Queda en $${perPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} por persona!`;
+                perPersonEl.classList.remove('hidden');
+            } else {
+                perPersonEl.classList.add('hidden');
+            }
+        }
+    }
+    
     const actionBtn = document.getElementById('carouselActionBtn');
     if (actionBtn) {
         actionBtn.onclick = () => selectPlan(carouselData[index].title);
@@ -1645,7 +1692,11 @@ window.selectPlan = function(planName) {
     const inputPlan = document.getElementById('inputPlan');
     
     if (planBox && planNameEl && inputPlan) {
-        planNameEl.textContent = planName;
+        let profText = '';
+        if (window.numProfessionals && window.numProfessionals > 1) {
+            profText = ` (Para ${window.numProfessionals} profesionales)`;
+        }
+        planNameEl.textContent = planName + profText;
         inputPlan.value = planName;
         planBox.classList.remove('hidden');
     }
@@ -1723,6 +1774,63 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Formulario de Contacto en Landing (Validaciones Visuales y AJAX) ---
+    const mainContactForm = document.getElementById('mainContactForm');
+    if (mainContactForm) {
+        mainContactForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Interceptamos siempre para validar antes de enviar
+            
+            let isValid = true;
+            const requiredFields = this.querySelectorAll('[required]');
+            
+            requiredFields.forEach(field => {
+                const isEmpty = !field.value.trim();
+                const isInvalidEmail = field.type === 'email' && field.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value);
+                
+                if (isEmpty || isInvalidEmail) {
+                    isValid = false;
+                    field.classList.remove('border-slate-200');
+                    field.classList.add('border-red-500', 'bg-red-50', 'placeholder-red-300');
+                    
+                    // Evento para limpiar el error visual en cuanto el usuario empiece a escribir
+                    field.addEventListener('input', function() {
+                        this.classList.remove('border-red-500', 'bg-red-50', 'placeholder-red-300');
+                        this.classList.add('border-slate-200');
+                    }, { once: true });
+                }
+            });
+
+            const msgDiv = document.getElementById('contactMessage');
+            if (!isValid) {
+                if (msgDiv) {
+                    msgDiv.innerHTML = '<span class="material-symbols-outlined align-middle text-[18px]">error</span> Por favor, completa correctamente los campos en rojo.';
+                    msgDiv.classList.remove('hidden');
+                    msgDiv.classList.add('bg-red-100', 'text-red-800');
+                }
+            } else {
+                if (msgDiv) msgDiv.classList.add('hidden');
+                
+                const btn = document.getElementById('submitBtn');
+                const origText = btn.innerHTML;
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px] align-middle mr-2">refresh</span> Enviando...';
+                }
+                
+                // Aquí puedes reemplazar este bloque setTimeout con tu fetch() real hacia tu enviador de correos PHP
+                setTimeout(() => {
+                    const modal = document.getElementById('contactSuccessModal');
+                    const content = document.getElementById('contactSuccessModalContent');
+                    if (modal && content) { modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10); }
+                    
+                    this.reset();
+                    window.resetForm(); // Oculta la caja de plan seleccionado
+                    if (btn) { btn.disabled = false; btn.innerHTML = origText; }
+                }, 1500); // Retraso simulado de 1.5 segundos
+            }
+        });
+    }
+
     // --- Inicializador del Modal de Confirmación Global ---
     const btnAcceptConfirm = document.getElementById('btnAcceptConfirm');
     if (btnAcceptConfirm) {
@@ -1771,7 +1879,109 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // --- Inicialización del Carrusel (Landing Page) ---
         if (document.getElementById('carouselTitle')) {
-            setCarouselIndex(1); // Inicia en Plan Intermedio
+            window.numProfessionals = 1;
+            window.pricingData = null;
+            
+            window.updateProfCount = function(change) {
+                let newVal = window.numProfessionals + change;
+                if (newVal < 1) newVal = 1;
+                if (newVal > 5) newVal = 5; // Límite de 5 profesionales (50% max) para no regalar el sistema
+                window.numProfessionals = newVal;
+                
+                if (document.getElementById('profCountDisplay')) {
+                    document.getElementById('profCountDisplay').textContent = window.numProfessionals;
+                }
+                if (document.getElementById('inputProfesionales')) {
+                    document.getElementById('inputProfesionales').value = window.numProfessionals;
+                }
+                window.renderPricing();
+            };
+            
+            window.renderPricing = function() {
+                if (!window.pricingData) return;
+                const pData = window.pricingData;
+                
+                const b = parseFloat(pData.precio_basico);
+                const i = parseFloat(pData.precio_intermedio);
+                const p = parseFloat(pData.precio_premium);
+                
+                let baseDiscount = parseInt(pData.descuento_porcentaje) || 0;
+                if (pData.descuento_hasta) {
+                    const expiry = new Date(pData.descuento_hasta.replace(/-/g, '/'));
+                    if (new Date() > expiry) baseDiscount = 0;
+                }
+                
+                // Lógica de Descuento por Volumen (10% por profesional extra, topeado al 50%)
+                let profDiscount = window.numProfessionals * 10;
+                if (profDiscount > 50) profDiscount = 50; 
+                
+                // Si el SuperAdmin configuró una super promo global mayor, se respeta esa, si no, gana la de volumen.
+                window.globalDiscountPercentage = Math.max(baseDiscount, profDiscount);
+                
+                const hasDiscount = window.globalDiscountPercentage > 0;
+                
+                // Función de cálculo final
+                const getFinalPrice = (price) => {
+                    let multiplied = price * window.numProfessionals;
+                    return hasDiscount ? multiplied * (1 - window.globalDiscountPercentage/100) : multiplied;
+                };
+                
+                const updateBox = (boxId, oldId, basePrice, labelClass, perPersonId) => {
+                    const box = document.getElementById(boxId);
+                    const old = document.getElementById(oldId);
+                    const perPerson = document.getElementById(perPersonId);
+                    
+                    let multipliedBase = basePrice * window.numProfessionals;
+                    let finalPrice = getFinalPrice(basePrice);
+                    
+                    if (box) box.innerHTML = `$${finalPrice.toLocaleString('es-AR', {maximumFractionDigits:0})}<span class="text-sm font-normal ${labelClass} ml-1">/mes</span>`;
+                    if (old) {
+                        const container = old.parentElement;
+                        if (hasDiscount) {
+                            old.textContent = `$${multipliedBase.toLocaleString('es-AR', {maximumFractionDigits:0})}`;
+                            container.style.display = 'flex';
+                            const badge = container.querySelector('span:last-child');
+                            if (badge) badge.textContent = `-${window.globalDiscountPercentage}% OFF`;
+                        } else {
+                            container.style.display = 'none';
+                        }
+                    }
+                    
+                    // Mostrar precio por cabeza
+                    if (perPerson) {
+                        if (window.numProfessionals > 1) {
+                            let pricePerPerson = finalPrice / window.numProfessionals;
+                            perPerson.textContent = `¡Queda en $${pricePerPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} por persona!`;
+                            perPerson.classList.remove('hidden');
+                        } else {
+                            perPerson.classList.add('hidden');
+                        }
+                    }
+                };
+                
+                updateBox('priceBasicBox', 'priceBasicOld', b, 'text-slate-500', 'perPersonBasic');
+                updateBox('priceInterBox', 'priceInterOld', i, 'text-white/80', 'perPersonInter');
+                updateBox('pricePremBox', 'pricePremOld', p, 'text-slate-500', 'perPersonPrem');
+                
+                // Actualizar info para el Carrusel flotante
+                carouselData[0].price = '$' + getFinalPrice(b).toLocaleString('es-AR', {maximumFractionDigits:0});
+                carouselData[0].oldPrice = '$' + (b * window.numProfessionals).toLocaleString('es-AR', {maximumFractionDigits:0});
+                
+                carouselData[1].price = '$' + getFinalPrice(i).toLocaleString('es-AR', {maximumFractionDigits:0});
+                carouselData[1].oldPrice = '$' + (i * window.numProfessionals).toLocaleString('es-AR', {maximumFractionDigits:0});
+                
+                carouselData[2].price = '$' + getFinalPrice(p).toLocaleString('es-AR', {maximumFractionDigits:0});
+                carouselData[2].oldPrice = '$' + (p * window.numProfessionals).toLocaleString('es-AR', {maximumFractionDigits:0});
+                
+                setCarouselIndex(currentCarouselIndex);
+            };
+
+            fetch('backend/obtener_precios.php').then(res=>res.json()).then(pData => {
+                if(pData.success && pData.data) {
+                    window.pricingData = pData.data;
+                    window.renderPricing();
+                }
+            }).catch(() => setCarouselIndex(1));
 
             const prevBtn = document.getElementById('prevCarouselBtn');
             const nextBtn = document.getElementById('nextCarouselBtn');

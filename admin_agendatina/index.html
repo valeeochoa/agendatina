@@ -98,6 +98,9 @@
             <button onclick="openNotificationModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5 whitespace-nowrap">
                 <span class="material-symbols-outlined text-[20px]">campaign</span> Avisos
             </button>
+            <button onclick="openPricesModal()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-purple-600/30 transition-all hover:-translate-y-0.5 whitespace-nowrap">
+                <span class="material-symbols-outlined text-[20px]">payments</span> Precios
+            </button>
             <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-0.5 whitespace-nowrap">
                 <span class="material-symbols-outlined text-[20px]">add</span> Nuevo Negocio
             </button>
@@ -433,6 +436,52 @@
     </div>
 </div>
 
+<!-- Modal Precios Globales -->
+<div id="pricesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div id="pricesModalContent" class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 transform scale-95 transition-transform duration-300">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-slate-800 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center"><span class="material-symbols-outlined">payments</span></div>
+                Precios de Planes
+            </h2>
+            <button onclick="closePricesModal()" class="text-slate-400 hover:text-red-500 bg-slate-100 hover:bg-red-50 rounded-full p-1.5 transition-colors"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <form id="pricesForm" class="space-y-4">
+            <div class="bg-purple-50 p-4 rounded-xl border border-purple-200 mb-4">
+                <h3 class="text-sm font-bold text-purple-800 mb-2">Precios Base (Sin descuentos)</h3>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Plan Básico ($)</label>
+                    <input type="number" step="0.01" id="precioBasico" required class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-purple-500 outline-none transition-all mb-3">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Plan Intermedio ($)</label>
+                    <input type="number" step="0.01" id="precioIntermedio" required class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-purple-500 outline-none transition-all mb-3">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Plan Premium ($)</label>
+                    <input type="number" step="0.01" id="precioPremium" required class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-purple-500 outline-none transition-all">
+                </div>
+            </div>
+            <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                <h3 class="text-sm font-bold text-emerald-800 mb-2">Promoción / Descuento</h3>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Descuento aplicado (%)</label>
+                    <input type="number" min="0" max="100" id="descuentoPorcentaje" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition-all mb-3" placeholder="Ej: 20">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Válido Hasta</label>
+                    <input type="datetime-local" id="descuentoHasta" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-emerald-500 outline-none transition-all">
+                    <p class="text-xs text-slate-500 mt-1">Dejar en blanco para descuento permanente.</p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-4">
+                <button type="button" onclick="closePricesModal()" class="px-6 py-3 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancelar</button>
+                <button type="submit" id="btnPricesSubmit" class="px-6 py-3 font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-lg shadow-purple-600/30 transition-all hover:-translate-y-0.5 flex items-center gap-2"><span class="material-symbols-outlined text-[20px]">save</span> Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     fetch('../backend/admin_auth_ejemplo.php')
@@ -682,6 +731,17 @@ function fetchClients() {
                 renderTable(clientsData);
             } else {
                 document.getElementById('clientsList').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500 font-medium">Aún no hay clientes registrados en el sistema.</td></tr>';
+            }
+            if (data.config_global) {
+                document.getElementById('precioBasico').value = data.config_global.precio_basico;
+                document.getElementById('precioIntermedio').value = data.config_global.precio_intermedio;
+                document.getElementById('precioPremium').value = data.config_global.precio_premium;
+                document.getElementById('descuentoPorcentaje').value = data.config_global.descuento_porcentaje || 0;
+                if (data.config_global.descuento_hasta) {
+                    document.getElementById('descuentoHasta').value = data.config_global.descuento_hasta.substring(0, 16);
+                } else {
+                    document.getElementById('descuentoHasta').value = '';
+                }
             }
             // Renderizar los reportes de error que devuelve la API
             if (data.notificaciones) {
@@ -1047,6 +1107,31 @@ document.getElementById('noteForm').addEventListener('submit', function(e) {
     .then(data => { if (data.success) { const clientIndex = clientsData.findIndex(c => c.id == id_negocio); if (clientIndex !== -1) { clientsData[clientIndex].nota_interna = nota_interna; } renderTable(clientsData); closeNoteModal(); fetchClients(); } else alert(data.error || 'Ocurrió un error al guardar la nota.'); })
     .catch(err => alert('Error de conexión con el servidor.'))
     .finally(() => { btnSubmit.disabled = false; btnSubmit.innerHTML = originalHtml; });
+});
+
+// ==========================================
+// EDICIÓN PRECIOS DE SUSCRIPCIÓN GLOBAL
+// ==========================================
+function openPricesModal() {
+    const modal = document.getElementById('pricesModal');
+    const content = document.getElementById('pricesModalContent');
+    modal.classList.remove('hidden'); modal.classList.add('flex');
+    setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+}
+function closePricesModal() {
+    const modal = document.getElementById('pricesModal');
+    const content = document.getElementById('pricesModalContent');
+    modal.classList.add('opacity-0'); content.classList.add('scale-95');
+    setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
+}
+document.getElementById('pricesForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnPricesSubmit'); const orig = btn.innerHTML;
+    btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span>...';
+    fetch('../backend/admin_api.php', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ action: 'update_prices', precio_basico: document.getElementById('precioBasico').value, precio_intermedio: document.getElementById('precioIntermedio').value, precio_premium: document.getElementById('precioPremium').value, descuento_porcentaje: document.getElementById('descuentoPorcentaje').value, descuento_hasta: document.getElementById('descuentoHasta').value }) })
+    .then(res => res.json()).then(data => {
+        if(data.success) { alert('Precios actualizados en todo el sistema.'); closePricesModal(); fetchClients(); } else { alert(data.error); }
+    }).finally(() => { btn.disabled = false; btn.innerHTML = orig; });
 });
 
 // ==========================================

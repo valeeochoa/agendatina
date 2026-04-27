@@ -96,6 +96,22 @@ catch(Exception $e) {
     )"); 
 }
 
+try { $pdo->query("SELECT descuento_porcentaje FROM configuracion_global LIMIT 1"); } 
+catch(Exception $e) { 
+    $pdo->exec("CREATE TABLE IF NOT EXISTS configuracion_global (
+        id INT PRIMARY KEY DEFAULT 1,
+        precio_basico DECIMAL(10,2) DEFAULT 13288,
+        precio_intermedio DECIMAL(10,2) DEFAULT 20563,
+        precio_premium DECIMAL(10,2) DEFAULT 28188
+    )"); 
+    $pdo->exec("INSERT IGNORE INTO configuracion_global (id) VALUES (1)");
+    $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN descuento_porcentaje INT DEFAULT 20");
+    $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN descuento_hasta DATETIME DEFAULT NULL");
+    
+    // Migrar precios antiguos a precios full para que el descuento encaje perfecto sin afectar clientes actuales
+    $pdo->exec("UPDATE configuracion_global SET precio_basico = 13288, precio_intermedio = 20563, precio_premium = 28188 WHERE id = 1 AND precio_basico <= 10630");
+}
+
 // Ampliar la columna password para que no corte la encriptación
 try { $pdo->exec("ALTER TABLE usuarios MODIFY password VARCHAR(255)"); } catch(Exception $e) {}
 
@@ -311,11 +327,29 @@ elseif ($method === 'POST') {
 elseif ($method === 'PUT') {
     $data = json_decode(file_get_contents('php://input'), true);
     
+    $action = $data['action'] ?? null;
+    
+    if ($action === 'update_prices') {
+        try {
+            $basico = isset($data['precio_basico']) ? (float)$data['precio_basico'] : 13288;
+            $intermedio = isset($data['precio_intermedio']) ? (float)$data['precio_intermedio'] : 20563;
+            $premium = isset($data['precio_premium']) ? (float)$data['precio_premium'] : 28188;
+            $descuento_porcentaje = isset($data['descuento_porcentaje']) ? (int)$data['descuento_porcentaje'] : 0;
+            $descuento_hasta = !empty($data['descuento_hasta']) ? $data['descuento_hasta'] : null;
+            
+            $pdo->prepare("UPDATE configuracion_global SET precio_basico = ?, precio_intermedio = ?, precio_premium = ?, descuento_porcentaje = ?, descuento_hasta = ? WHERE id = 1")->execute([$basico, $intermedio, $premium, $descuento_porcentaje, $descuento_hasta]);
+            
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => 'Error al actualizar precios: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
     $id_negocio = $data['id_negocio'] ?? null;
     $plan = $data['plan'] ?? null;
     $max_profesionales = isset($data['max_profesionales']) ? (int)$data['max_profesionales'] : null;
     $estado_pago = $data['estado_pago'] ?? null;
-    $action = $data['action'] ?? null;
     $motivo_rechazo = trim($data['motivo_rechazo'] ?? '');
     $nota_interna = $data['nota_interna'] ?? null;
 
