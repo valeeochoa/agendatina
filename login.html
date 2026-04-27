@@ -12,9 +12,19 @@
     <noscript><link rel="stylesheet" href="backend/css/global.css"></noscript>
     <script>
         tailwind.config = {
-            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Manrope', 'sans-serif'] }, colors: { primary: '#3b82f6', secondary: '#8b5cf6' } } }
+            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Manrope', 'sans-serif'], brand: ['Fredoka', 'sans-serif'] }, colors: { primary: '#3b82f6', secondary: '#8b5cf6' } } }
         }
     </script>
+    <style>
+        @font-face {
+            font-family: 'Fredoka';
+            src: url('public/fredoka/Fredoka-VariableFont_wdth,wght.ttf') format('truetype'),
+                 url('public/fredoka/Fredoka-Bold.ttf') format('truetype'),
+                 url('public/fredoka/Fredoka.ttf') format('truetype');
+            font-weight: 700;
+            font-display: swap;
+        }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased min-h-screen flex items-center justify-center p-6 relative overflow-hidden">
     
@@ -25,8 +35,8 @@
     <div class="bg-white p-8 md:p-12 rounded-[2rem] shadow-2xl border border-slate-100 max-w-md w-full relative z-10">
         <div class="text-center mb-8">
             <a href="index.html" class="inline-flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
-                <span class="material-symbols-outlined text-primary text-3xl">event_available</span>
-                <span class="font-bold text-2xl tracking-tight">Agenda<span class="text-secondary">tina</span></span>
+                <img src="public/logo.png" alt="Agendatina" class="h-10 w-auto drop-shadow-sm">
+                <span class="font-brand font-bold text-3xl tracking-tight text-slate-800">Agenda<span class="text-secondary">tina</span></span>
             </a>
             <h1 class="text-2xl font-extrabold font-display">Bienvenido de nuevo</h1>
             <p class="text-slate-500 text-sm mt-2">Ingresa tus credenciales para acceder a tu panel.</p>

@@ -1413,19 +1413,22 @@ function renderAgendaTurnos(data, searchTerm = '', profTerm = '') {
                 const esHoy = new Date().toDateString() === dateObj.toDateString();
                 const formatFecha = `${dd}/${mm}/${yyyy}`;
                 
+                const turnosCount = gruposConf[fecha].length;
+                const turnosText = turnosCount === 1 ? '1 turno' : `${turnosCount} turnos`;
+
                 let htmlDia = `
                     <div class="mb-6">
                         <h3 class="font-bold text-slate-800 mb-3 flex items-center gap-2 ${esHoy ? 'text-primary' : ''}">
                             <span class="material-symbols-outlined text-[20px]">${esHoy ? 'today' : 'event'}</span> 
                             ${esHoy ? 'Hoy, ' + formatFecha : formatFecha}
+                            <span class="bg-slate-100 text-slate-500 text-[11px] font-bold px-2 py-0.5 rounded-md ml-1 border border-slate-200">${turnosText}</span>
                         </h3>
                         <div class="space-y-3">
                 `;
                 
                 gruposConf[fecha].forEach(t => {
-                    const customStyle = `style="border-left-width: 4px; border-left-color: var(--color-primario, #3b82f6); background-color: color-mix(in srgb, var(--color-primario, #3b82f6) 4%, #ffffff);"`;
                     htmlDia += `
-                        <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-5 hover:shadow-lg transition-shadow relative overflow-hidden" ${customStyle}>
+                        <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-5 hover:shadow-lg transition-shadow relative overflow-hidden">
                             <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500" style="background-color: var(--color-primario, #3b82f6);"></div>
                             <div class="flex justify-between items-start mb-3">
                                 <span class="text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1 rounded-lg uppercase tracking-wider">${t.hora} hs</span>
@@ -2275,8 +2278,8 @@ function applyWebCustomization() {
                 if (!document.getElementById('agendatinaFooter') && (!isAdmin || isPreviewMode)) {
                     const footer = document.createElement('footer');
                     footer.id = 'agendatinaFooter';
-                    footer.className = 'text-center py-6 mt-8 text-sm text-slate-500 w-full';
-                    footer.innerHTML = 'Realizado con <a href="https://agendatina.site" target="_blank" class="font-bold text-primary hover:underline">Agendatina</a>';
+                    footer.className = 'text-center py-6 mt-8 w-full flex justify-center';
+                    footer.innerHTML = '<a href="https://agendatina.site" target="_blank" class="inline-block hover:opacity-80 transition-opacity"><img src="public/logoletras.png" alt="Agendatina" class="h-8 w-auto opacity-80 hover:opacity-100 transition-all"></a>';
                     
                     const main = document.querySelector('main') || document.body;
                     if (main === document.body) {

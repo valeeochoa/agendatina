@@ -213,7 +213,27 @@ function cal_renderCalendar() {
             dayDiv.classList.add('selected');
         }
 
-        if (isClickable) dayDiv.addEventListener('click', () => handleDayClick(date));
+        if (isClickable) {
+            dayDiv.addEventListener('click', () => handleDayClick(date));
+            if (effectiveIsAdmin && !isDayBlocked && !isPast && !isNotWorkingDay) {
+                dayDiv.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dayDiv.style.transform = 'scale(1.1)';
+                    dayDiv.style.boxShadow = '0 0 0 2px var(--color-primario, #3b82f6)';
+                });
+                dayDiv.addEventListener('dragleave', () => {
+                    dayDiv.style.transform = '';
+                    dayDiv.style.boxShadow = '';
+                });
+                dayDiv.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dayDiv.style.transform = '';
+                    dayDiv.style.boxShadow = '';
+                    const aptId = e.dataTransfer.getData('text/plain');
+                    if (aptId && typeof moveAppointmentToDate === 'function') moveAppointmentToDate(aptId, dateString);
+                });
+            }
+        }
         calendarDays.appendChild(dayDiv);
     }
 }
@@ -367,6 +387,8 @@ function renderAdminDayView(dateString) {
     
     if (!adminTimeSlots) return;
 
+    const effectiveIsAdmin = isAdmin && !isPreviewMode;
+
     // 1. Filtrar turnos del día
     let appointmentsForDay = allAppointments.filter(t => t.fecha === dateString);
     
@@ -437,6 +459,18 @@ function renderAdminDayView(dateString) {
 
                     slotDiv.className = `rounded-xl border p-2 shadow-sm flex flex-col justify-between w-full mb-2 gap-1.5 cursor-pointer hover:shadow-md transition-all ${bgSlotClass}`;
                     
+                    if (effectiveIsAdmin && apt.estado !== 'bloqueado') {
+                        slotDiv.draggable = true;
+                        slotDiv.title = "Arrastra para mover a otro día";
+                        slotDiv.addEventListener('dragstart', (e) => {
+                            e.dataTransfer.setData('text/plain', apt.id);
+                            setTimeout(() => slotDiv.classList.add('opacity-50'), 0);
+                        });
+                        slotDiv.addEventListener('dragend', () => {
+                            slotDiv.classList.remove('opacity-50');
+                        });
+                    }
+                    
                     slotDiv.innerHTML = `
                         <div class="flex justify-between items-center w-full">
                             <span class="text-sm font-bold text-slate-700 dark:text-slate-300">${time}</span>
@@ -485,6 +519,22 @@ function renderAdminDayView(dateString) {
                                 </button>
                             </div>
                         </div>`;
+                        
+                    if (effectiveIsAdmin) {
+                        slotDiv.addEventListener('dragover', (e) => {
+                            e.preventDefault();
+                            slotDiv.classList.add('border-primary', 'border-dashed');
+                        });
+                        slotDiv.addEventListener('dragleave', () => {
+                            slotDiv.classList.remove('border-primary', 'border-dashed');
+                        });
+                        slotDiv.addEventListener('drop', (e) => {
+                            e.preventDefault();
+                            slotDiv.classList.remove('border-primary', 'border-dashed');
+                            const aptId = e.dataTransfer.getData('text/plain');
+                            if (aptId && typeof moveAppointmentToDate === 'function') moveAppointmentToDate(aptId, dateString, time);
+                        });
+                    }
                 }
                 slotsDiv.appendChild(slotDiv);
             });
@@ -574,6 +624,19 @@ function renderAdminDayView(dateString) {
                 const clientName = apt.cliente_nombre || (apt.nombre + ' ' + (apt.apellido || '')) || 'Sin Nombre';
 
                 slotDiv.className = `rounded-xl border p-3 shadow-sm flex flex-col w-full mb-2 cursor-pointer hover:shadow-md transition-all ${bgClass}`;
+                
+                if (effectiveIsAdmin && apt.estado !== 'bloqueado') {
+                    slotDiv.draggable = true;
+                    slotDiv.title = "Arrastra para mover a otro día";
+                    slotDiv.addEventListener('dragstart', (e) => {
+                        e.dataTransfer.setData('text/plain', apt.id);
+                        setTimeout(() => slotDiv.classList.add('opacity-50'), 0);
+                    });
+                    slotDiv.addEventListener('dragend', () => {
+                        slotDiv.classList.remove('opacity-50');
+                    });
+                }
+                
                 slotDiv.innerHTML = `
                     <div class="flex justify-between items-center w-full mb-1">
                         <span class="text-sm font-bold">${time}</span>
@@ -614,6 +677,22 @@ function renderAdminDayView(dateString) {
                         <span class="material-symbols-outlined text-[20px]">block</span>
                     </button>
                 </div>`;
+                    
+                if (effectiveIsAdmin) {
+                    slotDiv.addEventListener('dragover', (e) => {
+                        e.preventDefault();
+                        slotDiv.classList.add('border-primary', 'border-dashed');
+                    });
+                    slotDiv.addEventListener('dragleave', () => {
+                        slotDiv.classList.remove('border-primary', 'border-dashed');
+                    });
+                    slotDiv.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        slotDiv.classList.remove('border-primary', 'border-dashed');
+                        const aptId = e.dataTransfer.getData('text/plain');
+                        if (aptId && typeof moveAppointmentToDate === 'function') moveAppointmentToDate(aptId, dateString, time);
+                    });
+                }
         }
         adminTimeSlots.appendChild(slotDiv);
     });
@@ -682,6 +761,42 @@ function cancelarTurnoAdmin(id) {
         }).catch(() => showToast('Error de conexión', 'error'));
     });
 }
+
+window.moveAppointmentToDate = function(aptId, newDateStr, newTimeStr = null) {
+    const apt = allAppointments.find(a => String(a.id) === String(aptId));
+    if (!apt) return;
+    if (apt.fecha === newDateStr && (!newTimeStr || apt.hora.substring(0,5) === newTimeStr)) return; // Mismo día y hora
+    
+    const fParts = newDateStr.split('-');
+    const newDateDisplay = `${fParts[2]}/${fParts[1]}/${fParts[0]}`;
+
+    let confirmMsg = `¿Deseas mover el turno de <strong>${apt.cliente_nombre || apt.nombre}</strong> al día <strong>${newDateDisplay}</strong> conservando su horario original de las ${apt.hora.substring(0,5)} hs?`;
+    if (newTimeStr) confirmMsg = `¿Deseas mover el turno de <strong>${apt.cliente_nombre || apt.nombre}</strong> al día <strong>${newDateDisplay}</strong> a las <strong>${newTimeStr} hs</strong>?`;
+
+    showConfirm('Mover Turno', 
+        confirmMsg, 
+        'Sí, mover', 'bg-primary hover:bg-primary/90', 
+        () => {
+            const formData = new FormData();
+            formData.append('id_turno', aptId);
+            formData.append('nueva_fecha', newDateStr);
+            if (newTimeStr) formData.append('nueva_hora', newTimeStr);
+
+            return fetch('backend/mover_turno.php', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof showToast === 'function') showToast('Turno movido exitosamente', 'success');
+                    window.refreshCalendarData();
+                } else {
+                    if (typeof showToast === 'function') showToast(data.error || 'No se pudo mover el turno.', 'error');
+                }
+            }).catch(() => {
+                if (typeof showToast === 'function') showToast('Error de conexión', 'error');
+            });
+        }
+    );
+};
 
 function toggleDayBlock(dateString, block) {
     const title = block ? 'Bloquear Día' : 'Desbloquear Día';
@@ -1534,6 +1649,7 @@ function renderAdminWeeklyGrid() {
     if (!grid) return;
     grid.innerHTML = '';
     
+    const effectiveIsAdmin = isAdmin && !isPreviewMode;
     const monthYearEl = document.getElementById('adminWeekMonthYear');
     if (monthYearEl) monthYearEl.textContent = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(weekStartDate);
     const today = new Date(); today.setHours(0,0,0,0);
@@ -1566,6 +1682,26 @@ function renderAdminWeeklyGrid() {
         colHeader.className = `text-center p-3 rounded-xl border mb-2 cursor-pointer transition-colors ${isMultiSelectMode && selectedDates.includes(dateString) ? 'bg-primary/10 border-primary text-primary' : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700'}`;
         colHeader.innerHTML = `<div class="text-xs font-bold ${isToday && !(isMultiSelectMode && selectedDates.includes(dateString)) ? 'text-primary' : (isMultiSelectMode && selectedDates.includes(dateString) ? 'text-primary' : 'text-slate-400')}">${dayName}</div><div class="text-xl font-extrabold ${isToday && !(isMultiSelectMode && selectedDates.includes(dateString)) ? 'text-primary' : (isMultiSelectMode && selectedDates.includes(dateString) ? 'text-primary' : 'text-slate-800 dark:text-slate-100')}">${date.getDate()}</div>`;
         colHeader.onclick = () => handleDayClick(new Date(date.getTime() + 12*60*60*1000));
+        
+        if (effectiveIsAdmin && !isPast && window.isWorkingDay(date)) {
+            colHeader.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                colHeader.style.transform = 'scale(1.05)';
+                colHeader.style.boxShadow = '0 0 0 2px var(--color-primario, #3b82f6)';
+            });
+            colHeader.addEventListener('dragleave', () => {
+                colHeader.style.transform = '';
+                colHeader.style.boxShadow = '';
+            });
+            colHeader.addEventListener('drop', (e) => {
+                e.preventDefault();
+                colHeader.style.transform = '';
+                colHeader.style.boxShadow = '';
+                const aptId = e.dataTransfer.getData('text/plain');
+                if (aptId && typeof moveAppointmentToDate === 'function') moveAppointmentToDate(aptId, dateString);
+            });
+        }
+        
         col.appendChild(colHeader);
         
         const slotsContainer = document.createElement('div'); slotsContainer.className = 'flex flex-col gap-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar';
@@ -1596,6 +1732,22 @@ function renderAdminWeeklyGrid() {
                         openManualTurnoModal(time);
                         setTimeout(() => { const servSelect = document.getElementById('manualServicio'); if (servSelect) servSelect.value = adminWeeklySelectedService; }, 100);
                     };
+                    
+                    if (effectiveIsAdmin) {
+                        slot.addEventListener('dragover', (e) => {
+                            e.preventDefault();
+                            slot.classList.add('border-primary', 'border-dashed');
+                        });
+                        slot.addEventListener('dragleave', () => {
+                            slot.classList.remove('border-primary', 'border-dashed');
+                        });
+                        slot.addEventListener('drop', (e) => {
+                            e.preventDefault();
+                            slot.classList.remove('border-primary', 'border-dashed');
+                            const aptId = e.dataTransfer.getData('text/plain');
+                            if (aptId && typeof moveAppointmentToDate === 'function') moveAppointmentToDate(aptId, dateString, time);
+                        });
+                    }
                 } else { 
                     const apt = allAppointments.find(a => a.fecha === dateString && a.hora.substring(0,5) === time && (a.profesional === adminWeeklySelectedProf || !adminWeeklySelectedProf));
                     
@@ -1606,6 +1758,19 @@ function renderAdminWeeklyGrid() {
                         const badgeClass = isPend ? 'bg-amber-200 text-amber-800' : 'bg-indigo-200 text-indigo-800';
                         
                         slot.className = `p-2 text-left text-xs rounded-lg border cursor-pointer transition-colors shadow-sm ${bgClass}`;
+                        
+                        if (effectiveIsAdmin && apt.estado !== 'bloqueado') {
+                            slot.draggable = true;
+                            slot.title = "Arrastra para mover a otro día";
+                            slot.addEventListener('dragstart', (e) => {
+                                e.dataTransfer.setData('text/plain', apt.id);
+                                setTimeout(() => slot.classList.add('opacity-50'), 0);
+                            });
+                            slot.addEventListener('dragend', () => {
+                                slot.classList.remove('opacity-50');
+                            });
+                        }
+                        
                         slot.innerHTML = `<div class="font-bold mb-0.5">${time}</div><div class="truncate text-[10px] leading-tight" title="${clientName}">${clientName}</div><div class="truncate text-[9px] opacity-80">${apt.servicio || ''}</div>`;
                         
                         slot.onclick = () => {

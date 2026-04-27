@@ -26,7 +26,8 @@
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                         display: ['Manrope', 'sans-serif'],
-                        headline: ['Plus Jakarta Sans', 'sans-serif']
+                        headline: ['Plus Jakarta Sans', 'sans-serif'],
+                        brand: ['Fredoka', 'sans-serif']
                     },
                     colors: {
                         primary: '#3b82f6',
@@ -38,6 +39,16 @@
             }
         }
     </script>
+    <style>
+        @font-face {
+            font-family: 'Fredoka';
+            src: url('public/fredoka/Fredoka-VariableFont_wdth,wght.ttf') format('truetype'),
+                 url('public/fredoka/Fredoka-Bold.ttf') format('truetype'),
+                 url('public/fredoka/Fredoka.ttf') format('truetype');
+            font-weight: 700;
+            font-display: swap;
+        }
+    </style>
 </head>
 
 <body class="bg-slate-50 text-slate-900 antialiased selection:bg-primary/10">
@@ -45,10 +56,10 @@
     <nav id="mainNav"
         class="fixed w-full z-50 bg-white/70 backdrop-blur-lg border-b border-slate-200/50 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary text-3xl">event_available</span>
-                <span class="font-bold text-xl tracking-tight">Agenda<span class="text-secondary">tina</span></span>
-            </div>
+            <a href="index.html" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
+                <img src="public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
+                <span class="font-brand font-bold text-2xl tracking-tight text-slate-800">Agenda<span class="text-secondary">tina</span></span>
+            </a>
             <div class="hidden md:flex gap-8 font-medium text-sm text-slate-600">
                 <a href="#inicio" class="hover:text-primary transition-colors">Inicio</a>
                 <a href="#visualizar" class="hover:text-primary transition-colors">Demo</a>
@@ -588,10 +599,9 @@
 
     <footer class="bg-slate-900 text-slate-400 py-12 text-center">
         <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center gap-2 text-white">
-                <span class="material-symbols-outlined text-primary">event_available</span>
-                <span class="font-bold">Agenda<span class="text-secondary">tina</span></span>
-            </div>
+            <a href="index.html" class="inline-block hover:opacity-90 transition-opacity">
+                <img src="public/logoletras.png" alt="Agendatina" class="h-10 w-auto bg-white p-2 rounded-xl drop-shadow-sm">
+            </a>
             <div class="flex flex-col items-center md:items-end gap-1 text-sm">
                 <p>© 2026. Diseñado para potenciar tu negocio.</p>
                 <p>Desarrollado por <span class="text-white font-bold"><a href="mailto:vochoaolguin@gmail.com"

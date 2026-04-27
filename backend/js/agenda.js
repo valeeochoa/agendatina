@@ -234,19 +234,22 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                 const esHoy = new Date().toDateString() === dateObj.toDateString();
                 const formatFecha = `${dd}/${mm}/${yyyy}`;
                 
+                const turnosCount = gruposConf[fecha].length;
+                const turnosText = turnosCount === 1 ? '1 turno' : `${turnosCount} turnos`;
+
                 let htmlDia = `
                     <div class="mb-8">
                         <h3 class="font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2 ${esHoy ? 'text-primary' : ''}">
                             <span class="material-symbols-outlined text-[20px]">${esHoy ? 'today' : 'event'}</span> 
                             ${esHoy ? 'Hoy, ' + formatFecha : formatFecha}
+                            <span class="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[11px] font-bold px-2 py-0.5 rounded-md ml-1 border border-slate-200 dark:border-slate-700">${turnosText}</span>
                         </h3>
                         <div class="space-y-3">
                 `;
                 
                 gruposConf[fecha].forEach(t => {
-                    const customStyle = `style="border-left-width: 4px; border-left-color: var(--color-primario, #3b82f6); background-color: color-mix(in srgb, var(--color-primario, #3b82f6) 4%, #ffffff);"`;
                     htmlDia += `
-                        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-2xl p-5 hover:shadow-lg transition-shadow relative overflow-hidden" ${customStyle}>
+                        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-2xl p-5 hover:shadow-lg transition-shadow relative overflow-hidden">
                             <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500" style="background-color: var(--color-primario, #3b82f6);"></div>
                             <div class="flex justify-between items-start mb-3">
                                 <span class="text-xs font-bold bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-3 py-1 rounded-lg uppercase tracking-wider">${t.hora} hs</span>
@@ -299,11 +302,15 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                 const [yyyy, mm, dd] = fecha.split('-');
                 const formatFecha = `${dd}/${mm}/${yyyy}`;
                 
+                const turnosCount = gruposHist[fecha].length;
+                const turnosText = turnosCount === 1 ? '1 turno' : `${turnosCount} turnos`;
+
                 let htmlDia = `
                     <div class="mb-8">
                         <h3 class="font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2 opacity-80">
                             <span class="material-symbols-outlined text-[20px]">history</span> 
                             ${formatFecha}
+                            <span class="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[11px] font-bold px-2 py-0.5 rounded-md ml-1 border border-slate-200 dark:border-slate-700">${turnosText}</span>
                         </h3>
                         <div class="space-y-3">
                 `;
@@ -312,9 +319,10 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                     globalHistIndex++;
                     const isNewLoaded = window.isLoadingMoreHistory && globalHistIndex > (window.historyLimit - 15);
                     const animClass = isNewLoaded ? 'animate-new-item' : '';
-                    const customStyle = `style="border-left-width: 4px; border-left-color: var(--color-primario, #3b82f6); background-color: color-mix(in srgb, var(--color-primario, #3b82f6) 4%, #ffffff); --target-opacity: 0.85; ${isNewLoaded ? 'opacity: 0;' : 'opacity: 0.85;'}"`;
+                    const customStyle = `style="--target-opacity: 0.85; ${isNewLoaded ? 'opacity: 0;' : 'opacity: 0.85;'}"`;
                     htmlDia += `
-                        <div class="border border-slate-200 dark:border-slate-700 rounded-xl p-4 sm:p-5 flex flex-col gap-3 hover:opacity-100 transition-opacity ${animClass}" ${customStyle}>
+                        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 sm:p-5 flex flex-col gap-3 hover:opacity-100 transition-opacity relative overflow-hidden ${animClass}" ${customStyle}>
+                            <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500" style="background-color: var(--color-primario, #3b82f6);"></div>
                             <div class="flex justify-between items-start">
                                 <div class="flex-1 min-w-0">
                                     <span class="text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2.5 py-1 rounded-md inline-block mb-3 uppercase tracking-wide border border-blue-200 dark:border-blue-800/50">${t.hora} hs</span>

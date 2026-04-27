@@ -4,20 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Super Admin | Agendatina</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-2.5 5.43l-4.57 4.57-2.43-2.43 1.41-1.41 1.02 1.02 3.16-3.16 1.41 1.41z'/></svg>">
+    <link rel="icon" href="../public/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <script>
+        tailwind.config = { theme: { extend: { fontFamily: { brand: ['Fredoka', 'sans-serif'] } } } };
+    </script>
+    <style> 
+        body { font-family: 'Inter', sans-serif; } 
+        @font-face {
+            font-family: 'Fredoka';
+            src: url('../public/fredoka/Fredoka-VariableFont_wdth,wght.ttf') format('truetype'),
+                 url('../public/fredoka/Fredoka-Bold.ttf') format('truetype'),
+                 url('../public/fredoka/Fredoka.ttf') format('truetype');
+            font-weight: 700;
+            font-display: swap;
+        }
+    </style>
 </head>
 <body class="bg-slate-900 min-h-screen flex items-center justify-center p-6 text-slate-800">
     <div class="bg-white p-8 md:p-10 rounded-3xl shadow-2xl max-w-md w-full">
         <div class="text-center mb-8">
-            <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span class="material-symbols-outlined text-blue-600 text-5xl">admin_panel_settings</span>
-            </div>
-            <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">Super Admin</h1>
-            <p class="text-slate-500 text-sm mt-1">Ingresa tus credenciales maestras.</p>
+            <a href="login.html" class="inline-block hover:scale-105 transition-transform">
+                <img src="../public/logo.png" alt="Agendatina" class="h-20 w-auto mx-auto mb-4 drop-shadow-sm">
+                <h1 class="font-brand text-3xl font-extrabold text-slate-800 tracking-tight">Agendatina</h1>
+            </a>
+            <h2 class="text-xl font-bold text-blue-600 tracking-tight mt-1">Super Admin</h2>
         </div>
 
         <form id="adminLoginForm" class="space-y-5">

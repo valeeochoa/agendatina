@@ -4,21 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Admin | Agendatina</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-2.5 5.43l-4.57 4.57-2.43-2.43 1.41-1.41 1.02 1.02 3.16-3.16 1.41 1.41z'/></svg>">
+    <link rel="icon" href="../public/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <script>
+        tailwind.config = { theme: { extend: { fontFamily: { brand: ['Fredoka', 'sans-serif'] } } } };
+    </script>
+    <style> 
+        body { font-family: 'Inter', sans-serif; } 
+        @font-face {
+            font-family: 'Fredoka';
+            src: url('../public/fredoka/Fredoka-VariableFont_wdth,wght.ttf') format('truetype'),
+                 url('../public/fredoka/Fredoka-Bold.ttf') format('truetype'),
+                 url('../public/fredoka/Fredoka.ttf') format('truetype');
+            font-weight: 700;
+            font-display: swap;
+        }
+    </style>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800" style="display: none;">
 
 <nav class="bg-slate-900 text-white p-4 sticky top-0 z-50 shadow-md">
     <div class="max-w-7xl mx-auto flex justify-between items-center">
-        <div class="flex items-center gap-3">
-            <span class="material-symbols-outlined text-blue-400 text-3xl">admin_panel_settings</span>
-            <span class="font-bold text-xl tracking-tight">Agendatina <span class="text-blue-400">SuperAdmin</span></span>
-        </div>
+        <a href="index.html" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
+            <img src="../public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
+            <span class="font-brand font-bold text-2xl tracking-tight">Agendatina <span class="text-blue-400 font-sans text-xl">SuperAdmin</span></span>
+        </a>
         <div class="flex items-center gap-6">
             <a href="../index.html" target="_blank" class="text-sm font-semibold text-slate-400 hover:text-white transition-colors items-center gap-1 hidden sm:flex">
                 Ir a la web principal <span class="material-symbols-outlined text-[16px]">open_in_new</span>
@@ -92,6 +105,12 @@
                 <option value="vencido">Vencidos</option>
                 <option value="suspendido">Suspendidos</option>
             </select>
+            <select id="planFilter" class="w-full sm:w-auto bg-white border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm shadow-sm text-slate-600 font-medium">
+                <option value="">Todos los planes</option>
+                <option value="basico">Básico</option>
+                <option value="intermedio">Intermedio</option>
+                <option value="completo">Premium</option>
+            </select>
             <button onclick="exportToCSV()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition-all hover:-translate-y-0.5 whitespace-nowrap">
                 <span class="material-symbols-outlined text-[20px]">download</span> Exportar
             </button>
@@ -154,7 +173,7 @@
 
 <!-- Modal Nuevo Negocio -->
 <div id="newClientModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-    <div id="modalContent" class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full p-8 transform scale-95 transition-transform duration-300">
+    <div id="modalContent" class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><span class="material-symbols-outlined">storefront</span></div>
@@ -221,7 +240,6 @@
                                 <option value="suspendido">Suspendido (Bloqueado)</option>
                             </select>
                         </div>
-                    </div>
                 </div>
             </div>
 
@@ -239,7 +257,7 @@
 
 <!-- Modal Editar Negocio -->
 <div id="editClientModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-    <div id="editModalContent" class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 transform scale-95 transition-transform duration-300">
+    <div id="editModalContent" class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><span class="material-symbols-outlined">edit</span></div>
@@ -298,7 +316,7 @@
 
 <!-- Modal Editar Info Cliente -->
 <div id="editInfoModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-    <div id="editInfoModalContent" class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-8 transform scale-95 transition-transform duration-300">
+    <div id="editInfoModalContent" class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><span class="material-symbols-outlined">manage_accounts</span></div>
@@ -382,7 +400,7 @@
 
 <!-- Modal Enviar Notificación Personalizada -->
 <div id="notificationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-    <div id="notificationModalContent" class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 transform scale-95 transition-transform duration-300">
+    <div id="notificationModalContent" class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center"><span class="material-symbols-outlined">campaign</span></div>
@@ -419,7 +437,7 @@
 
 <!-- Modal Notas Internas -->
 <div id="noteModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-    <div id="noteModalContent" class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 transform scale-95 transition-transform duration-300">
+    <div id="noteModalContent" class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center"><span class="material-symbols-outlined">sticky_note_2</span></div>
@@ -447,7 +465,7 @@
 
 <!-- Modal Precios Globales -->
 <div id="pricesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-    <div id="pricesModalContent" class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 transform scale-95 transition-transform duration-300">
+    <div id="pricesModalContent" class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-xl font-bold text-slate-800 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center"><span class="material-symbols-outlined">payments</span></div>
@@ -779,6 +797,7 @@ function fetchClients() {
 function filterClients() {
     const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
     const statusTerm = document.getElementById('statusFilter')?.value || '';
+    const planTerm = document.getElementById('planFilter')?.value.toLowerCase() || '';
     
     const filtered = clientsData.filter(client => {
         const matchesSearch = (client.nombre_fantasia && client.nombre_fantasia.toLowerCase().includes(searchTerm)) || 
@@ -805,13 +824,16 @@ function filterClients() {
             }
         }
 
-        return matchesSearch && matchesStatus;
+        const matchesPlan = planTerm === '' || (client.plan || '').toLowerCase().includes(planTerm);
+
+        return matchesSearch && matchesStatus && matchesPlan;
     });
     renderTable(filtered);
 }
 
 document.getElementById('searchInput')?.addEventListener('input', filterClients);
 document.getElementById('statusFilter')?.addEventListener('change', filterClients);
+document.getElementById('planFilter')?.addEventListener('change', filterClients);
 
 function openModal() {
     const modal = document.getElementById('newClientModal');
