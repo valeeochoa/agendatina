@@ -1774,6 +1774,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    
     // --- Formulario de Contacto en Landing (Validaciones Visuales y AJAX) ---
     const mainContactForm = document.getElementById('mainContactForm');
     if (mainContactForm) {
