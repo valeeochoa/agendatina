@@ -29,6 +29,8 @@ $email = filter_var(trim($data['email'] ?? ''), FILTER_SANITIZE_EMAIL);
 $password = trim($data['password'] ?? '');
 $nombre_fantasia = trim($data['nombre_negocio'] ?? $data['nombre_fantasia'] ?? '');
 $ruta = preg_replace('/[^a-zA-Z0-9-]/', '', strtolower(trim($data['ruta'] ?? '')));
+$plan = trim($data['plan'] ?? 'Basico');
+$max_profesionales = (int)($data['max_profesionales'] ?? $data['profesionales'] ?? 1);
 
 if (!$nombre_completo || !$email || !$password || !$nombre_fantasia || !$ruta) {
     echo json_encode(['success' => false, 'error' => 'Por favor completa todos los campos obligatorios.']);
@@ -67,9 +69,9 @@ try {
     $stmtUser->execute(['nombre' => $nombre_completo, 'email' => $email, 'password' => password_hash($password, PASSWORD_DEFAULT)]);
     $id_usuario = $pdo->lastInsertId();
 
-    // 4. Crear el Negocio (Plan Básico, en Prueba de 15 días)
-    $stmtNegocio = $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, estado_pago) VALUES (:fantasia, :ruta, 'Basico', 'prueba')");
-    $stmtNegocio->execute(['fantasia' => $nombre_fantasia, 'ruta' => $ruta]);
+    // 4. Crear el Negocio (Asignando el Plan y Límite solicitados, en Prueba de 15 días)
+    $stmtNegocio = $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago) VALUES (:fantasia, :ruta, :plan, :max_profesionales, 'prueba')");
+    $stmtNegocio->execute(['fantasia' => $nombre_fantasia, 'ruta' => $ruta, 'plan' => $plan, 'max_profesionales' => $max_profesionales]);
     $id_negocio = $pdo->lastInsertId();
 
     // 5. Vincular al Usuario como Administrador de ese Negocio

@@ -66,7 +66,7 @@ if (!$user) {
     $userId = $pdo->lastInsertId();
 
     // 2. Crear su propio negocio "Premium"
-    $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, estado_pago) VALUES ('Estética Agendatina', 'demo', 'Completo', 'activo')")->execute();
+    $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago) VALUES ('Estética Agendatina', 'demo', 'Completo', 5, 'activo')")->execute();
     $negocioId = $pdo->lastInsertId();
 
     // 3. Vincularlos
@@ -81,7 +81,7 @@ if (!$user) {
     if ($demoBiz) {
         $negocioId = $demoBiz['id'];
     } else {
-        $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, estado_pago) VALUES ('Estética Agendatina', 'demo', 'Completo', 'activo')")->execute();
+        $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago) VALUES ('Estética Agendatina', 'demo', 'Completo', 5, 'activo')")->execute();
         $negocioId = $pdo->lastInsertId();
     }
 
@@ -94,7 +94,7 @@ if (!$user) {
 }
 
 // Blindaje: en cada acceso demo, normalizar identidad del negocio demo
-$pdo->prepare("UPDATE negocios SET nombre_fantasia = 'Agendatina', ruta = 'demo', plan = 'Completo', estado_pago = 'activo', ultimo_pago = NOW() WHERE id = ?")->execute([$negocioId]);
+$pdo->prepare("UPDATE negocios SET nombre_fantasia = 'Agendatina', ruta = 'demo', plan = 'Completo', max_profesionales = 5, estado_pago = 'activo', ultimo_pago = NOW() WHERE id = ?")->execute([$negocioId]);
 $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, subtitulo, titulo)
                VALUES (?, '#ec135b', '#fce7f3', 'Agendatina', 'Sesión de demostración', 'Agendatina')
                ON DUPLICATE KEY UPDATE mensaje_bienvenida = 'Agendatina', subtitulo = 'Sesión de demostración', titulo = 'Agendatina'")->execute([$negocioId]);
