@@ -111,10 +111,10 @@
             </div>
             
             <!-- Widget de Inicio Rápido -->
-            <div id="onboardingWidget" class="hidden mb-10 bg-white border border-indigo-100 rounded-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
-                <div class="absolute -top-10 -right-10 w-40 h-40 bg-indigo-50 rounded-full opacity-50 pointer-events-none"></div>
+            <div id="onboardingWidget" class="hidden mb-10 bg-white border border-primary/20 rounded-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full opacity-50 pointer-events-none"></div>
                 <div class="absolute top-6 right-6 opacity-20 pointer-events-none">
-                    <span class="material-symbols-outlined text-7xl text-indigo-600">rocket_launch</span>
+                    <span class="material-symbols-outlined text-7xl text-primary">rocket_launch</span>
                 </div>
                 
                 <div class="relative z-10">
@@ -123,39 +123,39 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <!-- Step 1 -->
-                        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col transition-all hover:border-indigo-300 hover:shadow-md group">
+                        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col transition-all hover:border-primary/50 hover:shadow-md group">
                             <div class="flex items-center gap-3 mb-3">
                                 <div id="step1Icon" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">1</div>
                                 <h3 id="step1Text" class="font-bold text-slate-800">Horarios y Calendario</h3>
                             </div>
                             <p class="text-xs text-slate-500 mb-4 flex-1">Selecciona qué días trabajas, tus horarios de apertura y el tipo de calendario (Mensual o Semanal).</p>
-                            <a href="ajustes.html" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 group-hover:translate-x-1 transition-transform">Ir a Ajustes <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
+                            <a href="ajustes.html" class="text-sm font-bold text-primary hover:text-primary/80 flex items-center gap-1 group-hover:translate-x-1 transition-transform">Ir a Ajustes <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
                         </div>
 
                         <!-- Step 2 -->
-                        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col transition-all hover:border-indigo-300 hover:shadow-md group">
+                        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col transition-all hover:border-primary/50 hover:shadow-md group">
                             <div class="flex items-center gap-3 mb-3">
                                 <div id="step2Icon" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">2</div>
                                 <h3 id="step2Text" class="font-bold text-slate-800">Agregar un Servicio</h3>
                             </div>
                             <p class="text-xs text-slate-500 mb-4 flex-1">Crea al menos un servicio con su nombre, duración y precio para que tus clientes puedan elegirlo.</p>
-                            <a href="calendarioMensual.html" id="step2Link" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 group-hover:translate-x-1 transition-transform">Ir a Calendario <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
+                            <a href="calendarioMensual.html" id="step2Link" class="text-sm font-bold text-primary hover:text-primary/80 flex items-center gap-1 group-hover:translate-x-1 transition-transform">Ir a Calendario <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
                         </div>
 
                         <!-- Step 3 -->
-                        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col transition-all hover:border-indigo-300 hover:shadow-md group">
+                        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col transition-all hover:border-primary/50 hover:shadow-md group">
                             <div class="flex items-center gap-3 mb-3">
                                 <div id="step3Icon" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">3</div>
                                 <h3 id="step3Text" class="font-bold text-slate-800">Prueba tu Agenda</h3>
                             </div>
                             <p class="text-xs text-slate-500 mb-4 flex-1">Visita tu enlace público como si fueras un cliente y agenda tu primer turno de prueba.</p>
-                            <a href="#" id="step3Link" target="_blank" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 opacity-50 pointer-events-none transition-all">Ver mi web <span class="material-symbols-outlined text-[16px]">open_in_new</span></a>
+                            <a href="#" id="step3Link" target="_blank" class="text-sm font-bold text-primary hover:text-primary/80 flex items-center gap-1 opacity-50 pointer-events-none transition-all">Ver mi web <span class="material-symbols-outlined text-[16px]">open_in_new</span></a>
                         </div>
                     </div>
                     
-                    <div class="mt-8 pt-6 border-t border-indigo-100/50 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div class="mt-8 pt-6 border-t border-primary/10 flex flex-col sm:flex-row justify-between items-center gap-4">
                         <p class="text-sm text-slate-500"><span class="font-bold">Tip:</span> Si no sabes por dónde empezar, mira el recorrido guiado.</p>
-                        <button onclick="startTour()" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-bold py-2.5 px-6 rounded-xl transition-colors flex items-center gap-2 text-sm w-full sm:w-auto justify-center">
+                        <button onclick="startTour()" class="bg-primary/10 text-primary hover:bg-primary/20 font-bold py-2.5 px-6 rounded-xl transition-colors flex items-center gap-2 text-sm w-full sm:w-auto justify-center">
                             <span class="material-symbols-outlined text-[18px]">explore</span> Iniciar Tour Virtual
                         </button>
                     </div>

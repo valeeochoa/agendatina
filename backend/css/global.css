@@ -1,10 +1,10 @@
 /* Utilidades Generales */
 .signature-glow {
-    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    background: linear-gradient(135deg, #D11149 0%, #FC8712 100%);
 }
 
 .text-gradient {
-    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    background: linear-gradient(135deg, #D11149 0%, #FC8712 100%);
     background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -55,19 +55,19 @@
     background: #fff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
     cursor: pointer;
-    border-color: var(--color-secundario, #fce7f3);
+    border-color: var(--color-secundario, #FCB0B3);
 }
 
 @media (hover: hover) {
     .calendar-day:not(.disabled):hover {
         transform: translateY(-2px);
-        border-color: var(--color-primario, #ec135b);
-        color: var(--color-primario, #ec135b);
+        border-color: var(--color-primario, #D11149);
+        color: var(--color-primario, #D11149);
     }
     .time-slot:hover:not(.booked) {
-        border-color: #ec135b;
+        border-color: #D11149;
         background: white;
-        color: #ec135b;
+        color: #D11149;
     }
 }
 
@@ -76,7 +76,7 @@
 }
 
 .calendar-day.selected {
-    background: var(--color-primario, #ec135b) !important;
+    background: var(--color-primario, #D11149) !important;
     color: white !important;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
@@ -104,9 +104,9 @@
 }
 
 .time-slot.selected {
-    background: #ec135b;
+    background: #D11149;
     color: white;
-    border-color: #ec135b;
+    border-color: #D11149;
 }
 
 .time-slot.booked {
@@ -118,7 +118,7 @@
 
 /* Animaciones y utilidades de index.html (Landing) */
 .mockup-shadow {
-    filter: drop-shadow(0 25px 50px rgba(59, 130, 246, 0.2));
+    filter: drop-shadow(0 25px 50px rgba(209, 17, 73, 0.2));
 }
 
 .mini-calendar-day {
@@ -130,13 +130,13 @@
     font-weight: 700;
     border-radius: 0.3rem;
     cursor: pointer;
-    background: #ffdae6;
-    color: #b30e44;
+    background: #FCB0B3;
+    color: #D11149;
     transition: all 0.2s;
 }
 
 .mini-calendar-day.selected {
-    background: #ec135b;
+    background: #D11149;
     color: white;
 }
 
@@ -162,9 +162,9 @@
 }
 
 .mini-time-slot.selected {
-    background: #ec135b;
+    background: #D11149;
     color: white;
-    border-color: #ec135b;
+    border-color: #D11149;
 }
 
 @keyframes fadeInImg {
