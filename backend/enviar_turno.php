@@ -158,7 +158,8 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN profesional VARC
 try { $pdo->query("SELECT id_servicio FROM turnos LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN id_servicio INT DEFAULT NULL"); }
 
-try { $pdo->query("SELECT cliente_nombre FROM turnos LIMIT 1"); } 
+
+it ptry { $pdo->query("SELECT cliente_nombre FROM turnos LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_nombre VARCHAR(255) DEFAULT NULL"); }
 
 try { $pdo->query("SELECT cliente_celular FROM turnos LIMIT 1"); } 

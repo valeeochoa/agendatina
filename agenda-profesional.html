@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
     <script>
-        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Manrope', 'sans-serif'] }, colors: { primary: 'var(--color-primario, #3b82f6)' } } } };
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Manrope', 'sans-serif'] }, colors: { primary: 'var(--color-primario, #D11149)' } } } };
     </script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased">
@@ -143,7 +143,7 @@
                     return;
                 }
 
-                document.documentElement.style.setProperty('--color-primario', data.color_primario || '#3b82f6');
+                document.documentElement.style.setProperty('--color-primario', data.color_primario || '#D11149');
                 document.getElementById('nombreNegocio').textContent = data.negocio;
                 if (data.logo) {
                     const logoImg = document.getElementById('logoNegocio');
