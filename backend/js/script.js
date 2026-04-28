@@ -75,7 +75,7 @@ function loadAdminWebConfig() {
         .then(res => res.json())
         .then(data => {
             if (data && !data.error) {
-                if (document.getElementById('colorPrimarioInput')) document.getElementById('colorPrimarioInput').value = data.color_primario_web || data.color_primario || '#3b82f6';
+                if (document.getElementById('colorPrimarioInput')) document.getElementById('colorPrimarioInput').value = data.color_primario_web || data.color_primario || '#D11149';
                 if (document.getElementById('colorFondoInput')) document.getElementById('colorFondoInput').value = data.color_fondo || '#ffffff';
                 if (document.getElementById('tituloWebInput')) document.getElementById('tituloWebInput').value = data.titulo || '';
             }
@@ -90,7 +90,7 @@ function handleWebConfigSubmit(e) {
     if (submitBtn) submitBtn.innerHTML = 'Guardando...';
 
     const payload = {
-        color_primario_web: document.getElementById('colorPrimarioInput')?.value || '#3b82f6',
+        color_primario_web: document.getElementById('colorPrimarioInput')?.value || '#D11149',
         color_fondo: document.getElementById('colorFondoInput')?.value || '#ffffff',
         titulo: document.getElementById('tituloWebInput')?.value || ''
     };
@@ -863,9 +863,9 @@ function loadCustomization() {
             if (data && !data.error) {
                 currentWebData = data;
                 if(document.getElementById('profTitulo')) document.getElementById('profTitulo').value = data.titulo || '';
-                if(document.getElementById('profColor1')) document.getElementById('profColor1').value = data.color_primario || '#3b82f6';
-                if(document.getElementById('profColor2')) document.getElementById('profColor2').value = data.color_secundario || '#8b5cf6';
-                if(document.getElementById('profileColor')) document.getElementById('profileColor').value = data.color_primario || '#3b82f6';
+                if(document.getElementById('profColor1')) document.getElementById('profColor1').value = data.color_primario || '#D11149';
+                if(document.getElementById('profColor2')) document.getElementById('profColor2').value = data.color_secundario || '#FC8712';
+                if(document.getElementById('profileColor')) document.getElementById('profileColor').value = data.color_primario || '#D11149';
 
                 const displayName = data.titulo || (window.currentBusinessData && window.currentBusinessData.nombre_fantasia) || (window.currentUserData && window.currentUserData.nombre_completo) || 'Mi Negocio';
                 
@@ -885,8 +885,8 @@ function loadCustomization() {
                 }
                 if ((data.color_primario || data.color_secundario) && !data.logo) {
                     const navAvatar = document.getElementById('navAvatar');
-                    const c1 = data.color_primario || '#3b82f6';
-                    const c2 = data.color_secundario || '#8b5cf6';
+                    const c1 = data.color_primario || '#D11149';
+                    const c2 = data.color_secundario || '#FC8712';
                     if (navAvatar) navAvatar.style.background = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
                 }
                 if (data.logo) {
@@ -923,7 +923,7 @@ function loadCustomization() {
                     .hover\\:shadow-primary\\/20:hover { --tw-shadow-color: color-mix(in srgb, ${data.color_primario} 20%, transparent) !important; }
                     .bg-primary\\/10 { background-color: color-mix(in srgb, ${data.color_primario} 70%, transparent) !important; color: #ffffff !important; border-color: transparent !important; }
                     .text-primary { color: ${data.color_primario} !important; }
-                    .signature-glow { background: linear-gradient(135deg, ${data.color_primario} 0%, ${data.color_secundario || '#8b5cf6'} 100%) !important; }
+                    .signature-glow { background: linear-gradient(135deg, ${data.color_primario} 0%, ${data.color_secundario || '#FC8712'} 100%) !important; }
                     body, .bg-slate-50 { background-color: color-mix(in srgb, ${data.color_primario} 4%, #f8fafc) !important; }
                     `;
                     if (!document.getElementById('dynamic-dashboard-styles')) {
@@ -1021,8 +1021,8 @@ function closeProfileModal() {
 
 function applyCalendarConfigToForm(c) {
     if (!c) return;
-    if(document.getElementById('configColorPrimario')) document.getElementById('configColorPrimario').value = c.color_primario || '#ec135b';
-    if(document.getElementById('configColorSecundario')) document.getElementById('configColorSecundario').value = c.color_secundario || '#fce7f3';
+    if(document.getElementById('configColorPrimario')) document.getElementById('configColorPrimario').value = c.color_primario || '#D11149';
+    if(document.getElementById('configColorSecundario')) document.getElementById('configColorSecundario').value = c.color_secundario || '#FCB0B3';
     const ha = c.hora_apertura ? c.hora_apertura.substring(0, 5) : '09:00';
     const hc = c.hora_cierre ? c.hora_cierre.substring(0, 5) : '18:00';
     if(document.getElementById('configHoraApertura')) document.getElementById('configHoraApertura').value = ha;
@@ -2302,8 +2302,8 @@ function applyWebCustomization() {
                     if (navBrandAccent) navBrandAccent.style.color = data.color_secundario;
                 }
                 if (data.color_primario || data.color_secundario || data.color_fondo) {
-                    const pColor = data.color_primario || '#3b82f6';
-                    const sColor = data.color_secundario || '#fce7f3';
+                    const pColor = data.color_primario || '#D11149';
+                    const sColor = data.color_secundario || '#FCB0B3';
                     
                     // Eliminar la etiqueta de estilo anterior si existe (útil al guardar desde el panel admin)
                     const oldStyle = document.getElementById('dynamic-business-styles');
