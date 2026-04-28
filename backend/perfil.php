@@ -32,6 +32,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $config = $stmtC->fetch(PDO::FETCH_ASSOC);
     } catch(Exception $e) { $config = null; } // Si la tabla no existe o está vacía
 
+    // Migración: Crear tabla de Notificaciones si no existe para evitar caída al cargar la campanita
+    try { $pdo->query("SELECT id FROM notificaciones LIMIT 1"); } 
+    catch(Exception $e) { 
+        $pdo->exec("CREATE TABLE notificaciones (id INT AUTO_INCREMENT PRIMARY KEY, id_negocio INT NULL, titulo VARCHAR(255), mensaje TEXT, fecha DATETIME DEFAULT CURRENT_TIMESTAMP)"); 
+    }
+
     $stmtNotif = $pdo->prepare("SELECT * FROM notificaciones WHERE id_negocio = ? OR id_negocio IS NULL ORDER BY fecha DESC LIMIT 20");
     $stmtNotif->execute([$id_negocio]);
     $notificaciones = $stmtNotif->fetchAll(PDO::FETCH_ASSOC);

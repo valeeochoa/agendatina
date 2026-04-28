@@ -2042,7 +2042,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (perPerson) {
                         if (count > 1) {
                             let pricePerPerson = info.final / count;
-                            perPerson.textContent = `¡Queda en $${pricePerPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} p/persona!`;
+                            perPerson.innerHTML = `¡Queda en $${pricePerPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} p/persona!<br><span class="text-xs font-normal text-slate-500 mt-1 block">Ya incluye 20% OFF base + descuento por equipo</span>`;
                             perPerson.classList.remove('hidden');
                         } else {
                             perPerson.classList.add('hidden');
@@ -2060,7 +2060,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 for(let idx = 0; idx < 3; idx++) {
                     let k = planKeys[idx];
-                    let info = getFinalPrice(prices[idx], window.numProfessionals[k]);
+                    let info = getFinalPrice(prices[idx], 1); // Siempre 1 profesional para el carrusel superior
                     carouselData[idx].price = '$' + info.final.toLocaleString('es-AR', {maximumFractionDigits:0});
                     carouselData[idx].oldPrice = '$' + info.oldPrice.toLocaleString('es-AR', {maximumFractionDigits:0});
                     carouselData[idx].badgeText = info.badgeText;

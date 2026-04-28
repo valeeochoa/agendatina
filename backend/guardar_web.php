@@ -28,6 +28,15 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN insta
 try { $pdo->query("SELECT ultimo_pago FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN ultimo_pago DATETIME DEFAULT NULL"); }
 
+try { $pdo->query("SELECT estado_pago FROM negocios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN estado_pago VARCHAR(50) DEFAULT 'prueba'"); }
+
+try { $pdo->query("SELECT fecha_alta FROM negocios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN fecha_alta DATETIME DEFAULT CURRENT_TIMESTAMP"); }
+
+try { $pdo->query("SELECT plan FROM negocios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN plan VARCHAR(50) DEFAULT 'Basico'"); }
+
 try { $pdo->query("SELECT hora_apertura FROM configuracion_web LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN hora_apertura VARCHAR(5) DEFAULT '09:00'"); }
 

@@ -38,6 +38,12 @@ require_once __DIR__ . '/conexion.php';
 try { $pdo->query("SELECT ultimo_pago FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN ultimo_pago DATETIME DEFAULT NULL"); }
 
+try { $pdo->query("SELECT estado_pago FROM negocios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN estado_pago VARCHAR(50) DEFAULT 'prueba'"); }
+
+try { $pdo->query("SELECT fecha_alta FROM negocios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN fecha_alta DATETIME DEFAULT CURRENT_TIMESTAMP"); }
+
 // --- OBTENER DATOS DEL NEGOCIO DESDE LA BASE DE DATOS ---
 $stmtNegocio = $pdo->prepare("
     SELECT n.id, n.nombre_fantasia, n.estado_pago, n.ultimo_pago, n.fecha_alta, u.email 
@@ -158,8 +164,7 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN profesional VARC
 try { $pdo->query("SELECT id_servicio FROM turnos LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN id_servicio INT DEFAULT NULL"); }
 
-
-it ptry { $pdo->query("SELECT cliente_nombre FROM turnos LIMIT 1"); } 
+try { $pdo->query("SELECT cliente_nombre FROM turnos LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_nombre VARCHAR(255) DEFAULT NULL"); }
 
 try { $pdo->query("SELECT cliente_celular FROM turnos LIMIT 1"); } 

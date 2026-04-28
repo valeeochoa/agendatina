@@ -135,10 +135,10 @@ let currentTourTarget = null;
 let tourResizeListener = null;
 
 const tourSteps = [
-    { target: 'cardCalendario', title: '1. Tu Motor Principal', text: 'Aquí definirás tus horarios de atención, el tipo de calendario (mensual o semanal) y los servicios que ofreces.', position: 'top' },
-    { target: 'cardWeb', title: '2. Tu Vitrina Online', text: 'Personaliza la página pública que verán tus clientes al reservar. Sube fotos, certificados y cambia los colores.', position: 'top' },
-    { target: 'cardAgenda', title: '3. Recepción de Turnos', text: 'En esta sección administrarás y confirmarás los turnos que tus clientes vayan solicitando en tu web.', position: 'top' },
-    { target: 'navAvatar', title: '4. Tu Perfil y Logo', text: 'Haz clic en tus iniciales arriba a la derecha para modificar tu información personal y subir el logo de tu negocio.', position: 'bottom' }
+    { target: 'cardCalendario', title: '1. Tu Motor Principal', text: 'Aquí definirás tus horarios de atención, el tipo de calendario (mensual o semanal) y los servicios que ofreces.', position: 'bottom' },
+    { target: 'cardWeb', title: '2. Tu Vitrina Online', text: 'Personaliza la página pública que verán tus clientes al reservar. Sube fotos, certificados y cambia los colores.', position: 'bottom' },
+    { target: 'cardAgenda', title: '3. Recepción de Turnos', text: 'En esta sección administrarás y confirmarás los turnos que tus clientes vayan solicitando en tu web.', position: 'right' },
+    { target: 'navAvatar', title: '4. Tu Perfil y Logo', text: 'Haz clic en tus iniciales arriba a la derecha para modificar tu información personal y subir el logo de tu negocio.', position: 'left' }
 ];
 
 window.startTour = function() {
@@ -264,31 +264,54 @@ function showTourStep(index, doScroll = true) {
             top = rect.bottom + 25;
             left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
             arrowClass = 'top-[-6px] left-1/2 -translate-x-1/2 !border-b-0 !border-r-0 border-t border-l';
+        } else if (step.position === 'right') {
+            top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
+            left = rect.right + 25;
+            arrowClass = 'top-1/2 left-[-6px] -translate-y-1/2 !border-t-0 !border-r-0 border-b border-l';
+        } else if (step.position === 'left') {
+            top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
+            left = rect.left - tooltipRect.width - 25;
+            arrowClass = 'top-1/2 right-[-6px] -translate-y-1/2 !border-b-0 !border-l-0 border-t border-r';
         }
 
         // Correcciones de pantalla si el tooltip choca contra los bordes del celular
-        if (left < 20) {
-            left = Math.max(20, rect.left);
-            arrowClass = arrowClass.replace('-translate-x-1/2', '').replace('left-1/2', 'left-8');
-        } else if (left + tooltipRect.width > window.innerWidth - 20) {
-            left = window.innerWidth - tooltipRect.width - 20;
-            // Intentar alinear la flecha con el elemento
-            const arrowOffset = (rect.left + rect.width / 2) - left;
-            if (arrowOffset > 0 && arrowOffset < tooltipRect.width) {
-                arrowClass = arrowClass.replace('-translate-x-1/2', '').replace('left-1/2', '');
-                arrow.style.left = arrowOffset + 'px';
+        if (step.position === 'top' || step.position === 'bottom') {
+            if (left < 20) {
+                left = Math.max(20, rect.left);
+                arrowClass = arrowClass.replace('-translate-x-1/2', '').replace('left-1/2', 'left-8');
+            } else if (left + tooltipRect.width > window.innerWidth - 20) {
+                left = window.innerWidth - tooltipRect.width - 20;
+                const arrowOffset = (rect.left + rect.width / 2) - left;
+                if (arrowOffset > 0 && arrowOffset < tooltipRect.width) {
+                    arrowClass = arrowClass.replace('-translate-x-1/2', '').replace('left-1/2', '');
+                    arrow.style.left = arrowOffset + 'px';
+                } else {
+                    arrowClass = arrowClass.replace('-translate-x-1/2', '').replace('left-1/2', 'right-8');
+                    arrow.style.left = '';
+                }
             } else {
-                arrowClass = arrowClass.replace('-translate-x-1/2', '').replace('left-1/2', 'right-8');
                 arrow.style.left = '';
             }
-        } else {
-            arrow.style.left = '';
+        } else if (step.position === 'right' && left + tooltipRect.width > window.innerWidth - 20) {
+            // Fallback si choca a la derecha, lo mandamos abajo
+            top = rect.bottom + 25;
+            left = Math.max(20, rect.left + (rect.width / 2) - (tooltipRect.width / 2));
+            arrowClass = 'top-[-6px] left-1/2 -translate-x-1/2 !border-b-0 !border-r-0 border-t border-l';
+        } else if (step.position === 'left' && left < 20) {
+            // Fallback si choca a la izquierda, lo mandamos abajo
+            top = rect.bottom + 25;
+            left = Math.max(20, rect.left + (rect.width / 2) - (tooltipRect.width / 2));
+            arrowClass = 'top-[-6px] left-1/2 -translate-x-1/2 !border-b-0 !border-r-0 border-t border-l';
         }
 
         // Fallback por si la pantalla es muy corta y el tooltip se recorta con el techo
-        if (top < 10 && step.position === 'top') {
-            top = rect.bottom + 25; // Forzarlo abajo
-            arrowClass = 'top-[-6px] left-1/2 -translate-x-1/2 !border-b-0 !border-r-0 border-t border-l';
+        if (top < 10) {
+            if (step.position === 'top') {
+                top = rect.bottom + 25;
+                arrowClass = 'top-[-6px] left-1/2 -translate-x-1/2 !border-b-0 !border-r-0 border-t border-l';
+            } else {
+                top = 20; // Margen superior de seguridad para right/left
+            }
         }
 
         tooltip.style.top = top + 'px';
