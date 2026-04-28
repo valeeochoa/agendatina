@@ -96,7 +96,7 @@ if (!$user) {
 // Blindaje: en cada acceso demo, normalizar identidad del negocio demo
 $pdo->prepare("UPDATE negocios SET nombre_fantasia = 'Agendatina', ruta = 'demo', plan = 'Completo', max_profesionales = 5, estado_pago = 'activo', ultimo_pago = NOW() WHERE id = ?")->execute([$negocioId]);
 $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, subtitulo, titulo)
-               VALUES (?, '#ec135b', '#fce7f3', 'Agendatina', 'Sesión de demostración', 'Agendatina')
+               VALUES (?, '#D11149', '#FCB0B3', 'Agendatina', 'Sesión de demostración', 'Agendatina')
                ON DUPLICATE KEY UPDATE mensaje_bienvenida = 'Agendatina', subtitulo = 'Sesión de demostración', titulo = 'Agendatina'")->execute([$negocioId]);
 
 // RESET AUTOMÁTICO CADA 10 MINUTOS
@@ -157,10 +157,10 @@ if ($shouldReset && $negocioId) {
 
    // 5. Restaurar Configuración Web a fábrica (Borrando TODAS las imágenes y JSONs)
 $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, intervalo_turnos, tipo_calendario, titulo)
-               VALUES (?, '#ec135b', '#fce7f3', 'Agendatina', '30', 'clasico', 'Agendatina')
+               VALUES (?, '#D11149', '#FCB0B3', 'Agendatina', '30', 'clasico', 'Agendatina')
                ON DUPLICATE KEY UPDATE 
-               color_primario='#ec135b', 
-               color_secundario='#fce7f3', 
+               color_primario='#D11149', 
+               color_secundario='#FCB0B3', 
                mensaje_bienvenida='Agendatina', 
                titulo='Agendatina', 
                tipo_calendario='clasico',

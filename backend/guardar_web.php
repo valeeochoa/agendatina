@@ -11,13 +11,13 @@ try { $pdo->query("SELECT color_fondo FROM configuracion_web LIMIT 1"); }
 catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN color_fondo VARCHAR(20) DEFAULT '#ffffff'"); }
 
 try { $pdo->query("SELECT color_secundario FROM configuracion_web LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN color_secundario VARCHAR(20) DEFAULT '#8b5cf6'"); }
+catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN color_secundario VARCHAR(20) DEFAULT '#FC8712'"); }
 
 try { $pdo->query("SELECT color_primario_web FROM configuracion_web LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN color_primario_web VARCHAR(20) DEFAULT '#3b82f6'"); }
+catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN color_primario_web VARCHAR(20) DEFAULT '#D11149'"); }
 
 try { $pdo->query("SELECT color_secundario_web FROM configuracion_web LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN color_secundario_web VARCHAR(20) DEFAULT '#8b5cf6'"); }
+catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN color_secundario_web VARCHAR(20) DEFAULT '#FC8712'"); }
 
 try { $pdo->query("SELECT whatsapp_contacto FROM configuracion_web LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN whatsapp_contacto VARCHAR(50) DEFAULT ''"); }
@@ -236,10 +236,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $url_fondo = '';
         }
         
-        $color_primario = isset($data['color_primario']) ? $data['color_primario'] : ($oldData['color_primario'] ?? '#3b82f6');
-        $color_secundario = isset($data['color_secundario']) ? $data['color_secundario'] : ($oldData['color_secundario'] ?? '#8b5cf6');
-        $color_primario_web = isset($data['color_primario_web']) ? $data['color_primario_web'] : ($oldData['color_primario_web'] ?? '#3b82f6');
-        $color_secundario_web = isset($data['color_secundario_web']) ? $data['color_secundario_web'] : ($oldData['color_secundario_web'] ?? '#8b5cf6');
+        $color_primario = isset($data['color_primario']) ? $data['color_primario'] : ($oldData['color_primario'] ?? '#D11149');
+        $color_secundario = isset($data['color_secundario']) ? $data['color_secundario'] : ($oldData['color_secundario'] ?? '#FC8712');
+        $color_primario_web = isset($data['color_primario_web']) ? $data['color_primario_web'] : ($oldData['color_primario_web'] ?? '#D11149');
+        $color_secundario_web = isset($data['color_secundario_web']) ? $data['color_secundario_web'] : ($oldData['color_secundario_web'] ?? '#FC8712');
         $color_fondo = isset($data['color_fondo']) ? $data['color_fondo'] : ($oldData['color_fondo'] ?? '#ffffff');
         $url_logo = isset($data['logo']) ? $data['logo'] : ($oldData['url_logo'] ?? '');
         $url_fondo = isset($data['fondo']) ? $data['fondo'] : ($oldData['fondo'] ?? '');

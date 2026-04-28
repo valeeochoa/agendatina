@@ -97,7 +97,7 @@ $emailDestino = !empty($negocioBD['email']) ? $negocioBD['email'] : 'info@agenda
 // con $id_negocio en lugar del archivo web_data.json
 $webDataFile = __DIR__ . '/web_data.json';
 $webData = file_exists($webDataFile) ? json_decode(file_get_contents($webDataFile), true) : [];
-$primaryColor = !empty($webData['color_primario']) ? $webData['color_primario'] : '#3b82f6';
+$primaryColor = !empty($webData['color_primario']) ? $webData['color_primario'] : '#D11149';
 $logo = !empty($webData['logo']) ? $webData['logo'] : '';
 
 // Configuración del email

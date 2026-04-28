@@ -62,7 +62,7 @@
                             navLogoImg.src = data.logo; navLogoImg.classList.remove('hidden');
                         }
                         if (data.color_primario || data.color_fondo) {
-                            const pColor = data.color_primario || '#ec135b';
+                            const pColor = data.color_primario || '#D11149';
                             const style = document.createElement('style');
                             let styleHTML = `.bg-primary { background-color: ${pColor} !important; } .text-primary { color: ${pColor} !important; } .shadow-primary\\/30 { --tw-shadow-color: ${pColor}4d !important; } .bg-primary\\/10 { background-color: ${pColor}1a !important; }`;
                             if (data.color_fondo) styleHTML += `body, .bg-[#fcfafa] { background-color: ${data.color_fondo} !important; }`;

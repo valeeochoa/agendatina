@@ -207,8 +207,8 @@ function cal_renderCalendar() {
         
         // Multi-select / Single select styling
         if (isMultiSelectMode && selectedDates.includes(dateString)) {
-            dayDiv.style.border = '2px solid var(--primary-color, #ec135b)';
-            dayDiv.style.backgroundColor = 'rgba(236, 19, 91, 0.1)';
+            dayDiv.style.border = '2px solid var(--primary-color, #D11149)';
+            dayDiv.style.backgroundColor = 'rgba(209, 17, 73, 0.1)';
         } else if (cal_selectedDate && date.getTime() === cal_selectedDate.getTime() && !isMultiSelectMode) {
             dayDiv.classList.add('selected');
         }
@@ -219,7 +219,7 @@ function cal_renderCalendar() {
                 dayDiv.addEventListener('dragover', (e) => {
                     e.preventDefault();
                     dayDiv.style.transform = 'scale(1.1)';
-                    dayDiv.style.boxShadow = '0 0 0 2px var(--color-primario, #3b82f6)';
+                    dayDiv.style.boxShadow = '0 0 0 2px var(--color-primario, #D11149)';
                 });
                 dayDiv.addEventListener('dragleave', () => {
                     dayDiv.style.transform = '';
@@ -1687,7 +1687,7 @@ function renderAdminWeeklyGrid() {
             colHeader.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 colHeader.style.transform = 'scale(1.05)';
-                colHeader.style.boxShadow = '0 0 0 2px var(--color-primario, #3b82f6)';
+                colHeader.style.boxShadow = '0 0 0 2px var(--color-primario, #D11149)';
             });
             colHeader.addEventListener('dragleave', () => {
                 colHeader.style.transform = '';
