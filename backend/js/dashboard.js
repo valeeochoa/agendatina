@@ -214,103 +214,91 @@ function showTourStep(index, doScroll = true) {
     currentTourTarget = target;
 
     if (doScroll) {
-        // Scrollear hacia el elemento dejándolo en el centro con un pequeño margen
         const rect = target.getBoundingClientRect();
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        let targetY = rect.top + scrollTop - 120; // Offset para el navbar y padding
-        if (step.position === 'bottom') targetY -= 200; // Si el tooltip va abajo, subimos más la pantalla
-        
+        let targetY = rect.top + scrollTop - 150;
         window.scrollTo({ top: targetY, behavior: 'smooth' });
     }
 
-    // Dar un tiempo (400ms) para que termine el smooth scroll antes de posicionar todo
     setTimeout(() => {
         const rect = target.getBoundingClientRect();
         
-        // Posicionar y dar tamaño al marco iluminado (Highlight box)
+        // Forzar renderizado invisible para obtener dimensiones reales del tooltip
+        tooltip.style.visibility = 'hidden';
+        tooltip.classList.remove('hidden', 'scale-95');
+        const tWidth = tooltip.offsetWidth;
+        const tHeight = tooltip.offsetHeight;
+        
         highlight.style.top = (rect.top - 8) + 'px';
         highlight.style.left = (rect.left - 8) + 'px';
         highlight.style.width = (rect.width + 16) + 'px';
         highlight.style.height = (rect.height + 16) + 'px';
-        
-        // Igualar el radio de borde para que no desentone con la tarjeta redonda
         const targetRadius = window.getComputedStyle(target).borderRadius;
         highlight.style.borderRadius = targetRadius && targetRadius !== '0px' ? targetRadius : '1.5rem';
-        
         highlight.classList.remove('opacity-0');
 
-        // Actualizar textos del tooltip
         document.getElementById('tourTitle').textContent = step.title;
         document.getElementById('tourText').textContent = step.text;
         document.getElementById('tourStepIndicator').textContent = `${index + 1}/${tourSteps.length}`;
-        
         const nextBtn = document.getElementById('tourNextBtn');
-        if (index === tourSteps.length - 1) {
-            nextBtn.innerHTML = 'Finalizar <span class="material-symbols-outlined text-[16px]">check</span>';
-        } else {
-            nextBtn.innerHTML = 'Siguiente <span class="material-symbols-outlined text-[16px]">arrow_forward</span>';
-        }
+        nextBtn.innerHTML = index === tourSteps.length - 1 ? 'Finalizar <span class="material-symbols-outlined text-[16px]">check</span>' : 'Siguiente <span class="material-symbols-outlined text-[16px]">arrow_forward</span>';
 
-        // Posicionar el Tooltip (el cuadrito de diálogo)
-        const tooltipRect = tooltip.getBoundingClientRect();
-        let top, left;
-        let arrowClass = '';
+        let pos = step.position;
+        const gap = 20;
+        const margin = 16;
+        const ww = window.innerWidth;
+        const wh = window.innerHeight;
 
-        if (step.position === 'top') {
-            top = rect.top - tooltipRect.height - 25;
-            left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
-            arrowClass = 'bottom-[-6px] left-1/2 -translate-x-1/2 !border-t-0 !border-l-0 border-b border-r';
-        } else if (step.position === 'bottom') {
-            top = rect.bottom + 25;
-            left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
-            arrowClass = 'top-[-6px] left-1/2 -translate-x-1/2 !border-b-0 !border-r-0 border-t border-l';
-        } else if (step.position === 'right') {
-            top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
-            left = rect.right + 25;
+        if (pos === 'right' && (rect.right + gap + tWidth > ww - margin)) pos = 'bottom';
+        if (pos === 'left' && (rect.left - gap - tWidth < margin)) pos = 'bottom';
+        if (pos === 'top' && (rect.top - gap - tHeight < margin)) pos = 'bottom';
+        if (pos === 'bottom' && (rect.bottom + gap + tHeight > wh - margin)) pos = 'top';
+
+        let top, left, arrowClass;
+        arrow.style.left = '';
+        arrow.style.top = '';
+
+        if (pos === 'right') {
+            top = rect.top + (rect.height / 2) - (tHeight / 2);
+            left = rect.right + gap;
             arrowClass = 'top-1/2 left-[-6px] -translate-y-1/2 !border-t-0 !border-r-0 border-b border-l';
-        } else if (step.position === 'left') {
-            top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
-            left = rect.left - tooltipRect.width - 25;
+        } else if (pos === 'left') {
+            top = rect.top + (rect.height / 2) - (tHeight / 2);
+            left = rect.left - gap - tWidth;
             arrowClass = 'top-1/2 right-[-6px] -translate-y-1/2 !border-b-0 !border-l-0 border-t border-r';
+        } else if (pos === 'top') {
+            top = rect.top - gap - tHeight;
+            left = rect.left + (rect.width / 2) - (tWidth / 2);
+            arrowClass = 'bottom-[-6px] left-1/2 -translate-x-1/2 !border-t-0 !border-l-0 border-b border-r';
+        } else {
+            top = rect.bottom + gap;
+            left = rect.left + (rect.width / 2) - (tWidth / 2);
+            arrowClass = 'top-[-6px] left-1/2 -translate-x-1/2 !border-b-0 !border-r-0 border-t border-l';
         }
 
-        // Correcciones de pantalla si el tooltip choca contra los bordes del celular
-        if (step.position === 'top' || step.position === 'bottom') {
-            if (left < 20) {
-                left = Math.max(20, rect.left);
-                arrowClass = arrowClass.replace('-translate-x-1/2', '').replace('left-1/2', 'left-8');
-            } else if (left + tooltipRect.width > window.innerWidth - 20) {
-                left = window.innerWidth - tooltipRect.width - 20;
-                const arrowOffset = (rect.left + rect.width / 2) - left;
-                if (arrowOffset > 0 && arrowOffset < tooltipRect.width) {
-                    arrowClass = arrowClass.replace('-translate-x-1/2', '').replace('left-1/2', '');
-                    arrow.style.left = arrowOffset + 'px';
-                } else {
-                    arrowClass = arrowClass.replace('-translate-x-1/2', '').replace('left-1/2', 'right-8');
-                    arrow.style.left = '';
-                }
-            } else {
-                arrow.style.left = '';
+        if (pos === 'top' || pos === 'bottom') {
+            if (left < margin) {
+                const shift = margin - left;
+                left = margin;
+                arrowClass = arrowClass.replace('-translate-x-1/2', '').replace('left-1/2', '');
+                arrow.style.left = Math.max(12, (tWidth / 2) - shift) + 'px';
+            } else if (left + tWidth > ww - margin) {
+                const shift = (left + tWidth) - (ww - margin);
+                left = ww - margin - tWidth;
+                arrowClass = arrowClass.replace('-translate-x-1/2', '').replace('left-1/2', '');
+                arrow.style.left = Math.min(tWidth - 24, (tWidth / 2) + shift) + 'px';
             }
-        } else if (step.position === 'right' && left + tooltipRect.width > window.innerWidth - 20) {
-            // Fallback si choca a la derecha, lo mandamos abajo
-            top = rect.bottom + 25;
-            left = Math.max(20, rect.left + (rect.width / 2) - (tooltipRect.width / 2));
-            arrowClass = 'top-[-6px] left-1/2 -translate-x-1/2 !border-b-0 !border-r-0 border-t border-l';
-        } else if (step.position === 'left' && left < 20) {
-            // Fallback si choca a la izquierda, lo mandamos abajo
-            top = rect.bottom + 25;
-            left = Math.max(20, rect.left + (rect.width / 2) - (tooltipRect.width / 2));
-            arrowClass = 'top-[-6px] left-1/2 -translate-x-1/2 !border-b-0 !border-r-0 border-t border-l';
-        }
-
-        // Fallback por si la pantalla es muy corta y el tooltip se recorta con el techo
-        if (top < 10) {
-            if (step.position === 'top') {
-                top = rect.bottom + 25;
-                arrowClass = 'top-[-6px] left-1/2 -translate-x-1/2 !border-b-0 !border-r-0 border-t border-l';
-            } else {
-                top = 20; // Margen superior de seguridad para right/left
+        } else if (pos === 'left' || pos === 'right') {
+            if (top < margin) {
+                const shift = margin - top;
+                top = margin;
+                arrowClass = arrowClass.replace('-translate-y-1/2', '').replace('top-1/2', '');
+                arrow.style.top = Math.max(12, (tHeight / 2) - shift) + 'px';
+            } else if (top + tHeight > wh - margin) {
+                const shift = (top + tHeight) - (wh - margin);
+                top = wh - margin - tHeight;
+                arrowClass = arrowClass.replace('-translate-y-1/2', '').replace('top-1/2', '');
+                arrow.style.top = Math.min(tHeight - 24, (tHeight / 2) + shift) + 'px';
             }
         }
 
@@ -318,7 +306,8 @@ function showTourStep(index, doScroll = true) {
         tooltip.style.left = left + 'px';
         arrow.className = `absolute w-3 h-3 bg-white border border-slate-200 transform rotate-45 shadow-sm ${arrowClass}`;
 
+        tooltip.style.visibility = '';
         tooltip.classList.remove('opacity-0', 'scale-95');
         tooltip.classList.add('opacity-100', 'scale-100');
-    }, doScroll ? 400 : 0); // Solo esperar si hubo scroll previo
+    }, doScroll ? 400 : 0);
 }
