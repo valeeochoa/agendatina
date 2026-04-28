@@ -256,7 +256,7 @@
                 <!-- Botón Comparativa Mejorado y movido aquí -->
                 <div class="mt-16 text-center reveal-on-scroll">
                     <a href="#tabla-comparativa"
-                        class="inline-flex flex-col sm:flex-row items-center justify-center gap-3 bg-slate-900 text-white px-10 py-5 rounded-2xl font-extrabold text-lg hover:bg-primary hover:shadow-2xl hover:shadow-primary/30 hover:-translate-y-1 transition-all w-full sm:w-auto border-4 border-white shadow-xl">
+                        class="inline-flex flex-col sm:flex-row items-center justify-center gap-3 bg-accent text-white px-10 py-5 rounded-2xl font-extrabold text-lg hover:bg-primary hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-1 transition-all w-full sm:w-auto border-4 border-white shadow-xl">
                         <span class="material-symbols-outlined text-[28px] animate-bounce">troubleshoot</span>
                         <span>Comparar todos los planes en detalle</span>
                     </a>
@@ -497,22 +497,24 @@
                 Sin contratos. Podés cancelar cuando quieras.
             </p>
             
-            <div id="tabla-comparativa" class="mt-20 max-w-5xl mx-auto reveal-on-scroll scroll-mt-24">
-                <div class="text-center mb-8">
-                    <h3 class="text-2xl font-bold text-slate-800">Comparativa detallada de funciones</h3>
+            <div id="tabla-comparativa" class="mt-24 max-w-5xl mx-auto reveal-on-scroll scroll-mt-24 relative">
+                <div class="absolute -inset-4 bg-gradient-to-r from-primary/20 to-secondary/20 blur-xl -z-10 rounded-[3rem]"></div>
+                <div class="text-center mb-10">
+                    <span class="text-secondary font-bold tracking-widest uppercase text-sm mb-2 block">Descubre tu potencial</span>
+                    <h3 class="text-3xl md:text-4xl font-extrabold text-slate-800 font-display">Comparativa detallada de funciones</h3>
                 </div>
-                <div class="overflow-x-auto bg-white rounded-3xl border border-slate-200 shadow-sm">
+                <div class="overflow-x-auto bg-white rounded-[2rem] border border-slate-100 shadow-2xl relative z-10 p-2 md:p-4">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200">
-                                <th class="p-4 md:p-6 font-bold text-slate-600">Características</th>
+                            <tr class="bg-primary/5 border-b-2 border-primary/10">
+                                <th class="p-4 md:p-6 font-bold text-slate-700 rounded-tl-xl">Características</th>
                                 <th class="p-4 md:p-6 font-bold text-center text-slate-800">Simple</th>
                                 <th class="p-4 md:p-6 font-bold text-center text-primary">Intermedio</th>
-                                <th class="p-4 md:p-6 font-bold text-center text-secondary">Premium</th>
+                                <th class="p-4 md:p-6 font-bold text-center text-secondary rounded-tr-xl">Premium</th>
                             </tr>
                         </thead>
                         <tbody class="text-sm text-slate-600">
-                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                            <tr class="border-b border-slate-100 hover:bg-primary/5 transition-colors">
                                 <td class="p-4 md:px-6 font-medium">Calendario de turnos online</td>
                                 <td class="p-4 text-center"><span
                                         class="material-symbols-outlined text-green-500 font-bold">check</span></td>
@@ -521,7 +523,7 @@
                                 <td class="p-4 text-center"><span
                                         class="material-symbols-outlined text-green-500 font-bold">check</span></td>
                             </tr>
-                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                            <tr class="border-b border-slate-100 hover:bg-primary/5 transition-colors">
                                 <td class="p-4 md:px-6 font-medium">Notificaciones por email</td>
                                 <td class="p-4 text-center"><span
                                         class="material-symbols-outlined text-green-500 font-bold">check</span></td>
@@ -530,7 +532,7 @@
                                 <td class="p-4 text-center"><span
                                         class="material-symbols-outlined text-green-500 font-bold">check</span></td>
                             </tr>
-                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                            <tr class="border-b border-slate-100 hover:bg-primary/5 transition-colors">
                                 <td class="p-4 md:px-6 font-medium">Agenda Virtual de reservas</td>
                                 <td class="p-4 text-center text-slate-300">-</td>
                                 <td class="p-4 text-center"><span
@@ -538,14 +540,14 @@
                                 <td class="p-4 text-center"><span
                                         class="material-symbols-outlined text-green-500 font-bold">check</span></td>
                             </tr>
-                            <tr class="border-b border-slate-100 hover:bg-slate-50">
+                            <tr class="border-b border-slate-100 hover:bg-primary/5 transition-colors">
                                 <td class="p-4 md:px-6 font-medium">Mini página web del negocio</td>
                                 <td class="p-4 text-center text-slate-300">-</td>
                                 <td class="p-4 text-center text-slate-300">-</td>
                                 <td class="p-4 text-center"><span
                                         class="material-symbols-outlined text-green-500 font-bold">check</span></td>
                             </tr>
-                            <tr class="hover:bg-slate-50">
+                            <tr class="hover:bg-primary/5 transition-colors">
                                 <td class="p-4 md:px-6 font-medium">Listado detallado de servicios y portada</td>
                                 <td class="p-4 text-center text-slate-300">-</td>
                                 <td class="p-4 text-center text-slate-300">-</td>
