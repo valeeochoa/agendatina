@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Estadísticas | Agendatina</title>
+    <link rel="icon" href="public/logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Manrope', 'sans-serif'] }, colors: { primary: '#D11149', secondary: '#FC8712' } } }
+        }
+    </script>
+</head>
+<body class="bg-slate-100 text-slate-900 antialiased">
+
+    <!-- Navbar del Dashboard -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-teal-500 text-3xl">query_stats</span>
+                <span class="font-bold text-xl tracking-tight hidden sm:block">Agendatina</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="dashboard.html" class="text-sm font-semibold hover:text-primary transition-colors flex items-center gap-1">
+                   <span class="material-symbols-outlined text-sm">arrow_back</span> <span class="hidden sm:inline">Volver al panel</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12">
+        <div class="mb-10">
+            <h1 class="text-3xl font-extrabold font-display mb-2">Estadísticas de tu Negocio</h1>
+            <p class="text-slate-500">Analiza el rendimiento, ingresos y comportamiento de tus clientes.</p>
+        </div>
+
+        <!-- Filtros de Fecha -->
+        <div class="mb-8 bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap items-center gap-4">
+            <div class="flex-1 min-w-[200px]">
+                <label for="fechaDesde" class="text-xs font-bold text-slate-500">Desde</label>
+                <input type="date" id="fechaDesde" class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none">
+            </div>
+            <div class="flex-1 min-w-[200px]">
+                <label for="fechaHasta" class="text-xs font-bold text-slate-500">Hasta</label>
+                <input type="date" id="fechaHasta" class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-primary outline-none">
+            </div>
+            <div class="flex items-end gap-2 pt-5">
+                <button id="btnFiltrar" class="bg-primary text-white font-bold py-2 px-5 rounded-lg transition-colors hover:bg-primary/90">Filtrar</button>
+                <button id="btnLimpiarFiltro" class="bg-slate-200 text-slate-700 font-bold p-2 rounded-lg transition-colors hover:bg-slate-300" title="Limpiar filtro y ver mes actual">
+                    <span class="material-symbols-outlined text-xl">close</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Contenedor de Estadísticas -->
+        <div class="space-y-8">
+
+            <!-- Cards de Resumen -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="text-sm font-bold text-slate-500 mb-1">Ingresos Totales (Mes)</h3>
+                    <p id="statIngresos" class="text-3xl font-black text-emerald-600">Cargando...</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="text-sm font-bold text-slate-500 mb-1">Turnos Confirmados (Mes)</h3>
+                    <p id="statTurnos" class="text-3xl font-black text-blue-600">Cargando...</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="text-sm font-bold text-slate-500 mb-1">Servicio Más Solicitado</h3>
+                    <p id="statServicio" class="text-2xl font-black text-purple-600 truncate">Cargando...</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="text-sm font-bold text-slate-500 mb-1">Nuevos Clientes (Mes)</h3>
+                    <p id="statClientes" class="text-3xl font-black text-amber-600">Cargando...</p>
+                </div>
+            </div>
+
+            <!-- Gráficos -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-lg mb-4">Turnos por Día</h3>
+                    <div class="h-72">
+                        <canvas id="turnosPorDiaChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-lg mb-4">Distribución de Servicios</h3>
+                    <div class="h-72 flex items-center justify-center">
+                        <canvas id="serviciosChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="font-bold text-lg mb-4">Ingresos por Servicio</h3>
+                <div class="h-80">
+                    <canvas id="ingresosPorServicioChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="backend/js/script.js" defer></script>
+    <script src="backend/js/estadisticas.js" defer></script>
+</body>
+</html>

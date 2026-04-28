@@ -717,7 +717,7 @@ function renderAdminDayView(dateString) {
                         </div>
                         <div class="flex flex-wrap gap-2 w-full mt-1">
                             ${isPend && !isPastDay ? `<button onclick="confirmarTurnoAdmin('${apt.id}')" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors flex-1">Confirmar</button>` : ''}
-                            ${apt.estado !== 'bloqueado' ? `<button onclick="contactarWhatsApp('${cel}', '${nombre}')" class="bg-slate-50 hover:bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 transition-colors flex-1 text-center">WhatsApp</button>` : ''}
+                            ${apt.estado !== 'bloqueado' ? `<button onclick="window.contactarWhatsApp('${apt.id}')" class="bg-slate-50 hover:bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 transition-colors flex-1 text-center">WhatsApp</button>` : ''}
                             <button onclick="cancelarTurnoAdmin('${apt.id}')" class="text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex-1 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">delete</span> Cancelar</button>
                         </div>
                     </div>`;
@@ -1090,7 +1090,13 @@ function updateServiceDropdown() {
     availableServices.forEach(service => {
         if (!uniqueNames.has(service.nombre)) {
             uniqueNames.add(service.nombre);
-            const precioText = service.precio ? ` - $${service.precio}` : '';
+            let precioText = '';
+            if (service.precio > 0) {
+                precioText += ` - $${parseFloat(service.precio).toLocaleString('es-AR')}`;
+            }
+            if (service.precio_sena > 0) {
+                precioText += ` (Seña: $${parseFloat(service.precio_sena).toLocaleString('es-AR')})`;
+            }
             const isSelected = currentSelectedService === service.nombre ? 'selected' : '';
             serviceSelect.innerHTML += `<option value="${service.nombre}" ${isSelected}>${service.nombre}${precioText}</option>`;
         }
@@ -2242,13 +2248,6 @@ window.bloquearHorario = function(fecha, hora, prof = null) {
             }
         }).catch(() => showToast('Error de red', 'error'));
     });
-};
-
-window.contactarWhatsApp = function(cel, nombre) {
-    if (!cel) { showToast('Este cliente no tiene celular registrado.', 'error'); return; }
-    let numero = cel.replace(/\D/g, '');
-    let url = `https://wa.me/${numero}?text=Hola ${nombre}, te contacto desde la agenda de turnos.`;
-    window.open(url, '_blank');
 };
 
 function toYYYYMMDD(date) {

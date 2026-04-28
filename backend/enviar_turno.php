@@ -116,6 +116,9 @@ if (!empty($logo)) {
 }
 
 $numeroWhatsApp = preg_replace('/\D/', '', $celular); // Limpiar número para el enlace
+$textoWhatsApp = "Hola " . ($nombre . " " . $apellido) . ", te escribo desde " . $businessName . " por tu solicitud de turno para el " . $fecha_display . " a las " . $hora . " hs (" . $servicio . ").";
+$urlWhatsApp = "https://wa.me/" . $numeroWhatsApp . "?text=" . urlencode($textoWhatsApp);
+
 
 $message = "
 <html>
@@ -145,7 +148,7 @@ $message = "
             <p style='margin-top: 20px; color: #475569;'>Por favor, comunícate al número proporcionado para confirmar el horario con el cliente y evitar confusiones.</p>
             
             <div style='text-align: center; margin-top: 35px;'>
-                <a href='https://wa.me/$numeroWhatsApp' style='background-color: #25D366; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Contactar por WhatsApp</a>
+                <a href='$urlWhatsApp' style='background-color: #25D366; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Contactar por WhatsApp</a>
             </div>
         </div>
         
