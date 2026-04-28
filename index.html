@@ -18,7 +18,10 @@
 
     <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
     <link rel="preload" href="backend/css/global.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="backend/css/global.css"></noscript>
+    <noscript>
+        <link rel="stylesheet" href="backend/css/global.css">
+        <style>.reveal-on-scroll { opacity: 1 !important; translate: 0 0 !important; }</style>
+    </noscript>
     <script>
         tailwind.config = {
             theme: {
@@ -47,6 +50,16 @@
                  url('public/fredoka/Fredoka.ttf') format('truetype');
             font-weight: 700;
             font-display: swap;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; translate: 0 40px; }
+            to { opacity: 1; translate: 0 0; }
+        }
+        .reveal-on-scroll {
+            opacity: 0;
+        }
+        .reveal-on-scroll.is-visible {
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
     </style>
 </head>
@@ -269,7 +282,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- PLAN SIMPLE -->
                 <div class="reveal-on-scroll bg-slate-50 rounded-3xl p-8 border border-slate-200 hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col"
-                    style="transition-delay: 100ms;">
+                    style="animation-delay: 100ms;">
                     <span class="text-xs font-semibold text-primary uppercase mb-2">
                         Ideal para comenzar
                     </span>
@@ -336,7 +349,7 @@
 
                 <!-- PLAN INTERMEDIO -->
                 <div class="reveal-on-scroll signature-glow rounded-3xl p-8 text-white flex flex-col transform md:-translate-y-4 shadow-2xl relative transition-all duration-300 hover:scale-105 hover:shadow-primary/50"
-                    style="transition-delay: 200ms;">
+                    style="animation-delay: 200ms;">
 
                     <div
                         class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white text-primary px-4 py-1 rounded-full text-xs font-black uppercase shadow-md">
@@ -409,7 +422,7 @@
                 </div>
                 <!-- PLAN COMPLETO -->
                 <div class="reveal-on-scroll bg-slate-50 rounded-3xl p-8 border border-slate-200 hover:border-secondary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col"
-                    style="transition-delay: 300ms;">
+                    style="animation-delay: 300ms;">
 
                     <span class="text-xs font-semibold text-secondary uppercase mb-2">
                         Presencia online
