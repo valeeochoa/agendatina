@@ -276,35 +276,28 @@ function showTourStep(index, doScroll = true) {
             arrowClass = 'top-[-6px] left-1/2 -translate-x-1/2 !border-b-0 !border-r-0 border-t border-l';
         }
 
-        let marginTop = 90; // Margen superior para esquivar el navbar
-        
-        if (left < margin) {
-            const shift = margin - left;
-            left = margin;
-            if (pos === 'top' || pos === 'bottom') {
+        if (pos === 'top' || pos === 'bottom') {
+            if (left < margin) {
+                const shift = margin - left;
+                left = margin;
                 arrowClass = arrowClass.replace('-translate-x-1/2', '').replace('left-1/2', '');
                 arrow.style.left = Math.max(12, (tWidth / 2) - shift) + 'px';
-            }
-        } else if (left + tWidth > ww - margin) {
-            const shift = (left + tWidth) - (ww - margin);
-            left = ww - margin - tWidth;
-            if (pos === 'top' || pos === 'bottom') {
+            } else if (left + tWidth > ww - margin) {
+                const shift = (left + tWidth) - (ww - margin);
+                left = ww - margin - tWidth;
                 arrowClass = arrowClass.replace('-translate-x-1/2', '').replace('left-1/2', '');
                 arrow.style.left = Math.min(tWidth - 24, (tWidth / 2) + shift) + 'px';
             }
-        }
-
-        if (top < marginTop) {
-            const shift = marginTop - top;
-            top = marginTop;
-            if (pos === 'left' || pos === 'right') {
+        } else if (pos === 'left' || pos === 'right') {
+            let marginTop = 90; // Margen superior para esquivar el navbar
+            if (top < marginTop) {
+                const shift = marginTop - top;
+                top = marginTop;
                 arrowClass = arrowClass.replace('-translate-y-1/2', '').replace('top-1/2', '');
                 arrow.style.top = Math.max(12, (tHeight / 2) - shift) + 'px';
-            }
-        } else if (top + tHeight > wh - margin) {
-            const shift = (top + tHeight) - (wh - margin);
-            top = wh - margin - tHeight;
-            if (pos === 'left' || pos === 'right') {
+            } else if (top + tHeight > wh - margin) {
+                const shift = (top + tHeight) - (wh - margin);
+                top = wh - margin - tHeight;
                 arrowClass = arrowClass.replace('-translate-y-1/2', '').replace('top-1/2', '');
                 arrow.style.top = Math.min(tHeight - 24, (tHeight / 2) + shift) + 'px';
             }
