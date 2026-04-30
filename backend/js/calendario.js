@@ -1268,6 +1268,7 @@ function editService(id) {
         if (document.getElementById('serviceDurationM')) document.getElementById('serviceDurationM').value = d % 60;
         if (document.getElementById('serviceDuration')) document.getElementById('serviceDuration').value = d;
         document.getElementById('servicePrice').value = service.precio || '';
+        if (document.getElementById('serviceCapacidad')) document.getElementById('serviceCapacidad').value = service.capacidad || 1;
         if(document.getElementById('serviceProfessional')) document.getElementById('serviceProfessional').value = service.profesional || '';
         if(document.getElementById('serviceProfessionalEmail')) document.getElementById('serviceProfessionalEmail').value = service.email_profesional || '';
         if(document.getElementById('serviceProfessionalPhoto')) document.getElementById('serviceProfessionalPhoto').value = service.foto_profesional || '';
@@ -1297,6 +1298,7 @@ function resetServiceForm() {
     if (form) form.reset();
     const serviceIdInput = document.getElementById('serviceId');
     if (serviceIdInput) serviceIdInput.value = '';
+    if (document.getElementById('serviceCapacidad')) document.getElementById('serviceCapacidad').value = 1;
     if(document.getElementById('serviceProfessional')) document.getElementById('serviceProfessional').value = '';
     if(document.getElementById('serviceProfessionalEmail')) document.getElementById('serviceProfessionalEmail').value = '';
     if(document.getElementById('serviceProfessionalPhoto')) document.getElementById('serviceProfessionalPhoto').value = '';

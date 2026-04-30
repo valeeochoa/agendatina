@@ -179,11 +179,12 @@ try {
     $cliente_nombre = $nombre . ' ' . $apellido;
 
     // Buscar el ID del servicio en base al nombre para insertarlo como Clave Foránea
-    $stmtServ = $pdo->prepare("SELECT id, duracion_minutos, email_profesional FROM servicios WHERE id_negocio = :id_negocio AND nombre_servicio = :servicio LIMIT 1");
+    $stmtServ = $pdo->prepare("SELECT id, duracion_minutos, email_profesional, capacidad FROM servicios WHERE id_negocio = :id_negocio AND nombre_servicio = :servicio LIMIT 1");
     $stmtServ->execute(['id_negocio' => $id_negocio, 'servicio' => $servicio]);
     $serv = $stmtServ->fetch();
     $id_servicio = $serv ? $serv['id'] : null;
     $duracion_nuevo = $serv && !empty($serv['duracion_minutos']) ? (int)$serv['duracion_minutos'] : 30;
+    $capacidad_nuevo = $serv && !empty($serv['capacidad']) ? (int)$serv['capacidad'] : 1;
     $email_profesional = $serv && !empty($serv['email_profesional']) ? $serv['email_profesional'] : null;
 
     // =========================================================================
@@ -197,7 +198,7 @@ try {
     if ($simultaneos !== 'si') {
         // Bloqueo de fila para lectura concurrente de los turnos de ese día
         $stmtCheck = $pdo->prepare("
-            SELECT t.hora, s.duracion_minutos 
+            SELECT t.hora, s.duracion_minutos, t.id_servicio 
             FROM turnos t 
             LEFT JOIN servicios s ON t.id_servicio = s.id 
             WHERE t.id_negocio = :id_negocio 
@@ -217,6 +218,8 @@ try {
         $nuevoFin = $nuevoInicio + ($duracion_nuevo * 60);
 
         $choque = false;
+        $cuposOcupados = 0;
+
         foreach ($turnosExistentes as $te) {
             $duracion_existente = !empty($te['duracion_minutos']) ? (int)$te['duracion_minutos'] : 30;
             $tInicio = strtotime("$fecha {$te['hora']}:00");
@@ -224,15 +227,23 @@ try {
 
             // Superposición: Si el nuevo turno inicia antes de que termine el otro, y termina después de que el otro inicie
             if ($nuevoInicio < $tFin && $nuevoFin > $tInicio) {
-                $choque = true;
-                break;
+                if ($te['id_servicio'] == $id_servicio && $tInicio == $nuevoInicio && $capacidad_nuevo > 1) {
+                    $cuposOcupados++;
+                } else {
+                    $choque = true;
+                    break;
+                }
             }
         }
 
-        if ($choque) {
+        if ($choque || $cuposOcupados >= $capacidad_nuevo) {
             $pdo->rollBack();
             http_response_code(409);
-            echo json_encode(['success' => false, 'error' => 'El horario seleccionado acaba de ser reservado por otra persona o se superpone con un turno existente. Por favor, actualiza la página y elige un nuevo horario.']);
+            if ($cuposOcupados >= $capacidad_nuevo && $capacidad_nuevo > 1) {
+                echo json_encode(['success' => false, 'error' => 'Los cupos para esta clase o servicio en este horario ya están completamente llenos.']);
+            } else {
+                echo json_encode(['success' => false, 'error' => 'El horario seleccionado acaba de ser reservado por otra persona o se superpone con un turno existente. Por favor, actualiza la página y elige un nuevo horario.']);
+            }
             exit;
         }
     }

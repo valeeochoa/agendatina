@@ -1021,8 +1021,6 @@ function closeProfileModal() {
 
 function applyCalendarConfigToForm(c) {
     if (!c) return;
-    if(document.getElementById('configColorPrimario')) document.getElementById('configColorPrimario').value = c.color_primario || '#D11149';
-    if(document.getElementById('configColorSecundario')) document.getElementById('configColorSecundario').value = c.color_secundario || '#FCB0B3';
     const ha = c.hora_apertura ? c.hora_apertura.substring(0, 5) : '09:00';
     const hc = c.hora_cierre ? c.hora_cierre.substring(0, 5) : '18:00';
     if(document.getElementById('configHoraApertura')) document.getElementById('configHoraApertura').value = ha;
@@ -2296,6 +2294,12 @@ function applyWebCustomization() {
                     const navLogoImg = document.getElementById('navLogoImg');
                     if (navIconContainer) navIconContainer.classList.add('hidden');
                     if (navLogoImg) { navLogoImg.src = data.logo; navLogoImg.classList.remove('hidden'); }
+                
+                const navAvatar = document.getElementById('navAvatar');
+                if (navAvatar) {
+                    navAvatar.innerHTML = `<img src="${data.logo}" class="w-full h-full object-cover" alt="Logo">`;
+                    navAvatar.style.background = 'transparent';
+                }
                 }
                 if (data.color_secundario) {
                     const navBrandAccent = document.getElementById('navBrandAccent');

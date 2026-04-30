@@ -181,6 +181,13 @@ window.endTour = function() {
     window.removeEventListener('resize', tourResizeListener);
     window.removeEventListener('scroll', tourResizeListener, true);
 
+    if (window.previousTourTarget) {
+        window.previousTourTarget.style.zIndex = '';
+        const nav = window.previousTourTarget.closest('nav');
+        if (nav) nav.style.zIndex = '';
+        window.previousTourTarget = null;
+    }
+
     setTimeout(() => {
         overlay.classList.add('hidden');
         tooltip.classList.add('hidden');
@@ -211,20 +218,24 @@ function showTourStep(index, doScroll = true) {
         return;
     }
 
-    currentTourTarget = target;
-
-    if (doScroll) {
-        const rect = target.getBoundingClientRect();
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        let targetY = rect.top + scrollTop - 150;
-        window.scrollTo({ top: targetY, behavior: 'smooth' });
+    // Limpiar target anterior para que vuelva a oscurecerse
+    if (window.previousTourTarget) {
+        window.previousTourTarget.style.zIndex = '';
+        const nav = window.previousTourTarget.closest('nav');
+        if (nav) nav.style.zIndex = '';
     }
 
-    setTimeout(() => {
+    currentTourTarget = target;
+    window.previousTourTarget = target;
+
+    // Elevar target actual sobre el fondo oscuro
+    target.style.zIndex = '101';
+    const nav = target.closest('nav');
+    if (nav) nav.style.zIndex = '101';
+
+    const executeStep = () => {
         const rect = target.getBoundingClientRect();
         
-        // Forzar renderizado invisible para obtener dimensiones reales del tooltip
-        tooltip.style.visibility = 'hidden';
         tooltip.classList.remove('hidden', 'scale-95');
         const tWidth = tooltip.offsetWidth;
         const tHeight = tooltip.offsetHeight;
@@ -307,8 +318,18 @@ function showTourStep(index, doScroll = true) {
         tooltip.style.left = left + 'px';
         arrow.className = `absolute w-3 h-3 bg-white border border-slate-200 transform rotate-45 shadow-sm ${arrowClass}`;
 
-        tooltip.style.visibility = '';
         tooltip.classList.remove('opacity-0', 'scale-95');
         tooltip.classList.add('opacity-100', 'scale-100');
-    }, doScroll ? 400 : 0);
+    };
+
+    if (doScroll) {
+        const rect = target.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        let targetY = rect.top + scrollTop - 150;
+        window.scrollTo({ top: targetY, behavior: 'smooth' });
+        setTimeout(executeStep, 400);
+    } else {
+        // requestAnimationFrame elimina cualquier parpadeo al hacer scroll manual
+        requestAnimationFrame(executeStep);
+    }
 }

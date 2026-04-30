@@ -1,6 +1,7 @@
 let turnosChartInstance;
 let serviciosChartInstance;
 let ingresosChartInstance;
+let ingresosSemanaChartInstance;
 
 document.addEventListener('DOMContentLoaded', () => {
     // Seguridad: si no hay sesión, redirigir al login
@@ -88,6 +89,9 @@ function loadStatistics() {
         }, {});
         renderIngresosPorServicioChart(ingresosPorServicio);
 
+        // 8. Gráfico de Ingresos por Semana
+        renderIngresosPorSemanaChart(turnosFiltrados, servicios, fechaDesde, fechaHasta);
+
     }).catch(error => {
         console.error('Error al cargar las estadísticas:', error);
     });
@@ -139,6 +143,67 @@ function renderTurnosPorDiaChart(allTurnos, startDate, endDate) {
             plugins: {
                 legend: { display: false }
             }
+        }
+    });
+}
+
+function renderIngresosPorSemanaChart(turnosFiltrados, servicios, startDate, endDate) {
+    const ctx = document.getElementById('ingresosPorSemanaChart')?.getContext('2d');
+    if (!ctx) return;
+
+    const start = new Date(startDate.replace(/-/g, '/') + ' 00:00:00');
+    const end = new Date(endDate.replace(/-/g, '/') + ' 00:00:00');
+
+    const weeks = [];
+    let currentStart = new Date(start);
+    let weekIndex = 1;
+
+    // Dividir el rango total en bloques de 7 días
+    while (currentStart <= end) {
+        let currentEnd = new Date(currentStart);
+        currentEnd.setDate(currentEnd.getDate() + 6);
+        if (currentEnd > end) currentEnd = new Date(end);
+
+        const labelInicio = currentStart.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+
+        weeks.push({
+            label: `S${weekIndex} (${labelInicio})`,
+            start: new Date(currentStart),
+            end: new Date(currentEnd),
+            revenue: 0
+        });
+
+        currentStart.setDate(currentStart.getDate() + 7);
+        weekIndex++;
+    }
+
+    // Sumar ingresos dentro de la semana correspondiente
+    turnosFiltrados.forEach(t => {
+        const tDate = new Date(t.fecha.replace(/-/g, '/') + ' 00:00:00');
+        const servicio = servicios.find(s => s.nombre === t.servicio);
+        const precio = servicio ? parseFloat(servicio.precio) || 0 : 0;
+
+        if (precio > 0) {
+            const week = weeks.find(w => tDate >= w.start && tDate <= w.end);
+            if (week) week.revenue += precio;
+        }
+    });
+
+    const labels = weeks.map(w => w.label);
+    const data = weeks.map(w => w.revenue);
+
+    if (ingresosSemanaChartInstance) ingresosSemanaChartInstance.destroy();
+
+    ingresosSemanaChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{ label: 'Ingresos ($)', data: data, backgroundColor: 'rgba(252, 135, 18, 0.8)', borderColor: '#FC8712', borderWidth: 2, borderRadius: 6 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, ticks: { callback: function(value) { return '$' + value.toLocaleString('es-AR', {maximumFractionDigits: 0}); } } } },
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { return '$' + context.parsed.y.toLocaleString('es-AR', {maximumFractionDigits: 0}); } } } }
         }
     });
 }

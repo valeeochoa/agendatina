@@ -17,26 +17,78 @@
             <a href="dashboard.html" class="text-sm font-bold text-slate-500 hover:text-primary flex items-center gap-1"><span class="material-symbols-outlined text-[18px]">arrow_back</span> Volver</a>
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Información Personal -->
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 h-max">
-                <h2 class="font-bold text-lg mb-4 border-b border-slate-100 pb-2">Datos Personales</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Ajustes del Perfil (2 Columnas) -->
+            <div class="col-span-1 md:col-span-2 space-y-6">
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8">
+                    <h2 class="font-bold text-lg mb-6 border-b border-slate-100 pb-3 flex items-center gap-2"><span class="material-symbols-outlined text-primary">manage_accounts</span> Configuración de Cuenta</h2>
                 <form id="perfilForm" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">Nombre Completo</label>
-                        <input type="text" id="perfilNombre" name="nombre" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Nombre Completo</label>
+                            <input type="text" id="perfilNombre" name="nombre" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-primary outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Correo Electrónico</label>
+                            <input type="email" id="perfilEmail" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-400 text-sm cursor-not-allowed" disabled title="El email no puede ser modificado aquí">
+                        </div>
+                        
+                        <div class="sm:col-span-2 mt-2">
+                            <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Logo del Negocio</label>
+                            <div class="flex items-center gap-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <img id="perfilLogoPreview" class="w-14 h-14 rounded-full object-cover hidden border-2 border-white shadow-sm">
+                                <input type="file" id="perfilLogo" name="logo_file" accept="image/png, image/jpeg, image/webp" class="w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Color Principal</label>
+                            <div class="flex items-center gap-3 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                                <input type="color" id="perfilColor1" name="color_primario" value="#D11149" class="w-10 h-10 rounded-lg border-none cursor-pointer p-0 bg-transparent">
+                                <span class="text-xs text-slate-500 font-medium">Botones y detalles</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Color Secundario</label>
+                            <div class="flex items-center gap-3 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                                <input type="color" id="perfilColor2" name="color_secundario" value="#FC8712" class="w-10 h-10 rounded-lg border-none cursor-pointer p-0 bg-transparent">
+                                <span class="text-xs text-slate-500 font-medium">Textos o decoraciones</span>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-1">Email</label>
-                        <input type="email" id="perfilEmail" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm cursor-not-allowed" disabled>
+                    
+                    <div class="mt-8 pt-6 border-t border-slate-100" id="seccionSeguridad">
+                        <h3 class="font-bold text-slate-700 mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-slate-400">lock</span> Seguridad</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Contraseña Actual</label>
+                                <input type="password" id="perfilPassActual" name="current_password" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Requerida para hacer cambios">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Nueva Contraseña</label>
+                                <input type="password" id="perfilPassNueva" name="password" minlength="6" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Mínimo 6 caracteres">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Confirmar Contraseña</label>
+                                <input type="password" id="perfilPassConfirmar" name="confirm_password" minlength="6" class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-primary outline-none transition-all" placeholder="Repite la nueva contraseña">
+                            </div>
+                        </div>
                     </div>
-                    <button type="submit" class="w-full bg-primary text-white font-bold py-2.5 rounded-xl hover:bg-primary/90 transition-all text-sm mt-2">Guardar Cambios</button>
+                    
+                    <div class="pt-4 flex justify-end">
+                        <button type="submit" class="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-bold py-3.5 px-8 rounded-xl transition-all shadow-lg shadow-primary/20 active:scale-95 flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-[20px]">save</span> Guardar Cambios
+                        </button>
+                    </div>
                 </form>
+                </div>
             </div>
             
-            <!-- Estado de Suscripción -->
-            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 h-max">
-                <h2 class="font-bold text-lg mb-4 border-b border-slate-100 pb-2">Estado de Suscripción</h2>
+            <!-- Lateral: Suscripción -->
+            <div class="col-span-1 space-y-6">
+                <!-- Estado de Suscripción -->
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 h-max">
+                    <h2 class="font-bold text-lg mb-4 border-b border-slate-100 pb-2">Estado de Suscripción</h2>
                 <div class="space-y-4">
                     <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
                         <span class="text-sm font-bold text-slate-500">Plan Actual:</span>
@@ -54,7 +106,7 @@
                         <span class="text-sm font-bold text-slate-500">Comprobantes:</span>
                         <span class="text-sm font-bold text-amber-600" id="suscripcionComprobante">En revisión o pendiente</span>
                     </div>
-                    <a href="pago.html" class="block text-center w-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold py-2.5 rounded-xl transition-all text-sm mt-4">Pagar o Subir Comprobante</a>
+                    <a href="pago.html" id="btnPagarSuscripcion" class="hidden block text-center w-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold py-2.5 rounded-xl transition-all text-sm mt-4">Pagar o Subir Comprobante</a>
                 </div>
             </div>
         </div>
@@ -81,36 +133,87 @@
                     document.getElementById('suscripcionVencimiento').textContent = fAlta.toLocaleDateString();
                     
                     const compEl = document.getElementById('suscripcionComprobante');
+                    const btnPago = document.getElementById('btnPagarSuscripcion');
+                    
                     if(data.business.estado_pago === 'activo' || data.business.estado_pago === 'pagado') {
                         compEl.textContent = 'Aprobado (Al día)';
                         compEl.className = 'text-sm font-bold text-emerald-600';
+                        if (btnPago) btnPago.classList.add('hidden');
                     } else if (data.business.estado_pago === 'pendiente_revision') {
                         compEl.textContent = 'En revisión';
                         compEl.className = 'text-sm font-bold text-amber-600';
+                        if (btnPago) btnPago.classList.add('hidden');
                     } else if (data.business.estado_pago === 'suspendido' || data.business.estado_pago === 'unpaid') {
                         compEl.textContent = 'Rechazado o Impago';
                         compEl.className = 'text-sm font-bold text-red-600';
+                        if (btnPago) btnPago.classList.remove('hidden');
                     } else {
                         compEl.textContent = 'No requerido aún';
                         compEl.className = 'text-sm font-bold text-blue-600';
+                        if (btnPago) btnPago.classList.remove('hidden');
                     }
+                }
+            });
+            
+            // Cargar datos de diseño (Web Config)
+            fetch('backend/guardar_web.php').then(r=>r.json()).then(data => {
+                if (data && !data.error) {
+                    document.getElementById('perfilColor1').value = data.color_primario || '#D11149';
+                    document.getElementById('perfilColor2').value = data.color_secundario || '#FC8712';
+                    if (data.logo || data.url_logo) {
+                        const prev = document.getElementById('perfilLogoPreview');
+                        prev.src = data.logo || data.url_logo;
+                        prev.classList.remove('hidden');
+                    }
+                }
+            });
+            
+            // Previsualizador en vivo para el input de logo
+            document.getElementById('perfilLogo').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const prev = document.getElementById('perfilLogoPreview');
+                        prev.src = event.target.result;
+                        prev.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(file);
                 }
             });
             
             document.getElementById('perfilForm').addEventListener('submit', (e) => {
                 e.preventDefault();
-                const btn = e.target.querySelector('button');
+                
+                const passNew = document.getElementById('perfilPassNueva').value;
+                const passConf = document.getElementById('perfilPassConfirmar').value;
+                
+                if (passNew || passConf) {
+                    if (passNew !== passConf) {
+                        alert('Las nuevas contraseñas no coinciden. Por favor verifícalas.');
+                        return;
+                    }
+                }
+                
+                const btn = e.target.querySelector('button[type="submit"]');
                 const origText = btn.innerHTML;
                 btn.disabled = true;
-                btn.innerHTML = 'Guardando...';
+                btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span> Guardando...';
                 
-                fetch('backend/perfil.php', { method: 'POST', body: new FormData(e.target) })
-                .then(res => res.json())
-                .then(data => {
-                    if(data.success) {
-                        alert('Tus datos fueron actualizados correctamente.');
+                const formData = new FormData(e.target);
+                
+                // Guardar en Perfil.php y en Guardar_web.php en paralelo
+                Promise.all([
+                    fetch('backend/perfil.php', { method: 'POST', body: formData }).then(r=>r.json()),
+                    fetch('backend/guardar_web.php', { method: 'POST', body: formData }).then(r=>r.json())
+                ])
+                .then(([perfilData, webData]) => {
+                    if (perfilData.success && (webData.success || webData.error)) {
+                        alert('Tus datos y diseño fueron actualizados correctamente.');
+                        e.target.reset(); // Limpiar contraseñas por seguridad
+                        window.location.reload();
                     } else {
-                        alert(data.error || 'Ocurrió un error al guardar.');
+                        alert(perfilData.error || webData.error || 'Ocurrió un error al guardar.');
                     }
                 })
                 .catch(err => alert('Error de conexión con el servidor.'))

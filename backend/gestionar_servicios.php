@@ -25,6 +25,9 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN profesional V
 try { $pdo->query("SELECT precio_sena FROM servicios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN precio_sena DECIMAL(10, 2) DEFAULT 0"); }
 
+try { $pdo->query("SELECT capacidad FROM servicios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN capacidad INT DEFAULT 1"); }
+
 try { $pdo->query("SELECT foto_profesional FROM servicios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN foto_profesional VARCHAR(255) DEFAULT NULL"); }
 
@@ -72,7 +75,7 @@ if ($method === 'GET') {
         }
 
         // 4. Obtener solo los servicios que pertenecen a ese negocio
-        $stmt = $pdo->prepare("SELECT id, id_negocio, nombre_servicio AS nombre, descripcion, duracion_minutos AS duracion, precio, precio_sena, profesional, email_profesional, foto_profesional, imagen1, imagen2, imagen3 FROM servicios WHERE id_negocio = :id_negocio ORDER BY orden ASC, id DESC");
+        $stmt = $pdo->prepare("SELECT id, id_negocio, nombre_servicio AS nombre, descripcion, duracion_minutos AS duracion, precio, precio_sena, capacidad, profesional, email_profesional, foto_profesional, imagen1, imagen2, imagen3 FROM servicios WHERE id_negocio = :id_negocio ORDER BY orden ASC, id DESC");
         $stmt->execute(['id_negocio' => $id_negocio]);
         $servicios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -145,6 +148,7 @@ if ($method === 'POST') {
     $duracion = $data['duracion'] ?? 0;
     $precio = $data['precio'] ?? 0;
     $precio_sena = $data['precio_sena'] ?? 0;
+    $capacidad = isset($data['capacidad']) ? (int)$data['capacidad'] : 1;
     $descripcion = $data['descripcion'] ?? '';
     $profesional = $data['profesional'] ?? '';
     $email_profesional = $data['email_profesional'] ?? '';
@@ -250,11 +254,11 @@ if ($method === 'POST') {
         }
 
         if ($id) {
-            $stmt = $pdo->prepare("UPDATE servicios SET nombre_servicio = :nombre, duracion_minutos = :duracion, precio = :precio, precio_sena = :precio_sena, descripcion = :descripcion, profesional = :profesional, email_profesional = :email_profesional, foto_profesional = :foto_profesional, imagen1 = :imagen1, imagen2 = :imagen2, imagen3 = :imagen3 WHERE id = :id AND id_negocio = :id_negocio");
-            $stmt->execute(['nombre' => $nombre, 'duracion' => $duracion, 'precio' => $precio, 'precio_sena' => $precio_sena, 'descripcion' => $descripcion, 'profesional' => $profesional, 'email_profesional' => $email_profesional, 'foto_profesional' => $foto_profesional, 'imagen1' => $imagen1, 'imagen2' => $imagen2, 'imagen3' => $imagen3, 'id' => $id, 'id_negocio' => $id_negocio]);
+            $stmt = $pdo->prepare("UPDATE servicios SET nombre_servicio = :nombre, duracion_minutos = :duracion, precio = :precio, precio_sena = :precio_sena, capacidad = :capacidad, descripcion = :descripcion, profesional = :profesional, email_profesional = :email_profesional, foto_profesional = :foto_profesional, imagen1 = :imagen1, imagen2 = :imagen2, imagen3 = :imagen3 WHERE id = :id AND id_negocio = :id_negocio");
+            $stmt->execute(['nombre' => $nombre, 'duracion' => $duracion, 'precio' => $precio, 'precio_sena' => $precio_sena, 'capacidad' => $capacidad, 'descripcion' => $descripcion, 'profesional' => $profesional, 'email_profesional' => $email_profesional, 'foto_profesional' => $foto_profesional, 'imagen1' => $imagen1, 'imagen2' => $imagen2, 'imagen3' => $imagen3, 'id' => $id, 'id_negocio' => $id_negocio]);
         } else {
-            $stmt = $pdo->prepare("INSERT INTO servicios (id_negocio, nombre_servicio, duracion_minutos, precio, precio_sena, descripcion, profesional, email_profesional, foto_profesional, imagen1, imagen2, imagen3) VALUES (:id_negocio, :nombre, :duracion, :precio, :precio_sena, :descripcion, :profesional, :email_profesional, :foto_profesional, :imagen1, :imagen2, :imagen3)");
-            $stmt->execute(['id_negocio' => $id_negocio, 'nombre' => $nombre, 'duracion' => $duracion, 'precio' => $precio, 'precio_sena' => $precio_sena, 'descripcion' => $descripcion, 'profesional' => $profesional, 'email_profesional' => $email_profesional, 'foto_profesional' => $foto_profesional, 'imagen1' => $imagen1, 'imagen2' => $imagen2, 'imagen3' => $imagen3]);
+            $stmt = $pdo->prepare("INSERT INTO servicios (id_negocio, nombre_servicio, duracion_minutos, precio, precio_sena, capacidad, descripcion, profesional, email_profesional, foto_profesional, imagen1, imagen2, imagen3) VALUES (:id_negocio, :nombre, :duracion, :precio, :precio_sena, :capacidad, :descripcion, :profesional, :email_profesional, :foto_profesional, :imagen1, :imagen2, :imagen3)");
+            $stmt->execute(['id_negocio' => $id_negocio, 'nombre' => $nombre, 'duracion' => $duracion, 'precio' => $precio, 'precio_sena' => $precio_sena, 'capacidad' => $capacidad, 'descripcion' => $descripcion, 'profesional' => $profesional, 'email_profesional' => $email_profesional, 'foto_profesional' => $foto_profesional, 'imagen1' => $imagen1, 'imagen2' => $imagen2, 'imagen3' => $imagen3]);
         }
 
         // Auto-sincronizar el profesional a la página web (Mi Equipo)

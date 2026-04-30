@@ -37,12 +37,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Obtener duración del servicio para validar superposiciones
         $duracion = 30;
+        $capacidad_nuevo = 1;
         if ($id_servicio) {
-            $stmtS = $pdo->prepare("SELECT duracion_minutos FROM servicios WHERE id = ?");
+            $stmtS = $pdo->prepare("SELECT duracion_minutos, capacidad FROM servicios WHERE id = ?");
             $stmtS->execute([$id_servicio]);
             $serv = $stmtS->fetch(PDO::FETCH_ASSOC);
             if ($serv && !empty($serv['duracion_minutos'])) {
                 $duracion = (int)$serv['duracion_minutos'];
+            }
+            if ($serv && !empty($serv['capacidad'])) {
+                $capacidad_nuevo = (int)$serv['capacidad'];
             }
         }
 
@@ -54,12 +58,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($simultaneos !== 'si') {
             // Lógica anticolisiones
-            $stmtCheck = $pdo->prepare("SELECT t.hora, s.duracion_minutos FROM turnos t LEFT JOIN servicios s ON t.id_servicio = s.id WHERE t.id_negocio = ? AND t.fecha = ? AND t.id != ? AND (t.profesional = ? OR t.profesional = 'Cualquiera (Sin preferencia)' OR ? = 'Cualquiera (Sin preferencia)') AND t.estado IN ('pendiente', 'confirmado', 'bloqueado')");
+            $stmtCheck = $pdo->prepare("SELECT t.hora, s.duracion_minutos, t.id_servicio FROM turnos t LEFT JOIN servicios s ON t.id_servicio = s.id WHERE t.id_negocio = ? AND t.fecha = ? AND t.id != ? AND (t.profesional = ? OR t.profesional = 'Cualquiera (Sin preferencia)' OR ? = 'Cualquiera (Sin preferencia)') AND t.estado IN ('pendiente', 'confirmado', 'bloqueado')");
             $stmtCheck->execute([$id_negocio, $nueva_fecha, $id_turno, $profesional, $profesional]);
             $turnosDia = $stmtCheck->fetchAll(PDO::FETCH_ASSOC);
 
             $nuevoInicio = strtotime("$nueva_fecha $hora_final:00");
             $nuevoFin = $nuevoInicio + ($duracion * 60);
+
+            $choque = false;
+            $cuposOcupados = 0;
 
             foreach ($turnosDia as $td) {
                 $dur_existente = !empty($td['duracion_minutos']) ? (int)$td['duracion_minutos'] : 30;
@@ -67,9 +74,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $tFin = $tInicio + ($dur_existente * 60);
 
                 if ($nuevoInicio < $tFin && $nuevoFin > $tInicio) {
-                    echo json_encode(['success' => false, 'error' => 'No puedes moverlo aquí. El horario choca con otro turno en la nueva fecha.']);
-                    exit;
+                    if ($td['id_servicio'] == $id_servicio && $tInicio == $nuevoInicio && $capacidad_nuevo > 1) {
+                        $cuposOcupados++;
+                    } else {
+                        $choque = true;
+                        break;
+                    }
                 }
+            }
+            if ($choque || $cuposOcupados >= $capacidad_nuevo) {
+                echo json_encode(['success' => false, 'error' => 'No puedes moverlo aquí. El horario choca o los cupos están llenos en la nueva fecha.']);
+                exit;
             }
         }
 
