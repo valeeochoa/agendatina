@@ -388,6 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (document.getElementById('duracionH')) document.getElementById('duracionH').value = Math.floor(d / 60);
                 if (document.getElementById('duracionM')) document.getElementById('duracionM').value = d % 60;
                 serviceForm.elements.precio.value = service.precio;
+                if (serviceForm.elements.capacidad) serviceForm.elements.capacidad.value = service.capacidad || 1;
                 if (serviceForm.elements.profesional) serviceForm.elements.profesional.value = service.profesional || '';
                 if (serviceForm.elements.email_profesional) serviceForm.elements.email_profesional.value = service.email_profesional || '';
                 if (serviceForm.elements.foto_profesional) serviceForm.elements.foto_profesional.value = service.foto_profesional || '';
