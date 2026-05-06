@@ -1261,14 +1261,14 @@ function cargarAgenda() {
             .then(servData => {
                 if (Array.isArray(servData)) services = servData;
                 const currentSearch = document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : '';
-                    const currentProf = document.getElementById('agendaProfFilter') ? document.getElementById('agendaProfFilter').value : '';
-                    renderAgendaTurnos(data, currentSearch, currentProf);
+                const currentProf = window.currentAgendaProfTerm || '';
+                renderAgendaTurnos(data, currentSearch, currentProf);
             })
-                .catch(() => renderAgendaTurnos(data, document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : '', document.getElementById('agendaProfFilter') ? document.getElementById('agendaProfFilter').value : ''));
+            .catch(() => renderAgendaTurnos(data, document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : '', window.currentAgendaProfTerm || ''));
         } else {
             const currentSearch = document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : '';
-                const currentProf = document.getElementById('agendaProfFilter') ? document.getElementById('agendaProfFilter').value : '';
-                renderAgendaTurnos(data, currentSearch, currentProf);
+            const currentProf = window.currentAgendaProfTerm || '';
+            renderAgendaTurnos(data, currentSearch, currentProf);
         }
     }).catch(err => console.error(err));
 }
@@ -1305,12 +1305,7 @@ function renderAgendaTurnos(data, searchTerm = '', profTerm = '') {
 
             // Evento para filtrar en tiempo real
             document.getElementById('agendaSearchInput').addEventListener('input', (e) => {
-                renderAgendaTurnos(window.agendaData, e.target.value, document.getElementById('agendaProfFilter').value);
                 renderAgendaTurnos(window.agendaData, e.target.value, window.currentAgendaProfTerm || '');
-            });
-            
-            document.getElementById('agendaProfFilter').addEventListener('change', (e) => {
-                renderAgendaTurnos(window.agendaData, document.getElementById('agendaSearchInput').value, e.target.value);
             });
             
             if (searchTerm) {
