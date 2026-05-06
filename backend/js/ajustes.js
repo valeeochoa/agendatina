@@ -55,6 +55,7 @@ function handleCalendarConfigSubmit(e) {
         hora_descanso_fin: form.querySelector('#configHoraDescansoFin')?.value,
         dias_trabajo: diasTrabajo,
         turnos_simultaneos: form.querySelector('#configSimultaneos')?.value,
+        confirmacion_automatica: form.querySelector('#configConfirmacionAutomatica')?.value,
         anticipacion_turno_min: form.querySelector('#configAnticipacionMin')?.value,
         intervalo_turnos: intervalo,
         tipo_calendario: tipoCalendario

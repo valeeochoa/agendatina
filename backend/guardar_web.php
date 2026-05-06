@@ -97,6 +97,9 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN dias_
 try { $pdo->query("SELECT profesionales_json FROM configuracion_web LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN profesionales_json LONGTEXT DEFAULT NULL"); }
 
+try { $pdo->query("SELECT confirmacion_automatica FROM configuracion_web LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN confirmacion_automatica VARCHAR(10) DEFAULT 'no'"); }
+
 // =========================================================================
 // AUTO-SUSPENSIÓN DE NEGOCIOS VENCIDOS (Pseudo-Cron)
 // =========================================================================
@@ -132,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             echo json_encode([]); exit;
         }
 
-        $stmt = $pdo->prepare("SELECT color_primario, color_secundario, color_primario_web, color_secundario_web, color_fondo, url_logo AS logo, fondo, mensaje_bienvenida AS titulo, subtitulo, whatsapp_contacto, instagram_url, hora_apertura, hora_cierre, intervalo_turnos, turnos_simultaneos, anticipacion_turno_min, alineacion_servicios, tipo_calendario, texto_local, ubicacion_maps, cursos_html, cursos_json, profesionales_json, hora_descanso_inicio, hora_descanso_fin, dias_trabajo FROM configuracion_web WHERE id_negocio = :id_negocio");
+        $stmt = $pdo->prepare("SELECT color_primario, color_secundario, color_primario_web, color_secundario_web, color_fondo, url_logo AS logo, fondo, mensaje_bienvenida AS titulo, subtitulo, whatsapp_contacto, instagram_url, hora_apertura, hora_cierre, intervalo_turnos, turnos_simultaneos, confirmacion_automatica, anticipacion_turno_min, alineacion_servicios, tipo_calendario, texto_local, ubicacion_maps, cursos_html, cursos_json, profesionales_json, hora_descanso_inicio, hora_descanso_fin, dias_trabajo FROM configuracion_web WHERE id_negocio = :id_negocio");
         $stmt->execute(['id_negocio' => $id_negocio]);
         $config = $stmt->fetch();
         
@@ -259,6 +262,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $hora_cierre = isset($data['hora_cierre']) ? $data['hora_cierre'] : ($oldData['hora_cierre'] ?? '18:00');
         $intervalo_turnos = isset($data['intervalo_turnos']) ? (int)$data['intervalo_turnos'] : ($oldData['intervalo_turnos'] ?? 30);
         $turnos_simultaneos = isset($data['turnos_simultaneos']) ? $data['turnos_simultaneos'] : ($oldData['turnos_simultaneos'] ?? 'no');
+        $confirmacion_automatica = isset($data['confirmacion_automatica']) ? $data['confirmacion_automatica'] : ($oldData['confirmacion_automatica'] ?? 'no');
         $anticipacion_turno_min = isset($data['anticipacion_turno_min']) ? max(0, (int)$data['anticipacion_turno_min']) : ($oldData['anticipacion_turno_min'] ?? 0);
         $subtitulo = isset($data['subtitulo']) ? $data['subtitulo'] : ($oldData['subtitulo'] ?? '');
         $alineacion_servicios = isset($data['alineacion_servicios']) ? $data['alineacion_servicios'] : ($oldData['alineacion_servicios'] ?? 'left');
@@ -274,14 +278,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $dias_trabajo = isset($data['dias_trabajo']) ? $data['dias_trabajo'] : ($oldData['dias_trabajo'] ?? '1,2,3,4,5,6');
         
         $stmt = $pdo->prepare("INSERT INTO configuracion_web 
-            (id_negocio, color_primario, color_secundario, color_primario_web, color_secundario_web, color_fondo, url_logo, fondo, mensaje_bienvenida, subtitulo, whatsapp_contacto, instagram_url, hora_apertura, hora_cierre, intervalo_turnos, turnos_simultaneos, anticipacion_turno_min, alineacion_servicios, tipo_calendario, texto_local, ubicacion_maps, cursos_html, cursos_json, profesionales_json, hora_descanso_inicio, hora_descanso_fin, dias_trabajo) 
-            VALUES (:id_negocio, :c_pri, :c_sec, :c_p_web, :c_s_web, :c_bg, :logo, :fondo, :msg, :subtitulo, :wpp, :ig, :h_open, :h_close, :intervalo, :simultaneos, :anticipacion, :align, :tipo_cal, :txt_local, :maps, :cursos_h, :cursos_j, :profs, :h_d_inicio, :h_d_fin, :d_trabajo) 
+            (id_negocio, color_primario, color_secundario, color_primario_web, color_secundario_web, color_fondo, url_logo, fondo, mensaje_bienvenida, subtitulo, whatsapp_contacto, instagram_url, hora_apertura, hora_cierre, intervalo_turnos, turnos_simultaneos, confirmacion_automatica, anticipacion_turno_min, alineacion_servicios, tipo_calendario, texto_local, ubicacion_maps, cursos_html, cursos_json, profesionales_json, hora_descanso_inicio, hora_descanso_fin, dias_trabajo) 
+            VALUES (:id_negocio, :c_pri, :c_sec, :c_p_web, :c_s_web, :c_bg, :logo, :fondo, :msg, :subtitulo, :wpp, :ig, :h_open, :h_close, :intervalo, :simultaneos, :conf_auto, :anticipacion, :align, :tipo_cal, :txt_local, :maps, :cursos_h, :cursos_j, :profs, :h_d_inicio, :h_d_fin, :d_trabajo) 
             ON DUPLICATE KEY UPDATE 
-            color_primario = :c_pri, color_secundario = :c_sec, color_primario_web = :c_p_web, color_secundario_web = :c_s_web, color_fondo = :c_bg, url_logo = :logo, fondo = :fondo, mensaje_bienvenida = :msg, subtitulo = :subtitulo, whatsapp_contacto = :wpp, instagram_url = :ig, hora_apertura = :h_open, hora_cierre = :h_close, intervalo_turnos = :intervalo, turnos_simultaneos = :simultaneos, anticipacion_turno_min = :anticipacion, alineacion_servicios = :align, tipo_calendario = :tipo_cal, texto_local = :txt_local, ubicacion_maps = :maps, cursos_html = :cursos_h, cursos_json = :cursos_j, profesionales_json = :profs, hora_descanso_inicio = :h_d_inicio, hora_descanso_fin = :h_d_fin, dias_trabajo = :d_trabajo");
+            color_primario = :c_pri, color_secundario = :c_sec, color_primario_web = :c_p_web, color_secundario_web = :c_s_web, color_fondo = :c_bg, url_logo = :logo, fondo = :fondo, mensaje_bienvenida = :msg, subtitulo = :subtitulo, whatsapp_contacto = :wpp, instagram_url = :ig, hora_apertura = :h_open, hora_cierre = :h_close, intervalo_turnos = :intervalo, turnos_simultaneos = :simultaneos, confirmacion_automatica = :conf_auto, anticipacion_turno_min = :anticipacion, alineacion_servicios = :align, tipo_calendario = :tipo_cal, texto_local = :txt_local, ubicacion_maps = :maps, cursos_html = :cursos_h, cursos_json = :cursos_j, profesionales_json = :profs, hora_descanso_inicio = :h_d_inicio, hora_descanso_fin = :h_d_fin, dias_trabajo = :d_trabajo");
             
         $stmt->execute([
             'id_negocio' => $id_negocio, 'c_pri' => $color_primario, 'c_sec' => $color_secundario, 'c_p_web' => $color_primario_web, 'c_s_web' => $color_secundario_web,
-            'c_bg' => $color_fondo, 'logo' => $url_logo, 'fondo' => $url_fondo, 'msg' => $mensaje_bienvenida, 'subtitulo' => $subtitulo, 'wpp' => $whatsapp_contacto, 'ig' => $instagram_url, 'h_open' => $hora_apertura, 'h_close' => $hora_cierre, 'intervalo' => $intervalo_turnos, 'simultaneos' => $turnos_simultaneos, 'anticipacion' => $anticipacion_turno_min, 'align' => $alineacion_servicios, 'tipo_cal' => $tipo_calendario, 'txt_local' => $texto_local, 'maps' => $ubicacion_maps, 'cursos_h' => $cursos_html, 'cursos_j' => $cursos_json, 'profs' => $profesionales_json, 'h_d_inicio' => $hora_descanso_inicio, 'h_d_fin' => $hora_descanso_fin, 'd_trabajo' => $dias_trabajo
+            'c_bg' => $color_fondo, 'logo' => $url_logo, 'fondo' => $url_fondo, 'msg' => $mensaje_bienvenida, 'subtitulo' => $subtitulo, 'wpp' => $whatsapp_contacto, 'ig' => $instagram_url, 'h_open' => $hora_apertura, 'h_close' => $hora_cierre, 'intervalo' => $intervalo_turnos, 'simultaneos' => $turnos_simultaneos, 'conf_auto' => $confirmacion_automatica, 'anticipacion' => $anticipacion_turno_min, 'align' => $alineacion_servicios, 'tipo_cal' => $tipo_calendario, 'txt_local' => $texto_local, 'maps' => $ubicacion_maps, 'cursos_h' => $cursos_html, 'cursos_j' => $cursos_json, 'profs' => $profesionales_json, 'h_d_inicio' => $hora_descanso_inicio, 'h_d_fin' => $hora_descanso_fin, 'd_trabajo' => $dias_trabajo
         ]);
 
         $response = ['success' => true];

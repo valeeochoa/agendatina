@@ -254,6 +254,21 @@
             </div>
         </a>
 
+        <!-- Consultas Frecuentes -->
+        <a href="javascript:void(0)" onclick="openFaqModal()" id="cardFaq" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-indigo-400 transition-all flex flex-col relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                <span class="material-symbols-outlined text-9xl text-indigo-500">quiz</span>
+            </div>
+            <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
+                <span class="material-symbols-outlined text-3xl">quiz</span>
+            </div>
+            <h2 class="text-2xl font-bold mb-3 z-10">Consultas Frecuentes</h2>
+            <p class="text-slate-500 flex-1 z-10">Aprende a configurar servicios, horarios y descubre todas las funcionalidades del sistema.</p>
+            <div class="mt-8 flex items-center gap-2 text-indigo-600 font-semibold z-10">
+                Ver tutoriales <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </div>
+        </a>
+
             <!-- Soporte y Sugerencias -->
             <a href="javascript:void(0)" onclick="openSupportModal()" id="cardSupport" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-400 transition-all flex flex-col relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -451,6 +466,70 @@
             <div class="bg-slate-50 p-4 rounded-xl text-slate-700 text-sm leading-relaxed whitespace-pre-wrap max-h-[50vh] overflow-y-auto custom-scrollbar" id="customNotifMessage"></div>
             <div class="mt-6 flex justify-end">
                 <button onclick="closeCustomNotifModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-6 rounded-xl transition-colors">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Consultas Frecuentes -->
+    <div id="faqModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[200] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-2xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="faqModalContent">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold font-display text-slate-800 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-indigo-500">quiz</span> Consultas Frecuentes
+                </h2>
+                <button onclick="closeFaqModal()" class="text-slate-400 hover:text-red-500 transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <details class="group bg-slate-50 border border-slate-200 rounded-2xl [&_summary::-webkit-details-marker]:hidden">
+                    <summary class="flex items-center justify-between p-5 font-bold cursor-pointer text-slate-800">
+                        ¿Cómo agrego o edito un servicio?
+                        <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform">expand_more</span>
+                    </summary>
+                    <div class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-200 pt-4 mt-2">
+                        <p class="mb-2">Para gestionar tus servicios debes ir a la sección <strong>"Gestionar Calendario"</strong>.</p>
+                        <ul class="list-disc pl-5 space-y-1 ml-2">
+                            <li>Haz clic en "Añadir Nuevo Servicio" o edita uno existente.</li>
+                            <li>Define el <strong>nombre</strong>, la <strong>duración</strong> y el <strong>precio</strong>.</li>
+                            <li>Si el servicio es grupal (ej: clases), ajusta la <strong>capacidad (cupos)</strong> a la cantidad de personas que pueden asistir en el mismo horario.</li>
+                            <li>Si tienes varios empleados, puedes asignar qué <strong>profesional</strong> lo realiza.</li>
+                        </ul>
+                    </div>
+                </details>
+                <details class="group bg-slate-50 border border-slate-200 rounded-2xl [&_summary::-webkit-details-marker]:hidden">
+                    <summary class="flex items-center justify-between p-5 font-bold cursor-pointer text-slate-800">
+                        ¿Cómo funciona la Aprobación Automática de turnos?
+                        <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform">expand_more</span>
+                    </summary>
+                    <div class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-200 pt-4 mt-2">
+                        <p>En la sección <strong>"Ajustes"</strong> puedes elegir la Modalidad de Turnos.</p>
+                        <p class="mt-2">Si activas la <strong>Aprobación Automática</strong>, cuando un cliente solicite un turno desde tu página web, este se confirmará de inmediato, ocupando el horario en tu calendario y enviándole un aviso de confirmación al cliente sin que debas intervenir.</p>
+                    </div>
+                </details>
+                <details class="group bg-slate-50 border border-slate-200 rounded-2xl [&_summary::-webkit-details-marker]:hidden">
+                    <summary class="flex items-center justify-between p-5 font-bold cursor-pointer text-slate-800">
+                        ¿Cómo bloqueo un horario o día específico?
+                        <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform">expand_more</span>
+                    </summary>
+                    <div class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-200 pt-4 mt-2">
+                        <p>Ingresa a <strong>"Mi Agenda Virtual"</strong> y selecciona el día que deseas modificar.</p>
+                        <p class="mt-2">Verás un ícono de <span class="material-symbols-outlined text-[16px] align-middle">block</span> junto a cada horario disponible. Al hacer clic, ese horario desaparecerá para tus clientes. También puedes bloquear todo el día con el botón superior o seleccionar varios días a la vez haciendo clic en <strong>"Seleccionar días"</strong>.</p>
+                    </div>
+                </details>
+                <details class="group bg-slate-50 border border-slate-200 rounded-2xl [&_summary::-webkit-details-marker]:hidden">
+                    <summary class="flex items-center justify-between p-5 font-bold cursor-pointer text-slate-800">
+                        ¿Cómo comparto mi agenda con los clientes?
+                        <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform">expand_more</span>
+                    </summary>
+                    <div class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-200 pt-4 mt-2">
+                        <p>Tu enlace único de reservas está disponible en la vista de tu Calendario y en Mi Página Web. Solo debes hacer clic en el botón <strong>"Compartir Enlace"</strong> para copiarlo al portapapeles y pegarlo en tu biografía de Instagram, WhatsApp u otras redes.</p>
+                    </div>
+                </details>
+            </div>
+            <div class="mt-8 text-center bg-indigo-50 rounded-xl p-4 border border-indigo-100">
+                <p class="text-sm text-indigo-800 font-medium">¿No encuentras lo que buscas?</p>
+                <button onclick="closeFaqModal(); openSupportModal();" class="mt-2 text-indigo-600 font-bold hover:text-indigo-800 transition-colors">Contáctanos por Soporte</button>
             </div>
         </div>
     </div>

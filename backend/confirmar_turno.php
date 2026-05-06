@@ -22,7 +22,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute(['id' => $id]);
 
         if ($stmt->rowCount() > 0) {
-            echo json_encode(['success' => true]);
+            $stmtT = $pdo->prepare("SELECT cliente_nombre, nombre, apellido, cliente_celular, celular, fecha, hora, servicio FROM turnos WHERE id = :id");
+            $stmtT->execute(['id' => $id]);
+            $turno = $stmtT->fetch(PDO::FETCH_ASSOC);
+            $nombreC = $turno['cliente_nombre'] ?: trim($turno['nombre'] . ' ' . $turno['apellido']);
+            $celularC = $turno['cliente_celular'] ?: $turno['celular'];
+            echo json_encode(['success' => true, 'turno' => ['nombre' => $nombreC, 'celular' => $celularC, 'fecha' => $turno['fecha'], 'hora' => $turno['hora'], 'servicio' => $turno['servicio']]]);
         } else {
             // Esto puede pasar si el ID no existe
             http_response_code(404);

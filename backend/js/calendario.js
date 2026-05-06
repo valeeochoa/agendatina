@@ -256,6 +256,7 @@ function cal_renderTimeSlots() {
     const minAdvance = parseInt(window.businessWebConfig?.anticipacion_turno_min || 0, 10) || 0;
 
     let selectedDuration = 30;
+    let selectedCapacidad = 1;
     const serviceSelect = document.getElementById('serviceSelect');
     if (serviceSelect && serviceSelect.value) {
         const sName = serviceSelect.value;
@@ -265,6 +266,7 @@ function cal_renderTimeSlots() {
         }
         if (!matchingService) matchingService = services.find(s => s.nombre === sName);
         if (matchingService && matchingService.duracion) selectedDuration = parseInt(matchingService.duracion);
+        if (matchingService && matchingService.capacidad) selectedCapacidad = parseInt(matchingService.capacidad) || 1;
     }
     
     let interval = 30;
@@ -284,6 +286,7 @@ function cal_renderTimeSlots() {
         if (window.isTimeInBreak(time)) return; 
         const slot = document.createElement('div');
         let isBooked = false;
+        let maxSpotsTaken = 0;
         const [hh, mm] = time.split(':').map(Number);
         const slotDate = new Date(cal_selectedDate.getFullYear(), cal_selectedDate.getMonth(), cal_selectedDate.getDate(), hh, mm, 0, 0);
         
@@ -293,10 +296,17 @@ function cal_renderTimeSlots() {
                 break;
             }
             const timeToCheck = cal_availableTimes[index + i].substring(0, 5);
-            if (horasOcupadas.includes(timeToCheck)) {
+            
+            if (window.getBreakTimes().includes(timeToCheck) || baseOcupadas.includes('blocked_day') || baseOcupadas.includes('blocked_day_prof')) {
                 isBooked = true;
                 break;
             }
+            const countTaken = baseOcupadas.filter(t => t.substring(0, 5) === timeToCheck).length;
+            if (countTaken >= selectedCapacidad) {
+                isBooked = true;
+                break;
+            }
+            if (countTaken > maxSpotsTaken) maxSpotsTaken = countTaken;
         }
         if (!isBooked && isTodaySelected && slotDate.getTime() <= now.getTime()) isBooked = true;
         if (!isBooked && minAdvance > 0) {
@@ -304,8 +314,14 @@ function cal_renderTimeSlots() {
             if (slotDate.getTime() < minAllowed.getTime()) isBooked = true;
         }
         
-        slot.textContent = isBooked ? time + ' (No disponible)' : time;
-        slot.className = isBooked ? 'time-slot booked text-center py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold opacity-50 cursor-not-allowed' : 'time-slot bg-slate-100 dark:bg-slate-900 text-center py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary cursor-pointer transition-colors';
+        let spotsText = '';
+        if (!isBooked && selectedCapacidad > 1) {
+            const spotsLeft = selectedCapacidad - maxSpotsTaken;
+            spotsText = `<span class="block text-[10px] font-medium opacity-80 leading-none mt-1">${spotsLeft} lugares</span>`;
+        }
+
+        slot.innerHTML = isBooked ? `${time} <span class="block text-[10px] font-medium opacity-80 leading-none mt-1">(Agotado)</span>` : `${time}${spotsText}`;
+        slot.className = isBooked ? 'time-slot booked flex flex-col justify-center items-center py-1 sm:py-1.5 rounded-xl text-xs sm:text-sm font-bold opacity-50 cursor-not-allowed' : 'time-slot flex flex-col justify-center items-center bg-slate-100 dark:bg-slate-900 py-1 sm:py-1.5 rounded-xl text-xs sm:text-sm font-bold border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary cursor-pointer transition-colors';
         
         if (!isBooked) {
             slot.addEventListener('click', () => {
@@ -730,21 +746,6 @@ function renderAdminDayView(dateString) {
                 </div>`;
         }
     }
-}
-
-function confirmarTurnoAdmin(id) {
-    showConfirm('Confirmar Turno', '¿Agendar y confirmar este turno? Aparecerá como ocupado para los clientes.', 'Confirmar', 'bg-amber-500 hover:bg-amber-600', () => {
-        return fetch('backend/confirmar_turno.php', { method: 'POST', body: new URLSearchParams({id: id}) })
-        .then(res => res.json())
-        .then(data => {
-            if(data.success) {
-                showToast('Turno confirmado exitosamente', 'success');
-                window.refreshCalendarData();
-            } else {
-                showToast(data.error || 'No se pudo confirmar el turno.', 'error');
-            }
-        }).catch(() => showToast('Error de conexión', 'error'));
-    });
 }
 
 function cancelarTurnoAdmin(id) {
@@ -1668,9 +1669,13 @@ function renderAdminWeeklyGrid() {
     }
     
     let selectedDuration = 30;
+    let selectedCapacidad = 1;
     if (adminWeeklySelectedService) {
         const matchingService = services.find(s => s.nombre === adminWeeklySelectedService && (s.profesional === adminWeeklySelectedProf || !adminWeeklySelectedProf));
-        if (matchingService) selectedDuration = parseInt(matchingService.duracion) || 30;
+        if (matchingService) {
+            selectedDuration = parseInt(matchingService.duracion) || 30;
+            selectedCapacidad = parseInt(matchingService.capacidad) || 1;
+        }
     }
     
     let interval = 30;
@@ -1726,7 +1731,14 @@ function renderAdminWeeklyGrid() {
                 if (window.isTimeInBreak(time)) return;
                 let isBooked = false;
                 const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), ...time.split(':').map(Number), 0, 0);
-                for (let j = 0; j < blocksNeeded; j++) { if (idx + j >= cal_availableTimes.length || horasOcupadas.includes(cal_availableTimes[idx + j].substring(0, 5))) { isBooked = true; break; } }
+                const baseOcupadas = cal_bookedSlots[dateString] || [];
+                for (let j = 0; j < blocksNeeded; j++) { 
+                    if (idx + j >= cal_availableTimes.length) { isBooked = true; break; } 
+                    const timeToCheck = cal_availableTimes[idx + j].substring(0, 5);
+                    if (window.getBreakTimes().includes(timeToCheck) || baseOcupadas.includes('blocked_day') || baseOcupadas.includes('blocked_day_prof')) { isBooked = true; break; }
+                    const countTaken = baseOcupadas.filter(t => t.substring(0, 5) === timeToCheck).length;
+                    if (countTaken >= selectedCapacidad) { isBooked = true; break; }
+                }
                 if (!isBooked && isToday && slotDate.getTime() <= new Date().getTime()) isBooked = true;
                 
                 const slot = document.createElement('div');
@@ -1757,36 +1769,44 @@ function renderAdminWeeklyGrid() {
                         });
                     }
                 } else { 
-                    const apt = allAppointments.find(a => a.fecha === dateString && a.hora.substring(0,5) === time && (a.profesional === adminWeeklySelectedProf || !adminWeeklySelectedProf));
+                    const apts = allAppointments.filter(a => a.fecha === dateString && a.hora.substring(0,5) === time && (a.profesional === adminWeeklySelectedProf || !adminWeeklySelectedProf));
                     
-                    if (apt) {
-                        const clientName = apt.cliente_nombre || (apt.nombre + ' ' + (apt.apellido || '')) || 'Sin Nombre';
-                        const isPend = apt.estado === 'pendiente';
+                    if (apts.length > 0) {
+                        const isPend = apts.some(a => a.estado === 'pendiente');
                         const bgClass = isPend ? 'bg-amber-50 dark:bg-amber-900/40 border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-300' : 'bg-indigo-50 dark:bg-indigo-900/40 border-indigo-200 dark:border-indigo-700 text-indigo-800 dark:text-indigo-300';
-                        const badgeClass = isPend ? 'bg-amber-200 text-amber-800' : 'bg-indigo-200 text-indigo-800';
                         
-                        slot.className = `p-2 text-left text-xs rounded-lg border cursor-pointer transition-colors shadow-sm ${bgClass}`;
+                        slot.className = `p-2 text-left text-xs rounded-lg border transition-colors shadow-sm ${bgClass}`;
+                        slot.innerHTML = `<div class="font-bold mb-0.5">${time}</div>`;
                         
-                        if (effectiveIsAdmin && apt.estado !== 'bloqueado') {
-                            slot.draggable = true;
-                            slot.title = "Arrastra para mover a otro día";
-                            slot.addEventListener('dragstart', (e) => {
-                                e.dataTransfer.setData('text/plain', apt.id);
-                                setTimeout(() => slot.classList.add('opacity-50'), 0);
-                            });
-                            slot.addEventListener('dragend', () => {
-                                slot.classList.remove('opacity-50');
-                            });
-                        }
-                        
-                        slot.innerHTML = `<div class="font-bold mb-0.5">${time}</div><div class="truncate text-[10px] leading-tight" title="${clientName}">${clientName}</div><div class="truncate text-[9px] opacity-80">${apt.servicio || ''}</div>`;
-                        
-                        slot.onclick = () => {
-                            showConfirm('Detalles del Turno', 
-                                `<div class="text-left bg-white dark:bg-slate-800 p-4 rounded-xl mt-4 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"><p class="mb-2"><strong>Cliente:</strong> ${clientName}</p><p class="mb-2"><strong>Teléfono:</strong> <a href="https://wa.me/${(apt.cliente_celular || '').replace(/\D/g, '')}" target="_blank" class="text-emerald-600 font-bold hover:underline">${apt.cliente_celular || '-'}</a></p><p class="mb-2"><strong>Servicio:</strong> ${apt.servicio || '-'}</p><p class="mb-2"><strong>Profesional:</strong> ${apt.profesional || '-'}</p><p><strong>Estado:</strong> <span class="uppercase text-[10px] px-2 py-1 rounded-md font-bold ${badgeClass}">${apt.estado}</span></p></div>`, 
-                                'Cerrar', 'bg-slate-800 hover:bg-slate-900', () => {}
-                            );
-                        };
+                        apts.forEach(apt => {
+                            const clientName = apt.cliente_nombre || (apt.nombre + ' ' + (apt.apellido || '')) || 'Sin Nombre';
+                            const badgeClass = apt.estado === 'pendiente' ? 'bg-amber-200 text-amber-800' : 'bg-indigo-200 text-indigo-800';
+                            
+                            const divApt = document.createElement('div');
+                            divApt.className = "mt-1 pt-1 border-t border-black/10 dark:border-white/10 cursor-pointer";
+                            
+                            if (effectiveIsAdmin && apt.estado !== 'bloqueado') {
+                                divApt.draggable = true;
+                                divApt.title = "Arrastra para mover a otro día";
+                                divApt.addEventListener('dragstart', (e) => {
+                                    e.stopPropagation();
+                                    e.dataTransfer.setData('text/plain', apt.id);
+                                    setTimeout(() => divApt.classList.add('opacity-50'), 0);
+                                });
+                                divApt.addEventListener('dragend', () => { divApt.classList.remove('opacity-50'); });
+                            }
+                            
+                            divApt.innerHTML = `<div class="truncate text-[10px] leading-tight" title="${clientName}">${clientName}</div><div class="truncate text-[9px] opacity-80">${apt.servicio || ''}</div>`;
+                            
+                            divApt.onclick = (e) => {
+                                e.stopPropagation();
+                                showConfirm('Detalles del Turno', 
+                                    `<div class="text-left bg-white dark:bg-slate-800 p-4 rounded-xl mt-4 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"><p class="mb-2"><strong>Cliente:</strong> ${clientName}</p><p class="mb-2"><strong>Teléfono:</strong> <a href="https://wa.me/${(apt.cliente_celular || '').replace(/\D/g, '')}" target="_blank" class="text-emerald-600 font-bold hover:underline">${apt.cliente_celular || '-'}</a></p><p class="mb-2"><strong>Servicio:</strong> ${apt.servicio || '-'}</p><p class="mb-2"><strong>Profesional:</strong> ${apt.profesional || '-'}</p><p><strong>Estado:</strong> <span class="uppercase text-[10px] px-2 py-1 rounded-md font-bold ${badgeClass}">${apt.estado}</span></p></div>`, 
+                                    'Cerrar', 'bg-slate-800 hover:bg-slate-900', () => {}
+                                );
+                            };
+                            slot.appendChild(divApt);
+                        });
                     } else {
                         slot.innerHTML = `${time} <span class="block text-[9px] font-normal mt-0.5 opacity-80">Bloqueado</span>`; 
                     }
@@ -1976,6 +1996,7 @@ function checkDayHasAvailableSlots(date) {
         matchingService = services.find(s => s.nombre === sName);
     }
     let selectedDuration = parseInt((matchingService || {}).duracion || 30);
+    let selectedCapacidad = parseInt((matchingService || {}).capacidad || 1);
     
     let interval = 30;
     if (window.businessWebConfig && window.businessWebConfig.intervalo_turnos) {
@@ -1993,8 +2014,15 @@ function checkDayHasAvailableSlots(date) {
         if (window.isTimeInBreak(cal_availableTimes[i])) continue;
         let isBooked = false;
         const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), ...cal_availableTimes[i].split(':').map(Number), 0, 0);
+        
+        const baseOcupadas = cal_bookedSlots[toYYYYMMDD(date)] || [];
+        
         for (let j = 0; j < blocksNeeded; j++) {
-            if (i + j >= cal_availableTimes.length || horasOcupadas.includes(cal_availableTimes[i + j].substring(0, 5))) { isBooked = true; break; }
+            if (i + j >= cal_availableTimes.length) { isBooked = true; break; }
+            const timeToCheck = cal_availableTimes[i + j].substring(0, 5);
+            if (window.getBreakTimes().includes(timeToCheck) || baseOcupadas.includes('blocked_day') || baseOcupadas.includes('blocked_day_prof')) { isBooked = true; break; }
+            const countTaken = baseOcupadas.filter(t => t.substring(0, 5) === timeToCheck).length;
+            if (countTaken >= selectedCapacidad) { isBooked = true; break; }
         }
         if (!isBooked && isToday && slotDate.getTime() <= now.getTime()) isBooked = true;
         if (!isBooked && minAdvance > 0 && slotDate.getTime() < (now.getTime() + (minAdvance * 60000))) isBooked = true;
@@ -2027,6 +2055,7 @@ function selectWeeklyDate(date) {
         matchingService = services.find(s => s.nombre === sName);
     }
     let selectedDuration = parseInt((matchingService || {}).duracion || 30);
+    let selectedCapacidad = parseInt((matchingService || {}).capacidad || 1);
     
     let interval = 30;
     if (window.businessWebConfig && window.businessWebConfig.intervalo_turnos) {
@@ -2045,9 +2074,16 @@ function selectWeeklyDate(date) {
     cal_availableTimes.forEach((time, index) => {
         if (window.isTimeInBreak(time)) return;
         let isBooked = false;
+        let maxSpotsTaken = 0;
         const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), ...time.split(':').map(Number), 0, 0);
+        const baseOcupadas = cal_bookedSlots[toYYYYMMDD(date)] || [];
         for (let i = 0; i < blocksNeeded; i++) {
-            if (index + i >= cal_availableTimes.length || horasOcupadas.includes(cal_availableTimes[index + i].substring(0, 5))) { isBooked = true; break; }
+            if (index + i >= cal_availableTimes.length) { isBooked = true; break; }
+            const timeToCheck = cal_availableTimes[index + i].substring(0, 5);
+            if (window.getBreakTimes().includes(timeToCheck) || baseOcupadas.includes('blocked_day') || baseOcupadas.includes('blocked_day_prof')) { isBooked = true; break; }
+            const countTaken = baseOcupadas.filter(t => t.substring(0, 5) === timeToCheck).length;
+            if (countTaken >= selectedCapacidad) { isBooked = true; break; }
+            if (countTaken > maxSpotsTaken) maxSpotsTaken = countTaken;
         }
         if (!isBooked && isToday && slotDate.getTime() <= now.getTime()) isBooked = true;
         if (!isBooked && minAdvance > 0 && slotDate.getTime() < (now.getTime() + (minAdvance * 60000))) isBooked = true;
@@ -2056,8 +2092,15 @@ function selectWeeklyDate(date) {
             if (!firstAvailableTime) firstAvailableTime = time;
             slotsGenerated++;
             const slot = document.createElement('div');
-            slot.textContent = time;
-            slot.className = 'time-slot bg-slate-100 dark:bg-slate-800 text-center py-3.5 rounded-xl text-sm font-extrabold border border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary cursor-pointer transition-all hover:shadow-md';
+            
+            let spotsText = '';
+            if (selectedCapacidad > 1) {
+                const spotsLeft = selectedCapacidad - maxSpotsTaken;
+                spotsText = `<span class="block text-[10px] font-medium opacity-80 leading-none mt-1">${spotsLeft} lugares</span>`;
+            }
+            
+            slot.innerHTML = `${time}${spotsText}`;
+            slot.className = 'time-slot flex flex-col justify-center items-center bg-slate-100 dark:bg-slate-800 py-2 rounded-xl text-sm font-extrabold border border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary cursor-pointer transition-all hover:shadow-md';
             slot.addEventListener('click', () => {
                 document.querySelectorAll('#weeklyTimeSlots .time-slot').forEach(el => {
                     el.classList.remove('selected', 'bg-primary', 'text-white', 'border-primary', 'shadow-md');

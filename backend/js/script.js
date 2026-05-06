@@ -52,6 +52,35 @@ window.closeConfirm = function() {
     setTimeout(() => { if(modal) modal.classList.add('hidden'); }, 300);
 };
 
+window.confirmarTurnoAdmin = function(id) {
+    showConfirm('Confirmar Turno', '¿Agendar y confirmar este turno? Aparecerá como ocupado para los clientes.', 'Confirmar', 'bg-amber-500 hover:bg-amber-600', () => {
+        return fetch('backend/confirmar_turno.php', { method: 'POST', body: new URLSearchParams({id: id}) })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                showToast('Turno confirmado exitosamente', 'success');
+                if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
+                if (typeof window.cargarAgenda === 'function') window.cargarAgenda();
+                
+                if (data.turno && data.turno.celular) {
+                    const fParts = data.turno.fecha.split('-');
+                    const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}/${fParts[0]}` : data.turno.fecha;
+                    const negocio = window.currentBusinessData ? window.currentBusinessData.nombre_fantasia : 'nuestro local';
+                    const text = `Hola ${data.turno.nombre}, te confirmamos tu turno en ${negocio} para el ${fDisplay} a las ${data.turno.hora} hs (${data.turno.servicio}). ¡Te esperamos!`;
+                    const phone = data.turno.celular.replace(/\D/g, '');
+                    const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+                    
+                    setTimeout(() => {
+                        showConfirm('Avisar al cliente', '¿Deseas enviarle un WhatsApp al cliente avisándole que su turno fue confirmado?', 'Enviar WhatsApp', 'bg-emerald-500 hover:bg-emerald-600', () => { window.open(url, '_blank'); });
+                    }, 500);
+                }
+            } else {
+                showToast(data.error || 'No se pudo confirmar el turno.', 'error');
+            }
+        }).catch(() => showToast('Error de conexión', 'error'));
+    });
+};
+
 // Función global para iniciar demostración interactiva (Botón Pruébalo ahora)
 window.iniciarDemo = function() {
     const btn = document.activeElement;
@@ -771,7 +800,8 @@ document.addEventListener('keydown', (e) => {
             { id: 'calendarConfigModal', closeFn: () => { if(typeof closeCalendarConfigModal === 'function') closeCalendarConfigModal(); } },
             { id: 'confirmDeleteModal', closeFn: () => { if(typeof closeConfirmDelete === 'function') closeConfirmDelete(); } },
             { id: 'customNotifModal', closeFn: () => { if(typeof closeCustomNotifModal === 'function') closeCustomNotifModal(); } },
-            { id: 'reportErrorModal', closeFn: () => { if(typeof closeReportErrorModal === 'function') closeReportErrorModal(); } }
+            { id: 'reportErrorModal', closeFn: () => { if(typeof closeReportErrorModal === 'function') closeReportErrorModal(); } },
+            { id: 'faqModal', closeFn: () => { if(typeof closeFaqModal === 'function') closeFaqModal(); } }
         ];
         modalsToClose.forEach(m => {
             const el = document.getElementById(m.id);
@@ -1040,6 +1070,7 @@ function applyCalendarConfigToForm(c) {
         });
     }
     if(document.getElementById('configSimultaneos')) document.getElementById('configSimultaneos').value = c.turnos_simultaneos || 'no';
+    if(document.getElementById('configConfirmacionAutomatica')) document.getElementById('configConfirmacionAutomatica').value = c.confirmacion_automatica || 'no';
     
     const ant = parseInt(c.anticipacion_turno_min || 0, 10);
     if(document.getElementById('configAnticipacionMin')) document.getElementById('configAnticipacionMin').value = ant;
