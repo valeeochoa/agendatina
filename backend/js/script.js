@@ -357,7 +357,13 @@ function loadDashboardData() {
                                 const step1Text = document.getElementById('step1Text');
                                 if (hasConfig) {
                                     if(step1Icon) { step1Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step1Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
-                                    if(step1Text) step1Text.classList.add('line-through', 'text-slate-400');
+                                    if(step1Text) {
+                                        step1Text.classList.add('line-through', 'text-slate-400');
+                                        const desc = step1Text.parentElement.nextElementSibling;
+                                        if (desc) desc.classList.add('line-through', 'opacity-50');
+                                        const link = desc ? desc.nextElementSibling : null;
+                                        if (link) link.style.display = 'none';
+                                    }
                                 }
 
                                 const step2Icon = document.getElementById('step2Icon');
@@ -367,7 +373,13 @@ function loadDashboardData() {
                                 
                                 if (hasServices) {
                                     if(step2Icon) { step2Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step2Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
-                                    if(step2Text) step2Text.classList.add('line-through', 'text-slate-400');
+                                    if(step2Text) {
+                                        step2Text.classList.add('line-through', 'text-slate-400');
+                                        const desc = step2Text.parentElement.nextElementSibling;
+                                        if (desc) desc.classList.add('line-through', 'opacity-50');
+                                        const link = desc ? desc.nextElementSibling : null;
+                                        if (link) link.style.display = 'none';
+                                    }
                                 }
 
                                 const step3Link = document.getElementById('step3Link');
@@ -379,7 +391,13 @@ function loadDashboardData() {
                                 }
                                 if (hasTurnos) {
                                     if(step3Icon) { step3Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step3Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
-                                    if(step3Text) step3Text.classList.add('line-through', 'text-slate-400');
+                                    if(step3Text) {
+                                        step3Text.classList.add('line-through', 'text-slate-400');
+                                        const desc = step3Text.parentElement.nextElementSibling;
+                                        if (desc) desc.classList.add('line-through', 'opacity-50');
+                                        const link = desc ? desc.nextElementSibling : null;
+                                        if (link) link.style.display = 'none';
+                                    }
                                 }
                             }
                         }).catch(e => console.error(e));
@@ -800,8 +818,7 @@ document.addEventListener('keydown', (e) => {
             { id: 'calendarConfigModal', closeFn: () => { if(typeof closeCalendarConfigModal === 'function') closeCalendarConfigModal(); } },
             { id: 'confirmDeleteModal', closeFn: () => { if(typeof closeConfirmDelete === 'function') closeConfirmDelete(); } },
             { id: 'customNotifModal', closeFn: () => { if(typeof closeCustomNotifModal === 'function') closeCustomNotifModal(); } },
-            { id: 'reportErrorModal', closeFn: () => { if(typeof closeReportErrorModal === 'function') closeReportErrorModal(); } },
-            { id: 'faqModal', closeFn: () => { if(typeof closeFaqModal === 'function') closeFaqModal(); } }
+            { id: 'reportErrorModal', closeFn: () => { if(typeof closeReportErrorModal === 'function') closeReportErrorModal(); } }
         ];
         modalsToClose.forEach(m => {
             const el = document.getElementById(m.id);
@@ -953,6 +970,8 @@ function loadCustomization() {
                     .hover\\:shadow-primary\\/20:hover { --tw-shadow-color: color-mix(in srgb, ${data.color_primario} 20%, transparent) !important; }
                     .bg-primary\\/10 { background-color: color-mix(in srgb, ${data.color_primario} 70%, transparent) !important; color: #ffffff !important; border-color: transparent !important; }
                     .text-primary { color: ${data.color_primario} !important; }
+                    .shadow-primary\\/30 { --tw-shadow-color: color-mix(in srgb, ${data.color_primario} 30%, transparent) !important; }
+                    .shadow-primary\\/40 { --tw-shadow-color: color-mix(in srgb, ${data.color_primario} 40%, transparent) !important; }
                     .signature-glow { background: linear-gradient(135deg, ${data.color_primario} 0%, ${data.color_secundario || '#FC8712'} 100%) !important; }
                     body, .bg-slate-50 { background-color: color-mix(in srgb, ${data.color_primario} 4%, #f8fafc) !important; }
                     `;
@@ -1072,6 +1091,7 @@ function applyCalendarConfigToForm(c) {
     }
     if(document.getElementById('configSimultaneos')) document.getElementById('configSimultaneos').value = c.turnos_simultaneos || 'no';
     if(document.getElementById('configConfirmacionAutomatica')) document.getElementById('configConfirmacionAutomatica').value = c.confirmacion_automatica || 'no';
+    if(document.getElementById('configMetodosPago')) document.getElementById('configMetodosPago').value = c.metodos_pago || '';
     
     const ant = parseInt(c.anticipacion_turno_min || 0, 10);
     if(document.getElementById('configAnticipacionMin')) document.getElementById('configAnticipacionMin').value = ant;
@@ -1396,6 +1416,7 @@ function renderAgendaTurnos(data, searchTerm = '', profTerm = '') {
                         <p class="text-sm font-medium text-slate-600 flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100"><span class="material-symbols-outlined text-[16px] text-slate-400">call</span> ${t.cliente_celular || t.celular}</p>
                         <button onclick="contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
                     </div>
+                    ${t.metodo_pago ? `<p class="text-sm text-slate-600 mb-1 flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
                     <p class="text-sm text-slate-600 mb-5 flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary">spa</span> <span class="font-medium">${t.servicio}</span></p>
                     
                     <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
@@ -1464,6 +1485,7 @@ function renderAgendaTurnos(data, searchTerm = '', profTerm = '') {
                                 <p class="text-sm font-medium text-slate-600 flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100"><span class="material-symbols-outlined text-[16px] text-slate-400">call</span> ${t.cliente_celular || t.celular}</p>
                                 <button onclick="contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
                             </div>
+                    ${t.metodo_pago ? `<p class="text-sm text-slate-600 mb-1 flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
                             <p class="text-sm text-slate-600 mb-5 flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary">spa</span> <span class="font-medium">${t.servicio}</span></p>
                             <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
                                 <button onclick="recordatorioWhatsApp('${t.id}')" class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 border border-blue-100" title="Enviar recordatorio">
@@ -2367,6 +2389,21 @@ function applyWebCustomization() {
                     style.innerHTML = styleHTML;
                     document.head.appendChild(style);
                 }
+        
+            if (data.metodos_pago) {
+                const metodos = data.metodos_pago.split(',').map(m => m.trim()).filter(m => m);
+                if (metodos.length > 0) {
+                    ['bookingMetodoPago', 'weeklyMetodoPago'].forEach(id => {
+                        const sel = document.getElementById(id);
+                        if (sel) {
+                            sel.innerHTML = '<option value="" disabled selected>Elige cómo abonarás</option>';
+                            metodos.forEach(m => sel.innerHTML += `<option value="${m}">${m}</option>`);
+                            if (sel.parentElement) sel.parentElement.classList.remove('hidden');
+                            sel.required = true;
+                        }
+                    });
+                }
+            }
             }
         })
         .catch(err => console.error('Error al cargar personalización:', err));

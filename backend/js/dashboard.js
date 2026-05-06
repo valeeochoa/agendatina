@@ -127,23 +127,6 @@ window.deleteTeamMember = function(id) {
     }
 };
 
-window.openFaqModal = function() {
-    const modal = document.getElementById('faqModal');
-    const content = document.getElementById('faqModalContent');
-    if (!modal || !content) return;
-    modal.classList.remove('hidden');
-    setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
-};
-
-window.closeFaqModal = function() {
-    const modal = document.getElementById('faqModal');
-    const content = document.getElementById('faqModalContent');
-    if (!modal || !content) return;
-    modal.classList.add('opacity-0');
-    content.classList.add('scale-95');
-    setTimeout(() => { modal.classList.add('hidden'); }, 300);
-};
-
 // ==========================================
 // LÓGICA DE TOUR VIRTUAL (ONBOARDING)
 // ==========================================
@@ -153,10 +136,10 @@ let tourResizeListener = null;
 
 const tourSteps = [
     { target: 'cardCalendario', title: '1. Tu Motor Principal', text: 'Aquí definirás tus horarios de atención, el tipo de calendario (mensual o semanal) y los servicios que ofreces.', position: 'right' },
-    { target: 'cardWeb', title: '2. Tu Vitrina Online', text: 'Personaliza la página pública que verán tus clientes al reservar. Sube fotos, certificados y cambia los colores.', position: 'right' },
+    { target: 'cardWeb', title: '2. Tu Vitrina Online', text: 'Personaliza la página pública que verán tus clientes al reservar. Sube fotos, certificados y cambia los colores.', position: 'left' },
     { target: 'cardAgenda', title: '3. Recepción de Turnos', text: 'En esta sección administrarás y confirmarás los turnos que tus clientes vayan solicitando en tu web.', position: 'right' },
     { target: 'cardEstadisticas', title: '4. Estadísticas', text: 'Visualiza el rendimiento de tu negocio, ingresos generados y servicios más solicitados.', position: 'right' },
-    { target: 'navAvatar', title: '5. Tu Perfil y Logo', text: 'Haz clic en tus iniciales arriba a la derecha para modificar tu información personal y subir el logo de tu negocio.', position: 'left' }
+    { target: 'cardAjustes', title: '5. Ajustes', text: 'Configura colores, horarios de atención, turnos y modalidad de trabajo.', position: 'left' }
 ];
 
 window.startTour = function() {

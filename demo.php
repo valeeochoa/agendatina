@@ -27,6 +27,8 @@ try { $pdo->query("SELECT id FROM notificaciones LIMIT 1"); } catch(Exception $e
 try { $pdo->query("SELECT turnos_simultaneos FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN turnos_simultaneos VARCHAR(10) DEFAULT 'no'"); }
 try { $pdo->query("SELECT titulo FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN titulo VARCHAR(255) DEFAULT ''"); }
 try { $pdo->query("SELECT subtitulo FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN subtitulo VARCHAR(255) DEFAULT ''"); }
+try { $pdo->query("SELECT metodos_pago FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN metodos_pago VARCHAR(255) DEFAULT ''"); }
+try { $pdo->query("SELECT metodo_pago FROM turnos LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN metodo_pago VARCHAR(100) DEFAULT NULL"); }
 try { $pdo->query("SELECT url_logo FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN url_logo VARCHAR(255) DEFAULT NULL"); }
 try { $pdo->query("SELECT color_fondo FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN color_fondo VARCHAR(20) DEFAULT '#ffffff'"); }
 try { $pdo->query("SELECT url_portada FROM configuracion_web LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN url_portada VARCHAR(255) DEFAULT NULL"); }

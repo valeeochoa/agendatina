@@ -24,6 +24,7 @@ $fecha = isset($_POST['fecha']) ? trim($_POST['fecha']) : '';
 $hora = isset($_POST['hora']) ? trim($_POST['hora']) : '';
 $servicio = isset($_POST['servicio']) ? trim($_POST['servicio']) : '';
 $profesional = isset($_POST['profesional']) ? trim($_POST['profesional']) : 'Cualquiera (Sin preferencia)';
+$metodo_pago = isset($_POST['metodo_pago']) ? trim($_POST['metodo_pago']) : '';
 $ruta = isset($_POST['negocio']) ? trim($_POST['negocio']) : '';
 
 // Validar datos básicos
@@ -40,6 +41,9 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN ultimo_pago DA
 
 try { $pdo->query("SELECT estado_pago FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN estado_pago VARCHAR(50) DEFAULT 'prueba'"); }
+
+try { $pdo->query("SELECT metodo_pago FROM turnos LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN metodo_pago VARCHAR(100) DEFAULT NULL"); }
 
 try { $pdo->query("SELECT fecha_alta FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN fecha_alta DATETIME DEFAULT CURRENT_TIMESTAMP"); }
@@ -116,7 +120,7 @@ if (!empty($logo)) {
 }
 
 $numeroWhatsApp = preg_replace('/\D/', '', $celular); // Limpiar número para el enlace
-$textoWhatsApp = "Hola " . ($nombre . " " . $apellido) . ", te escribo desde " . $businessName . " por tu solicitud de turno para el " . $fecha_display . " a las " . $hora . " hs (" . $servicio . ").";
+$textoWhatsApp = "Hola " . ($nombre . " " . $apellido) . ", te escribo desde " . $businessName . " por tu solicitud de turno para el " . $fecha_display . " a las " . $hora . " hs (" . $servicio . ")" . (!empty($metodo_pago) ? " a abonar con " . $metodo_pago : "") . ".";
 $urlWhatsApp = "https://wa.me/" . $numeroWhatsApp . "?text=" . urlencode($textoWhatsApp);
 
 
@@ -142,6 +146,7 @@ $message = "
                     <tr><td style='padding: 6px 0; color: #64748b;'><strong>Servicio:</strong></td><td style='padding: 6px 0; font-weight: bold;'>$servicio</td></tr>
                     <tr><td style='padding: 6px 0; color: #64748b;'><strong>Profesional:</strong></td><td style='padding: 6px 0; font-weight: bold;'>$profesional</td></tr>
                     <tr><td style='padding: 6px 0; color: #64748b;'><strong>Fecha y Hora:</strong></td><td style='padding: 6px 0; font-weight: bold; color: $primaryColor;'>$fecha_display a las $hora hs</td></tr>
+                    " . (!empty($metodo_pago) ? "<tr><td style='padding: 6px 0; color: #64748b;'><strong>Pago:</strong></td><td style='padding: 6px 0; font-weight: bold;'>$metodo_pago</td></tr>" : "") . "
                 </table>
             </div>
             
@@ -249,8 +254,8 @@ try {
     }
 
     $stmt = $pdo->prepare(
-        "INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, estado) 
-         VALUES (:id_negocio, :cliente_nombre, :cliente_celular, :fecha, :hora, :servicio, :profesional, :id_servicio, :estado)"
+        "INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, metodo_pago, estado) 
+         VALUES (:id_negocio, :cliente_nombre, :cliente_celular, :fecha, :hora, :servicio, :profesional, :id_servicio, :metodo_pago, :estado)"
     );
 
     $stmt->execute([
@@ -262,6 +267,7 @@ try {
         'servicio' => $servicio,
         'profesional' => $profesional,
         'id_servicio' => $id_servicio,
+        'metodo_pago' => $metodo_pago,
         'estado' => 'pendiente',
     ]);
 

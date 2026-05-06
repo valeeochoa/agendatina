@@ -72,6 +72,18 @@ function loadStatistics() {
         const clientesUnicos = new Set(turnosFiltrados.map(t => t.cliente_celular || t.celular));
         document.getElementById('statClientes').textContent = clientesUnicos.size;
 
+        // Horas Ocupadas Hoy
+        const now = new Date();
+        const hoyString = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        const turnosHoy = turnos.filter(t => t.fecha === hoyString && t.estado === 'confirmado');
+        const minutosHoy = turnosHoy.reduce((total, turno) => {
+            const servicio = servicios.find(s => s.nombre === turno.servicio);
+            return total + (servicio ? parseInt(servicio.duracion) || 30 : 30);
+        }, 0);
+        const horas = Math.floor(minutosHoy / 60);
+        const minutos = minutosHoy % 60;
+        document.getElementById('statHorasHoy').textContent = minutosHoy > 0 ? `${horas}h ${minutos}m` : '0h';
+
         // 5. Gráfico de Turnos por Día (últimos 30 días)
         renderTurnosPorDiaChart(turnos, fechaDesde, fechaHasta);
 
