@@ -1029,6 +1029,7 @@ function openProfileModal() {
                 if(statConf) statConf.textContent = confirmados;
                 if(statPend) statPend.textContent = pendientes;
             }
+            
         }).catch(err => console.error('Error stats:', err));
 
     modal.classList.remove('hidden');
