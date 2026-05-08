@@ -2,6 +2,7 @@ let turnosChartInstance;
 let serviciosChartInstance;
 let ingresosChartInstance;
 let ingresosSemanaChartInstance;
+let pagosChartInstance;
 
 document.addEventListener('DOMContentLoaded', () => {
     // Seguridad: si no hay sesión, redirigir al login
@@ -104,6 +105,14 @@ function loadStatistics() {
         // 8. Gráfico de Ingresos por Semana
         renderIngresosPorSemanaChart(turnosFiltrados, servicios, fechaDesde, fechaHasta);
 
+        // 9. Gráfico de Métodos de Pago
+        const conteoPagos = turnosFiltrados.reduce((acc, turno) => {
+            const metodo = turno.metodo_pago || 'No especificado';
+            acc[metodo] = (acc[metodo] || 0) + 1;
+            return acc;
+        }, {});
+        renderPagosChart(conteoPagos);
+
     }).catch(error => {
         console.error('Error al cargar las estadísticas:', error);
     });
@@ -156,6 +165,32 @@ function renderTurnosPorDiaChart(allTurnos, startDate, endDate) {
                 legend: { display: false }
             }
         }
+    });
+}
+
+function renderPagosChart(conteoPagos) {
+    const canvas = document.getElementById('pagosChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const labels = Object.keys(conteoPagos);
+    const data = Object.values(conteoPagos);
+
+    const backgroundColors = [
+        '#50E3C2', '#4A90E2', '#D11149', '#F8E71C', '#FC8712', 
+        '#7B68EE', '#B8E986', '#F44979', '#FF9D73', '#FCB0B3'
+    ];
+
+    if (pagosChartInstance) {
+        pagosChartInstance.destroy();
+    }
+
+    pagosChartInstance = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{ label: 'Métodos de Pago', data: data, backgroundColor: backgroundColors, hoverOffset: 4 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { padding: 15 } } } }
     });
 }
 

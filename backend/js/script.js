@@ -280,8 +280,8 @@ function loadDashboardData() {
                     if (planStr.includes('básico') || planStr.includes('basico') || planStr.includes('simple')) {
                         cardAgenda.style.display = 'none'; // Plan básico: Oculta Agenda y Web
                         cardWeb.style.display = 'none';
-                    } else if (planStr.includes('intermedio')) {
-                        cardWeb.style.display = 'none';    // Plan Intermedio: Oculta la Web Pública
+                    } else if (planStr.includes('intermedio') || planStr.includes('profesional')) {
+                        cardWeb.style.display = 'none';    // Plan Profesional/Intermedio: Oculta la Web Pública
                     }
                     
                     // Respaldo de seguridad por si el plan falló en cargar antes
@@ -312,7 +312,7 @@ function loadDashboardData() {
                     
                     if(pData && pData.success) {
                         basePrice = parseFloat(pData.data.precio_basico);
-                        if (planStr.includes('intermedio')) basePrice = parseFloat(pData.data.precio_intermedio);
+                        if (planStr.includes('intermedio') || planStr.includes('profesional')) basePrice = parseFloat(pData.data.precio_intermedio);
                         if (planStr.includes('completo') || planStr.includes('premium')) basePrice = parseFloat(pData.data.precio_premium);
                         
                         discount = parseInt(pData.data.descuento_porcentaje) || 0;
@@ -960,9 +960,31 @@ function loadCustomization() {
                 }
                 
                 if (data.color_primario) {
+                    let hex = data.color_primario.replace('#', '');
+                    if(hex.length === 3) hex = hex.split('').map(x => x+x).join('');
+                    let r = parseInt(hex.substr(0, 2), 16) || 0;
+                    let g = parseInt(hex.substr(2, 2), 16) || 0;
+                    let b = parseInt(hex.substr(4, 2), 16) || 0;
+                    let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+                    
+                    let textColor = (yiq >= 128) ? '#1e293b' : '#ffffff';
+                    let textMuted = (yiq >= 128) ? '#475569' : 'rgba(255,255,255,0.8)';
+                    let borderMuted = (yiq >= 128) ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)';
+                    let badgeBg = (yiq >= 128) ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.2)';
+                    let badgeText = (yiq >= 128) ? '#0f172a' : '#ffffff';
+
                     const style = document.getElementById('dynamic-dashboard-styles') || document.createElement('style');
                     style.id = 'dynamic-dashboard-styles';
                     style.innerHTML = `
+                        :root {
+                            --color-primario: ${data.color_primario};
+                            --color-secundario: ${data.color_secundario || '#FC8712'};
+                            --color-texto-contraste: ${textColor};
+                            --color-texto-mutado: ${textMuted};
+                            --border-contraste: ${borderMuted};
+                            --badge-bg: ${badgeBg};
+                            --badge-text: ${badgeText};
+                        }
                         .bg-primary { background-color: ${data.color_primario} !important; }
                         .text-primary { color: ${data.color_primario} !important; }
                         .border-primary { border-color: ${data.color_primario} !important; }
@@ -1405,21 +1427,21 @@ function renderAgendaTurnos(data, searchTerm = '', profTerm = '') {
             const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}/${fParts[0]}` : t.fecha;
             const focusClass = focusId == t.id ? 'ring-4 ring-primary ring-offset-2 scale-[1.02] transition-transform duration-500' : '';
             listPend.innerHTML += `
-                <div id="turno-${t.id}" class="bg-white border border-slate-200 shadow-sm rounded-2xl p-5 hover:shadow-lg hover:border-amber-300 transition-all relative overflow-hidden ${focusClass}">
+                <div id="turno-${t.id}" class="shadow-sm rounded-2xl p-5 hover:shadow-lg transition-all relative overflow-hidden ${focusClass}" style="background-color: var(--color-primario, #ffffff); border: 1px solid var(--border-contraste, #e2e8f0);">
                     <div class="absolute top-0 left-0 w-1.5 h-full bg-amber-400"></div>
                     <div class="flex justify-between items-start mb-3">
-                        <span class="text-xs font-bold bg-amber-100 text-amber-800 px-3 py-1 rounded-lg uppercase tracking-wider">${fDisplay} • ${t.hora} hs</span>
-                        ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
+                        <span class="text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wider" style="background-color: var(--badge-bg, #fef3c7); color: var(--badge-text, #92400e);">${fDisplay} • ${t.hora} hs</span>
+                        ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1" style="background-color: var(--badge-bg, #f1f5f9); color: var(--badge-text, #475569);"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
                     </div>
-                    <p class="text-lg font-bold text-slate-800 mb-1">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                    <p class="text-lg font-bold mb-1" style="color: var(--color-texto-contraste, #1e293b);">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
                     <div class="flex items-center gap-3 mb-4">
-                        <p class="text-sm font-medium text-slate-600 flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100"><span class="material-symbols-outlined text-[16px] text-slate-400">call</span> ${t.cliente_celular || t.celular}</p>
+                        <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: var(--color-texto-mutado, #475569); background-color: var(--badge-bg, #f8fafc); border-color: var(--border-contraste, #f1f5f9);"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular}</p>
                         <button onclick="contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
                     </div>
-                    ${t.metodo_pago ? `<p class="text-sm text-slate-600 mb-1 flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
-                    <p class="text-sm text-slate-600 mb-5 flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary">spa</span> <span class="font-medium">${t.servicio}</span></p>
+                    ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: var(--color-texto-mutado, #475569);"><span class="material-symbols-outlined text-[18px]" style="color: var(--color-texto-contraste, #D11149);">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
+                    <p class="text-sm mb-5 flex items-center gap-2" style="color: var(--color-texto-mutado, #475569);"><span class="material-symbols-outlined text-[18px]" style="color: var(--color-texto-contraste, #D11149);">spa</span> <span class="font-medium">${t.servicio}</span></p>
                     
-                    <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
+                    <div class="flex items-center gap-3 pt-4 border-t" style="border-color: var(--border-contraste, #f1f5f9);">
                         <button onclick="confirmarTurno('${t.id}')" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 shadow-sm shadow-amber-500/20">
                             <span class="material-symbols-outlined text-[18px]">check</span> Confirmar
                         </button>
@@ -1474,21 +1496,21 @@ function renderAgendaTurnos(data, searchTerm = '', profTerm = '') {
                 
                 gruposConf[fecha].forEach(t => {
                     htmlDia += `
-                        <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-5 hover:shadow-lg transition-shadow relative overflow-hidden">
-                            <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500" style="background-color: var(--color-primario, #3b82f6);"></div>
+                        <div class="shadow-sm rounded-2xl p-5 hover:shadow-lg transition-shadow relative overflow-hidden" style="background-color: var(--color-primario, #ffffff); border: 1px solid var(--border-contraste, #e2e8f0);">
+                            <div class="absolute top-0 left-0 w-1.5 h-full" style="background-color: var(--color-secundario, #3b82f6);"></div>
                             <div class="flex justify-between items-start mb-3">
-                                <span class="text-xs font-bold bg-blue-50 text-blue-700 px-3 py-1 rounded-lg uppercase tracking-wider">${t.hora} hs</span>
-                                ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
+                                <span class="text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wider" style="background-color: var(--badge-bg, #eff6ff); color: var(--badge-text, #1d4ed8);">${t.hora} hs</span>
+                                ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1" style="background-color: var(--badge-bg, #f1f5f9); color: var(--badge-text, #475569);"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
                             </div>
-                            <p class="text-lg font-bold text-slate-800 mb-1">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                            <p class="text-lg font-bold mb-1" style="color: var(--color-texto-contraste, #1e293b);">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
                             <div class="flex items-center gap-3 mb-4">
-                                <p class="text-sm font-medium text-slate-600 flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100"><span class="material-symbols-outlined text-[16px] text-slate-400">call</span> ${t.cliente_celular || t.celular}</p>
+                                <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: var(--color-texto-mutado, #475569); background-color: var(--badge-bg, #f8fafc); border-color: var(--border-contraste, #f1f5f9);"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular}</p>
                                 <button onclick="contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
                             </div>
-                    ${t.metodo_pago ? `<p class="text-sm text-slate-600 mb-1 flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
-                            <p class="text-sm text-slate-600 mb-5 flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary">spa</span> <span class="font-medium">${t.servicio}</span></p>
-                            <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
-                                <button onclick="recordatorioWhatsApp('${t.id}')" class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 border border-blue-100" title="Enviar recordatorio">
+                    ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: var(--color-texto-mutado, #475569);"><span class="material-symbols-outlined text-[18px]" style="color: var(--color-texto-contraste, #D11149);">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
+                            <p class="text-sm mb-5 flex items-center gap-2" style="color: var(--color-texto-mutado, #475569);"><span class="material-symbols-outlined text-[18px]" style="color: var(--color-texto-contraste, #D11149);">spa</span> <span class="font-medium">${t.servicio}</span></p>
+                            <div class="flex items-center gap-3 pt-4 border-t" style="border-color: var(--border-contraste, #f1f5f9);">
+                                <button onclick="recordatorioWhatsApp('${t.id}')" class="flex-1 text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 border" style="background-color: var(--badge-bg, #eff6ff); color: var(--color-texto-contraste, #1d4ed8); border-color: var(--border-contraste, #bfdbfe);" title="Enviar recordatorio">
                                     <span class="material-symbols-outlined text-[18px]">notifications_active</span> Recordar
                                 </button>
                                 <button onclick="cancelarTurno('${t.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-sm font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center border border-red-100" title="Eliminar turno">
@@ -1711,7 +1733,7 @@ const carouselData = [
         ]
     },
     { 
-        title: 'Plan Intermedio', 
+        title: 'Plan Profesional', 
         desc: 'Sistema de turnos con agenda virtual para administrar todas tus reservas desde un solo lugar.', 
         oldPrice: '$20.563',
         price: '$16.450', 
@@ -2358,6 +2380,15 @@ function applyWebCustomization() {
                     const pColor = data.color_primario || '#D11149';
                     const sColor = data.color_secundario || '#FCB0B3';
                     
+                    let hex = pColor.replace('#', '');
+                    if(hex.length === 3) hex = hex.split('').map(x => x+x).join('');
+                    let r = parseInt(hex.substr(0, 2), 16) || 0;
+                    let g = parseInt(hex.substr(2, 2), 16) || 0;
+                    let b = parseInt(hex.substr(4, 2), 16) || 0;
+                    let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+                    
+                    let textColor = (yiq >= 128) ? '#1e293b' : '#ffffff';
+
                     // Eliminar la etiqueta de estilo anterior si existe (útil al guardar desde el panel admin)
                     const oldStyle = document.getElementById('dynamic-business-styles');
                     if (oldStyle) oldStyle.remove();
@@ -2369,6 +2400,7 @@ function applyWebCustomization() {
                         :root {
                             --color-primario: ${pColor};
                             --color-secundario: ${sColor};
+                            --color-texto-contraste: ${textColor};
                         }
                         .bg-primary { background-color: var(--color-primario) !important; }
                         .text-primary { color: var(--color-primario) !important; }
@@ -2376,12 +2408,13 @@ function applyWebCustomization() {
                         .ring-primary { --tw-ring-color: var(--color-primario) !important; }
                         
                         /* Forzar color en botones principales generales (Tailwind bg-blue-600) */
-                        button[type="submit"], .bg-blue-600 { background-color: var(--color-primario) !important; }
-                        button[type="submit"]:hover, .hover\\:bg-blue-700:hover { background-color: var(--color-primario) !important; filter: brightness(0.85); }
+                        button[type="submit"], .bg-blue-600 { background-color: var(--color-primario) !important; color: var(--color-texto-contraste) !important; }
+                        button[type="submit"]:hover, .hover\\:bg-blue-700:hover { background-color: var(--color-primario) !important; color: var(--color-texto-contraste) !important; filter: brightness(0.85); }
                         
                         /* Estilos para el calendario y horarios */
-                        .calendar-day.selected { background-color: var(--color-primario) !important; color: #ffffff !important; }
-                        .time-slot.selected { background-color: var(--color-primario) !important; color: #ffffff !important; border-color: var(--color-primario) !important; }
+                        .calendar-day.selected { background-color: var(--color-primario) !important; color: var(--color-texto-contraste) !important; }
+                        .time-slot.selected { background-color: var(--color-primario) !important; color: var(--color-texto-contraste) !important; border-color: var(--color-primario) !important; }
+                        .text-primary-contrast { color: var(--color-texto-contraste) !important; }
                     `;
                     if (data.color_fondo) {
                         styleHTML += `body, .bg-slate-100 { background-color: ${data.color_fondo} !important; }`;

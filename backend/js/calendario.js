@@ -1909,7 +1909,7 @@ function renderWeeklyCalendar() {
         if (selectedTimeValue === date.getTime()) {
             borderClass = 'border-primary ring-4 ring-primary/30 ring-offset-2';
             bgClass = 'bg-primary';
-            textClass = 'text-white';
+            textClass = 'text-primary-contrast';
         } else {
             borderClass = visuallyDisabled ? 'border-red-200 dark:border-red-800/50' : 'border-green-400 dark:border-green-600/50';
         }
@@ -2103,10 +2103,10 @@ function selectWeeklyDate(date) {
             slot.className = 'time-slot flex flex-col justify-center items-center bg-slate-100 dark:bg-slate-800 py-2 rounded-xl text-sm font-extrabold border border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary cursor-pointer transition-all hover:shadow-md';
             slot.addEventListener('click', () => {
                 document.querySelectorAll('#weeklyTimeSlots .time-slot').forEach(el => {
-                    el.classList.remove('selected', 'bg-primary', 'text-white', 'border-primary', 'shadow-md');
+                    el.classList.remove('selected', 'bg-primary', 'text-primary-contrast', 'border-primary', 'shadow-md');
                     el.classList.add('bg-slate-100', 'dark:bg-slate-800');
                 });
-                slot.classList.add('selected', 'bg-primary', 'text-white', 'border-primary', 'shadow-md');
+                slot.classList.add('selected', 'bg-primary', 'text-primary-contrast', 'border-primary', 'shadow-md');
                 slot.classList.remove('bg-slate-100', 'dark:bg-slate-800');
                 cal2_selectedTime = time;
                 document.getElementById('weeklyHora').value = time;

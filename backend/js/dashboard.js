@@ -250,7 +250,16 @@ function showTourStep(index, doScroll = true) {
         highlight.classList.remove('opacity-0');
 
         document.getElementById('tourTitle').textContent = step.title;
-        document.getElementById('tourText').textContent = step.text;
+        
+        const tourTextEl = document.getElementById('tourText');
+        tourTextEl.textContent = step.text;
+        
+        if (step.target === 'cardWeb') {
+            tourTextEl.style.textAlign = 'left';
+        } else {
+            tourTextEl.style.textAlign = '';
+        }
+        
         document.getElementById('tourStepIndicator').textContent = `${index + 1}/${tourSteps.length}`;
         const nextBtn = document.getElementById('tourNextBtn');
         nextBtn.innerHTML = index === tourSteps.length - 1 ? 'Finalizar <span class="material-symbols-outlined text-[16px]">check</span>' : 'Siguiente <span class="material-symbols-outlined text-[16px]">arrow_forward</span>';
