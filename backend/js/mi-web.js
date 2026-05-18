@@ -180,12 +180,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (profWebModal && profWebModalContent) {
             profWebModal.classList.remove('hidden');
             setTimeout(() => { profWebModal.classList.remove('opacity-0'); profWebModalContent.classList.remove('scale-95'); }, 10);
+            setTimeout(() => { 
+                profWebModal.classList.remove('opacity-0'); 
+                profWebModalContent.classList.remove('scale-95', 'animate-modal-pop'); 
+                void profWebModalContent.offsetWidth;
+                profWebModalContent.classList.add('animate-modal-pop');
+            }, 10);
         }
     };
 
     window.closeProfWebModal = function() {
         if (profWebModal && profWebModalContent) {
             profWebModal.classList.add('opacity-0');
+            profWebModalContent.classList.remove('animate-modal-pop');
             profWebModalContent.classList.add('scale-95');
             setTimeout(() => profWebModal.classList.add('hidden'), 300);
         }
@@ -283,12 +290,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cursoWebModal && cursoWebModalContent) {
             cursoWebModal.classList.remove('hidden');
             setTimeout(() => { cursoWebModal.classList.remove('opacity-0'); cursoWebModalContent.classList.remove('scale-95'); }, 10);
+            setTimeout(() => { 
+                cursoWebModal.classList.remove('opacity-0'); 
+                cursoWebModalContent.classList.remove('scale-95', 'animate-modal-pop'); 
+                void cursoWebModalContent.offsetWidth;
+                cursoWebModalContent.classList.add('animate-modal-pop');
+            }, 10);
         }
     };
 
     window.closeCursoWebModal = function() {
         if (cursoWebModal && cursoWebModalContent) {
             cursoWebModal.classList.add('opacity-0');
+            cursoWebModalContent.classList.remove('animate-modal-pop');
             cursoWebModalContent.classList.add('scale-95');
             setTimeout(() => cursoWebModal.classList.add('hidden'), 300);
         }
@@ -402,12 +416,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (serviceModal && serviceModalContent) {
             serviceModal.classList.remove('hidden');
             setTimeout(() => { serviceModal.classList.remove('opacity-0'); serviceModalContent.classList.remove('scale-95'); }, 10);
+            setTimeout(() => { 
+                serviceModal.classList.remove('opacity-0'); 
+                serviceModalContent.classList.remove('scale-95', 'animate-modal-pop');
+                void serviceModalContent.offsetWidth;
+                serviceModalContent.classList.add('animate-modal-pop');
+            }, 10);
         }
     };
 
     document.getElementById('closeServiceModalBtn')?.addEventListener('click', () => {
         if (serviceModal && serviceModalContent) {
             serviceModal.classList.add('opacity-0');
+            serviceModalContent.classList.remove('animate-modal-pop');
             serviceModalContent.classList.add('scale-95');
             setTimeout(() => serviceModal.classList.add('hidden'), 300);
         }

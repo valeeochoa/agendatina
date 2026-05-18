@@ -54,6 +54,12 @@ window.openTeamModal = function() {
     if (!modal || !content) return;
     modal.classList.remove('hidden');
     setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+    setTimeout(() => { 
+        modal.classList.remove('opacity-0'); 
+        content.classList.remove('scale-95', 'animate-modal-pop');
+        void content.offsetWidth;
+        content.classList.add('animate-modal-pop');
+    }, 10);
     loadTeamList();
 };
 
@@ -62,6 +68,7 @@ window.closeTeamModal = function() {
     const content = document.getElementById('teamModalContent');
     if (!modal || !content) return;
     modal.classList.add('opacity-0');
+    content.classList.remove('animate-modal-pop');
     content.classList.add('scale-95');
     setTimeout(() => { modal.classList.add('hidden'); document.getElementById('teamForm').reset(); }, 300);
 };
@@ -143,6 +150,23 @@ const tourSteps = [
 ];
 
 window.startTour = function() {
+    // Inyectar estilos de animación fluida para el tooltip si no existen
+    if (!document.getElementById('tour-custom-animations')) {
+        const style = document.createElement('style');
+        style.id = 'tour-custom-animations';
+        style.innerHTML = `
+            @keyframes tourPop {
+                0% { opacity: 0; transform: scale(0.85) translateY(15px); }
+                60% { opacity: 1; transform: scale(1.03) translateY(-3px); }
+                100% { opacity: 1; transform: scale(1) translateY(0); }
+            }
+            .animate-tour-pop {
+                animation: tourPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
     currentTourStep = 0;
     const overlay = document.getElementById('tourOverlay');
     const tooltip = document.getElementById('tourTooltip');
@@ -270,10 +294,23 @@ function showTourStep(index, doScroll = true) {
         const ww = window.innerWidth;
         const wh = window.innerHeight;
 
-        if (pos === 'right' && (rect.right + gap + tWidth > ww - margin)) pos = 'bottom';
-        if (pos === 'left' && (rect.left - gap - tWidth < margin)) pos = 'bottom';
-        if (pos === 'top' && (rect.top - gap - tHeight < margin)) pos = 'bottom';
-        if (pos === 'bottom' && (rect.bottom + gap + tHeight > wh - margin)) pos = 'top';
+        // Comprobamos dónde hay espacio suficiente
+        const fitsLeft = (rect.left - gap - tWidth >= margin);
+        const fitsRight = (rect.right + gap + tWidth <= ww - margin);
+        const fitsTop = (rect.top - gap - tHeight >= margin + 90); // 90px extra por el navbar
+        const fitsBottom = (rect.bottom + gap + tHeight <= wh - margin);
+
+        // Fallback inteligente priorizando laterales antes que top/bottom
+        if (pos === 'left' && !fitsLeft) pos = fitsRight ? 'right' : (fitsBottom ? 'bottom' : 'top');
+        else if (pos === 'right' && !fitsRight) pos = fitsLeft ? 'left' : (fitsBottom ? 'bottom' : 'top');
+        else if (pos === 'top' && !fitsTop) pos = fitsBottom ? 'bottom' : (fitsRight ? 'right' : 'left');
+        else if (pos === 'bottom' && !fitsBottom) pos = fitsTop ? 'top' : (fitsRight ? 'right' : 'left');
+
+        // Para la tarjeta web, asegurar que siempre quede al lado izquierdo si entra, sino a la derecha
+        if (step.target === 'cardWeb') {
+            if (fitsLeft) pos = 'left';
+            else if (fitsRight) pos = 'right';
+        }
 
         let top, left, arrowClass;
         arrow.style.left = '';
@@ -309,6 +346,8 @@ function showTourStep(index, doScroll = true) {
                 arrowClass = arrowClass.replace('-translate-x-1/2', '').replace('left-1/2', '');
                 arrow.style.left = Math.min(tWidth - 24, (tWidth / 2) + shift) + 'px';
             }
+            if (top < 90) top = 90;
+            if (top + tHeight > wh - margin) top = wh - margin - tHeight;
         } else if (pos === 'left' || pos === 'right') {
             let marginTop = 90; // Margen superior para esquivar el navbar
             if (top < marginTop) {
@@ -322,14 +361,17 @@ function showTourStep(index, doScroll = true) {
                 arrowClass = arrowClass.replace('-translate-y-1/2', '').replace('top-1/2', '');
                 arrow.style.top = Math.min(tHeight - 24, (tHeight / 2) + shift) + 'px';
             }
+            if (left < margin) left = margin;
+            if (left + tWidth > ww - margin) left = ww - margin - tWidth;
         }
 
         tooltip.style.top = top + 'px';
         tooltip.style.left = left + 'px';
         arrow.className = `absolute w-3 h-3 bg-white border border-slate-200 transform rotate-45 shadow-sm ${arrowClass}`;
 
-        tooltip.classList.remove('opacity-0', 'scale-95');
-        tooltip.classList.add('opacity-100', 'scale-100');
+        tooltip.classList.remove('opacity-0', 'scale-95', 'animate-tour-pop');
+        void tooltip.offsetWidth; // Forzar reflow para reiniciar la animación en cada paso nuevo
+        tooltip.classList.add('opacity-100', 'scale-100', 'animate-tour-pop');
     };
 
     if (doScroll) {

@@ -6,6 +6,23 @@
 
 window.confirmActionCallback = null;
 
+// Estilos globales para la animación "pop" de los modales
+if (!document.getElementById('global-modal-animations')) {
+    const style = document.createElement('style');
+    style.id = 'global-modal-animations';
+    style.innerHTML = `
+        @keyframes modalPop {
+            0% { opacity: 0; transform: scale(0.85) translateY(15px); }
+            60% { opacity: 1; transform: scale(1.03) translateY(-3px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-modal-pop {
+            animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 window.showToast = function(message, type = 'success') {
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -41,6 +58,11 @@ window.showConfirm = function(title, message, acceptText, acceptColorClass, call
     setTimeout(() => {
         if(modal) modal.classList.remove('opacity-0');
         if(content) content.classList.remove('scale-95');
+        if(content) {
+            content.classList.remove('scale-95', 'animate-modal-pop');
+            void content.offsetWidth;
+            content.classList.add('animate-modal-pop');
+        }
     }, 10);
 };
 
@@ -49,6 +71,10 @@ window.closeConfirm = function() {
     const content = document.getElementById('confirmModalContent');
     if(modal) modal.classList.add('opacity-0');
     if(content) content.classList.add('scale-95');
+    if(content) {
+        content.classList.remove('animate-modal-pop');
+        content.classList.add('scale-95');
+    }
     setTimeout(() => { if(modal) modal.classList.add('hidden'); }, 300);
 };
 
@@ -888,6 +914,12 @@ function openSupportModal() {
     if (!modal || !content) return;
     modal.classList.remove('hidden');
     setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+    setTimeout(() => { 
+        modal.classList.remove('opacity-0'); 
+        content.classList.remove('scale-95', 'animate-modal-pop');
+        void content.offsetWidth;
+        content.classList.add('animate-modal-pop');
+    }, 10);
 }
 
 function closeSupportModal() {
@@ -895,6 +927,7 @@ function closeSupportModal() {
     const content = document.getElementById('supportModalContent');
     if (!modal || !content) return;
     modal.classList.add('opacity-0');
+    content.classList.remove('animate-modal-pop');
     content.classList.add('scale-95');
     setTimeout(() => { 
         modal.classList.add('hidden'); 
@@ -1018,6 +1051,12 @@ function openPaymentModal() {
     if (!modal || !content) return;
     modal.classList.remove('hidden');
     setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+    setTimeout(() => { 
+        modal.classList.remove('opacity-0'); 
+        content.classList.remove('scale-95', 'animate-modal-pop');
+        void content.offsetWidth;
+        content.classList.add('animate-modal-pop');
+    }, 10);
 }
 
 function closePaymentModal() {
@@ -1025,6 +1064,7 @@ function closePaymentModal() {
     const content = document.getElementById('paymentModalContent');
     if (!modal || !content) return;
     modal.classList.add('opacity-0');
+    content.classList.remove('animate-modal-pop');
     content.classList.add('scale-95');
     setTimeout(() => { 
         modal.classList.add('hidden'); 
@@ -1075,6 +1115,12 @@ function openProfileModal() {
 
     modal.classList.remove('hidden');
     setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+    setTimeout(() => { 
+        modal.classList.remove('opacity-0'); 
+        content.classList.remove('scale-95', 'animate-modal-pop');
+        void content.offsetWidth;
+        content.classList.add('animate-modal-pop');
+    }, 10);
 }
 
 function closeProfileModal() {
@@ -1082,6 +1128,7 @@ function closeProfileModal() {
     const content = document.getElementById('profileModalContent');
     if (!modal || !content) return;
     modal.classList.add('opacity-0');
+    content.classList.remove('animate-modal-pop');
     content.classList.add('scale-95');
     setTimeout(() => { 
         modal.classList.add('hidden'); 
@@ -1177,6 +1224,7 @@ window.closeCalendarConfigModal = function() {
     const content = document.getElementById('calendarConfigModalContent');
     if (!modal || !content) return;
     modal.classList.add('opacity-0');
+    content.classList.remove('animate-modal-pop');
     content.classList.add('scale-95');
     setTimeout(() => { modal.classList.add('hidden'); }, 300);
 }
@@ -1186,6 +1234,7 @@ window.closeContactSuccessModal = function() {
     const content = document.getElementById('contactSuccessModalContent');
     if (modal && content) {
         modal.classList.add('opacity-0');
+        content.classList.remove('animate-modal-pop');
         content.classList.add('scale-95');
         setTimeout(() => { modal.classList.add('hidden'); }, 300);
     }
@@ -1196,6 +1245,7 @@ window.closeBookingSuccessModal = function() {
     const content = document.getElementById('bookingSuccessModalContent');
     if (modal && content) {
         modal.classList.add('opacity-0');
+        content.classList.remove('animate-modal-pop');
         content.classList.add('scale-95');
         setTimeout(() => { modal.classList.add('hidden'); window.location.reload(); }, 300);
     }
@@ -1219,6 +1269,12 @@ window.openReportErrorModal = function(segment) {
     document.getElementById('reportSegmentDisplay').value = segment;
     modal.classList.remove('hidden');
     setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+    setTimeout(() => { 
+        modal.classList.remove('opacity-0'); 
+        content.classList.remove('scale-95', 'animate-modal-pop');
+        void content.offsetWidth;
+        content.classList.add('animate-modal-pop');
+    }, 10);
 };
 
 window.closeReportErrorModal = function() {
@@ -1226,6 +1282,7 @@ window.closeReportErrorModal = function() {
     const content = document.getElementById('reportErrorModalContent');
     if (!modal) return;
     modal.classList.add('opacity-0');
+    content.classList.remove('animate-modal-pop');
     content.classList.add('scale-95');
     setTimeout(() => { modal.classList.add('hidden'); document.getElementById('reportErrorForm').reset(); }, 300);
 };
@@ -2390,6 +2447,57 @@ function applyWebCustomization() {
                     let textColor = (yiq >= 128) ? '#1e293b' : '#ffffff';
 
                     // Eliminar la etiqueta de estilo anterior si existe (útil al guardar desde el panel admin)
+                    const oldStyle = document.getElementById('dynamic-business-styles');
+                    if (oldStyle) oldStyle.remove();
+
+                    const style = document.createElement('style');
+                    style.id = 'dynamic-business-styles';
+                    
+                    let styleHTML = `
+                        :root {
+                            --color-primario: ${pColor};
+                            --color-secundario: ${sColor};
+                            --color-texto-contraste: ${textColor};
+                        }
+                        .bg-primary { background-color: var(--color-primario) !important; }
+                        .text-primary { color: var(--color-primario) !important; }
+                        .border-primary { border-color: var(--color-primario) !important; }
+                        .ring-primary { --tw-ring-color: var(--color-primario) !important; }
+                        
+                        /* Forzar color en botones principales generales (Tailwind bg-blue-600) */
+                        button[type="submit"], .bg-blue-600 { background-color: var(--color-primario) !important; color: var(--color-texto-contraste) !important; }
+                        button[type="submit"]:hover, .hover\\:bg-blue-700:hover { background-color: var(--color-primario) !important; color: var(--color-texto-contraste) !important; filter: brightness(0.85); }
+                        
+                        /* Estilos para el calendario y horarios */
+                        .calendar-day.selected { background-color: var(--color-primario) !important; color: var(--color-texto-contraste) !important; }
+                        .time-slot.selected { background-color: var(--color-primario) !important; color: var(--color-texto-contraste) !important; border-color: var(--color-primario) !important; }
+                        .text-primary-contrast { color: var(--color-texto-contraste) !important; }
+                    `;
+                    if (data.color_fondo) {
+                        styleHTML += `body, .bg-slate-100 { background-color: ${data.color_fondo} !important; }`;
+                    }
+                    style.innerHTML = styleHTML;
+                    document.head.appendChild(style);
+                }
+        
+            if (data.metodos_pago) {
+                const metodos = data.metodos_pago.split(',').map(m => m.trim()).filter(m => m);
+                if (metodos.length > 0) {
+                    ['bookingMetodoPago', 'weeklyMetodoPago'].forEach(id => {
+                        const sel = document.getElementById(id);
+                        if (sel) {
+                            sel.innerHTML = '<option value="" disabled selected>Elige cómo abonarás</option>';
+                            metodos.forEach(m => sel.innerHTML += `<option value="${m}">${m}</option>`);
+                            if (sel.parentElement) sel.parentElement.classList.remove('hidden');
+                            sel.required = true;
+                        }
+                    });
+                }
+            }
+            }
+        })
+        .catch(err => console.error('Error al cargar personalización:', err));
+}                   // Eliminar la etiqueta de estilo anterior si existe (útil al guardar desde el panel admin)
                     const oldStyle = document.getElementById('dynamic-business-styles');
                     if (oldStyle) oldStyle.remove();
 

@@ -323,19 +323,11 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                     const animClass = isNewLoaded ? 'animate-new-item' : '';
                     const customStyle = `style="--target-opacity: 0.85; ${isNewLoaded ? 'opacity: 0;' : 'opacity: 0.85;'}"`;
                     htmlDia += `
-                        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 sm:p-5 flex flex-col gap-3 hover:opacity-100 transition-opacity relative overflow-hidden ${animClass}" ${customStyle}>
-                            <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500" style="background-color: var(--color-primario, #3b82f6);"></div>
+                        <div class="shadow-sm rounded-3xl p-5 flex flex-col gap-3 hover:opacity-100 hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden ${animClass}" style="background-color: var(--color-primario, #ffffff); border: 1px solid var(--border-contraste, #e2e8f0); ${customStyle}">
+                            <div class="absolute top-0 left-0 w-1.5 h-full opacity-60" style="background-color: var(--color-secundario, #3b82f6);"></div>
                             <div class="flex justify-between items-start">
                                 <div class="flex-1 min-w-0">
-                                    <span class="text-xs font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2.5 py-1 rounded-md inline-block mb-3 uppercase tracking-wide border border-blue-200 dark:border-blue-800/50">${t.hora} hs</span>
-                                    <p class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2 leading-tight">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
-                                    <p class="text-sm text-slate-600 dark:text-slate-400 mb-1 flex items-start gap-2"><span class="material-symbols-outlined text-[18px] shrink-0 text-slate-400">spa</span> <span class="break-words">${t.servicio}</span></p>
-                                    ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<p class="text-sm text-slate-600 dark:text-slate-400 flex items-start gap-2"><span class="material-symbols-outlined text-[18px] shrink-0 text-slate-400">person</span> <span class="break-words">${t.profesional}</span></p>` : ''}
-                                </div>
-                            </div>
-                            <div class="flex flex-col sm:flex-row gap-2 mt-1 w-full border-t border-slate-100 dark:border-slate-700 pt-4">
-                                <button onclick="window.contactarWhatsApp('${t.id}')" class="w-full flex items-center justify-center gap-1 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20 px-3 py-2.5 rounded-xl font-bold transition-colors text-sm border border-emerald-100 dark:border-emerald-800/30"><span class="material-symbols-outlined text-[18px]">chat</span> WhatsApp</button>
-                                <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="w-full flex items-center justify-center gap-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 px-4 py-2.5 rounded-xl font-bold transition-colors text-sm border border-red-100 dark:border-red-800/30" title="Eliminar turno">
+                                    <div class="space-y-2 bg-barTurnoAdmin('${t.id}')" class="w-full flex items-center justify-center gap-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 px-4 py-3 rounded-xl font-bold transition-all text-sm border border-red-200 dark:border-red-800/30 hover:shadow-md" title="Eliminar turno">
                                     <span class="material-symbols-outlined text-[18px]">delete</span> Eliminar
                                 </button>
                             </div>
@@ -381,19 +373,24 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                 const fParts = t.fecha.split('-');
                 const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}` : t.fecha;
                 listElim.innerHTML += `
-                        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 sm:p-5 flex flex-col gap-3 ${opacityClass} hover:opacity-100 transition-opacity mb-3 ${animClass}" style="--target-opacity: 0.7;">
+                        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-5 flex flex-col gap-3 ${opacityClass} hover:opacity-100 hover:shadow-xl hover:-translate-y-1 transition-all mb-4 relative overflow-hidden ${animClass}" style="--target-opacity: 0.7;">
+                            <div class="absolute top-0 left-0 w-1.5 h-full bg-slate-400 opacity-60"></div>
                             <div class="flex justify-between items-start">
                                 <div class="flex-1 min-w-0">
-                                    <span class="text-xs font-bold bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 px-2.5 py-1 rounded-md inline-block mb-3 uppercase tracking-wide border border-slate-200 dark:border-slate-600">${fDisplay} • ${t.hora} hs</span>
-                                    <p class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2 leading-tight">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
-                                    <p class="text-sm text-slate-600 dark:text-slate-400 flex items-start gap-2"><span class="material-symbols-outlined text-[18px] shrink-0 text-slate-400">spa</span> <span class="break-words">${t.servicio}</span></p>
+                                    <span class="text-xs font-extrabold bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-xl inline-flex mb-4 uppercase tracking-wide border border-slate-200 dark:border-slate-600 items-center gap-1.5 w-max shadow-sm">
+                                        <span class="material-symbols-outlined text-[15px]">schedule</span> ${fDisplay} • ${t.hora} hs
+                                    </span>
+                                    <p class="text-2xl font-black text-slate-800 dark:text-slate-100 mb-3 leading-tight tracking-tight line-through opacity-70">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                                    <div class="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl">
+                                        <p class="text-sm font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-2.5"><span class="material-symbols-outlined text-[18px] opacity-70">spa</span> <span class="break-words">${t.servicio}</span></p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="flex flex-col sm:flex-row gap-2 mt-2 w-full border-t border-slate-100 dark:border-slate-700 pt-4">
-                                <button onclick="window.restaurarTurnoAdmin('${t.id}')" class="w-full sm:flex-1 bg-green-50 hover:bg-green-100 text-green-700 dark:bg-green-500/10 dark:hover:bg-green-500/20 dark:text-green-400 text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 border border-green-100 dark:border-green-800/30">
+                            <div class="flex flex-col sm:flex-row gap-3 mt-2 w-full border-t border-slate-100 dark:border-slate-700 pt-4">
+                                <button onclick="window.restaurarTurnoAdmin('${t.id}')" class="w-full sm:flex-1 bg-green-50 hover:bg-green-100 text-green-700 dark:bg-green-500/10 dark:hover:bg-green-500/20 dark:text-green-400 text-sm font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 border border-green-200 dark:border-green-800/30 hover:shadow-md">
                                     <span class="material-symbols-outlined text-[18px]">restore_from_trash</span> Restaurar
                                 </button>
-                                <button onclick="window.eliminarTurnoPermanente('${t.id}')" class="w-full sm:flex-none bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 text-sm font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center gap-1 border border-red-100 dark:border-red-800/30" title="Eliminar definitivamente">
+                                <button onclick="window.eliminarTurnoPermanente('${t.id}')" class="w-full sm:flex-none bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 text-sm font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 border border-red-200 dark:border-red-800/30 hover:shadow-md" title="Eliminar definitivamente">
                                     <span class="material-symbols-outlined text-[18px]">delete_forever</span> <span class="sm:hidden">Eliminar definitivo</span>
                                 </button>
                             </div>

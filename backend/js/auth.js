@@ -1,6 +1,23 @@
 // backend/js/auth.js
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Inyectar estilos para animación pop
+    if (!document.getElementById('global-modal-animations')) {
+        const style = document.createElement('style');
+        style.id = 'global-modal-animations';
+        style.innerHTML = `
+            @keyframes modalPop {
+                0% { opacity: 0; transform: scale(0.85) translateY(15px); }
+                60% { opacity: 1; transform: scale(1.03) translateY(-3px); }
+                100% { opacity: 1; transform: scale(1) translateY(0); }
+            }
+            .animate-modal-pop {
+                animation: modalPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
     // ---- Lógica para login.html ----
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
@@ -82,7 +99,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const content = document.getElementById('forgotModalContent');
         if (!modal || !content) return;
         modal.classList.remove('hidden');
-        setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+    setTimeout(() => { 
+        modal.classList.remove('opacity-0'); 
+        content.classList.remove('scale-95', 'animate-modal-pop');
+        void content.offsetWidth;
+        content.classList.add('animate-modal-pop');
+    }, 10);
     };
 
     window.closeForgotModal = function() {
@@ -90,7 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const content = document.getElementById('forgotModalContent');
         if (!modal || !content) return;
         modal.classList.add('opacity-0');
-        content.classList.add('scale-95');
+    content.classList.remove('animate-modal-pop');
+    content.classList.add('scale-95');
         setTimeout(() => { modal.classList.add('hidden'); document.getElementById('forgotForm').reset(); document.getElementById('forgotMessage').classList.add('hidden'); }, 300);
     };
 });
