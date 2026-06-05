@@ -210,6 +210,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($_FILES['logo_file']) && $_FILES['logo_file']['error'] === UPLOAD_ERR_OK) {
             $fileL = $_FILES['logo_file'];
 
+            // 1. Validar extensión de logo contra una lista blanca
+            $extL = strtolower(pathinfo($fileL['name'], PATHINFO_EXTENSION));
+            $allowedImgExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+            if (!in_array($extL, $allowedImgExtensions)) {
+                echo json_encode(['success' => false, 'error' => 'Formato de logo no permitido. Extensión inválida.']);
+                exit;
+            }
+
+            // 2. Validar tipo MIME real del logo en el servidor
+            $allowedImgMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+            $realMimeL = '';
+            if (function_exists('finfo_open')) {
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $realMimeL = finfo_file($finfo, $fileL['tmp_name']);
+                finfo_close($finfo);
+            } elseif (function_exists('mime_content_type')) {
+                $realMimeL = mime_content_type($fileL['tmp_name']);
+            } else {
+                $realMimeL = $fileL['type'];
+            }
+            if (!in_array($realMimeL, $allowedImgMimes)) {
+                echo json_encode(['success' => false, 'error' => 'Contenido de logo no permitido. Tipo MIME inválido.']);
+                exit;
+            }
+
             if ($fileL['size'] > $maxSize) {
                 http_response_code(413); // Payload Too Large
                 echo json_encode(['success' => false, 'error' => 'El logo es demasiado pesado. El límite es 2MB.']);
@@ -218,7 +243,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $uploadDirL = __DIR__ . '/uploads/logos/';
             if (!is_dir($uploadDirL)) mkdir($uploadDirL, 0755, true);
-            $extL = pathinfo($fileL['name'], PATHINFO_EXTENSION);
             $filenameL = 'logo_' . $id_negocio . '_' . time() . '.' . $extL;
             if (move_uploaded_file($fileL['tmp_name'], $uploadDirL . $filenameL)) {
                 $data['logo'] = 'backend/uploads/logos/' . $filenameL;
@@ -229,6 +253,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($_FILES['fondo_file']) && $_FILES['fondo_file']['error'] === UPLOAD_ERR_OK) {
             $fileF = $_FILES['fondo_file'];
 
+            // 1. Validar extensión de fondo contra una lista blanca
+            $extF = strtolower(pathinfo($fileF['name'], PATHINFO_EXTENSION));
+            $allowedImgExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+            if (!in_array($extF, $allowedImgExtensions)) {
+                echo json_encode(['success' => false, 'error' => 'Formato de imagen de fondo no permitido. Extensión inválida.']);
+                exit;
+            }
+
+            // 2. Validar tipo MIME real del fondo en el servidor
+            $allowedImgMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+            $realMimeF = '';
+            if (function_exists('finfo_open')) {
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $realMimeF = finfo_file($finfo, $fileF['tmp_name']);
+                finfo_close($finfo);
+            } elseif (function_exists('mime_content_type')) {
+                $realMimeF = mime_content_type($fileF['tmp_name']);
+            } else {
+                $realMimeF = $fileF['type'];
+            }
+            if (!in_array($realMimeF, $allowedImgMimes)) {
+                echo json_encode(['success' => false, 'error' => 'Contenido de imagen de fondo no permitido. Tipo MIME inválido.']);
+                exit;
+            }
+
             if ($fileF['size'] > $maxSize) {
                 http_response_code(413);
                 echo json_encode(['success' => false, 'error' => 'La imagen de fondo es demasiado pesada. El límite es 2MB.']);
@@ -237,7 +286,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $uploadDirF = __DIR__ . '/uploads/fondos/';
             if (!is_dir($uploadDirF)) mkdir($uploadDirF, 0755, true);
-            $extF = pathinfo($fileF['name'], PATHINFO_EXTENSION);
             $filenameF = 'fondo_' . $id_negocio . '_' . time() . '.' . $extF;
             if (move_uploaded_file($fileF['tmp_name'], $uploadDirF . $filenameF)) {
                 $data['fondo'] = 'backend/uploads/fondos/' . $filenameF;

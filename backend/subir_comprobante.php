@@ -19,10 +19,29 @@ if ($file['error'] !== UPLOAD_ERR_OK) {
     exit;
 }
 
-    // Validar tipo de archivo permitido (Imágenes o PDF)
+    // Validar extensión de archivo contra una lista blanca
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+    $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'pdf'];
+    if (!in_array($ext, $allowedExtensions)) {
+        echo json_encode(['success' => false, 'error' => 'Formato no permitido. Extensión de archivo inválida.']);
+        exit;
+    }
+
+    // Validar tipo MIME real del archivo en el servidor
     $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
-    if (!in_array($file['type'], $allowedTypes)) {
-        echo json_encode(['success' => false, 'error' => 'Formato no permitido. Utiliza JPG, PNG, WEBP o PDF.']);
+    $realMime = '';
+    if (function_exists('finfo_open')) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $realMime = finfo_file($finfo, $file['tmp_name']);
+        finfo_close($finfo);
+    } elseif (function_exists('mime_content_type')) {
+        $realMime = mime_content_type($file['tmp_name']);
+    } else {
+        $realMime = $file['type']; // Fallback
+    }
+
+    if (!in_array($realMime, $allowedTypes)) {
+        echo json_encode(['success' => false, 'error' => 'Contenido de archivo no permitido. El tipo MIME real no coincide con un formato válido.']);
         exit;
     }
 
@@ -38,7 +57,6 @@ $uploadDir = __DIR__ . '/uploads/comprobantes/';
 if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
 
 // Nombrar el archivo de forma única
-$ext = pathinfo($file['name'], PATHINFO_EXTENSION);
 $filename = 'comprobante_' . $id_negocio . '_' . time() . '.' . $ext;
 $destination = $uploadDir . $filename;
 

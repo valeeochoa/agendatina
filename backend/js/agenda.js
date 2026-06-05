@@ -327,7 +327,23 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                             <div class="absolute top-0 left-0 w-1.5 h-full opacity-60" style="background-color: var(--color-secundario, #3b82f6);"></div>
                             <div class="flex justify-between items-start">
                                 <div class="flex-1 min-w-0">
-                                    <div class="space-y-2 bg-barTurnoAdmin('${t.id}')" class="w-full flex items-center justify-center gap-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 px-4 py-3 rounded-xl font-bold transition-all text-sm border border-red-200 dark:border-red-800/30 hover:shadow-md" title="Eliminar turno">
+                                    <span class="text-xs font-extrabold px-3 py-1.5 rounded-xl inline-flex items-center gap-1.5 mb-4 uppercase tracking-wide border shadow-sm w-max" style="background-color: var(--badge-bg, #eff6ff); color: var(--badge-text, #1d4ed8); border-color: var(--border-contraste, #bfdbfe);">
+                                        <span class="material-symbols-outlined text-[15px]">schedule</span> ${t.hora} hs
+                                    </span>
+                                    <p class="text-2xl font-black mb-3 leading-tight tracking-tight" style="color: var(--color-texto-contraste, #1e293b);">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                                    <div class="space-y-2 bg-black/5 dark:bg-white/5 p-3 rounded-2xl">
+                                        <p class="text-sm font-semibold flex items-center gap-2.5" style="color: var(--color-texto-contraste, #1e293b);">
+                                            <span class="material-symbols-outlined text-[18px] opacity-70">spa</span> <span class="break-words">${t.servicio}</span>
+                                        </p>
+                                        ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<p class="text-sm font-semibold flex items-center gap-2.5" style="color: var(--color-texto-contraste, #1e293b);"><span class="material-symbols-outlined text-[18px] opacity-70">person</span> <span class="break-words">${t.profesional}</span></p>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col sm:flex-row gap-3 mt-2 w-full border-t pt-4" style="border-color: var(--border-contraste, #f1f5f9);">
+                                <button onclick="window.contactarWhatsApp('${t.id}')" class="w-full flex items-center justify-center gap-2 bg-[#25D366] text-white hover:bg-[#20bd5a] px-4 py-3 rounded-xl font-bold transition-all text-sm shadow-sm hover:shadow-md">
+                                    <span class="material-symbols-outlined text-[18px]">chat</span> WhatsApp
+                                </button>
+                                <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="w-full flex items-center justify-center gap-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 px-4 py-3 rounded-xl font-bold transition-all text-sm border border-red-200 dark:border-red-800/30 hover:shadow-md" title="Eliminar turno">
                                     <span class="material-symbols-outlined text-[18px]">delete</span> Eliminar
                                 </button>
                             </div>

@@ -150,6 +150,31 @@ const tourSteps = [
 ];
 
 window.startTour = function() {
+    // Si no existen los elementos de onboarding en el DOM, los creamos dinámicamente
+    if (!document.getElementById('tourOverlay')) {
+        const onboardingContainer = document.createElement('div');
+        onboardingContainer.id = 'tourOnboardingContainer';
+        onboardingContainer.innerHTML = `
+            <div id="tourOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-[2px] z-[100] transition-opacity duration-300 hidden opacity-0" onclick="endTour()"></div>
+            <div id="tourHighlight" class="fixed pointer-events-none z-[101] border-2 border-primary transition-all duration-300 shadow-[0_0_15px_rgba(209,17,73,0.4)] hidden opacity-0"></div>
+            <div id="tourTooltip" class="fixed bg-white rounded-3xl shadow-2xl p-6 border border-slate-100 max-w-sm w-[calc(100%-2rem)] sm:w-80 hidden z-[102] transition-all duration-300 opacity-0 scale-95">
+                <div id="tourArrow" class="absolute w-3 h-3 bg-white border border-slate-200 transform rotate-45 shadow-sm"></div>
+                <div class="relative z-10">
+                    <h4 id="tourTitle" class="font-extrabold text-slate-800 text-base mb-2 font-display"></h4>
+                    <p id="tourText" class="text-xs text-slate-500 mb-5 leading-relaxed"></p>
+                    <div class="flex items-center justify-between border-t border-slate-100 pt-4 mt-2">
+                        <span id="tourStepIndicator" class="text-xs font-bold text-slate-400"></span>
+                        <div class="flex items-center gap-2">
+                            <button onclick="endTour()" class="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors px-3 py-2 rounded-lg hover:bg-slate-50">Omitir</button>
+                            <button id="tourNextBtn" onclick="nextTourStep()" class="bg-primary hover:bg-primary/90 text-white font-bold text-xs py-2 px-4 rounded-xl transition-all shadow-md shadow-primary/20 flex items-center gap-1"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(onboardingContainer);
+    }
+
     // Inyectar estilos de animación fluida para el tooltip si no existen
     if (!document.getElementById('tour-custom-animations')) {
         const style = document.createElement('style');
