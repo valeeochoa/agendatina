@@ -6,6 +6,18 @@
     <title>Mi Perfil | Agendatina</title>
     <link rel="icon" href="public/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#D11149',
+                        secondary: '#FC8712'
+                    }
+                }
+            }
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <style> body { font-family: 'Inter', sans-serif; } </style>
@@ -87,29 +99,33 @@
             <!-- Lateral: Suscripción -->
             <div class="col-span-1 space-y-6">
                 <!-- Estado de Suscripción -->
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 h-max">
-                    <h2 class="font-bold text-lg mb-4 border-b border-slate-100 pb-2">Estado de Suscripción</h2>
-                <div class="space-y-4">
-                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
-                        <span class="text-sm font-bold text-slate-500">Plan Actual:</span>
-                        <span class="text-sm font-bold text-slate-800" id="suscripcionPlan">Cargando...</span>
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8 h-max">
+                    <h2 class="font-extrabold text-lg mb-6 border-b border-slate-100 pb-3 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">credit_card</span> Suscripción
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 hover:shadow-sm transition-all duration-300">
+                            <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Plan Actual</span>
+                            <span class="text-base font-black text-slate-800" id="suscripcionPlan">Cargando...</span>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 hover:shadow-sm transition-all duration-300">
+                            <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Último Pago</span>
+                            <span class="text-base font-black text-slate-800" id="suscripcionUltimoPago">---</span>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 hover:shadow-sm transition-all duration-300">
+                            <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Vencimiento</span>
+                            <span class="text-base font-black text-slate-800" id="suscripcionVencimiento">---</span>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 hover:shadow-sm transition-all duration-300">
+                            <span class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Estado de Pago</span>
+                            <span class="text-base font-black text-amber-600 block mt-0.5" id="suscripcionComprobante">En revisión o pendiente</span>
+                        </div>
+                        <a href="pago.html" id="btnPagarSuscripcion" class="hidden text-center w-full bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-extrabold py-3.5 rounded-xl transition-all text-sm mt-6 shadow-sm flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined text-[18px]">payments</span> Pagar o Subir Comprobante
+                        </a>
                     </div>
-                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
-                        <span class="text-sm font-bold text-slate-500">Último Pago:</span>
-                        <span class="text-sm font-bold text-slate-800" id="suscripcionUltimoPago">---</span>
-                    </div>
-                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
-                        <span class="text-sm font-bold text-slate-500">Vencimiento:</span>
-                        <span class="text-sm font-bold text-slate-800" id="suscripcionVencimiento">---</span>
-                    </div>
-                    <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
-                        <span class="text-sm font-bold text-slate-500">Comprobantes:</span>
-                        <span class="text-sm font-bold text-amber-600" id="suscripcionComprobante">En revisión o pendiente</span>
-                    </div>
-                    <a href="pago.html" id="btnPagarSuscripcion" class="hidden block text-center w-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold py-2.5 rounded-xl transition-all text-sm mt-4">Pagar o Subir Comprobante</a>
                 </div>
             </div>
-        </div>
     </div>
     <script src="backend/js/csrf.js"></script>
     <script>
@@ -166,6 +182,20 @@
                         prev.src = data.logo || data.url_logo;
                         prev.classList.remove('hidden');
                     }
+                    
+                    // Inyectar colores de marca dinámicos
+                    const pColor = data.color_primario || '#D11149';
+                    const sColor = data.color_secundario || '#FC8712';
+                    const style = document.createElement('style');
+                    style.innerHTML = `
+                        .bg-primary { background-color: ${pColor} !important; }
+                        .text-primary { color: ${pColor} !important; }
+                        .border-primary { border-color: ${pColor} !important; }
+                        .hover\\:bg-primary\\/90:hover { background-color: ${pColor}ee !important; }
+                        .shadow-primary\\/20 { --tw-shadow-color: ${pColor}33 !important; }
+                        .text-secondary { color: ${sColor} !important; }
+                    `;
+                    document.head.appendChild(style);
                 }
             });
             
