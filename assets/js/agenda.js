@@ -170,7 +170,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     // DIBUJAR PENDIENTES
     if (listPend) {
         listPend.innerHTML = '';
-        if (pendientes.length === 0) listPend.innerHTML = `<div class="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 text-center"><p class="text-sm font-medium text-slate-400">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'No hay turnos pendientes'}</p></div>`;
+        if (pendientes.length === 0) listPend.innerHTML = `<div class="p-6 rounded-2xl border border-slate-200 text-center" style="background:#f8fafc;"><p class="text-sm font-medium text-slate-400">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'No hay turnos pendientes'}</p></div>`;
         
         pendientes.forEach(t => {
             const fParts = t.fecha.split('-');
@@ -186,7 +186,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                     <p class="text-lg font-bold mb-1" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
                     <div class="flex items-center gap-3 mb-4">
                         <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: #475569; background-color: #f8fafc; border-color: #e2e8f0;"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular}</p>
-                        <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100 dark:border-emerald-800/30" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
+                        <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
                     </div>
                     ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
                     <p class="text-sm mb-5 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">spa</span> <span class="font-medium">${t.servicio}</span></p>
@@ -195,7 +195,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                         <button onclick="window.confirmarTurnoAdmin('${t.id}')" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 shadow-sm shadow-amber-500/20">
                             <span class="material-symbols-outlined text-[18px]">check</span> Confirmar
                         </button>
-                        <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 text-sm font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center border border-red-100 dark:border-red-800/30" title="Eliminar turno">
+                        <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-sm font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center border border-red-100" title="Eliminar turno">
                             <span class="material-symbols-outlined text-[18px]">close</span>
                         </button>
                     </div>
@@ -216,7 +216,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     if (listConf) {
         listConf.innerHTML = '';
         if (futuros.length === 0) {
-            listConf.innerHTML = `<div class="p-8 text-center text-sm font-medium text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'Aún no tienes turnos próximos.'}</div>`;
+            listConf.innerHTML = `<div class="p-8 text-center text-sm font-medium text-slate-400 rounded-xl border border-slate-200" style="background:#f8fafc;">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'Aún no tienes turnos próximos.'}</div>`;
         } else {
             const gruposConf = {};
             futuros.forEach(t => {
@@ -236,10 +236,10 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
 
                 let htmlDia = `
                     <div class="mb-8">
-                        <h3 class="font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2 ${esHoy ? 'text-primary' : ''}">
+                        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2 ${esHoy ? 'text-primary' : ''}">
                             <span class="material-symbols-outlined text-[20px]">${esHoy ? 'today' : 'event'}</span> 
                             ${esHoy ? 'Hoy, ' + formatFecha : formatFecha}
-                            <span class="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[11px] font-bold px-2 py-0.5 rounded-md ml-1 border border-slate-200 dark:border-slate-700">${turnosText}</span>
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded-md ml-1 border border-slate-200" style="background:#f1f5f9;color:#64748b;">${turnosText}</span>
                         </h3>
                         <div class="space-y-3">
                 `;
@@ -255,7 +255,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                             <p class="text-lg font-bold mb-1" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
                             <div class="flex items-center gap-3 mb-4">
                                 <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: #475569; background-color: #f8fafc; border-color: #e2e8f0;"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular}</p>
-                                <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100 dark:border-emerald-800/30" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
+                                <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
                             </div>
                             ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
                             <p class="text-sm mb-5 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">spa</span> <span class="font-medium">${t.servicio}</span></p>
@@ -263,7 +263,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                                 <button onclick="window.recordatorioWhatsApp('${t.id}')" class="flex-1 text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 border" style="background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;" title="Enviar recordatorio">
                                     <span class="material-symbols-outlined text-[18px]">notifications_active</span> Recordar
                                 </button>
-                                <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 text-sm font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center border border-red-100 dark:border-red-800/30" title="Eliminar turno">
+                                <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-sm font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center border border-red-100" title="Eliminar turno">
                                     <span class="material-symbols-outlined text-[18px]">delete</span>
                                 </button>
                             </div>
@@ -282,7 +282,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     if (listHist) {
         listHist.innerHTML = '';
         if (pasados.length === 0) {
-            listHist.innerHTML = `<div class="p-8 text-center text-sm font-medium text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'El historial está vacío.'}</div>`;
+            listHist.innerHTML = `<div class="p-8 text-center text-sm font-medium text-slate-400 rounded-xl border border-slate-200" style="background:#f8fafc;">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'El historial está vacío.'}</div>`;
         } else {
             const pasadosToShow = pasados.slice(0, window.historyLimit);
             const hasMore = pasados.length > window.historyLimit;
@@ -304,10 +304,10 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
 
                 let htmlDia = `
                     <div class="mb-8">
-                        <h3 class="font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2 opacity-80">
+                        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2 opacity-80">
                             <span class="material-symbols-outlined text-[20px]">history</span> 
                             ${formatFecha}
-                            <span class="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[11px] font-bold px-2 py-0.5 rounded-md ml-1 border border-slate-200 dark:border-slate-700">${turnosText}</span>
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded-md ml-1 border border-slate-200" style="background:#f1f5f9;color:#64748b;">${turnosText}</span>
                         </h3>
                         <div class="space-y-3">
                 `;
@@ -316,9 +316,9 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                     globalHistIndex++;
                     const isNewLoaded = window.isLoadingMoreHistory && globalHistIndex > (window.historyLimit - 15);
                     const animClass = isNewLoaded ? 'animate-new-item' : '';
-                    const customStyle = `style="--target-opacity: 0.85; ${isNewLoaded ? 'opacity: 0;' : 'opacity: 0.85;'}"`;
+                    const customStyle = isNewLoaded ? 'opacity: 0;' : 'opacity: 0.85;';
                     htmlDia += `
-                        <div id="turno-${t.id}" onclick="if(!event.target.closest('button')) window.openEditTurnoModal('${t.id}')" class="shadow-sm rounded-3xl p-5 flex flex-col gap-3 hover:opacity-100 hover:shadow-xl hover:-translate-y-1 cursor-pointer transition-all relative overflow-hidden ${animClass}" style="background-color: #ffffff; border: 1px solid #e2e8f0; ${customStyle}">
+                        <div id="turno-${t.id}" onclick="if(!event.target.closest('button')) window.openEditTurnoModal('${t.id}')" class="shadow-sm rounded-3xl p-5 flex flex-col gap-3 hover:opacity-100 hover:shadow-xl hover:-translate-y-1 cursor-pointer transition-all relative overflow-hidden ${animClass}" style="background-color: #ffffff; border: 1px solid #e2e8f0; --target-opacity: 0.85; ${customStyle}">
                             <div class="absolute top-0 left-0 w-1.5 h-full opacity-60 bg-blue-500"></div>
                             <div class="flex justify-between items-start">
                                 <div class="flex-1 min-w-0">
@@ -326,11 +326,11 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                                         <span class="material-symbols-outlined text-[15px]">schedule</span> ${t.hora} hs
                                     </span>
                                     <p class="text-2xl font-black mb-3 leading-tight tracking-tight" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
-                                    <div class="space-y-2 bg-black/5 dark:bg-white/5 p-3 rounded-2xl">
-                                        <p class="text-sm font-semibold flex items-center gap-2.5" style="color: #1e293b;">
+                                    <div class="space-y-2 p-3 rounded-2xl" style="background-color: #f1f5f9;">
+                                        <p class="text-sm font-semibold flex items-center gap-2.5" style="color: #334155;">
                                             <span class="material-symbols-outlined text-[18px] opacity-70">spa</span> <span class="break-words">${t.servicio}</span>
                                         </p>
-                                        ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<p class="text-sm font-semibold flex items-center gap-2.5" style="color: #1e293b;"><span class="material-symbols-outlined text-[18px] opacity-70">person</span> <span class="break-words">${t.profesional}</span></p>` : ''}
+                                        ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<p class="text-sm font-semibold flex items-center gap-2.5" style="color: #334155;"><span class="material-symbols-outlined text-[18px] opacity-70">person</span> <span class="break-words">${t.profesional}</span></p>` : ''}
                                     </div>
                                 </div>
                             </div>
@@ -338,7 +338,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                                 <button onclick="window.contactarWhatsApp('${t.id}')" class="w-full flex items-center justify-center gap-2 bg-[#25D366] text-white hover:bg-[#20bd5a] px-4 py-3 rounded-xl font-bold transition-all text-sm shadow-sm hover:shadow-md">
                                     <span class="material-symbols-outlined text-[18px]">chat</span> WhatsApp
                                 </button>
-                                <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="w-full flex items-center justify-center gap-1 bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 px-4 py-3 rounded-xl font-bold transition-all text-sm border border-red-200 dark:border-red-800/30 hover:shadow-md" title="Eliminar turno">
+                                <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="w-full flex items-center justify-center gap-1 bg-red-50 text-red-600 hover:bg-red-100 px-4 py-3 rounded-xl font-bold transition-all text-sm border border-red-200 hover:shadow-md" title="Eliminar turno">
                                     <span class="material-symbols-outlined text-[18px]">delete</span> Eliminar
                                 </button>
                             </div>
@@ -353,7 +353,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
             if (hasMore) {
                 listHist.innerHTML += `
                     <div class="mt-2 mb-6 flex justify-center">
-                        <button id="btnLoadMoreHistory" onclick="window.loadMoreHistory()" class="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl transition-colors border border-slate-200 dark:border-slate-600 flex items-center gap-2 shadow-sm">
+                        <button id="btnLoadMoreHistory" onclick="window.loadMoreHistory()" class="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-bold rounded-xl transition-colors border border-slate-200 flex items-center gap-2 shadow-sm">
                             <span class="material-symbols-outlined text-[18px]">expand_more</span> Cargar más turnos
                         </button>
                     </div>
@@ -367,7 +367,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     if (listElim) {
         listElim.innerHTML = '';
         if (eliminados.length === 0) {
-            listElim.innerHTML = `<div class="p-8 text-center text-sm font-medium text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'La papelera está vacía.'}</div>`;
+            listElim.innerHTML = `<div class="p-8 text-center text-sm font-medium text-slate-400 rounded-xl border border-slate-200" style="background:#f8fafc;">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'La papelera está vacía.'}</div>`;
         } else {
             eliminados.sort((a, b) => new Date(b.fecha_eliminado || 0) - new Date(a.fecha_eliminado || 0));
             
@@ -384,24 +384,24 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                 const fParts = t.fecha.split('-');
                 const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}` : t.fecha;
                 listElim.innerHTML += `
-                        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-5 flex flex-col gap-3 ${opacityClass} hover:opacity-100 hover:shadow-xl hover:-translate-y-1 transition-all mb-4 relative overflow-hidden ${animClass}" style="--target-opacity: 0.7;">
+                        <div class="rounded-3xl p-5 flex flex-col gap-3 ${opacityClass} hover:opacity-100 hover:shadow-xl hover:-translate-y-1 transition-all mb-4 relative overflow-hidden ${animClass}" style="--target-opacity: 0.7; background-color: #ffffff; border: 1px solid #e2e8f0;">
                             <div class="absolute top-0 left-0 w-1.5 h-full bg-slate-400 opacity-60"></div>
                             <div class="flex justify-between items-start">
                                 <div class="flex-1 min-w-0">
-                                    <span class="text-xs font-extrabold bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-xl inline-flex mb-4 uppercase tracking-wide border border-slate-200 dark:border-slate-600 items-center gap-1.5 w-max shadow-sm">
+                                    <span class="text-xs font-extrabold px-3 py-1.5 rounded-xl inline-flex mb-4 uppercase tracking-wide border items-center gap-1.5 w-max shadow-sm" style="background-color: #f1f5f9; color: #475569; border-color: #e2e8f0;">
                                         <span class="material-symbols-outlined text-[15px]">schedule</span> ${fDisplay} • ${t.hora} hs
                                     </span>
-                                    <p class="text-2xl font-black text-slate-800 dark:text-slate-100 mb-3 leading-tight tracking-tight line-through opacity-70">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
-                                    <div class="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl">
-                                        <p class="text-sm font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-2.5"><span class="material-symbols-outlined text-[18px] opacity-70">spa</span> <span class="break-words">${t.servicio}</span></p>
+                                    <p class="text-2xl font-black mb-3 leading-tight tracking-tight line-through opacity-70" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                                    <div class="p-3 rounded-2xl" style="background-color: #f1f5f9;">
+                                        <p class="text-sm font-semibold flex items-center gap-2.5" style="color: #475569;"><span class="material-symbols-outlined text-[18px] opacity-70">spa</span> <span class="break-words">${t.servicio}</span></p>
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex flex-col sm:flex-row gap-3 mt-2 w-full border-t border-slate-100 dark:border-slate-700 pt-4">
-                                <button onclick="window.restaurarTurnoAdmin('${t.id}')" class="w-full sm:flex-1 bg-green-50 hover:bg-green-100 text-green-700 dark:bg-green-500/10 dark:hover:bg-green-500/20 dark:text-green-400 text-sm font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 border border-green-200 dark:border-green-800/30 hover:shadow-md">
+                            <div class="flex flex-col sm:flex-row gap-3 mt-2 w-full border-t pt-4" style="border-color: #e2e8f0;">
+                                <button onclick="window.restaurarTurnoAdmin('${t.id}')" class="w-full sm:flex-1 bg-green-50 hover:bg-green-100 text-green-700 text-sm font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 border border-green-200 hover:shadow-md">
                                     <span class="material-symbols-outlined text-[18px]">restore_from_trash</span> Restaurar
                                 </button>
-                                <button onclick="window.eliminarTurnoPermanente('${t.id}')" class="w-full sm:flex-none bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 text-sm font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 border border-red-200 dark:border-red-800/30 hover:shadow-md" title="Eliminar definitivamente">
+                                <button onclick="window.eliminarTurnoPermanente('${t.id}')" class="w-full sm:flex-none bg-red-50 hover:bg-red-100 text-red-600 text-sm font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 border border-red-200 hover:shadow-md" title="Eliminar definitivamente">
                                     <span class="material-symbols-outlined text-[18px]">delete_forever</span> <span class="sm:hidden">Eliminar definitivo</span>
                                 </button>
                             </div>
@@ -412,7 +412,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
             if (hasMoreEliminados) {
                 listElim.innerHTML += `
                     <div class="mt-2 mb-6 flex justify-center">
-                        <button id="btnLoadMoreTrash" onclick="window.loadMoreTrash()" class="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl transition-colors border border-slate-200 dark:border-slate-600 flex items-center gap-2 shadow-sm">
+                        <button id="btnLoadMoreTrash" onclick="window.loadMoreTrash()" class="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-bold rounded-xl transition-colors border border-slate-200 flex items-center gap-2 shadow-sm">
                             <span class="material-symbols-outlined text-[18px]">expand_more</span> Cargar más turnos eliminados
                         </button>
                     </div>
