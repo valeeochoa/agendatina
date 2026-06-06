@@ -1,3 +1,31 @@
+/* =====================================================
+   Fuente de Marca: Fredoka
+   Fuente centralizada para toda la aplicación.
+   Las rutas son relativas a este archivo CSS:
+   assets/css/global.css → ../../../public/fredoka/
+===================================================== */
+@font-face {
+    font-family: 'Fredoka';
+    src: url('../../public/fredoka/Fredoka-VariableFont_wdth,wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Fredoka';
+    src: url('../../public/fredoka/static/Fredoka-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Fredoka';
+    src: url('../../public/fredoka/static/Fredoka-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* Utilidades Generales */
 .signature-glow {
     background: linear-gradient(135deg, #D11149 0%, #FC8712 100%);

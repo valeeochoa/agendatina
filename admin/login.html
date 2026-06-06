@@ -11,17 +11,8 @@
     <script>
         tailwind.config = { theme: { extend: { fontFamily: { brand: ['Fredoka', 'sans-serif'] } } } };
     </script>
-    <style> 
-        body { font-family: 'Inter', sans-serif; } 
-        @font-face {
-            font-family: 'Fredoka';
-            src: url('../public/fredoka/Fredoka-VariableFont_wdth,wght.ttf') format('truetype'),
-                 url('../public/fredoka/Fredoka-Bold.ttf') format('truetype'),
-                 url('../public/fredoka/Fredoka.ttf') format('truetype');
-            font-weight: 700;
-            font-display: swap;
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/css/global.css">
+    <style> body { font-family: 'Inter', sans-serif; } </style>
 </head>
 <body class="bg-slate-900 min-h-screen flex items-center justify-center p-6 text-slate-800">
     <div class="bg-white p-8 md:p-10 rounded-3xl shadow-2xl max-w-md w-full">
