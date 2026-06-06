@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Credenciales de Super Admin
     $super_admin_user = 'valentina';
-    
+    $super_admin_pass = 'valentina123'; // Tu contraseña
 
     if (hash_equals($super_admin_user, $username) && $password === $super_admin_pass) {
         $_SESSION['is_superadmin'] = true;

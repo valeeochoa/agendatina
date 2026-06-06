@@ -118,13 +118,18 @@ if ($shouldReset && $negocioId) {
     $pdo->prepare("DELETE FROM dias_bloqueados WHERE id_negocio = ?")->execute([$negocioId]); // Resetear bloqueos
     
     // 2. Limpiar imágenes físicas subidas por el negocio Demo
-    $uploadDir = __DIR__ . '/backend/uploads/';
+    $uploadDir = __DIR__ . '/uploads/';
     if (is_dir($uploadDir)) {
-        // Busca cualquier archivo que contenga el ID del negocio en su nombre (ej: logo_15.jpg)
-        $files = glob($uploadDir . '*_' . $negocioId . '.*');
-        foreach ($files as $file) {
-            if (is_file($file)) {
-                @unlink($file); // Borra el archivo
+        $subfolders = ['logos', 'fondos', 'profesionales', 'servicios', 'comprobantes'];
+        foreach ($subfolders as $sub) {
+            $dir = $uploadDir . $sub . '/';
+            if (is_dir($dir)) {
+                $files = glob($dir . '*_' . $negocioId . '.*');
+                foreach ($files as $file) {
+                    if (is_file($file)) {
+                        @unlink($file);
+                    }
+                }
             }
         }
     }

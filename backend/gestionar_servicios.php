@@ -202,20 +202,20 @@ if ($method === 'POST') {
         $allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
         
         if (in_array($file['type'], $allowedTypes) && $file['size'] <= 2 * 1024 * 1024) {
-            $uploadDir = __DIR__ . '/uploads/profesionales/';
+            $uploadDir = dirname(__DIR__) . '/uploads/profesionales/';
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
             // Forzamos la extensión WebP y optimizamos (Max: 800px para perfiles)
             $filename = 'prof_' . $id_negocio . '_' . time() . '_' . rand(100,999) . '.webp';
             if (optimizarImagen($file['tmp_name'], $uploadDir . $filename, 80, 800)) {
-                $foto_profesional = 'backend/uploads/profesionales/' . $filename;
+                $foto_profesional = 'uploads/profesionales/' . $filename;
             }
         }
     }
 
     // Procesar imágenes del servicio
-    $uploadDirServ = __DIR__ . '/uploads/servicios/';
+    $uploadDirServ = dirname(__DIR__) . '/uploads/servicios/';
     if (!is_dir($uploadDirServ)) mkdir($uploadDirServ, 0755, true);
     $maxSize = 2 * 1024 * 1024; // Límite de 2MB
     
@@ -233,7 +233,7 @@ if ($method === 'POST') {
             $filename = "serv_{$id_negocio}_{$i}_" . time() . ".webp";
 
             if (optimizarImagen($_FILES[$key]['tmp_name'], $uploadDirServ . $filename, 80, 1000)) {
-                ${"imagen".$i} = 'backend/uploads/servicios/' . $filename;
+                ${"imagen".$i} = 'uploads/servicios/' . $filename;
             }
         }
     }

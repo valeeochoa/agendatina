@@ -5,7 +5,7 @@ class FileUploader {
 
     public function __construct($subFolder) {
         $this->subFolder = trim($subFolder, '/');
-        $this->uploadDir = dirname(__DIR__) . '/uploads/' . $this->subFolder . '/';
+        $this->uploadDir = dirname(dirname(__DIR__)) . '/uploads/' . $this->subFolder . '/';
     }
 
     public function upload($file, $maxSize = 2097152, $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'pdf'], $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'], $optimizeImage = false) {
@@ -58,7 +58,7 @@ class FileUploader {
             if ($this->optimizarImagen($file['tmp_name'], $destination)) {
                 return [
                     'success' => true, 
-                    'url' => 'backend/uploads/' . $this->subFolder . '/' . $filename,
+                    'url' => 'uploads/' . $this->subFolder . '/' . $filename,
                     'absolute_path' => $destination
                 ];
             }
@@ -71,7 +71,7 @@ class FileUploader {
         if (move_uploaded_file($file['tmp_name'], $destination)) {
             return [
                 'success' => true,
-                'url' => 'backend/uploads/' . $this->subFolder . '/' . $filename,
+                'url' => 'uploads/' . $this->subFolder . '/' . $filename,
                 'absolute_path' => $destination
             ];
         }

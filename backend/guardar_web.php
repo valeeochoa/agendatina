@@ -241,11 +241,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
 
-            $uploadDirL = __DIR__ . '/uploads/logos/';
+            $uploadDirL = dirname(__DIR__) . '/uploads/logos/';
             if (!is_dir($uploadDirL)) mkdir($uploadDirL, 0755, true);
             $filenameL = 'logo_' . $id_negocio . '_' . time() . '.' . $extL;
             if (move_uploaded_file($fileL['tmp_name'], $uploadDirL . $filenameL)) {
-                $data['logo'] = 'backend/uploads/logos/' . $filenameL;
+                $data['logo'] = 'uploads/logos/' . $filenameL;
             }
         }
 
@@ -284,11 +284,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
             }
 
-            $uploadDirF = __DIR__ . '/uploads/fondos/';
+            $uploadDirF = dirname(__DIR__) . '/uploads/fondos/';
             if (!is_dir($uploadDirF)) mkdir($uploadDirF, 0755, true);
             $filenameF = 'fondo_' . $id_negocio . '_' . time() . '.' . $extF;
             if (move_uploaded_file($fileF['tmp_name'], $uploadDirF . $filenameF)) {
-                $data['fondo'] = 'backend/uploads/fondos/' . $filenameF;
+                $data['fondo'] = 'uploads/fondos/' . $filenameF;
             }
         }
         

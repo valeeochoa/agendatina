@@ -37,7 +37,7 @@ ServerSignature Off
 
     # D. Corrección para Recursos Estáticos (Preload Scanner)
     # Evita el error 404 si el navegador busca scripts/imágenes asumiendo la ruta del negocio (ej: /demo/backend/...)
-    RewriteRule ^[a-zA-Z0-9_-]+/(backend|public|modelos)/(.*)$ $1/$2 [L]
+    RewriteRule ^[a-zA-Z0-9_-]+/(backend|public|modelos|assets|uploads)/(.*)$ $1/$2 [L]
 
     # A. Caso: agendatina.site/tu-negocio/calendario
     # Regla para el calendario mensual
@@ -48,7 +48,7 @@ ServerSignature Off
     
     # B. Caso: agendatina.site/tu-negocio
     # (Condición: Evita que confunda rutas del sistema con nombres de negocios)
-    RewriteCond %{REQUEST_URI} !^/(index\.php|web\.html|calendarioMensual|calendarioSemanal|dashboard|login|backend|public|modelos|admin_agendatina) [NC]
+    RewriteCond %{REQUEST_URI} !^/(index\.php|web\.html|calendarioMensual|calendarioSemanal|dashboard|login|backend|public|modelos|admin|assets|uploads) [NC]
     RewriteRule ^([a-zA-Z0-9-]+)/?$ index.php?n=$1 [L,QSA]
 
     # C. Evitar error 404 en consola por el Favicon

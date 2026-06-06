@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (data.redirect) {
                             window.location.href = data.redirect;
                         } else if (data.is_superadmin === true || data.role === 'superadmin') {
-                            window.location.href = 'admin_agendatina/index.html';
+                            window.location.href = 'admin/index.html';
                         } else {
                             window.location.href = 'dashboard.html'; // Acceso a dueños y empleados
                         }
