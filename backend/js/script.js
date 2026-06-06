@@ -1,5 +1,26 @@
 // backend/js/script.js
 
+// Interceptor global de fetch para inyectar token CSRF en peticiones POST/PUT/DELETE
+(function() {
+    const originalFetch = window.fetch;
+    window.fetch = function(input, init) {
+        init = init || {};
+        const isWrite = init.method && ['POST', 'PUT', 'DELETE'].includes(init.method.toUpperCase());
+        const csrfToken = document.cookie.match(/csrf_token=([^;]+)/)?.[1];
+        if (isWrite && csrfToken) {
+            init.headers = init.headers || {};
+            if (init.headers instanceof Headers) {
+                init.headers.set('X-CSRF-Token', csrfToken);
+            } else if (Array.isArray(init.headers)) {
+                init.headers.push(['X-CSRF-Token', csrfToken]);
+            } else {
+                init.headers['X-CSRF-Token'] = csrfToken;
+            }
+        }
+        return originalFetch(input, init);
+    };
+})();
+
 // ==========================================
 // LÓGICA COMPARTIDA Y UTILIDADES
 // ==========================================
@@ -2498,54 +2519,3 @@ function applyWebCustomization() {
         })
         .catch(err => console.error('Error al cargar personalización:', err));
 }                   // Eliminar la etiqueta de estilo anterior si existe (útil al guardar desde el panel admin)
-                    const oldStyle = document.getElementById('dynamic-business-styles');
-                    if (oldStyle) oldStyle.remove();
-
-                    const style = document.createElement('style');
-                    style.id = 'dynamic-business-styles';
-                    
-                    let styleHTML = `
-                        :root {
-                            --color-primario: ${pColor};
-                            --color-secundario: ${sColor};
-                            --color-texto-contraste: ${textColor};
-                        }
-                        .bg-primary { background-color: var(--color-primario) !important; }
-                        .text-primary { color: var(--color-primario) !important; }
-                        .border-primary { border-color: var(--color-primario) !important; }
-                        .ring-primary { --tw-ring-color: var(--color-primario) !important; }
-                        
-                        /* Forzar color en botones principales generales (Tailwind bg-blue-600) */
-                        button[type="submit"], .bg-blue-600 { background-color: var(--color-primario) !important; color: var(--color-texto-contraste) !important; }
-                        button[type="submit"]:hover, .hover\\:bg-blue-700:hover { background-color: var(--color-primario) !important; color: var(--color-texto-contraste) !important; filter: brightness(0.85); }
-                        
-                        /* Estilos para el calendario y horarios */
-                        .calendar-day.selected { background-color: var(--color-primario) !important; color: var(--color-texto-contraste) !important; }
-                        .time-slot.selected { background-color: var(--color-primario) !important; color: var(--color-texto-contraste) !important; border-color: var(--color-primario) !important; }
-                        .text-primary-contrast { color: var(--color-texto-contraste) !important; }
-                    `;
-                    if (data.color_fondo) {
-                        styleHTML += `body, .bg-slate-100 { background-color: ${data.color_fondo} !important; }`;
-                    }
-                    style.innerHTML = styleHTML;
-                    document.head.appendChild(style);
-                }
-        
-            if (data.metodos_pago) {
-                const metodos = data.metodos_pago.split(',').map(m => m.trim()).filter(m => m);
-                if (metodos.length > 0) {
-                    ['bookingMetodoPago', 'weeklyMetodoPago'].forEach(id => {
-                        const sel = document.getElementById(id);
-                        if (sel) {
-                            sel.innerHTML = '<option value="" disabled selected>Elige cómo abonarás</option>';
-                            metodos.forEach(m => sel.innerHTML += `<option value="${m}">${m}</option>`);
-                            if (sel.parentElement) sel.parentElement.classList.remove('hidden');
-                            sel.required = true;
-                        }
-                    });
-                }
-            }
-            }
-        })
-        .catch(err => console.error('Error al cargar personalización:', err));
-}
