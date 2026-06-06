@@ -462,12 +462,35 @@ function loadDashboardData() {
                     mainContent.classList.remove('hidden');
                     setTimeout(() => mainContent.classList.remove('opacity-0'), 50);
                 }
-                    }).catch(err => console.error('Error al cargar datos web:', err));
+                    }).catch(err => {
+                        console.error('Error al cargar datos web:', err);
+                        showDashboardError('Error al cargar configuración web: ' + err.message);
+                    });
             } else if (data.error && data.error.toLowerCase().includes('inicia sesión')) {
                 window.location.href = 'login.html';
+            } else {
+                showDashboardError(data.error || 'No se pudieron recuperar los datos de usuario o negocio.');
             }
         })
-        .catch(err => console.error('Error al cargar datos del dashboard:', err));
+        .catch(err => {
+            console.error('Error al cargar datos del dashboard:', err);
+            showDashboardError('Error al conectar con el servidor: ' + err.message);
+        });
+}
+
+function showDashboardError(msg) {
+    const loader = document.getElementById('dashboardLoader');
+    if (loader) {
+        loader.innerHTML = `
+            <div class="p-6 max-w-sm mx-auto bg-white rounded-2xl shadow-md border border-red-100 text-center">
+                <span class="material-symbols-outlined text-red-500 text-5xl mb-3">error</span>
+                <p class="font-bold text-slate-800 text-base mb-2">Error de Carga</p>
+                <p class="text-sm text-slate-500 mb-4">${msg}</p>
+                <button onclick="window.location.reload()" class="bg-primary text-white font-bold py-2 px-6 rounded-xl text-sm transition-all hover:bg-primary/90">Reintentar</button>
+            </div>
+        `;
+    }
+}
 }
 
 function checkSubscription(subscriptionData) {
