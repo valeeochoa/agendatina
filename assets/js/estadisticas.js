@@ -59,7 +59,7 @@ function loadStatistics() {
         document.getElementById('statIngresos').textContent = `$${ingresosTotales.toLocaleString('es-AR', {maximumFractionDigits: 0})}`;
 
         // 2. Total de Turnos del Mes
-        document.getElementById('statTurnos').textContent = turnosFiltrados.length;
+        document.getElementById('statTurnos').textContent = turnosFiltrados.length + " turnos";
 
         // 3. Servicio Más Solicitado
         const conteoServicios = turnosFiltrados.reduce((acc, turno) => {

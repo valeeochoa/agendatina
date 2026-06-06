@@ -163,9 +163,10 @@
                         if (btnPago) {
                             if (data.business.comprobante) {
                                 btnPago.innerHTML = '<span class="material-symbols-outlined text-[18px]">receipt_long</span> Ver Comprobante Enviado';
-                                btnPago.href = data.business.comprobante;
-                                btnPago.target = '_blank';
-                                btnPago.className = 'text-center w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-extrabold py-3.5 rounded-xl transition-all text-sm mt-6 shadow-sm flex items-center justify-center gap-2';
+                                btnPago.removeAttribute('href');
+                                btnPago.removeAttribute('target');
+                                btnPago.onclick = () => window.verComprobanteModal(data.business.comprobante);
+                                btnPago.className = 'text-center w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-extrabold py-3.5 rounded-xl transition-all text-sm mt-6 shadow-sm flex items-center justify-center gap-2 cursor-pointer';
                                 btnPago.classList.remove('hidden');
                             } else {
                                 btnPago.classList.add('hidden');
@@ -200,9 +201,10 @@
                 if (data && !data.error) {
                     document.getElementById('perfilColor1').value = data.color_primario || '#D11149';
                     document.getElementById('perfilColor2').value = data.color_secundario || '#FC8712';
-                    if (data.logo || data.url_logo) {
+                    const logoUrl = data.logo || data.url_logo;
+                    if (logoUrl && logoUrl !== 'null' && logoUrl !== 'undefined' && logoUrl.trim() !== '') {
                         const prev = document.getElementById('perfilLogoPreview');
-                        prev.src = data.logo || data.url_logo;
+                        prev.src = logoUrl;
                         prev.classList.remove('hidden');
                     }
                     
@@ -274,6 +276,66 @@
                 .finally(() => { btn.disabled = false; btn.innerHTML = origText; });
             });
         });
+
+        window.verComprobanteModal = function(url) {
+            let modal = document.getElementById('reusableReceiptModal');
+            if (!modal) {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                <div id="reusableReceiptModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+                    <div id="reusableReceiptModalContent" class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2"><span class="material-symbols-outlined text-purple-600">receipt_long</span> Comprobante Enviado</h2>
+                            <button onclick="window.closeReusableReceiptModal()" class="text-slate-400 hover:text-red-500 bg-slate-100 hover:bg-red-50 rounded-full p-1.5 transition-colors"><span class="material-symbols-outlined">close</span></button>
+                        </div>
+                        <div class="flex-1 overflow-auto bg-slate-50 rounded-xl border border-slate-200 mb-4 flex items-center justify-center min-h-[300px]">
+                            <img id="reusableReceiptImage" src="" class="max-w-full max-h-[50vh] object-contain hidden">
+                            <iframe id="reusableReceiptPdf" src="" class="w-full h-[50vh] hidden border-0"></iframe>
+                        </div>
+                        <div class="flex justify-end pt-2">
+                            <button onclick="window.closeReusableReceiptModal()" class="px-5 py-2.5 font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-xl shadow-lg transition-all">Cerrar</button>
+                        </div>
+                    </div>
+                </div>`;
+                document.body.appendChild(div.firstElementChild);
+                modal = document.getElementById('reusableReceiptModal');
+            }
+            const content = document.getElementById('reusableReceiptModalContent');
+            const img = document.getElementById('reusableReceiptImage');
+            const pdf = document.getElementById('reusableReceiptPdf');
+            
+            img.classList.add('hidden');
+            pdf.classList.add('hidden');
+            
+            if (url.toLowerCase().endsWith('.pdf')) {
+                pdf.src = url;
+                pdf.classList.remove('hidden');
+            } else {
+                img.src = url;
+                img.classList.remove('hidden');
+            }
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        };
+
+        window.closeReusableReceiptModal = function() {
+            const modal = document.getElementById('reusableReceiptModal');
+            if (!modal) return;
+            const content = document.getElementById('reusableReceiptModalContent');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.getElementById('reusableReceiptPdf').src = '';
+                document.getElementById('reusableReceiptImage').src = '';
+            }, 300);
+        };
     </script>
 </body>
 </html>

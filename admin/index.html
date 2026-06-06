@@ -512,6 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 document.body.style.display = 'block';
                 fetchClients();
+                setInterval(fetchClients, 10000); // Polling cada 10 segundos
                 
                 // Sincronizar plan con límite de profesionales sugerido
                 const planDefaults = { 'Basico': 1, 'Intermedio': 3, 'Completo': 5 };
@@ -781,7 +782,7 @@ function fetchClients() {
         if (data.success) {
             if (data.data.length > 0) {
                 clientsData = data.data;
-                renderTable(clientsData);
+                filterClients(); // Preservar filtros y búsquedas activas
             } else {
                 document.getElementById('clientsList').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500 font-medium">Aún no hay clientes registrados en el sistema.</td></tr>';
             }

@@ -58,7 +58,8 @@ function handleCalendarConfigSubmit(e) {
         confirmacion_automatica: form.querySelector('#configConfirmacionAutomatica')?.value,
         anticipacion_turno_min: form.querySelector('#configAnticipacionMin')?.value,
         intervalo_turnos: intervalo,
-        tipo_calendario: tipoCalendario
+        tipo_calendario: tipoCalendario,
+        limite_eliminacion_dias: form.querySelector('#configLimiteEliminacion')?.value || 0
     };
 
     fetch('backend/guardar_web.php', {

@@ -197,6 +197,12 @@
                             <span class="material-symbols-outlined text-[17px]">event_available</span>
                             <span>Próximos</span>
                         </button>
+                        <button id="tabVencidos"
+                            class="flex-1 sm:flex-none sm:px-5 py-2.5 text-sm font-bold rounded-t-xl text-slate-400 hover:text-slate-600 flex items-center justify-center gap-1.5 transition-all"
+                            onclick="switchAgendaTab('vencidos')">
+                            <span class="material-symbols-outlined text-[17px]">history_toggle_off</span>
+                            <span>Vencidos</span>
+                        </button>
                         <button id="tabHistorial"
                             class="flex-1 sm:flex-none sm:px-5 py-2.5 text-sm font-bold rounded-t-xl text-slate-400 hover:text-slate-600 flex items-center justify-center gap-1.5 transition-all"
                             onclick="switchAgendaTab('historial')">
@@ -233,6 +239,7 @@
                                 </div>
                             </div>
                         </div>
+                        <div id="lista-vencidos" class="space-y-3 hidden"></div>
                         <div id="lista-historial" class="space-y-3 hidden"></div>
                         <div id="lista-eliminados" class="space-y-3 hidden"></div>
                     </div>
@@ -301,15 +308,16 @@
             }
         });
 
-        // Override switchAgendaTab to include papelera tab
         window.switchAgendaTab = function(tab) {
             const tabs = {
                 proximos: document.getElementById('tabProximos'),
+                vencidos: document.getElementById('tabVencidos'),
                 historial: document.getElementById('tabHistorial'),
                 papelera: document.getElementById('tabPapelera'),
             };
             const panels = {
                 proximos: document.getElementById('lista-confirmados'),
+                vencidos: document.getElementById('lista-vencidos'),
                 historial: document.getElementById('lista-historial'),
                 papelera: document.getElementById('lista-eliminados'),
             };

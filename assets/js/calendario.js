@@ -496,19 +496,9 @@ function renderAdminDayView(dateString) {
                         <div class="text-[9px] opacity-80 truncate w-full">${apt.servicio || ''}</div>
                     `;
                     slotDiv.onclick = () => {
-                        let extraButtons = '';
-                        if (isPend && !isPastDay) {
-                            extraButtons = `<div class="flex flex-col gap-2 mt-4"><div class="flex gap-2"><button onclick="confirmarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 rounded-lg text-sm">Confirmar</button><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg text-sm">Cancelar</button></div><button onclick="window.openEditTurnoModal('${apt.id}'); closeConfirm();" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-lg text-sm flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">edit</span> Modificar Turno</button></div>`;
-                        } else if (apt.estado === 'confirmado' || isPastDay) {
-                            extraButtons = `<div class="flex gap-2 mt-4"><button onclick="window.openEditTurnoModal('${apt.id}'); closeConfirm();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-lg text-sm flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">edit</span> Modificar</button><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg text-sm">Cancelar Turno</button></div>`;
-                        } else if (apt.estado === 'bloqueado') {
-                            extraButtons = `<div class="flex gap-2 mt-4"><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg text-sm">Liberar Horario</button></div>`;
+                        if (typeof window.openEditTurnoModal === 'function') {
+                            window.openEditTurnoModal(apt.id);
                         }
-
-                                showConfirm('Detalles del Turno', 
-                                    `<div class="text-left bg-white dark:bg-slate-800 p-4 rounded-xl mt-4 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"><p class="mb-2"><strong>Cliente:</strong> ${clientName}</p><p class="mb-2"><strong>Teléfono:</strong> <a href="https://wa.me/${(apt.cliente_celular || '').replace(/\D/g, '')}" target="_blank" class="text-emerald-600 font-bold hover:underline">${apt.cliente_celular || '-'}</a></p><p class="mb-2"><strong>Servicio:</strong> ${apt.servicio || '-'}</p><p class="mb-2"><strong>Profesional:</strong> ${apt.profesional || '-'}</p>${apt.metodo_pago ? `<p class="mb-2"><strong>Pago:</strong> ${apt.metodo_pago}</p>` : ''}<p><strong>Estado:</strong> <span class="uppercase text-[10px] px-2 py-1 rounded-md font-bold ${badgeClass}">${apt.estado}</span></p></div>`, 
-                            'Cerrar', 'bg-slate-800 hover:bg-slate-900', () => {}
-                        );
                     };
                 } else if (isBooked) {
                     slotDiv.innerHTML = `
@@ -663,19 +653,9 @@ function renderAdminDayView(dateString) {
                     <div class="text-[10px] opacity-80 truncate w-full">${apt.servicio || ''}</div>
                 `;
                 slotDiv.onclick = () => {
-                    let extraButtons = '';
-                    if (isPend && !isPastDay) {
-                            extraButtons = `<div class="flex flex-col gap-2 mt-5"><div class="flex gap-2"><button onclick="confirmarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">check_circle</span> Confirmar</button><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition-all border border-red-200 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">cancel</span> Cancelar</button></div><button onclick="window.openEditTurnoModal('${apt.id}'); closeConfirm();" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">edit</span> Modificar Turno</button></div>`;
-                    } else if (apt.estado === 'confirmado' || isPastDay) {
-                            extraButtons = `<div class="flex gap-2 mt-5"><button onclick="window.openEditTurnoModal('${apt.id}'); closeConfirm();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">edit</span> Modificar</button><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition-all border border-red-200 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">cancel</span> Cancelar Turno</button></div>`;
-                    } else if (apt.estado === 'bloqueado') {
-                            extraButtons = `<div class="flex gap-3 mt-5"><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition-all border border-red-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">lock_open</span> Liberar Horario</button></div>`;
+                    if (typeof window.openEditTurnoModal === 'function') {
+                        window.openEditTurnoModal(apt.id);
                     }
-
-                        showConfirm('Detalles del Turno', 
-                            `<div class="text-left bg-slate-50 dark:bg-slate-800/50 p-5 rounded-3xl mt-5 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 shadow-inner"><p class="mb-4 text-xl font-black text-slate-800 dark:text-slate-100">${clientName}</p><div class="space-y-3 text-sm font-medium"><p class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] opacity-70">call</span> <a href="https://wa.me/${(apt.cliente_celular || '').replace(/\D/g, '')}" target="_blank" class="text-emerald-600 font-bold hover:underline">${apt.cliente_celular || '-'}</a></p><p class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] opacity-70">spa</span> ${apt.servicio || '-'}</p><p class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] opacity-70">person</span> ${apt.profesional || '-'}</p>${apt.metodo_pago ? `<p class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] opacity-70">payments</span> ${apt.metodo_pago}</p>` : ''}<div class="pt-3 mt-3 border-t border-slate-200 dark:border-slate-700"><span class="uppercase text-[10px] px-3 py-1.5 rounded-xl font-extrabold shadow-sm ${badgeClass}">${apt.estado}</span></div></div></div>${extraButtons}`, 
-                            'Cerrar', 'bg-slate-800 hover:bg-slate-900', () => {}
-                        );
                 };
             } else if (isBooked) {
                 slotDiv.innerHTML = `<span class="text-sm font-bold text-slate-400">${time}</span><span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">Ocupado</span>`;
@@ -1789,19 +1769,9 @@ function renderAdminWeeklyGrid() {
                             
                             divApt.onclick = (e) => {
                                 e.stopPropagation();
-                                let extraButtons = '';
-                                if (apt.estado === 'pendiente' && !isPast) {
-                                    extraButtons = `<div class="flex flex-col gap-2 mt-5"><div class="flex gap-2"><button onclick="confirmarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">check_circle</span> Confirmar</button><button onclick="window.cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition-all border border-red-200 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">cancel</span> Cancelar</button></div><button onclick="window.openEditTurnoModal('${apt.id}'); closeConfirm();" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">edit</span> Modificar Turno</button></div>`;
-                                } else if (apt.estado === 'confirmado' || isPast) {
-                                    extraButtons = `<div class="flex gap-2 mt-5"><button onclick="window.openEditTurnoModal('${apt.id}'); closeConfirm();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">edit</span> Modificar</button><button onclick="window.cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition-all border border-red-200 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">cancel</span> Cancelar Turno</button></div>`;
-                                } else if (apt.estado === 'bloqueado') {
-                                    extraButtons = `<div class="flex gap-3 mt-5"><button onclick="window.cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition-all border border-red-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">lock_open</span> Liberar Horario</button></div>`;
+                                if (typeof window.openEditTurnoModal === 'function') {
+                                    window.openEditTurnoModal(apt.id);
                                 }
-
-                                showConfirm('Detalles del Turno', 
-                                    `<div class="text-left bg-slate-50 dark:bg-slate-800/50 p-5 rounded-3xl mt-5 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 shadow-inner"><p class="mb-4 text-xl font-black text-slate-800 dark:text-slate-100">${clientName}</p><div class="space-y-3 text-sm font-medium"><p class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] opacity-70">call</span> <a href="https://wa.me/${(apt.cliente_celular || '').replace(/\D/g, '')}" target="_blank" class="text-emerald-600 font-bold hover:underline">${apt.cliente_celular || '-'}</a></p><p class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] opacity-70">spa</span> ${apt.servicio || '-'}</p><p class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] opacity-70">person</span> ${apt.profesional || '-'}</p>${apt.metodo_pago ? `<p class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] opacity-70">payments</span> ${apt.metodo_pago}</p>` : ''}<div class="pt-3 mt-3 border-t border-slate-200 dark:border-slate-700"><span class="uppercase text-[10px] px-3 py-1.5 rounded-xl font-extrabold shadow-sm ${badgeClass}">${apt.estado}</span></div></div></div>${extraButtons}`, 
-                                    'Cerrar', 'bg-slate-800 hover:bg-slate-900', () => {}
-                                );
                             };
                             slot.appendChild(divApt);
                         });

@@ -13,6 +13,20 @@ session_write_close();
 require_once __DIR__ . '/conexion.php';
 
 try {
+    // 0. Auto-eliminación de turnos antiguos según el límite configurado
+    try {
+        $stmtLimit = $pdo->prepare("SELECT limite_eliminacion_dias FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
+        $stmtLimit->execute(['id' => $_SESSION['id_negocio']]);
+        $limitVal = $stmtLimit->fetchColumn();
+        if ($limitVal && (int)$limitVal > 0) {
+            $cutoff = date('Y-m-d', strtotime('-' . (int)$limitVal . ' days'));
+            $stmtDel = $pdo->prepare("DELETE FROM turnos WHERE id_negocio = :id AND fecha < :cutoff");
+            $stmtDel->execute(['id' => $_SESSION['id_negocio'], 'cutoff' => $cutoff]);
+        }
+    } catch (Exception $delEx) {
+        error_log("Error during auto-deletion cleanup: " . $delEx->getMessage());
+    }
+
     // 1. MIGRACIÓN: Crear índice compuesto si no existe (Optimización extrema de lectura)
     try { $pdo->exec("ALTER TABLE turnos ADD INDEX idx_negocio_fecha (id_negocio, fecha)"); } 
     catch (Exception $e) { /* El índice ya existe, continuamos silenciosamente */ }

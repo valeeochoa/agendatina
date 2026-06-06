@@ -440,269 +440,265 @@ function loadDashboardData() {
         return;
     }
 
-    fetch('backend/perfil.php')
-        .then(async res => {
-            const text = await res.text();
-            try {
-                return JSON.parse(text);
-            } catch (e) {
-                console.error('Error PHP en perfil.php (Dashboard):', text);
-                throw new Error('Respuesta no válida del servidor');
+    Promise.all([
+        fetch('backend/perfil.php')
+            .then(async res => {
+                const text = await res.text();
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('Error PHP en perfil.php (Dashboard):', text);
+                    throw new Error('Respuesta no válida del servidor');
+                }
+            }),
+        fetch('backend/guardar_web.php').then(res => res.json())
+    ])
+    .then(([data, webData]) => {
+        if (data.success) {
+            const business = data.business || {};
+            if (webData && !webData.error && webData.fecha_alta) {
+                business.fecha_alta = webData.fecha_alta;
+                if (webData.plan) business.plan = webData.plan;
+                if (webData.estado_pago) business.estado_pago = webData.estado_pago;
+                if (webData.ultimo_pago) business.ultimo_pago = webData.ultimo_pago;
             }
-        })
-        .then(data => {
-            if (data.success) {
-                fetch('backend/guardar_web.php')
-                .then(res => res.json())
-                .then(webData => {
-                    const business = data.business || {};
-                    if (webData && !webData.error && webData.fecha_alta) {
-                        business.fecha_alta = webData.fecha_alta;
-                        if (webData.plan) business.plan = webData.plan;
-                        if (webData.estado_pago) business.estado_pago = webData.estado_pago;
-                        if (webData.ultimo_pago) business.ultimo_pago = webData.ultimo_pago;
-                    }
-                    window.currentUserData = data.user || {};
-                    window.currentBusinessData = business;
-                
-                // Modificar el saludo y el subtítulo
-                const dashGreeting = document.getElementById('dashGreeting');
-                const dashSubGreeting = document.getElementById('dashSubGreeting');
-                if (dashGreeting && window.currentUserData.nombre_completo) {
-                    dashGreeting.textContent = `Hola, ${window.currentUserData.nombre_completo.split(' ')[0]}`;
-                }
-                if (dashSubGreeting && business.nombre_fantasia) {
-                    dashSubGreeting.textContent = `Gestionemos juntos tu negocio ${business.nombre_fantasia}`;
-                }
+            window.currentUserData = data.user || {};
+            window.currentBusinessData = business;
+        
+            // Modificar el saludo y el subtítulo
+            const dashGreeting = document.getElementById('dashGreeting');
+            const dashSubGreeting = document.getElementById('dashSubGreeting');
+            if (dashGreeting && window.currentUserData.nombre_completo) {
+                dashGreeting.textContent = `Hola, ${window.currentUserData.nombre_completo.split(' ')[0]}`;
+            }
+            if (dashSubGreeting && business.nombre_fantasia) {
+                dashSubGreeting.textContent = `Gestionemos juntos tu negocio ${business.nombre_fantasia}`;
+            }
 
-                window.currentCustomNotifs = data.notificaciones || [];
+            window.currentCustomNotifs = data.notificaciones || [];
 
-                // Animaciones de Bienvenida (Primer inicio) y Modo Demo
-                if (sessionStorage.getItem('agendatina_demo_alert')) {
-                    sessionStorage.removeItem('agendatina_demo_alert');
-                    setTimeout(() => showWelcomeAnimation('Premium', true), 300);
-        } else if (!localStorage.getItem('welcomed_' + (business.id || 'new'))) {
-                    localStorage.setItem('welcomed_' + (business.id || 'new'), 'true');
-                    setTimeout(() => showWelcomeAnimation(business.plan, false), 300);
-                }
-                
-                // Modo DEMO: Ocultar botones de reporte y soporte
-                if (window.currentUserData && window.currentUserData.email === 'demo@agendatina.site') {
-                    const cardSupport = document.getElementById('cardSupport');
-                    if (cardSupport) cardSupport.style.display = 'none';
-                    document.querySelectorAll('button[onclick^="openReportErrorModal"]').forEach(btn => btn.style.display = 'none');
-                }
+            // Animaciones de Bienvenida (Primer inicio) y Modo Demo
+            if (sessionStorage.getItem('agendatina_demo_alert')) {
+                sessionStorage.removeItem('agendatina_demo_alert');
+                setTimeout(() => showWelcomeAnimation('Premium', true), 300);
+            } else if (!localStorage.getItem('welcomed_' + (business.id || 'new'))) {
+                localStorage.setItem('welcomed_' + (business.id || 'new'), 'true');
+                setTimeout(() => showWelcomeAnimation(business.plan, false), 300);
+            }
+            
+            // Modo DEMO: Ocultar botones de reporte y soporte
+            if (window.currentUserData && window.currentUserData.email === 'demo@agendatina.site') {
+                const cardSupport = document.getElementById('cardSupport');
+                if (cardSupport) cardSupport.style.display = 'none';
+                document.querySelectorAll('button[onclick^="openReportErrorModal"]').forEach(btn => btn.style.display = 'none');
+            }
 
-                // Actualizar Nombre en el Navbar como fallback rápido si tarda en cargar la web
-                const dashBusinessName = document.getElementById('dashboardBusinessName');
-                if (dashBusinessName) {
-                    const fallbackName = business.nombre_fantasia || (window.currentUserData && window.currentUserData.nombre_completo) || 'Mi Negocio';
-                    const currentText = dashBusinessName.textContent.trim();
-                    if (currentText === 'Cargando...' || currentText === 'Mi Negocio') {
-                        dashBusinessName.textContent = fallbackName;
-                        
-                        const navAvatar = document.getElementById('navAvatar');
-                        if (navAvatar && !navAvatar.querySelector('img')) {
-                            const words = fallbackName.trim().split(/\s+/);
-                            const initials = words.length > 1 ? (words[0][0] + words[1][0]) : fallbackName.substring(0, 2);
-                            navAvatar.innerHTML = initials.toUpperCase();
-                        }
+            // Actualizar Nombre en el Navbar como fallback rápido si tarda en cargar la web
+            const dashBusinessName = document.getElementById('dashboardBusinessName');
+            if (dashBusinessName) {
+                const fallbackName = business.nombre_fantasia || (window.currentUserData && window.currentUserData.nombre_completo) || 'Mi Negocio';
+                const currentText = dashBusinessName.textContent.trim();
+                if (currentText === 'Cargando...' || currentText === 'Mi Negocio') {
+                    dashBusinessName.textContent = fallbackName;
+                    
+                    const navAvatar = document.getElementById('navAvatar');
+                    if (navAvatar && !navAvatar.querySelector('img')) {
+                        const words = fallbackName.trim().split(/\s+/);
+                        const initials = words.length > 1 ? (words[0][0] + words[1][0]) : fallbackName.substring(0, 2);
+                        navAvatar.innerHTML = initials.toUpperCase();
                     }
                 }
+            }
 
-                // Actualizar Plan en el Navbar
-                const navPlanName = document.getElementById('navPlanName');
-                let displayPlan = business.plan || 'Plan Básico';
-                if (!displayPlan.toLowerCase().includes('plan')) {
-                    displayPlan = 'Plan ' + displayPlan.charAt(0).toUpperCase() + displayPlan.slice(1);
+            // Actualizar Plan en el Navbar
+            const navPlanName = document.getElementById('navPlanName');
+            let displayPlan = business.plan || 'Plan Básico';
+            if (!displayPlan.toLowerCase().includes('plan')) {
+                displayPlan = 'Plan ' + displayPlan.charAt(0).toUpperCase() + displayPlan.slice(1);
+            }
+            if (navPlanName) navPlanName.textContent = displayPlan;
+
+            // Alerta si los días de trabajo están vacíos
+            const configAlertBanner = document.getElementById('configAlertBanner');
+            if (configAlertBanner) {
+                configAlertBanner.classList.add('hidden');
+                configAlertBanner.classList.remove('flex');
+            }
+
+            // Configurar modal de pago con el plan correcto
+            const paymentPlanName = document.getElementById('paymentPlanName');
+            if (paymentPlanName) paymentPlanName.textContent = displayPlan;
+            
+            const paymentPrice = document.getElementById('paymentPrice');
+            
+            const planStr = (business.plan || '').toLowerCase();
+            const dbStatus = business.estado_pago || 'prueba';
+
+            // Ocultar funciones del dashboard según el plan contratado
+            const cardAgenda = document.getElementById('cardAgenda');
+            const cardWeb = document.getElementById('cardWeb');
+            const cardCalendario = document.getElementById('cardCalendario');
+            
+            // Actualizar el enlace al calendario detectando si es mensual o semanal
+            if (cardCalendario) {
+                const isWeekly = webData.tipo_calendario === 'semanal';
+                cardCalendario.href = isWeekly ? 'calendarioSemanal.html' : 'calendarioMensual.html';
+            }
+
+            if (cardAgenda && cardWeb) {
+                cardAgenda.style.display = 'flex';
+                cardWeb.style.display = 'flex';
+                
+                if (planStr.includes('básico') || planStr.includes('basico') || planStr.includes('simple')) {
+                    cardAgenda.style.display = 'none'; // Plan básico: Oculta Agenda y Web
+                    cardWeb.style.display = 'none';
+                } else if (planStr.includes('intermedio') || planStr.includes('profesional')) {
+                    cardWeb.style.display = 'none';    // Plan Profesional/Intermedio: Oculta la Web Pública
                 }
-                if (navPlanName) navPlanName.textContent = displayPlan;
-
-                // Alerta si los días de trabajo están vacíos
-                const configAlertBanner = document.getElementById('configAlertBanner');
-                if (configAlertBanner) {
-                    configAlertBanner.classList.add('hidden');
-                    configAlertBanner.classList.remove('flex');
-                }
-
-                // Configurar modal de pago con el plan correcto
-                const paymentPlanName = document.getElementById('paymentPlanName');
-                if (paymentPlanName) paymentPlanName.textContent = displayPlan;
                 
-                const paymentPrice = document.getElementById('paymentPrice');
-                
-                const planStr = (business.plan || '').toLowerCase();
-                const dbStatus = business.estado_pago || 'prueba';
-
-                
-                // Ocultar funciones del dashboard según el plan contratado
-                const cardAgenda = document.getElementById('cardAgenda');
-                const cardWeb = document.getElementById('cardWeb');
-                const cardCalendario = document.getElementById('cardCalendario');
-                
-                // Actualizar el enlace al calendario detectando si es mensual o semanal
-                if (cardCalendario) {
-                    const isWeekly = webData.tipo_calendario === 'semanal';
-                    cardCalendario.href = isWeekly ? 'calendarioSemanal.html' : 'calendarioMensual.html';
-                }
-
-                if (cardAgenda && cardWeb) {
-                    cardAgenda.style.display = 'flex';
-                    cardWeb.style.display = 'flex';
-                    
-                    if (planStr.includes('básico') || planStr.includes('basico') || planStr.includes('simple')) {
-                        cardAgenda.style.display = 'none'; // Plan básico: Oculta Agenda y Web
-                        cardWeb.style.display = 'none';
-                    } else if (planStr.includes('intermedio') || planStr.includes('profesional')) {
-                        cardWeb.style.display = 'none';    // Plan Profesional/Intermedio: Oculta la Web Pública
-                    }
-                    
-                    // Respaldo de seguridad por si el plan falló en cargar antes
-                    if (data.plan) {
-                        const navPlanName = document.getElementById('navPlanName');
-                        if (navPlanName && (navPlanName.textContent === 'Cargando plan...' || navPlanName.textContent === 'Plan Básico')) {
-                            let pName = data.plan;
-                            if (!pName.toLowerCase().includes('plan')) pName = 'Plan ' + pName.charAt(0).toUpperCase() + pName.slice(1);
-                            navPlanName.textContent = pName;
-                        }
+                // Respaldo de seguridad por si el plan falló en cargar antes
+                if (data.plan) {
+                    const navPlanName = document.getElementById('navPlanName');
+                    if (navPlanName && (navPlanName.textContent === 'Cargando plan...' || navPlanName.textContent === 'Plan Básico')) {
+                        let pName = data.plan;
+                        if (!pName.toLowerCase().includes('plan')) pName = 'Plan ' + pName.charAt(0).toUpperCase() + pName.slice(1);
+                        navPlanName.textContent = pName;
                     }
                 }
+            }
 
-                // Calcular estado de suscripción
-                const fechaAltaStr = business.fecha_alta ? business.fecha_alta.split(' ')[0] : new Date().toISOString().split('T')[0];
+            // Calcular estado de suscripción
+            const fechaAltaStr = business.fecha_alta ? business.fecha_alta.split(' ')[0] : new Date().toISOString().split('T')[0];
 
-                const subscriptionData = {
-                    status: dbStatus,
-                    fechaAlta: fechaAltaStr,
-                    lastPaymentDate: business.ultimo_pago ? business.ultimo_pago.split(' ')[0] : null,
-                    plan: business.plan || 'Básico'
-                };
+            const subscriptionData = {
+                status: dbStatus,
+                fechaAlta: fechaAltaStr,
+                lastPaymentDate: business.ultimo_pago ? business.ultimo_pago.split(' ')[0] : null,
+                plan: business.plan || 'Básico'
+            };
 
-                // Integrar la carga de precios al Banner de Suscripción y al Modal de Pago
-                fetch('backend/obtener_precios.php').then(r=>r.json()).then(pData => {
-                    let basePrice = 13288;
-                    let discount = 20;
-                    
-                    if(pData && pData.success) {
-                        basePrice = parseFloat(pData.data.precio_basico);
-                        if (planStr.includes('intermedio') || planStr.includes('profesional')) basePrice = parseFloat(pData.data.precio_intermedio);
-                        if (planStr.includes('completo') || planStr.includes('premium')) basePrice = parseFloat(pData.data.precio_premium);
-                        
-                        discount = parseInt(pData.data.descuento_porcentaje) || 0;
-                        if (pData.data.descuento_hasta) {
-                            const expiry = new Date(pData.data.descuento_hasta.replace(/-/g, '/'));
-                            if (new Date() > expiry) discount = 0;
-                        }
-                    }
-                    
-                    const hasDiscount = discount > 0;
-                    let finalPrice = hasDiscount ? basePrice * (1 - discount/100) : basePrice;
-                    if (dbStatus === 'prueba') finalPrice = finalPrice / 2;
-                    let formattedPrice = finalPrice.toLocaleString('es-AR', {maximumFractionDigits:0});
-                    
-                    if (paymentPrice) {
-                        let discountBadge = '';
-                        if (dbStatus === 'prueba') discountBadge = '<span class="block text-sm font-bold text-emerald-500 mb-1">50% OFF - Primer Mes</span>';
-                        else if (hasDiscount) discountBadge = `<div class="flex flex-wrap items-center justify-center gap-2 mb-1"><span class="text-sm text-slate-400 line-through font-medium">$${basePrice.toLocaleString('es-AR', {maximumFractionDigits:0})}</span><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-${discount}% OFF</span></div>`;
-                        paymentPrice.innerHTML = `${discountBadge}$${formattedPrice} <span class="text-base font-normal text-slate-400">/mes</span>`;
-                    }
-                    
-                    subscriptionData.priceFormatted = formattedPrice;
-                    checkSubscription(subscriptionData);
-                }).catch(e => { console.error(e); checkSubscription(subscriptionData); });
+            // Integrar la carga de precios al Banner de Suscripción y al Modal de Pago
+            fetch('backend/obtener_precios.php').then(r=>r.json()).then(pData => {
+                let basePrice = 13288;
+                let discount = 20;
                 
-                // --- ONBOARDING WIDGET (TUTORIAL) ---
-                fetch('backend/gestionar_servicios.php').then(r=>r.json()).then(services => {
-                    const onboardingWidget = document.getElementById('onboardingWidget');
-                    if (onboardingWidget) {
-                        let hasConfig = webData.dias_trabajo && webData.dias_trabajo.trim() !== '';
-                        let hasServices = Array.isArray(services) && services.length > 0;
-                        
-                        fetch('backend/obtener_agenda.php').then(r=>r.json()).then(turnos => {
-                            let hasTurnos = Array.isArray(turnos) && turnos.length > 0;
+                if(pData && pData.success) {
+                    basePrice = parseFloat(pData.data.precio_basico);
+                    if (planStr.includes('intermedio') || planStr.includes('profesional')) basePrice = parseFloat(pData.data.precio_intermedio);
+                    if (planStr.includes('completo') || planStr.includes('premium')) basePrice = parseFloat(pData.data.precio_premium);
+                    
+                    discount = parseInt(pData.data.descuento_porcentaje) || 0;
+                    if (pData.data.descuento_hasta) {
+                        const expiry = new Date(pData.data.descuento_hasta.replace(/-/g, '/'));
+                        if (new Date() > expiry) discount = 0;
+                    }
+                }
+                
+                const hasDiscount = discount > 0;
+                let finalPrice = hasDiscount ? basePrice * (1 - discount/100) : basePrice;
+                if (dbStatus === 'prueba') finalPrice = finalPrice / 2;
+                let formattedPrice = finalPrice.toLocaleString('es-AR', {maximumFractionDigits:0});
+                
+                if (paymentPrice) {
+                    let discountBadge = '';
+                    if (dbStatus === 'prueba') discountBadge = '<span class="block text-sm font-bold text-emerald-500 mb-1">50% OFF - Primer Mes</span>';
+                    else if (hasDiscount) discountBadge = `<div class="flex flex-wrap items-center justify-center gap-2 mb-1"><span class="text-sm text-slate-400 line-through font-medium">$${basePrice.toLocaleString('es-AR', {maximumFractionDigits:0})}</span><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-${discount}% OFF</span></div>`;
+                    paymentPrice.innerHTML = `${discountBadge}$${formattedPrice} <span class="text-base font-normal text-slate-400">/mes</span>`;
+                }
+                
+                subscriptionData.priceFormatted = formattedPrice;
+                checkSubscription(subscriptionData);
+            }).catch(e => { console.error(e); checkSubscription(subscriptionData); });
+            
+            // --- ONBOARDING WIDGET (TUTORIAL) ---
+            fetch('backend/gestionar_servicios.php').then(r=>r.json()).then(services => {
+                const onboardingWidget = document.getElementById('onboardingWidget');
+                if (onboardingWidget) {
+                    let hasConfig = webData.dias_trabajo && webData.dias_trabajo.trim() !== '';
+                    let hasServices = Array.isArray(services) && services.length > 0;
+                    
+                    fetch('backend/obtener_agenda.php').then(r=>r.json()).then(turnos => {
+                        let hasTurnos = Array.isArray(turnos) && turnos.length > 0;
 
-                            if (hasConfig && hasServices && hasTurnos && window.currentUserData.email !== 'demo@agendatina.site') {
-                                onboardingWidget.classList.add('hidden');
-                            } else {
-                                onboardingWidget.classList.remove('hidden');
-                                
-                                const step1Icon = document.getElementById('step1Icon');
-                                const step1Text = document.getElementById('step1Text');
-                                if (hasConfig) {
-                                    if(step1Icon) { step1Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step1Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
-                                    if(step1Text) {
-                                        step1Text.classList.add('line-through', 'text-slate-400');
-                                        const desc = step1Text.parentElement.nextElementSibling;
-                                        if (desc) desc.classList.add('line-through', 'opacity-50');
-                                        const link = desc ? desc.nextElementSibling : null;
-                                        if (link) link.style.display = 'none';
-                                    }
-                                }
-
-                                const step2Icon = document.getElementById('step2Icon');
-                                const step2Text = document.getElementById('step2Text');
-                                const step2Link = document.getElementById('step2Link');
-                                if(step2Link) step2Link.href = webData.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
-                                
-                                if (hasServices) {
-                                    if(step2Icon) { step2Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step2Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
-                                    if(step2Text) {
-                                        step2Text.classList.add('line-through', 'text-slate-400');
-                                        const desc = step2Text.parentElement.nextElementSibling;
-                                        if (desc) desc.classList.add('line-through', 'opacity-50');
-                                        const link = desc ? desc.nextElementSibling : null;
-                                        if (link) link.style.display = 'none';
-                                    }
-                                }
-
-                                const step3Link = document.getElementById('step3Link');
-                                const step3Icon = document.getElementById('step3Icon');
-                                const step3Text = document.getElementById('step3Text');
-                                if (hasConfig && hasServices && step3Link) {
-                                    step3Link.classList.remove('opacity-50', 'pointer-events-none');
-                                    step3Link.href = (business.ruta || business.subdominio) ? '/' + (business.ruta || business.subdominio) : '#';
-                                }
-                                if (hasTurnos) {
-                                    if(step3Icon) { step3Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step3Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
-                                    if(step3Text) {
-                                        step3Text.classList.add('line-through', 'text-slate-400');
-                                        const desc = step3Text.parentElement.nextElementSibling;
-                                        if (desc) desc.classList.add('line-through', 'opacity-50');
-                                        const link = desc ? desc.nextElementSibling : null;
-                                        if (link) link.style.display = 'none';
-                                    }
+                        if (hasConfig && hasServices && hasTurnos && window.currentUserData.email !== 'demo@agendatina.site') {
+                            onboardingWidget.classList.add('hidden');
+                        } else {
+                            onboardingWidget.classList.remove('hidden');
+                            
+                            const step1Icon = document.getElementById('step1Icon');
+                            const step1Text = document.getElementById('step1Text');
+                            if (hasConfig) {
+                                if(step1Icon) { step1Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step1Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
+                                if(step1Text) {
+                                    step1Text.classList.add('line-through', 'text-slate-400');
+                                    const desc = step1Text.parentElement.nextElementSibling;
+                                    if (desc) desc.classList.add('line-through', 'opacity-50');
+                                    const link = desc ? desc.nextElementSibling : null;
+                                    if (link) link.style.display = 'none';
                                 }
                             }
-                        }).catch(e => console.error(e));
-                    }
-                }).catch(e => console.error(e));
 
-                checkNotifications(); // Cargar notificaciones en la campanita
-                loadDashboardChart(webData.color_primario || '#3b82f6');
-                
-                // Revelar el dashboard suavemente
-                const loader = document.getElementById('dashboardLoader');
-                const mainContent = document.getElementById('dashboardMainContent');
-                if (loader && mainContent) {
-                    loader.classList.add('hidden');
-                    mainContent.classList.remove('hidden');
-                    setTimeout(() => mainContent.classList.remove('opacity-0'), 50);
+                            const step2Icon = document.getElementById('step2Icon');
+                            const step2Text = document.getElementById('step2Text');
+                            const step2Link = document.getElementById('step2Link');
+                            if(step2Link) step2Link.href = webData.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
+                            
+                            if (hasServices) {
+                                if(step2Icon) { step2Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step2Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
+                                if(step2Text) {
+                                    step2Text.classList.add('line-through', 'text-slate-400');
+                                    const desc = step2Text.parentElement.nextElementSibling;
+                                    if (desc) desc.classList.add('line-through', 'opacity-50');
+                                    const link = desc ? desc.nextElementSibling : null;
+                                    if (link) link.style.display = 'none';
+                                }
+                            }
+
+                            const step3Link = document.getElementById('step3Link');
+                            const step3Icon = document.getElementById('step3Icon');
+                            const step3Text = document.getElementById('step3Text');
+                            if (hasConfig && hasServices && step3Link) {
+                                step3Link.classList.remove('opacity-50', 'pointer-events-none');
+                                step3Link.href = (business.ruta || business.subdominio) ? '/' + (business.ruta || business.subdominio) : '#';
+                            }
+                            if (hasTurnos) {
+                                if(step3Icon) { step3Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step3Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
+                                if(step3Text) {
+                                    step3Text.classList.add('line-through', 'text-slate-400');
+                                    const desc = step3Text.parentElement.nextElementSibling;
+                                    if (desc) desc.classList.add('line-through', 'opacity-50');
+                                    const link = desc ? desc.nextElementSibling : null;
+                                    if (link) link.style.display = 'none';
+                                }
+                            }
+                        }
+                    }).catch(e => console.error(e));
                 }
-                    }).catch(err => {
-                        console.error('Error al cargar datos web:', err);
-                        showDashboardError('Error al cargar configuración web: ' + err.message);
-                    });
-            } else if (data.error && data.error.toLowerCase().includes('inicia sesión')) {
-                window.location.href = 'login.html';
-            } else {
-                showDashboardError(data.error || 'No se pudieron recuperar los datos de usuario o negocio.');
+            }).catch(e => console.error(e));
+
+            checkNotifications(); // Cargar notificaciones en la campanita
+            loadDashboardChart(webData.color_primario || '#3b82f6');
+            
+            // Revelar el dashboard suavemente
+            const loader = document.getElementById('dashboardLoader');
+            const mainContent = document.getElementById('dashboardMainContent');
+            if (loader && mainContent) {
+                loader.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+                setTimeout(() => mainContent.classList.remove('opacity-0'), 50);
             }
-        })
-        .catch(err => {
-            console.error('Error al cargar datos del dashboard:', err);
-            showDashboardError('Error al conectar con el servidor: ' + err.message);
-        });
+        } else if (data.error && data.error.toLowerCase().includes('inicia sesión')) {
+            window.location.href = 'login.html';
+        } else {
+            showDashboardError(data.error || 'No se pudieron recuperar los datos de usuario o negocio.');
+        }
+    })
+    .catch(err => {
+        console.error('Error al cargar datos del dashboard:', err);
+        showDashboardError('Error al conectar con el servidor: ' + err.message);
+    });
 }
+
 
 function showDashboardError(msg) {
     const loader = document.getElementById('dashboardLoader');
@@ -858,7 +854,7 @@ function checkSubscription(subscriptionData) {
         subActionBtn.className = `px-5 py-2.5 rounded-xl text-sm font-bold transition-transform hover:-translate-y-0.5 ${dashBtnClass}`;
         subActionBtn.classList.remove('hidden');
         if (subscriptionData.status === 'pendiente_revision' && window.currentBusinessData && window.currentBusinessData.comprobante) {
-            subActionBtn.onclick = () => window.open(window.currentBusinessData.comprobante, '_blank');
+            subActionBtn.onclick = () => window.verComprobanteModal(window.currentBusinessData.comprobante);
         } else {
             subActionBtn.onclick = () => window.location.href = 'pago.html';
         }
@@ -1242,7 +1238,7 @@ function loadCustomization() {
                     const c2 = data.color_secundario || '#FC8712';
                     if (navAvatar) navAvatar.style.background = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
                 }
-                if (data.logo) {
+                if (data.logo && data.logo !== 'null' && data.logo !== 'undefined') {
                     const favicon = document.querySelector('link[rel="icon"]');
                     if (favicon) favicon.href = data.logo;
 
@@ -1307,7 +1303,7 @@ function loadCustomization() {
                         document.head.appendChild(style);
                     }
                 }
-                if (data.logo) {
+                if (data.logo && data.logo !== 'null' && data.logo !== 'undefined') {
                     const profilePreview = document.getElementById('profileLogoPreview');
                     if (profilePreview) { profilePreview.src = data.logo; profilePreview.classList.remove('hidden'); }
                     const webPreview = document.getElementById('webLogoPreview');
@@ -1379,9 +1375,9 @@ function openProfileModal() {
                 const statConf = document.getElementById('statConf');
                 const statPend = document.getElementById('statPend');
                 
-                if(statTotal) statTotal.textContent = total;
-                if(statConf) statConf.textContent = confirmados;
-                if(statPend) statPend.textContent = pendientes;
+                if(statTotal) statTotal.textContent = total + " turnos";
+                if(statConf) statConf.textContent = confirmados + " turnos";
+                if(statPend) statPend.textContent = pendientes + " turnos";
             }
             
         }).catch(err => console.error('Error stats:', err));
@@ -1434,6 +1430,7 @@ function applyCalendarConfigToForm(c) {
     if(document.getElementById('configSimultaneos')) document.getElementById('configSimultaneos').value = c.turnos_simultaneos || 'no';
     if(document.getElementById('configConfirmacionAutomatica')) document.getElementById('configConfirmacionAutomatica').value = c.confirmacion_automatica || 'no';
     if(document.getElementById('configMetodosPago')) document.getElementById('configMetodosPago').value = c.metodos_pago || '';
+    if(document.getElementById('configLimiteEliminacion')) document.getElementById('configLimiteEliminacion').value = c.limite_eliminacion_dias !== undefined ? c.limite_eliminacion_dias : 0;
     
     const ant = parseInt(c.anticipacion_turno_min || 0, 10);
     if(document.getElementById('configAnticipacionMin')) document.getElementById('configAnticipacionMin').value = ant;
@@ -2713,7 +2710,7 @@ function applyWebCustomization() {
                         main.parentElement.appendChild(footer);
                     }
                 }
-                if (data.logo) {
+                if (data.logo && data.logo !== 'null' && data.logo !== 'undefined') {
                     const favicon = document.querySelector('link[rel="icon"]');
                     if (favicon) favicon.href = data.logo;
                     
@@ -2722,11 +2719,11 @@ function applyWebCustomization() {
                     if (navIconContainer) navIconContainer.classList.add('hidden');
                     if (navLogoImg) { navLogoImg.src = data.logo; navLogoImg.classList.remove('hidden'); }
                 
-                const navAvatar = document.getElementById('navAvatar');
-                if (navAvatar) {
-                    navAvatar.innerHTML = `<img src="${data.logo}" class="w-full h-full object-cover" alt="Logo">`;
-                    navAvatar.style.background = 'transparent';
-                }
+                    const navAvatar = document.getElementById('navAvatar');
+                    if (navAvatar) {
+                        navAvatar.innerHTML = `<img src="${data.logo}" class="w-full h-full object-cover" alt="Logo">`;
+                        navAvatar.style.background = 'transparent';
+                    }
                 }
                 if (data.color_secundario) {
                     const navBrandAccent = document.getElementById('navBrandAccent');
@@ -2797,3 +2794,63 @@ function applyWebCustomization() {
         })
         .catch(err => console.error('Error al cargar personalización:', err));
 }                   // Eliminar la etiqueta de estilo anterior si existe (útil al guardar desde el panel admin)
+
+window.verComprobanteModal = function(url) {
+    let modal = document.getElementById('reusableReceiptModal');
+    if (!modal) {
+        const div = document.createElement('div');
+        div.innerHTML = `
+        <div id="reusableReceiptModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+            <div id="reusableReceiptModalContent" class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2"><span class="material-symbols-outlined text-purple-600">receipt_long</span> Comprobante Enviado</h2>
+                    <button onclick="window.closeReusableReceiptModal()" class="text-slate-400 hover:text-red-500 bg-slate-100 hover:bg-red-50 rounded-full p-1.5 transition-colors"><span class="material-symbols-outlined">close</span></button>
+                </div>
+                <div class="flex-1 overflow-auto bg-slate-50 rounded-xl border border-slate-200 mb-4 flex items-center justify-center min-h-[300px]">
+                    <img id="reusableReceiptImage" src="" class="max-w-full max-h-[50vh] object-contain hidden">
+                    <iframe id="reusableReceiptPdf" src="" class="w-full h-[50vh] hidden border-0"></iframe>
+                </div>
+                <div class="flex justify-end pt-2">
+                    <button onclick="window.closeReusableReceiptModal()" class="px-5 py-2.5 font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-xl shadow-lg transition-all">Cerrar</button>
+                </div>
+            </div>
+        </div>`;
+        document.body.appendChild(div.firstElementChild);
+        modal = document.getElementById('reusableReceiptModal');
+    }
+    const content = document.getElementById('reusableReceiptModalContent');
+    const img = document.getElementById('reusableReceiptImage');
+    const pdf = document.getElementById('reusableReceiptPdf');
+    
+    img.classList.add('hidden');
+    pdf.classList.add('hidden');
+    
+    if (url.toLowerCase().endsWith('.pdf')) {
+        pdf.src = url;
+        pdf.classList.remove('hidden');
+    } else {
+        img.src = url;
+        img.classList.remove('hidden');
+    }
+    
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+    }, 10);
+};
+
+window.closeReusableReceiptModal = function() {
+    const modal = document.getElementById('reusableReceiptModal');
+    if (!modal) return;
+    const content = document.getElementById('reusableReceiptModalContent');
+    modal.classList.add('opacity-0');
+    content.classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.getElementById('reusableReceiptPdf').src = '';
+        document.getElementById('reusableReceiptImage').src = '';
+    }, 300);
+};

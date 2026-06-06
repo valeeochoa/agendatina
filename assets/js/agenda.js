@@ -167,12 +167,24 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     futuros.sort((a, b) => (a.fecha + ' ' + a.hora).localeCompare(b.fecha + ' ' + b.hora));
     pasados.sort((a, b) => (b.fecha + ' ' + b.hora).localeCompare(a.fecha + ' ' + a.hora));
 
+    // Separar pendientes en futuros (Por Confirmar) y viejos (Vencidos)
+    const pendientesFuturos = [];
+    const pendientesViejos = [];
+    pendientes.forEach(t => {
+        const tDate = new Date(t.fecha.replace(/-/g, '/') + ' ' + t.hora);
+        if (tDate < now) {
+            pendientesViejos.push(t);
+        } else {
+            pendientesFuturos.push(t);
+        }
+    });
+
     // DIBUJAR PENDIENTES
     if (listPend) {
         listPend.innerHTML = '';
-        if (pendientes.length === 0) listPend.innerHTML = `<div class="p-6 rounded-2xl border border-slate-200 text-center" style="background:#f8fafc;"><p class="text-sm font-medium text-slate-400">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'No hay turnos pendientes'}</p></div>`;
+        if (pendientesFuturos.length === 0) listPend.innerHTML = `<div class="p-6 rounded-2xl border border-slate-200 text-center" style="background:#f8fafc;"><p class="text-sm font-medium text-slate-400">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'No hay turnos pendientes'}</p></div>`;
         
-        pendientes.forEach(t => {
+        pendientesFuturos.forEach(t => {
             const fParts = t.fecha.split('-');
             const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}/${fParts[0]}` : t.fecha;
             const focusClass = focusId == t.id ? 'ring-4 ring-primary ring-offset-2 scale-[1.02] transition-transform duration-500' : '';
@@ -202,6 +214,75 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                 </div>
             `;
         });
+    }
+
+    const countPendSpan = document.getElementById('countPendientes');
+    if (countPendSpan) {
+        countPendSpan.textContent = pendientesFuturos.length;
+    }
+
+    // DIBUJAR PENDIENTES VIEJOS (VENCIDOS)
+    const listVencidos = document.getElementById('lista-vencidos');
+    if (listVencidos) {
+        listVencidos.innerHTML = '';
+        if (pendientesViejos.length === 0) {
+            listVencidos.innerHTML = `<div class="p-8 text-center text-sm font-medium text-slate-400 rounded-xl border border-slate-200" style="background:#f8fafc;">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'No hay turnos vencidos.'}</div>`;
+        } else {
+            const gruposVencidos = {};
+            pendientesViejos.forEach(t => {
+                if (!gruposVencidos[t.fecha]) gruposVencidos[t.fecha] = [];
+                gruposVencidos[t.fecha].push(t);
+            });
+
+            const fechasVencidos = Object.keys(gruposVencidos).sort((a, b) => b.localeCompare(a));
+            fechasVencidos.forEach(fecha => {
+                const [yyyy, mm, dd] = fecha.split('-');
+                const formatFecha = `${dd}/${mm}/${yyyy}`;
+                const turnosCount = gruposVencidos[fecha].length;
+                const turnosText = turnosCount === 1 ? '1 turno' : `${turnosCount} turnos`;
+
+                let htmlDia = `
+                    <div class="mb-8">
+                        <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2 opacity-80">
+                            <span class="material-symbols-outlined text-[20px]">history_toggle_off</span> 
+                            ${formatFecha}
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded-md ml-1 border border-slate-200" style="background:#f1f5f9;color:#64748b;">${turnosText}</span>
+                        </h3>
+                        <div class="space-y-3">
+                `;
+
+                gruposVencidos[fecha].forEach(t => {
+                    htmlDia += `
+                        <div id="turno-${t.id}" onclick="if(!event.target.closest('button')) window.openEditTurnoModal('${t.id}')" class="shadow-sm rounded-2xl p-5 hover:shadow-lg cursor-pointer transition-shadow relative overflow-hidden" style="background-color: #ffffff; border: 1px solid #e2e8f0;">
+                            <div class="absolute top-0 left-0 w-1.5 h-full bg-amber-400"></div>
+                            <div class="flex justify-between items-start mb-3">
+                                <span class="text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wider" style="background-color: #fef3c7; color: #92400e;">${t.hora} hs</span>
+                                ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1" style="background-color: #f1f5f9; color: #475569;"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
+                            </div>
+                            <p class="text-lg font-bold mb-1" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                            <div class="flex items-center gap-3 mb-4">
+                                <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: #475569; background-color: #f8fafc; border-color: #e2e8f0;"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular}</p>
+                                <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
+                            </div>
+                            ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
+                            <p class="text-sm mb-5 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">spa</span> <span class="font-medium">${t.servicio}</span></p>
+                            <div class="flex items-center gap-3 pt-4 border-t" style="border-color: #e2e8f0;">
+                                <button onclick="window.confirmarTurnoAdmin('${t.id}')" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 shadow-sm shadow-amber-500/20">
+                                    <span class="material-symbols-outlined text-[18px]">check</span> Confirmar
+                                </button>
+                                <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-sm font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center border border-red-100" title="Eliminar turno">
+                                    <span class="material-symbols-outlined text-[18px]">close</span>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                htmlDia += `</div></div>`;
+                gruposVencidos[fecha] = []; // Clear
+                listVencidos.innerHTML += htmlDia;
+            });
+        }
     }
 
     if (focusId) {
