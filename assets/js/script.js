@@ -717,7 +717,6 @@ function showDashboardError(msg) {
         `;
     }
 }
-}
 
 function checkSubscription(subscriptionData) {
     const banner = document.getElementById('subscriptionBanner');
