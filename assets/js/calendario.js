@@ -498,9 +498,9 @@ function renderAdminDayView(dateString) {
                     slotDiv.onclick = () => {
                         let extraButtons = '';
                         if (isPend && !isPastDay) {
-                            extraButtons = `<div class="flex gap-2 mt-4"><button onclick="confirmarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 rounded-lg text-sm">Confirmar</button><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg text-sm">Cancelar</button></div>`;
+                            extraButtons = `<div class="flex flex-col gap-2 mt-4"><div class="flex gap-2"><button onclick="confirmarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 rounded-lg text-sm">Confirmar</button><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg text-sm">Cancelar</button></div><button onclick="window.openEditTurnoModal('${apt.id}'); closeConfirm();" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-lg text-sm flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">edit</span> Modificar Turno</button></div>`;
                         } else if (apt.estado === 'confirmado' || isPastDay) {
-                            extraButtons = `<div class="flex gap-2 mt-4"><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg text-sm">Cancelar Turno</button></div>`;
+                            extraButtons = `<div class="flex gap-2 mt-4"><button onclick="window.openEditTurnoModal('${apt.id}'); closeConfirm();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-lg text-sm flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">edit</span> Modificar</button><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg text-sm">Cancelar Turno</button></div>`;
                         } else if (apt.estado === 'bloqueado') {
                             extraButtons = `<div class="flex gap-2 mt-4"><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg text-sm">Liberar Horario</button></div>`;
                         }
@@ -577,6 +577,7 @@ function renderAdminDayView(dateString) {
                             </div>
                             <div class="flex flex-wrap gap-2 w-full mt-1">
                                 ${isPend && !isPastDay ? `<button onclick="confirmarTurnoAdmin('${apt.id}')" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors flex-1">Confirmar</button>` : ''}
+                                ${apt.estado !== 'bloqueado' ? `<button onclick="window.openEditTurnoModal('${apt.id}')" class="bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-600 transition-colors flex-1 text-center flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[14px]">edit</span> Modificar</button>` : ''}
                                 ${apt.estado !== 'bloqueado' ? `<button onclick="contactarWhatsApp('${cel}', '${nombre}')" class="bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 dark:border-slate-600 transition-colors flex-1 text-center">WhatsApp</button>` : ''}
                                 <button onclick="cancelarTurnoAdmin('${apt.id}')" class="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex-1 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">delete</span> Cancelar</button>
                             </div>
@@ -664,9 +665,9 @@ function renderAdminDayView(dateString) {
                 slotDiv.onclick = () => {
                     let extraButtons = '';
                     if (isPend && !isPastDay) {
-                            extraButtons = `<div class="flex gap-3 mt-5"><button onclick="confirmarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl text-sm transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">check_circle</span> Confirmar</button><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition-all border border-red-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">cancel</span> Cancelar</button></div>`;
+                            extraButtons = `<div class="flex flex-col gap-2 mt-5"><div class="flex gap-2"><button onclick="confirmarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">check_circle</span> Confirmar</button><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition-all border border-red-200 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">cancel</span> Cancelar</button></div><button onclick="window.openEditTurnoModal('${apt.id}'); closeConfirm();" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">edit</span> Modificar Turno</button></div>`;
                     } else if (apt.estado === 'confirmado' || isPastDay) {
-                            extraButtons = `<div class="flex gap-3 mt-5"><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition-all border border-red-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">cancel</span> Cancelar Turno</button></div>`;
+                            extraButtons = `<div class="flex gap-2 mt-5"><button onclick="window.openEditTurnoModal('${apt.id}'); closeConfirm();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">edit</span> Modificar</button><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition-all border border-red-200 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">cancel</span> Cancelar Turno</button></div>`;
                     } else if (apt.estado === 'bloqueado') {
                             extraButtons = `<div class="flex gap-3 mt-5"><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition-all border border-red-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">lock_open</span> Liberar Horario</button></div>`;
                     }
@@ -733,6 +734,7 @@ function renderAdminDayView(dateString) {
                         </div>
                         <div class="flex flex-wrap gap-2 w-full mt-1">
                             ${isPend && !isPastDay ? `<button onclick="confirmarTurnoAdmin('${apt.id}')" class="bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-colors flex-1">Confirmar</button>` : ''}
+                            ${apt.estado !== 'bloqueado' ? `<button onclick="window.openEditTurnoModal('${apt.id}')" class="bg-slate-50 hover:bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 transition-colors flex-1 text-center flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[14px]">edit</span> Modificar</button>` : ''}
                             ${apt.estado !== 'bloqueado' ? `<button onclick="window.contactarWhatsApp('${apt.id}')" class="bg-slate-50 hover:bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200 transition-colors flex-1 text-center">WhatsApp</button>` : ''}
                             <button onclick="cancelarTurnoAdmin('${apt.id}')" class="text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors flex-1 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px]">delete</span> Cancelar</button>
                         </div>
@@ -748,20 +750,7 @@ function renderAdminDayView(dateString) {
     }
 }
 
-function cancelarTurnoAdmin(id) {
-    showConfirm('Cancelar Turno', '¿Seguro que deseas cancelar o liberar este horario?', 'Sí, Cancelar', 'bg-red-500 hover:bg-red-600', () => {
-        return fetch('backend/cancelar_turno.php', { method: 'POST', body: new URLSearchParams({id: id}) })
-        .then(res => res.json())
-        .then(data => {
-            if(data.success) {
-                showToast('Horario liberado exitosamente', 'success');
-                window.refreshCalendarData();
-            } else {
-                showToast(data.error || 'No se pudo cancelar el turno.', 'error');
-            }
-        }).catch(() => showToast('Error de conexión', 'error'));
-    });
-}
+// cancelarTurnoAdmin removida por estar centralizada en script.js
 
 window.moveAppointmentToDate = function(aptId, newDateStr, newTimeStr = null) {
     const apt = allAppointments.find(a => String(a.id) === String(aptId));
@@ -1802,11 +1791,11 @@ function renderAdminWeeklyGrid() {
                                 e.stopPropagation();
                                 let extraButtons = '';
                                 if (apt.estado === 'pendiente' && !isPast) {
-                                    extraButtons = `<div class="flex gap-3 mt-5"><button onclick="confirmarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl text-sm transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">check_circle</span> Confirmar</button><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition-all border border-red-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">cancel</span> Cancelar</button></div>`;
+                                    extraButtons = `<div class="flex flex-col gap-2 mt-5"><div class="flex gap-2"><button onclick="confirmarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 rounded-xl text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">check_circle</span> Confirmar</button><button onclick="window.cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition-all border border-red-200 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">cancel</span> Cancelar</button></div><button onclick="window.openEditTurnoModal('${apt.id}'); closeConfirm();" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">edit</span> Modificar Turno</button></div>`;
                                 } else if (apt.estado === 'confirmado' || isPast) {
-                                    extraButtons = `<div class="flex gap-3 mt-5"><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition-all border border-red-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">cancel</span> Cancelar Turno</button></div>`;
+                                    extraButtons = `<div class="flex gap-2 mt-5"><button onclick="window.openEditTurnoModal('${apt.id}'); closeConfirm();" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl text-sm transition-all flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">edit</span> Modificar</button><button onclick="window.cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition-all border border-red-200 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">cancel</span> Cancelar Turno</button></div>`;
                                 } else if (apt.estado === 'bloqueado') {
-                                    extraButtons = `<div class="flex gap-3 mt-5"><button onclick="cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition-all border border-red-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">lock_open</span> Liberar Horario</button></div>`;
+                                    extraButtons = `<div class="flex gap-3 mt-5"><button onclick="window.cancelarTurnoAdmin('${apt.id}'); closeConfirm();" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl text-sm transition-all border border-red-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[18px]">lock_open</span> Liberar Horario</button></div>`;
                                 }
 
                                 showConfirm('Detalles del Turno', 

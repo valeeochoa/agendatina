@@ -90,8 +90,7 @@
                 .then(res => res.json())
                 .then(data => {
                     if(data.success) {
-                        alert('Comprobante enviado a revisión correctamente. ¡Gracias!');
-                        window.location.href = 'dashboard.html';
+                        showSuccessModal();
                     } else {
                         alert(data.error || 'Ocurrió un error al subir el comprobante.');
                         btn.disabled = false;
@@ -104,6 +103,37 @@
                 });
             });
         });
+
+        function showSuccessModal() {
+            const modal = document.getElementById('successModal');
+            const content = document.getElementById('successModalContent');
+            
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.classList.add('opacity-100');
+            
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 50);
+        }
     </script>
+
+    <!-- Modal de Éxito -->
+    <div id="successModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+        <div id="successModalContent" class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-100 transform scale-95 opacity-0 transition-all duration-300">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-emerald-50 mb-6 border border-emerald-100">
+                    <span class="material-symbols-outlined text-emerald-500 text-5xl">check_circle</span>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-800 mb-3">¡Comprobante Enviado!</h3>
+                <p class="text-slate-600 text-sm leading-relaxed mb-8">
+                    Tu comprobante de pago ha sido subido con éxito y está **pendiente de aprobación** por parte de la administración. Te avisaremos apenas esté activo.
+                </p>
+                <button onclick="window.location.href='dashboard.html'" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg shadow-blue-600/20 hover:shadow-blue-600/30 flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-[20px]">dashboard</span> Ir al Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

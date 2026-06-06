@@ -100,6 +100,26 @@ window.closeConfirm = function() {
 };
 
 window.confirmarTurnoAdmin = function(id) {
+    // Verificar si el turno está en el pasado
+    let targetTurno = null;
+    if (Array.isArray(window.agendaData)) {
+        targetTurno = window.agendaData.find(t => t.id == id);
+    }
+    if (!targetTurno && Array.isArray(window.allAppointments)) {
+        targetTurno = window.allAppointments.find(t => t.id == id);
+    }
+    
+    if (targetTurno) {
+        const tDate = new Date(targetTurno.fecha.replace(/-/g, '/') + ' ' + targetTurno.hora);
+        const now = new Date();
+        if (tDate < now) {
+            showConfirm('Turno Antiguo', 'Este turno es del pasado y no se puede confirmar. ¿Deseas enviarlo a la papelera?', 'Sí, enviar a Papelera', 'bg-red-500 hover:bg-red-600', () => {
+                window.cancelarTurnoAdmin(id, true);
+            });
+            return;
+        }
+    }
+
     showConfirm('Confirmar Turno', '¿Agendar y confirmar este turno? Aparecerá como ocupado para los clientes.', 'Confirmar', 'bg-amber-500 hover:bg-amber-600', () => {
         return fetch('backend/confirmar_turno.php', { method: 'POST', body: new URLSearchParams({id: id}) })
         .then(res => res.json())
@@ -126,6 +146,212 @@ window.confirmarTurnoAdmin = function(id) {
             }
         }).catch(() => showToast('Error de conexión', 'error'));
     });
+};
+
+window.cancelarTurnoAdmin = function(id, skipConfirm = false) {
+    const doCancel = () => {
+        return fetch('backend/cancelar_turno.php', { method: 'POST', body: new URLSearchParams({id: id}) })
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                showToast('Turno cancelado exitosamente', 'success');
+                if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
+                if (typeof window.cargarAgenda === 'function') window.cargarAgenda();
+            } else {
+                showToast(data.error || 'No se pudo cancelar el turno.', 'error');
+            }
+        }).catch(() => showToast('Error de conexión', 'error'));
+    };
+
+    if (skipConfirm) {
+        return doCancel();
+    } else {
+        showConfirm('Cancelar Turno', '¿Seguro que deseas cancelar o liberar este horario?', 'Sí, Cancelar', 'bg-red-500 hover:bg-red-600', doCancel);
+    }
+};
+
+window.ensureServicesLoaded = function() {
+    if (window.services && window.services.length > 0) {
+        return Promise.resolve(window.services);
+    }
+    return fetch('backend/gestionar_servicios.php' + (typeof window.negocioSlug !== 'undefined' && window.negocioSlug ? `?n=${window.negocioSlug}` : ''))
+        .then(res => res.json())
+        .then(servData => {
+            if (Array.isArray(servData)) {
+                window.services = servData;
+            }
+            return window.services || [];
+        })
+        .catch(() => window.services || []);
+};
+
+window.openEditTurnoModal = function(id) {
+    // 1. Obtener datos del turno
+    let turno = null;
+    if (Array.isArray(window.agendaData)) {
+        turno = window.agendaData.find(t => t.id == id);
+    }
+    if (!turno && Array.isArray(window.allAppointments)) {
+        turno = window.allAppointments.find(t => t.id == id);
+    }
+    
+    if (!turno) {
+        showToast('No se encontraron los datos del turno.', 'error');
+        return;
+    }
+    
+    // 2. Asegurar que el modal existe en el DOM
+    let modal = document.getElementById('editTurnoModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'editTurnoModal';
+        modal.className = 'fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300';
+        modal.innerHTML = `
+            <div class="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 max-w-md w-full p-8 transform scale-95 transition-transform duration-300" id="editTurnoModalContent">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">edit_calendar</span> Modificar Turno
+                    </h2>
+                    <button type="button" onclick="window.closeEditTurnoModal()" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined">close</span></button>
+                </div>
+                <form id="editTurnoForm" class="space-y-4">
+                    <input type="hidden" id="editTurnoId" name="id">
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nombre</label>
+                        <input type="text" id="editTurnoNombre" name="nombre" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Apellido</label>
+                        <input type="text" id="editTurnoApellido" name="apellido" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Celular</label>
+                        <input type="text" id="editTurnoCelular" name="celular" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha</label>
+                            <input type="date" id="editTurnoFecha" name="fecha" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Hora</label>
+                            <input type="time" id="editTurnoHora" name="hora" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Servicio</label>
+                        <select id="editTurnoServicio" name="servicio" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Profesional</label>
+                        <select id="editTurnoProfesional" name="profesional" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-primary hover:bg-primary/95 text-white font-bold py-3.5 rounded-xl mt-2 transition-all flex items-center justify-center gap-2 shadow-lg">Guardar Cambios</button>
+                </form>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Registrar evento submit
+        document.getElementById('editTurnoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Guardando...';
+            
+            const formData = new FormData(this);
+            fetch('backend/editar_turno.php', {
+                method: 'POST',
+                body: new URLSearchParams(formData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                if (data.success) {
+                    showToast('Turno modificado correctamente', 'success');
+                    window.closeEditTurnoModal();
+                    if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
+                    if (typeof window.cargarAgenda === 'function') window.cargarAgenda();
+                } else {
+                    showToast(data.error || 'Error al modificar el turno', 'error');
+                }
+            })
+            .catch(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                showToast('Error de conexión', 'error');
+            });
+        });
+    }
+    
+    // 3. Cargar opciones de servicios y profesionales
+    window.ensureServicesLoaded().then(servs => {
+        const servSelect = document.getElementById('editTurnoServicio');
+        servSelect.innerHTML = '';
+        
+        // Servicios únicos
+        const uniqueServNames = [...new Set(servs.map(s => s.nombre))];
+        uniqueServNames.forEach(s => {
+            const selected = s === turno.servicio ? 'selected' : '';
+            servSelect.innerHTML += `<option value="${s}" ${selected}>${s}</option>`;
+        });
+        
+        // Profesionales
+        const profSelect = document.getElementById('editTurnoProfesional');
+        profSelect.innerHTML = '<option value="Cualquiera (Sin preferencia)">Cualquiera (Sin preferencia)</option>';
+        const uniqueProfs = [...new Set(servs.map(s => s.profesional).filter(p => p && p.trim() !== ''))];
+        uniqueProfs.forEach(p => {
+            const selected = p === turno.profesional ? 'selected' : '';
+            profSelect.innerHTML += `<option value="${p}" ${selected}>${p}</option>`;
+        });
+    });
+    
+    // 4. Poblar datos
+    let nombre = turno.nombre || '';
+    let apellido = turno.apellido || '';
+    if (!nombre && turno.cliente_nombre) {
+        const parts = turno.cliente_nombre.trim().split(/\s+/);
+        nombre = parts[0] || '';
+        apellido = parts.slice(1).join(' ') || '';
+    }
+    
+    document.getElementById('editTurnoId').value = id;
+    document.getElementById('editTurnoNombre').value = nombre;
+    document.getElementById('editTurnoApellido').value = apellido;
+    document.getElementById('editTurnoCelular').value = turno.cliente_celular || turno.celular || '';
+    document.getElementById('editTurnoFecha').value = turno.fecha;
+    document.getElementById('editTurnoHora').value = turno.hora.substring(0, 5);
+    
+    // 5. Mostrar modal
+    const content = document.getElementById('editTurnoModalContent');
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+    }, 10);
+};
+
+window.closeEditTurnoModal = function() {
+    const modal = document.getElementById('editTurnoModal');
+    const content = document.getElementById('editTurnoModalContent');
+    if (modal && content) {
+        modal.classList.add('opacity-0');
+        content.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
 };
 
 // Función global para iniciar demostración interactiva (Botón Pruébalo ahora)
@@ -632,7 +858,11 @@ function checkSubscription(subscriptionData) {
         subActionBtn.textContent = dashBtnText;
         subActionBtn.className = `px-5 py-2.5 rounded-xl text-sm font-bold transition-transform hover:-translate-y-0.5 ${dashBtnClass}`;
         subActionBtn.classList.remove('hidden');
-        subActionBtn.onclick = () => window.location.href = 'pago.html';
+        if (subscriptionData.status === 'pendiente_revision' && window.currentBusinessData && window.currentBusinessData.comprobante) {
+            subActionBtn.onclick = () => window.open(window.currentBusinessData.comprobante, '_blank');
+        } else {
+            subActionBtn.onclick = () => window.location.href = 'pago.html';
+        }
     } else {
         subActionBtn.classList.add('hidden');
     }

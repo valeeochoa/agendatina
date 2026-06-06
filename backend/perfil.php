@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $user = $stmtU->fetch(PDO::FETCH_ASSOC);
 
     // Obtener datos del negocio
-    $stmtN = $pdo->prepare("SELECT ruta, plan, estado_pago FROM negocios WHERE id = ?");
+    $stmtN = $pdo->prepare("SELECT ruta, plan, estado_pago, ultimo_pago, comprobante FROM negocios WHERE id = ?");
     $stmtN->execute([$id_negocio]);
     $business = $stmtN->fetch(PDO::FETCH_ASSOC);
 

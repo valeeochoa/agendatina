@@ -93,29 +93,22 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     }
 
     // --- POBLAR TABS DE PROFESIONALES (CARPETAS) ---
-    let profFilterContainer = document.getElementById('agendaProfFilterContainer');
+    let profFilterContainer = document.getElementById('profesionalesAgendaTabs');
     
-    if (!profFilterContainer && listPend) {
-        profFilterContainer = document.createElement('div');
-        profFilterContainer.id = 'agendaProfFilterContainer';
-        profFilterContainer.className = 'mb-6 w-full';
-        const searchCont = document.getElementById('agendaSearchContainer');
-        if (searchCont && searchCont.parentNode) searchCont.parentNode.insertBefore(profFilterContainer, searchCont.nextSibling);
-        else listPend.parentNode.insertBefore(profFilterContainer, listPend);
-    }
-
     if (profFilterContainer) {
         if (window.currentUserData && window.currentUserData.rol_en_local === 'profesional') {
             profFilterContainer.classList.add('hidden');
+            profFilterContainer.classList.remove('flex');
         } else if (data.length > 0) {
             const uniqueProfs = [...new Set(data.map(t => t.profesional).filter(p => p && p !== 'Cualquiera (Sin preferencia)'))].sort();
             if (uniqueProfs.length > 0) {
                 profFilterContainer.classList.remove('hidden');
+                profFilterContainer.classList.add('flex');
                 let profTabsHtml = `<div class="flex overflow-x-auto gap-3 pb-2 w-full snap-x pt-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">`;
                 let activeAll = profTerm === '' ? 'bg-primary text-white shadow-md ring-2 ring-primary/30 ring-offset-2' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200';
                 profTabsHtml += `<button onclick="window.setAgendaProfFilter('')" class="snap-start shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeAll}"><span class="material-symbols-outlined text-[18px]">groups</span> Todos los turnos</button>`;
                 uniqueProfs.forEach(p => {
-                    const count = data.filter(t => t.profesional === p && t.estado === 'pendiente').length;
+                    const count = data.filter(t => t.profesional === p && (t.estado === 'pendiente')).length;
                     const countBadge = count > 0 ? `<span class="bg-amber-400 text-amber-900 px-2 py-0.5 rounded-md text-xs font-black ml-1 shadow-sm">${count}</span>` : '';
                     const isActive = profTerm === p ? 'bg-primary text-white shadow-md ring-2 ring-primary/30 ring-offset-2' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200';
                     const iconColor = profTerm === p ? 'text-white' : 'text-primary';
@@ -123,13 +116,16 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                 });
                 profTabsHtml += `</div>`;
                 if (profFilterContainer.innerHTML !== profTabsHtml) profFilterContainer.innerHTML = profTabsHtml;
-            } else { profFilterContainer.classList.add('hidden'); }
+            } else {
+                profFilterContainer.classList.add('hidden');
+                profFilterContainer.classList.remove('flex');
+            }
         }
     }
 
     let pendientes = data.filter(t => t.estado === 'pendiente');
     let confirmados = data.filter(t => t.estado === 'confirmado');
-    let eliminados = data.filter(t => t.estado === 'eliminado');
+    let eliminados = data.filter(t => t.estado === 'eliminado' || t.estado === 'cancelado');
     
     if (searchTerm || profTerm) {
         const term = (searchTerm || '').toLowerCase();
@@ -181,21 +177,21 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
             const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}/${fParts[0]}` : t.fecha;
             const focusClass = focusId == t.id ? 'ring-4 ring-primary ring-offset-2 scale-[1.02] transition-transform duration-500' : '';
             listPend.innerHTML += `
-                <div id="turno-${t.id}" class="shadow-sm rounded-2xl p-5 hover:shadow-lg transition-all relative overflow-hidden ${focusClass}" style="background-color: var(--color-primario, #ffffff); border: 1px solid var(--border-contraste, #e2e8f0);">
+                <div id="turno-${t.id}" onclick="if(!event.target.closest('button')) window.openEditTurnoModal('${t.id}')" class="shadow-sm rounded-2xl p-5 hover:shadow-lg cursor-pointer transition-all relative overflow-hidden ${focusClass}" style="background-color: #ffffff; border: 1px solid #e2e8f0;">
                     <div class="absolute top-0 left-0 w-1.5 h-full bg-amber-400"></div>
                     <div class="flex justify-between items-start mb-3">
-                        <span class="text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wider" style="background-color: var(--badge-bg, #fef3c7); color: var(--badge-text, #92400e);">${fDisplay} • ${t.hora} hs</span>
-                        ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1" style="background-color: var(--badge-bg, #f1f5f9); color: var(--badge-text, #475569);"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
+                        <span class="text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wider" style="background-color: #fef3c7; color: #92400e;">${fDisplay} • ${t.hora} hs</span>
+                        ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1" style="background-color: #f1f5f9; color: #475569;"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
                     </div>
-                    <p class="text-lg font-bold mb-1" style="color: var(--color-texto-contraste, #1e293b);">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                    <p class="text-lg font-bold mb-1" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
                     <div class="flex items-center gap-3 mb-4">
-                        <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: var(--color-texto-mutado, #475569); background-color: var(--badge-bg, #f8fafc); border-color: var(--border-contraste, #f1f5f9);"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular}</p>
+                        <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: #475569; background-color: #f8fafc; border-color: #e2e8f0;"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular}</p>
                         <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100 dark:border-emerald-800/30" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
                     </div>
-                    ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: var(--color-texto-mutado, #475569);"><span class="material-symbols-outlined text-[18px]" style="color: var(--color-texto-contraste, #D11149);">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
-                    <p class="text-sm mb-5 flex items-center gap-2" style="color: var(--color-texto-mutado, #475569);"><span class="material-symbols-outlined text-[18px]" style="color: var(--color-texto-contraste, #D11149);">spa</span> <span class="font-medium">${t.servicio}</span></p>
+                    ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
+                    <p class="text-sm mb-5 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">spa</span> <span class="font-medium">${t.servicio}</span></p>
                     
-                    <div class="flex items-center gap-3 pt-4 border-t" style="border-color: var(--border-contraste, #f1f5f9);">
+                    <div class="flex items-center gap-3 pt-4 border-t" style="border-color: #e2e8f0;">
                         <button onclick="window.confirmarTurnoAdmin('${t.id}')" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 shadow-sm shadow-amber-500/20">
                             <span class="material-symbols-outlined text-[18px]">check</span> Confirmar
                         </button>
@@ -250,27 +246,26 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                 
                 gruposConf[fecha].forEach(t => {
                     htmlDia += `
-                        <div class="shadow-sm rounded-2xl p-5 hover:shadow-lg transition-shadow relative overflow-hidden" style="background-color: var(--color-primario, #ffffff); border: 1px solid var(--border-contraste, #e2e8f0);">
-                            <div class="absolute top-0 left-0 w-1.5 h-full" style="background-color: var(--color-secundario, #3b82f6);"></div>
+                        <div id="turno-${t.id}" onclick="if(!event.target.closest('button')) window.openEditTurnoModal('${t.id}')" class="shadow-sm rounded-2xl p-5 hover:shadow-lg cursor-pointer transition-shadow relative overflow-hidden" style="background-color: #ffffff; border: 1px solid #e2e8f0;">
+                            <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
                             <div class="flex justify-between items-start mb-3">
-                                <span class="text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wider" style="background-color: var(--badge-bg, #eff6ff); color: var(--badge-text, #1d4ed8);">${t.hora} hs</span>
-                                ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1" style="background-color: var(--badge-bg, #f1f5f9); color: var(--badge-text, #475569);"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
+                                <span class="text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wider" style="background-color: #eff6ff; color: #1d4ed8;">${t.hora} hs</span>
+                                ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1" style="background-color: #f1f5f9; color: #475569;"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
                             </div>
-                            <p class="text-lg font-bold mb-1" style="color: var(--color-texto-contraste, #1e293b);">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                            <p class="text-lg font-bold mb-1" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
                             <div class="flex items-center gap-3 mb-4">
-                                <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: var(--color-texto-mutado, #475569); background-color: var(--badge-bg, #f8fafc); border-color: var(--border-contraste, #f1f5f9);"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular}</p>
+                                <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: #475569; background-color: #f8fafc; border-color: #e2e8f0;"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular}</p>
                                 <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100 dark:border-emerald-800/30" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
                             </div>
-                    ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: var(--color-texto-mutado, #475569);"><span class="material-symbols-outlined text-[18px]" style="color: var(--color-texto-contraste, #D11149);">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
-                            <p class="text-sm mb-5 flex items-center gap-2" style="color: var(--color-texto-mutado, #475569);"><span class="material-symbols-outlined text-[18px]" style="color: var(--color-texto-contraste, #D11149);">spa</span> <span class="font-medium">${t.servicio}</span></p>
-                            <div class="flex items-center gap-3 pt-4 border-t" style="border-color: var(--border-contraste, #f1f5f9);">
-                                <button onclick="window.recordatorioWhatsApp('${t.id}')" class="flex-1 text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 border" style="background-color: var(--badge-bg, #eff6ff); color: var(--color-texto-contraste, #1d4ed8); border-color: var(--border-contraste, #bfdbfe);" title="Enviar recordatorio">
+                            ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
+                            <p class="text-sm mb-5 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">spa</span> <span class="font-medium">${t.servicio}</span></p>
+                            <div class="flex items-center gap-3 pt-4 border-t" style="border-color: #e2e8f0;">
+                                <button onclick="window.recordatorioWhatsApp('${t.id}')" class="flex-1 text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 border" style="background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;" title="Enviar recordatorio">
                                     <span class="material-symbols-outlined text-[18px]">notifications_active</span> Recordar
                                 </button>
                                 <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-500/10 dark:hover:bg-red-500/20 dark:text-red-400 text-sm font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center border border-red-100 dark:border-red-800/30" title="Eliminar turno">
                                     <span class="material-symbols-outlined text-[18px]">delete</span>
                                 </button>
-                            </div>
                             </div>
                         </div>
                     `;
@@ -323,23 +318,23 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                     const animClass = isNewLoaded ? 'animate-new-item' : '';
                     const customStyle = `style="--target-opacity: 0.85; ${isNewLoaded ? 'opacity: 0;' : 'opacity: 0.85;'}"`;
                     htmlDia += `
-                        <div class="shadow-sm rounded-3xl p-5 flex flex-col gap-3 hover:opacity-100 hover:shadow-xl hover:-translate-y-1 transition-all relative overflow-hidden ${animClass}" style="background-color: var(--color-primario, #ffffff); border: 1px solid var(--border-contraste, #e2e8f0); ${customStyle}">
-                            <div class="absolute top-0 left-0 w-1.5 h-full opacity-60" style="background-color: var(--color-secundario, #3b82f6);"></div>
+                        <div id="turno-${t.id}" onclick="if(!event.target.closest('button')) window.openEditTurnoModal('${t.id}')" class="shadow-sm rounded-3xl p-5 flex flex-col gap-3 hover:opacity-100 hover:shadow-xl hover:-translate-y-1 cursor-pointer transition-all relative overflow-hidden ${animClass}" style="background-color: #ffffff; border: 1px solid #e2e8f0; ${customStyle}">
+                            <div class="absolute top-0 left-0 w-1.5 h-full opacity-60 bg-blue-500"></div>
                             <div class="flex justify-between items-start">
                                 <div class="flex-1 min-w-0">
-                                    <span class="text-xs font-extrabold px-3 py-1.5 rounded-xl inline-flex items-center gap-1.5 mb-4 uppercase tracking-wide border shadow-sm w-max" style="background-color: var(--badge-bg, #eff6ff); color: var(--badge-text, #1d4ed8); border-color: var(--border-contraste, #bfdbfe);">
+                                    <span class="text-xs font-extrabold px-3 py-1.5 rounded-xl inline-flex items-center gap-1.5 mb-4 uppercase tracking-wide border shadow-sm w-max" style="background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;">
                                         <span class="material-symbols-outlined text-[15px]">schedule</span> ${t.hora} hs
                                     </span>
-                                    <p class="text-2xl font-black mb-3 leading-tight tracking-tight" style="color: var(--color-texto-contraste, #1e293b);">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                                    <p class="text-2xl font-black mb-3 leading-tight tracking-tight" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
                                     <div class="space-y-2 bg-black/5 dark:bg-white/5 p-3 rounded-2xl">
-                                        <p class="text-sm font-semibold flex items-center gap-2.5" style="color: var(--color-texto-contraste, #1e293b);">
+                                        <p class="text-sm font-semibold flex items-center gap-2.5" style="color: #1e293b;">
                                             <span class="material-symbols-outlined text-[18px] opacity-70">spa</span> <span class="break-words">${t.servicio}</span>
                                         </p>
-                                        ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<p class="text-sm font-semibold flex items-center gap-2.5" style="color: var(--color-texto-contraste, #1e293b);"><span class="material-symbols-outlined text-[18px] opacity-70">person</span> <span class="break-words">${t.profesional}</span></p>` : ''}
+                                        ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<p class="text-sm font-semibold flex items-center gap-2.5" style="color: #1e293b;"><span class="material-symbols-outlined text-[18px] opacity-70">person</span> <span class="break-words">${t.profesional}</span></p>` : ''}
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex flex-col sm:flex-row gap-3 mt-2 w-full border-t pt-4" style="border-color: var(--border-contraste, #f1f5f9);">
+                            <div class="flex flex-col sm:flex-row gap-3 mt-2 w-full border-t pt-4" style="border-color: #e2e8f0;">
                                 <button onclick="window.contactarWhatsApp('${t.id}')" class="w-full flex items-center justify-center gap-2 bg-[#25D366] text-white hover:bg-[#20bd5a] px-4 py-3 rounded-xl font-bold transition-all text-sm shadow-sm hover:shadow-md">
                                     <span class="material-symbols-outlined text-[18px]">chat</span> WhatsApp
                                 </button>

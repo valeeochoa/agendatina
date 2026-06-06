@@ -543,6 +543,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 setupPlanSync('new_plan', 'new_max_profesionales', 'new_max_profesionales_hint');
                 setupPlanSync('edit_plan', 'edit_max_profesionales', 'edit_max_profesionales_hint');
+
+                document.getElementById('searchInput')?.addEventListener('input', filterClients);
+                document.getElementById('statusFilter')?.addEventListener('change', filterClients);
+                document.getElementById('planFilter')?.addEventListener('change', filterClients);
             }
         })
         .catch(() => {
@@ -824,7 +828,13 @@ function filterClients() {
     const planTerm = document.getElementById('planFilter')?.value.toLowerCase() || '';
     
     const filtered = clientsData.filter(client => {
-        const matchesSearch = (client.nombre_fantasia && client.nombre_fantasia.toLowerCase().includes(searchTerm)) || 
+        const matchesPlan = planTerm === '' || 
+                            (client.plan || '').toLowerCase().includes(planTerm) ||
+                            (planTerm === 'completo' && (client.plan || '').toLowerCase().includes('premium')) ||
+                            (planTerm === 'premium' && (client.plan || '').toLowerCase().includes('completo'));
+
+        const matchesSearch = searchTerm === '' || 
+                              (client.nombre_fantasia && client.nombre_fantasia.toLowerCase().includes(searchTerm)) || 
                               ((client.ruta || client.subdominio) && (client.ruta || client.subdominio).toLowerCase().includes(searchTerm)) ||
                               (client.nombre_completo && client.nombre_completo.toLowerCase().includes(searchTerm)) ||
                               (client.email && client.email.toLowerCase().includes(searchTerm));
@@ -848,16 +858,10 @@ function filterClients() {
             }
         }
 
-        const matchesPlan = planTerm === '' || (client.plan || '').toLowerCase().includes(planTerm);
-
         return matchesSearch && matchesStatus && matchesPlan;
     });
     renderTable(filtered);
 }
-
-document.getElementById('searchInput')?.addEventListener('input', filterClients);
-document.getElementById('statusFilter')?.addEventListener('change', filterClients);
-document.getElementById('planFilter')?.addEventListener('change', filterClients);
 
 function openModal() {
     const modal = document.getElementById('newClientModal');

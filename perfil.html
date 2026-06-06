@@ -159,15 +159,37 @@
                     } else if (data.business.estado_pago === 'pendiente_revision') {
                         compEl.textContent = 'En revisión';
                         compEl.className = 'text-sm font-bold text-amber-600';
-                        if (btnPago) btnPago.classList.add('hidden');
+                        if (btnPago) {
+                            if (data.business.comprobante) {
+                                btnPago.innerHTML = '<span class="material-symbols-outlined text-[18px]">receipt_long</span> Ver Comprobante Enviado';
+                                btnPago.href = data.business.comprobante;
+                                btnPago.target = '_blank';
+                                btnPago.className = 'text-center w-full bg-blue-100 hover:bg-blue-200 text-blue-700 font-extrabold py-3.5 rounded-xl transition-all text-sm mt-6 shadow-sm flex items-center justify-center gap-2';
+                                btnPago.classList.remove('hidden');
+                            } else {
+                                btnPago.classList.add('hidden');
+                            }
+                        }
                     } else if (data.business.estado_pago === 'suspendido' || data.business.estado_pago === 'unpaid') {
                         compEl.textContent = 'Rechazado o Impago';
                         compEl.className = 'text-sm font-bold text-red-600';
-                        if (btnPago) btnPago.classList.remove('hidden');
+                        if (btnPago) {
+                            btnPago.innerHTML = '<span class="material-symbols-outlined text-[18px]">payments</span> Pagar o Subir Comprobante';
+                            btnPago.href = 'pago.html';
+                            btnPago.removeAttribute('target');
+                            btnPago.className = 'text-center w-full bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-extrabold py-3.5 rounded-xl transition-all text-sm mt-6 shadow-sm flex items-center justify-center gap-2';
+                            btnPago.classList.remove('hidden');
+                        }
                     } else {
                         compEl.textContent = 'No requerido aún';
                         compEl.className = 'text-sm font-bold text-blue-600';
-                        if (btnPago) btnPago.classList.remove('hidden');
+                        if (btnPago) {
+                            btnPago.innerHTML = '<span class="material-symbols-outlined text-[18px]">payments</span> Pagar o Subir Comprobante';
+                            btnPago.href = 'pago.html';
+                            btnPago.removeAttribute('target');
+                            btnPago.className = 'text-center w-full bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-extrabold py-3.5 rounded-xl transition-all text-sm mt-6 shadow-sm flex items-center justify-center gap-2';
+                            btnPago.classList.remove('hidden');
+                        }
                     }
                 }
             });
