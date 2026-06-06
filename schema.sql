@@ -1,8 +1,6 @@
 -- Base de Datos para Agendatina
 -- Puedes importar este archivo en phpMyAdmin o ejecutarlo en la consola de MySQL.
 
-CREATE DATABASE IF NOT EXISTS `c2771918_tina` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE `c2771918_tina`;
 
 -- 1. Tabla de Usuarios
 CREATE TABLE IF NOT EXISTS `usuarios` (

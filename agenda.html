@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Agenda Virtual | Administración</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233b82f6'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-2.5 5.43l-4.57 4.57-2.43-2.43 1.41-1.41 1.02 1.02 3.16-3.16 1.41 1.41z'/></svg>">
+    <title>Mi Agenda Virtual | Agendatina</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23D11149'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-2.5 5.43l-4.57 4.57-2.43-2.43 1.41-1.41 1.02 1.02 3.16-3.16 1.41 1.41z'/></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -23,107 +23,225 @@
             }
         };
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <link rel="stylesheet" href="assets/css/global.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f1f5f9; }
+
+        /* Scroll de columna de pendientes en desktop */
+        @media (min-width: 1024px) {
+            .agenda-col-pendientes {
+                position: sticky;
+                top: 1.5rem;
+                max-height: calc(100vh - 3rem);
+                overflow-y: auto;
+                scrollbar-width: thin;
+                scrollbar-color: #e2e8f0 transparent;
+            }
+            .agenda-col-pendientes::-webkit-scrollbar { width: 4px; }
+            .agenda-col-pendientes::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+        }
+
+        /* Tabs de profesionales pill */
+        .prof-tab-pill {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .prof-tab-pill:hover:not(.active) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        /* Card hover elegante */
+        .turno-card {
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        .turno-card:hover {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            transform: translateY(-2px);
+        }
+
+        /* Fade in animado */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-up { animation: fadeUp 0.35s ease-out forwards; }
+
+        /* Badge pulsante para turno pendiente */
+        @keyframes pulse-amber {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(245,158,11,0); }
+        }
+        .badge-pulse { animation: pulse-amber 2s ease-in-out infinite; }
+
+        /* Scrollbar de tabs */
+        .tabs-scroll { scrollbar-width: none; }
+        .tabs-scroll::-webkit-scrollbar { display: none; }
+
+        /* Botón acción con ripple */
+        .btn-action { position: relative; overflow: hidden; }
+        .btn-action::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: white;
+            opacity: 0;
+            transition: opacity 0.15s;
+            border-radius: inherit;
+        }
+        .btn-action:active::after { opacity: 0.2; }
+    </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen p-4 md:p-8 overflow-x-hidden">
+<body class="min-h-screen">
 
-    <div class="max-w-7xl mx-auto">
-        <!-- Cabecera -->
-        <div class="flex justify-between items-center flex-wrap gap-4 bg-white p-6 rounded-2xl shadow-sm mb-8 border border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 py-6 md:px-6 md:py-8">
+
+        <!-- ===== CABECERA ===== -->
+        <div class="flex justify-between items-center flex-wrap gap-3 mb-6">
             <div class="flex items-center gap-3">
-                <div class="bg-blue-100 text-blue-600 p-2 rounded-lg flex"><span class="material-symbols-outlined">calendar_month</span></div>
-                <h1 class="text-2xl font-extrabold tracking-tight">Mi Agenda Virtual</h1>
-            </div>
-            <div class="flex items-center gap-4">
-                <button onclick="openReportErrorModal('Agenda Virtual')" class="text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg flex items-center gap-1 transition-colors">
-                    <span class="material-symbols-outlined text-[16px]">bug_report</span> Reportar Error
-                </button>
-                <a href="dashboard.html" class="text-sm font-semibold text-slate-500 hover:text-blue-600 transition-colors flex items-center gap-1">
-                    <span class="material-symbols-outlined text-sm">arrow_back</span> Volver al panel
+                <a href="dashboard.html" class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-primary hover:border-primary/30 transition-all shadow-sm" title="Volver al panel">
+                    <span class="material-symbols-outlined text-[20px]">arrow_back</span>
                 </a>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight text-slate-800 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-[22px]">calendar_month</span>
+                        Mi Agenda Virtual
+                    </h1>
+                    <p class="text-xs text-slate-400 font-medium mt-0.5">Gestiona tus turnos en tiempo real</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <!-- Buscador inline en mobile -->
+                <div id="agendaSearchContainer" class="relative hidden sm:block">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">search</span>
+                    <input type="text" id="agendaSearchInput"
+                        class="w-56 pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white shadow-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all text-sm font-medium text-slate-700 placeholder-slate-400"
+                        placeholder="Buscar cliente o servicio...">
+                </div>
+                <button onclick="openReportErrorModal('Agenda Virtual')"
+                    class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-red-400 hover:bg-red-50 hover:border-red-200 transition-all shadow-sm"
+                    title="Reportar error">
+                    <span class="material-symbols-outlined text-[18px]">bug_report</span>
+                </button>
             </div>
         </div>
 
-        <!-- Tabs de Carpetas de Profesionales (Solo para el dueño) -->
-        <div id="profesionalesAgendaTabs" class="hidden flex gap-2 overflow-x-auto pb-4 mb-4 custom-scrollbar">
-            <button onclick="window.setAgendaProfFilter('')" id="tabProf_all" class="px-6 py-3 rounded-t-2xl bg-primary text-white font-bold text-sm whitespace-nowrap transition-all shadow-sm flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">calendar_view_week</span> Agenda General</button>
+        <!-- Buscador en mobile (debajo del header) -->
+        <div class="relative sm:hidden mb-4">
+            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">search</span>
+            <input type="text" id="agendaSearchInputMobile"
+                class="w-full pl-9 pr-4 py-3 rounded-xl border border-slate-200 bg-white shadow-sm focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none transition-all text-sm font-medium text-slate-700 placeholder-slate-400"
+                placeholder="Buscar cliente, teléfono o servicio...">
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- POR CONFIRMAR -->
-            <div class="lg:col-span-1 flex flex-col gap-4">
-                <h2 class="text-lg font-bold flex items-center gap-2 text-amber-600">
-                    <span class="material-symbols-outlined text-[20px]">pending_actions</span> Por Confirmar
-                </h2>
-                <div id="lista-pendientes" class="space-y-4">
-                    <!-- Skeleton Loader Pendientes -->
-                    <div class="border border-slate-200 shadow-sm rounded-xl p-5 animate-pulse" style="background:#ffffff;">
-                        <div class="h-6 rounded-md w-32 mb-3" style="background:#e2e8f0;"></div>
-                        <div class="h-5 rounded-md w-3/4 mb-3" style="background:#e2e8f0;"></div>
-                        <div class="h-4 rounded-md w-1/2 mb-2" style="background:#e2e8f0;"></div>
-                        <div class="h-4 rounded-md w-1/3 mb-4" style="background:#e2e8f0;"></div>
-                        <div class="flex gap-2 mt-4 pt-4 border-t border-slate-100">
-                            <div class="flex-1 h-10 rounded-xl" style="background:#e2e8f0;"></div>
-                            <div class="w-12 h-10 rounded-xl" style="background:#e2e8f0;"></div>
-                            <div class="w-12 h-10 rounded-xl" style="background:#e2e8f0;"></div>
-                        </div>
-                    </div>
-                    <div class="border border-slate-200 shadow-sm rounded-xl p-5 animate-pulse opacity-70" style="background:#ffffff;">
-                        <div class="h-6 rounded-md w-24 mb-3" style="background:#e2e8f0;"></div>
-                        <div class="h-5 rounded-md w-2/3 mb-3" style="background:#e2e8f0;"></div>
-                        <div class="h-4 rounded-md w-1/2 mb-2" style="background:#e2e8f0;"></div>
-                        <div class="flex gap-2 mt-4 pt-4 border-t border-slate-100">
-                            <div class="flex-1 h-10 rounded-xl" style="background:#e2e8f0;"></div>
-                            <div class="w-12 h-10 rounded-xl" style="background:#e2e8f0;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <!-- ===== TABS DE PROFESIONALES ===== -->
+        <div id="profesionalesAgendaTabs" class="hidden mb-5 -mx-1 px-1">
+            <!-- Se rellena dinámicamente -->
+        </div>
 
-            <!-- CONFIRMADOS Y HISTORIAL -->
-            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
-                <div class="border-b border-slate-100 bg-slate-50 p-2 flex gap-2">
-                    <button id="tabProximos" class="flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow-sm text-primary flex items-center justify-center gap-1 transition-colors" onclick="switchAgendaTab('proximos')">
-                        <span class="material-symbols-outlined text-[18px]">event_available</span> Próximos
-                    </button>
-                    <button id="tabHistorial" class="flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1 transition-colors" onclick="switchAgendaTab('historial')">
-                        <span class="material-symbols-outlined text-[18px]">history</span> Historial
-                    </button>
-                </div>
-                <div class="p-4 md:p-6">
-                    <div id="lista-confirmados" class="space-y-4">
-                        <!-- Skeleton Loader Confirmados -->
-                        <div class="mb-8">
-                            <div class="h-6 rounded-md w-48 mb-4 animate-pulse" style="background:#e2e8f0;"></div>
-                            <div class="space-y-3">
-                                <div class="border border-slate-200 rounded-xl p-4 sm:p-5 flex flex-col gap-3 animate-pulse" style="background:#ffffff;">
-                                    <div class="h-6 rounded-md w-24 mb-2" style="background:#e2e8f0;"></div>
-                                    <div class="h-5 rounded-md w-1/2 mb-2" style="background:#e2e8f0;"></div>
-                                    <div class="h-4 rounded-md w-1/3 mb-1" style="background:#e2e8f0;"></div>
-                                    <div class="flex gap-2 mt-3 pt-4 border-t border-slate-100">
-                                        <div class="flex-1 h-10 rounded-xl" style="background:#e2e8f0;"></div>
-                                        <div class="flex-1 h-10 rounded-xl" style="background:#e2e8f0;"></div>
-                                    </div>
-                                </div>
-                                <div class="border border-slate-200 rounded-xl p-4 sm:p-5 flex flex-col gap-3 animate-pulse opacity-70" style="background:#ffffff;">
-                                    <div class="h-6 rounded-md w-20 mb-2" style="background:#e2e8f0;"></div>
-                                    <div class="h-5 rounded-md w-2/3 mb-2" style="background:#e2e8f0;"></div>
-                                    <div class="h-4 rounded-md w-1/4 mb-1" style="background:#e2e8f0;"></div>
-                                </div>
+        <!-- ===== LAYOUT PRINCIPAL ===== -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+            <!-- COLUMNA IZQUIERDA: Por Confirmar -->
+            <div class="lg:col-span-4 xl:col-span-4">
+                <div class="agenda-col-pendientes">
+                    <!-- Header de sección -->
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-amber-400 badge-pulse"></div>
+                            <h2 class="text-sm font-bold text-amber-700 uppercase tracking-wider">Por Confirmar</h2>
+                        </div>
+                        <span id="countPendientes" class="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full"></span>
+                    </div>
+
+                    <!-- Lista pendientes -->
+                    <div id="lista-pendientes" class="space-y-3">
+                        <!-- Skeletons -->
+                        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 animate-pulse">
+                            <div class="flex gap-3 mb-3">
+                                <div class="h-5 bg-slate-100 rounded-lg w-24"></div>
+                                <div class="h-5 bg-slate-100 rounded-lg w-16 ml-auto"></div>
+                            </div>
+                            <div class="h-6 bg-slate-100 rounded-lg w-3/4 mb-2"></div>
+                            <div class="h-4 bg-slate-100 rounded-lg w-1/2 mb-4"></div>
+                            <div class="flex gap-2 pt-3 border-t border-slate-50">
+                                <div class="flex-1 h-9 bg-slate-100 rounded-xl"></div>
+                                <div class="w-10 h-9 bg-slate-100 rounded-xl"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 animate-pulse opacity-60">
+                            <div class="flex gap-3 mb-3">
+                                <div class="h-5 bg-slate-100 rounded-lg w-20"></div>
+                            </div>
+                            <div class="h-6 bg-slate-100 rounded-lg w-2/3 mb-2"></div>
+                            <div class="h-4 bg-slate-100 rounded-lg w-1/3 mb-4"></div>
+                            <div class="flex gap-2 pt-3 border-t border-slate-50">
+                                <div class="flex-1 h-9 bg-slate-100 rounded-xl"></div>
+                                <div class="w-10 h-9 bg-slate-100 rounded-xl"></div>
                             </div>
                         </div>
                     </div>
-                    <div id="lista-historial" class="space-y-4 hidden">
-                        <!-- Los turnos pasados se renderizan aquí -->
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA: Confirmados + Historial + Papelera -->
+            <div class="lg:col-span-8 xl:col-span-8">
+                <!-- Tabs internos -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <!-- Tab Bar -->
+                    <div class="flex border-b border-slate-100 px-2 pt-2 gap-1 bg-slate-50/50">
+                        <button id="tabProximos"
+                            class="flex-1 sm:flex-none sm:px-5 py-2.5 text-sm font-bold rounded-t-xl text-primary bg-white border border-slate-200 border-b-white -mb-px flex items-center justify-center gap-1.5 transition-all"
+                            onclick="switchAgendaTab('proximos')">
+                            <span class="material-symbols-outlined text-[17px]">event_available</span>
+                            <span>Próximos</span>
+                        </button>
+                        <button id="tabHistorial"
+                            class="flex-1 sm:flex-none sm:px-5 py-2.5 text-sm font-bold rounded-t-xl text-slate-400 hover:text-slate-600 flex items-center justify-center gap-1.5 transition-all"
+                            onclick="switchAgendaTab('historial')">
+                            <span class="material-symbols-outlined text-[17px]">history</span>
+                            <span>Historial</span>
+                        </button>
+                        <button id="tabPapelera"
+                            class="flex-1 sm:flex-none sm:px-5 py-2.5 text-sm font-bold rounded-t-xl text-slate-400 hover:text-slate-600 flex items-center justify-center gap-1.5 transition-all"
+                            onclick="switchAgendaTab('papelera')">
+                            <span class="material-symbols-outlined text-[17px]">delete</span>
+                            <span class="hidden sm:inline">Papelera</span>
+                        </button>
+                    </div>
+
+                    <!-- Contenidos -->
+                    <div class="p-4 md:p-5">
+                        <div id="lista-confirmados" class="space-y-3">
+                            <!-- Skeletons confirmados -->
+                            <div class="mb-6">
+                                <div class="h-4 bg-slate-100 rounded w-32 mb-3 animate-pulse"></div>
+                                <div class="space-y-3">
+                                    <div class="bg-slate-50 rounded-xl border border-slate-100 p-4 animate-pulse">
+                                        <div class="flex gap-3 mb-3">
+                                            <div class="h-5 bg-slate-200 rounded-lg w-16"></div>
+                                            <div class="h-5 bg-slate-200 rounded-lg w-24 ml-auto"></div>
+                                        </div>
+                                        <div class="h-5 bg-slate-200 rounded-lg w-1/2 mb-2"></div>
+                                        <div class="h-4 bg-slate-200 rounded-lg w-1/3 mb-3"></div>
+                                        <div class="flex gap-2 pt-3 border-t border-slate-200">
+                                            <div class="flex-1 h-9 bg-slate-200 rounded-xl"></div>
+                                            <div class="w-10 h-9 bg-slate-200 rounded-xl"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="lista-historial" class="space-y-3 hidden"></div>
+                        <div id="lista-eliminados" class="space-y-3 hidden"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Contenedor para Toasts -->
+    <!-- Toast container -->
     <div id="toast-container" class="fixed bottom-6 right-6 z-[60] flex flex-col gap-3 pointer-events-none"></div>
 
     <!-- Modal Confirmación -->
@@ -145,7 +263,7 @@
     <div id="reportErrorModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 max-w-md w-full p-8 transform scale-95 transition-transform duration-300" id="reportErrorModalContent">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold font-display text-slate-800 flex items-center gap-2">
+                <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
                     <span class="material-symbols-outlined text-red-500">bug_report</span> Reportar Error
                 </h2>
                 <button onclick="closeReportErrorModal()" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined">close</span></button>
@@ -167,5 +285,54 @@
 
     <script src="assets/js/script.js" defer></script>
     <script src="assets/js/agenda.js" defer></script>
+
+    <script>
+        // Sincronizar buscador mobile con desktop
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileInput = document.getElementById('agendaSearchInputMobile');
+            if (mobileInput) {
+                mobileInput.addEventListener('input', (e) => {
+                    const desktopInput = document.getElementById('agendaSearchInput');
+                    if (desktopInput) desktopInput.value = e.target.value;
+                    if (window.agendaData) {
+                        window.renderAgendaTurnos(window.agendaData, e.target.value, window.currentAgendaProfTerm || '');
+                    }
+                });
+            }
+        });
+
+        // Override switchAgendaTab to include papelera tab
+        window.switchAgendaTab = function(tab) {
+            const tabs = {
+                proximos: document.getElementById('tabProximos'),
+                historial: document.getElementById('tabHistorial'),
+                papelera: document.getElementById('tabPapelera'),
+            };
+            const panels = {
+                proximos: document.getElementById('lista-confirmados'),
+                historial: document.getElementById('lista-historial'),
+                papelera: document.getElementById('lista-eliminados'),
+            };
+
+            const activeClass = 'text-primary bg-white border border-slate-200 border-b-white -mb-px';
+            const inactiveClass = 'text-slate-400 hover:text-slate-600 border-transparent';
+
+            Object.keys(tabs).forEach(key => {
+                if (!tabs[key]) return;
+                tabs[key].className = tabs[key].className
+                    .replace(/text-primary|text-slate-400|hover:text-slate-600|bg-white|border border-slate-200|border-b-white|-mb-px|border-transparent/g, '')
+                    .trim();
+                tabs[key].className += ' ' + (key === tab ? activeClass : inactiveClass);
+                // Rebuild base classes
+                tabs[key].className = `flex-1 sm:flex-none sm:px-5 py-2.5 text-sm font-bold rounded-t-xl flex items-center justify-center gap-1.5 transition-all ${key === tab ? activeClass : inactiveClass}`;
+            });
+
+            Object.keys(panels).forEach(key => {
+                if (!panels[key]) return;
+                if (key === tab) panels[key].classList.remove('hidden');
+                else panels[key].classList.add('hidden');
+            });
+        };
+    </script>
 </body>
 </html>
