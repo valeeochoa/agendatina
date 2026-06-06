@@ -219,7 +219,7 @@
                     </div>
                         <div>
                             <label class="block text-sm font-semibold text-slate-600 mb-1.5">Plan Contratado</label>
-                            <select name="plan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
+                            <select name="plan" id="new_plan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
                                 <option value="Basico">Básico</option>
                                 <option value="Intermedio">Intermedio</option>
                                 <option value="Completo">Completo</option>
@@ -227,7 +227,8 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-slate-600 mb-1.5">Límite Profesionales</label>
-                            <input type="number" name="max_profesionales" min="1" value="1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium" placeholder="Ej: 1">
+                            <input type="number" name="max_profesionales" id="new_max_profesionales" min="1" value="1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium" placeholder="Ej: 1">
+                            <p class="text-xs text-slate-500 mt-1" id="new_max_profesionales_hint">Sugerido para plan Básico: 1 profesional.</p>
                         </div>
                         <div>
                             <label class="block text-sm font-semibold text-slate-600 mb-1.5">Estado</label>
@@ -288,6 +289,7 @@
                 <div>
                     <label class="block text-sm font-semibold text-slate-600 mb-1.5">Límite Profesionales</label>
                     <input type="number" name="max_profesionales" id="edit_max_profesionales" min="1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
+                    <p class="text-xs text-slate-500 mt-1" id="edit_max_profesionales_hint">Sugerido para plan Básico: 1 profesional.</p>
                 </div>
                 <div class="sm:col-span-2">
                     <label class="block text-sm font-semibold text-slate-600 mb-1.5">Estado de Pago</label>
@@ -519,6 +521,28 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 document.body.style.display = 'block';
                 fetchClients();
+                
+                // Sincronizar plan con límite de profesionales sugerido
+                const planDefaults = { 'Basico': 1, 'Intermedio': 3, 'Completo': 5 };
+                const planLabels = { 'Basico': 'Básico', 'Intermedio': 'Intermedio', 'Completo': 'Completo' };
+
+                function setupPlanSync(planElId, maxProfsElId, hintElId) {
+                    const planEl = document.getElementById(planElId);
+                    const maxProfsEl = document.getElementById(maxProfsElId);
+                    const hintEl = document.getElementById(hintElId);
+                    if (!planEl || !maxProfsEl) return;
+
+                    planEl.addEventListener('change', function() {
+                        const val = this.value;
+                        const defaultLimit = planDefaults[val] || 1;
+                        maxProfsEl.value = defaultLimit;
+                        if (hintEl) {
+                            hintEl.textContent = `Sugerido para plan ${planLabels[val] || val}: ${defaultLimit} ${defaultLimit === 1 ? 'profesional' : 'profesionales'}.`;
+                        }
+                    });
+                }
+                setupPlanSync('new_plan', 'new_max_profesionales', 'new_max_profesionales_hint');
+                setupPlanSync('edit_plan', 'edit_max_profesionales', 'edit_max_profesionales_hint');
             }
         })
         .catch(() => {
@@ -872,6 +896,16 @@ function openEditModal(index) {
     
     const profInput = document.getElementById('edit_max_profesionales');
     if(profInput) profInput.value = client.max_profesionales || 1;
+
+    // Actualizar el hint de forma inicial al abrir el modal
+    const planDefaults = { 'Basico': 1, 'Intermedio': 3, 'Completo': 5 };
+    const planLabels = { 'Basico': 'Básico', 'Intermedio': 'Intermedio', 'Completo': 'Completo' };
+    const hintEl = document.getElementById('edit_max_profesionales_hint');
+    if (hintEl && planSelect) {
+        const val = planSelect.value;
+        const defaultLimit = planDefaults[val] || 1;
+        hintEl.textContent = `Sugerido para plan ${planLabels[val] || val}: ${defaultLimit} ${defaultLimit === 1 ? 'profesional' : 'profesionales'}.`;
+    }
 
     const estadoSelect = document.getElementById('edit_estado_pago');
     estadoSelect.value = client.estado_pago || 'prueba';
