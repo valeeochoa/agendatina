@@ -140,6 +140,7 @@ window.deleteTeamMember = function(id) {
 let currentTourStep = 0;
 let currentTourTarget = null;
 let tourResizeListener = null;
+let isAutoScrolling = false;
 
 const tourSteps = [
     { target: 'cardCalendario', title: '1. Tu Motor Principal', text: 'Aquí definirás tus horarios de atención, el tipo de calendario (mensual o semanal) y los servicios que ofreces.', position: 'right' },
@@ -212,7 +213,10 @@ window.startTour = function() {
     showTourStep(currentTourStep);
 
     // Reposicionar dinámicamente si el usuario rota el teléfono o cambia el tamaño
-    tourResizeListener = () => showTourStep(currentTourStep, false);
+    tourResizeListener = () => {
+        if (isAutoScrolling) return;
+        showTourStep(currentTourStep, false);
+    };
     window.addEventListener('resize', tourResizeListener);
     window.addEventListener('scroll', tourResizeListener, true);
 };
@@ -230,6 +234,7 @@ window.endTour = function() {
     document.body.style.overflow = '';
     window.removeEventListener('resize', tourResizeListener);
     window.removeEventListener('scroll', tourResizeListener, true);
+    isAutoScrolling = false;
 
     if (window.previousTourTarget) {
         window.previousTourTarget.style.zIndex = '';
@@ -400,11 +405,42 @@ function showTourStep(index, doScroll = true) {
     };
 
     if (doScroll) {
+        isAutoScrolling = true;
+        
+        // Ocultar highlight y tooltip temporalmente durante la transición para un desplazamiento súper limpio
+        tooltip.classList.add('opacity-0', 'scale-95');
+        highlight.classList.add('opacity-0');
+        
         const rect = target.getBoundingClientRect();
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         let targetY = rect.top + scrollTop - 150;
-        window.scrollTo({ top: targetY, behavior: 'smooth' });
-        setTimeout(executeStep, 400);
+        
+        // Evitar scroll fuera de los límites de la página
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        if (targetY > maxScroll) targetY = maxScroll;
+        if (targetY < 0) targetY = 0;
+
+        const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+        if (Math.abs(currentScroll - targetY) < 5) {
+            executeStep();
+        } else {
+            window.scrollTo({ top: targetY, behavior: 'smooth' });
+            
+            let scrollFinished = false;
+            let scrollTimeout;
+            
+            const onScrollEnd = () => {
+                if (scrollFinished) return;
+                scrollFinished = true;
+                window.removeEventListener('scrollend', onScrollEnd);
+                clearTimeout(scrollTimeout);
+                executeStep();
+            };
+            
+            // Fallback de tiempo para navegadores que no soporten scrollend o si el scroll no se mueve
+            scrollTimeout = setTimeout(onScrollEnd, 600);
+            window.addEventListener('scrollend', onScrollEnd, { once: true });
+        }
     } else {
         // requestAnimationFrame elimina cualquier parpadeo al hacer scroll manual
         requestAnimationFrame(executeStep);

@@ -22,18 +22,23 @@ window.cargarAgenda = function() {
         window.agendaPollingInterval = setInterval(window.cargarAgenda, 30000);
     }
 
-    fetch('backend/obtener_agenda.php')
-    .then(res => res.json())
-    .then(data => {
-        if (data && data.error) {
-            if (data.error.toLowerCase().includes('inicia sesión') || data.error.toLowerCase().includes('autorizado')) {
-                window.location.href = 'login.html';
-            } else {
-                if(typeof window.showToast === 'function') window.showToast(data.error, 'error');
+    const fetchConfig = typeof window.configData === 'undefined'
+        ? fetch('backend/guardar_web.php').then(res => res.json()).then(conf => { window.configData = conf; })
+        : Promise.resolve();
+
+    fetchConfig.finally(() => {
+        fetch('backend/obtener_agenda.php')
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.error) {
+                if (data.error.toLowerCase().includes('inicia sesión') || data.error.toLowerCase().includes('autorizado')) {
+                    window.location.href = 'login.html';
+                } else {
+                    if(typeof window.showToast === 'function') window.showToast(data.error, 'error');
+                }
+                return;
             }
-            return;
-        }
-        if (!Array.isArray(data)) return;
+            if (!Array.isArray(data)) return;
 
         // Evitar parpadeos: Solo re-renderizar si hubo un cambio real en los datos
         const newDataString = JSON.stringify(data);
@@ -447,8 +452,29 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     const listElim = document.getElementById('lista-eliminados');
     if (listElim) {
         listElim.innerHTML = '';
+        
+        // Determinar mensaje de límite de auto-eliminación
+        let autoDeleteInfo = '';
+        const limitDays = window.configData && window.configData.limite_eliminacion_dias !== undefined ? parseInt(window.configData.limite_eliminacion_dias) : 0;
+        if (limitDays > 0) {
+            autoDeleteInfo = `Los turnos en la papelera se eliminarán automáticamente después de <strong>${limitDays} días</strong>.`;
+        } else {
+            autoDeleteInfo = `Los turnos eliminados no se borrarán automáticamente.`;
+        }
+
+        // Agregar banner informativo al inicio de la papelera
+        listElim.innerHTML += `
+            <div class="p-4 mb-4 text-slate-600 rounded-2xl border border-slate-200 flex items-start gap-3 text-xs sm:text-sm" style="background-color: #f8fafc;">
+                <span class="material-symbols-outlined text-slate-400 text-[20px] shrink-0 mt-0.5">info</span>
+                <div>
+                    <p class="font-medium text-slate-700 mb-1">${autoDeleteInfo}</p>
+                    <p class="text-slate-400 text-[11px] sm:text-xs">Si lo deseas, también puedes borrarlos de forma definitiva de manera manual usando el botón de eliminar por completo.</p>
+                </div>
+            </div>
+        `;
+
         if (eliminados.length === 0) {
-            listElim.innerHTML = `<div class="p-8 text-center text-sm font-medium text-slate-400 rounded-xl border border-slate-200" style="background:#f8fafc;">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'La papelera está vacía.'}</div>`;
+            listElim.innerHTML += `<div class="p-8 text-center text-sm font-medium text-slate-400 rounded-xl border border-slate-200" style="background:#ffffff;">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'No se han borrado turnos.'}</div>`;
         } else {
             eliminados.sort((a, b) => new Date(b.fecha_eliminado || 0) - new Date(a.fecha_eliminado || 0));
             
@@ -627,15 +653,30 @@ window.loadMoreTrash = function() {
 };
 
 window.switchAgendaTab = function(tab) {
-    if (tab === 'proximos') {
-        document.getElementById('tabProximos').className = 'flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow-sm text-primary flex items-center justify-center gap-1 transition-colors';
-        document.getElementById('tabHistorial').className = 'flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1 transition-colors';
-        document.getElementById('lista-confirmados').classList.remove('hidden');
-        document.getElementById('lista-historial').classList.add('hidden');
-    } else {
-        document.getElementById('tabHistorial').className = 'flex-1 py-2 text-sm font-bold rounded-lg bg-white shadow-sm text-primary flex items-center justify-center gap-1 transition-colors';
-        document.getElementById('tabProximos').className = 'flex-1 py-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1 transition-colors';
-        document.getElementById('lista-historial').classList.remove('hidden');
-        document.getElementById('lista-confirmados').classList.add('hidden');
-    }
+    const tabs = {
+        proximos: document.getElementById('tabProximos'),
+        vencidos: document.getElementById('tabVencidos'),
+        historial: document.getElementById('tabHistorial'),
+        papelera: document.getElementById('tabPapelera'),
+    };
+    const panels = {
+        proximos: document.getElementById('lista-confirmados'),
+        vencidos: document.getElementById('lista-vencidos'),
+        historial: document.getElementById('lista-historial'),
+        papelera: document.getElementById('lista-eliminados'),
+    };
+
+    const activeClass = 'text-primary bg-white border border-slate-200 border-b-white -mb-px';
+    const inactiveClass = 'text-slate-400 hover:text-slate-600 border-transparent';
+
+    Object.keys(tabs).forEach(key => {
+        if (!tabs[key]) return;
+        tabs[key].className = `flex-1 sm:flex-none sm:px-5 py-2.5 text-sm font-bold rounded-t-xl flex items-center justify-center gap-1.5 transition-all ${key === tab ? activeClass : inactiveClass}`;
+    });
+
+    Object.keys(panels).forEach(key => {
+        if (!panels[key]) return;
+        if (key === tab) panels[key].classList.remove('hidden');
+        else panels[key].classList.add('hidden');
+    });
 };

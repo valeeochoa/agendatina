@@ -2854,3 +2854,45 @@ window.closeReusableReceiptModal = function() {
         document.getElementById('reusableReceiptImage').src = '';
     }, 300);
 };
+
+// Ocultar reportes de error y contacto para cuentas de demostración (Demo)
+document.addEventListener('DOMContentLoaded', () => {
+    // Si la sesión no está activa en sessionStorage, no realizamos la comprobación
+    if (!sessionStorage.getItem('agendatina_session')) return;
+
+    const hideDemoActions = () => {
+        // Ocultar sección/tarjeta de soporte y ayuda
+        const cardSupport = document.getElementById('cardSupport');
+        if (cardSupport) cardSupport.style.display = 'none';
+
+        const sidebarSupport = document.getElementById('sidebarSupport') || document.querySelector('[href*="soporte"]') || document.querySelector('[onclick*="soporte"]');
+        if (sidebarSupport) sidebarSupport.style.display = 'none';
+
+        // Ocultar todos los botones de reportar error
+        document.querySelectorAll('button[onclick^="openReportErrorModal"]').forEach(btn => btn.style.display = 'none');
+        document.querySelectorAll('button[onclick*="openReportErrorModal"]').forEach(btn => btn.style.display = 'none');
+    };
+
+    const isDemoCached = sessionStorage.getItem('is_demo_user');
+    if (isDemoCached === 'true') {
+        hideDemoActions();
+        // Usar un MutationObserver para ocultar elementos que se carguen dinámicamente
+        const observer = new MutationObserver(hideDemoActions);
+        observer.observe(document.body, { childList: true, subtree: true });
+    } else if (isDemoCached === null) {
+        // Consultar una vez al backend para saber si el usuario logueado es demo
+        fetch('backend/perfil.php')
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.user && data.user.email === 'demo@agendatina.site') {
+                    sessionStorage.setItem('is_demo_user', 'true');
+                    hideDemoActions();
+                    const observer = new MutationObserver(hideDemoActions);
+                    observer.observe(document.body, { childList: true, subtree: true });
+                } else {
+                    sessionStorage.setItem('is_demo_user', 'false');
+                }
+            })
+            .catch(() => {});
+    }
+});
