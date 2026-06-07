@@ -1434,6 +1434,64 @@ function exportToCSV() {
     link.click();
     document.body.removeChild(link);
 }
+
+function openReceiptModal(url, idNegocio) {
+    const modal = document.getElementById('receiptModalAdmin');
+    const content = document.getElementById('receiptModalAdminContent');
+    const body = document.getElementById('receiptModalAdminBody');
+    const footer = document.getElementById('receiptModalAdminFooter');
+    
+    body.innerHTML = '<div class="text-center p-8"><span class="material-symbols-outlined animate-spin text-4xl text-primary mb-2">refresh</span><p class="text-slate-500 font-medium">Cargando comprobante...</p></div>';
+    
+    footer.innerHTML = `
+        <button onclick="closeReceiptModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-6 rounded-xl transition-colors">Cerrar</button>
+        <button onclick="registrarPago(${idNegocio}); closeReceiptModal();" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-6 rounded-xl transition-colors flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">check_circle</span> Aprobar Pago</button>
+    `;
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+    }, 10);
+
+    const fullUrl = '../' + url;
+    const isPdf = url.toLowerCase().endsWith('.pdf');
+
+    setTimeout(() => {
+        if (isPdf) {
+            body.innerHTML = `<iframe src="${fullUrl}" class="w-full h-full min-h-[60vh] rounded-lg" frameborder="0"></iframe>`;
+        } else {
+            body.innerHTML = `<img src="${fullUrl}" alt="Comprobante" class="max-w-full h-auto rounded-lg shadow-sm">`;
+        }
+    }, 500);
+}
+
+function closeReceiptModal() {
+    const modal = document.getElementById('receiptModalAdmin');
+    const content = document.getElementById('receiptModalAdminContent');
+    modal.classList.add('opacity-0');
+    content.classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        document.getElementById('receiptModalAdminBody').innerHTML = '';
+    }, 300);
+}
 </script>
+
+<!-- Modal Ver Comprobante (Admin) -->
+<div id="receiptModalAdmin" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-3xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 flex flex-col max-h-[95vh]" id="receiptModalAdminContent">
+        <div class="flex justify-between items-center mb-6 shrink-0">
+            <h2 class="text-2xl font-bold font-display text-slate-800 flex items-center gap-2"><span class="material-symbols-outlined text-purple-600">receipt_long</span> Comprobante de Pago</h2>
+            <button onclick="closeReceiptModal()" class="text-slate-400 hover:text-red-500 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto custom-scrollbar bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-center min-h-[300px]" id="receiptModalAdminBody">
+        </div>
+        <div class="mt-6 flex justify-end shrink-0 gap-3" id="receiptModalAdminFooter">
+        </div>
+    </div>
+</div>
 </body>
 </html>
