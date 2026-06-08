@@ -22,15 +22,16 @@ function cargarEnv($path) {
             // Quitar comillas si existen
             $val = trim($val, '"\'');
 
-            if (!array_key_exists($key, $_SERVER) && !array_key_exists($key, $_ENV)) {
-                putenv("{$key}={$val}");
-                $_ENV[$key] = $val;
-                $_SERVER[$key] = $val;
-            }
+            putenv("{$key}={$val}");
+            $_ENV[$key] = $val;
+            $_SERVER[$key] = $val;
         }
     }
 }
 
-// Cargar automáticamente en el directorio raíz
+// Cargar automáticamente en el directorio raíz o en el directorio actual (backend/)
 cargarEnv(dirname(__DIR__) . '/.env');
+if (!isset($_ENV['DB_NAME'])) {
+    cargarEnv(__DIR__ . '/.env');
+}
 ?>
