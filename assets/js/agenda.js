@@ -592,25 +592,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // LÓGICA DE PESTAÑAS (TABS)
-        const tabs = document.querySelectorAll('[role="tab"]');
-        const panels = document.querySelectorAll('[role="tabpanel"]');
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Resetear todos los tabs
-                tabs.forEach(t => {
-                    t.setAttribute('aria-selected', 'false');
-                    t.className = 'flex-1 py-2.5 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-center gap-1 transition-colors';
-                });
-                // Activar tab clickeado
-                tab.setAttribute('aria-selected', 'true');
-                tab.className = 'flex-1 py-2.5 text-sm font-bold rounded-lg bg-white dark:bg-slate-700 shadow-sm text-primary flex items-center justify-center gap-1 transition-colors';
-                
-                // Mostrar panel correspondiente
-                panels.forEach(p => p.classList.add('hidden'));
-                document.getElementById(tab.getAttribute('aria-controls')).classList.remove('hidden');
-            });
-        });
     }
 });
 

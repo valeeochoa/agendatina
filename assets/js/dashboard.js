@@ -147,7 +147,8 @@ const tourSteps = [
     { target: 'cardWeb', title: '2. Tu Vitrina Online', text: 'Personaliza la página pública que verán tus clientes al reservar. Sube fotos, certificados y cambia los colores.', position: 'left' },
     { target: 'cardAgenda', title: '3. Recepción de Turnos', text: 'En esta sección administrarás y confirmarás los turnos que tus clientes vayan solicitando en tu web.', position: 'right' },
     { target: 'cardEstadisticas', title: '4. Estadísticas', text: 'Visualiza el rendimiento de tu negocio, ingresos generados y servicios más solicitados.', position: 'right' },
-    { target: 'cardAjustes', title: '5. Ajustes', text: 'Configura colores, horarios de atención, turnos y modalidad de trabajo.', position: 'left' }
+    { target: 'cardAjustes', title: '5. Ajustes', text: 'Configura colores, horarios de atención, turnos y modalidad de trabajo.', position: 'left' },
+    { target: 'navAvatar', title: '6. Mi Perfil', text: 'Haz clic en el círculo de tu perfil para configurar tus datos de usuario, ver estadísticas rápidas y cambiar tu contraseña.', position: 'bottom' }
 ];
 
 window.startTour = function() {

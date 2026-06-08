@@ -2701,7 +2701,7 @@ function applyWebCustomization() {
                     const footer = document.createElement('footer');
                     footer.id = 'agendatinaFooter';
                     footer.className = 'text-center py-6 mt-8 w-full flex justify-center';
-                    footer.innerHTML = '<a href="https://agendatina.site" target="_blank" class="inline-block hover:opacity-80 transition-opacity"><img src="public/logoletras.png" alt="Agendatina" class="h-8 w-auto opacity-80 hover:opacity-100 transition-all"></a>';
+                    footer.innerHTML = '<a href="https://agendatina.site" target="_blank" class="inline-block hover:opacity-80 transition-opacity"><img src="public/logoletras.png" alt="Agendatina" class="h-14 w-auto opacity-80 hover:opacity-100 transition-all"></a>';
                     
                     const main = document.querySelector('main') || document.body;
                     if (main === document.body) {
