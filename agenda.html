@@ -290,16 +290,51 @@
         </div>
     </div>
 
-    <script src="assets/js/script.js?v=1.0.5" defer></script>
-    <script src="assets/js/agenda.js?v=1.0.5" defer></script>
+    <script src="assets/js/script.js?v=1.0.6" defer></script>
+    <script src="assets/js/agenda.js?v=1.0.6" defer></script>
 
     <script>
+        // Función de tabs disponible INMEDIATAMENTE (sin defer)
+        // Esto evita errores si el usuario hace click antes de que cargue agenda.js
+        function switchAgendaTab(tab) {
+            // Guardar el tab activo globalmente
+            window.activeAgendaTab = tab;
+            
+            var panels = {
+                proximos: document.getElementById('lista-confirmados'),
+                vencidos: document.getElementById('lista-vencidos'),
+                historial: document.getElementById('lista-historial'),
+                papelera: document.getElementById('lista-eliminados')
+            };
+            var tabs = {
+                proximos: document.getElementById('tabProximos'),
+                vencidos: document.getElementById('tabVencidos'),
+                historial: document.getElementById('tabHistorial'),
+                papelera: document.getElementById('tabPapelera')
+            };
+            var activeClass = 'flex-1 sm:flex-none sm:px-5 py-2.5 text-sm font-bold rounded-t-xl flex items-center justify-center gap-1.5 transition-all text-primary bg-white border border-slate-200 border-b-white -mb-px';
+            var inactiveClass = 'flex-1 sm:flex-none sm:px-5 py-2.5 text-sm font-bold rounded-t-xl flex items-center justify-center gap-1.5 transition-all text-slate-400 hover:text-slate-600 border-transparent';
+
+            Object.keys(panels).forEach(function(key) {
+                if (!panels[key]) return;
+                if (key === tab) {
+                    panels[key].classList.remove('hidden');
+                } else {
+                    panels[key].classList.add('hidden');
+                }
+            });
+            Object.keys(tabs).forEach(function(key) {
+                if (!tabs[key]) return;
+                tabs[key].className = (key === tab) ? activeClass : inactiveClass;
+            });
+        }
+
         // Sincronizar buscador mobile con desktop
-        document.addEventListener('DOMContentLoaded', () => {
-            const mobileInput = document.getElementById('agendaSearchInputMobile');
+        document.addEventListener('DOMContentLoaded', function() {
+            var mobileInput = document.getElementById('agendaSearchInputMobile');
             if (mobileInput) {
-                mobileInput.addEventListener('input', (e) => {
-                    const desktopInput = document.getElementById('agendaSearchInput');
+                mobileInput.addEventListener('input', function(e) {
+                    var desktopInput = document.getElementById('agendaSearchInput');
                     if (desktopInput) desktopInput.value = e.target.value;
                     if (window.agendaData) {
                         window.renderAgendaTurnos(window.agendaData, e.target.value, window.currentAgendaProfTerm || '');
@@ -307,7 +342,6 @@
                 });
             }
         });
-
     </script>
 </body>
 </html>

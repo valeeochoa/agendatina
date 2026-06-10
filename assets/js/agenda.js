@@ -588,30 +588,17 @@ document.addEventListener('DOMContentLoaded', () => {
         
         window.cargarAgenda();
 
-        // Evento para filtrar en tiempo real
-        const searchInput = document.getElementById('agendaSearchInput');
-        if (searchInput) {
-            searchInput.addEventListener('input', (e) => {
-                // Re-renderiza la lista de turnos con el término de búsqueda
-                if (window.agendaData) {
-                    window.renderAgendaTurnos(window.agendaData, e.target.value, window.currentAgendaProfTerm || '');
-                }
-            });
-        }
-
-        // Ocultar botón de reportar error para usuario demo
-        const isDemoUser = sessionStorage.getItem('is_demo_user');
+        // Verificar si es usuario demo y ocultar botón de reportar error
+        // Siempre verificar con el backend para evitar cache obsoleto
         const btnReport = document.getElementById('btnReportarErrorAgenda');
-        if (isDemoUser === 'true' && btnReport) {
-            btnReport.style.display = 'none';
-        } else if (isDemoUser === null && btnReport) {
-            // Si no tenemos cache del estado demo, consultar al backend
+        if (btnReport) {
             fetch('backend/perfil.php')
                 .then(r => r.json())
                 .then(d => {
-                    if (d.success && d.user && d.user.email === 'demo@agendatina.site') {
-                        sessionStorage.setItem('is_demo_user', 'true');
+                    const isDemo = d.success && d.user && d.user.email === 'demo@agendatina.site';
+                    if (isDemo) {
                         btnReport.style.display = 'none';
+                        sessionStorage.setItem('is_demo_user', 'true');
                     } else {
                         sessionStorage.setItem('is_demo_user', 'false');
                     }
