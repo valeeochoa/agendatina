@@ -529,6 +529,11 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
             }
         }
     }
+    // Al finalizar el render, restaurar el tab activo que el usuario tenía seleccionado
+    const savedTab = window.activeAgendaTab || 'proximos';
+    if (typeof window.switchAgendaTab === 'function') {
+        window.switchAgendaTab(savedTab);
+    }
 };
 
 window.setAgendaProfFilter = function(profName) {
@@ -594,6 +599,24 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        // Ocultar botón de reportar error para usuario demo
+        const isDemoUser = sessionStorage.getItem('is_demo_user');
+        const btnReport = document.getElementById('btnReportarErrorAgenda');
+        if (isDemoUser === 'true' && btnReport) {
+            btnReport.style.display = 'none';
+        } else if (isDemoUser === null && btnReport) {
+            // Si no tenemos cache del estado demo, consultar al backend
+            fetch('backend/perfil.php')
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success && d.user && d.user.email === 'demo@agendatina.site') {
+                        sessionStorage.setItem('is_demo_user', 'true');
+                        btnReport.style.display = 'none';
+                    } else {
+                        sessionStorage.setItem('is_demo_user', 'false');
+                    }
+                }).catch(() => {});
+        }
     }
 });
 
@@ -636,6 +659,9 @@ window.loadMoreTrash = function() {
 };
 
 window.switchAgendaTab = function(tab) {
+    // Guardar el tab activo para que renderAgendaTurnos pueda restaurarlo
+    window.activeAgendaTab = tab;
+    
     const tabs = {
         proximos: document.getElementById('tabProximos'),
         vencidos: document.getElementById('tabVencidos'),

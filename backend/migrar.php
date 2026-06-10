@@ -191,5 +191,25 @@ try {
     echo "[ERROR] Error al inicializar configuración global: " . $e->getMessage() . "\n";
 }
 
+// Migraciones de columnas
+$columnMigrations = [
+    // Agrega fecha_eliminado a turnos si no existe
+    "ALTER TABLE `turnos` ADD COLUMN `fecha_eliminado` DATETIME DEFAULT NULL",
+];
+
+foreach ($columnMigrations as $alterSql) {
+    try {
+        $pdo->exec($alterSql);
+        echo "[OK] Columna agregada: {$alterSql}\n";
+    } catch (PDOException $e) {
+        // Error 1060 = columna ya existe -> es normal, ignorar
+        if ($e->getCode() == '42S21' || strpos($e->getMessage(), 'Duplicate column') !== false) {
+            echo "[SKIP] Columna ya existia (OK).\n";
+        } else {
+            echo "[ERROR] " . $e->getMessage() . "\n";
+        }
+    }
+}
+
 echo "\n=== MIGRACIÓN FINALIZADA CON ÉXITO ===\n";
 ?>
