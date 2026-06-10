@@ -74,10 +74,18 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
             searchContainer.id = 'agendaSearchContainer';
             searchContainer.className = 'mb-6 relative w-full';
             searchContainer.innerHTML = `
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <span class="material-symbols-outlined text-slate-400 text-[20px]">search</span>
+                <div class="flex flex-col sm:flex-row gap-3 w-full">
+                    <div class="relative w-full sm:flex-1">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <span class="material-symbols-outlined text-slate-400 text-[20px]">search</span>
+                        </div>
+                        <input type="text" id="agendaSearchInput" class="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-slate-200 bg-white shadow-sm focus:ring-2 focus:ring-primary outline-none transition-all text-sm font-medium text-slate-700 placeholder-slate-400" placeholder="Buscar por cliente, teléfono o servicio...">
+                    </div>
+                    <button onclick="window.descargarHistorialTurnos(this)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-3.5 rounded-2xl font-bold text-sm transition-colors flex items-center justify-center gap-2 border border-slate-200 shadow-sm whitespace-nowrap shrink-0 w-full sm:w-auto" title="Descargar Historial Completo (CSV)">
+                        <span class="material-symbols-outlined text-[20px]">download</span>
+                        <span class="inline sm:hidden lg:inline">Historial</span>
+                    </button>
                 </div>
-                <input type="text" id="agendaSearchInput" class="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-slate-200 bg-white shadow-sm focus:ring-2 focus:ring-primary outline-none transition-all text-sm font-medium text-slate-700 placeholder-slate-400" placeholder="Buscar por cliente, teléfono o servicio...">
             `;
             
             // Colocar el buscador arriba de todo (antes de las pestañas si existen)
@@ -592,6 +600,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Siempre verificar con el backend para evitar cache obsoleto
         const btnReport = document.getElementById('btnReportarErrorAgenda');
         if (btnReport) {
+            if (sessionStorage.getItem('is_demo_user') === 'true') {
+                btnReport.style.display = 'none';
+            }
             fetch('backend/perfil.php')
                 .then(r => r.json())
                 .then(d => {
@@ -675,4 +686,41 @@ window.switchAgendaTab = function(tab) {
         if (key === tab) panels[key].classList.remove('hidden');
         else panels[key].classList.add('hidden');
     });
+};
+
+window.descargarHistorialTurnos = function(btn) {
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span>';
+    btn.disabled = true;
+
+    fetch('backend/obtener_agenda.php?historial=1')
+    .then(res => res.json())
+    .then(data => {
+        if (!Array.isArray(data) || data.length === 0) {
+            if(typeof showToast === 'function') showToast('No hay turnos en el historial para exportar.', 'error');
+            return;
+        }
+        const headers = ['ID', 'Fecha', 'Hora', 'Cliente', 'Celular', 'Servicio', 'Profesional', 'Estado'];
+        const rows = data.map(t => {
+            const nombreCliente = t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''));
+            const celular = t.cliente_celular || t.celular || '';
+            return [
+                t.id, `"${t.fecha}"`, `"${t.hora}"`, `"${nombreCliente.replace(/"/g, '""')}"`,
+                `"${celular}"`, `"${(t.servicio || '').replace(/"/g, '""')}"`,
+                `"${(t.profesional || '').replace(/"/g, '""')}"`, `"${t.estado || ''}"`
+            ].join(',');
+        });
+        const csvContent = [headers.join(','), ...rows].join('\n');
+        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const downloadUrl = URL.createObjectURL(blob);
+        link.setAttribute("href", downloadUrl);
+        link.setAttribute("download", `Historial_Turnos_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        if(typeof showToast === 'function') showToast('Historial descargado con éxito.', 'success');
+    })
+    .catch(err => { console.error(err); if(typeof showToast === 'function') showToast('Error al descargar el historial.', 'error'); })
+    .finally(() => { btn.innerHTML = originalHtml; btn.disabled = false; });
 };
