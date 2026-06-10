@@ -60,7 +60,9 @@ window.cargarAgenda = function() {
             const currentSearch = document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : '';
             window.renderAgendaTurnos(data, currentSearch, window.currentAgendaProfTerm || '');
         }
-    }).catch(err => console.error(err));
+    })
+    .catch(err => console.error(err));
+});
 };
 
 window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
@@ -474,7 +476,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
         `;
 
         if (eliminados.length === 0) {
-            listElim.innerHTML += `<div class="p-8 text-center text-sm font-medium text-slate-400 rounded-xl border border-slate-200" style="background:#ffffff;">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'No se han borrado turnos.'}</div>`;
+            listElim.innerHTML += `<div class="p-8 text-center text-sm font-medium text-slate-400 rounded-xl border border-slate-200" style="background:#ffffff;">${searchTerm ? 'No se encontraron resultados de la búsqueda' : 'No hay turnos borrados.'}</div>`;
         } else {
             eliminados.sort((a, b) => new Date(b.fecha_eliminado || 0) - new Date(a.fecha_eliminado || 0));
             

@@ -151,7 +151,43 @@ const tourSteps = [
     { target: 'navAvatar', title: '6. Mi Perfil', text: 'Haz clic en el círculo de tu perfil para configurar tus datos de usuario, ver estadísticas rápidas y cambiar tu contraseña.', position: 'bottom' }
 ];
 
+window.markOnboardingStepComplete = function(stepNumber, isCompleted) {
+    const icon = document.getElementById(`step${stepNumber}Icon`);
+    const text = document.getElementById(`step${stepNumber}Text`);
+    if (!text) return;
+    
+    const desc = text.parentElement.nextElementSibling;
+    const link = desc ? desc.nextElementSibling : null;
+
+    if (isCompleted) {
+        if (icon) {
+            icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>';
+            icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm';
+        }
+        text.classList.add('line-through', 'text-slate-400');
+        if (desc) desc.classList.add('line-through', 'opacity-50');
+        if (link) link.style.display = 'none';
+    } else {
+        if (icon) {
+            icon.innerHTML = stepNumber;
+            icon.className = 'w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm';
+        }
+        text.classList.remove('line-through', 'text-slate-400');
+        if (desc) desc.classList.remove('line-through', 'opacity-50');
+        if (link) link.style.display = '';
+    }
+};
+
 window.startTour = function() {
+    // Resetear checklist en modo demo
+    if (window.currentUserData && window.currentUserData.email === 'demo@agendatina.site') {
+        if (typeof window.markOnboardingStepComplete === 'function') {
+            window.markOnboardingStepComplete(1, false);
+            window.markOnboardingStepComplete(2, false);
+            window.markOnboardingStepComplete(3, false);
+        }
+    }
+
     // Si no existen los elementos de onboarding en el DOM, los creamos dinámicamente
     if (!document.getElementById('tourOverlay')) {
         const onboardingContainer = document.createElement('div');
@@ -263,6 +299,15 @@ window.nextTourStep = function() {
 };
 
 function showTourStep(index, doScroll = true) {
+    // Marcar dinámicamente los pasos a medida que se avanza en el recorrido
+    if (window.currentUserData && window.currentUserData.email === 'demo@agendatina.site') {
+        if (typeof window.markOnboardingStepComplete === 'function') {
+            window.markOnboardingStepComplete(1, index >= 1);
+            window.markOnboardingStepComplete(2, index >= 2);
+            window.markOnboardingStepComplete(3, index >= 3);
+        }
+    }
+
     const step = tourSteps[index];
     const target = document.getElementById(step.target);
     const tooltip = document.getElementById('tourTooltip');

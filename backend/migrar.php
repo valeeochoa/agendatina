@@ -77,6 +77,7 @@ $tablas = [
           `nombre` VARCHAR(255) DEFAULT NULL,
           `apellido` VARCHAR(255) DEFAULT NULL,
           `celular` VARCHAR(255) DEFAULT NULL,
+          `notas` TEXT DEFAULT NULL,
           FOREIGN KEY (`id_negocio`) REFERENCES `negocios` (`id`) ON DELETE CASCADE,
           FOREIGN KEY (`id_servicio`) REFERENCES `servicios` (`id`) ON DELETE SET NULL
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -112,6 +113,7 @@ $tablas = [
           `hora_descanso_fin` VARCHAR(5) NOT NULL DEFAULT '',
           `dias_trabajo` VARCHAR(50) NOT NULL DEFAULT '1,2,3,4,5,6',
           `metodos_pago` VARCHAR(255) NOT NULL DEFAULT '',
+          `limite_eliminacion_dias` INT DEFAULT 0,
           FOREIGN KEY (`id_negocio`) REFERENCES `negocios` (`id`) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ",

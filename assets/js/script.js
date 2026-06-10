@@ -200,6 +200,11 @@ window.openEditTurnoModal = function(id) {
         return;
     }
     
+    // Determinar si el turno está en el pasado (historial)
+    const tDate = new Date(turno.fecha.replace(/-/g, '/') + ' ' + turno.hora);
+    const now = new Date();
+    const isPast = tDate < now;
+
     // 2. Asegurar que el modal existe en el DOM
     let modal = document.getElementById('editTurnoModal');
     if (!modal) {
@@ -207,14 +212,23 @@ window.openEditTurnoModal = function(id) {
         modal.id = 'editTurnoModal';
         modal.className = 'fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300';
         modal.innerHTML = `
-            <div class="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 max-w-md w-full p-8 transform scale-95 transition-transform duration-300" id="editTurnoModalContent">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <div class="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 max-w-md w-full p-8 transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]" id="editTurnoModalContent">
+                <div class="flex justify-between items-center mb-4 shrink-0">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2" id="editModalTitleText">
                         <span class="material-symbols-outlined text-primary">edit_calendar</span> Modificar Turno
                     </h2>
                     <button type="button" onclick="window.closeEditTurnoModal()" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined">close</span></button>
                 </div>
-                <form id="editTurnoForm" class="space-y-4">
+                
+                <div id="pastTurnoAlert" class="p-3 mb-3 text-slate-600 rounded-xl border border-slate-200 flex items-start gap-2 text-xs hidden shrink-0" style="background-color: #f8fafc;">
+                    <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 mt-0.5">info</span>
+                    <div>
+                        <p class="font-bold text-slate-700">Turno en el Historial</p>
+                        <p class="text-slate-500">Este turno ya transcurrió. Solo puedes agregar o modificar las notas internas de control.</p>
+                    </div>
+                </div>
+
+                <form id="editTurnoForm" class="space-y-4 overflow-y-auto pr-1 flex-1 custom-scrollbar">
                     <input type="hidden" id="editTurnoId" name="id">
                     
                     <div>
@@ -254,8 +268,13 @@ window.openEditTurnoModal = function(id) {
                         <select id="editTurnoProfesional" name="profesional" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
                         </select>
                     </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Notas internas (Ej: Mal trato, me cae bien, etc.)</label>
+                        <textarea id="editTurnoNotas" name="notas" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700 resize-none" placeholder="Agregar notas sobre este cliente..."></textarea>
+                    </div>
                     
-                    <button type="submit" class="w-full bg-primary hover:bg-primary/95 text-white font-bold py-3.5 rounded-xl mt-2 transition-all flex items-center justify-center gap-2 shadow-lg">Guardar Cambios</button>
+                    <button type="submit" class="w-full bg-primary hover:bg-primary/95 text-white font-bold py-3.5 rounded-xl mt-2 transition-all flex items-center justify-center gap-2 shadow-lg shrink-0">Guardar Cambios</button>
                 </form>
             </div>
         `;
@@ -315,6 +334,15 @@ window.openEditTurnoModal = function(id) {
             const selected = p === turno.profesional ? 'selected' : '';
             profSelect.innerHTML += `<option value="${p}" ${selected}>${p}</option>`;
         });
+
+        // Asegurar que si el select se renderiza de forma asíncrona, se mantenga deshabilitado
+        if (isPast) {
+            if (servSelect) { servSelect.disabled = true; servSelect.classList.add('bg-slate-100', 'opacity-70', 'pointer-events-none'); }
+            if (profSelect) { profSelect.disabled = true; profSelect.classList.add('bg-slate-100', 'opacity-70', 'pointer-events-none'); }
+        } else {
+            if (servSelect) { servSelect.disabled = false; servSelect.classList.remove('bg-slate-100', 'opacity-70', 'pointer-events-none'); }
+            if (profSelect) { profSelect.disabled = false; profSelect.classList.remove('bg-slate-100', 'opacity-70', 'pointer-events-none'); }
+        }
     });
     
     // 4. Poblar datos
@@ -332,7 +360,56 @@ window.openEditTurnoModal = function(id) {
     document.getElementById('editTurnoCelular').value = turno.cliente_celular || turno.celular || '';
     document.getElementById('editTurnoFecha').value = turno.fecha;
     document.getElementById('editTurnoHora').value = turno.hora.substring(0, 5);
+    document.getElementById('editTurnoNotas').value = turno.notas || '';
     
+    // Configurar UI según sea pasado o futuro
+    const alertEl = document.getElementById('pastTurnoAlert');
+    if (alertEl) {
+        if (isPast) alertEl.classList.remove('hidden');
+        else alertEl.classList.add('hidden');
+    }
+    
+    const modalTitleText = document.getElementById('editModalTitleText');
+    if (modalTitleText) {
+        modalTitleText.innerHTML = isPast 
+            ? '<span class="material-symbols-outlined text-primary">description</span> Detalles del Turno' 
+            : '<span class="material-symbols-outlined text-primary">edit_calendar</span> Modificar Turno';
+    }
+    
+    const submitBtn = document.getElementById('editTurnoForm')?.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.textContent = isPast ? 'Guardar Notas' : 'Guardar Cambios';
+    }
+
+    const inputsToLock = [
+        document.getElementById('editTurnoNombre'),
+        document.getElementById('editTurnoApellido'),
+        document.getElementById('editTurnoCelular'),
+        document.getElementById('editTurnoFecha'),
+        document.getElementById('editTurnoHora'),
+        document.getElementById('editTurnoServicio'),
+        document.getElementById('editTurnoProfesional')
+    ];
+
+    inputsToLock.forEach(input => {
+        if (!input) return;
+        if (isPast) {
+            if (input.tagName === 'SELECT') {
+                input.disabled = true;
+            } else {
+                input.readOnly = true;
+            }
+            input.classList.add('bg-slate-100', 'opacity-70', 'pointer-events-none');
+        } else {
+            if (input.tagName === 'SELECT') {
+                input.disabled = false;
+            } else {
+                input.readOnly = false;
+            }
+            input.classList.remove('bg-slate-100', 'opacity-70', 'pointer-events-none');
+        }
+    });
+
     // 5. Mostrar modal
     const content = document.getElementById('editTurnoModalContent');
     modal.classList.remove('hidden');
@@ -625,9 +702,11 @@ function loadDashboardData() {
                         } else {
                             onboardingWidget.classList.remove('hidden');
                             
+                            const isDemoUser = window.currentUserData && window.currentUserData.email === 'demo@agendatina.site';
+                            
                             const step1Icon = document.getElementById('step1Icon');
                             const step1Text = document.getElementById('step1Text');
-                            if (hasConfig) {
+                            if (hasConfig && !isDemoUser) {
                                 if(step1Icon) { step1Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step1Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
                                 if(step1Text) {
                                     step1Text.classList.add('line-through', 'text-slate-400');
@@ -643,7 +722,7 @@ function loadDashboardData() {
                             const step2Link = document.getElementById('step2Link');
                             if(step2Link) step2Link.href = webData.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
                             
-                            if (hasServices) {
+                            if (hasServices && !isDemoUser) {
                                 if(step2Icon) { step2Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step2Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
                                 if(step2Text) {
                                     step2Text.classList.add('line-through', 'text-slate-400');
@@ -661,7 +740,7 @@ function loadDashboardData() {
                                 step3Link.classList.remove('opacity-50', 'pointer-events-none');
                                 step3Link.href = (business.ruta || business.subdominio) ? '/' + (business.ruta || business.subdominio) : '#';
                             }
-                            if (hasTurnos) {
+                            if (hasTurnos && !isDemoUser) {
                                 if(step3Icon) { step3Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step3Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
                                 if(step3Text) {
                                     step3Text.classList.add('line-through', 'text-slate-400');

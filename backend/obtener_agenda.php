@@ -57,7 +57,7 @@ try {
 
     if ($historial) {
         // Sin límite de fecha para exportar el historial completo a Excel
-        $sql = "SELECT id, cliente_nombre, nombre, apellido, cliente_celular, celular, fecha, hora, servicio, profesional, estado 
+        $sql = "SELECT id, cliente_nombre, nombre, apellido, cliente_celular, celular, fecha, hora, servicio, profesional, estado, notas 
                 FROM turnos 
                 WHERE id_negocio = :id_negocio $profesional_filter
                 ORDER BY fecha DESC, hora ASC";
@@ -68,7 +68,7 @@ try {
     } else {
         // Ventana de tiempo (60 días) para vista normal de agenda
         $min_fecha = date('Y-m-d', strtotime('-60 days'));
-        $sql = "SELECT id, cliente_nombre, nombre, apellido, cliente_celular, celular, fecha, hora, servicio, profesional, estado 
+        $sql = "SELECT id, cliente_nombre, nombre, apellido, cliente_celular, celular, fecha, hora, servicio, profesional, estado, notas 
                 FROM turnos 
                 WHERE id_negocio = :id_negocio AND fecha >= :min_fecha $profesional_filter
                 ORDER BY fecha DESC, hora ASC";

@@ -26,57 +26,89 @@ $fecha = $_POST['fecha'] ?? '';
 $hora = $_POST['hora'] ?? '';
 $servicio = trim($_POST['servicio'] ?? '');
 $profesional = trim($_POST['profesional'] ?? 'Cualquiera (Sin preferencia)');
+$notas = trim($_POST['notas'] ?? '');
 
-if (empty($id) || empty($nombre) || empty($celular) || empty($fecha) || empty($hora) || empty($servicio)) {
+if (empty($id)) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Faltan datos obligatorios.']);
+    echo json_encode(['success' => false, 'error' => 'Falta el ID del turno.']);
     exit;
 }
 
 require_once __DIR__ . '/conexion.php';
 
 try {
-    $cliente_nombre = trim($nombre . ' ' . $apellido);
+    // Obtener el estado y fecha/hora actual del turno en la base de datos
+    $stmtCheck = $pdo->prepare("SELECT fecha, hora, estado FROM turnos WHERE id = :id AND id_negocio = :id_negocio LIMIT 1");
+    $stmtCheck->execute(['id' => $id, 'id_negocio' => $id_negocio]);
+    $currentTurno = $stmtCheck->fetch();
 
-    // Encontrar el ID del servicio para que se sincronice
-    $stmtServ = $pdo->prepare("SELECT id FROM servicios WHERE id_negocio = :id_negocio AND nombre_servicio = :servicio LIMIT 1");
-    $stmtServ->execute(['id_negocio' => $id_negocio, 'servicio' => $servicio]);
-    $servRow = $stmtServ->fetch();
-    $id_servicio = $servRow ? $servRow['id'] : null;
-
-    $stmtUpdate = $pdo->prepare("UPDATE turnos SET 
-        cliente_nombre = :cliente_nombre, 
-        nombre = :nombre, 
-        apellido = :apellido, 
-        cliente_celular = :cliente_celular, 
-        celular = :celular, 
-        fecha = :fecha, 
-        hora = :hora, 
-        servicio = :servicio, 
-        profesional = :profesional, 
-        id_servicio = :id_servicio 
-        WHERE id = :id AND id_negocio = :id_negocio");
-
-    $stmtUpdate->execute([
-        'cliente_nombre' => $cliente_nombre,
-        'nombre' => $nombre,
-        'apellido' => $apellido,
-        'cliente_celular' => $celular,
-        'celular' => $celular,
-        'fecha' => $fecha,
-        'hora' => $hora,
-        'servicio' => $servicio,
-        'profesional' => $profesional,
-        'id_servicio' => $id_servicio,
-        'id' => $id,
-        'id_negocio' => $id_negocio
-    ]);
-
-    if ($stmtUpdate->rowCount() >= 0) {
-        echo json_encode(['success' => true]);
-    } else {
-        echo json_encode(['success' => false, 'error' => 'No se realizaron cambios o el turno no pertenece a este negocio.']);
+    if (!$currentTurno) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'error' => 'Turno no encontrado.']);
+        exit;
     }
+
+    $now = new DateTime();
+    $turnoDateTime = new DateTime($currentTurno['fecha'] . ' ' . $currentTurno['hora']);
+    $isPast = $turnoDateTime < $now;
+
+    if ($isPast) {
+        // Solo actualizar notas
+        $stmtUpdate = $pdo->prepare("UPDATE turnos SET notas = :notas WHERE id = :id AND id_negocio = :id_negocio");
+        $stmtUpdate->execute([
+            'notas' => $notas,
+            'id' => $id,
+            'id_negocio' => $id_negocio
+        ]);
+    } else {
+        // Validar campos obligatorios para futuros turnos
+        if (empty($nombre) || empty($celular) || empty($fecha) || empty($hora) || empty($servicio)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'Faltan datos obligatorios.']);
+            exit;
+        }
+
+        $cliente_nombre = trim($nombre . ' ' . $apellido);
+
+        // Encontrar el ID del servicio para que se sincronice
+        $stmtServ = $pdo->prepare("SELECT id FROM servicios WHERE id_negocio = :id_negocio AND nombre_servicio = :servicio LIMIT 1");
+        $stmtServ->execute(['id_negocio' => $id_negocio, 'servicio' => $servicio]);
+        $servRow = $stmtServ->fetch();
+        $id_servicio = $servRow ? $servRow['id'] : null;
+
+        $stmtUpdate = $pdo->prepare("UPDATE turnos SET 
+            cliente_nombre = :cliente_nombre, 
+            nombre = :nombre, 
+            apellido = :apellido, 
+            cliente_celular = :cliente_celular, 
+            celular = :celular, 
+            fecha = :fecha, 
+            hora = :hora, 
+            servicio = :servicio, 
+            profesional = :profesional, 
+            id_servicio = :id_servicio,
+            notas = :notas
+            WHERE id = :id AND id_negocio = :id_negocio");
+
+        $stmtUpdate->execute([
+            'cliente_nombre' => $cliente_nombre,
+            'nombre' => $nombre,
+            'apellido' => $apellido,
+            'cliente_celular' => $celular,
+            'celular' => $celular,
+            'fecha' => $fecha,
+            'hora' => $hora,
+            'servicio' => $servicio,
+            'profesional' => $profesional,
+            'id_servicio' => $id_servicio,
+            'notas' => $notas,
+            'id' => $id,
+            'id_negocio' => $id_negocio
+        ]);
+    }
+
+    echo json_encode(['success' => true]);
+
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => 'Error de base de datos al modificar: ' . $e->getMessage()]);
