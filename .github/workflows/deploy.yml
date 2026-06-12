@@ -21,6 +21,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
           server-dir: /
           # Excluimos archivos que no deberían subirse al servidor de producción
           exclude: |
