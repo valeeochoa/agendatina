@@ -36,5 +36,5 @@ jobs:
             --exclude 'implementation_plan.md' \
             --exclude 'temp_zip/' \
             --exclude 'actualizacion.zip' \
-            ./ /;
+            ./ /public_html/;
           "
