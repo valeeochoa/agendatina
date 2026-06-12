@@ -1,0 +1,32 @@
+name: Deploy via FTP
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  ftp-deploy:
+    name: Deploy to Ferozo
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Sincronizar archivos por FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /
+          # Excluimos archivos que no deberían subirse al servidor de producción
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .env.example
+            implementation_plan.md
+            temp_zip/**
+            actualizacion.zip
