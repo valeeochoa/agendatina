@@ -109,7 +109,7 @@ class FileUploader {
             }
         }
 
-        $nueva_imagen = imagecreatetruecolor($nuevo_ancho, $nuevo_alto);
+        $nueva_imagen = imagecreatetruecolor((int)round($nuevo_ancho), (int)round($nuevo_alto));
         imagealphablending($nueva_imagen, false); 
         imagesavealpha($nueva_imagen, true);
         $transparente = imagecolorallocatealpha($nueva_imagen, 255, 255, 255, 127);

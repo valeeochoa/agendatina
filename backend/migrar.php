@@ -17,6 +17,8 @@ $tablas = [
           `email` VARCHAR(255) NOT NULL UNIQUE,
           `password` VARCHAR(255) NOT NULL,
           `role` VARCHAR(50) NOT NULL DEFAULT 'admin',
+          `reset_token` VARCHAR(255) DEFAULT NULL,
+          `reset_token_expire` DATETIME DEFAULT NULL,
           `fecha_creacion` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ",
@@ -195,6 +197,8 @@ try {
 $columnMigrations = [
     // Agrega fecha_eliminado a turnos si no existe
     "ALTER TABLE `turnos` ADD COLUMN `fecha_eliminado` DATETIME DEFAULT NULL",
+    "ALTER TABLE `usuarios` ADD COLUMN `reset_token` VARCHAR(255) DEFAULT NULL",
+    "ALTER TABLE `usuarios` ADD COLUMN `reset_token_expire` DATETIME DEFAULT NULL",
 ];
 
 foreach ($columnMigrations as $alterSql) {
