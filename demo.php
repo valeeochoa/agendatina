@@ -137,13 +137,18 @@ if ($shouldReset && $negocioId) {
     // 3. Recrear Servicios por defecto
     $pdo->prepare("INSERT INTO servicios (id_negocio, nombre_servicio, duracion_minutos, precio, descripcion, profesional) VALUES 
         (?, 'Corte de Demostración', 30, 8000, 'Servicio de prueba para el plan Premium.', 'Valentina'),
-        (?, 'Masaje Relajante', 60, 15000, 'Relajate con nuestros masajes de prueba.', 'Valentina')")->execute([$negocioId, $negocioId]);
+        (?, 'Masaje Relajante', 60, 15000, 'Relájate con nuestros masajes de prueba.', 'Valentina'),
+        (?, 'Limpieza Facial Profunda', 45, 12000, 'Cuidado de la piel con productos premium.', 'Camila'),
+        (?, 'Manicura Semipermanente', 40, 9000, 'Diseños exclusivos y larga duración.', 'Sofía'),
+        (?, 'Perfilado de Cejas', 20, 5000, 'Dale forma y estilo a tu mirada.', 'Marcos')")->execute([$negocioId, $negocioId, $negocioId, $negocioId, $negocioId]);
 
     $stmtServ = $pdo->prepare("SELECT id FROM servicios WHERE id_negocio = ?");
     $stmtServ->execute([$negocioId]);
     $servs = $stmtServ->fetchAll();
     $idServ1 = $servs[0]['id'] ?? null;
     $idServ2 = $servs[1]['id'] ?? null;
+    $idServ3 = $servs[2]['id'] ?? null;
+    $idServ5 = $servs[4]['id'] ?? null;
     
     // 4. Recrear Turnos de prueba
     $hoy = date('Y-m-d');
@@ -152,10 +157,12 @@ if ($shouldReset && $negocioId) {
     $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, estado) VALUES 
         (?, 'María Gómez', '1123456789', ?, '10:00', 'Corte de Demostración', 'Valentina', ?, 'confirmado'),
         (?, 'Juan Pérez', '1198765432', ?, '15:00', 'Masaje Relajante', 'Valentina', ?, 'pendiente'),
-        (?, 'Laura Díaz', '1166667777', ?, '09:00', 'Corte de Demostración', 'Valentina', ?, 'pendiente')")->execute([
+        (?, 'Laura Díaz', '1166667777', ?, '09:00', 'Limpieza Facial Profunda', 'Camila', ?, 'pendiente'),
+        (?, 'Carlos Sánchez', '1133334444', ?, '11:00', 'Perfilado de Cejas', 'Marcos', ?, 'confirmado')")->execute([
             $negocioId, $hoy, $idServ1,
             $negocioId, $hoy, $idServ2,
-            $negocioId, $manana, $idServ1
+            $negocioId, $manana, $idServ3,
+            $negocioId, $hoy, $idServ5
         ]);
         
     $pdo->prepare("INSERT INTO notificaciones (id_negocio, titulo, mensaje) VALUES 
