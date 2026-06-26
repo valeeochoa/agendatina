@@ -20,7 +20,7 @@ try {
         $limitVal = $stmtLimit->fetchColumn();
         if ($limitVal && (int)$limitVal > 0) {
             $cutoff = date('Y-m-d', strtotime('-' . (int)$limitVal . ' days'));
-            $stmtDel = $pdo->prepare("DELETE FROM turnos WHERE id_negocio = :id AND fecha < :cutoff");
+            $stmtDel = $pdo->prepare("DELETE FROM turnos WHERE id_negocio = :id AND fecha < :cutoff AND estado IN ('pendiente', 'eliminado', 'cancelado')");
             $stmtDel->execute(['id' => $_SESSION['id_negocio'], 'cutoff' => $cutoff]);
         }
     } catch (Exception $delEx) {

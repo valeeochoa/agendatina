@@ -278,18 +278,30 @@
             <!-- Estadísticas en tiempo real -->
             <div id="profileStats" class="grid grid-cols-3 gap-3 mb-6">
                 <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-center">
-                    <p class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Turnos Totales</p>
+                    <p class="text-[10px] sm:text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Total Turnos Recibidos</p>
                     <p class="text-2xl font-black text-blue-700" id="statTotal">0</p>
                 </div>
                 <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center">
-                    <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Turnos Confirmados</p>
+                    <p class="text-[10px] sm:text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Turnos Confirmados</p>
                     <p class="text-2xl font-black text-emerald-700" id="statConf">0</p>
                 </div>
                 <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 text-center">
-                    <p class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Turnos Pendientes</p>
+                    <p class="text-[10px] sm:text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Turnos Pendientes</p>
                     <p class="text-2xl font-black text-amber-700" id="statPend">0</p>
                 </div>
             </div>
+
+            <!-- Botón Ver Comprobante (se muestra por JS si tiene uno subido) -->
+            <div id="profileReceiptContainer" class="hidden mb-6 flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <div>
+                    <p class="font-bold text-sm text-slate-800">Mi último comprobante de pago</p>
+                    <p class="text-xs text-slate-500">Visualiza el comprobante que enviaste para tu suscripción.</p>
+                </div>
+                <button type="button" id="btnProfileViewReceipt" class="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-colors flex items-center gap-1 shadow-sm">
+                    <span class="material-symbols-outlined text-[16px]">visibility</span> Ver comprobante
+                </button>
+            </div>
+
             
             <form id="profileForm" class="flex flex-col gap-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">

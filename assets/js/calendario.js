@@ -99,6 +99,11 @@ generateTimeSlots();
 
 // Función inteligente para sincronizar los calendarios en tiempo real
 window.refreshCalendarData = function() {
+    // Auto-refresco del calendario en segundo plano cada 30 segundos
+    if (!window.calendarPollingInterval) {
+        window.calendarPollingInterval = setInterval(window.refreshCalendarData, 30000);
+    }
+
     if (isAdmin) {
         if (document.getElementById('weeklyCalendarView')) {
             if (!isPreviewMode && document.getElementById('adminWeeklyGrid')) {

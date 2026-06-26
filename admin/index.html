@@ -656,6 +656,8 @@ function renderTable(dataToRender) {
     
     if (alertDiv) {
         const pendientes = clientsData.filter(c => c.estado_pago === 'pendiente_revision').length;
+        window.adminPendingCount = pendientes;
+        updateAdminTitleAndSound();
         if (pendientes > 0) {
             alertDiv.innerHTML = `<div class="bg-amber-100 border-l-4 border-amber-500 text-amber-800 p-4 rounded-xl shadow-sm mb-6 flex items-center gap-3">
                 <span class="material-symbols-outlined text-2xl animate-pulse">notifications_active</span>
@@ -1321,6 +1323,10 @@ function renderAdminReports(notificaciones) {
     const listContainer = document.getElementById('adminReportsList');
     if (!listContainer) return;
     
+    window.adminReportsCount = notificaciones ? notificaciones.length : 0;
+    updateAdminTitleAndSound();
+
+    
     let reportsHtml = '';
 
     if (!notificaciones || notificaciones.length === 0) {
@@ -1348,6 +1354,38 @@ function renderAdminReports(notificaciones) {
     }
     listContainer.innerHTML = reportsHtml;
 }
+
+window.adminPendingCount = 0;
+window.adminReportsCount = 0;
+window.adminLastTotal = 0;
+
+function updateAdminTitleAndSound() {
+    const total = window.adminPendingCount + window.adminReportsCount;
+    if (total > 0) {
+        document.title = `(${total}) Admin - Agendatina`;
+        if (total > window.adminLastTotal) {
+            try {
+                // Pequeño bip sonoro si hay una nueva notificación
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.frequency.value = 523.25; // Do
+                osc.type = 'sine';
+                gain.gain.setValueAtTime(0, ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.1);
+                gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.5);
+            } catch (e) {}
+        }
+    } else {
+        document.title = 'Panel de Administración - Agendatina';
+    }
+    window.adminLastTotal = total;
+}
+
 
 function deleteAdminReport(id) {
     if (confirm('¿Marcar como solucionado y eliminar este reporte?')) {

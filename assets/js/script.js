@@ -528,9 +528,12 @@ function loadDashboardData() {
                     throw new Error('Respuesta no válida del servidor');
                 }
             }),
-        fetch('backend/guardar_web.php').then(res => res.json())
+        fetch('backend/guardar_web.php').then(res => res.json()),
+        fetch('backend/obtener_precios.php').then(res => res.json()).catch(() => null),
+        fetch('backend/gestionar_servicios.php').then(res => res.json()).catch(() => []),
+        fetch('backend/obtener_agenda.php').then(res => res.json()).catch(() => [])
     ])
-    .then(([data, webData]) => {
+    .then(([data, webData, pData, services, turnos]) => {
         if (data.success) {
             const business = data.business || {};
             if (webData && !webData.error && webData.fecha_alta) {
@@ -655,105 +658,98 @@ function loadDashboardData() {
             };
 
             // Integrar la carga de precios al Banner de Suscripción y al Modal de Pago
-            fetch('backend/obtener_precios.php').then(r=>r.json()).then(pData => {
-                let basePrice = 13288;
-                let discount = 20;
+            let basePrice = 13288;
+            let discount = 20;
+            
+            if(pData && pData.success) {
+                basePrice = parseFloat(pData.data.precio_basico);
+                if (planStr.includes('intermedio') || planStr.includes('profesional')) basePrice = parseFloat(pData.data.precio_intermedio);
+                if (planStr.includes('completo') || planStr.includes('premium')) basePrice = parseFloat(pData.data.precio_premium);
                 
-                if(pData && pData.success) {
-                    basePrice = parseFloat(pData.data.precio_basico);
-                    if (planStr.includes('intermedio') || planStr.includes('profesional')) basePrice = parseFloat(pData.data.precio_intermedio);
-                    if (planStr.includes('completo') || planStr.includes('premium')) basePrice = parseFloat(pData.data.precio_premium);
-                    
-                    discount = parseInt(pData.data.descuento_porcentaje) || 0;
-                    if (pData.data.descuento_hasta) {
-                        const expiry = new Date(pData.data.descuento_hasta.replace(/-/g, '/'));
-                        if (new Date() > expiry) discount = 0;
-                    }
+                discount = parseInt(pData.data.descuento_porcentaje) || 0;
+                if (pData.data.descuento_hasta) {
+                    const expiry = new Date(pData.data.descuento_hasta.replace(/-/g, '/'));
+                    if (new Date() > expiry) discount = 0;
                 }
-                
-                const hasDiscount = discount > 0;
-                let finalPrice = hasDiscount ? basePrice * (1 - discount/100) : basePrice;
-                if (dbStatus === 'prueba') finalPrice = finalPrice / 2;
-                let formattedPrice = finalPrice.toLocaleString('es-AR', {maximumFractionDigits:0});
-                
-                if (paymentPrice) {
-                    let discountBadge = '';
-                    if (dbStatus === 'prueba') discountBadge = '<span class="block text-sm font-bold text-emerald-500 mb-1">50% OFF - Primer Mes</span>';
-                    else if (hasDiscount) discountBadge = `<div class="flex flex-wrap items-center justify-center gap-2 mb-1"><span class="text-sm text-slate-400 line-through font-medium">$${basePrice.toLocaleString('es-AR', {maximumFractionDigits:0})}</span><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-${discount}% OFF</span></div>`;
-                    paymentPrice.innerHTML = `${discountBadge}$${formattedPrice} <span class="text-base font-normal text-slate-400">/mes</span>`;
-                }
-                
-                subscriptionData.priceFormatted = formattedPrice;
-                checkSubscription(subscriptionData);
-            }).catch(e => { console.error(e); checkSubscription(subscriptionData); });
+            }
+            
+            const hasDiscount = discount > 0;
+            let finalPrice = hasDiscount ? basePrice * (1 - discount/100) : basePrice;
+            if (dbStatus === 'prueba') finalPrice = finalPrice / 2;
+            let formattedPrice = finalPrice.toLocaleString('es-AR', {maximumFractionDigits:0});
+            
+            if (paymentPrice) {
+                let discountBadge = '';
+                if (dbStatus === 'prueba') discountBadge = '<span class="block text-sm font-bold text-emerald-500 mb-1">50% OFF - Primer Mes</span>';
+                else if (hasDiscount) discountBadge = `<div class="flex flex-wrap items-center justify-center gap-2 mb-1"><span class="text-sm text-slate-400 line-through font-medium">$${basePrice.toLocaleString('es-AR', {maximumFractionDigits:0})}</span><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-${discount}% OFF</span></div>`;
+                paymentPrice.innerHTML = `${discountBadge}$${formattedPrice} <span class="text-base font-normal text-slate-400">/mes</span>`;
+            }
+            
+            subscriptionData.priceFormatted = formattedPrice;
+            checkSubscription(subscriptionData);
             
             // --- ONBOARDING WIDGET (TUTORIAL) ---
-            fetch('backend/gestionar_servicios.php').then(r=>r.json()).then(services => {
-                const onboardingWidget = document.getElementById('onboardingWidget');
-                if (onboardingWidget) {
-                    let hasConfig = webData.dias_trabajo && webData.dias_trabajo.trim() !== '';
-                    let hasServices = Array.isArray(services) && services.length > 0;
+            const onboardingWidget = document.getElementById('onboardingWidget');
+            if (onboardingWidget) {
+                let hasConfig = webData.dias_trabajo && webData.dias_trabajo.trim() !== '';
+                let hasServices = Array.isArray(services) && services.length > 0;
+                let hasTurnos = Array.isArray(turnos) && turnos.length > 0;
+
+                if (hasConfig && hasServices && hasTurnos && window.currentUserData.email !== 'demo@agendatina.site') {
+                    onboardingWidget.classList.add('hidden');
+                } else {
+                    onboardingWidget.classList.remove('hidden');
                     
-                    fetch('backend/obtener_agenda.php').then(r=>r.json()).then(turnos => {
-                        let hasTurnos = Array.isArray(turnos) && turnos.length > 0;
-
-                        if (hasConfig && hasServices && hasTurnos && window.currentUserData.email !== 'demo@agendatina.site') {
-                            onboardingWidget.classList.add('hidden');
-                        } else {
-                            onboardingWidget.classList.remove('hidden');
-                            
-                            const isDemoUser = window.currentUserData && window.currentUserData.email === 'demo@agendatina.site';
-                            
-                            const step1Icon = document.getElementById('step1Icon');
-                            const step1Text = document.getElementById('step1Text');
-                            if (hasConfig && !isDemoUser) {
-                                if(step1Icon) { step1Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step1Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
-                                if(step1Text) {
-                                    step1Text.classList.add('line-through', 'text-slate-400');
-                                    const desc = step1Text.parentElement.nextElementSibling;
-                                    if (desc) desc.classList.add('line-through', 'opacity-50');
-                                    const link = desc ? desc.nextElementSibling : null;
-                                    if (link) link.style.display = 'none';
-                                }
-                            }
-
-                            const step2Icon = document.getElementById('step2Icon');
-                            const step2Text = document.getElementById('step2Text');
-                            const step2Link = document.getElementById('step2Link');
-                            if(step2Link) step2Link.href = webData.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
-                            
-                            if (hasServices && !isDemoUser) {
-                                if(step2Icon) { step2Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step2Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
-                                if(step2Text) {
-                                    step2Text.classList.add('line-through', 'text-slate-400');
-                                    const desc = step2Text.parentElement.nextElementSibling;
-                                    if (desc) desc.classList.add('line-through', 'opacity-50');
-                                    const link = desc ? desc.nextElementSibling : null;
-                                    if (link) link.style.display = 'none';
-                                }
-                            }
-
-                            const step3Link = document.getElementById('step3Link');
-                            const step3Icon = document.getElementById('step3Icon');
-                            const step3Text = document.getElementById('step3Text');
-                            if (hasConfig && hasServices && step3Link) {
-                                step3Link.classList.remove('opacity-50', 'pointer-events-none');
-                                step3Link.href = (business.ruta || business.subdominio) ? '/' + (business.ruta || business.subdominio) : '#';
-                            }
-                            if (hasTurnos && !isDemoUser) {
-                                if(step3Icon) { step3Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step3Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
-                                if(step3Text) {
-                                    step3Text.classList.add('line-through', 'text-slate-400');
-                                    const desc = step3Text.parentElement.nextElementSibling;
-                                    if (desc) desc.classList.add('line-through', 'opacity-50');
-                                    const link = desc ? desc.nextElementSibling : null;
-                                    if (link) link.style.display = 'none';
-                                }
-                            }
+                    const isDemoUser = window.currentUserData && window.currentUserData.email === 'demo@agendatina.site';
+                    
+                    const step1Icon = document.getElementById('step1Icon');
+                    const step1Text = document.getElementById('step1Text');
+                    if (hasConfig && !isDemoUser) {
+                        if(step1Icon) { step1Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step1Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
+                        if(step1Text) {
+                            step1Text.classList.add('line-through', 'text-slate-400');
+                            const desc = step1Text.parentElement.nextElementSibling;
+                            if (desc) desc.classList.add('line-through', 'opacity-50');
+                            const link = desc ? desc.nextElementSibling : null;
+                            if (link) link.style.display = 'none';
                         }
-                    }).catch(e => console.error(e));
+                    }
+
+                    const step2Icon = document.getElementById('step2Icon');
+                    const step2Text = document.getElementById('step2Text');
+                    const step2Link = document.getElementById('step2Link');
+                    if(step2Link) step2Link.href = webData.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
+                    
+                    if (hasServices && !isDemoUser) {
+                        if(step2Icon) { step2Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step2Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
+                        if(step2Text) {
+                            step2Text.classList.add('line-through', 'text-slate-400');
+                            const desc = step2Text.parentElement.nextElementSibling;
+                            if (desc) desc.classList.add('line-through', 'opacity-50');
+                            const link = desc ? desc.nextElementSibling : null;
+                            if (link) link.style.display = 'none';
+                        }
+                    }
+
+                    const step3Link = document.getElementById('step3Link');
+                    const step3Icon = document.getElementById('step3Icon');
+                    const step3Text = document.getElementById('step3Text');
+                    if (hasConfig && hasServices && step3Link) {
+                        step3Link.classList.remove('opacity-50', 'pointer-events-none');
+                        step3Link.href = (business.ruta || business.subdominio) ? '/' + (business.ruta || business.subdominio) : '#';
+                    }
+                    if (hasTurnos && !isDemoUser) {
+                        if(step3Icon) { step3Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step3Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
+                        if(step3Text) {
+                            step3Text.classList.add('line-through', 'text-slate-400');
+                            const desc = step3Text.parentElement.nextElementSibling;
+                            if (desc) desc.classList.add('line-through', 'opacity-50');
+                            const link = desc ? desc.nextElementSibling : null;
+                            if (link) link.style.display = 'none';
+                        }
+                    }
                 }
-            }).catch(e => console.error(e));
+            }
 
             checkNotifications(); // Cargar notificaciones en la campanita
             loadDashboardChart(webData.color_primario || '#3b82f6');
@@ -1383,10 +1379,13 @@ function loadCustomization() {
                     }
                 }
                 if (data.logo && data.logo !== 'null' && data.logo !== 'undefined') {
+                    // Corregir la ruta del logo si solo viene el nombre de archivo
+                    const logoUrl = data.logo.includes('/') ? data.logo : `backend/uploads/logos/${data.logo}`;
+                    
                     const profilePreview = document.getElementById('profileLogoPreview');
-                    if (profilePreview) { profilePreview.src = data.logo; profilePreview.classList.remove('hidden'); }
+                    if (profilePreview) { profilePreview.src = logoUrl; profilePreview.classList.remove('hidden'); }
                     const webPreview = document.getElementById('webLogoPreview');
-                    if (webPreview) { webPreview.src = data.logo; webPreview.classList.remove('hidden'); }
+                    if (webPreview) { webPreview.src = logoUrl; webPreview.classList.remove('hidden'); }
                 }
             }
         })
@@ -1424,10 +1423,37 @@ function closePaymentModal() {
     }, 300);
 }
 
-function openProfileModal() {
+window.openProfileModal = function() {
     const modal = document.getElementById('profileModal');
     const content = document.getElementById('profileModalContent');
     if (!modal || !content) return;
+    
+    // Configurar estadísticas del perfil
+    const statConf = document.getElementById('statConf');
+    const statPend = document.getElementById('statPend');
+    const statTotal = document.getElementById('statTotal');
+    const totalConf = window.currentStats ? window.currentStats.reduce((a,b)=>a+(parseInt(b.confirmados)||0), 0) : 0;
+    const totalPend = window.currentStats ? window.currentStats.reduce((a,b)=>a+(parseInt(b.pendientes)||0), 0) : 0;
+    
+    if (statConf) statConf.textContent = totalConf;
+    if (statPend) statPend.textContent = totalPend;
+    if (statTotal) statTotal.textContent = totalConf + totalPend;
+    
+    // Configurar botón de comprobante en perfil
+    const receiptContainer = document.getElementById('profileReceiptContainer');
+    const btnReceipt = document.getElementById('btnProfileViewReceipt');
+    if (receiptContainer && window.currentBusinessData) {
+        if (window.currentBusinessData.comprobante) {
+            receiptContainer.classList.remove('hidden');
+            if (btnReceipt) {
+                btnReceipt.onclick = () => window.verComprobanteModal(window.currentBusinessData.comprobante);
+            }
+        } else {
+            receiptContainer.classList.add('hidden');
+        }
+    }
+
+    modal.classList.remove('hidden');
     if(window.currentUserData) {
         document.getElementById('profileName').value = window.currentUserData.nombre_completo || '';
         
@@ -2518,8 +2544,8 @@ window.verComprobanteModal = function(url) {
                     <button onclick="window.closeReusableReceiptModal()" class="text-slate-400 hover:text-red-500 bg-slate-100 hover:bg-red-50 rounded-full p-1.5 transition-colors"><span class="material-symbols-outlined">close</span></button>
                 </div>
                 <div class="flex-1 overflow-auto bg-slate-50 rounded-xl border border-slate-200 mb-4 flex items-center justify-center min-h-[300px]">
-                    <img id="reusableReceiptImage" src="" class="max-w-full max-h-[50vh] object-contain hidden">
-                    <iframe id="reusableReceiptPdf" src="" class="w-full h-[50vh] hidden border-0"></iframe>
+                    <img id="reusableReceiptImage" src="" class="max-w-full max-h-[70vh] object-contain hidden" alt="Comprobante">
+                    <iframe id="reusableReceiptPdf" src="" class="w-full h-[70vh] hidden border-0"></iframe>
                 </div>
                 <div class="flex justify-end pt-2">
                     <button onclick="window.closeReusableReceiptModal()" class="px-5 py-2.5 font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-xl shadow-lg transition-all">Cerrar</button>
@@ -2537,10 +2563,10 @@ window.verComprobanteModal = function(url) {
     pdf.classList.add('hidden');
     
     if (url.toLowerCase().endsWith('.pdf')) {
-        pdf.src = url;
+        pdf.src = url.includes('/') ? url : `backend/uploads/comprobantes/${url}`;
         pdf.classList.remove('hidden');
     } else {
-        img.src = url;
+        img.src = url.includes('/') ? url : `backend/uploads/comprobantes/${url}`;
         img.classList.remove('hidden');
     }
     
