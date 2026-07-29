@@ -44,12 +44,21 @@ if (!document.getElementById('global-modal-animations')) {
     document.head.appendChild(style);
 }
 
-window.openRegisterModal = function() {
+window.openRegisterModal = function(selectedPlan = 'Básico') {
     const modal = document.getElementById('registerModal');
     const content = document.getElementById('registerModalContent');
     if (!modal) return;
     const errorDiv = document.getElementById('registerError');
     if (errorDiv) errorDiv.classList.add('hidden');
+
+    const regPlanEl = document.getElementById('regPlan');
+    if (regPlanEl && selectedPlan) {
+        const s = selectedPlan.toString().toLowerCase();
+        if (s.includes('profesional') || s.includes('inter')) regPlanEl.value = 'Profesional';
+        else if (s.includes('premium') || s.includes('prem')) regPlanEl.value = 'Premium';
+        else regPlanEl.value = 'Básico';
+    }
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
@@ -64,19 +73,32 @@ window.closeRegisterModal = function() {
     setTimeout(() => { modal.classList.add('hidden'); }, 300);
 };
 
+window.selectPlan = function(planName, planKey) {
+    if (typeof openRegisterModal === 'function') {
+        openRegisterModal(planName);
+    }
+};
+
 window.submitRegister = function(e) {
     e.preventDefault();
     const btn = document.getElementById('btnRegisterSubmit');
     const errorDiv = document.getElementById('registerError');
     const orig = btn.innerHTML;
     errorDiv.classList.add('hidden');
-    btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span> Creando cuenta...';
+    btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span> Creando cuenta y cargando agenda demo...';
+
+    const diasChecked = Array.from(document.querySelectorAll('input[name="reg_dias"]:checked')).map(cb => cb.value).join(',');
 
     const formData = new URLSearchParams({
         nombre_completo: document.getElementById('regNombre').value,
         nombre_fantasia: document.getElementById('regNegocio').value,
         email: document.getElementById('regEmail').value,
         password: document.getElementById('regPassword').value,
+        plan: document.getElementById('regPlan') ? document.getElementById('regPlan').value : 'Básico',
+        max_profesionales: document.getElementById('regProfs') ? document.getElementById('regProfs').value : '1',
+        hora_apertura: document.getElementById('regHoraApertura') ? document.getElementById('regHoraApertura').value : '09:00',
+        hora_cierre: document.getElementById('regHoraCierre') ? document.getElementById('regHoraCierre').value : '19:00',
+        dias_trabajo: diasChecked || '1,2,3,4,5,6',
         acepta_terminos: document.getElementById('regTerminos').checked ? '1' : '0'
     });
 
@@ -96,6 +118,21 @@ window.submitRegister = function(e) {
     })
     .finally(() => { btn.disabled = false; btn.innerHTML = orig; });
 };
+
+// Listener global para cerrar modales con la tecla Escape (ESC)
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+        if (typeof window.closeRegisterModal === 'function') window.closeRegisterModal();
+        if (typeof window.closePricesModal === 'function') window.closePricesModal();
+        if (typeof window.closeClientDetailModal === 'function') window.closeClientDetailModal();
+        if (typeof window.closeEditModal === 'function') window.closeEditModal();
+        if (typeof window.closeEditInfoModal === 'function') window.closeEditInfoModal();
+        if (typeof window.closeNoteModal === 'function') window.closeNoteModal();
+        if (typeof window.closeReceiptModal === 'function') window.closeReceiptModal();
+        if (typeof window.closeReportErrorModal === 'function') window.closeReportErrorModal();
+        if (typeof window.closeContactSuccessModal === 'function') window.closeContactSuccessModal();
+    }
+});
 
 window.showToast = function(message, type = 'success') {
     let container = document.getElementById('toast-container');
@@ -2328,7 +2365,7 @@ function isAccountSuspended(dbStatus, lastPaymentStr, fechaAltaStr) {
     if (dbStatus === 'prueba' || dbStatus === 'beta') {
         const fechaAlta = fechaAltaStr ? new Date(fechaAltaStr.replace(/-/g, '/')) : new Date();
         const trialEnd = new Date(fechaAlta);
-        const days = dbStatus === 'beta' ? 30 : 15;
+        const days = 30; // Período de prueba de 30 días
         trialEnd.setDate(trialEnd.getDate() + days);
         return today > trialEnd;
     } 

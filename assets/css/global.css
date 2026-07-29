@@ -2,7 +2,7 @@
    Fuente de Marca: Fredoka
    Fuente centralizada para toda la aplicación usando Google Fonts
 ===================================================== */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -10,7 +10,13 @@ body {
     letter-spacing: -0.011em;
 }
 
-h1, h2, h3, h4, .brand-font {
+/* Fuente oficial de la Marca Agendatina */
+.font-brand, .brand-font, .brand-text {
+    font-family: 'Fredoka', cursive, sans-serif !important;
+    font-weight: 600;
+}
+
+h1, h2, h3, h4 {
     font-family: 'Plus Jakarta Sans', sans-serif;
     letter-spacing: -0.02em;
 }

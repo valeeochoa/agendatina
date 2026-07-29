@@ -157,8 +157,31 @@ if ($method === 'GET') {
         $stmtTurnosCount = $pdo->query("SELECT id_negocio, COUNT(*) as total_turnos FROM turnos GROUP BY id_negocio");
         $counts_turnos = $stmtTurnosCount ? $stmtTurnosCount->fetchAll(PDO::FETCH_KEY_PAIR) : [];
 
-        $stmtComprobantes = $pdo->query("SELECT id, id_negocio, monto, plan, archivo_path, nombre_archivo, fecha_pago, estado, notas FROM comprobantes_pago ORDER BY fecha_pago DESC");
-        $todos_comprobantes = $stmtComprobantes ? $stmtComprobantes->fetchAll(PDO::FETCH_ASSOC) : [];
+        // Auto-crear tabla de comprobantes de pago si aún no existe
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS `comprobantes_pago` (
+              `id` INT AUTO_INCREMENT PRIMARY KEY,
+              `id_negocio` INT NOT NULL,
+              `monto` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+              `plan` VARCHAR(100) DEFAULT NULL,
+              `archivo_path` VARCHAR(255) NOT NULL,
+              `nombre_archivo` VARCHAR(255) NOT NULL,
+              `fecha_pago` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              `estado` VARCHAR(50) DEFAULT 'aprobado',
+              `notas` TEXT DEFAULT NULL,
+              FOREIGN KEY (`id_negocio`) REFERENCES `negocios` (`id`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        } catch(Exception $exTbl) {}
+
+        $todos_comprobantes = [];
+        try {
+            $stmtComprobantes = $pdo->query("SELECT id, id_negocio, monto, plan, archivo_path, nombre_archivo, fecha_pago, estado, notas FROM comprobantes_pago ORDER BY fecha_pago DESC");
+            if ($stmtComprobantes) {
+                $todos_comprobantes = $stmtComprobantes->fetchAll(PDO::FETCH_ASSOC);
+            }
+        } catch (Exception $exComp) {
+            $todos_comprobantes = [];
+        }
 
         foreach ($negocios as &$negocio) {
             $negocio['profesionales'] = array_values(array_filter($todos_profesionales, function($p) use ($negocio) {
