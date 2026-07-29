@@ -159,11 +159,12 @@ $tablas = [
     "configuracion_global" => "
         CREATE TABLE IF NOT EXISTS `configuracion_global` (
           `id` INT PRIMARY KEY DEFAULT 1,
-          `precio_basico` DECIMAL(10,2) NOT NULL DEFAULT 13288.00,
-          `precio_intermedio` DECIMAL(10,2) NOT NULL DEFAULT 20563.00,
-          `precio_premium` DECIMAL(10,2) NOT NULL DEFAULT 28188.00,
-          `descuento_porcentaje` INT NOT NULL DEFAULT 20,
-          `descuento_hasta` DATETIME DEFAULT NULL
+          `precio_basico` DECIMAL(10,2) NOT NULL DEFAULT 8889.00,
+          `precio_intermedio` DECIMAL(10,2) NOT NULL DEFAULT 11111.00,
+          `precio_premium` DECIMAL(10,2) NOT NULL DEFAULT 16667.00,
+          `descuento_porcentaje` INT NOT NULL DEFAULT 10,
+          `descuento_hasta` DATETIME DEFAULT NULL,
+          `dias_prueba_defecto` INT NOT NULL DEFAULT 30
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     ",
     "login_attempts" => "
@@ -172,6 +173,20 @@ $tablas = [
           `ip_address` VARCHAR(45) NOT NULL UNIQUE,
           `intentos` INT NOT NULL DEFAULT 1,
           `ultimo_intento` DATETIME NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    ",
+    "comprobantes_pago" => "
+        CREATE TABLE IF NOT EXISTS `comprobantes_pago` (
+          `id` INT AUTO_INCREMENT PRIMARY KEY,
+          `id_negocio` INT NOT NULL,
+          `monto` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+          `plan` VARCHAR(100) DEFAULT NULL,
+          `archivo_path` VARCHAR(255) NOT NULL,
+          `nombre_archivo` VARCHAR(255) NOT NULL,
+          `fecha_pago` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `estado` VARCHAR(50) DEFAULT 'aprobado',
+          `notas` TEXT DEFAULT NULL,
+          FOREIGN KEY (`id_negocio`) REFERENCES `negocios` (`id`) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     "
 ];
@@ -185,9 +200,12 @@ foreach ($tablas as $nombre => $sql) {
     }
 }
 
+// Auto-migraciones de columnas faltantes
+try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN dias_prueba_defecto INT NOT NULL DEFAULT 30"); } catch(Exception $e) {}
+
 // Inserciones por defecto
 try {
-    $pdo->exec("INSERT IGNORE INTO `configuracion_global` (`id`, `precio_basico`, `precio_intermedio`, `precio_premium`, `descuento_porcentaje`, `descuento_hasta`) VALUES (1, 13288.00, 20563.00, 28188.00, 20, NULL)");
+    $pdo->exec("INSERT IGNORE INTO `configuracion_global` (`id`, `precio_basico`, `precio_intermedio`, `precio_premium`, `descuento_porcentaje`, `descuento_hasta`, `dias_prueba_defecto`) VALUES (1, 8889.00, 11111.00, 16667.00, 10, NULL, 30)");
     echo "[OK] Configuración global de precios inicializada.\n";
 } catch (PDOException $e) {
     echo "[ERROR] Error al inicializar configuración global: " . $e->getMessage() . "\n";

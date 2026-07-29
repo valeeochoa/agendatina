@@ -52,8 +52,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             fetch('backend/obtener_precios.php').then(r=>r.json()).then(priceData => {
-                let pBasico = 13288, pIntermedio = 20563, pPremium = 28188;
-                let discount = 20;
+                let pBasico = 8889, pIntermedio = 11111, pPremium = 16667;
+                let discount = 10;
                 
                 if(priceData && priceData.success) {
                     pBasico = parseFloat(priceData.data.precio_basico);

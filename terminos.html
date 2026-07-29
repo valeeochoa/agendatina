@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Términos y Condiciones | Agendatina</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236366f1'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-2.5 5.43l-4.57 4.57-2.43-2.43 1.41-1.41 1.02 1.02 3.16-3.16 1.41 1.41z'/></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, .font-heading { font-family: 'Plus Jakarta Sans', sans-serif; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; color: black !important; }
+            .print-container { shadow: none !important; border: none !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-700 min-h-screen flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="no-print bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-2 text-slate-900 font-bold text-xl font-heading hover:opacity-90 transition-opacity">
+                <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 text-white flex items-center justify-center shadow-md shadow-indigo-500/20">
+                    <span class="material-symbols-outlined text-[20px]">calendar_month</span>
+                </div>
+                <span>Agendatina</span>
+            </a>
+            <div class="flex items-center gap-3">
+                <button onclick="window.print()" class="px-4 py-2 text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">print</span>
+                    <span class="hidden sm:inline">Imprimir / Guardar PDF</span>
+                </button>
+                <a href="index.html" class="px-4 py-2 text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition-colors shadow-sm shadow-indigo-500/20">
+                    Volver al Inicio
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Document Content -->
+    <main class="flex-1 py-8 sm:py-12 px-4">
+        <div class="print-container max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-12">
+            
+            <div class="flex items-center gap-3 mb-6 pb-6 border-b border-slate-100">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-2xl">gavel</span>
+                </div>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Términos y Condiciones de Servicio</h1>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-1">Última actualización: 28 de Julio de 2026 • Plataforma Agendatina</p>
+                </div>
+            </div>
+
+            <div class="prose prose-slate max-w-none space-y-6 text-sm sm:text-base leading-relaxed text-slate-600">
+                
+                <section class="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 text-indigo-900 text-sm">
+                    <p class="font-medium">Bienvenido a <strong>Agendatina</strong>. Al crear una cuenta o utilizar nuestra plataforma de gestión de turnos y agenda virtual, aceptas quedar vinculado por los siguientes Términos y Condiciones. Por favor, léelos detenidamente antes de comenzar.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-bold text-slate-900 mb-2 font-heading">1. Descripción del Servicio</h2>
+                    <p>Agendatina es una plataforma en la nube (SaaS) diseñada para optimizar la administración de turnos, horarios y catálogo de servicios para profesionales, emprendimientos y empresas. El servicio incluye agenda virtual, notificaciones automáticas y una página web personalizada de reservas para los clientes.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-bold text-slate-900 mb-2 font-heading">2. Registro y Cuentas de Usuario</h2>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>Para acceder al servicio, debes proporcionar un nombre completo, correo electrónico válido, contraseña y el nombre de tu emprendimiento.</li>
+                        <li>Eres responsable de mantener la confidencialidad de tus credenciales de acceso.</li>
+                        <li>Cada negocio registrado dispondrá de una dirección web exclusiva (slug) para la recepción de turnos.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-bold text-slate-900 mb-2 font-heading">3. Período de Prueba Gratuita y Planes de Suscripción</h2>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>Los nuevos usuarios accederán a un <strong>Período de Prueba Gratuita</strong> con duración determinada por la administración al momento del registro.</li>
+                        <li>Al finalizar el período de prueba, el usuario podrá contratar cualquiera de los planes mensuales disponibles (Simple, Profesional o Premium) para mantener el servicio activo.</li>
+                        <li>Agendatina se reserva el derecho de suspender temporalmente el acceso a cuentas cuyo período de prueba o suscripción haya caducado sin renovación.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-bold text-slate-900 mb-2 font-heading">4. Privacidad y Protección de Datos</h2>
+                    <p>Agendatina garantiza la confidencialidad de la información registrada por los emprendimientos y sus clientes. Los datos recopilados (nombres, teléfonos, fechas de turnos) se emplean exclusivamente para la prestación y correcto funcionamiento del sistema de gestión de turnos.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-bold text-slate-900 mb-2 font-heading">5. Responsabilidad del Uso de la Plataforma</h2>
+                    <p>El usuario se compromete a no utilizar la plataforma para fines ilícitos o deshonestos. Agendatina no se responsabiliza por cancelaciones imprevistas o inasistencias entre el cliente y el prestador del servicio.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-lg font-bold text-slate-900 mb-2 font-heading">6. Modificaciones de los Términos y Soporte</h2>
+                    <p>Agendatina podrá modificar los presentes términos previa notificación a través de la plataforma. Para consultas o asistencia técnica, puedes comunicarte a través del canal oficial de soporte.</p>
+                </section>
+
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+                <p>© 2026 Agendatina. Todos los derechos reservados.</p>
+                <div class="flex items-center gap-4">
+                    <a href="index.html" class="hover:text-indigo-600 transition-colors">Inicio</a>
+                    <span>•</span>
+                    <a href="javascript:window.print()" class="hover:text-indigo-600 transition-colors">Guardar en PDF</a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>

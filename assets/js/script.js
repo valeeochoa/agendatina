@@ -44,6 +44,59 @@ if (!document.getElementById('global-modal-animations')) {
     document.head.appendChild(style);
 }
 
+window.openRegisterModal = function() {
+    const modal = document.getElementById('registerModal');
+    const content = document.getElementById('registerModalContent');
+    if (!modal) return;
+    const errorDiv = document.getElementById('registerError');
+    if (errorDiv) errorDiv.classList.add('hidden');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+};
+
+window.closeRegisterModal = function() {
+    const modal = document.getElementById('registerModal');
+    const content = document.getElementById('registerModalContent');
+    if (!modal) return;
+    modal.classList.add('opacity-0');
+    content.classList.add('scale-95');
+    setTimeout(() => { modal.classList.add('hidden'); }, 300);
+};
+
+window.submitRegister = function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnRegisterSubmit');
+    const errorDiv = document.getElementById('registerError');
+    const orig = btn.innerHTML;
+    errorDiv.classList.add('hidden');
+    btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span> Creando cuenta...';
+
+    const formData = new URLSearchParams({
+        nombre_completo: document.getElementById('regNombre').value,
+        nombre_fantasia: document.getElementById('regNegocio').value,
+        email: document.getElementById('regEmail').value,
+        password: document.getElementById('regPassword').value,
+        acepta_terminos: document.getElementById('regTerminos').checked ? '1' : '0'
+    });
+
+    fetch('backend/registrarse.php', { method: 'POST', body: formData })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = data.redirect || 'dashboard.html';
+        } else {
+            errorDiv.textContent = data.error || 'Error al crear la cuenta.';
+            errorDiv.classList.remove('hidden');
+        }
+    })
+    .catch(() => {
+        errorDiv.textContent = 'Error de conexión con el servidor. Por favor reintenta.';
+        errorDiv.classList.remove('hidden');
+    })
+    .finally(() => { btn.disabled = false; btn.innerHTML = orig; });
+};
+
 window.showToast = function(message, type = 'success') {
     let container = document.getElementById('toast-container');
     if (!container) {
@@ -658,8 +711,8 @@ function loadDashboardData() {
             };
 
             // Integrar la carga de precios al Banner de Suscripción y al Modal de Pago
-            let basePrice = 13288;
-            let discount = 20;
+            let basePrice = 8889;
+            let discount = 10;
             
             if(pData && pData.success) {
                 basePrice = parseFloat(pData.data.precio_basico);
@@ -1784,8 +1837,8 @@ const carouselData = [
     { 
         title: 'Plan Simple', 
         desc: 'Calendario online para que tus clientes puedan solicitar turnos de forma rápida y organizada.', 
-        oldPrice: '$13.288',
-        price: '$10.630', 
+        oldPrice: '$8.889',
+        price: '$8.000', 
         tag: 'Ideal para comenzar',
         mockupDesktop: 'public/mockup_calendar_computer.png',
         mockupMobile: 'public/mockup_calendar_phone.png',
@@ -1799,8 +1852,8 @@ const carouselData = [
     { 
         title: 'Plan Profesional', 
         desc: 'Sistema de turnos con agenda virtual para administrar todas tus reservas desde un solo lugar.', 
-        oldPrice: '$20.563',
-        price: '$16.450', 
+        oldPrice: '$11.111',
+        price: '$10.000', 
         tag: 'Más Elegido',
         mockupDesktop: 'public/mockup_miagenda_computer.png',
         mockupMobile: 'public/mockup_miagenda_phone.png',
@@ -1814,8 +1867,8 @@ const carouselData = [
     { 
         title: 'Plan Premium', 
         desc: 'Plataforma completa con turnero y mini página para mostrar tu negocio y captar más clientes.', 
-        oldPrice: '$28.188',
-        price: '$22.550', 
+        oldPrice: '$16.667',
+        price: '$15.000', 
         tag: 'Presencia Online',
         mockupDesktop: 'public/mockup_miagenda_computer.png',
         mockupMobile: 'public/mockup_miagenda_phone.png',
@@ -1838,7 +1891,7 @@ window.setCarouselIndex = function(index) {
     document.getElementById('carouselTitle').textContent = carouselData[index].title;
     document.getElementById('carouselDesc').textContent = carouselData[index].desc;
     
-    // Renderizar Nuevo y Viejo Precio con el 20% OFF
+    // Renderizar Nuevo y Viejo Precio con el 10% OFF
     // Actualizar precios dinámicamente respetando la estructura HTML de index.html
     const oldPriceEl = document.getElementById('carouselOldPrice');
     const priceEl = document.getElementById('carouselPrice');
@@ -2107,10 +2160,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             window.renderPricing = function() {
                 const pData = window.pricingData || {
-                    precio_basico: 13288,
-                    precio_intermedio: 20563,
-                    precio_premium: 28188,
-                    descuento_porcentaje: 20,
+                    precio_basico: 8889,
+                    precio_intermedio: 11111,
+                    precio_premium: 16667,
+                    descuento_porcentaje: 10,
                     descuento_hasta: null
                 };
                 
@@ -2175,7 +2228,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (perPerson) {
                         if (count > 1) {
                             let pricePerPerson = info.final / count;
-                            perPerson.innerHTML = `¡Queda en $${pricePerPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} p/persona!<br><span class="text-xs font-normal text-slate-500 mt-1 block">Ya incluye 20% OFF base + descuento por equipo</span>`;
+                            perPerson.innerHTML = `¡Queda en $${pricePerPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} p/persona!<br><span class="text-xs font-normal text-slate-500 mt-1 block">Ya incluye 10% OFF base + descuento por equipo</span>`;
                             perPerson.classList.remove('hidden');
                         } else {
                             perPerson.classList.add('hidden');

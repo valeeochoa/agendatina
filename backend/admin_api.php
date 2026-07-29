@@ -100,16 +100,15 @@ try { $pdo->query("SELECT descuento_porcentaje FROM configuracion_global LIMIT 1
 catch(Exception $e) { 
     $pdo->exec("CREATE TABLE IF NOT EXISTS configuracion_global (
         id INT PRIMARY KEY DEFAULT 1,
-        precio_basico DECIMAL(10,2) DEFAULT 13288,
-        precio_intermedio DECIMAL(10,2) DEFAULT 20563,
-        precio_premium DECIMAL(10,2) DEFAULT 28188
+        precio_basico DECIMAL(10,2) DEFAULT 8889,
+        precio_intermedio DECIMAL(10,2) DEFAULT 11111,
+        precio_premium DECIMAL(10,2) DEFAULT 16667
     )"); 
     $pdo->exec("INSERT IGNORE INTO configuracion_global (id) VALUES (1)");
-    $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN descuento_porcentaje INT DEFAULT 20");
+    $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN descuento_porcentaje INT DEFAULT 10");
     $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN descuento_hasta DATETIME DEFAULT NULL");
     
-    // Migrar precios antiguos a precios full para que el descuento encaje perfecto sin afectar clientes actuales
-    $pdo->exec("UPDATE configuracion_global SET precio_basico = 13288, precio_intermedio = 20563, precio_premium = 28188 WHERE id = 1 AND precio_basico <= 10630");
+    $pdo->exec("UPDATE configuracion_global SET precio_basico = 8889, precio_intermedio = 11111, precio_premium = 16667, descuento_porcentaje = 10 WHERE id = 1");
 }
 
 // Ampliar la columna password para que no corte la encriptación
@@ -154,10 +153,28 @@ if ($method === 'GET') {
         ");
         $todos_profesionales = $stmtProfs->fetchAll(PDO::FETCH_ASSOC);
         
+        // Obtener la cantidad de turnos totales y comprobantes por negocio
+        $stmtTurnosCount = $pdo->query("SELECT id_negocio, COUNT(*) as total_turnos FROM turnos GROUP BY id_negocio");
+        $counts_turnos = $stmtTurnosCount ? $stmtTurnosCount->fetchAll(PDO::FETCH_KEY_PAIR) : [];
+
+        $stmtComprobantes = $pdo->query("SELECT id, id_negocio, monto, plan, archivo_path, nombre_archivo, fecha_pago, estado, notas FROM comprobantes_pago ORDER BY fecha_pago DESC");
+        $todos_comprobantes = $stmtComprobantes ? $stmtComprobantes->fetchAll(PDO::FETCH_ASSOC) : [];
+
         foreach ($negocios as &$negocio) {
             $negocio['profesionales'] = array_values(array_filter($todos_profesionales, function($p) use ($negocio) {
                 return $p['id_negocio'] == $negocio['id'];
             }));
+            $negocio['turnos_count'] = isset($counts_turnos[$negocio['id']]) ? (int)$counts_turnos[$negocio['id']] : 0;
+            $negocio['comprobantes'] = array_values(array_filter($todos_comprobantes, function($c) use ($negocio) {
+                return $c['id_negocio'] == $negocio['id'];
+            }));
+        }
+
+        // Obtener la configuración global
+        $stmtConfig = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(dias_prueba_defecto, 30) AS dias_prueba_defecto FROM configuracion_global WHERE id = 1");
+        $config_global = $stmtConfig ? $stmtConfig->fetch(PDO::FETCH_ASSOC) : null;
+        if (!$config_global) {
+            $config_global = ['precio_basico' => 8889, 'precio_intermedio' => 11111, 'precio_premium' => 16667, 'descuento_porcentaje' => 10, 'descuento_hasta' => null, 'dias_prueba_defecto' => 30];
         }
         
         // Obtener notificaciones de errores recientes para el SuperAdmin
@@ -167,7 +184,7 @@ if ($method === 'GET') {
             LEFT JOIN negocios n ON na.id_negocio = n.id 
             ORDER BY na.fecha DESC LIMIT 50
         ");
-        $notifs_admin = $stmtNotifs->fetchAll(PDO::FETCH_ASSOC);
+        $notifs_admin = $stmtNotifs ? $stmtNotifs->fetchAll(PDO::FETCH_ASSOC) : [];
         
         // Obtener las notas internas más recientes
         $stmtNotas = $pdo->query("
@@ -177,9 +194,9 @@ if ($method === 'GET') {
             WHERE an.nota IS NOT NULL AND TRIM(an.nota) != ''
             ORDER BY an.fecha_actualizacion DESC LIMIT 10
         ");
-        $notas_recientes = $stmtNotas->fetchAll(PDO::FETCH_ASSOC);
+        $notas_recientes = $stmtNotas ? $stmtNotas->fetchAll(PDO::FETCH_ASSOC) : [];
         
-        echo json_encode(['success' => true, 'data' => $negocios, 'notificaciones' => $notifs_admin, 'notas_recientes' => $notas_recientes]);
+        echo json_encode(['success' => true, 'data' => $negocios, 'notificaciones' => $notifs_admin, 'notas_recientes' => $notas_recientes, 'config_global' => $config_global]);
     } catch (PDOException $e) {
         echo json_encode(['success' => false, 'error' => 'Error BD: ' . $e->getMessage()]);
     }
@@ -331,13 +348,17 @@ elseif ($method === 'PUT') {
     
     if ($action === 'update_prices') {
         try {
-            $basico = isset($data['precio_basico']) ? (float)$data['precio_basico'] : 13288;
-            $intermedio = isset($data['precio_intermedio']) ? (float)$data['precio_intermedio'] : 20563;
-            $premium = isset($data['precio_premium']) ? (float)$data['precio_premium'] : 28188;
+            $basico = isset($data['precio_basico']) ? (float)$data['precio_basico'] : 8889;
+            $intermedio = isset($data['precio_intermedio']) ? (float)$data['precio_intermedio'] : 11111;
+            $premium = isset($data['precio_premium']) ? (float)$data['precio_premium'] : 16667;
             $descuento_porcentaje = isset($data['descuento_porcentaje']) ? (int)$data['descuento_porcentaje'] : 0;
             $descuento_hasta = !empty($data['descuento_hasta']) ? $data['descuento_hasta'] : null;
+            $dias_prueba = isset($data['dias_prueba_defecto']) ? (int)$data['dias_prueba_defecto'] : 30;
             
-            $pdo->prepare("UPDATE configuracion_global SET precio_basico = ?, precio_intermedio = ?, precio_premium = ?, descuento_porcentaje = ?, descuento_hasta = ? WHERE id = 1")->execute([$basico, $intermedio, $premium, $descuento_porcentaje, $descuento_hasta]);
+            // Asegurar que exista la columna dias_prueba_defecto
+            try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN dias_prueba_defecto INT NOT NULL DEFAULT 30"); } catch(Exception $ex) {}
+
+            $pdo->prepare("UPDATE configuracion_global SET precio_basico = ?, precio_intermedio = ?, precio_premium = ?, descuento_porcentaje = ?, descuento_hasta = ?, dias_prueba_defecto = ? WHERE id = 1")->execute([$basico, $intermedio, $premium, $descuento_porcentaje, $descuento_hasta, $dias_prueba]);
             
             echo json_encode(['success' => true]);
         } catch (Exception $e) {

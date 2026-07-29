@@ -41,8 +41,8 @@ try {
         exit;
     }
 
-    // 3. Cancelar / Eliminar el turno
-    $stmtDel = $pdo->prepare("DELETE FROM turnos WHERE id = :id");
+    // 3. Cancelar / Mover a la papelera el turno
+    $stmtDel = $pdo->prepare("UPDATE turnos SET estado = 'eliminado', fecha_eliminado = NOW() WHERE id = :id");
     $stmtDel->execute(['id' => $id_turno]);
 
     echo json_encode(['success' => true]);

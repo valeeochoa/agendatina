@@ -21,7 +21,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (form) {
         form.addEventListener('submit', handleCalendarConfigSubmit);
     }
-});
+}
+
+window.generarWaQr = function() {
+    const container = document.getElementById('waQrContainer');
+    const status = document.getElementById('waQrStatus');
+    const badge = document.getElementById('waStatusBadge');
+    if (!container) return;
+
+    container.innerHTML = '<span class="material-symbols-outlined text-4xl animate-spin text-emerald-600">refresh</span><p class="text-xs text-slate-500 mt-2 font-medium">Generando código QR...</p>';
+    if (status) status.textContent = 'Estado: Generando código QR dinámico...';
+
+    setTimeout(() => {
+        const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=AGENDATINA_WA_SESSION_' + Math.random().toString(36).substring(2, 10);
+        container.innerHTML = `<img src="${qrUrl}" alt="Código QR WhatsApp" class="w-full h-full object-contain animate-fade-in">`;
+        if (status) status.textContent = 'Estado: Escanea este QR con tu teléfono';
+        if (badge) {
+            badge.className = 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold border border-blue-200 flex items-center gap-1';
+            badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span> Esperando Escaneo';
+        }
+    }, 1000);
+};
 
 function handleCalendarConfigSubmit(e) {
     e.preventDefault();

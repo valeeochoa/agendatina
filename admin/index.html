@@ -494,11 +494,141 @@
                     <p class="text-xs text-slate-500 mt-1">Dejar en blanco para descuento permanente.</p>
                 </div>
             </div>
+
+            <div class="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                <h3 class="text-sm font-bold text-blue-800 mb-2">Auto-Registro de Usuarios</h3>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Días de prueba por defecto para nuevas cuentas</label>
+                    <input type="number" min="1" max="365" id="diasPruebaDefecto" required class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Ej: 30">
+                    <p class="text-xs text-slate-500 mt-1">Días de acceso de prueba asignados al crear una cuenta gratis.</p>
+                </div>
+            </div>
             <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-4">
                 <button type="button" onclick="closePricesModal()" class="px-6 py-3 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancelar</button>
                 <button type="submit" id="btnPricesSubmit" class="px-6 py-3 font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-lg shadow-purple-600/30 transition-all hover:-translate-y-0.5 flex items-center gap-2"><span class="material-symbols-outlined text-[20px]">save</span> Guardar</button>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Modal Ficha Detallada de Emprendimiento -->
+<div id="clientDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[80] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div id="clientDetailModalContent" class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-start mb-6 pb-4 border-b border-slate-100">
+            <div>
+                <div class="flex items-center gap-3">
+                    <h2 class="text-2xl font-black text-slate-900" id="cdModalTitle">Emprendimiento</h2>
+                    <span id="cdModalBadgeStatus"></span>
+                </div>
+                <a id="cdModalLink" href="#" target="_blank" class="text-xs font-semibold text-blue-500 hover:text-blue-700 flex items-center gap-1 mt-1"><span class="material-symbols-outlined text-[14px]">link</span> agendatina.site/...</a>
+            </div>
+            <button onclick="closeClientDetailModal()" class="text-slate-400 hover:text-red-500 bg-slate-100 hover:bg-red-50 rounded-full p-2 transition-colors"><span class="material-symbols-outlined">close</span></button>
+        </div>
+
+        <!-- Métricas Rápidas -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Plan Contratado</p>
+                <p class="text-lg font-black text-slate-800" id="cdMetricPlan">Básico</p>
+            </div>
+            <div class="bg-purple-50 p-4 rounded-2xl border border-purple-200">
+                <p class="text-xs font-semibold text-purple-600 uppercase tracking-wider mb-1">Turnos Manejados</p>
+                <p class="text-2xl font-black text-purple-700" id="cdMetricTurnos">0</p>
+            </div>
+            <div class="bg-blue-50 p-4 rounded-2xl border border-blue-200">
+                <p class="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">Equipo (Profs)</p>
+                <p class="text-2xl font-black text-blue-700" id="cdMetricEquipo">1</p>
+            </div>
+            <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200">
+                <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wider mb-1">Comprobantes</p>
+                <p class="text-2xl font-black text-emerald-700" id="cdMetricComprobantes">0</p>
+            </div>
+        </div>
+
+        <!-- Pestañas internas -->
+        <div class="flex border-b border-slate-200 mb-6 gap-2">
+            <button id="cdTabBtnComprobantes" onclick="switchCdTab('comprobantes')" class="px-4 py-2.5 font-bold text-sm text-purple-600 border-b-2 border-purple-600 transition-all flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">receipt_long</span> Comprobantes de Pago</button>
+            <button id="cdTabBtnEquipo" onclick="switchCdTab('equipo')" class="px-4 py-2.5 font-bold text-sm text-slate-400 hover:text-slate-700 transition-all flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">groups</span> Profesionales</button>
+            <button id="cdTabBtnNotas" onclick="switchCdTab('notas')" class="px-4 py-2.5 font-bold text-sm text-slate-400 hover:text-slate-700 transition-all flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">notes</span> Notas Internas</button>
+        </div>
+
+        <!-- Tab 1: Comprobantes de Pago -->
+        <div id="cdTabComprobantes" class="space-y-6">
+            <div class="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-sm">Historial de Comprobantes de Pago</h3>
+                    <p class="text-xs text-slate-500">Puedes visualizar, descargar o agregar comprobantes para este negocio.</p>
+                </div>
+                <button onclick="toggleUploadComprobanteForm()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs shadow-md shadow-purple-600/20 transition-all flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">upload_file</span> Cargar Comprobante</button>
+            </div>
+
+            <!-- Formulario Oculto de Subida de Comprobantes -->
+            <div id="uploadCompFormContainer" class="hidden bg-purple-50 p-5 rounded-2xl border border-purple-200 transition-all">
+                <h4 class="font-bold text-purple-900 text-sm mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">add_circle</span> Registrar Nuevo Comprobante</h4>
+                <form id="uploadCompForm" onsubmit="submitUploadComprobante(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <input type="hidden" id="uploadCompNegocioId">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Monto ($)</label>
+                        <input type="number" step="0.01" id="uploadCompMonto" required class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Plan Relacionado</label>
+                        <select id="uploadCompPlan" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none">
+                            <option value="Básico">Plan Básico</option>
+                            <option value="Intermedio">Plan Intermedio</option>
+                            <option value="Premium">Plan Premium</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Archivo (PDF / Imagen)</label>
+                        <input type="file" id="uploadCompFile" accept="image/*,.pdf" required class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-100 file:text-purple-700">
+                    </div>
+                    <div class="sm:col-span-3">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Observaciones / Notas</label>
+                        <input type="text" id="uploadCompNotas" placeholder="Ej: Pago abonado vía transferencia Mercado Pago" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none">
+                    </div>
+                    <div class="sm:col-span-3 flex justify-end gap-2 pt-2">
+                        <button type="button" onclick="toggleUploadComprobanteForm()" class="px-4 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-xl">Cancelar</button>
+                        <button type="submit" id="btnUploadCompSubmit" class="px-5 py-2 text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-md">Guardar Comprobante</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabla de Comprobantes -->
+            <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead class="bg-slate-100 text-slate-600 font-bold text-xs uppercase">
+                        <tr>
+                            <th class="p-3">Fecha</th>
+                            <th class="p-3">Monto</th>
+                            <th class="p-3">Plan</th>
+                            <th class="p-3">Notas</th>
+                            <th class="p-3 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cdComprobantesList">
+                        <tr><td colspan="5" class="p-6 text-center text-slate-400 text-xs">No hay comprobantes registrados aún.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 2: Profesionales del Equipo -->
+        <div id="cdTabEquipo" class="hidden space-y-4">
+            <h3 class="font-bold text-slate-800 text-sm mb-2">Profesionales Asociados a este Emprendimiento</h3>
+            <div id="cdEquipoList" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+        </div>
+
+        <!-- Tab 3: Notas Internas -->
+        <div id="cdTabNotas" class="hidden space-y-4">
+            <h3 class="font-bold text-slate-800 text-sm mb-1">Notas u Observaciones del Super Admin</h3>
+            <p class="text-xs text-slate-500 mb-3">Estas notas son privadas y solo visibles para la administración.</p>
+            <textarea id="cdNotaInternaText" rows="4" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm outline-none focus:ring-2 focus:ring-purple-500" placeholder="Escribe observaciones de este cliente..."></textarea>
+            <div class="flex justify-end">
+                <button onclick="saveCdNotaInterna()" id="btnSaveCdNota" class="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs shadow-md shadow-purple-600/20 transition-all flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">save</span> Guardar Nota</button>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -731,7 +861,8 @@ function renderTable(dataToRender) {
                 const noteIcon = noteHasContent ? 'sticky_note_2' : 'note_add';
 
                 let actionsHtml = `
-                    <button onclick="openEditInfoModal(${originalIndex})" class="text-slate-400 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 p-2 rounded-lg transition-colors border border-slate-100" title="Editar Información del Cliente"><span class="material-symbols-outlined text-[20px]">manage_accounts</span></button>
+                    <button onclick="openClientDetailModal(${originalIndex})" class="text-purple-600 bg-purple-50 hover:bg-purple-100 p-2 rounded-lg transition-colors border border-purple-200" title="Ver Ficha y Comprobantes de este Emprendimiento"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+                    <button onclick="openEditInfoModal(${originalIndex})" class="text-slate-400 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 p-2 rounded-lg transition-colors border border-slate-100 ml-1" title="Editar Información del Cliente"><span class="material-symbols-outlined text-[20px]">manage_accounts</span></button>
                     <button onclick="openEditModal(${originalIndex})" class="text-slate-400 hover:text-amber-600 bg-slate-50 hover:bg-amber-50 p-2 rounded-lg transition-colors border border-slate-100 ml-1" title="Suscripción y Estado"><span class="material-symbols-outlined text-[20px]">payments</span></button>
                     <button onclick="openNoteModal(${originalIndex})" class="p-2 rounded-lg transition-colors border ml-1 ${noteBtnColor}" title="Notas Internas"><span class="material-symbols-outlined text-[20px]">${noteIcon}</span></button>
                 `;
@@ -753,7 +884,7 @@ function renderTable(dataToRender) {
                         <td class="p-5">
                             <div class="flex items-center gap-2 mb-1">
                                 <span class="bg-slate-200 text-slate-600 text-[10px] font-black px-2 py-0.5 rounded-md">ID: ${client.id}</span>
-                                <p class="font-bold text-slate-900 text-base">${client.nombre_fantasia}</p>
+                                <button onclick="openClientDetailModal(${originalIndex})" class="font-bold text-slate-900 text-base hover:text-purple-600 text-left transition-colors cursor-pointer">${client.nombre_fantasia}</button>
                             </div>
                             <a href="../calendarioMensual.html?n=${urlRuta}" target="_blank" class="text-xs font-semibold text-blue-500 hover:text-blue-700 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">link</span> agendatina.site/${urlRuta}</a>
                         </td>
@@ -793,6 +924,7 @@ function fetchClients() {
                 document.getElementById('precioIntermedio').value = data.config_global.precio_intermedio;
                 document.getElementById('precioPremium').value = data.config_global.precio_premium;
                 document.getElementById('descuentoPorcentaje').value = data.config_global.descuento_porcentaje || 0;
+                document.getElementById('diasPruebaDefecto').value = data.config_global.dias_prueba_defecto || 30;
                 if (data.config_global.descuento_hasta) {
                     document.getElementById('descuentoHasta').value = data.config_global.descuento_hasta.substring(0, 16);
                 } else {
@@ -1201,9 +1333,9 @@ document.getElementById('pricesForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const btn = document.getElementById('btnPricesSubmit'); const orig = btn.innerHTML;
     btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span>...';
-    fetch('../backend/admin_api.php', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ action: 'update_prices', precio_basico: document.getElementById('precioBasico').value, precio_intermedio: document.getElementById('precioIntermedio').value, precio_premium: document.getElementById('precioPremium').value, descuento_porcentaje: document.getElementById('descuentoPorcentaje').value, descuento_hasta: document.getElementById('descuentoHasta').value }) })
+    fetch('../backend/admin_api.php', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ action: 'update_prices', precio_basico: document.getElementById('precioBasico').value, precio_intermedio: document.getElementById('precioIntermedio').value, precio_premium: document.getElementById('precioPremium').value, descuento_porcentaje: document.getElementById('descuentoPorcentaje').value, descuento_hasta: document.getElementById('descuentoHasta').value, dias_prueba_defecto: document.getElementById('diasPruebaDefecto').value }) })
     .then(res => res.json()).then(data => {
-        if(data.success) { alert('Precios actualizados en todo el sistema.'); closePricesModal(); fetchClients(); } else { alert(data.error); }
+        if(data.success) { alert('Precios y días de prueba actualizados correctamente.'); closePricesModal(); fetchClients(); } else { alert(data.error); }
     }).finally(() => { btn.disabled = false; btn.innerHTML = orig; });
 });
 
@@ -1264,6 +1396,209 @@ function rechazarComprobante() {
     if(!confirm('¿Estás seguro de RECHAZAR este comprobante? El negocio quedará suspendido hasta que suba uno nuevo.')) return;
     const btn = document.getElementById('btnRejectReceipt'); btn.disabled = true; btn.innerHTML = 'Procesando...';
     fetch('../backend/admin_api.php', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_negocio: currentReceiptId, action: 'rechazar_pago' }) }).then(res => res.json()).then(data => { if (data.success) { fetchClients(); closeReceiptModal(); } else alert(data.error); }).finally(() => { btn.disabled = false; btn.innerHTML = 'Rechazar y Suspender'; });
+}
+
+// ==========================================
+// VISTA DETALLADA Y COMPROBANTES DE CLIENTE
+// ==========================================
+let currentCdClient = null;
+
+function openClientDetailModal(index) {
+    const client = clientsData[index];
+    if (!client) return;
+    currentCdClient = client;
+
+    document.getElementById('cdModalTitle').textContent = client.nombre_fantasia;
+    const urlRuta = client.ruta || client.subdominio;
+    const linkEl = document.getElementById('cdModalLink');
+    linkEl.href = '../calendarioMensual.html?n=' + urlRuta;
+    linkEl.innerHTML = `<span class="material-symbols-outlined text-[14px]">link</span> agendatina.site/${urlRuta}`;
+
+    let badgeStatus = '';
+    if (client.estado_pago === 'activo') badgeStatus = '<span class="bg-green-100 text-green-700 px-2.5 py-1 rounded-lg text-xs font-bold">Activo</span>';
+    else if (client.estado_pago === 'prueba') badgeStatus = '<span class="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-lg text-xs font-bold">Prueba</span>';
+    else badgeStatus = '<span class="bg-red-100 text-red-700 px-2.5 py-1 rounded-lg text-xs font-bold">' + client.estado_pago + '</span>';
+    document.getElementById('cdModalBadgeStatus').innerHTML = badgeStatus;
+
+    document.getElementById('cdMetricPlan').textContent = client.plan || 'Básico';
+    document.getElementById('cdMetricTurnos').textContent = client.turnos_count !== undefined ? client.turnos_count : 0;
+    const profsCount = client.profesionales ? client.profesionales.length + 1 : 1;
+    document.getElementById('cdMetricEquipo').textContent = `${profsCount} / ${client.max_profesionales || 1}`;
+    
+    const comps = client.comprobantes || [];
+    document.getElementById('cdMetricComprobantes').textContent = comps.length;
+    document.getElementById('uploadCompNegocioId').value = client.id;
+
+    renderCdComprobantes(comps);
+    renderCdEquipo(client);
+
+    document.getElementById('cdNotaInternaText').value = client.nota_interna || '';
+
+    switchCdTab('comprobantes');
+
+    const modal = document.getElementById('clientDetailModal');
+    const content = document.getElementById('clientDetailModalContent');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+}
+
+function closeClientDetailModal() {
+    const modal = document.getElementById('clientDetailModal');
+    const content = document.getElementById('clientDetailModalContent');
+    modal.classList.add('opacity-0');
+    content.classList.add('scale-95');
+    setTimeout(() => { modal.classList.add('hidden'); currentCdClient = null; }, 300);
+}
+
+function switchCdTab(tab) {
+    const tabs = ['comprobantes', 'equipo', 'notas'];
+    tabs.forEach(t => {
+        const btn = document.getElementById('cdTabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+        const panel = document.getElementById('cdTab' + t.charAt(0).toUpperCase() + t.slice(1));
+        if (t === tab) {
+            btn.className = 'px-4 py-2.5 font-bold text-sm text-purple-600 border-b-2 border-purple-600 transition-all flex items-center gap-2';
+            panel.classList.remove('hidden');
+        } else {
+            btn.className = 'px-4 py-2.5 font-bold text-sm text-slate-400 hover:text-slate-700 transition-all flex items-center gap-2';
+            panel.classList.add('hidden');
+        }
+    });
+}
+
+function renderCdComprobantes(comps) {
+    const tbody = document.getElementById('cdComprobantesList');
+    if (!comps || comps.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400 text-xs font-medium">No hay comprobantes cargados para este negocio.</td></tr>';
+        return;
+    }
+    let html = '';
+    comps.forEach(c => {
+        const fecha = new Date(c.fecha_pago.replace(/-/g, '/')).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const monto = parseFloat(c.monto).toLocaleString('es-AR');
+        html += `
+            <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
+                <td class="p-3 font-semibold text-slate-700 text-xs">${fecha}</td>
+                <td class="p-3 font-bold text-emerald-600 text-sm">$${monto}</td>
+                <td class="p-3"><span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-md text-xs font-bold">${c.plan || 'Básico'}</span></td>
+                <td class="p-3 text-xs text-slate-500 max-w-xs truncate">${c.notas || 'Sin observaciones'}</td>
+                <td class="p-3 text-right space-x-1 whitespace-nowrap">
+                    <button onclick="openReceiptModal('${c.archivo_path}', ${c.id_negocio})" class="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg font-bold text-xs border border-purple-200 transition-all" title="Ver Comprobante">Ver</button>
+                    <a href="../${c.archivo_path}" download="${c.nombre_archivo}" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-xs border border-slate-200 transition-all inline-block" title="Descargar Comprobante">Descargar</a>
+                    <button onclick="deleteComprobanteAdmin(${c.id})" class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg font-bold text-xs border border-red-200 transition-all" title="Eliminar Comprobante">Borrar</button>
+                </td>
+            </tr>
+        `;
+    });
+    tbody.innerHTML = html;
+}
+
+function renderCdEquipo(client) {
+    const container = document.getElementById('cdEquipoList');
+    let html = `
+        <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between">
+            <div>
+                <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-md text-[10px] font-black uppercase">Dueño / Admin</span>
+                <p class="font-bold text-slate-900 text-sm mt-1">${client.nombre_completo || 'Administrador'}</p>
+                <p class="text-xs text-slate-500">${client.email || 'N/A'}</p>
+            </div>
+            <span class="material-symbols-outlined text-purple-500">manage_accounts</span>
+        </div>
+    `;
+
+    if (client.profesionales && client.profesionales.length > 0) {
+        client.profesionales.forEach(p => {
+            html += `
+                <div class="bg-white p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between shadow-sm">
+                    <div>
+                        <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md text-[10px] font-black uppercase">Profesional</span>
+                        <p class="font-bold text-slate-900 text-sm mt-1">${p.nombre_completo}</p>
+                        <p class="text-xs text-slate-500">${p.email || 'Sin correo'}</p>
+                    </div>
+                    <span class="material-symbols-outlined text-blue-500">person</span>
+                </div>
+            `;
+        });
+    }
+    container.innerHTML = html;
+}
+
+function toggleUploadComprobanteForm() {
+    const container = document.getElementById('uploadCompFormContainer');
+    container.classList.toggle('hidden');
+}
+
+function submitUploadComprobante(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnUploadCompSubmit');
+    const orig = btn.innerHTML;
+    btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">refresh</span> Guardando...';
+
+    const formData = new FormData();
+    formData.append('id_negocio', document.getElementById('uploadCompNegocioId').value);
+    formData.append('monto', document.getElementById('uploadCompMonto').value);
+    formData.append('plan', document.getElementById('uploadCompPlan').value);
+    formData.append('notas', document.getElementById('uploadCompNotas').value);
+    formData.append('comprobante', document.getElementById('uploadCompFile').files[0]);
+
+    fetch('../backend/comprobantes_api.php', { method: 'POST', body: formData })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Comprobante subido y registrado exitosamente.');
+            toggleUploadComprobanteForm();
+            document.getElementById('uploadCompForm').reset();
+            fetchClients();
+            if (currentCdClient) {
+                setTimeout(() => {
+                    const updated = clientsData.find(c => c.id == currentCdClient.id);
+                    if (updated) {
+                        currentCdClient = updated;
+                        renderCdComprobantes(updated.comprobantes);
+                        document.getElementById('cdMetricComprobantes').textContent = (updated.comprobantes || []).length;
+                    }
+                }, 300);
+            }
+        } else {
+            alert(data.error || 'Error al guardar el comprobante.');
+        }
+    })
+    .catch(() => alert('Error de conexión con el servidor.'))
+    .finally(() => { btn.disabled = false; btn.innerHTML = orig; });
+}
+
+function deleteComprobanteAdmin(idComprobante) {
+    if (!confirm('¿Seguro que deseas eliminar este comprobante de pago?')) return;
+    fetch('../backend/comprobantes_api.php', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: idComprobante }) })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            fetchClients();
+            if (currentCdClient) {
+                currentCdClient.comprobantes = (currentCdClient.comprobantes || []).filter(c => c.id != idComprobante);
+                renderCdComprobantes(currentCdClient.comprobantes);
+                document.getElementById('cdMetricComprobantes').textContent = currentCdClient.comprobantes.length;
+            }
+        } else alert(data.error);
+    });
+}
+
+function saveCdNotaInterna() {
+    if (!currentCdClient) return;
+    const btn = document.getElementById('btnSaveCdNota');
+    const orig = btn.innerHTML;
+    btn.disabled = true; btn.innerHTML = 'Guardando...';
+
+    const nota = document.getElementById('cdNotaInternaText').value;
+    fetch('../backend/admin_api.php', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_negocio: currentCdClient.id, nota_interna: nota }) })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Nota interna guardada.');
+            fetchClients();
+        } else alert(data.error);
+    })
+    .finally(() => { btn.disabled = false; btn.innerHTML = orig; });
 }
 
 let negocioToDelete = null;
