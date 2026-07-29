@@ -6,14 +6,17 @@
     <title>Super Admin | Agendatina</title>
     <link rel="icon" href="../public/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = { theme: { extend: { fontFamily: { brand: ['Fredoka', 'sans-serif'] } } } };
     </script>
     <link rel="stylesheet" href="../assets/css/global.css">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <style> 
+        body { font-family: 'Inter', sans-serif; } 
+        .font-brand { font-family: 'Fredoka', cursive, sans-serif !important; }
+    </style>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800" style="display: none;">
 
@@ -21,7 +24,7 @@
     <div class="max-w-7xl mx-auto flex justify-between items-center">
         <a href="index.html" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
             <img src="../public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
-            <span class="font-brand font-bold text-2xl tracking-tight">Agendatina <span class="text-blue-400 font-sans text-xl">SuperAdmin</span></span>
+            <span class="font-brand font-bold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span> <span class="text-[#fcb0b3] font-sans text-lg font-bold ml-1">SuperAdmin</span></span>
         </a>
         <div class="flex items-center gap-6">
             <a href="../index.html" target="_blank" class="text-sm font-semibold text-slate-400 hover:text-white transition-colors items-center gap-1 hidden sm:flex">
@@ -1849,6 +1852,18 @@ function closeReceiptModal() {
         document.getElementById('receiptModalAdminBody').innerHTML = '';
     }, 300);
 }
+
+// Cierre de modales en panel Admin mediante la tecla Escape (ESC)
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+        if (typeof closePricesModal === 'function') closePricesModal();
+        if (typeof closeClientDetailModal === 'function') closeClientDetailModal();
+        if (typeof closeEditModal === 'function') closeEditModal();
+        if (typeof closeEditInfoModal === 'function') closeEditInfoModal();
+        if (typeof closeNoteModal === 'function') closeNoteModal();
+        if (typeof closeReceiptModal === 'function') closeReceiptModal();
+    }
+});
 </script>
 
 <!-- Modal Ver Comprobante (Admin) -->

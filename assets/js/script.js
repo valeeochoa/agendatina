@@ -73,10 +73,15 @@ window.closeRegisterModal = function() {
     setTimeout(() => { modal.classList.add('hidden'); }, 300);
 };
 
-window.selectPlan = function(planName, planKey) {
-    if (typeof openRegisterModal === 'function') {
-        openRegisterModal(planName);
+window.selectPlan = function(planName) {
+    let p = 'Básico';
+    if (planName) {
+        const s = planName.toString().toLowerCase();
+        if (s.includes('profesional') || s.includes('inter')) p = 'Profesional';
+        else if (s.includes('premium') || s.includes('prem')) p = 'Premium';
+        else p = 'Básico';
     }
+    window.location.href = 'registro.html?plan=' + encodeURIComponent(p);
 };
 
 window.submitRegister = function(e) {

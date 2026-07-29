@@ -180,4 +180,27 @@ if (isset($pdo)) {
         }
     }
 }
+
+// Asegurar que la tabla comprobantes_pago exista siempre
+if (isset($pdo)) {
+    try {
+        $pdo->query("SELECT id FROM comprobantes_pago LIMIT 1");
+    } catch (Exception $ex) {
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS `comprobantes_pago` (
+              `id` INT AUTO_INCREMENT PRIMARY KEY,
+              `id_negocio` INT NOT NULL,
+              `monto` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+              `plan` VARCHAR(100) DEFAULT NULL,
+              `archivo_path` VARCHAR(255) NOT NULL,
+              `nombre_archivo` VARCHAR(255) NOT NULL,
+              `fecha_pago` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              `estado` VARCHAR(50) DEFAULT 'aprobado',
+              `notas` TEXT DEFAULT NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        } catch (Exception $alterEx) {
+            error_log("Error al crear tabla comprobantes_pago: " . $alterEx->getMessage());
+        }
+    }
+}
 ?>

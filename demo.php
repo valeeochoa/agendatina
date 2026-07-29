@@ -101,14 +101,14 @@ $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_
                VALUES (?, '#D11149', '#FCB0B3', 'Agendatina', 'Sesión de demostración', 'Agendatina')
                ON DUPLICATE KEY UPDATE mensaje_bienvenida = 'Agendatina', subtitulo = 'Sesión de demostración', titulo = 'Agendatina'")->execute([$negocioId]);
 
-// RESET AUTOMÁTICO CADA 10 MINUTOS
+// RESET AUTOMÁTICO CADA 10-15 MINUTOS O EN NUEVAS SESIONES
 $resetFile = __DIR__ . '/demo_reset.txt';
 $shouldReset = false;
 $lastReset = @file_get_contents($resetFile);
-if (!$lastReset || !is_numeric($lastReset) || (time() - intval($lastReset) > 600)) {
+if (!$lastReset || !is_numeric($lastReset) || (time() - intval($lastReset) > 600) || !isset($_SESSION['demo_session_started'])) {
     $shouldReset = true;
+    $_SESSION['demo_session_started'] = true;
 }
-
 
 if ($shouldReset && $negocioId) {
     // 1. Limpiar Base de Datos
@@ -148,21 +148,37 @@ if ($shouldReset && $negocioId) {
     $idServ1 = $servs[0]['id'] ?? null;
     $idServ2 = $servs[1]['id'] ?? null;
     $idServ3 = $servs[2]['id'] ?? null;
+    $idServ4 = $servs[3]['id'] ?? null;
     $idServ5 = $servs[4]['id'] ?? null;
     
-    // 4. Recrear Turnos de prueba
-    $hoy = date('Y-m-d');
-    $manana = date('Y-m-d', strtotime('+1 day'));
+    // 4. Recrear 10 Turnos de prueba distribuidos
+    $t_hoy = date('Y-m-d');
+    $t_m1 = date('Y-m-d', strtotime('+1 day'));
+    $t_m2 = date('Y-m-d', strtotime('+2 days'));
+    $t_m3 = date('Y-m-d', strtotime('+3 days'));
+    $t_m4 = date('Y-m-d', strtotime('+4 days'));
     
     $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, estado) VALUES 
         (?, 'María Gómez', '1123456789', ?, '10:00', 'Corte de Demostración', 'Valentina', ?, 'confirmado'),
-        (?, 'Juan Pérez', '1198765432', ?, '15:00', 'Masaje Relajante', 'Valentina', ?, 'pendiente'),
-        (?, 'Laura Díaz', '1166667777', ?, '09:00', 'Limpieza Facial Profunda', 'Camila', ?, 'pendiente'),
-        (?, 'Carlos Sánchez', '1133334444', ?, '11:00', 'Perfilado de Cejas', 'Marcos', ?, 'confirmado')")->execute([
-            $negocioId, $hoy, $idServ1,
-            $negocioId, $hoy, $idServ2,
-            $negocioId, $manana, $idServ3,
-            $negocioId, $hoy, $idServ5
+        (?, 'Juan Pérez', '1198765432', ?, '11:30', 'Masaje Relajante', 'Valentina', ?, 'confirmado'),
+        (?, 'Ana Martínez', '1155443322', ?, '16:00', 'Manicura Semipermanente', 'Sofía', ?, 'pendiente'),
+        (?, 'Laura Díaz', '1166667777', ?, '09:30', 'Limpieza Facial Profunda', 'Camila', ?, 'confirmado'),
+        (?, 'Carlos Sánchez', '1133334444', ?, '15:00', 'Perfilado de Cejas', 'Marcos', ?, 'confirmado'),
+        (?, 'Sofía Pérez', '1144556677', ?, '11:00', 'Masaje Relajante', 'Valentina', ?, 'confirmado'),
+        (?, 'Mateo Gómez', '1177889900', ?, '17:30', 'Corte de Demostración', 'Valentina', ?, 'pendiente'),
+        (?, 'Valentina Silva', '1188990011', ?, '10:30', 'Manicura Semipermanente', 'Sofía', ?, 'confirmado'),
+        (?, 'Joaquín Navarro', '1122334455', ?, '14:00', 'Limpieza Facial Profunda', 'Camila', ?, 'confirmado'),
+        (?, 'Camila Torres', '1199001122', ?, '16:00', 'Perfilado de Cejas', 'Marcos', ?, 'confirmado')")->execute([
+            $negocioId, $t_hoy, $idServ1,
+            $negocioId, $t_hoy, $idServ2,
+            $negocioId, $t_hoy, $idServ4,
+            $negocioId, $t_m1, $idServ3,
+            $negocioId, $t_m1, $idServ5,
+            $negocioId, $t_m2, $idServ2,
+            $negocioId, $t_m2, $idServ1,
+            $negocioId, $t_m3, $idServ4,
+            $negocioId, $t_m4, $idServ3,
+            $negocioId, $t_m4, $idServ5
         ]);
         
     $pdo->prepare("INSERT INTO notificaciones (id_negocio, titulo, mensaje) VALUES 

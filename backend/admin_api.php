@@ -168,10 +168,9 @@ if ($method === 'GET') {
               `nombre_archivo` VARCHAR(255) NOT NULL,
               `fecha_pago` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
               `estado` VARCHAR(50) DEFAULT 'aprobado',
-              `notas` TEXT DEFAULT NULL,
-              FOREIGN KEY (`id_negocio`) REFERENCES `negocios` (`id`) ON DELETE CASCADE
+              `notas` TEXT DEFAULT NULL
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-        } catch(Exception $exTbl) {}
+        } catch(Throwable $exTbl) {}
 
         $todos_comprobantes = [];
         try {
@@ -179,7 +178,7 @@ if ($method === 'GET') {
             if ($stmtComprobantes) {
                 $todos_comprobantes = $stmtComprobantes->fetchAll(PDO::FETCH_ASSOC);
             }
-        } catch (Exception $exComp) {
+        } catch (Throwable $exComp) {
             $todos_comprobantes = [];
         }
 

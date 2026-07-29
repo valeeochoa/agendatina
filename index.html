@@ -71,11 +71,10 @@
                 <a href="#visualizar" class="hover:text-primary transition-colors">Demo</a>
                 <a href="#planes" class="hover:text-primary transition-colors">Planes</a>
                 <a href="#contacto" onclick="resetForm()" class="hover:text-primary transition-colors">Contacto</a>
-            </div>
-            <div class="flex items-center gap-3">
-                <button onclick="openRegisterModal()" class="bg-[#fcb0b3]/20 text-[#d11149] border border-[#fcb0b3] px-4 py-2 rounded-full font-bold text-xs hover:bg-[#fcb0b3]/30 transition-all hidden sm:flex items-center gap-1">
+            </div>            <div class="flex items-center gap-3">
+                <a href="registro.html" class="bg-[#fcb0b3]/20 text-[#d11149] border border-[#fcb0b3] px-4 py-2 rounded-full font-bold text-xs hover:bg-[#fcb0b3]/30 transition-all hidden sm:flex items-center gap-1">
                     <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Crear Cuenta Gratis
-                </button>
+                </a>
                 <a href="login.html"
                     class="signature-glow text-white px-5 py-2.5 rounded-full font-semibold text-sm hover:shadow-lg transition-all">
                     Iniciar Sesión
@@ -88,6 +87,7 @@
         <div
             class="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]">
         </div>
+
         <div
             class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary/10 rounded-full blur-[100px] z-0">
         </div>
@@ -105,10 +105,10 @@
                 Ofrecé a tus clientes una experiencia de reserva profesional, simple y rápida las 24 horas.
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
-                <button onclick="openRegisterModal()"
+                <a href="registro.html"
                     class="signature-glow text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-xl transition-all hover:-translate-y-1 flex items-center gap-2">
                     <span class="material-symbols-outlined text-2xl">rocket_launch</span> Crear Cuenta Gratis
-                </button>
+                </a>ton>
                 <a href="#planes"
                     class="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all shadow-sm">Explorar
                     planes</a>
@@ -197,40 +197,36 @@
                         <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-sm uppercase tracking-widest"
                             id="carouselTag">
                             <span class="material-symbols-outlined text-sm" id="carouselTagIcon">stars</span> <span
-                                id="carouselTagText">Recomendado</span>
+                                id="carouselTagText">Más Elegido</span>
                         </div>
                         <h3 class="font-headline text-5xl font-extrabold text-slate-900 leading-tight"
-                            id="carouselTitle">Plan Básico</h3>
+                            id="carouselTitle">Plan Profesional</h3>
                         <p class="text-xl text-slate-600 leading-relaxed" id="carouselDesc">
-                            La solución ideal para profesionales que buscan una presencia digital impactante y
-                            personalizada sin complicaciones.
+                            Sistema de turnos con agenda virtual para administrar todas tus reservas desde un solo lugar.
                         </p>
                         <ul class="space-y-4 font-medium text-slate-700" id="carouselFeatures">
                             <li class="flex items-center gap-4"><span
-                                    class="material-symbols-outlined text-primary">check_circle</span> Página de inicio
-                                100% personalizada</li>
+                                    class="material-symbols-outlined text-primary">check_circle</span> Calendario de turnos online</li>
                             <li class="flex items-center gap-4"><span
-                                    class="material-symbols-outlined text-primary">check_circle</span> Imagen de portada
-                                y descripción</li>
+                                    class="material-symbols-outlined text-primary">check_circle</span> Agenda virtual con listado de reservas</li>
                             <li class="flex items-center gap-4"><span
-                                    class="material-symbols-outlined text-primary">check_circle</span> Agenda
-                                inteligente con recordatorios</li>
+                                    class="material-symbols-outlined text-primary">check_circle</span> Visualización de turnos confirmados y pendientes</li>
                         </ul>
                         <div class="flex items-center gap-8 pt-4">
                         <div class="flex flex-col-reverse sm:flex-row items-center sm:items-end justify-start gap-6 pt-4 w-full">
                             <button id="carouselActionBtn"
                                 class="w-full sm:w-auto px-8 py-4 rounded-xl signature-glow text-white font-bold text-lg hover:shadow-xl transition-all"
-                                onclick="selectPlan('Plan Básico')">Elegir este plan</button>
+                                onclick="selectPlan('Plan Profesional')">Elegir este plan</button>
 
                             <div class="flex flex-col items-center sm:items-start">
                                 <div class="flex items-center gap-2 mb-1" id="carouselOldPriceContainer">
                                     <span class="text-sm text-slate-400 line-through font-medium"
-                                        id="carouselOldPrice">$8.889</span>
+                                        id="carouselOldPrice">$11.111</span>
                                     <span
                                         class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold whitespace-nowrap">-10% OFF</span>
                                 </div>
                                 <div class="text-3xl font-bold text-slate-800">
-                                    <span id="carouselPrice">$8.000</span><span
+                                    <span id="carouselPrice">$10.000</span><span
                                         class="text-sm font-normal text-slate-500 ml-1">/mes</span>
                                 </div>
                                 <span id="carouselPerPerson" class="text-xs font-bold text-primary mt-1 hidden"></span>
