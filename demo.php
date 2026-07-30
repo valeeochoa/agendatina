@@ -169,8 +169,8 @@ if ($shouldReset && $negocioId) {
         (?, 'Valentina Silva', '1188990011', ?, '10:30', 'Manicura Semipermanente', 'Sofía', ?, 'confirmado'),
         (?, 'Joaquín Navarro', '1122334455', ?, '14:00', 'Limpieza Facial Profunda', 'Camila', ?, 'confirmado'),
         (?, 'Camila Torres', '1199001122', ?, '16:00', 'Perfilado de Cejas', 'Marcos', ?, 'confirmado')")->execute([
-            $negocioId, $t_hoy, $idServ1,
-            $negocioId, $t_hoy, $idServ2,
+            $negocioId, $t_m1, $idServ1,
+            $negocioId, $t_m1, $idServ2,
             $negocioId, $t_hoy, $idServ4,
             $negocioId, $t_m1, $idServ3,
             $negocioId, $t_m1, $idServ5,

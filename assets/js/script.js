@@ -2190,9 +2190,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     descuento_hasta: null
                 };
                 
-                const b = parseFloat(pData.precio_basico);
-                const i = parseFloat(pData.precio_intermedio);
-                const p = parseFloat(pData.precio_premium);
+                let b = parseFloat(pData.precio_basico) || 8889;
+                let i = parseFloat(pData.precio_intermedio) || 11111;
+                let p = parseFloat(pData.precio_premium) || 16667;
+                if (b < 8800) b = 8889;
+                if (i < 11000) i = 11111;
+                if (p < 16000) p = 16667;
                 
                 const getFinalPrice = (rawBasePrice, count) => {
                     let globalDiscount = parseInt(pData.descuento_porcentaje) || 0;

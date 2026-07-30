@@ -197,6 +197,116 @@
     </div>
 </main>
 
+<!-- Modal Editar Suscripción -->
+<div id="editClientModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div id="editModalContent" class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><span class="material-symbols-outlined">edit</span></div>
+                Editar Suscripción
+            </h2>
+            <button onclick="closeEditModal()" class="text-slate-400 hover:text-red-500 bg-slate-100 hover:bg-red-50 rounded-full p-1.5 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <form id="editClientForm" onsubmit="submitEditClient(event)" class="space-y-6">
+            <input type="hidden" name="id_negocio" id="edit_id_negocio">
+            
+            <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-1.5">Negocio</label>
+                <input type="text" id="edit_nombre_fantasia" disabled class="w-full bg-slate-100 text-slate-500 border border-slate-200 rounded-xl px-4 py-2.5 font-medium cursor-not-allowed">
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Plan Contratado</label>
+                    <select name="plan" id="edit_plan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
+                        <option value="Basico">Básico</option>
+                        <option value="Intermedio">Intermedio</option>
+                        <option value="Completo">Completo</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Límite Profesionales</label>
+                    <input type="number" name="max_profesionales" id="edit_max_profesionales" min="1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Estado de Pago</label>
+                    <select name="estado_pago" id="edit_estado_pago" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
+                        <option value="prueba">Prueba (Trial)</option>
+                        <option value="beta">Plan Beta Exclusivo (30 días)</option>
+                        <option value="pendiente_revision">En Revisión (Subió comprobante)</option>
+                        <option value="activo">Activo (Pagado)</option>
+                        <option value="vencido">Impago (Vencido)</option>
+                        <option value="suspendido">Suspendido (Bloqueado)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="editFormMessage" class="hidden p-4 rounded-xl text-sm font-medium text-center"></div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button type="button" onclick="closeEditModal()" class="px-6 py-3 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancelar</button>
+                <button type="submit" id="btnEditSubmit" class="px-6 py-3 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-0.5 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px]">save</span> Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar Info Cliente -->
+<div id="editInfoModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div id="editInfoModalContent" class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><span class="material-symbols-outlined">manage_accounts</span></div>
+                Editar Datos del Cliente
+            </h2>
+            <button onclick="closeEditInfoModal()" class="text-slate-400 hover:text-red-500 bg-slate-100 hover:bg-red-50 rounded-full p-1.5 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+
+        <form id="editInfoForm" onsubmit="submitEditInfo(event)" class="space-y-6">
+            <input type="hidden" id="editInfoIdNegocio">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Nombre Completo</label>
+                    <input type="text" id="editNombreDueno" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Correo Electrónico</label>
+                    <input type="email" id="editEmail" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Nombre de Fantasía</label>
+                    <input type="text" id="editNombreNegocio" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Enlace Personalizado</label>
+                    <div class="flex items-center">
+                        <span class="bg-slate-100 text-slate-500 border border-r-0 border-slate-200 rounded-l-xl px-4 py-2.5 text-sm font-semibold">agendatina.site/</span>
+                        <input type="text" id="editRutaWeb" required class="w-full bg-slate-50 border border-slate-200 rounded-r-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-blue-600">
+                    </div>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Nueva Contraseña (Opcional)</label>
+                    <input type="text" id="editPassword" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Dejar en blanco para mantener la actual">
+                </div>
+            </div>
+
+            <div id="editInfoFormMessage" class="hidden p-4 rounded-xl text-sm font-medium text-center"></div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button type="button" onclick="closeEditInfoModal()" class="px-6 py-3 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancelar</button>
+                <button type="submit" id="btnEditInfoSubmit" class="px-6 py-3 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-0.5 flex items-center gap-2"><span class="material-symbols-outlined text-[20px]">save</span> Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Modal Visualización de Comprobantes -->
 <div id="receiptModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
     <div id="receiptModalContent" class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]">
@@ -258,11 +368,24 @@ function loadEmpresaData() {
             }
             currentEmpresaData = client;
             renderEmpresaDetails(client);
+            fetchComprobantesEmpresa();
         })
         .catch(err => {
             console.error(err);
             showNotFound();
         });
+}
+
+function fetchComprobantesEmpresa() {
+    fetch(`../backend/comprobantes_api.php?id_negocio=${currentEmpresaId}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.data) {
+                document.getElementById('empresaMetricComprobantes').textContent = data.data.length;
+                renderComprobantes(data.data);
+            }
+        })
+        .catch(err => console.error(err));
 }
 
 function showNotFound() {
@@ -295,10 +418,6 @@ function renderEmpresaDetails(client) {
     const profsCount = client.profesionales ? client.profesionales.length + 1 : 1;
     document.getElementById('empresaMetricEquipo').textContent = `${profsCount} / ${client.max_profesionales || 1}`;
 
-    const comps = client.comprobantes || [];
-    document.getElementById('empresaMetricComprobantes').textContent = comps.length;
-
-    renderComprobantes(comps);
     renderEquipo(client);
 
     document.getElementById('notaInternaText').value = client.nota_interna || '';
@@ -399,7 +518,7 @@ function submitComprobante(e) {
         if (data.success) {
             document.getElementById('uploadForm').reset();
             toggleUploadForm();
-            loadEmpresaData();
+            fetchComprobantesEmpresa();
         } else {
             alert(data.error || 'Error al guardar comprobante');
         }
@@ -417,7 +536,7 @@ function deleteComprobante(idComp) {
     })
     .then(res => res.json())
     .then(data => {
-        if (data.success) loadEmpresaData();
+        if (data.success) fetchComprobantesEmpresa();
         else alert(data.error || 'Error al eliminar');
     })
     .catch(() => alert('Error de conexión'));
@@ -431,9 +550,9 @@ function saveNotaInterna() {
     const nota = document.getElementById('notaInternaText').value;
 
     fetch('../backend/admin_api.php', {
-        method: 'POST',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'save_note', id_negocio: currentEmpresaId, nota: nota })
+        body: JSON.stringify({ action: 'save_note', id_negocio: currentEmpresaId, nota_interna: nota })
     })
     .then(res => res.json())
     .then(data => {
@@ -445,6 +564,113 @@ function saveNotaInterna() {
     })
     .catch(() => alert('Error de conexión'))
     .finally(() => { btn.disabled = false; btn.innerHTML = orig; });
+}
+
+// --- Modales para Editar Suscripción y Editar Datos ---
+function openEditModal() {
+    if (!currentEmpresaData) return;
+    document.getElementById('edit_id_negocio').value = currentEmpresaData.id;
+    document.getElementById('edit_nombre_fantasia').value = currentEmpresaData.nombre_fantasia || '';
+    document.getElementById('edit_plan').value = currentEmpresaData.plan || 'Basico';
+    document.getElementById('edit_max_profesionales').value = currentEmpresaData.max_profesionales || 1;
+    document.getElementById('edit_estado_pago').value = currentEmpresaData.estado_pago || 'prueba';
+
+    const modal = document.getElementById('editClientModal');
+    const content = document.getElementById('editModalContent');
+    modal.classList.remove('hidden'); modal.classList.add('flex');
+    setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editClientModal');
+    const content = document.getElementById('editModalContent');
+    modal.classList.add('opacity-0'); content.classList.add('scale-95');
+    setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
+}
+
+function submitEditClient(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnEditSubmit');
+    btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">refresh</span> Guardando...';
+
+    const payload = {
+        id_negocio: currentEmpresaId,
+        plan: document.getElementById('edit_plan').value,
+        max_profesionales: document.getElementById('edit_max_profesionales').value,
+        estado_pago: document.getElementById('edit_estado_pago').value
+    };
+
+    fetch('../backend/admin_api.php', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            closeEditModal();
+            loadEmpresaData();
+        } else {
+            alert(data.error || 'Error al actualizar');
+        }
+    })
+    .catch(() => alert('Error de conexión'))
+    .finally(() => { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">save</span> Guardar'; });
+}
+
+function openEditInfoModal() {
+    if (!currentEmpresaData) return;
+    document.getElementById('editInfoIdNegocio').value = currentEmpresaData.id;
+    document.getElementById('editNombreDueno').value = currentEmpresaData.nombre_completo || '';
+    document.getElementById('editEmail').value = currentEmpresaData.email || '';
+    document.getElementById('editNombreNegocio').value = currentEmpresaData.nombre_fantasia || '';
+    document.getElementById('editRutaWeb').value = currentEmpresaData.ruta || currentEmpresaData.subdominio || '';
+    document.getElementById('editPassword').value = '';
+
+    const modal = document.getElementById('editInfoModal');
+    const content = document.getElementById('editInfoModalContent');
+    modal.classList.remove('hidden'); modal.classList.add('flex');
+    setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+}
+
+function closeEditInfoModal() {
+    const modal = document.getElementById('editInfoModal');
+    const content = document.getElementById('editInfoModalContent');
+    modal.classList.add('opacity-0'); content.classList.add('scale-95');
+    setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
+}
+
+function submitEditInfo(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnEditInfoSubmit');
+    btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">refresh</span> Guardando...';
+
+    const payload = {
+        id_negocio: currentEmpresaId,
+        action: 'edit_client',
+        nombre_completo: document.getElementById('editNombreDueno').value,
+        email: document.getElementById('editEmail').value,
+        nombre_fantasia: document.getElementById('editNombreNegocio').value,
+        ruta: document.getElementById('editRutaWeb').value,
+        password: document.getElementById('editPassword').value
+    };
+
+    fetch('../backend/admin_api.php', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            closeEditInfoModal();
+            loadEmpresaData();
+        } else {
+            alert(data.error || 'Error al actualizar información');
+        }
+    })
+    .catch(() => alert('Error de conexión'))
+    .finally(() => { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">save</span> Guardar Cambios'; });
 }
 
 function openReceiptModal(url) {

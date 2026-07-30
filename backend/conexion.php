@@ -63,7 +63,8 @@ if (isset($_GET['n']) && strtolower($_GET['n']) === 'demo') {
 }
 
 // MODO SANDBOX: Conectar a BD clonada si es el Admin de Demo o la vista pública
-if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || $is_demo_public) {
+if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || $is_demo_public || (isset($_SESSION['ruta_negocio']) && $_SESSION['ruta_negocio'] === 'demo')) {
+    $_SESSION['is_demo'] = true;
     $dbname = strpos($dbname, '_d') === false ? $dbname . '_d' : $dbname; 
     
     // Detectar si estamos en un servidor local (desarrollo) para no pisar credenciales locales

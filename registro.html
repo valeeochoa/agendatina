@@ -288,16 +288,20 @@
         const iRes = calc(rawI);
         const pRes = calc(rawP);
 
+        const bPerProf = count > 1 ? `<div class="mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md inline-block">¡Queda en $${Math.round(bRes.final / count).toLocaleString('es-AR')} p/profesional!</div>` : '';
+        const iPerProf = count > 1 ? `<div class="mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md inline-block">¡Queda en $${Math.round(iRes.final / count).toLocaleString('es-AR')} p/profesional!</div>` : '';
+        const pPerProf = count > 1 ? `<div class="mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md inline-block">¡Queda en $${Math.round(pRes.final / count).toLocaleString('es-AR')} p/profesional!</div>` : '';
+
         document.getElementById('regBasicOldPrice').textContent = '$' + bRes.old.toLocaleString('es-AR');
-        document.getElementById('regBasicPrice').innerHTML = '$' + bRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>';
+        document.getElementById('regBasicPrice').innerHTML = '$' + bRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + bPerProf;
         document.getElementById('regBasicSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Calendario Online`;
 
         document.getElementById('regInterOldPrice').textContent = '$' + iRes.old.toLocaleString('es-AR');
-        document.getElementById('regInterPrice').innerHTML = '$' + iRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>';
+        document.getElementById('regInterPrice').innerHTML = '$' + iRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + iPerProf;
         document.getElementById('regInterSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Agenda Virtual`;
 
         document.getElementById('regPremOldPrice').textContent = '$' + pRes.old.toLocaleString('es-AR');
-        document.getElementById('regPremPrice').innerHTML = '$' + pRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>';
+        document.getElementById('regPremPrice').innerHTML = '$' + pRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + pPerProf;
         document.getElementById('regPremSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Mini Web Integrada`;
     }
 

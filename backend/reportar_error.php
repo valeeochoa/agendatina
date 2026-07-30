@@ -41,10 +41,16 @@ if ($id_negocio) {
     $stmt = $pdo->prepare("SELECT n.nombre_fantasia, u.email FROM negocios n LEFT JOIN personal_negocio pn ON n.id = pn.id_negocio LEFT JOIN usuarios u ON pn.id_usuario = u.id WHERE n.id = ? LIMIT 1");
     $stmt->execute([$id_negocio]);
     $neg = $stmt->fetch();
-    if ($neg) {
+    if ($neg && !empty($neg['nombre_fantasia'])) {
         $nombre_negocio = $neg['nombre_fantasia'];
-        $email_negocio = $neg['email'];
+        $email_negocio = $neg['email'] ?? '';
+    } elseif (isset($_SESSION['is_demo']) && $_SESSION['is_demo']) {
+        $nombre_negocio = $_SESSION['nombre_negocio'] ?? 'Agendatina (DEMO)';
+        $email_negocio = 'demo@agendatina.site';
     }
+} elseif (isset($_SESSION['is_demo']) && $_SESSION['is_demo']) {
+    $nombre_negocio = $_SESSION['nombre_negocio'] ?? 'Agendatina (DEMO)';
+    $email_negocio = 'demo@agendatina.site';
 }
 
 if (empty($mensaje)) {
