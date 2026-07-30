@@ -23,7 +23,7 @@
     <div class="max-w-7xl mx-auto flex justify-between items-center">
         <a href="index.html" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
             <img src="../public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
-            <span class="font-brand font-bold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span> <span class="text-[#fcb0b3] font-sans text-lg font-bold ml-1">SuperAdmin</span></span>
+            <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span> <span class="text-[#fcb0b3] font-sans text-lg font-bold ml-1">SuperAdmin</span></span>
         </a>
         <div class="flex items-center gap-4">
             <a href="index.html" class="text-sm font-bold bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl transition-all flex items-center gap-2">
@@ -368,6 +368,10 @@ function loadEmpresaData() {
             }
             currentEmpresaData = client;
             renderEmpresaDetails(client);
+            if (client.comprobantes && client.comprobantes.length > 0) {
+                document.getElementById('empresaMetricComprobantes').textContent = client.comprobantes.length;
+                renderComprobantes(client.comprobantes);
+            }
             fetchComprobantesEmpresa();
         })
         .catch(err => {

@@ -24,7 +24,7 @@
     <div class="max-w-7xl mx-auto flex justify-between items-center">
         <a href="index.html" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
             <img src="../public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
-            <span class="font-brand font-bold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span> <span class="text-[#fcb0b3] font-sans text-lg font-bold ml-1">SuperAdmin</span></span>
+            <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span> <span class="text-[#fcb0b3] font-sans text-lg font-bold ml-1">SuperAdmin</span></span>
         </a>
         <div class="flex items-center gap-6">
             <a href="../index.html" target="_blank" class="text-sm font-semibold text-slate-400 hover:text-white transition-colors items-center gap-1 hidden sm:flex">
@@ -876,8 +876,10 @@ function renderTable(dataToRender) {
                 if (client.estado_pago === 'activo') {
                      actionsHtml += `<button onclick="suspenderNegocio(${client.id})" class="text-slate-400 hover:text-orange-600 bg-slate-50 hover:bg-orange-50 p-2 rounded-lg transition-colors border border-slate-100 ml-1" title="Suspender (Impago)"><span class="material-symbols-outlined text-[20px]">pause_circle</span></button>`;
                 }
-                if (client.comprobante) {
-                     actionsHtml += `<button onclick="openReceiptModal('${client.comprobante}', ${client.id})" class="text-slate-400 hover:text-purple-600 bg-slate-50 hover:bg-purple-50 p-2 rounded-lg transition-colors border border-slate-100 ml-1" title="Ver Comprobante de Pago"><span class="material-symbols-outlined text-[20px]">receipt_long</span></button>`;
+                const hasComp = client.comprobante || (client.comprobantes && client.comprobantes.length > 0);
+                if (hasComp) {
+                     const compPath = client.comprobante || (client.comprobantes[0] ? client.comprobantes[0].archivo_path : '');
+                     actionsHtml += `<button onclick="openReceiptModal('${compPath}', ${client.id})" class="text-[#d11149] bg-[#fcb0b3]/20 hover:bg-[#fcb0b3]/40 p-2 rounded-lg transition-colors border border-[#fcb0b3] ml-1" title="Ver Comprobantes de Pago"><span class="material-symbols-outlined text-[20px]">receipt_long</span></button>`;
                 }
                 
                 actionsHtml += `<button onclick="eliminarNegocio(${client.id})" class="text-slate-400 hover:text-red-600 bg-slate-50 hover:bg-red-50 p-2 rounded-lg transition-colors border border-slate-100 ml-1" title="Eliminar Negocio"><span class="material-symbols-outlined text-[20px]">delete</span></button>`;

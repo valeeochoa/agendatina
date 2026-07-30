@@ -2453,26 +2453,43 @@ function applyWebCustomization() {
                     } catch (e) { console.error("Error parseando cursos:", e); }
                 }
 
-                if (data.profesionales_json && document.getElementById('publicProfesionalesList')) {
+                let allProfsScript = [];
+                if (data.profesionales_json) {
                     try {
-                        const profs = JSON.parse(data.profesionales_json);
-                        const container = document.getElementById('publicProfesionalesList');
-                        container.innerHTML = '';
-                        if (profs.length > 0) {
-                            profs.forEach(p => {
-                                const img = p.foto ? `<img src="${p.foto}" alt="${p.nombre}" class="w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-slate-100 shadow-md">` : `<div class="w-32 h-32 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 border-4 border-slate-100 shadow-md"><span class="material-symbols-outlined text-5xl">person</span></div>`;
-                                container.innerHTML += `
-                                    <div class="bg-white rounded-3xl p-6 text-center border border-slate-100 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1">
-                                        ${img}
-                                        <h3 class="text-xl font-bold text-slate-800">${p.nombre}</h3>
-                                        <p class="text-sm text-slate-500 mt-3 leading-relaxed">${p.descripcion}</p>
-                                    </div>
-                                `;
-                            });
-                            const section = document.getElementById('sectionProfesionales');
-                            if (section) section.classList.remove('hidden');
+                        const parsed = JSON.parse(data.profesionales_json);
+                        if (Array.isArray(parsed)) allProfsScript = parsed;
+                    } catch (e) {}
+                }
+                if (Array.isArray(servicesData) && servicesData.length > 0) {
+                    servicesData.forEach(s => {
+                        if (s.profesional && s.profesional.trim() !== '' && s.profesional !== 'Cualquiera (Sin preferencia)') {
+                            const profName = s.profesional.trim();
+                            const exists = allProfsScript.some(p => p.nombre && p.nombre.toLowerCase() === profName.toLowerCase());
+                            if (!exists) {
+                                allProfsScript.push({
+                                    nombre: profName,
+                                    descripcion: 'Especialista del equipo',
+                                    foto: s.foto_profesional || ''
+                                });
+                            }
                         }
-                    } catch (e) { console.error("Error parseando profesionales:", e); }
+                    });
+                }
+                if (allProfsScript.length > 0 && document.getElementById('publicProfesionalesList')) {
+                    const container = document.getElementById('publicProfesionalesList');
+                    container.innerHTML = '';
+                    allProfsScript.forEach(p => {
+                        const img = p.foto ? `<img src="${p.foto}" alt="${p.nombre}" class="w-32 h-32 rounded-full object-cover mx-auto mb-4 border-4 border-slate-100 shadow-md">` : `<div class="w-32 h-32 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4 border-4 border-slate-100 shadow-md"><span class="material-symbols-outlined text-5xl">person</span></div>`;
+                        container.innerHTML += `
+                            <div class="bg-white rounded-3xl p-6 text-center border border-slate-100 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1">
+                                ${img}
+                                <h3 class="text-xl font-bold text-slate-800">${p.nombre}</h3>
+                                <p class="text-sm text-slate-500 mt-3 leading-relaxed">${p.descripcion || 'Profesional'}</p>
+                            </div>
+                        `;
+                    });
+                    const section = document.getElementById('sectionProfesionales');
+                    if (section) section.classList.remove('hidden');
                 }
                 // ------------------------------------------------
                 
