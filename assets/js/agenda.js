@@ -466,6 +466,14 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     // DIBUJAR ELIMINADOS (PAPELERA)
     const listElim = document.getElementById('lista-eliminados');
     if (listElim) {
+        const trashDot = document.getElementById('trashBadgeDot');
+        if (trashDot) {
+            if (localStorage.getItem('agendatina_unread_trash') === 'true' && window.activeAgendaTab !== 'papelera') {
+                trashDot.classList.remove('hidden');
+            } else if (window.activeAgendaTab === 'papelera') {
+                trashDot.classList.add('hidden');
+            }
+        }
         listElim.innerHTML = '';
         
         // Determinar mensaje de límite de auto-eliminación

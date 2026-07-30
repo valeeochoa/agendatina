@@ -170,8 +170,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             if ($stmtU->fetchColumn() === 'demo@agendatina.site') {
                 $config['is_demo'] = true;
             }
+        // Consolidación del equipo de trabajo (personal_negocio + servicios)
+        $profs_array = [];
+        if (!empty($config['profesionales_json'])) {
+            $profs_array = json_decode($config['profesionales_json'], true);
+            if (!is_array($profs_array)) $profs_array = [];
         }
-        
+
+        try {
+            $stmtProfs = $pdo->prepare("SELECT u.nombre_completo FROM usuarios u JOIN personal_negocio pn ON u.id = pn.id_usuario WHERE pn.id_negocio = :id AND pn.rol_en_local = 'profesional'");
+            $stmtProfs->execute(['id' => $id_negocio]);
+            $dbProfs = $stmtProfs->fetchAll(PDO::FETCH_COLUMN);
+            foreach ($dbProfs as $pName) {
+                if ($pName && trim($pName) !== '') {
+                    $pNameTrim = trim($pName);
+                    $found = false;
+                    foreach ($profs_array as $existingP) {
+                        if (isset($existingP['nombre']) && strcasecmp(trim($existingP['nombre']), $pNameTrim) === 0) {
+                            $found = true; break;
+                        }
+                    }
+                    if (!$found) {
+                        $profs_array[] = ['nombre' => $pNameTrim, 'descripcion' => 'Profesional del equipo', 'foto' => ''];
+                    }
+                }
+            }
+        } catch(Exception $eProfs) {}
+
+        try {
+            $stmtServProfs = $pdo->prepare("SELECT DISTINCT profesional, foto_profesional FROM servicios WHERE id_negocio = :id AND profesional IS NOT NULL AND profesional != '' AND profesional != 'Cualquiera (Sin preferencia)'");
+            $stmtServProfs->execute(['id' => $id_negocio]);
+            $servProfs = $stmtServProfs->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($servProfs as $sProf) {
+                $pNameTrim = trim($sProf['profesional']);
+                if ($pNameTrim !== '') {
+                    $found = false;
+                    foreach ($profs_array as &$existingP) {
+                        if (isset($existingP['nombre']) && strcasecmp(trim($existingP['nombre']), $pNameTrim) === 0) {
+                            $found = true;
+                            if (empty($existingP['foto']) && !empty($sProf['foto_profesional'])) {
+                                $existingP['foto'] = $sProf['foto_profesional'];
+                            }
+                            break;
+                        }
+                    }
+                    if (!$found) {
+                        $profs_array[] = ['nombre' => $pNameTrim, 'descripcion' => 'Especialista en servicios del equipo', 'foto' => $sProf['foto_profesional'] ?? ''];
+                    }
+                }
+            }
+        } catch(Exception $eServ) {}
+
+        $config['profesionales_json'] = json_encode($profs_array);
+
         echo json_encode($config);
 
     } catch (PDOException $e) {

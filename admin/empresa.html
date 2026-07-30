@@ -444,6 +444,22 @@ function switchTab(tab) {
 
 function renderComprobantes(comps) {
     const tbody = document.getElementById('comprobantesList');
+    comps = comps || [];
+    if (window.empresaData && window.empresaData.comprobante) {
+        const singlePath = window.empresaData.comprobante;
+        const existsInComps = comps.some(c => c.archivo_path === singlePath);
+        if (!existsInComps) {
+            comps.unshift({
+                id: 'legacy',
+                fecha_pago: window.empresaData.fecha_alta || new Date().toISOString(),
+                monto: 0,
+                plan: window.empresaData.plan || 'Básico',
+                notas: 'Comprobante enviado por cliente',
+                archivo_path: singlePath,
+                nombre_archivo: 'comprobante_cliente.jpg'
+            });
+        }
+    }
     if (!comps || comps.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400 text-xs font-medium">No hay comprobantes registrados aún.</td></tr>';
         return;

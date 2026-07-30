@@ -245,11 +245,29 @@ window.confirmarTurnoAdmin = function(id) {
 
 window.cancelarTurnoAdmin = function(id, skipConfirm = false) {
     const doCancel = () => {
+        const targetTurno = (window.agendaData || []).find(t => t.id == id);
         return fetch('backend/cancelar_turno.php', { method: 'POST', body: new URLSearchParams({id: id}) })
         .then(res => res.json())
         .then(data => {
             if(data.success) {
-                showToast('Turno cancelado exitosamente', 'success');
+                showToast('Turno movido a la papelera exitosamente', 'success');
+                localStorage.setItem('agendatina_unread_trash', 'true');
+                window.activeAgendaTab = 'papelera';
+                
+                // Abrir notificación por WhatsApp al cliente si hay celular disponible
+                if (targetTurno) {
+                    const rawCel = targetTurno.cliente_celular || targetTurno.celular || '';
+                    const cel = rawCel.replace(/\D/g, '');
+                    const clientName = targetTurno.cliente_nombre || (targetTurno.nombre + ' ' + (targetTurno.apellido || '')) || 'Cliente';
+                    const servicio = targetTurno.servicio || 'tu servicio';
+                    const fParts = (targetTurno.fecha || '').split('-');
+                    const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}/${fParts[0]}` : targetTurno.fecha;
+                    const text = encodeURIComponent(`Hola ${clientName}, te informamos que tu turno para ${servicio} el día ${fDisplay} a las ${targetTurno.hora} hs ha sido cancelado.`);
+                    if (cel) {
+                        window.open(`https://wa.me/${cel}?text=${text}`, '_blank');
+                    }
+                }
+                
                 if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
                 if (typeof window.cargarAgenda === 'function') window.cargarAgenda();
             } else {
@@ -261,7 +279,7 @@ window.cancelarTurnoAdmin = function(id, skipConfirm = false) {
     if (skipConfirm) {
         return doCancel();
     } else {
-        showConfirm('Cancelar Turno', '¿Seguro que deseas cancelar o liberar este horario?', 'Sí, Cancelar', 'bg-red-500 hover:bg-red-600', doCancel);
+        showConfirm('Cancelar Turno', '¿Seguro que deseas cancelar y enviar este turno a la papelera?', 'Sí, Cancelar', 'bg-red-500 hover:bg-red-600', doCancel);
     }
 };
 
@@ -2198,11 +2216,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (p < 16000) p = 16667;
                 
                 const getFinalPrice = (rawBasePrice, count) => {
-                    let globalDiscount = parseInt(pData.descuento_porcentaje) || 0;
-                    if (pData.descuento_hasta) {
-                        const expiry = new Date(pData.descuento_hasta.replace(/-/g, '/'));
-                        if (new Date() > expiry) globalDiscount = 0;
-                    }
+                    let globalDiscount = parseInt(pData.descuento_porcentaje);
+                    if (isNaN(globalDiscount) || globalDiscount <= 0) globalDiscount = 10;
                     
                     let priceForOne = rawBasePrice * (1 - globalDiscount / 100);
                     

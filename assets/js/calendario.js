@@ -157,6 +157,11 @@ function cal_fetchBookedTimes() {
     });
 }
 
+window.cal_changeMonth = function(delta) {
+    cal_currentDate.setMonth(cal_currentDate.getMonth() + delta);
+    cal_renderCalendar();
+};
+
 function cal_renderCalendar() {
     const monthYearEl = document.getElementById('monthYear');
     if (!monthYearEl) return;

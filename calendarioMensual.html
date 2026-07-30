@@ -143,13 +143,13 @@
         </div>
         <div class="mb-4">
           <div class="flex items-center justify-between mb-3 px-2">
-            <button id="prevMonth" type="button" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold transition-all shadow-sm border border-slate-200/60 dark:border-slate-700" title="Mes Anterior">
+            <button id="prevMonth" type="button" onclick="window.cal_changeMonth(-1)" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold transition-all shadow-sm border border-slate-200/60 dark:border-slate-700" title="Mes Anterior">
               <span class="material-symbols-outlined text-[20px]">chevron_left</span>
             </button>
             <h2 id="monthYear" class="text-center font-extrabold text-lg uppercase tracking-widest text-primary">
               Abril 2024
             </h2>
-            <button id="nextMonth" type="button" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold transition-all shadow-sm border border-slate-200/60 dark:border-slate-700" title="Mes Siguiente">
+            <button id="nextMonth" type="button" onclick="window.cal_changeMonth(1)" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold transition-all shadow-sm border border-slate-200/60 dark:border-slate-700" title="Mes Siguiente">
               <span class="material-symbols-outlined text-[20px]">chevron_right</span>
             </button>
           </div>

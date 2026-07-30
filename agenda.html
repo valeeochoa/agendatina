@@ -210,10 +210,11 @@
                             <span>Historial</span>
                         </button>
                         <button id="tabPapelera"
-                            class="flex-1 sm:flex-none sm:px-5 py-2.5 text-sm font-bold rounded-t-xl text-slate-400 hover:text-slate-600 flex items-center justify-center gap-1.5 transition-all"
+                            class="flex-1 sm:flex-none sm:px-5 py-2.5 text-sm font-bold rounded-t-xl text-slate-400 hover:text-slate-600 flex items-center justify-center gap-1.5 transition-all relative"
                             onclick="switchAgendaTab('papelera')">
                             <span class="material-symbols-outlined text-[17px]">delete</span>
                             <span>Papelera</span>
+                            <span id="trashBadgeDot" class="w-2.5 h-2.5 rounded-full bg-red-500 hidden animate-pulse ml-0.5"></span>
                         </button>
                     </div>
 
@@ -299,6 +300,11 @@
         function switchAgendaTab(tab) {
             // Guardar el tab activo globalmente
             window.activeAgendaTab = tab;
+            if (tab === 'papelera') {
+                localStorage.removeItem('agendatina_unread_trash');
+                var dot = document.getElementById('trashBadgeDot');
+                if (dot) dot.classList.add('hidden');
+            }
             
             var panels = {
                 proximos: document.getElementById('lista-confirmados'),
