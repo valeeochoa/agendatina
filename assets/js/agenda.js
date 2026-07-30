@@ -122,9 +122,14 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                 let profTabsHtml = `<div class="flex overflow-x-auto gap-3 pb-2 w-full snap-x pt-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">`;
                 let activeAll = profTerm === '' ? 'bg-primary text-white shadow-md ring-2 ring-primary/30 ring-offset-2' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200';
                 profTabsHtml += `<button onclick="window.setAgendaProfFilter('')" class="snap-start shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeAll}"><span class="material-symbols-outlined text-[18px]">groups</span> Todos los turnos</button>`;
+                const now = new Date();
                 uniqueProfs.forEach(p => {
-                    const count = data.filter(t => t.profesional === p && (t.estado === 'pendiente')).length;
-                    const countBadge = count > 0 ? `<span class="bg-amber-400 text-amber-900 px-2 py-0.5 rounded-md text-xs font-black ml-1 shadow-sm">${count}</span>` : '';
+                    const count = data.filter(t => {
+                        if (t.profesional !== p || t.estado !== 'confirmado') return false;
+                        const tDate = new Date(t.fecha.replace(/-/g, '/') + ' ' + t.hora);
+                        return tDate >= now;
+                    }).length;
+                    const countBadge = count > 0 ? `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-md text-xs font-black ml-1 shadow-sm" title="${count} turnos próximos confirmados">${count}</span>` : '';
                     const isActive = profTerm === p ? 'bg-primary text-white shadow-md ring-2 ring-primary/30 ring-offset-2' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200';
                     const iconColor = profTerm === p ? 'text-white' : 'text-primary';
                     profTabsHtml += `<button onclick="window.setAgendaProfFilter('${p.replace(/'/g, "\\'")}')" class="snap-start shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${isActive}"><span class="material-symbols-outlined text-[18px] ${iconColor}">person</span> ${p} ${countBadge}</button>`;

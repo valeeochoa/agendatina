@@ -1990,27 +1990,8 @@ window.setCarouselIndex = function(index) {
 };
 
 window.selectPlan = function(planName, planKey = 'inter') {
-    const planBox = document.getElementById('planSelectionBox');
-    const planNameEl = document.getElementById('selectedPlanName');
-    const inputPlan = document.getElementById('inputPlan');
-    const inputProfesionales = document.getElementById('inputProfesionales');
-    
-    if (planBox && planNameEl && inputPlan) {
-        let count = window.numProfessionals[planKey] || 1;
-        let profText = '';
-        if (count > 1) {
-            profText = ` (Para ${count} profesionales)`;
-        }
-        planNameEl.textContent = planName + profText;
-        inputPlan.value = planName;
-        if (inputProfesionales) inputProfesionales.value = count;
-        planBox.classList.remove('hidden');
-    }
-    
-    const contactSection = document.getElementById('contacto');
-    if (contactSection) {
-        contactSection.scrollIntoView({ behavior: 'smooth' });
-    }
+    let count = (window.numProfessionals && window.numProfessionals[planKey]) ? window.numProfessionals[planKey] : 1;
+    window.location.href = `registro.html?plan=${encodeURIComponent(planName)}&profs=${count}`;
 };
 
 window.resetForm = function() {
@@ -2282,39 +2263,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateBox('priceInterBox', 'priceInterOld', i, 'text-white/80', 'perPersonInter', 'inter');
                 updateBox('pricePremBox', 'pricePremOld', p, 'text-slate-500', 'perPersonPrem', 'prem');
                 
-                // Actualizar info para el Carrusel flotante
+                // Actualizar info para el Carrusel flotante utilizando la misma lógica unificada
                 const planKeys = ['basic', 'inter', 'prem'];
                 const prices = [b, i, p];
                 
-                const getCarouselPrice = (rawBasePrice, count) => {
-                    let priceForOne = rawBasePrice * 0.90; // 10% de descuento base en el carrusel
-                    
-                    if (count === 1) {
-                        return {
-                            final: priceForOne,
-                            oldPrice: rawBasePrice,
-                            badgeText: `-10% OFF`,
-                            showOldPrice: true
-                        };
-                    } else {
-                        let volumeDiscount = count * 10;
-                        if (volumeDiscount > 50) volumeDiscount = 50;
-                        
-                        let multipliedForOne = priceForOne * count;
-                        let final = multipliedForOne * (1 - volumeDiscount / 100);
-                        
-                        return {
-                            final: final,
-                            oldPrice: multipliedForOne,
-                            badgeText: `-${volumeDiscount}% POR EQUIPO`,
-                            showOldPrice: true
-                        };
-                    }
-                };
-                
                 for(let idx = 0; idx < 3; idx++) {
                     let k = planKeys[idx];
-                    let info = getCarouselPrice(prices[idx], window.numProfessionals[k]);
+                    let info = getFinalPrice(prices[idx], window.numProfessionals[k]);
                     carouselData[idx].price = '$' + info.final.toLocaleString('es-AR', {maximumFractionDigits:0});
                     carouselData[idx].oldPrice = '$' + info.oldPrice.toLocaleString('es-AR', {maximumFractionDigits:0});
                     carouselData[idx].badgeText = info.badgeText;

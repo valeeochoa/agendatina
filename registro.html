@@ -82,63 +82,75 @@
                         </div>
                     </div>
 
-                    <!-- PASO 2: Selección del Plan -->
+                    <!-- PASO 2: Selección del Plan y Profesionales -->
                     <div>
-                        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100">
-                            <div class="w-9 h-9 rounded-xl bg-[#fcb0b3]/30 text-[#d11149] flex items-center justify-center font-bold text-sm">2</div>
-                            <div>
-                                <h2 class="text-lg font-bold text-slate-900">Elegí tu Plan Inicial</h2>
-                                <p class="text-xs text-slate-500">Podrás cambiar de plan en cualquier momento. Incluye 10% OFF permanente.</p>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-[#fcb0b3]/30 text-[#d11149] flex items-center justify-center font-bold text-sm">2</div>
+                                <div>
+                                    <h2 class="text-lg font-bold text-slate-900">Elegí tu Plan Inicial</h2>
+                                    <p class="text-xs text-slate-500">Podrás cambiar de plan o cantidad de profesionales en cualquier momento.</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Cantidad de Profesionales integrada en la elección del plan -->
+                            <div class="flex items-center gap-2.5 bg-slate-50 border border-slate-200 p-2 rounded-2xl self-start sm:self-auto shadow-sm">
+                                <label class="text-xs font-bold text-slate-700 ml-1">Profesionales:</label>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="updateRegProfs(-1)" class="w-7 h-7 flex items-center justify-center bg-white hover:bg-slate-100 text-slate-700 rounded-lg font-black border border-slate-200 transition-colors shadow-sm">-</button>
+                                    <input type="number" id="regProfs" min="1" max="10" value="1" readonly class="w-7 text-center font-black text-slate-900 text-sm bg-transparent outline-none">
+                                    <button type="button" onclick="updateRegProfs(1)" class="w-7 h-7 flex items-center justify-center bg-white hover:bg-slate-100 text-slate-700 rounded-lg font-black border border-slate-200 transition-colors shadow-sm">+</button>
+                                </div>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="plansGrid">
                             <!-- Plan Simple / Básico -->
                             <label class="cursor-pointer relative">
-                                <input type="radio" name="regPlan" value="Básico" class="peer sr-only">
+                                <input type="radio" name="regPlan" value="Básico" class="peer sr-only" onchange="recalcRegPrices()">
                                 <div class="p-4 rounded-2xl border-2 border-slate-200 peer-checked:border-[#d11149] peer-checked:bg-[#fcb0b3]/15 transition-all text-center h-full flex flex-col justify-between">
                                     <div>
                                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Plan Inicial</span>
                                         <h3 class="font-bold text-slate-800 text-base mt-1">Simple</h3>
                                         <div class="my-2">
-                                            <span class="text-slate-400 line-through text-xs">$8.889</span>
-                                            <p class="text-2xl font-black text-[#d11149]">$8.000<span class="text-xs font-normal text-slate-500">/mes</span></p>
+                                            <span class="text-slate-400 line-through text-xs" id="regBasicOldPrice">$8.889</span>
+                                            <p class="text-2xl font-black text-[#d11149]" id="regBasicPrice">$8.000<span class="text-xs font-normal text-slate-500">/mes</span></p>
                                         </div>
                                     </div>
-                                    <span class="text-[11px] text-slate-500 font-medium">1 Profesional • Calendario Online</span>
+                                    <span class="text-[11px] text-slate-500 font-medium" id="regBasicSubtext">1 Profesional • Calendario Online</span>
                                 </div>
                             </label>
 
                             <!-- Plan Profesional -->
                             <label class="cursor-pointer relative">
-                                <input type="radio" name="regPlan" value="Profesional" class="peer sr-only" checked>
+                                <input type="radio" name="regPlan" value="Profesional" class="peer sr-only" checked onchange="recalcRegPrices()">
                                 <div class="p-4 rounded-2xl border-2 border-slate-200 peer-checked:border-[#d11149] peer-checked:bg-[#fcb0b3]/15 transition-all text-center h-full flex flex-col justify-between">
                                     <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#d11149] text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-sm">Más Elegido</span>
                                     <div>
                                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gestión Completa</span>
                                         <h3 class="font-bold text-slate-800 text-base mt-1">Profesional</h3>
                                         <div class="my-2">
-                                            <span class="text-slate-400 line-through text-xs">$11.111</span>
-                                            <p class="text-2xl font-black text-[#d11149]">$10.000<span class="text-xs font-normal text-slate-500">/mes</span></p>
+                                            <span class="text-slate-400 line-through text-xs" id="regInterOldPrice">$11.111</span>
+                                            <p class="text-2xl font-black text-[#d11149]" id="regInterPrice">$10.000<span class="text-xs font-normal text-slate-500">/mes</span></p>
                                         </div>
                                     </div>
-                                    <span class="text-[11px] text-slate-500 font-medium">Hasta 3 Profs • Agenda Virtual</span>
+                                    <span class="text-[11px] text-slate-500 font-medium" id="regInterSubtext">1 Profesional • Agenda Virtual</span>
                                 </div>
                             </label>
 
                             <!-- Plan Premium -->
                             <label class="cursor-pointer relative">
-                                <input type="radio" name="regPlan" value="Premium" class="peer sr-only">
+                                <input type="radio" name="regPlan" value="Premium" class="peer sr-only" onchange="recalcRegPrices()">
                                 <div class="p-4 rounded-2xl border-2 border-slate-200 peer-checked:border-[#d11149] peer-checked:bg-[#fcb0b3]/15 transition-all text-center h-full flex flex-col justify-between">
                                     <div>
                                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Presencia Web</span>
                                         <h3 class="font-bold text-slate-800 text-base mt-1">Premium</h3>
                                         <div class="my-2">
-                                            <span class="text-slate-400 line-through text-xs">$16.667</span>
-                                            <p class="text-2xl font-black text-[#d11149]">$15.000<span class="text-xs font-normal text-slate-500">/mes</span></p>
+                                            <span class="text-slate-400 line-through text-xs" id="regPremOldPrice">$16.667</span>
+                                            <p class="text-2xl font-black text-[#d11149]" id="regPremPrice">$15.000<span class="text-xs font-normal text-slate-500">/mes</span></p>
                                         </div>
                                     </div>
-                                    <span class="text-[11px] text-slate-500 font-medium">Equipo • Mini Web Integrada</span>
+                                    <span class="text-[11px] text-slate-500 font-medium" id="regPremSubtext">1 Profesional • Mini Web Integrada</span>
                                 </div>
                             </label>
                         </div>
@@ -150,23 +162,36 @@
                             <div class="w-9 h-9 rounded-xl bg-[#fcb0b3]/30 text-[#d11149] flex items-center justify-center font-bold text-sm">3</div>
                             <div>
                                 <h2 class="text-lg font-bold text-slate-900">Ajustes Iniciales de la Agenda</h2>
-                                <p class="text-xs text-slate-500">Define tus horarios y días de atención para comenzar de inmediato.</p>
+                                <p class="text-xs text-slate-500">Define tus horarios de atención y pausa de descanso para comenzar de inmediato.</p>
                             </div>
                         </div>
 
                         <div class="space-y-4">
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Cantidad de Profesionales</label>
-                                    <input type="number" id="regProfs" min="1" max="20" value="1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:ring-2 focus:ring-[#d11149] outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Hora de Apertura</label>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Hora de Apertura *</label>
                                     <input type="time" id="regHoraApertura" value="09:00" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Hora de Cierre</label>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Hora de Cierre *</label>
                                     <input type="time" id="regHoraCierre" value="19:00" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
+                                </div>
+                            </div>
+
+                            <!-- Horarios de Descanso (Opcional) -->
+                            <div class="bg-amber-50/50 p-4 rounded-2xl border border-amber-200/60">
+                                <label class="block text-xs font-bold text-amber-800 mb-2 flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-[18px] text-amber-600">coffee</span> Horario de Descanso (Opcional)
+                                </label>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Inicio Descanso</label>
+                                        <input type="time" id="regHoraDescansoInicio" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Fin Descanso</label>
+                                        <input type="time" id="regHoraDescansoFin" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                                    </div>
                                 </div>
                             </div>
 
@@ -211,9 +236,15 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // Pre-seleccionar plan basado en la URL (?plan=Básico | Profesional | Premium)
+        // Pre-seleccionar plan y profesionales basados en la URL (?plan=...&profs=...)
         const params = new URLSearchParams(window.location.search);
         const requestedPlan = params.get('plan');
+        const requestedProfs = parseInt(params.get('profs')) || 1;
+
+        if (requestedProfs >= 1 && requestedProfs <= 10) {
+            document.getElementById('regProfs').value = requestedProfs;
+        }
+
         if (requestedPlan) {
             const planLower = requestedPlan.toLowerCase();
             const radios = document.querySelectorAll('input[name="regPlan"]');
@@ -224,7 +255,51 @@
                 }
             });
         }
+        recalcRegPrices();
     });
+
+    function updateRegProfs(change) {
+        const input = document.getElementById('regProfs');
+        let current = parseInt(input.value) || 1;
+        current += change;
+        if (current < 1) current = 1;
+        if (current > 10) current = 10;
+        input.value = current;
+        recalcRegPrices();
+    }
+
+    function recalcRegPrices() {
+        const count = parseInt(document.getElementById('regProfs').value) || 1;
+        const rawB = 8889, rawI = 11111, rawP = 16667;
+
+        function calc(rawBase) {
+            if (count === 1) {
+                return { final: Math.round(rawBase * 0.90), old: rawBase };
+            } else {
+                let volDisc = Math.min(count * 10, 50);
+                let priceForOne = rawBase * 0.90;
+                let totalBeforeVol = priceForOne * count;
+                let final = totalBeforeVol * (1 - volDisc / 100);
+                return { final: Math.round(final), old: Math.round(totalBeforeVol) };
+            }
+        }
+
+        const bRes = calc(rawB);
+        const iRes = calc(rawI);
+        const pRes = calc(rawP);
+
+        document.getElementById('regBasicOldPrice').textContent = '$' + bRes.old.toLocaleString('es-AR');
+        document.getElementById('regBasicPrice').innerHTML = '$' + bRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>';
+        document.getElementById('regBasicSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Calendario Online`;
+
+        document.getElementById('regInterOldPrice').textContent = '$' + iRes.old.toLocaleString('es-AR');
+        document.getElementById('regInterPrice').innerHTML = '$' + iRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>';
+        document.getElementById('regInterSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Agenda Virtual`;
+
+        document.getElementById('regPremOldPrice').textContent = '$' + pRes.old.toLocaleString('es-AR');
+        document.getElementById('regPremPrice').innerHTML = '$' + pRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>';
+        document.getElementById('regPremSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Mini Web Integrada`;
+    }
 
     function submitFullRegister(e) {
         e.preventDefault();
@@ -247,6 +322,8 @@
             max_profesionales: document.getElementById('regProfs').value,
             hora_apertura: document.getElementById('regHoraApertura').value,
             hora_cierre: document.getElementById('regHoraCierre').value,
+            hora_descanso_inicio: document.getElementById('regHoraDescansoInicio').value,
+            hora_descanso_fin: document.getElementById('regHoraDescansoFin').value,
             dias_trabajo: diasChecked || '1,2,3,4,5,6',
             acepta_terminos: document.getElementById('regTerminos').checked ? '1' : '0'
         });

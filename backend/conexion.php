@@ -117,90 +117,79 @@ try {
     }
 }
 
+// AUTO-MIGRACIÓN AUTOMÁTICA DE TABLAS Y COLUMNAS EN PRODUCCIÓN Y LOCAL
 if (isset($pdo)) {
-    try {
-        $pdo->query("SELECT notas FROM turnos LIMIT 1");
-    } catch (Exception $ex) {
-        try {
-            $pdo->exec("ALTER TABLE turnos ADD COLUMN notas TEXT DEFAULT NULL");
-        } catch (Exception $alterEx) {
-            error_log("Error al agregar columna notas a turnos: " . $alterEx->getMessage());
-        }
-    }
-}
+    // 1. Columnas en turnos
+    try { $pdo->query("SELECT notas FROM turnos LIMIT 1"); } catch (Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN notas TEXT DEFAULT NULL"); } catch (Throwable $ex) {} }
+    try { $pdo->query("SELECT fecha_eliminado FROM turnos LIMIT 1"); } catch (Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL"); } catch (Throwable $ex) {} }
 
-// Asegurar que fecha_eliminado exista en turnos
-if (isset($pdo)) {
-    try {
-        $pdo->query("SELECT fecha_eliminado FROM turnos LIMIT 1");
-    } catch (Exception $ex) {
-        try {
-            $pdo->exec("ALTER TABLE turnos ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL");
-        } catch (Exception $alterEx) {
-            error_log("Error al agregar columna fecha_eliminado a turnos: " . $alterEx->getMessage());
-        }
-    }
-}
+    // 2. Columnas en configuracion_web
+    try { $pdo->query("SELECT limite_eliminacion_dias FROM configuracion_web LIMIT 1"); } catch (Throwable $e) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN limite_eliminacion_dias INT DEFAULT 30"); } catch (Throwable $ex) {} }
+    try { $pdo->query("SELECT hora_apertura FROM configuracion_web LIMIT 1"); } catch (Throwable $e) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN hora_apertura VARCHAR(5) DEFAULT '09:00'"); } catch (Throwable $ex) {} }
+    try { $pdo->query("SELECT hora_cierre FROM configuracion_web LIMIT 1"); } catch (Throwable $e) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN hora_cierre VARCHAR(5) DEFAULT '19:00'"); } catch (Throwable $ex) {} }
+    try { $pdo->query("SELECT dias_trabajo FROM configuracion_web LIMIT 1"); } catch (Throwable $e) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN dias_trabajo VARCHAR(50) DEFAULT '1,2,3,4,5,6'"); } catch (Throwable $ex) {} }
 
-// Inicializar esquema si es la BD demo y está vacía
-if (isset($pdo) && strpos($dbname, '_d') !== false) {
-    $tableExists = false;
+    // 3. Tabla comprobantes_pago
     try {
-        $pdo->query("SELECT 1 FROM negocios LIMIT 1");
-        $tableExists = true;
-    } catch (Exception $ex) {
-        $tableExists = false;
-    }
-    
-    if (!$tableExists) {
-        // Importar schema.sql
-        $schemaFile = dirname(__DIR__) . '/schema.sql';
-        if (file_exists($schemaFile)) {
-            $schema = file_get_contents($schemaFile);
-            $schema = preg_replace('/^\s*--.*$/m', '', $schema);
-            $queries = array_filter(array_map('trim', explode(';', $schema)));
-            foreach ($queries as $q) {
-                if (!empty($q)) {
-                    try { $pdo->exec($q); } catch (Exception $e) {}
-                }
-            }
-        }
-    }
-}
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `comprobantes_pago` (
+          `id` INT AUTO_INCREMENT PRIMARY KEY,
+          `id_negocio` INT NOT NULL,
+          `monto` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+          `plan` VARCHAR(100) DEFAULT NULL,
+          `archivo_path` VARCHAR(255) NOT NULL,
+          `nombre_archivo` VARCHAR(255) NOT NULL,
+          `fecha_pago` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `estado` VARCHAR(50) DEFAULT 'aprobado',
+          `notas` TEXT DEFAULT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    } catch (Throwable $ex) {}
 
-// Asegurar que la columna limite_eliminacion_dias exista en configuracion_web
-if (isset($pdo)) {
+    // 4. Tabla configuracion_global y columnas
     try {
-        $pdo->query("SELECT limite_eliminacion_dias FROM configuracion_web LIMIT 1");
-    } catch (Exception $migrEx) {
-        try {
-            $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN limite_eliminacion_dias INT DEFAULT 0");
-        } catch (Exception $alterEx) {
-            error_log("No se pudo añadir la columna limite_eliminacion_dias: " . $alterEx->getMessage());
-        }
-    }
-}
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `configuracion_global` (
+          `id` INT PRIMARY KEY DEFAULT 1,
+          `precio_basico` DECIMAL(10,2) NOT NULL DEFAULT 8889.00,
+          `precio_intermedio` DECIMAL(10,2) NOT NULL DEFAULT 11111.00,
+          `precio_premium` DECIMAL(10,2) NOT NULL DEFAULT 16667.00,
+          `descuento_porcentaje` INT NOT NULL DEFAULT 10,
+          `descuento_hasta` DATETIME DEFAULT NULL,
+          `dias_prueba_defecto` INT NOT NULL DEFAULT 30
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+        $pdo->exec("INSERT IGNORE INTO `configuracion_global` (`id`, `precio_basico`, `precio_intermedio`, `precio_premium`, `descuento_porcentaje`, `descuento_hasta`, `dias_prueba_defecto`) VALUES (1, 8889.00, 11111.00, 16667.00, 10, NULL, 30);");
+    } catch (Throwable $ex) {}
 
-// Asegurar que la tabla comprobantes_pago exista siempre
-if (isset($pdo)) {
+    try { $pdo->query("SELECT dias_prueba_defecto FROM configuracion_global LIMIT 1"); } catch (Throwable $e) { try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN dias_prueba_defecto INT NOT NULL DEFAULT 30"); } catch (Throwable $ex) {} }
+
+    // 5. Tabla notificaciones_admin
     try {
-        $pdo->query("SELECT id FROM comprobantes_pago LIMIT 1");
-    } catch (Exception $ex) {
-        try {
-            $pdo->exec("CREATE TABLE IF NOT EXISTS `comprobantes_pago` (
-              `id` INT AUTO_INCREMENT PRIMARY KEY,
-              `id_negocio` INT NOT NULL,
-              `monto` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-              `plan` VARCHAR(100) DEFAULT NULL,
-              `archivo_path` VARCHAR(255) NOT NULL,
-              `nombre_archivo` VARCHAR(255) NOT NULL,
-              `fecha_pago` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-              `estado` VARCHAR(50) DEFAULT 'aprobado',
-              `notas` TEXT DEFAULT NULL
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
-        } catch (Exception $alterEx) {
-            error_log("Error al crear tabla comprobantes_pago: " . $alterEx->getMessage());
-        }
-    }
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `notificaciones_admin` (
+          `id` INT AUTO_INCREMENT PRIMARY KEY,
+          `segmento` VARCHAR(100) NOT NULL,
+          `mensaje` TEXT NOT NULL,
+          `id_negocio` INT NULL,
+          `fecha` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          `leida` BOOLEAN DEFAULT FALSE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    } catch (Throwable $ex) {}
+
+    // 6. Tabla admin_notas
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `admin_notas` (
+          `id` INT AUTO_INCREMENT PRIMARY KEY,
+          `id_negocio` INT NOT NULL UNIQUE,
+          `nota` TEXT NOT NULL,
+          `fecha_actualizacion` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    } catch (Throwable $ex) {}
+
+    // 7. Tabla login_attempts
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `login_attempts` (
+          `id` INT AUTO_INCREMENT PRIMARY KEY,
+          `ip_address` VARCHAR(45) NOT NULL UNIQUE,
+          `intentos` INT NOT NULL DEFAULT 1,
+          `ultimo_intento` DATETIME NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
+    } catch (Throwable $ex) {}
 }
 ?>

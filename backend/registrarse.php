@@ -33,6 +33,8 @@ $plan = trim($_POST['plan'] ?? 'Básico');
 $max_profesionales = max(1, (int)($_POST['max_profesionales'] ?? 1));
 $hora_apertura = trim($_POST['hora_apertura'] ?? '09:00');
 $hora_cierre = trim($_POST['hora_cierre'] ?? '19:00');
+$hora_descanso_inicio = trim($_POST['hora_descanso_inicio'] ?? '');
+$hora_descanso_fin = trim($_POST['hora_descanso_fin'] ?? '');
 $dias_trabajo = trim($_POST['dias_trabajo'] ?? '1,2,3,4,5,6');
 
 try {
@@ -100,13 +102,15 @@ try {
     $stmtPersonal = $pdo->prepare("INSERT INTO personal_negocio (id_usuario, id_negocio, rol_en_local) VALUES (:id_u, :id_n, 'admin')");
     $stmtPersonal->execute(['id_u' => $idUsuario, 'id_n' => $idNegocio]);
 
-    // 7. Crear configuración inicial del negocio (horarios, días laborables, color)
-    $stmtConfigWeb = $pdo->prepare("INSERT IGNORE INTO configuracion_web (id_negocio, titulo_banner, subtitulo_banner, color_primario, limite_eliminacion_dias, hora_apertura, hora_cierre, dias_trabajo) VALUES (:id_n, :titulo, 'Bienvenido a nuestra agenda online', '#d11149', 30, :h_ap, :h_ci, :dias)");
+    // 7. Crear configuración inicial del negocio (horarios, descanso, días laborables, color)
+    $stmtConfigWeb = $pdo->prepare("INSERT IGNORE INTO configuracion_web (id_negocio, titulo_banner, subtitulo_banner, color_primario, limite_eliminacion_dias, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo) VALUES (:id_n, :titulo, 'Bienvenido a nuestra agenda online', '#d11149', 30, :h_ap, :h_ci, :h_di, :h_df, :dias)");
     $stmtConfigWeb->execute([
         'id_n' => $idNegocio,
         'titulo' => $nombre_fantasia,
         'h_ap' => $hora_apertura,
         'h_ci' => $hora_cierre,
+        'h_di' => $hora_descanso_inicio,
+        'h_df' => $hora_descanso_fin,
         'dias' => $dias_trabajo
     ]);
 

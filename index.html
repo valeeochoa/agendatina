@@ -108,7 +108,7 @@
                 <a href="registro.html"
                     class="signature-glow text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-xl transition-all hover:-translate-y-1 flex items-center gap-2">
                     <span class="material-symbols-outlined text-2xl">rocket_launch</span> Crear Cuenta Gratis
-                </a>ton>
+                </a>
                 <a href="#planes"
                     class="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-xl font-bold text-lg hover:bg-slate-50 transition-all shadow-sm">Explorar
                     planes</a>
@@ -572,21 +572,6 @@
                     <p id="formSubtitle" class="text-slate-500">Nos comunicaremos a la brevedad.</p>
                 </div>
                 <form id="mainContactForm" class="space-y-6" novalidate>
-                    <!-- Campo dinámico para Plan (oculto por defecto) -->
-                    <div id="planSelectionBox"
-                        class="hidden bg-primary/5 border border-primary/20 rounded-xl p-4 flex items-center justify-between mb-2">
-                        <div>
-                            <p class="text-xs font-bold text-primary uppercase tracking-wider mb-1">Plan seleccionado
-                            </p>
-                            <p class="font-bold text-lg text-slate-800" id="selectedPlanName">Plan Simple</p>
-                            <input type="hidden" id="inputPlan" name="plan" value="">
-                            <input type="hidden" id="inputProfesionales" name="profesionales" value="1">
-                        </div>
-                        <button type="button" onclick="resetForm()" class="text-slate-400 hover:text-red-500">
-                            <span class="material-symbols-outlined">close</span>
-                        </button>
-                    </div>
-
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <input type="text" name="nombre" placeholder="Nombre completo" required
                             class="w-full bg-slate-50 border-slate-200 rounded-xl px-4 py-3 focus:ring-primary">

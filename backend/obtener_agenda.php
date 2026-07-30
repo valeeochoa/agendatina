@@ -2,6 +2,8 @@
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
+require_once __DIR__ . '/conexion.php';
+
 if (!isset($_SESSION['id_negocio'])) {
     echo json_encode([]);
     exit;
@@ -9,8 +11,6 @@ if (!isset($_SESSION['id_negocio'])) {
 
 // Liberar la sesión para no bloquear otras peticiones AJAX (Mejora drástica de velocidad)
 session_write_close();
-
-require_once __DIR__ . '/conexion.php';
 
 try {
     // 0. Auto-eliminación de turnos antiguos según el límite configurado

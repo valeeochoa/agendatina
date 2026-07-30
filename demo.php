@@ -206,6 +206,11 @@ $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_
 
 $_SESSION['user_id'] = $userId;
 $_SESSION['id_negocio'] = $negocioId;
+$_SESSION['nombre_completo'] = 'Agendatina DEMO';
+$_SESSION['nombre_negocio'] = 'Agendatina';
+$_SESSION['ruta_negocio'] = 'demo';
+$_SESSION['rol_en_local'] = 'admin';
+$_SESSION['is_demo'] = true;
 
 // Imprimir HTML válido para que el navegador ejecute el JS limpiamente
 echo "<!DOCTYPE html>\n<html>\n<head>\n<title>Redirigiendo a Demo...</title>\n</head>\n<body>\n";

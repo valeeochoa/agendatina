@@ -864,7 +864,7 @@ function renderTable(dataToRender) {
                 const noteIcon = noteHasContent ? 'sticky_note_2' : 'note_add';
 
                 let actionsHtml = `
-                    <button onclick="openClientDetailModal(${originalIndex})" class="text-purple-600 bg-purple-50 hover:bg-purple-100 p-2 rounded-lg transition-colors border border-purple-200" title="Ver Ficha y Comprobantes de este Emprendimiento"><span class="material-symbols-outlined text-[20px]">visibility</span></button>
+                    <a href="empresa.html?id=${client.id}" class="text-purple-600 bg-purple-50 hover:bg-purple-100 p-2 rounded-lg transition-colors border border-purple-200 inline-block" title="Ver Ficha y Comprobantes de este Emprendimiento"><span class="material-symbols-outlined text-[20px]">visibility</span></a>
                     <button onclick="openEditInfoModal(${originalIndex})" class="text-slate-400 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 p-2 rounded-lg transition-colors border border-slate-100 ml-1" title="Editar Información del Cliente"><span class="material-symbols-outlined text-[20px]">manage_accounts</span></button>
                     <button onclick="openEditModal(${originalIndex})" class="text-slate-400 hover:text-amber-600 bg-slate-50 hover:bg-amber-50 p-2 rounded-lg transition-colors border border-slate-100 ml-1" title="Suscripción y Estado"><span class="material-symbols-outlined text-[20px]">payments</span></button>
                     <button onclick="openNoteModal(${originalIndex})" class="p-2 rounded-lg transition-colors border ml-1 ${noteBtnColor}" title="Notas Internas"><span class="material-symbols-outlined text-[20px]">${noteIcon}</span></button>
@@ -887,7 +887,7 @@ function renderTable(dataToRender) {
                         <td class="p-5">
                             <div class="flex items-center gap-2 mb-1">
                                 <span class="bg-slate-200 text-slate-600 text-[10px] font-black px-2 py-0.5 rounded-md">ID: ${client.id}</span>
-                                <button onclick="openClientDetailModal(${originalIndex})" class="font-bold text-slate-900 text-base hover:text-purple-600 text-left transition-colors cursor-pointer">${client.nombre_fantasia}</button>
+                                <a href="empresa.html?id=${client.id}" class="font-bold text-slate-900 text-base hover:text-purple-600 text-left transition-colors cursor-pointer">${client.nombre_fantasia}</a>
                             </div>
                             <a href="../calendarioMensual.html?n=${urlRuta}" target="_blank" class="text-xs font-semibold text-blue-500 hover:text-blue-700 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">link</span> agendatina.site/${urlRuta}</a>
                         </td>
