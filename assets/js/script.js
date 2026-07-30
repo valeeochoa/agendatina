@@ -2200,44 +2200,37 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             
             window.renderPricing = function() {
-                const pData = window.pricingData || {
-                    precio_basico: 8889,
-                    precio_intermedio: 11111,
-                    precio_premium: 16667,
-                    descuento_porcentaje: 10,
-                    descuento_hasta: null
-                };
+                const pData = window.pricingData || {};
                 
-                let b = parseFloat(pData.precio_basico) || 8889;
-                let i = parseFloat(pData.precio_intermedio) || 11111;
-                let p = parseFloat(pData.precio_premium) || 16667;
-                if (b < 8800) b = 8889;
-                if (i < 11000) i = 11111;
-                if (p < 16000) p = 16667;
+                let b = parseFloat(pData.precio_basico);
+                if (!b || isNaN(b) || b > 12000) b = 8000;
                 
-                const getFinalPrice = (rawBasePrice, count) => {
-                    let globalDiscount = parseInt(pData.descuento_porcentaje);
-                    if (isNaN(globalDiscount) || globalDiscount <= 0) globalDiscount = 10;
-                    
-                    let priceForOne = rawBasePrice * (1 - globalDiscount / 100);
+                let i = parseFloat(pData.precio_intermedio);
+                if (!i || isNaN(i) || i > 14000) i = 10000;
+                
+                let p = parseFloat(pData.precio_premium);
+                if (!p || isNaN(p) || p > 20000) p = 15000;
+                
+                const getFinalPrice = (finalPriceForOne, count) => {
+                    let rawOldPrice = Math.round(finalPriceForOne / 0.9);
                     
                     if (count === 1) {
                         return {
-                            final: priceForOne,
-                            oldPrice: rawBasePrice,
-                            badgeText: `-${globalDiscount}% OFF`,
-                            showOldPrice: globalDiscount > 0
+                            final: finalPriceForOne,
+                            oldPrice: rawOldPrice,
+                            badgeText: `-10% OFF`,
+                            showOldPrice: true
                         };
                     } else {
                         let volumeDiscount = count * 10;
                         if (volumeDiscount > 50) volumeDiscount = 50;
                         
-                        let multipliedForOne = priceForOne * count;
-                        let final = multipliedForOne * (1 - volumeDiscount / 100);
+                        let multiplied = finalPriceForOne * count;
+                        let final = multiplied * (1 - volumeDiscount / 100);
                         
                         return {
                             final: final,
-                            oldPrice: multipliedForOne,
+                            oldPrice: multiplied,
                             badgeText: `-${volumeDiscount}% POR EQUIPO`,
                             showOldPrice: true
                         };
