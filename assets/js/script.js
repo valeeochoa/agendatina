@@ -638,10 +638,18 @@ function loadDashboardData() {
                     return JSON.parse(text);
                 } catch (e) {
                     console.error('Error PHP en perfil.php (Dashboard):', text);
-                    throw new Error('Respuesta no válida del servidor');
+                    return { success: false, error: 'Respuesta inválida de perfil.php' };
                 }
-            }),
-        fetch('backend/guardar_web.php').then(res => res.json()),
+            }).catch(err => ({ success: false, error: err.message })),
+        fetch('backend/guardar_web.php')
+            .then(async res => {
+                const text = await res.text();
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    return {};
+                }
+            }).catch(() => ({})),
         fetch('backend/obtener_precios.php').then(res => res.json()).catch(() => null),
         fetch('backend/gestionar_servicios.php').then(res => res.json()).catch(() => []),
         fetch('backend/obtener_agenda.php').then(res => res.json()).catch(() => [])

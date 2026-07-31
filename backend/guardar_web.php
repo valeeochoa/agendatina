@@ -103,6 +103,9 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN confi
 try { $pdo->query("SELECT metodos_pago FROM configuracion_web LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN metodos_pago VARCHAR(255) DEFAULT ''"); }
 
+try { $pdo->query("SELECT limite_eliminacion_dias FROM configuracion_web LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN limite_eliminacion_dias INT DEFAULT 0"); }
+
 // =========================================================================
 // AUTO-SUSPENSIÓN DE NEGOCIOS VENCIDOS (Pseudo-Cron)
 // =========================================================================
