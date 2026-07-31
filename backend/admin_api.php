@@ -123,10 +123,9 @@ if ($method === 'GET') {
     // Liberar la sesión para evitar bloqueos
     session_write_close();
 
-    // Ejecutar auto-suspensión silenciosa antes de devolver los datos a la tabla
+    // Ejecutar auto-suspensión silenciosa antes de devolver los datos a la tabla (excluyendo negocios que subieron comprobante 'pendiente_revision')
     try {
-        // Suspende si pasaron > 15 días (prueba), > 35 días (beta), o > 35 días (activo con último pago)
-        $pdo->exec("UPDATE negocios SET estado_pago = 'suspendido' WHERE (estado_pago = 'prueba' AND DATEDIFF(NOW(), fecha_alta) > 15) OR (estado_pago = 'beta' AND DATEDIFF(NOW(), fecha_alta) > 35) OR (estado_pago IN ('activo', 'pagado') AND ultimo_pago IS NOT NULL AND DATEDIFF(NOW(), ultimo_pago) > 35)");
+        $pdo->exec("UPDATE negocios SET estado_pago = 'suspendido' WHERE estado_pago NOT IN ('pendiente_revision', 'suspendido') AND ((estado_pago = 'prueba' AND DATEDIFF(NOW(), fecha_alta) > 15) OR (estado_pago = 'beta' AND DATEDIFF(NOW(), fecha_alta) > 35) OR (estado_pago IN ('activo', 'pagado') AND ultimo_pago IS NOT NULL AND DATEDIFF(NOW(), ultimo_pago) > 35))");
     } catch(Exception $e) {}
 
     try {

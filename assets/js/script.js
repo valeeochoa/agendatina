@@ -252,7 +252,6 @@ window.cancelarTurnoAdmin = function(id, skipConfirm = false) {
             if(data.success) {
                 showToast('Turno movido a la papelera exitosamente', 'success');
                 localStorage.setItem('agendatina_unread_trash', 'true');
-                window.activeAgendaTab = 'papelera';
                 
                 // Abrir notificación por WhatsApp al cliente si hay celular disponible
                 if (targetTurno) {
@@ -2684,30 +2683,33 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!sessionStorage.getItem('agendatina_session')) return;
 
     const hideDemoActions = () => {
-        // Ocultar sección/tarjeta de soporte y ayuda
+        // Ocultar tarjeta de soporte y elementos de ayuda/reporte de error
         const cardSupport = document.getElementById('cardSupport');
         if (cardSupport) cardSupport.style.display = 'none';
 
-        const sidebarSupport = document.getElementById('sidebarSupport') || document.querySelector('[href*="soporte"]') || document.querySelector('[onclick*="soporte"]');
-        if (sidebarSupport) sidebarSupport.style.display = 'none';
-
-        // Ocultar todos los botones de reportar error
-        document.querySelectorAll('button[onclick^="openReportErrorModal"]').forEach(btn => btn.style.display = 'none');
-        document.querySelectorAll('button[onclick*="openReportErrorModal"]').forEach(btn => btn.style.display = 'none');
+        document.querySelectorAll('a, button, div').forEach(el => {
+            const txt = (el.textContent || '').trim();
+            const href = el.getAttribute('href') || '';
+            const onclick = el.getAttribute('onclick') || '';
+            if (txt.includes('Reportar Error') || txt.includes('Hablar con Soporte') || onclick.includes('ReportError') || onclick.includes('Soporte') || href.includes('soporte')) {
+                el.style.display = 'none';
+            }
+        });
     };
 
     const isDemoCached = sessionStorage.getItem('is_demo_user');
-    if (isDemoCached === 'true') {
+    if (isDemoCached === 'true' || sessionStorage.getItem('agendatina_demo_alert') === 'true') {
+        sessionStorage.setItem('is_demo_user', 'true');
         hideDemoActions();
-        // Usar un MutationObserver para ocultar elementos que se carguen dinámicamente
         const observer = new MutationObserver(hideDemoActions);
         observer.observe(document.body, { childList: true, subtree: true });
-    } else if (isDemoCached === null) {
-        // Consultar una vez al backend para saber si el usuario logueado es demo
+    } else {
+        // Consultar backend para saber si el usuario logueado o local es demo
         fetch('backend/perfil.php')
             .then(res => res.json())
             .then(data => {
-                if (data.success && data.user && data.user.email === 'demo@agendatina.site') {
+                const isDemoUser = (data.success && ((data.user && data.user.email && data.user.email.includes('demo')) || (data.business && (data.business.ruta === 'demo' || data.business.subdominio === 'demo'))));
+                if (isDemoUser) {
                     sessionStorage.setItem('is_demo_user', 'true');
                     hideDemoActions();
                     const observer = new MutationObserver(hideDemoActions);

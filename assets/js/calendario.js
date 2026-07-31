@@ -2521,20 +2521,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 const navBusinessName = document.getElementById('navBusinessName');
                 const navBrandAccent = document.getElementById('navBrandAccent');
                 if (navBusinessName) {
-                    let parts = title.split(' ');
-                    if (parts.length > 1 && navBrandAccent) {
-                        navBusinessName.textContent = parts[0] + ' ';
-                        navBrandAccent.textContent = parts.slice(1).join(' ');
+                    if (title.toLowerCase().trim() === 'agendatina') {
+                        navBusinessName.textContent = 'Agenda';
+                        if (navBrandAccent) navBrandAccent.textContent = 'tina';
                     } else {
-                        navBusinessName.textContent = title;
-                        if (navBrandAccent) navBrandAccent.textContent = '';
+                        let parts = title.split(' ');
+                        if (parts.length > 1 && navBrandAccent) {
+                            navBusinessName.textContent = parts[0] + ' ';
+                            navBrandAccent.textContent = parts.slice(1).join(' ');
+                        } else {
+                            navBusinessName.textContent = title;
+                            if (navBrandAccent) navBrandAccent.textContent = '';
+                        }
                     }
                 }
             }
         }).catch(() => {
             document.title = 'Agendatina | Calendario de Turnos';
             const navBusinessName = document.getElementById('navBusinessName');
-            if (navBusinessName) navBusinessName.textContent = 'Agendatina';
+            const navBrandAccent = document.getElementById('navBrandAccent');
+            if (navBusinessName) navBusinessName.textContent = 'Agenda';
+            if (navBrandAccent) navBrandAccent.textContent = 'tina';
         });
 
         const manageServicesBtn = document.getElementById('manageServicesBtn');

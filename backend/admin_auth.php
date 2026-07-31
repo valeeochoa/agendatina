@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($super_admin_user === $username && $password === $super_admin_pass) {
         $_SESSION['is_superadmin'] = true;
+        $_SESSION['superadmin_last_activity'] = time();
         unset($_SESSION['is_demo']); // Asegurar que el admin opere en la BD real
         echo json_encode(['success' => true]);
     } else {
@@ -24,8 +25,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $logged_in = false;
+    if (isset($_SESSION['is_superadmin']) && $_SESSION['is_superadmin'] === true) {
+        $last_activity = $_SESSION['superadmin_last_activity'] ?? 0;
+        if (time() - $last_activity > 900) { // Expiración por inactividad de 15 minutos (900 segundos)
+            unset($_SESSION['is_superadmin']);
+            unset($_SESSION['superadmin_last_activity']);
+            session_destroy();
+            $logged_in = false;
+        } else {
+            $_SESSION['superadmin_last_activity'] = time(); // Actualizar actividad
+            $logged_in = true;
+        }
+    }
     session_write_close();
-    $logged_in = isset($_SESSION['is_superadmin']) && $_SESSION['is_superadmin'] === true;
     echo json_encode(['success' => true, 'logged_in' => $logged_in]);
     exit;
 }

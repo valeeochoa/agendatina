@@ -49,6 +49,10 @@
     </div>
     
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('../backend/admin_auth.php', { method: 'DELETE' });
+        });
+
         document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const btn = document.getElementById('btnSubmit');
