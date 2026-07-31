@@ -1678,6 +1678,9 @@ function renderAdminReports(notificaciones) {
             const fechaFormat = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
             const horaFormat = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
+            const senderInfo = notif.nombre_usuario || notif.email_usuario ? `${notif.nombre_usuario || 'Usuario'} (${notif.rol_usuario === 'profesional' ? 'Profesional' : 'Dueño'}) - ${notif.email_usuario || ''}` : 'Usuario Desconocido';
+            const bizInfo = notif.nombre_negocio || notif.nombre_fantasia || 'Emprendimiento';
+
             reportsHtml += `
             <div class="bg-slate-50 border-l-4 border-red-500 p-4 sm:p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow relative mb-4 w-full">
                 <div class="flex flex-col sm:flex-row sm:justify-between items-start gap-3 mb-3">
@@ -1687,7 +1690,8 @@ function renderAdminReports(notificaciones) {
                         <button onclick="deleteAdminReport(${notif.id})" class="text-slate-400 hover:text-red-500 bg-white p-1 rounded-md border border-slate-200 transition-colors" title="Eliminar reporte (Ya solucionado)"><span class="material-symbols-outlined text-[16px] block">delete</span></button>
                     </div>
                 </div>
-                <div class="mb-3 flex items-start gap-2"><span class="material-symbols-outlined text-[16px] text-slate-400 shrink-0 mt-0.5">storefront</span><span class="text-sm font-bold text-slate-700 break-words">Negocio: <span class="text-primary">#${notif.id_negocio || '?'} - ${notif.nombre_fantasia || 'Usuario Desconocido'}</span></span></div>
+                <div class="mb-1.5 flex items-start gap-2"><span class="material-symbols-outlined text-[16px] text-slate-400 shrink-0 mt-0.5">storefront</span><span class="text-sm font-bold text-slate-700 break-words">Emprendimiento: <span class="text-primary">#${notif.id_negocio || '?'} - ${bizInfo}</span></span></div>
+                <div class="mb-3 flex items-start gap-2"><span class="material-symbols-outlined text-[16px] text-blue-500 shrink-0 mt-0.5">person</span><span class="text-xs font-bold text-slate-600 break-words">Emisor: <span class="text-slate-800">${senderInfo}</span></span></div>
                 <div class="bg-white p-3 sm:p-4 rounded-lg border border-slate-200 text-sm text-slate-600 relative overflow-hidden"><span class="material-symbols-outlined absolute text-slate-100 text-4xl -top-2 -left-2 rotate-180 z-0">format_quote</span><p class="relative z-10 italic break-words">${notif.mensaje}</p></div>
             </div>`;
         });

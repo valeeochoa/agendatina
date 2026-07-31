@@ -23,8 +23,17 @@ window.loadDashboardData = function() {
                 if (cardCalendario) cardCalendario.href = calPage;
         }
         
-        // 3. Gestionar permisos según el rol
+        // 3. Gestionar permisos según el rol y verificación de correo
         if (window.currentUserData) {
+            const vBanner = document.getElementById('verifyEmailBanner');
+            if (vBanner) {
+                if (parseInt(window.currentUserData.email_verificado) === 0 && window.currentUserData.email !== 'demo@agendatina.site') {
+                    vBanner.classList.remove('hidden');
+                } else {
+                    vBanner.classList.add('hidden');
+                }
+            }
+
             const rol = window.currentUserData.rol_en_local;
             if (rol === 'profesional') {
                 // Ocultar tarjetas administrativas al empleado
@@ -46,6 +55,35 @@ window.loadDashboardData = function() {
             }
         }
     }, 200);
+};
+
+window.openVerifyEmailModal = function() {
+    const modal = document.getElementById('verifyEmailModal');
+    if (modal) modal.classList.remove('hidden');
+};
+
+window.closeVerifyEmailModal = function() {
+    const modal = document.getElementById('verifyEmailModal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.resendVerifyCode = function(btn) {
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+    
+    fetch('backend/reenviar_codigo.php', { method: 'POST' })
+    .then(res => res.json())
+    .then(data => {
+        const msg = document.getElementById('verifyEmailMsg');
+        if (msg) {
+            msg.className = data.success ? 'text-xs font-bold p-3 rounded-xl text-center bg-emerald-100 text-emerald-800' : 'text-xs font-bold p-3 rounded-xl text-center bg-red-100 text-red-800';
+            msg.textContent = data.message || data.error;
+            msg.classList.remove('hidden');
+        }
+    }).catch(() => {
+        if (typeof showToast === 'function') showToast('Error de conexión.', 'error');
+    }).finally(() => { btn.disabled = false; btn.innerHTML = orig; });
 };
 
 window.openTeamModal = function() {
@@ -492,3 +530,49 @@ function showTourStep(index, doScroll = true) {
         requestAnimationFrame(executeStep);
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const verifyForm = document.getElementById('verifyEmailForm');
+    if (verifyForm) {
+        verifyForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitVerify');
+            const codeInput = document.getElementById('verifyCodeInput');
+            const msgDiv = document.getElementById('verifyEmailMsg');
+            const code = codeInput ? codeInput.value.trim() : '';
+
+            btn.disabled = true;
+            btn.textContent = 'Verificando...';
+
+            fetch('backend/verificar_email.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ codigo: code })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    msgDiv.className = 'text-xs font-bold p-3 rounded-xl text-center bg-emerald-100 text-emerald-800';
+                    msgDiv.textContent = data.message || '¡Cuenta verificada exitosamente!';
+                    msgDiv.classList.remove('hidden');
+                    setTimeout(() => {
+                        window.closeVerifyEmailModal();
+                        const vBanner = document.getElementById('verifyEmailBanner');
+                        if (vBanner) vBanner.classList.add('hidden');
+                        if (typeof showToast === 'function') showToast('¡Cuenta activada con éxito!', 'success');
+                    }, 1200);
+                } else {
+                    msgDiv.className = 'text-xs font-bold p-3 rounded-xl text-center bg-red-100 text-red-800';
+                    msgDiv.textContent = data.error || 'Código inválido.';
+                    msgDiv.classList.remove('hidden');
+                }
+            })
+            .catch(() => {
+                msgDiv.className = 'text-xs font-bold p-3 rounded-xl text-center bg-red-100 text-red-800';
+                msgDiv.textContent = 'Error de conexión.';
+                msgDiv.classList.remove('hidden');
+            })
+            .finally(() => { btn.disabled = false; btn.textContent = 'Verificar Cuenta'; });
+        });
+    }
+});

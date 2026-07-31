@@ -80,12 +80,39 @@ try {
         }
     } catch (Exception $e) {}
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require_once __DIR__ . '/phpmailer/Exception.php';
+require_once __DIR__ . '/phpmailer/PHPMailer.php';
+require_once __DIR__ . '/phpmailer/SMTP.php';
+
+// Asegurar columnas de verificación
+try { $pdo->query("SELECT codigo_verificacion FROM usuarios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN codigo_verificacion VARCHAR(10) DEFAULT NULL"); }
+
+try { $pdo->query("SELECT verificacion_expira FROM usuarios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN verificacion_expira DATETIME DEFAULT NULL"); }
+
+try { $pdo->query("SELECT email_verificado FROM usuarios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN email_verificado TINYINT DEFAULT 0"); }
+
+    // Generar código numérico de 6 dígitos válido por 15 minutos
+    $codigoVerificacion = sprintf("%06d", mt_rand(1, 999999));
+    $verificacionExpira = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+
     $pdo->beginTransaction();
 
-    // 4. Crear usuario
+    // 4. Crear usuario (con código de activación de 15 min)
     $hashPass = password_hash($password, PASSWORD_DEFAULT);
-    $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, fecha_creacion) VALUES (:nombre, :email, :pass, NOW())");
-    $stmtUser->execute(['nombre' => $nombre_completo, 'email' => $email, 'pass' => $hashPass]);
+    $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, codigo_verificacion, verificacion_expira, email_verificado, fecha_creacion) VALUES (:nombre, :email, :pass, :cod, :exp, 0, NOW())");
+    $stmtUser->execute([
+        'nombre' => $nombre_completo,
+        'email' => $email,
+        'pass' => $hashPass,
+        'cod' => $codigoVerificacion,
+        'exp' => $verificacionExpira
+    ]);
     $idUsuario = $pdo->lastInsertId();
 
     // 5. Crear negocio con plan y límite de profesionales
@@ -145,9 +172,69 @@ try {
         ]);
     }
 
+    // Guardar notificación para el SuperAdmin
+    try {
+        $pdo->query("SELECT 1 FROM notificaciones_admin LIMIT 1");
+    } catch (Exception $eNotif) {
+        $pdo->exec("CREATE TABLE notificaciones_admin (
+            id INT AUTO_INCREMENT PRIMARY KEY, 
+            segmento VARCHAR(100), 
+            mensaje TEXT, 
+            id_negocio INT NULL,
+            fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+            leida BOOLEAN DEFAULT FALSE
+        )");
+    }
+    
+    $stmtNotifAdmin = $pdo->prepare("INSERT INTO notificaciones_admin (segmento, mensaje, id_negocio) VALUES ('Nuevo Registro', ?, ?)");
+    $stmtNotifAdmin->execute(["Nuevo emprendedor registrado: {$nombre_completo} ({$email}) - Negocio: {$nombre_fantasia} (Plan: {$plan})", $idNegocio]);
+
     $pdo->commit();
 
-    // 9. Iniciar sesión automática
+    // 9. Enviar mails de confirmación (Al usuario con su código y al SuperAdmin)
+    try {
+        $mail = new PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host       = 'localhost';
+        $mail->SMTPAuth   = true;
+        $mail->Username   = 'no-reply@agendatina.site';
+        $mail->Password   = 'Tlqb*Er0kQ';
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;
+        $mail->CharSet    = 'UTF-8';
+        $mail->SMTPOptions = array('ssl' => array('verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true));
+
+        // Enviar al usuario
+        $mail->setFrom('no-reply@agendatina.site', 'Agendatina - Verificación');
+        $mail->addAddress($email, $nombre_completo);
+        $mail->isHTML(true);
+        $mail->Subject = "Verifica tu cuenta - Agendatina";
+        $mail->Body = "<div style='font-family: Arial, sans-serif; padding: 20px; text-align: center;'><h2 style='color: #D11149;'>¡Bienvenido a Agendatina!</h2><p>Tu código de verificación de 6 dígitos para activar tu cuenta es:</p><div style='font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #D11149; margin: 20px 0;'>$codigoVerificacion</div><p style='font-size: 13px; color: #64748b;'>Este código caduca en 15 minutos.</p></div>";
+        $mail->send();
+
+        // Enviar al SuperAdmin
+        $mailAdmin = new PHPMailer(true);
+        $mailAdmin->isSMTP();
+        $mailAdmin->Host       = 'localhost';
+        $mailAdmin->SMTPAuth   = true;
+        $mailAdmin->Username   = 'no-reply@agendatina.site';
+        $mailAdmin->Password   = 'Tlqb*Er0kQ';
+        $mailAdmin->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mailAdmin->Port       = 587;
+        $mailAdmin->CharSet    = 'UTF-8';
+        $mailAdmin->SMTPOptions = array('ssl' => array('verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true));
+
+        $mailAdmin->setFrom('no-reply@agendatina.site', 'Sistema - Agendatina');
+        $mailAdmin->addAddress('reportes@agendatina.site');
+        $mailAdmin->isHTML(true);
+        $mailAdmin->Subject = "¡Nueva Cuenta Creada! - $nombre_fantasia";
+        $mailAdmin->Body = "<div style='font-family: Arial, sans-serif; padding: 20px;'><h2 style='color: #22c55e;'>¡Nueva Cuenta Registrada!</h2><p><strong>Nombre:</strong> $nombre_completo</p><p><strong>Email:</strong> $email</p><p><strong>Emprendimiento:</strong> $nombre_fantasia</p><p><strong>Plan Elegido:</strong> $plan ($max_profesionales prof.)</p></div>";
+        $mailAdmin->send();
+    } catch (Exception $mEx) {
+        error_log("Error al enviar correos de bienvenida: " . $mEx->getMessage());
+    }
+
+    // 10. Iniciar sesión automática
     $_SESSION['user_id'] = $idUsuario;
     $_SESSION['email'] = $email;
     $_SESSION['nombre_completo'] = $nombre_completo;

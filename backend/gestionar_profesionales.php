@@ -58,6 +58,8 @@ if ($method === 'GET') {
         $current_count = $stmtCount->fetchColumn();
 
         if ($current_count >= $max_profesionales) {
+            require_once __DIR__ . '/helpers/notificar_admin_helper.php';
+            notificarSuperAdminAlert($pdo, 'Solicitud Ampliación Equipo', "El negocio intentó registrar más profesionales pero alcanzó el límite de su plan ({$max_profesionales} profesionales).", $id_negocio);
             throw new Exception("Has alcanzado el límite máximo de $max_profesionales profesionales. Si necesitas más cuentas, contacta a soporte para ampliar tu plan.");
         }
 
@@ -78,6 +80,10 @@ if ($method === 'GET') {
         $stmtPn->execute([$id_negocio, $id_usuario]);
 
         $pdo->commit();
+
+        require_once __DIR__ . '/helpers/notificar_admin_helper.php';
+        notificarSuperAdminAlert($pdo, 'Gestión de Equipo / Nuevo Profesional', "Se registró un nuevo profesional en el equipo: {$nombre} ({$email}). Total actual: " . ($current_count + 1) . " / {$max_profesionales}.", $id_negocio);
+
         echo json_encode(['success' => true]);
     } catch (Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();

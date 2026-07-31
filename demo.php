@@ -6,7 +6,13 @@ unset($_SESSION['user_id'], $_SESSION['id_negocio']);
 require_once __DIR__ . '/backend/conexion.php';
 
 try {
-$emailDemo = 'demo@agendatina.site';
+// Identificador único para aislar la demo por usuario/IP
+$clientIp = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+$sessionToken = session_id();
+$demoHash = substr(md5($clientIp . '_' . $sessionToken), 0, 8);
+$emailDemo = 'demo_' . $demoHash . '@agendatina.site';
+$rutaDemo = 'demo';
+
 $stmt = $pdo->prepare("SELECT id FROM usuarios WHERE email = :email LIMIT 1");
 $stmt->execute(['email' => $emailDemo]);
 $user = $stmt->fetch();
@@ -69,26 +75,24 @@ if (!$user) {
     $userId = $pdo->lastInsertId();
 
     // 2. Crear su propio negocio "Premium"
-    $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago) VALUES ('Estética Agendatina', 'demo', 'Completo', 5, 'activo')")->execute();
+    $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago) VALUES ('Agendatina', ?, 'Completo', 5, 'activo')")->execute([$rutaDemo]);
     $negocioId = $pdo->lastInsertId();
 
     // 3. Vincularlos
     $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'admin')")->execute([$negocioId, $userId]);
 } else {
     $userId = $user['id'];
-    // Forzar vínculo al negocio DEMO correcto (ruta fija "demo")
-    $stmtDemoBiz = $pdo->prepare("SELECT id FROM negocios WHERE ruta = 'demo' LIMIT 1");
-    $stmtDemoBiz->execute();
+    $stmtDemoBiz = $pdo->prepare("SELECT id FROM negocios WHERE id IN (SELECT id_negocio FROM personal_negocio WHERE id_usuario = ?) LIMIT 1");
+    $stmtDemoBiz->execute([$userId]);
     $demoBiz = $stmtDemoBiz->fetch();
 
     if ($demoBiz) {
         $negocioId = $demoBiz['id'];
     } else {
-        $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago) VALUES ('Estética Agendatina', 'demo', 'Completo', 5, 'activo')")->execute();
+        $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago) VALUES ('Agendatina', ?, 'Completo', 5, 'activo')")->execute([$rutaDemo]);
         $negocioId = $pdo->lastInsertId();
     }
 
-    // Asegurar que el usuario demo esté vinculado al negocio demo
     $stmtLink = $pdo->prepare("SELECT id FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ? LIMIT 1");
     $stmtLink->execute([$negocioId, $userId]);
     if (!$stmtLink->fetch()) {
@@ -97,18 +101,18 @@ if (!$user) {
 }
 
 // Blindaje: en cada acceso demo, normalizar identidad del negocio demo
-$pdo->prepare("UPDATE negocios SET nombre_fantasia = 'Agendatina', ruta = 'demo', plan = 'Completo', max_profesionales = 5, estado_pago = 'activo', ultimo_pago = NOW() WHERE id = ?")->execute([$negocioId]);
+$pdo->prepare("UPDATE negocios SET nombre_fantasia = 'Agendatina', ruta = ?, plan = 'Completo', max_profesionales = 5, estado_pago = 'activo', ultimo_pago = NOW() WHERE id = ?")->execute([$rutaDemo, $negocioId]);
 $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, subtitulo, titulo)
                VALUES (?, '#D11149', '#FCB0B3', 'Agendatina', 'Sesión de demostración', 'Agendatina')
                ON DUPLICATE KEY UPDATE mensaje_bienvenida = 'Agendatina', subtitulo = 'Sesión de demostración', titulo = 'Agendatina'")->execute([$negocioId]);
 
-// RESET AUTOMÁTICO CADA 10-15 MINUTOS O EN NUEVAS SESIONES
-$resetFile = __DIR__ . '/demo_reset.txt';
+// RESET AUTOMÁTICO CADA 10 MINUTOS O EN NUEVAS SESIONES DE NAVEGADOR
+$resetFile = __DIR__ . '/demo_reset_' . $demoHash . '.txt';
 $shouldReset = false;
 $lastReset = @file_get_contents($resetFile);
-if (!$lastReset || !is_numeric($lastReset) || (time() - intval($lastReset) > 600) || !isset($_SESSION['demo_session_started'])) {
+if (!$lastReset || !is_numeric($lastReset) || (time() - intval($lastReset) > 600) || !isset($_SESSION['demo_session_active'])) {
     $shouldReset = true;
-    $_SESSION['demo_session_started'] = true;
+    $_SESSION['demo_session_active'] = true;
 }
 
 if ($shouldReset && $negocioId) {

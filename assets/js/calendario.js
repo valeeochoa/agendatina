@@ -2501,6 +2501,42 @@ document.addEventListener('DOMContentLoaded', () => {
         cal_renderCalendar();
         cal_fetchBookedTimes();
 
+        // Auto-selección del día de hoy para desplegar el panel de turnos inmediatamente
+        setTimeout(() => {
+            const today = new Date();
+            if (typeof cal_selectDate === 'function') {
+                cal_selectDate(today);
+            }
+        }, 350);
+
+        // Cargar nombre oficial del negocio para el Navbar y Pestaña (Reemplaza hardcoded STUDIOGLAM)
+        fetch(negocioSlug ? `backend/guardar_web.php?n=${negocioSlug}` : `backend/guardar_web.php`)
+        .then(res => res.json())
+        .then(config => {
+            if (config) {
+                window.businessWebConfig = config;
+                let title = config.mensaje_bienvenida || config.titulo || 'Agendatina';
+                document.title = title + ' | Calendario de Turnos';
+                
+                const navBusinessName = document.getElementById('navBusinessName');
+                const navBrandAccent = document.getElementById('navBrandAccent');
+                if (navBusinessName) {
+                    let parts = title.split(' ');
+                    if (parts.length > 1 && navBrandAccent) {
+                        navBusinessName.textContent = parts[0] + ' ';
+                        navBrandAccent.textContent = parts.slice(1).join(' ');
+                    } else {
+                        navBusinessName.textContent = title;
+                        if (navBrandAccent) navBrandAccent.textContent = '';
+                    }
+                }
+            }
+        }).catch(() => {
+            document.title = 'Agendatina | Calendario de Turnos';
+            const navBusinessName = document.getElementById('navBusinessName');
+            if (navBusinessName) navBusinessName.textContent = 'Agendatina';
+        });
+
         const manageServicesBtn = document.getElementById('manageServicesBtn');
         if(manageServicesBtn) manageServicesBtn.addEventListener('click', openServicesModal);
         

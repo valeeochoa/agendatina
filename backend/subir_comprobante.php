@@ -53,6 +53,9 @@ try {
         $stmtIns->execute([$id_negocio, $urlComprobante, $origName]);
     } catch(Exception $exComp) {}
 
+    require_once __DIR__ . '/helpers/notificar_admin_helper.php';
+    notificarSuperAdminAlert($pdo, 'Pagos / Comprobante de Pago', "El cliente subió un nuevo comprobante de pago para su revisión (Archivo: {$origName}).", $id_negocio);
+
     echo json_encode(['success' => true]);
 } catch(Exception $e) {
     @unlink($res['absolute_path']); // Borrar el archivo si falla la base de datos

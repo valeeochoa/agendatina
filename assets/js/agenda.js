@@ -16,10 +16,12 @@ if (!document.getElementById('agenda-animations')) {
     document.head.appendChild(style);
 }
 
-window.cargarAgenda = function() {
+window.cargarAgenda = function(force = false) {
+    if (force) window.agendaLastDataString = null;
+    
     // Auto-refresco de la agenda en segundo plano cada 30 segundos
     if (!window.agendaPollingInterval) {
-        window.agendaPollingInterval = setInterval(window.cargarAgenda, 30000);
+        window.agendaPollingInterval = setInterval(() => window.cargarAgenda(false), 30000);
     }
 
     const fetchConfig = typeof window.configData === 'undefined'
@@ -40,9 +42,9 @@ window.cargarAgenda = function() {
             }
             if (!Array.isArray(data)) return;
 
-        // Evitar parpadeos: Solo re-renderizar si hubo un cambio real en los datos
+        // Evitar parpadeos salvo que se fuerce la recarga
         const newDataString = JSON.stringify(data);
-        if (window.agendaLastDataString === newDataString) return;
+        if (!force && window.agendaLastDataString === newDataString) return;
         window.agendaLastDataString = newDataString;
 
         window.agendaData = data;
@@ -468,10 +470,13 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     if (listElim) {
         const trashDot = document.getElementById('trashBadgeDot');
         if (trashDot) {
-            if (localStorage.getItem('agendatina_unread_trash') === 'true' && window.activeAgendaTab !== 'papelera') {
+            const hasDeleted = (Array.isArray(data) ? data : []).some(t => t.estado === 'eliminado' || t.estado === 'cancelado');
+            const isUnread = localStorage.getItem('agendatina_unread_trash') !== 'false';
+            if (hasDeleted && isUnread && window.activeAgendaTab !== 'papelera') {
                 trashDot.classList.remove('hidden');
             } else if (window.activeAgendaTab === 'papelera') {
                 trashDot.classList.add('hidden');
+                localStorage.setItem('agendatina_unread_trash', 'false');
             }
         }
         listElim.innerHTML = '';
@@ -734,6 +739,24 @@ window.descargarHistorialTurnos = function(btn) {
         document.body.removeChild(link);
         if(typeof showToast === 'function') showToast('Historial descargado con éxito.', 'success');
     })
-    .catch(err => { console.error(err); if(typeof showToast === 'function') showToast('Error al descargar el historial.', 'error'); })
+    .catch(err => { console.error(err); if(typeof showToast === 'function') showToast('Error al descargar el historial.', 'error'); });
+};
+
+// --- Recarga Automática por Eventos ---
+window.forceCargarAgenda = function() {
+    if (typeof window.cargarAgenda === 'function') {
+        window.cargarAgenda(true);
+    }
+};
+
+window.addEventListener('focus', window.forceCargarAgenda);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') window.forceCargarAgenda();
+});
+document.addEventListener('click', (e) => {
+    if (e.target.closest('button') || e.target.closest('a')) {
+        setTimeout(window.forceCargarAgenda, 350);
+    }
+});
     .finally(() => { btn.innerHTML = originalHtml; btn.disabled = false; });
 };

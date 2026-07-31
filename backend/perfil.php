@@ -16,7 +16,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     session_write_close();
 
     // Obtener datos de usuario
-    $stmtU = $pdo->prepare("SELECT nombre_completo, email FROM usuarios WHERE id = ?");
+    try { $pdo->query("SELECT email_verificado FROM usuarios LIMIT 1"); } 
+    catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN email_verificado TINYINT DEFAULT 0"); }
+
+    $stmtU = $pdo->prepare("SELECT nombre_completo, email, email_verificado FROM usuarios WHERE id = ?");
     $stmtU->execute([$id_usuario]);
     $user = $stmtU->fetch(PDO::FETCH_ASSOC);
 
@@ -85,6 +88,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!empty($password)) {
                 $hash = password_hash($password, PASSWORD_DEFAULT);
                 $pdo->prepare("UPDATE usuarios SET password = ? WHERE id = ?")->execute([$hash, $id_usuario]);
+                require_once __DIR__ . '/helpers/notificar_admin_helper.php';
+                notificarSuperAdminAlert($pdo, 'Seguridad / Contraseña', "El usuario '{$nombre}' modificó su contraseña de acceso.", $id_negocio);
             }
         }
 
@@ -96,6 +101,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception("La ruta ya está siendo utilizada por otro local.");
             }
             $pdo->prepare("UPDATE negocios SET ruta = ? WHERE id = ?")->execute([$ruta, $id_negocio]);
+            require_once __DIR__ . '/helpers/notificar_admin_helper.php';
+            notificarSuperAdminAlert($pdo, 'Configuración / Enlace Web', "El negocio cambió su enlace web público a: agendatina.site/{$ruta}", $id_negocio);
         }
 
         // 3. Actualizar Colores

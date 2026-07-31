@@ -101,6 +101,22 @@
                 </div>
             </div>
             
+            <!-- Banner de Verificación de Cuenta por Correo (Código 15 min) -->
+            <div id="verifyEmailBanner" class="hidden mb-6 bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[24px]">mark_email_unread</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm sm:text-base">¡Verifica tu cuenta para asegurar tus reservas!</h3>
+                        <p class="text-xs text-slate-500">Te enviamos un código de 6 dígitos válido por 15 minutos a tu correo electrónico.</p>
+                    </div>
+                </div>
+                <button onclick="openVerifyEmailModal()" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shrink-0 shadow-sm flex items-center justify-center gap-1.5">
+                    <span class="material-symbols-outlined text-[18px]">verified</span> Ingresar Código
+                </button>
+            </div>
+
             <!-- Widget de Inicio Rápido -->
             <div id="onboardingWidget" class="hidden mb-10 bg-white border border-primary/20 rounded-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full opacity-50 pointer-events-none"></div>
@@ -457,6 +473,32 @@
             <div class="mt-6 flex justify-end">
                 <button onclick="closeCustomNotifModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-6 rounded-xl transition-colors">Entendido</button>
             </div>
+        </div>
+    <!-- Modal Verificación de Correo -->
+    <div id="verifyEmailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative">
+            <button onclick="closeVerifyEmailModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2"><span class="material-symbols-outlined">close</span></button>
+            
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <span class="material-symbols-outlined text-3xl">mark_email_read</span>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800">Verificar Cuenta</h3>
+                <p class="text-xs text-slate-500 mt-1">Ingresa el código de 6 dígitos enviado a tu correo. Válido por 15 minutos.</p>
+            </div>
+
+            <form id="verifyEmailForm" class="space-y-4">
+                <div>
+                    <input type="text" id="verifyCodeInput" maxlength="6" pattern="[0-9]{6}" required placeholder="000000" class="w-full text-center text-3xl font-extrabold tracking-[10px] py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary outline-none">
+                </div>
+                <div id="verifyEmailMsg" class="hidden text-xs font-bold p-3 rounded-xl text-center"></div>
+
+                <button type="submit" id="btnSubmitVerify" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-primary/20 transition-all">Verificar Cuenta</button>
+
+                <div class="text-center pt-2">
+                    <button type="button" onclick="resendVerifyCode(this)" class="text-xs font-bold text-slate-500 hover:text-primary transition-colors">¿No recibiste el código? Reenviar correo</button>
+                </div>
+            </form>
         </div>
     </div>
 
