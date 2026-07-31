@@ -187,9 +187,34 @@ if ($method === 'GET') {
                 return $p['id_negocio'] == $negocio['id'];
             }));
             $negocio['turnos_count'] = isset($counts_turnos[$negocio['id']]) ? (int)$counts_turnos[$negocio['id']] : 0;
-            $negocio['comprobantes'] = array_values(array_filter($todos_comprobantes, function($c) use ($negocio) {
+            $compList = array_values(array_filter($todos_comprobantes, function($c) use ($negocio) {
                 return $c['id_negocio'] == $negocio['id'];
             }));
+
+            if (!empty($negocio['comprobante'])) {
+                $found = false;
+                foreach ($compList as $c) {
+                    if ($c['archivo_path'] === $negocio['comprobante'] || basename($c['archivo_path']) === basename($negocio['comprobante'])) {
+                        $found = true;
+                        break;
+                    }
+                }
+                if (!$found) {
+                    $filename = basename($negocio['comprobante']);
+                    array_unshift($compList, [
+                        'id' => 'legacy_' . $negocio['id'],
+                        'id_negocio' => (int)$negocio['id'],
+                        'monto' => 0.00,
+                        'plan' => $negocio['plan'] ?? 'Básico',
+                        'archivo_path' => $negocio['comprobante'],
+                        'nombre_archivo' => $filename,
+                        'fecha_pago' => $negocio['ultimo_pago'] ?? date('Y-m-d H:i:s'),
+                        'estado' => $negocio['estado_pago'] === 'pendiente_revision' ? 'pendiente' : 'aprobado',
+                        'notas' => 'Comprobante subido por cliente'
+                    ]);
+                }
+            }
+            $negocio['comprobantes'] = $compList;
         }
 
         // Obtener la configuración global

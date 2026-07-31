@@ -42,6 +42,45 @@ if ($method === 'GET') {
         $stmt = $pdo->prepare("SELECT id, id_negocio, monto, plan, archivo_path, nombre_archivo, fecha_pago, estado, notas FROM comprobantes_pago WHERE id_negocio = :id ORDER BY fecha_pago DESC");
         $stmt->execute(['id' => $id_negocio]);
         $comprobantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Auto-sincronización con la columna negocios.comprobante
+        try {
+            $stmtNeg = $pdo->prepare("SELECT comprobante, plan, estado_pago, ultimo_pago FROM negocios WHERE id = ?");
+            $stmtNeg->execute([$id_negocio]);
+            $neg = $stmtNeg->fetch(PDO::FETCH_ASSOC);
+
+            if ($neg && !empty($neg['comprobante'])) {
+                $found = false;
+                foreach ($comprobantes as $c) {
+                    if ($c['archivo_path'] === $neg['comprobante'] || basename($c['archivo_path']) === basename($neg['comprobante'])) {
+                        $found = true;
+                        break;
+                    }
+                }
+                if (!$found) {
+                    $filename = basename($neg['comprobante']);
+                    $legacyComp = [
+                        'id' => 'legacy_' . $id_negocio,
+                        'id_negocio' => (int)$id_negocio,
+                        'monto' => 0.00,
+                        'plan' => $neg['plan'] ?? 'Básico',
+                        'archivo_path' => $neg['comprobante'],
+                        'nombre_archivo' => $filename,
+                        'fecha_pago' => $neg['ultimo_pago'] ?? date('Y-m-d H:i:s'),
+                        'estado' => $neg['estado_pago'] === 'pendiente_revision' ? 'pendiente' : 'aprobado',
+                        'notas' => 'Comprobante subido por el cliente'
+                    ];
+                    array_unshift($comprobantes, $legacyComp);
+
+                    // Insertar permanentemente en la base para futuras búsquedas
+                    try {
+                        $stmtInsSync = $pdo->prepare("INSERT INTO comprobantes_pago (id_negocio, monto, plan, archivo_path, nombre_archivo, fecha_pago, estado, notas) VALUES (?, 0, ?, ?, ?, NOW(), ?, 'Comprobante sincronizado')");
+                        $stmtInsSync->execute([$id_negocio, $neg['plan'] ?? 'Básico', $neg['comprobante'], $filename, $neg['estado_pago'] === 'pendiente_revision' ? 'pendiente' : 'aprobado']);
+                    } catch(Exception $eInsSync) {}
+                }
+            }
+        } catch(Exception $exSync) {}
+
         echo json_encode(['success' => true, 'data' => $comprobantes]);
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'error' => $e->getMessage()]);
