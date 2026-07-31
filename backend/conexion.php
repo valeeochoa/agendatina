@@ -101,14 +101,29 @@ try {
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
     
 } catch (PDOException $e) {
-    // Si es la base de datos sandbox/demo y falló, lanzar error limpio sin intentar CREATE DATABASE
+    // Si es la base de datos sandbox/demo y falló, intentar auto-crearla o usar fallback a la BD principal
     if (strpos($dbname, '_d') !== false) {
-        error_log('Error al acceder a base de datos demo: ' . $e->getMessage());
-        header('Content-Type: application/json');
-        die(json_encode([
-            'success' => false,
-            'error' => "Error de conexión al Demo. Asegúrate de haber creado la base de datos '$dbname' en tu panel de control y de haber VINCULADO a tu usuario MySQL a ella con todos los permisos."
-        ]));
+        try {
+            $pdo = new PDO("mysql:host=$host;charset=utf8mb4", $username, $password);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+            $pdo->exec("USE `$dbname` ");
+            $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        } catch (Throwable $eCreate) {
+            try {
+                $mainDb = str_replace('_d', '', $dbname);
+                $pdo = new PDO("mysql:host=$host;dbname=$mainDb;charset=utf8mb4", $username, $password);
+                $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+            } catch (Throwable $eMain) {
+                error_log('Error al acceder a base de datos demo: ' . $e->getMessage());
+                header('Content-Type: application/json');
+                die(json_encode([
+                    'success' => false,
+                    'error' => "Error de conexión al Demo. Asegúrate de haber creado la base de datos '$dbname' en tu panel de control y de haber VINCULADO a tu usuario MySQL a ella con todos los permisos."
+                ]));
+            }
+        }
     } else {
         // Registrar el error en el log del servidor para depuración
         error_log('Error de conexión a la BD: ' . $e->getMessage());
