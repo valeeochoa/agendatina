@@ -62,80 +62,98 @@ try { $pdo->query("SELECT role FROM usuarios LIMIT 1"); } catch(Exception $e) { 
 try { $pdo->query("SELECT fecha_creacion FROM usuarios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP"); }
 
 if (!$user) {
-    // 1. Crear el usuario de muestra
+    // 1. Crear el usuario de muestra con username único e insensibilidad a errores
     $hash = password_hash('demo1234', PASSWORD_DEFAULT);
     
     try { $pdo->query("SELECT username FROM usuarios LIMIT 1"); $has_username = true; } catch(Exception $e) { $has_username = false; }
     
-    if ($has_username) {
-        $pdo->prepare("INSERT INTO usuarios (nombre_completo, username, email, password, role, fecha_creacion) VALUES ('Agendatina DEMO', 'demo123', ?, ?, 'admin', NOW())")->execute([$emailDemo, $hash]);
-    } else {
-        $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password) VALUES ('Agendatina DEMO', ?, ?)")->execute([$emailDemo, $hash]);
-    }
-    $userId = $pdo->lastInsertId();
-
-    // 2. Obtener o crear negocio de muestra evitando duplicado de subdominio
-    $stmtCheckBiz = $pdo->prepare("SELECT id FROM negocios WHERE ruta = 'demo' OR subdominio = 'demo' LIMIT 1");
-    $stmtCheckBiz->execute();
-    $existingBiz = $stmtCheckBiz->fetch();
-
-    if ($existingBiz) {
-        $negocioId = $existingBiz['id'];
-        $rutaDemo = 'demo';
-    } else {
-        try {
-            $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago) VALUES ('Agendatina', 'demo', 'Completo', 5, 'activo')")->execute();
-            $negocioId = $pdo->lastInsertId();
-            $rutaDemo = 'demo';
-        } catch (Exception $eRuta) {
-            $rutaDemo = 'demo-' . $demoHash;
-            $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago) VALUES ('Agendatina', ?, 'Completo', 5, 'activo')")->execute([$rutaDemo]);
-            $negocioId = $pdo->lastInsertId();
+    try {
+        if ($has_username) {
+            $pdo->prepare("INSERT INTO usuarios (nombre_completo, username, email, password, role, fecha_creacion) VALUES ('Agendatina DEMO', ?, ?, ?, 'admin', NOW())")->execute(['demo_' . $demoHash, $emailDemo, $hash]);
+        } else {
+            $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password) VALUES ('Agendatina DEMO', ?, ?)")->execute([$emailDemo, $hash]);
         }
+        $userId = $pdo->lastInsertId();
+    } catch (Exception $eUserIns) {
+        $stmtU = $pdo->prepare("SELECT id FROM usuarios WHERE email = ? LIMIT 1");
+        $stmtU->execute([$emailDemo]);
+        $userId = $stmtU->fetchColumn();
     }
-
-    // 3. Vincularlos
-    $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'admin')")->execute([$negocioId, $userId]);
 } else {
     $userId = $user['id'];
-    $stmtDemoBiz = $pdo->prepare("SELECT id FROM negocios WHERE id IN (SELECT id_negocio FROM personal_negocio WHERE id_usuario = ?) LIMIT 1");
-    $stmtDemoBiz->execute([$userId]);
-    $demoBiz = $stmtDemoBiz->fetch();
+}
 
-    if ($demoBiz) {
-        $negocioId = $demoBiz['id'];
-    } else {
-        $stmtCheckBiz = $pdo->prepare("SELECT id FROM negocios WHERE ruta = 'demo' OR subdominio = 'demo' LIMIT 1");
-        $stmtCheckBiz->execute();
-        $existingBiz = $stmtCheckBiz->fetch();
-        if ($existingBiz) {
-            $negocioId = $existingBiz['id'];
-            $rutaDemo = 'demo';
-        } else {
-            try {
-                $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago) VALUES ('Agendatina', 'demo', 'Completo', 5, 'activo')")->execute();
-                $negocioId = $pdo->lastInsertId();
-                $rutaDemo = 'demo';
-            } catch (Exception $eRuta) {
-                $rutaDemo = 'demo-' . $demoHash;
-                $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago) VALUES ('Agendatina', ?, 'Completo', 5, 'activo')")->execute([$rutaDemo]);
-                $negocioId = $pdo->lastInsertId();
+// 2. Obtener o crear negocio de muestra de forma ultra-segura
+$negocioId = null;
+if ($userId) {
+    try {
+        $stmtUserBiz = $pdo->prepare("SELECT id_negocio FROM personal_negocio WHERE id_usuario = ? LIMIT 1");
+        $stmtUserBiz->execute([$userId]);
+        $negocioId = $stmtUserBiz->fetchColumn();
+    } catch (Exception $eUb) {}
+}
+
+if (!$negocioId) {
+    try {
+        $stmtCheckBiz = $pdo->query("SELECT id FROM negocios WHERE ruta = 'demo' OR subdominio = 'demo' LIMIT 1");
+        $negocioId = $stmtCheckBiz ? $stmtCheckBiz->fetchColumn() : null;
+    } catch (Exception $eCb) {}
+}
+
+if (!$negocioId) {
+    $hasSubdominioCol = false;
+    try { $pdo->query("SELECT subdominio FROM negocios LIMIT 1"); $hasSubdominioCol = true; } catch (Exception $eSub) {}
+
+    $rutasToTry = ['demo', 'demo_' . $demoHash, 'demo_' . time()];
+    foreach ($rutasToTry as $rTry) {
+        try {
+            if ($hasSubdominioCol) {
+                $stmtInsB = $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, subdominio, plan, max_profesionales, estado_pago) VALUES ('Agendatina', ?, ?, 'Completo', 5, 'activo')");
+                $stmtInsB->execute([$rTry, $rTry]);
+            } else {
+                $stmtInsB = $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago) VALUES ('Agendatina', ?, 'Completo', 5, 'activo')");
+                $stmtInsB->execute([$rTry]);
             }
+            $negocioId = $pdo->lastInsertId();
+            $rutaDemo = $rTry;
+            break;
+        } catch (Exception $eTry) {
+            // Reintentar con siguiente candidato si colisiona
         }
-    }
-
-    $stmtLink = $pdo->prepare("SELECT id FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ? LIMIT 1");
-    $stmtLink->execute([$negocioId, $userId]);
-    if (!$stmtLink->fetch()) {
-        $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'admin')")->execute([$negocioId, $userId]);
     }
 }
 
+// Fallback absoluto si nada trajo ID
+if (!$negocioId) {
+    try {
+        $stmtAny = $pdo->query("SELECT id FROM negocios ORDER BY id ASC LIMIT 1");
+        $negocioId = $stmtAny ? $stmtAny->fetchColumn() : 1;
+    } catch(Exception $eAny) {
+        $negocioId = 1;
+    }
+}
+
+// 3. Vincular usuario con negocio demo sin lanzar excepciones
+if ($userId && $negocioId) {
+    try {
+        $stmtLink = $pdo->prepare("SELECT id FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ? LIMIT 1");
+        $stmtLink->execute([$negocioId, $userId]);
+        if (!$stmtLink->fetch()) {
+            $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'admin')")->execute([$negocioId, $userId]);
+        }
+    } catch(Exception $eLk) {}
+}
+
 // Blindaje: en cada acceso demo, normalizar identidad del negocio demo
-$pdo->prepare("UPDATE negocios SET nombre_fantasia = 'Agendatina', plan = 'Completo', max_profesionales = 5, estado_pago = 'activo', ultimo_pago = NOW() WHERE id = ?")->execute([$negocioId]);
-$pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, subtitulo, titulo)
-               VALUES (?, '#D11149', '#FCB0B3', 'Agendatina', 'Sesión de demostración', 'Agendatina')
-               ON DUPLICATE KEY UPDATE mensaje_bienvenida = 'Agendatina', subtitulo = 'Sesión de demostración', titulo = 'Agendatina'")->execute([$negocioId]);
+try {
+    $pdo->prepare("UPDATE negocios SET nombre_fantasia = 'Agendatina', plan = 'Completo', max_profesionales = 5, estado_pago = 'activo', ultimo_pago = NOW() WHERE id = ?")->execute([$negocioId]);
+} catch(Exception $eUpd) {}
+
+try {
+    $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, subtitulo, titulo)
+                   VALUES (?, '#D11149', '#FCB0B3', 'Agendatina', 'Sesión de demostración', 'Agendatina')
+                   ON DUPLICATE KEY UPDATE mensaje_bienvenida = 'Agendatina', subtitulo = 'Sesión de demostración', titulo = 'Agendatina'")->execute([$negocioId]);
+} catch(Exception $eWeb) {}
 
 // RESET AUTOMÁTICO CADA 10 MINUTOS O EN NUEVAS SESIONES DE NAVEGADOR
 $resetFile = __DIR__ . '/demo_reset_' . $demoHash . '.txt';
