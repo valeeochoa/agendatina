@@ -9,6 +9,7 @@ jobs:
   ftp-deploy:
     name: Deploy to Ferozo
     runs-on: ubuntu-latest
+    timeout-minutes: 10 # Cancela automáticamente si se traba más de 10 min
     steps:
       - name: Descargar el código
         uses: actions/checkout@v4
@@ -29,9 +30,11 @@ jobs:
           set ftp:ssl-allow yes;
           set ftp:passive-mode true;
           open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER;
-          mirror -R -v -c --no-perms --no-umask \
+          mirror -R -v -c --only-newer --no-perms --no-umask \
             --exclude '.git/' \
             --exclude '.github/' \
+            --exclude 'node_modules/' \
+            --exclude '.env' \
             --exclude '.env.example' \
             --exclude 'implementation_plan.md' \
             --exclude 'temp_zip/' \
