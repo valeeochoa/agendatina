@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
 jobs:
   web-deploy:
     name: Deploy to Ferozo
@@ -22,8 +25,10 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
           protocol: ftps
           security: loose
+          log-level: verbose
           server-dir: /public_html/
           exclude: |
             **/.git**
