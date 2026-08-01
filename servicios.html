@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servicios y Equipo | Agendatina</title>
+    <link rel="icon" href="public/logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#d11149',
+                        secondary: '#fc8712',
+                        accent: '#fcb0b3'
+                    },
+                    fontFamily: {
+                        brand: ['Fredoka', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+    <div class="max-w-6xl mx-auto px-4 py-6 md:px-8 md:py-10">
+        
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div class="flex items-center gap-3">
+                <a href="dashboard.html" class="w-10 h-10 flex items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-500 hover:text-primary hover:border-primary/30 transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                </a>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 flex items-center gap-2 font-display">
+                        <span class="material-symbols-outlined text-primary text-3xl">content_cut</span>
+                        Catálogo de Servicios
+                    </h1>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Administra los servicios de tu negocio, duraciones, precios y descripciones.</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="openServiceModal()" class="bg-primary hover:bg-primary/90 text-white font-bold px-5 py-2.5 rounded-2xl text-xs sm:text-sm transition-all shadow-lg shadow-primary/20 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">add_task</span> ➕ Nuevo Servicio
+                </button>
+            </div>
+        </div>
+
+        <!-- SECCIÓN ÚNICA: SERVICIOS OFRECIDOS -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">storefront</span> Servicios Activos
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Servicios visibles en tu página pública de reserva online.</p>
+                </div>
+                <div class="relative w-full sm:w-auto">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+                    <input type="text" id="searchServiceInput" oninput="filterServices()" placeholder="Buscar servicio..." class="w-full sm:w-64 bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 text-xs outline-none focus:ring-2 focus:ring-primary">
+                </div>
+            </div>
+
+            <div id="servicesList" class="space-y-3">
+                <p class="text-center text-slate-400 py-8 text-sm">Cargando servicios...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODAL CREAR / EDITAR SERVICIO -->
+    <div id="serviceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeServiceModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5"><span class="material-symbols-outlined">close</span></button>
+
+            <h3 class="text-xl font-bold text-slate-900 mb-1 flex items-center gap-2" id="serviceModalTitle">
+                <span class="material-symbols-outlined text-primary">add_task</span> Nuevo Servicio
+            </h3>
+            <p class="text-xs text-slate-500 mb-6">Configura el nombre, duración, precio y profesional a cargo.</p>
+
+            <form id="serviceForm" class="space-y-4">
+                <input type="hidden" name="id" id="svcId">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre del Servicio</label>
+                    <input type="text" name="nombre" id="svcNombre" required placeholder="Ej: Corte de Cabello & Peinado" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Duración (Minutos)</label>
+                        <input type="number" name="duracion" id="svcDuracion" min="15" step="15" value="45" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Precio ($)</label>
+                        <input type="number" name="precio" id="svcPrecio" min="0" step="100" placeholder="5000" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Profesional Asignado</label>
+                    <select name="profesional" id="svcProfesional" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none font-medium">
+                        <option value="Cualquiera (Sin preferencia)">Cualquiera (Sin preferencia)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Descripción corta (Opcional)</label>
+                    <textarea name="descripcion" id="svcDescripcion" rows="2" placeholder="Detalles de lo que incluye el servicio..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"></textarea>
+                </div>
+
+                <button type="submit" id="btnSvcSubmit" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/20 text-sm transition-all mt-2">
+                    Guardar Servicio
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL CREAR PROFESIONAL / EQUIPO -->
+    <div id="teamModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative">
+            <button onclick="closeTeamModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5"><span class="material-symbols-outlined">close</span></button>
+
+            <h3 class="text-xl font-bold text-slate-900 mb-1 flex items-center gap-2">
+                <span class="material-symbols-outlined text-purple-600">group_add</span> Crear Profesional
+            </h3>
+            <p class="text-xs text-slate-500 mb-6">Otorga credenciales de acceso para que el profesional gestione sus reservas.</p>
+
+            <form id="teamForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre Completo</label>
+                    <input type="text" name="nombre" required placeholder="Ej: Valentina Gómez" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Correo Electrónico (Login)</label>
+                    <input type="email" name="email" required placeholder="valentina@ejemplo.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Contraseña Inicial</label>
+                    <input type="password" name="password" required placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+
+                <button type="submit" id="btnTeamSubmit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-purple-600/20 text-sm transition-all mt-2">
+                    Registrar Cuenta de Profesional
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let servicesData = [];
+        let professionalsData = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('backend/perfil.php')
+                .then(r => r.json())
+                .then(d => {
+                    if (!d.success) window.location.href = 'login.html';
+                    else {
+                        loadServices();
+                        loadTeam();
+                    }
+                });
+        });
+
+        function loadServices() {
+            fetch('backend/gestionar_servicios.php')
+                .then(r => r.json())
+                .then(data => {
+                    servicesData = Array.isArray(data) ? data : [];
+                    filterServices();
+                });
+        }
+
+        function filterServices() {
+            const search = document.getElementById('searchServiceInput').value.toLowerCase().trim();
+            const filtered = servicesData.filter(s => !search || (s.nombre && s.nombre.toLowerCase().includes(search)));
+            renderServicesList(filtered);
+        }
+
+        function renderServicesList(list) {
+            const container = document.getElementById('servicesList');
+            if (list.length === 0) {
+                container.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm border border-dashed border-slate-200 rounded-2xl">No hay servicios registrados en tu catálogo.</div>';
+                return;
+            }
+            let html = '';
+            list.forEach(s => {
+                const precioFmt = parseFloat(s.precio || 0).toLocaleString('es-AR');
+                html += `
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-300 transition-all">
+                        <div>
+                            <h4 class="font-bold text-slate-900 text-base">${s.nombre}</h4>
+                            <p class="text-xs text-slate-500 font-medium mt-0.5 flex flex-wrap items-center gap-2">
+                                <span>⏱️ ${s.duracion || 45} min</span>
+                                <span class="font-bold text-emerald-700">💲 $${precioFmt}</span>
+                                <span>👤 ${s.profesional || 'Cualquiera'}</span>
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="editService(${s.id})" class="p-2 rounded-xl bg-white text-slate-600 hover:text-primary border border-slate-200 transition-colors" title="Editar Servicio"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+                            <button onclick="deleteService(${s.id})" class="p-2 rounded-xl bg-white text-slate-600 hover:text-red-600 border border-slate-200 transition-colors" title="Eliminar Servicio"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function loadTeam() {
+            fetch('backend/gestionar_profesionales.php')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        professionalsData = data.data || [];
+                        document.getElementById('limitCount').textContent = data.limite || 1;
+                        renderTeamList(professionalsData);
+                        populateProfSelect(professionalsData);
+                    }
+                });
+        }
+
+        function renderTeamList(list) {
+            const container = document.getElementById('teamList');
+            if (list.length === 0) {
+                container.innerHTML = '<div class="p-6 text-center text-slate-400 text-xs border border-dashed border-slate-200 rounded-2xl">No hay cuentas de profesionales registradas.</div>';
+                return;
+            }
+            let html = '';
+            list.forEach(p => {
+                html += `
+                    <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                            <h4 class="font-bold text-slate-900 text-sm truncate">${p.nombre_completo}</h4>
+                            <p class="text-xs text-slate-400 truncate">${p.email}</p>
+                        </div>
+                        <button onclick="deleteTeamMember(${p.id})" class="p-2 text-slate-400 hover:text-red-600 rounded-xl hover:bg-red-50 transition-colors" title="Revocar Acceso">
+                            <span class="material-symbols-outlined text-[18px]">person_remove</span>
+                        </button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function populateProfSelect(profs) {
+            const select = document.getElementById('svcProfesional');
+            select.innerHTML = '<option value="Cualquiera (Sin preferencia)">Cualquiera (Sin preferencia)</option>';
+            profs.forEach(p => {
+                select.innerHTML += `<option value="${p.nombre_completo}">${p.nombre_completo}</option>`;
+            });
+        }
+
+        function openServiceModal() {
+            document.getElementById('serviceForm').reset();
+            document.getElementById('svcId').value = '';
+            document.getElementById('serviceModalTitle').innerHTML = '<span class="material-symbols-outlined text-primary">add_task</span> Nuevo Servicio';
+            document.getElementById('serviceModal').classList.remove('hidden');
+        }
+
+        function closeServiceModal() {
+            document.getElementById('serviceModal').classList.add('hidden');
+        }
+
+        function editService(id) {
+            const s = servicesData.find(item => item.id == id);
+            if (!s) return;
+            document.getElementById('svcId').value = s.id;
+            document.getElementById('svcNombre').value = s.nombre;
+            document.getElementById('svcDuracion').value = s.duracion;
+            document.getElementById('svcPrecio').value = s.precio;
+            document.getElementById('svcProfesional').value = s.profesional || 'Cualquiera (Sin preferencia)';
+            document.getElementById('svcDescripcion').value = s.descripcion || '';
+            document.getElementById('serviceModalTitle').innerHTML = '<span class="material-symbols-outlined text-primary">edit</span> Editar Servicio';
+            document.getElementById('serviceModal').classList.remove('hidden');
+        }
+
+        function deleteService(id) {
+            if (confirm('¿Seguro que deseas eliminar este servicio del catálogo?')) {
+                fetch('backend/gestionar_servicios.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'id=' + id
+                })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) loadServices();
+                    else alert(d.error || 'Error al eliminar');
+                });
+            }
+        }
+
+        document.getElementById('serviceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSvcSubmit');
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+
+            const formData = new FormData(this);
+            fetch('backend/gestionar_servicios.php', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(d => {
+                    btn.disabled = false;
+                    btn.textContent = 'Guardar Servicio';
+                    if (d.success) {
+                        closeServiceModal();
+                        loadServices();
+                    } else alert(d.error || 'Error al guardar');
+                });
+        });
+
+        function openTeamModal() {
+            document.getElementById('teamForm').reset();
+            document.getElementById('teamModal').classList.remove('hidden');
+        }
+
+        function closeTeamModal() {
+            document.getElementById('teamModal').classList.add('hidden');
+        }
+
+        document.getElementById('teamForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnTeamSubmit');
+            btn.disabled = true;
+            btn.textContent = 'Creando...';
+
+            const formData = new FormData(this);
+            fetch('backend/gestionar_profesionales.php', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(d => {
+                    btn.disabled = false;
+                    btn.textContent = 'Registrar Cuenta de Profesional';
+                    if (d.success) {
+                        closeTeamModal();
+                        loadTeam();
+                    } else alert(d.error || 'Error al crear cuenta');
+                });
+        });
+
+        function deleteTeamMember(id) {
+            if (confirm('¿Seguro que deseas revocar el acceso a este profesional?')) {
+                fetch('backend/gestionar_profesionales.php?id=' + id, { method: 'DELETE' })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.success) loadTeam();
+                        else alert(d.error || 'Error al revocar');
+                    });
+            }
+        }
+    </script>
+</body>
+</html>

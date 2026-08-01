@@ -167,23 +167,6 @@
                         </button>
                     </div>
                 </div>
-            <!-- Accesos Rápidos: Servicios y Equipo de Trabajo -->
-            <div id="quickActionsSection" class="mb-8 bg-gradient-to-r from-slate-900 to-slate-800 rounded-3xl p-6 sm:p-8 text-white shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                <div>
-                    <span class="bg-[#d11149] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2 inline-block shadow-sm">Gestión Rápida</span>
-                    <h3 class="text-xl sm:text-2xl font-extrabold tracking-tight">Servicios y Equipo de Trabajo</h3>
-                    <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-xl">Agrega servicios a tu agenda o crea cuentas con acceso exclusivo para los profesionales de tu local.</p>
-                </div>
-                <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                    <a href="calendarioMensual.html" onclick="sessionStorage.setItem('autoOpenServicesModal', 'true')" class="flex-1 sm:flex-none bg-[#d11149] hover:bg-[#f44979] text-white font-bold px-5 py-3 rounded-2xl text-xs sm:text-sm transition-all shadow-md shadow-[#d11149]/30 flex items-center justify-center gap-2">
-                        <span class="material-symbols-outlined text-[20px]">add_task</span> ➕ Crear Servicio
-                    </a>
-                    <button onclick="openTeamModal()" class="flex-1 sm:flex-none bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 font-bold px-5 py-3 rounded-2xl text-xs sm:text-sm transition-all shadow-md flex items-center justify-center gap-2">
-                        <span class="material-symbols-outlined text-[20px]">person_add</span> 👥 Crear Profesional
-                    </button>
-                </div>
-            </div>
-
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             
             <!-- Acceso a la Agenda Virtual (Admin) -->
@@ -201,6 +184,36 @@
                 </div>
             </a>
 
+            <!-- Catálogo de Servicios -->
+            <a href="servicios.html" id="cardServicios" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-pink-500/50 transition-all flex flex-col relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <span class="material-symbols-outlined text-9xl text-[#d11149]">content_cut</span>
+                </div>
+                <div class="w-14 h-14 rounded-2xl bg-pink-100 text-[#d11149] flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
+                    <span class="material-symbols-outlined text-3xl">content_cut</span>
+                </div>
+                <h2 class="text-2xl font-bold mb-3 z-10">Servicios</h2>
+                <p class="text-slate-500 flex-1 z-10">Administra los servicios que ofrece tu local, sus precios, duraciones y descripciones para reserva online.</p>
+                <div class="mt-8 flex items-center gap-2 text-[#d11149] font-semibold z-10">
+                    Gestionar servicios <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </div>
+            </a>
+
+            <!-- Equipo de Trabajo y Profesionales -->
+            <a href="equipo.html" id="cardEquipo" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-purple-500/50 transition-all flex flex-col relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <span class="material-symbols-outlined text-9xl text-purple-600">group</span>
+                </div>
+                <div class="w-14 h-14 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
+                    <span class="material-symbols-outlined text-3xl">group</span>
+                </div>
+                <h2 class="text-2xl font-bold mb-3 z-10">Equipo de Trabajo</h2>
+                <p class="text-slate-500 flex-1 z-10">Visualiza los profesionales de tu equipo, sus servicios asociados, límite del plan y crea nuevas cuentas de acceso.</p>
+                <div class="mt-8 flex items-center gap-2 text-purple-600 font-semibold z-10">
+                    Ver profesionales y equipo <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </div>
+            </a>
+
             <!-- Gestionar Calendario y Servicios -->
             <a href="calendarioMensual.html" id="cardCalendario" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-secondary/50 transition-all flex flex-col relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -210,7 +223,7 @@
                     <span class="material-symbols-outlined text-3xl">edit_calendar</span>
                 </div>
                 <h2 class="text-2xl font-bold mb-3 z-10">Gestionar Calendario</h2>
-                <p class="text-slate-500 flex-1 z-10">Define tus horarios, bloquea fechas, y administra los servicios ofrecidos, su duración y precios.</p>
+                <p class="text-slate-500 flex-1 z-10">Define tus horarios de atención, bloquea fechas y configura la modalidad de trabajo.</p>
                 <div class="mt-8 flex items-center gap-2 text-secondary font-semibold z-10">
                     Configurar mi calendario <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
                 </div>

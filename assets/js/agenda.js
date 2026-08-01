@@ -569,15 +569,69 @@ window.setAgendaProfFilter = function(profName) {
     window.renderAgendaTurnos(window.agendaData, document.getElementById('agendaSearchInput')?.value || '', profName);
 };
 
+window.cancelarTurnoAdmin = function(id) {
+    if (typeof showConfirm === 'function') {
+        showConfirm('Enviar a Papelera', '¿Seguro que deseas eliminar o cancelar este turno? Se enviará a la Papelera de Reciclaje.', 'Enviar a Papelera', 'bg-red-600 hover:bg-red-700', () => {
+            return fetch('backend/gestionar_papelera.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'move_to_trash', id: id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof showToast === 'function') showToast('Turno movido a la Papelera', 'success');
+                    window.cargarAgenda(true);
+                } else {
+                    if (typeof showToast === 'function') showToast(data.error || 'Error al mover a papelera.', 'error');
+                }
+            })
+            .catch(() => { if (typeof showToast === 'function') showToast('Error de conexión', 'error'); });
+        });
+    } else if (confirm('¿Seguro que deseas mover este turno a la Papelera?')) {
+        fetch('backend/gestionar_papelera.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'move_to_trash', id: id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                if (typeof showToast === 'function') showToast('Turno movido a la Papelera', 'success');
+                window.cargarAgenda(true);
+            }
+        });
+    }
+};
+
+window.confirmarTurnoAdmin = function(id) {
+    fetch('backend/cambiar_estado_turno.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id, estado: 'confirmado' })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (typeof showToast === 'function') showToast('Turno confirmado exitosamente', 'success');
+            window.cargarAgenda(true);
+        }
+    });
+};
+
 window.restaurarTurnoAdmin = function(id) {
     if (typeof showConfirm === 'function') {
-        showConfirm('Restaurar Turno', '¿Deseas restaurar este turno y devolverlo a la agenda de pendientes?', 'Restaurar', 'bg-green-600 hover:bg-green-700', () => {
-            return fetch('backend/restaurar_turno.php', { method: 'POST', body: new URLSearchParams({id: id}) })
+        showConfirm('Restaurar Turno', '¿Deseas restaurar este turno y devolverlo a la agenda?', 'Restaurar', 'bg-green-600 hover:bg-green-700', () => {
+            return fetch('backend/gestionar_papelera.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'restore', id: id })
+            })
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
                     if(typeof showToast === 'function') showToast('Turno restaurado exitosamente', 'success');
-                    window.cargarAgenda();
+                    window.cargarAgenda(true);
                 } else {
                     if(typeof showToast === 'function') showToast(data.error || 'Error al restaurar.', 'error');
                 }
@@ -589,12 +643,16 @@ window.restaurarTurnoAdmin = function(id) {
 window.eliminarTurnoPermanente = function(id) {
     if (typeof showConfirm === 'function') {
         showConfirm('Eliminar Permanente', '¿Seguro que deseas eliminar este turno definitivamente? Esta acción no se puede deshacer.', 'Eliminar', 'bg-red-600 hover:bg-red-700', () => {
-            return fetch('backend/eliminar_turno_permanente.php', { method: 'POST', body: new URLSearchParams({id: id}) })
+            return fetch('backend/gestionar_papelera.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete_permanent', id: id })
+            })
             .then(res => res.json())
             .then(data => {
                 if(data.success) {
                     if(typeof showToast === 'function') showToast('Turno eliminado permanentemente', 'success');
-                    window.cargarAgenda();
+                    window.cargarAgenda(true);
                 } else {
                     if(typeof showToast === 'function') showToast(data.error || 'Error al eliminar.', 'error');
                 }
@@ -602,6 +660,89 @@ window.eliminarTurnoPermanente = function(id) {
         });
     }
 };
+
+window.vaciarPapeleraCompletamente = function() {
+    if (confirm('¿Seguro que deseas vaciar la Papelera por completo? Se eliminarán permanentemente todos los turnos cancelados o borrados.')) {
+        fetch('backend/gestionar_papelera.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'empty_trash' })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                if (typeof showToast === 'function') showToast('Papelera vaciada por completo', 'success');
+                window.closePapeleraModal();
+                window.cargarAgenda(true);
+            }
+        });
+    }
+};
+
+window.openPapeleraModal = function() {
+    const modal = document.getElementById('papeleraModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    const container = document.getElementById('papeleraList');
+    if (container) container.innerHTML = '<p class="text-center text-slate-400 py-8 text-sm">Cargando papelera...</p>';
+
+    fetch('backend/gestionar_papelera.php')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && Array.isArray(data.data)) {
+                renderPapeleraModalList(data.data);
+            } else {
+                if (container) container.innerHTML = '<p class="text-center text-red-500 py-8 text-sm">Error al cargar la papelera.</p>';
+            }
+        });
+};
+
+window.closePapeleraModal = function() {
+    const modal = document.getElementById('papeleraModal');
+    if (modal) modal.classList.add('hidden');
+};
+
+function renderPapeleraModalList(list) {
+    const container = document.getElementById('papeleraList');
+    if (!container) return;
+    if (list.length === 0) {
+        container.innerHTML = '<div class="p-8 text-center text-sm font-medium text-slate-400 rounded-2xl bg-slate-50 border border-slate-200">No hay turnos en la papelera.</div>';
+        return;
+    }
+
+    let html = '';
+    list.forEach(t => {
+        const clienteName = t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''));
+        const celular = t.cliente_celular || t.celular || '';
+        const fElim = t.fecha_eliminado ? new Date(t.fecha_eliminado).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }) : 'Reciente';
+
+        html += `
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-slate-300 transition-all">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="bg-red-100 text-red-700 text-[11px] font-bold px-2.5 py-0.5 rounded-lg border border-red-200 uppercase">${t.estado}</span>
+                        <span class="text-xs text-slate-400 font-medium">Movido a papelera: ${fElim}</span>
+                    </div>
+                    <h4 class="font-bold text-slate-900 text-base line-through opacity-80">${clienteName}</h4>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5 flex flex-wrap items-center gap-2">
+                        <span>📅 ${t.fecha} • ${t.hora} hs</span>
+                        <span>✂️ ${t.servicio}</span>
+                        ${celular ? `<span>📱 ${celular}</span>` : ''}
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button onclick="window.restaurarTurnoAdmin(${t.id})" class="flex-1 sm:flex-none px-3.5 py-2 bg-green-50 hover:bg-green-100 text-green-700 font-bold rounded-xl text-xs border border-green-200 transition-all flex items-center justify-center gap-1">
+                        <span class="material-symbols-outlined text-[16px]">restore</span> Restaurar
+                    </button>
+                    <button onclick="window.eliminarTurnoPermanente(${t.id})" class="flex-1 sm:flex-none px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl text-xs border border-red-200 transition-all flex items-center justify-center gap-1" title="Eliminar permanentemente">
+                        <span class="material-symbols-outlined text-[16px]">delete_forever</span> Borrar
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     // ---- Lógica para agenda.html ----
