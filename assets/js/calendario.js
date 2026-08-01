@@ -2515,7 +2515,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(config => {
             if (config) {
                 window.businessWebConfig = config;
-                let title = config.mensaje_bienvenida || config.titulo || 'Agendatina';
+                let title = config.nombre_fantasia || config.nombre_negocio || config.titulo || 'Agendatina';
                 document.title = title + ' | Calendario de Turnos';
                 
                 const navBusinessName = document.getElementById('navBusinessName');

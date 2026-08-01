@@ -242,7 +242,7 @@ if ($method === 'GET') {
         ");
         $notas_recientes = $stmtNotas ? $stmtNotas->fetchAll(PDO::FETCH_ASSOC) : [];
         
-        echo json_encode(['success' => true, 'data' => $negocios, 'notificaciones' => $notifs_admin, 'notas_recientes' => $notas_recientes, 'config_global' => $config_global]);
+        echo json_encode(['success' => true, 'data' => $negocios, 'negocios' => $negocios, 'notificaciones' => $notifs_admin, 'notas_recientes' => $notas_recientes, 'config_global' => $config_global]);
     } catch (PDOException $e) {
         echo json_encode(['success' => false, 'error' => 'Error BD: ' . $e->getMessage()]);
     }

@@ -125,11 +125,25 @@
             fetch('../backend/admin_api.php')
                 .then(res => res.json())
                 .then(data => {
-                    if (data.success && Array.isArray(data.negocios)) {
-                        clientsData = data.negocios;
+                    const list = Array.isArray(data.data) ? data.data : (Array.isArray(data.negocios) ? data.negocios : []);
+                    if (data.success && list) {
+                        clientsData = list;
                         document.getElementById('totalEmpresasBadge').textContent = `${clientsData.length} Emprendimientos Registrados`;
-                        renderClientsTable(clientsData);
+                        
+                        const params = new URLSearchParams(window.location.search);
+                        const filterParam = params.get('filter');
+                        if (filterParam) {
+                            const select = document.getElementById('statusFilter');
+                            if (select) select.value = filterParam;
+                        }
+                        
+                        filterClients();
+                    } else {
+                        document.getElementById('clientsList').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-red-500 font-medium">Error al cargar las empresas desde el servidor.</td></tr>';
                     }
+                })
+                .catch(err => {
+                    document.getElementById('clientsList').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-red-500 font-medium">Error de conexión al cargar empresas.</td></tr>';
                 });
         }
 

@@ -23,14 +23,28 @@ window.loadDashboardData = function() {
                 if (cardCalendario) cardCalendario.href = calPage;
         }
         
-        // 3. Gestionar permisos según el rol y verificación de correo
+        // 3. Gestionar permisos según el rol y verificación de correo (Modo DEMO oculta banners de verificación y pago)
         if (window.currentUserData) {
+            const isDemo = sessionStorage.getItem('is_demo_user') === 'true' || 
+                           sessionStorage.getItem('agendatina_demo_alert') === 'true' || 
+                           (window.currentUserData.email && window.currentUserData.email.includes('demo')) ||
+                           (window.currentBusinessData && (window.currentBusinessData.ruta === 'demo' || window.currentBusinessData.subdominio === 'demo'));
+
             const vBanner = document.getElementById('verifyEmailBanner');
-            if (vBanner) {
-                if (parseInt(window.currentUserData.email_verificado) === 0 && window.currentUserData.email !== 'demo@agendatina.site') {
-                    vBanner.classList.remove('hidden');
-                } else {
-                    vBanner.classList.add('hidden');
+            const sBanner = document.getElementById('subscriptionBanner');
+
+            if (isDemo) {
+                if (vBanner) { vBanner.classList.add('hidden'); vBanner.style.setProperty('display', 'none', 'important'); }
+                if (sBanner) { sBanner.classList.add('hidden'); sBanner.style.setProperty('display', 'none', 'important'); }
+            } else {
+                if (vBanner) {
+                    if (parseInt(window.currentUserData.email_verificado) === 0) {
+                        vBanner.classList.remove('hidden');
+                        vBanner.style.display = '';
+                    } else {
+                        vBanner.classList.add('hidden');
+                        vBanner.style.display = 'none';
+                    }
                 }
             }
 

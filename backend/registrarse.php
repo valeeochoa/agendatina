@@ -87,13 +87,6 @@ try {
         }
     } catch (Exception $e) {}
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-
-require_once __DIR__ . '/phpmailer/Exception.php';
-require_once __DIR__ . '/phpmailer/PHPMailer.php';
-require_once __DIR__ . '/phpmailer/SMTP.php';
-
 // Asegurar columnas de verificación
 try { $pdo->query("SELECT codigo_verificacion FROM usuarios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN codigo_verificacion VARCHAR(10) DEFAULT NULL"); }

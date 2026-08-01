@@ -5,6 +5,18 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/conexion.php';
 
 if (!isset($_SESSION['id_negocio'])) {
+    if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || (isset($_GET['n']) && strtolower($_GET['n']) === 'demo')) {
+        try {
+            $stmtDemo = $pdo->query("SELECT id FROM negocios WHERE ruta = 'demo' OR subdominio = 'demo' LIMIT 1");
+            if ($stmtDemo) {
+                $demoId = $stmtDemo->fetchColumn();
+                if ($demoId) $_SESSION['id_negocio'] = $demoId;
+            }
+        } catch (Exception $eDemo) {}
+    }
+}
+
+if (!isset($_SESSION['id_negocio'])) {
     echo json_encode([]);
     exit;
 }
