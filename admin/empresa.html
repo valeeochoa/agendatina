@@ -136,10 +136,10 @@
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Plan Relacionado</label>
-                            <select id="uploadPlan" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none font-medium">
+                            <select id="uploadPlan" onchange="updateUploadMontoByPlan()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none font-medium">
                                 <option value="Básico">Plan Básico</option>
                                 <option value="Intermedio">Plan Intermedio</option>
-                                <option value="Premium">Plan Premium</option>
+                                <option value="Completo">Plan Completo</option>
                             </select>
                         </div>
                         <div>
@@ -516,7 +516,34 @@ function renderEquipo(client) {
 }
 
 function toggleUploadForm() {
-    document.getElementById('uploadFormContainer').classList.toggle('hidden');
+    const container = document.getElementById('uploadFormContainer');
+    container.classList.toggle('hidden');
+
+    if (!container.classList.contains('hidden') && currentEmpresaData) {
+        const planName = currentEmpresaData.plan || 'Básico';
+        const planSelect = document.getElementById('uploadPlan');
+        if (planSelect) {
+            // Intentar seleccionar la opción correspondiente
+            const options = Array.from(planSelect.options);
+            const matchingOpt = options.find(o => o.value.toLowerCase() === planName.toLowerCase());
+            if (matchingOpt) planSelect.value = matchingOpt.value;
+            else planSelect.value = planName;
+        }
+        updateUploadMontoByPlan();
+    }
+}
+
+function updateUploadMontoByPlan() {
+    const planSelect = document.getElementById('uploadPlan');
+    const montoInput = document.getElementById('uploadMonto');
+    if (!planSelect || !montoInput) return;
+
+    const planVal = (planSelect.value || '').toLowerCase();
+    let monto = 8889;
+    if (planVal.includes('intermedio') || planVal.includes('profesional')) monto = 11111;
+    if (planVal.includes('completo') || planVal.includes('premium')) monto = 16667;
+
+    montoInput.value = monto;
 }
 
 function submitComprobante(e) {
