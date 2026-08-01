@@ -28,7 +28,7 @@ if ($requestMethod !== 'GET' && $requestMethod !== 'HEAD' && $requestMethod !== 
     if (isset($_SESSION['user_id'])) {
         $requestUri = $_SERVER['SCRIPT_NAME'] ?? '';
         $isPublic = false;
-        $publicFiles = ['/login.php', '/admin_auth.php', '/crear_usuario.php', '/enviar_turno.php', '/enviar_contacto.php', '/restablecer_password.php', '/recuperar_password.php'];
+        $publicFiles = ['/login.php', '/registrarse.php', '/admin_auth.php', '/crear_usuario.php', '/enviar_turno.php', '/enviar_contacto.php', '/restablecer_password.php', '/recuperar_password.php'];
         foreach ($publicFiles as $pf) {
             if (strpos($requestUri, $pf) !== false) {
                 $isPublic = true;

@@ -317,6 +317,14 @@
         const selectedPlan = document.querySelector('input[name="regPlan"]:checked')?.value || 'Básico';
         const diasChecked = Array.from(document.querySelectorAll('input[name="reg_dias"]:checked')).map(cb => cb.value).join(',');
 
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return '';
+        }
+
+        const csrfToken = getCookie('csrf_token');
         const formData = new URLSearchParams({
             nombre_completo: document.getElementById('regNombre').value,
             nombre_fantasia: document.getElementById('regNegocio').value,
@@ -329,10 +337,15 @@
             hora_descanso_inicio: document.getElementById('regHoraDescansoInicio').value,
             hora_descanso_fin: document.getElementById('regHoraDescansoFin').value,
             dias_trabajo: diasChecked || '1,2,3,4,5,6',
-            acepta_terminos: document.getElementById('regTerminos').checked ? '1' : '0'
+            acepta_terminos: document.getElementById('regTerminos').checked ? '1' : '0',
+            csrf_token: csrfToken
         });
 
-        fetch('backend/registrarse.php', { method: 'POST', body: formData })
+        fetch('backend/registrarse.php', {
+            method: 'POST',
+            headers: { 'X-CSRF-Token': csrfToken },
+            body: formData
+        })
         .then(res => res.json())
         .then(data => {
             if (data.success) {
