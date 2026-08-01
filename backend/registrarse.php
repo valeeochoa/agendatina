@@ -3,12 +3,11 @@ session_start();
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/conexion.php';
 
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-
-require_once __DIR__ . '/phpmailer/Exception.php';
-require_once __DIR__ . '/phpmailer/PHPMailer.php';
-require_once __DIR__ . '/phpmailer/SMTP.php';
+if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+    if (file_exists(__DIR__ . '/phpmailer/Exception.php')) @require_once __DIR__ . '/phpmailer/Exception.php';
+    if (file_exists(__DIR__ . '/phpmailer/PHPMailer.php')) @require_once __DIR__ . '/phpmailer/PHPMailer.php';
+    if (file_exists(__DIR__ . '/phpmailer/SMTP.php')) @require_once __DIR__ . '/phpmailer/SMTP.php';
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'error' => 'Método no permitido.']);
@@ -56,12 +55,16 @@ try {
     // 2. Generar slug único para la web del negocio
     if (!function_exists('slugify')) {
         function slugify($text) {
-            $text = preg_replace('~[^\pL\d]+~u', '-', $text);
-            $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
-            $text = preg_replace('~[^-\w]+~', '', $text);
+            $text = mb_strtolower(trim($text), 'UTF-8');
+            $text = preg_replace('/[áàäâã]/u', 'a', $text);
+            $text = preg_replace('/[éèëê]/u', 'e', $text);
+            $text = preg_replace('/[íìïî]/u', 'i', $text);
+            $text = preg_replace('/[óòöôõ]/u', 'o', $text);
+            $text = preg_replace('/[úùüû]/u', 'u', $text);
+            $text = preg_replace('/[ñ]/u', 'n', $text);
+            $text = preg_replace('/[ç]/u', 'c', $text);
+            $text = preg_replace('/[^a-z0-9]+/u', '-', $text);
             $text = trim($text, '-');
-            $text = preg_replace('~-+~', '-', $text);
-            $text = strtolower($text);
             return empty($text) ? 'n-a' : $text;
         }
     }
@@ -87,15 +90,31 @@ try {
         }
     } catch (Exception $e) {}
 
-// Asegurar columnas de verificación
-try { $pdo->query("SELECT codigo_verificacion FROM usuarios LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN codigo_verificacion VARCHAR(10) DEFAULT NULL"); }
+    // Asegurar columnas de la tabla usuarios dinámicamente
+    try { $pdo->query("SELECT codigo_verificacion FROM usuarios LIMIT 1"); } 
+    catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN codigo_verificacion VARCHAR(10) DEFAULT NULL"); }
 
-try { $pdo->query("SELECT verificacion_expira FROM usuarios LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN verificacion_expira DATETIME DEFAULT NULL"); }
+    try { $pdo->query("SELECT verificacion_expira FROM usuarios LIMIT 1"); } 
+    catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN verificacion_expira DATETIME DEFAULT NULL"); }
 
-try { $pdo->query("SELECT email_verificado FROM usuarios LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN email_verificado TINYINT DEFAULT 0"); }
+    try { $pdo->query("SELECT email_verificado FROM usuarios LIMIT 1"); } 
+    catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN email_verificado TINYINT DEFAULT 0"); }
+
+    try { $pdo->query("SELECT fecha_creacion FROM usuarios LIMIT 1"); } 
+    catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP"); }
+
+    // Asegurar columnas de la tabla negocios dinámicamente
+    try { $pdo->query("SELECT plan FROM negocios LIMIT 1"); } 
+    catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN plan VARCHAR(50) DEFAULT 'Básico'"); }
+
+    try { $pdo->query("SELECT max_profesionales FROM negocios LIMIT 1"); } 
+    catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN max_profesionales INT DEFAULT 1"); }
+
+    try { $pdo->query("SELECT estado_pago FROM negocios LIMIT 1"); } 
+    catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN estado_pago VARCHAR(50) DEFAULT 'prueba'"); }
+
+    try { $pdo->query("SELECT fecha_alta FROM negocios LIMIT 1"); } 
+    catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN fecha_alta DATETIME DEFAULT CURRENT_TIMESTAMP"); }
 
     // Generar código numérico de 6 dígitos válido por 15 minutos
     $codigoVerificacion = sprintf("%06d", mt_rand(1, 999999));
@@ -205,46 +224,48 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN email_verifica
     $pdo->commit();
 
     // 9. Enviar mails de confirmación (Al usuario con su código y al SuperAdmin)
-    try {
-        $mail = new PHPMailer(true);
-        $mail->isSMTP();
-        $mail->Host       = 'localhost';
-        $mail->SMTPAuth   = true;
-        $mail->Username   = 'no-reply@agendatina.site';
-        $mail->Password   = 'Tlqb*Er0kQ';
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = 587;
-        $mail->CharSet    = 'UTF-8';
-        $mail->SMTPOptions = array('ssl' => array('verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true));
+    if (class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+        try {
+            $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+            $mail->isSMTP();
+            $mail->Host       = 'localhost';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = 'no-reply@agendatina.site';
+            $mail->Password   = 'Tlqb*Er0kQ';
+            $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            $mail->Port       = 587;
+            $mail->CharSet    = 'UTF-8';
+            $mail->SMTPOptions = array('ssl' => array('verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true));
 
-        // Enviar al usuario
-        $mail->setFrom('no-reply@agendatina.site', 'Agendatina - Verificación');
-        $mail->addAddress($email, $nombre_completo);
-        $mail->isHTML(true);
-        $mail->Subject = "Verifica tu cuenta - Agendatina";
-        $mail->Body = "<div style='font-family: Arial, sans-serif; padding: 20px; text-align: center;'><h2 style='color: #D11149;'>¡Bienvenido a Agendatina!</h2><p>Tu código de verificación de 6 dígitos para activar tu cuenta es:</p><div style='font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #D11149; margin: 20px 0;'>$codigoVerificacion</div><p style='font-size: 13px; color: #64748b;'>Este código caduca en 15 minutos.</p></div>";
-        $mail->send();
+            // Enviar al usuario
+            $mail->setFrom('no-reply@agendatina.site', 'Agendatina - Verificación');
+            $mail->addAddress($email, $nombre_completo);
+            $mail->isHTML(true);
+            $mail->Subject = "Verifica tu cuenta - Agendatina";
+            $mail->Body = "<div style='font-family: Arial, sans-serif; padding: 20px; text-align: center;'><h2 style='color: #D11149;'>¡Bienvenido a Agendatina!</h2><p>Tu código de verificación de 6 dígitos para activar tu cuenta es:</p><div style='font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #D11149; margin: 20px 0;'>$codigoVerificacion</div><p style='font-size: 13px; color: #64748b;'>Este código caduca en 15 minutos.</p></div>";
+            $mail->send();
 
-        // Enviar al SuperAdmin
-        $mailAdmin = new PHPMailer(true);
-        $mailAdmin->isSMTP();
-        $mailAdmin->Host       = 'localhost';
-        $mailAdmin->SMTPAuth   = true;
-        $mailAdmin->Username   = 'no-reply@agendatina.site';
-        $mailAdmin->Password   = 'Tlqb*Er0kQ';
-        $mailAdmin->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mailAdmin->Port       = 587;
-        $mailAdmin->CharSet    = 'UTF-8';
-        $mailAdmin->SMTPOptions = array('ssl' => array('verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true));
+            // Enviar al SuperAdmin
+            $mailAdmin = new PHPMailer\PHPMailer\PHPMailer(true);
+            $mailAdmin->isSMTP();
+            $mailAdmin->Host       = 'localhost';
+            $mailAdmin->SMTPAuth   = true;
+            $mailAdmin->Username   = 'no-reply@agendatina.site';
+            $mailAdmin->Password   = 'Tlqb*Er0kQ';
+            $mailAdmin->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+            $mailAdmin->Port       = 587;
+            $mailAdmin->CharSet    = 'UTF-8';
+            $mailAdmin->SMTPOptions = array('ssl' => array('verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true));
 
-        $mailAdmin->setFrom('no-reply@agendatina.site', 'Sistema - Agendatina');
-        $mailAdmin->addAddress('reportes@agendatina.site');
-        $mailAdmin->isHTML(true);
-        $mailAdmin->Subject = "¡Nueva Cuenta Creada! - $nombre_fantasia";
-        $mailAdmin->Body = "<div style='font-family: Arial, sans-serif; padding: 20px;'><h2 style='color: #22c55e;'>¡Nueva Cuenta Registrada!</h2><p><strong>Nombre:</strong> $nombre_completo</p><p><strong>Email:</strong> $email</p><p><strong>Emprendimiento:</strong> $nombre_fantasia</p><p><strong>Plan Elegido:</strong> $plan ($max_profesionales prof.)</p></div>";
-        $mailAdmin->send();
-    } catch (Exception $mEx) {
-        error_log("Error al enviar correos de bienvenida: " . $mEx->getMessage());
+            $mailAdmin->setFrom('no-reply@agendatina.site', 'Sistema - Agendatina');
+            $mailAdmin->addAddress('reportes@agendatina.site');
+            $mailAdmin->isHTML(true);
+            $mailAdmin->Subject = "¡Nueva Cuenta Creada! - $nombre_fantasia";
+            $mailAdmin->Body = "<div style='font-family: Arial, sans-serif; padding: 20px;'><h2 style='color: #22c55e;'>¡Nueva Cuenta Registrada!</h2><p><strong>Nombre:</strong> $nombre_completo</p><p><strong>Email:</strong> $email</p><p><strong>Emprendimiento:</strong> $nombre_fantasia</p><p><strong>Plan Elegido:</strong> $plan ($max_profesionales prof.)</p></div>";
+            $mailAdmin->send();
+        } catch (Exception $mEx) {
+            error_log("Error al enviar correos de bienvenida: " . $mEx->getMessage());
+        }
     }
 
     // 10. Iniciar sesión automática
@@ -257,8 +278,8 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN email_verifica
     $_SESSION['rol_en_local'] = 'admin';
 
     echo json_encode(['success' => true, 'redirect' => 'dashboard.html', 'message' => "¡Cuenta creada exitosamente! Cuentas con {$diasPrueba} días de prueba gratuita."]);
-} catch (Exception $e) {
-    if ($pdo->inTransaction()) $pdo->rollBack();
+} catch (Throwable $e) {
+    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
     echo json_encode(['success' => false, 'error' => 'Error al crear la cuenta: ' . $e->getMessage()]);
 }
 ?>
