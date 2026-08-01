@@ -6,38 +6,29 @@ on:
       - main
 
 jobs:
-  ftp-deploy:
+  web-deploy:
     name: Deploy to Ferozo
     runs-on: ubuntu-latest
-    timeout-minutes: 10 # Cancela automáticamente si se traba más de 10 min
+    timeout-minutes: 10
     steps:
       - name: Descargar el código
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
-      
-      - name: Instalar lftp
-        run: sudo apt-get update && sudo apt-get install -y lftp
-        
-      - name: Sincronizar archivos por FTP (lftp)
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-        run: |
-          lftp -c "
-          set ssl:verify-certificate no;
-          set ftp:ssl-allow yes;
-          set ftp:passive-mode true;
-          open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_SERVER;
-          mirror -R -v -c --only-newer --no-perms --no-umask \
-            --exclude '.git/' \
-            --exclude '.github/' \
-            --exclude 'node_modules/' \
-            --exclude '.env' \
-            --exclude '.env.example' \
-            --exclude 'implementation_plan.md' \
-            --exclude 'temp_zip/' \
-            --exclude 'actualizacion.zip' \
-            ./ /public_html/;
-          "
+          fetch-depth: 0 # Necesario para que compare el commit actual con el anterior
+
+      - name: Sincronizar solo cambios por FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /public_html/
+          exclude: |
+            **/.git**
+            **/.github**
+            **/node_modules/**
+            .env
+            .env.example
+            implementation_plan.md
+            temp_zip/**
+            actualizacion.zip
