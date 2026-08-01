@@ -20,12 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!negocioSlug) negocioSlug = '';
     const queryParam = negocioSlug ? `?n=${negocioSlug}` : '';
 
-    // Cargar configuración de la web y servicios en paralelo
+    // Cargar configuración de la web, servicios y personal en paralelo
     Promise.all([
-        fetch('backend/guardar_web.php' + queryParam).then(res => res.json()),
-        fetch('backend/gestionar_servicios.php' + queryParam).then(res => res.json())
+        fetch('backend/guardar_web.php' + queryParam).then(res => res.json()).catch(() => null),
+        fetch('backend/gestionar_servicios.php' + queryParam).then(res => res.json()).catch(() => []),
+        fetch('backend/obtener_personal.php' + queryParam).then(res => res.json()).catch(() => [])
     ])
-    .then(([data, servicesData]) => {
+    .then(([data, servicesData, personalData]) => {
         // --- 1. PROCESAR CONFIGURACIÓN WEB ---
             if (data && !data.error) {
                 const planStr = (data.plan || '').toLowerCase();
@@ -127,10 +128,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     } catch (e) {}
                 }
                 let allProfs = [];
+                if (Array.isArray(personalData) && personalData.length > 0) {
+                    personalData.forEach(p => {
+                        const name = p.nombre_completo || p.nombre || p.email;
+                        if (name) {
+                            allProfs.push({
+                                nombre: name,
+                                descripcion: p.rol_en_local === 'admin' ? 'Administrador del local' : 'Especialista del equipo',
+                                foto: p.foto || ''
+                            });
+                        }
+                    });
+                }
                 if (data.profesionales_json) {
                     try {
                         const parsed = JSON.parse(data.profesionales_json);
-                        if (Array.isArray(parsed)) allProfs = parsed;
+                        if (Array.isArray(parsed)) {
+                            parsed.forEach(p => {
+                                if (p.nombre && !allProfs.some(existP => existP.nombre.toLowerCase() === p.nombre.toLowerCase())) {
+                                    allProfs.push(p);
+                                }
+                            });
+                        }
                     } catch (e) {}
                 }
                 if (Array.isArray(servicesData) && servicesData.length > 0) {

@@ -2547,6 +2547,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const manageServicesBtn = document.getElementById('manageServicesBtn');
         if(manageServicesBtn) manageServicesBtn.addEventListener('click', openServicesModal);
         
+        if (sessionStorage.getItem('autoOpenServicesModal') === 'true') {
+            sessionStorage.removeItem('autoOpenServicesModal');
+            if (typeof openServicesModal === 'function') setTimeout(openServicesModal, 400);
+        }
+        
         const closeServicesBtn = document.getElementById('closeServicesModalBtn');
         if(closeServicesBtn) closeServicesBtn.addEventListener('click', closeServicesModal);
         

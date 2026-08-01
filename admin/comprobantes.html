@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprobantes de Pago | Agendatina SuperAdmin</title>
+    <link rel="icon" href="../public/logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-brand { font-family: 'Fredoka', cursive, sans-serif !important; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col md:flex-row">
+
+    <!-- Sidebar Menú Izquierdo (Fijo) -->
+    <aside class="w-full md:w-64 bg-slate-900 text-white shrink-0 md:h-screen md:sticky md:top-0 flex flex-col justify-between p-4 sm:p-6 shadow-xl overflow-y-auto z-40">
+        <div>
+            <!-- Header Brand -->
+            <div class="flex items-center justify-between md:justify-start gap-3 mb-8 pb-4 border-b border-slate-800">
+                <a href="index.html" class="flex items-center gap-2">
+                    <img src="../public/logo.png" alt="Agendatina" class="h-8 w-auto">
+                    <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span> <span class="text-xs text-slate-400 font-sans font-bold block">SuperAdmin</span></span>
+                </a>
+            </div>
+
+            <!-- Navegación -->
+            <nav class="space-y-1">
+                <a href="index.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">dashboard</span> Dashboard (Resumen)
+                </a>
+                <a href="empresas.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">storefront</span> Todas las Empresas
+                </a>
+                <a href="tareas.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">check_box</span> Tareas Pendientes
+                </a>
+                <a href="reportes.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">bug_report</span> Reportes de Error
+                </a>
+                <a href="comprobantes.html" class="flex items-center gap-3 px-4 py-3 bg-[#d11149] text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-[#d11149]/30">
+                    <span class="material-symbols-outlined text-[22px]">receipt_long</span> Comprobantes de Pago
+                </a>
+                <div class="pt-3 mt-3 border-t border-slate-800">
+                    <a href="../index.html" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-[#fc8712] hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-[18px]">open_in_new</span> Ir a Inicio General
+                    </a>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Footer Logout -->
+        <div class="pt-6 border-t border-slate-800 mt-6">
+            <button onclick="logoutAdmin()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-red-600/20 text-slate-300 hover:text-red-400 rounded-xl text-xs font-bold transition-all">
+                <span class="material-symbols-outlined text-[18px]">logout</span> Cerrar Sesión
+            </button>
+        </div>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 p-4 sm:p-8 max-w-7xl w-full min-w-0 overflow-x-hidden">
+        <!-- Encabezado -->
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 flex items-center gap-3">
+                    <span class="p-2.5 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center">
+                        <span class="material-symbols-outlined text-3xl">receipt_long</span>
+                    </span>
+                    Comprobantes de Pago
+                </h1>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">Revisa y aprueba las transferencias o recibos adjuntados por las empresas para renovar su suscripción.</p>
+            </div>
+            <span id="totalComprobantesBadge" class="bg-amber-50 text-amber-700 border border-amber-200 px-4 py-2 rounded-2xl text-xs font-bold self-start sm:self-auto">
+                Cargando...
+            </span>
+        </div>
+
+        <!-- Buscador y Filtros -->
+        <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-200 mb-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
+                <input type="text" id="searchInput" oninput="filterComprobantes()" placeholder="Buscar por negocio o plan..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d11149]">
+            </div>
+            <div>
+                <select id="statusFilter" onchange="filterComprobantes()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d11149] font-medium">
+                    <option value="">Todos los Estados</option>
+                    <option value="pendiente_revision" selected>Pendientes de Revisión</option>
+                    <option value="activo">Aprobados / Activos</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tabla de Comprobantes de Pago -->
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-200 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50">
+                            <th class="p-4">Empresa</th>
+                            <th class="p-4">Plan / Monto</th>
+                            <th class="p-4">Estado de Pago</th>
+                            <th class="p-4">Comprobante</th>
+                            <th class="p-4 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="comprobantesList">
+                        <tr><td colspan="5" class="p-8 text-center text-slate-400 text-sm">Cargando comprobantes...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Ver Archivo Comprobante -->
+    <div id="receiptModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-3xl max-w-lg w-full text-center shadow-2xl">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                <h3 class="text-base font-bold text-slate-900">Comprobante de Pago</h3>
+                <button onclick="closeReceiptModal()" class="text-slate-400 hover:text-slate-600 p-1"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="mb-4 bg-slate-50 p-2 rounded-2xl border border-slate-200 flex justify-center items-center min-h-[250px]">
+                <img id="receiptImage" src="" alt="Comprobante" class="max-h-[350px] w-auto rounded-xl object-contain shadow-sm">
+            </div>
+            <div class="flex gap-3">
+                <a id="receiptDownloadBtn" href="" download target="_blank" class="flex-1 px-4 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl text-xs hover:bg-slate-200 transition-colors flex items-center justify-center gap-1">
+                    <span class="material-symbols-outlined text-[16px]">download</span> Abrir Archivo
+                </a>
+                <button id="btnApproveFromModal" class="flex-1 px-4 py-2.5 bg-green-600 text-white font-bold rounded-xl text-xs hover:bg-green-700 transition-colors shadow-lg shadow-green-600/30">
+                    Aprobar Pago
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let businessesData = [];
+        let activeReceiptId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('../backend/admin_auth.php')
+                .then(r => r.json())
+                .then(d => {
+                    if (!d.logged_in) window.location.href = 'login.html';
+                    else loadComprobantes();
+                });
+        });
+
+        function loadComprobantes() {
+            fetch('../backend/admin_api.php')
+                .then(res => res.json())
+                .then(data => {
+                    const list = Array.isArray(data.data) ? data.data : (Array.isArray(data.negocios) ? data.negocios : []);
+                    if (data.success && list) {
+                        businessesData = list;
+                        document.getElementById('totalComprobantesBadge').textContent = `${businessesData.length} Emprendimientos`;
+                        filterComprobantes();
+                    } else {
+                        document.getElementById('comprobantesList').innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-500 font-medium">Error al cargar comprobantes.</td></tr>';
+                    }
+                });
+        }
+
+        function filterComprobantes() {
+            const search = document.getElementById('searchInput').value.toLowerCase().trim();
+            const status = document.getElementById('statusFilter').value;
+
+            const filtered = businessesData.filter(c => {
+                const matchSearch = !search || 
+                    (c.nombre_fantasia && c.nombre_fantasia.toLowerCase().includes(search)) ||
+                    (c.plan && c.plan.toLowerCase().includes(search));
+
+                const matchStatus = !status || c.estado_pago === status;
+                const hasReceipt = c.comprobante || (c.comprobantes && c.comprobantes.length > 0) || c.estado_pago === 'pendiente_revision';
+                return matchSearch && matchStatus && hasReceipt;
+            });
+
+            renderTable(filtered);
+        }
+
+        function renderTable(list) {
+            const tbody = document.getElementById('comprobantesList');
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400 text-sm">No se encontraron comprobantes para el filtro seleccionado.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            list.forEach(c => {
+                const hasComp = c.comprobante || (c.comprobantes && c.comprobantes.length > 0);
+                const compPath = c.comprobante || (c.comprobantes[0] ? c.comprobantes[0].archivo_path : '');
+                
+                let badgeStatus = '';
+                if (c.estado_pago === 'pendiente_revision') {
+                    badgeStatus = '<span class="bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1 rounded-xl text-xs font-bold inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">hourglass_empty</span> En Revisión</span>';
+                } else if (c.estado_pago === 'activo') {
+                    badgeStatus = '<span class="bg-green-100 text-green-700 border border-green-200 px-3 py-1 rounded-xl text-xs font-bold inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">check_circle</span> Aprobado</span>';
+                } else {
+                    badgeStatus = `<span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-xl text-xs font-bold border border-slate-200">${c.estado_pago}</span>`;
+                }
+
+                html += `
+                    <tr class="hover:bg-slate-50 border-b border-slate-100 transition-colors">
+                        <td class="p-4">
+                            <a href="empresa.html?id=${c.id}" class="font-bold text-slate-900 text-base hover:text-purple-600 transition-colors block">${c.nombre_fantasia}</a>
+                            <span class="text-xs text-slate-400 font-medium">${c.email || 'Sin correo'}</span>
+                        </td>
+                        <td class="p-4">
+                            <span class="font-bold text-slate-800 block text-sm">${c.plan || 'Básico'}</span>
+                            <span class="text-xs text-slate-500 font-semibold">$${c.plan === 'Completo' ? '16.667' : (c.plan === 'Intermedio' ? '11.111' : '8.889')} / mes</span>
+                        </td>
+                        <td class="p-4">${badgeStatus}</td>
+                        <td class="p-4">
+                            ${hasComp ? `<button onclick="openReceiptModal('../uploads/${compPath.replace(/^uploads\//, '')}', ${c.id})" class="text-[#d11149] bg-[#fcb0b3]/20 hover:bg-[#fcb0b3]/40 px-3 py-1.5 rounded-xl border border-[#fcb0b3] font-bold text-xs transition-all flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[16px]">visibility</span> Ver Recibo
+                            </button>` : '<span class="text-xs text-slate-400">Sin archivo</span>'}
+                        </td>
+                        <td class="p-4 text-center whitespace-nowrap">
+                            <button onclick="aprobarPago(${c.id})" class="text-green-600 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-xl border border-green-200 font-bold text-xs transition-colors inline-flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[16px]">check_circle</span> Aprobar Pago
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function openReceiptModal(path, negocioId) {
+            activeReceiptId = negocioId;
+            document.getElementById('receiptImage').src = path;
+            document.getElementById('receiptDownloadBtn').href = path;
+            document.getElementById('receiptModal').classList.remove('hidden');
+        }
+
+        function closeReceiptModal() {
+            document.getElementById('receiptModal').classList.add('hidden');
+        }
+
+        document.getElementById('btnApproveFromModal').addEventListener('click', () => {
+            if (activeReceiptId) {
+                aprobarPago(activeReceiptId);
+                closeReceiptModal();
+            }
+        });
+
+        function aprobarPago(id) {
+            fetch('../backend/admin_api.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'update_status', id_negocio: id, estado_pago: 'activo' })
+            })
+            .then(res => res.json())
+            .then(d => {
+                if (d.success) loadComprobantes();
+            });
+        }
+
+        function logoutAdmin() {
+            fetch('../backend/admin_auth.php', { method: 'DELETE' })
+                .then(() => window.location.href = 'login.html');
+        }
+    </script>
+</body>
+</html>

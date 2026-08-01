@@ -141,36 +141,49 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN email_verifica
         'dias' => $dias_trabajo
     ]);
 
-    // 8. Auto-insertar ~10 turnos de demostración para el usuario de prueba
-    $demoTurnos = [
-        ['cliente' => 'María González', 'tel' => '1123456789', 'email' => 'maria@gmail.com', 'servicio' => 'Corte & Peinado', 'monto' => 4500, 'offset' => 0, 'hora' => '10:00:00', 'estado' => 'confirmado'],
-        ['cliente' => 'Carlos Rodríguez', 'tel' => '1198765432', 'email' => 'carlos@gmail.com', 'servicio' => 'Perfilado de Barba', 'monto' => 3000, 'offset' => 0, 'hora' => '11:30:00', 'estado' => 'confirmado'],
-        ['cliente' => 'Ana Martínez', 'tel' => '1155443322', 'email' => 'ana@gmail.com', 'servicio' => 'Manicura Rusa', 'monto' => 3800, 'offset' => 0, 'hora' => '16:00:00', 'estado' => 'pendiente'],
-        ['cliente' => 'Lucía Fernández', 'tel' => '1166778899', 'email' => 'lucia@gmail.com', 'servicio' => 'Limpieza Facial Profunda', 'monto' => 5200, 'offset' => 1, 'hora' => '09:30:00', 'estado' => 'confirmado'],
-        ['cliente' => 'Diego López', 'tel' => '1133221100', 'email' => 'diego@gmail.com', 'servicio' => 'Diseño de Cejas & Barba', 'monto' => 3500, 'offset' => 1, 'hora' => '15:00:00', 'estado' => 'confirmado'],
-        ['cliente' => 'Sofía Pérez', 'tel' => '1144556677', 'email' => 'sofia@gmail.com', 'servicio' => 'Tratamiento Capilar', 'monto' => 6000, 'offset' => 2, 'hora' => '11:00:00', 'estado' => 'confirmado'],
-        ['cliente' => 'Mateo Gómez', 'tel' => '1177889900', 'email' => 'mateo@gmail.com', 'servicio' => 'Corte Masculino Premium', 'monto' => 4000, 'offset' => 2, 'hora' => '17:30:00', 'estado' => 'pendiente'],
-        ['cliente' => 'Valentina Silva', 'tel' => '1188990011', 'email' => 'valen@gmail.com', 'servicio' => 'Nutrición Capilar', 'monto' => 4800, 'offset' => 3, 'hora' => '10:30:00', 'estado' => 'confirmado'],
-        ['cliente' => 'Joaquín Navarro', 'tel' => '1122334455', 'email' => 'joaco@gmail.com', 'servicio' => 'Perfilado & Corte', 'monto' => 4200, 'offset' => 4, 'hora' => '14:00:00', 'estado' => 'confirmado'],
-        ['cliente' => 'Camila Torres', 'tel' => '1199001122', 'email' => 'cami@gmail.com', 'servicio' => 'Corte + Tinte', 'monto' => 7500, 'offset' => 5, 'hora' => '16:00:00', 'estado' => 'confirmado']
-    ];
+    // 8. Auto-insertar turnos de demostración ÚNICAMENTE para la cuenta DEMO
+    if ($ruta === 'demo' || strtolower($email) === 'demo@agendatina.site') {
+        try {
+        // Asegurar columnas de turnos si es necesario
+        try { $pdo->query("SELECT cliente_nombre FROM turnos LIMIT 1"); } 
+        catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_nombre VARCHAR(255) DEFAULT ''"); }
+        try { $pdo->query("SELECT cliente_telefono FROM turnos LIMIT 1"); } 
+        catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_telefono VARCHAR(100) DEFAULT ''"); }
+        try { $pdo->query("SELECT cliente_email FROM turnos LIMIT 1"); } 
+        catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_email VARCHAR(255) DEFAULT ''"); }
+        try { $pdo->query("SELECT servicio FROM turnos LIMIT 1"); } 
+        catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN servicio VARCHAR(255) DEFAULT ''"); }
+        try { $pdo->query("SELECT precio FROM turnos LIMIT 1"); } 
+        catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN precio DECIMAL(10,2) DEFAULT 0.00"); }
 
-    $stmtTurno = $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_telefono, cliente_email, servicio, precio, fecha, hora, estado, creado_en) VALUES (:id_n, :cli, :tel, :email, :serv, :precio, :fecha, :hora, :estado, NOW())");
+        $demoTurnos = [
+            ['cliente' => 'María González', 'tel' => '1123456789', 'email' => 'maria@gmail.com', 'servicio' => 'Corte & Peinado', 'monto' => 4500, 'offset' => 0, 'hora' => '10:00:00', 'estado' => 'confirmado'],
+            ['cliente' => 'Carlos Rodríguez', 'tel' => '1198765432', 'email' => 'carlos@gmail.com', 'servicio' => 'Perfilado de Barba', 'monto' => 3000, 'offset' => 0, 'hora' => '11:30:00', 'estado' => 'confirmado'],
+            ['cliente' => 'Ana Martínez', 'tel' => '1155443322', 'email' => 'ana@gmail.com', 'servicio' => 'Manicura Rusa', 'monto' => 3800, 'offset' => 0, 'hora' => '16:00:00', 'estado' => 'pendiente'],
+            ['cliente' => 'Lucía Fernández', 'tel' => '1166778899', 'email' => 'lucia@gmail.com', 'servicio' => 'Limpieza Facial Profunda', 'monto' => 5200, 'offset' => 1, 'hora' => '09:30:00', 'estado' => 'confirmado'],
+            ['cliente' => 'Diego López', 'tel' => '1133221100', 'email' => 'diego@gmail.com', 'servicio' => 'Diseño de Cejas & Barba', 'monto' => 3500, 'offset' => 1, 'hora' => '15:00:00', 'estado' => 'confirmado']
+        ];
 
-    foreach ($demoTurnos as $t) {
-        $fechaCalculada = date('Y-m-d', strtotime('+' . $t['offset'] . ' days'));
-        $stmtTurno->execute([
-            'id_n' => $idNegocio,
-            'cli' => $t['cliente'],
-            'tel' => $t['tel'],
-            'email' => $t['email'],
-            'serv' => $t['servicio'],
-            'precio' => $t['monto'],
-            'fecha' => $fechaCalculada,
-            'hora' => $t['hora'],
-            'estado' => $t['estado']
-        ]);
+        $stmtTurno = $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_telefono, cliente_email, servicio, precio, fecha, hora, estado, creado_en) VALUES (:id_n, :cli, :tel, :email, :serv, :precio, :fecha, :hora, :estado, NOW())");
+
+        foreach ($demoTurnos as $t) {
+            $fechaCalculada = date('Y-m-d', strtotime('+' . $t['offset'] . ' days'));
+            $stmtTurno->execute([
+                'id_n' => $idNegocio,
+                'cli' => $t['cliente'],
+                'tel' => $t['tel'],
+                'email' => $t['email'],
+                'serv' => $t['servicio'],
+                'precio' => $t['monto'],
+                'fecha' => $fechaCalculada,
+                'hora' => $t['hora'],
+                'estado' => $t['estado']
+            ]);
+        }
+    } catch (Exception $eTurnos) {
+        error_log("Aviso turnos demo no críticos: " . $eTurnos->getMessage());
     }
+}
 
     // Guardar notificación para el SuperAdmin
     try {
