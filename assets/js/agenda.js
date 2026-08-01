@@ -739,7 +739,8 @@ window.descargarHistorialTurnos = function(btn) {
         document.body.removeChild(link);
         if(typeof showToast === 'function') showToast('Historial descargado con éxito.', 'success');
     })
-    .catch(err => { console.error(err); if(typeof showToast === 'function') showToast('Error al descargar el historial.', 'error'); });
+    .catch(err => { console.error(err); if(typeof showToast === 'function') showToast('Error al descargar el historial.', 'error'); })
+    .finally(() => { btn.innerHTML = originalHtml; btn.disabled = false; });
 };
 
 // --- Recarga Automática por Eventos ---
@@ -758,5 +759,3 @@ document.addEventListener('click', (e) => {
         setTimeout(window.forceCargarAgenda, 350);
     }
 });
-    .finally(() => { btn.innerHTML = originalHtml; btn.disabled = false; });
-};
