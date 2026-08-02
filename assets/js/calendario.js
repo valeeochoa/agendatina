@@ -2518,17 +2518,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 let title = config.nombre_fantasia || config.nombre_negocio || config.titulo || 'Agendatina';
                 document.title = title + ' | Calendario de Turnos';
                 
-                const navBusinessName = document.getElementById('navBusinessName');
-                const navBrandAccent = document.getElementById('navBrandAccent');
-                if (navBusinessName) {
-                    if (title.toLowerCase().trim() === 'agendatina') {
-                        navBusinessName.textContent = 'Agenda';
-                        if (navBrandAccent) navBrandAccent.textContent = 'tina';
-                    } else {
-                        let parts = title.split(' ');
-                        if (parts.length > 1 && navBrandAccent) {
-                            navBusinessName.textContent = parts[0] + ' ';
-                            navBrandAccent.textContent = parts.slice(1).join(' ');
+                const navBusinessNameText = document.getElementById('navBusinessNameText') || document.getElementById('navBusinessNameHeader');
+                if (navBusinessNameText) {
+                    navBusinessNameText.textContent = title;
+                } else {
+                    const navBusinessName = document.getElementById('navBusinessName');
+                    const navBrandAccent = document.getElementById('navBrandAccent');
+                    if (navBusinessName) {
+                        if (title.toLowerCase().trim() === 'agendatina') {
+                            navBusinessName.textContent = 'Agenda';
+                            if (navBrandAccent) navBrandAccent.textContent = 'tina';
                         } else {
                             navBusinessName.textContent = title;
                             if (navBrandAccent) navBrandAccent.textContent = '';
@@ -2538,10 +2537,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }).catch(() => {
             document.title = 'Agendatina | Calendario de Turnos';
-            const navBusinessName = document.getElementById('navBusinessName');
-            const navBrandAccent = document.getElementById('navBrandAccent');
-            if (navBusinessName) navBusinessName.textContent = 'Agenda';
-            if (navBrandAccent) navBrandAccent.textContent = 'tina';
+            const navBusinessNameText = document.getElementById('navBusinessNameText');
+            if (navBusinessNameText) navBusinessNameText.textContent = 'Agendatina';
         });
 
         const manageServicesBtn = document.getElementById('manageServicesBtn');

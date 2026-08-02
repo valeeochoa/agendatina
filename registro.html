@@ -349,7 +349,8 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                window.location.href = data.redirect || 'dashboard.html';
+                sessionStorage.setItem('show_welcome_modal', 'true');
+                window.location.href = 'dashboard.html?welcome=1';
             } else {
                 errorDiv.textContent = data.error || 'Error al crear la cuenta.';
                 errorDiv.classList.remove('hidden');

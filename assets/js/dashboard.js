@@ -590,3 +590,139 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// Modal de Bienvenida para Cuentas Nuevas
+window.openWelcomeNewAccountModal = function() {
+    const modal = document.getElementById('welcomeNewAccountModal');
+    const content = document.getElementById('welcomeNewAccountContent');
+    if (!modal || !content) return;
+
+    if (window.currentBusinessData && window.currentBusinessData.nombre_fantasia) {
+        const bNameEl = document.getElementById('welcomeBusinessName');
+        if (bNameEl) bNameEl.textContent = window.currentBusinessData.nombre_fantasia;
+    }
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+    }, 10);
+};
+
+window.closeWelcomeNewAccountModal = function() {
+    const modal = document.getElementById('welcomeNewAccountModal');
+    const content = document.getElementById('welcomeNewAccountContent');
+    if (!modal || !content) return;
+    modal.classList.add('opacity-0');
+    content.classList.add('scale-95');
+    setTimeout(() => { modal.classList.add('hidden'); }, 300);
+};
+
+// Tour Virtual Guiado Interactivo
+let currentTourStep = 0;
+const tourSteps = [
+    {
+        targetId: 'cardAgenda',
+        title: '1. Mi Agenda Virtual 📅',
+        desc: 'Aquí visualizas todos los turnos reservados por tus clientes, gestionas confirmaciones y accedes a la Papelera de turnos cancelados.'
+    },
+    {
+        targetId: 'cardServicios',
+        title: '2. Catálogo de Servicios ✂️',
+        desc: 'Define los servicios que ofrece tu local con sus respectivos precios, duraciones y descripciones.'
+    },
+    {
+        targetId: 'cardTeam',
+        title: '3. Equipo de Trabajo 👥',
+        desc: 'Administra tus profesionales, asigna accesos independientes y consulta el límite permitido según tu plan.'
+    },
+    {
+        targetId: 'cardWeb',
+        title: '4. Tu Mini Web de Reservas 🌐',
+        desc: 'Copia tu enlace personalizado (agendatina.site/tunegocio) para compartir en Instagram o WhatsApp.'
+    },
+    {
+        targetId: 'cardAjustes',
+        title: '5. Horarios y Ajustes ⚙️',
+        desc: 'Configura tus días laborables, horarios de apertura, cierre y pausa de descanso.'
+    }
+];
+
+window.startGuidedVirtualTour = function() {
+    closeWelcomeNewAccountModal();
+    currentTourStep = 0;
+    showTourStep(0);
+};
+
+window.stopGuidedVirtualTour = function() {
+    const overlay = document.getElementById('tourOverlay');
+    const tooltip = document.getElementById('tourTooltip');
+    if (overlay) overlay.classList.add('hidden');
+    if (tooltip) tooltip.classList.add('hidden');
+};
+
+function showTourStep(index) {
+    if (index < 0 || index >= tourSteps.length) {
+        stopGuidedVirtualTour();
+        return;
+    }
+    currentTourStep = index;
+    const step = tourSteps[index];
+    const targetEl = document.getElementById(step.targetId);
+
+    const overlay = document.getElementById('tourOverlay');
+    const tooltip = document.getElementById('tourTooltip');
+    if (!overlay || !tooltip) return;
+
+    overlay.classList.remove('hidden');
+    tooltip.classList.remove('hidden');
+
+    document.getElementById('tourStepBadge').textContent = `Paso ${index + 1} de ${tourSteps.length}`;
+    document.getElementById('tourStepTitle').textContent = step.title;
+    document.getElementById('tourStepDesc').textContent = step.desc;
+
+    document.getElementById('tourBtnPrev').disabled = (index === 0);
+    const nextBtn = document.getElementById('tourBtnNext');
+    if (index === tourSteps.length - 1) {
+        nextBtn.innerHTML = '¡Finalizar! 🎉';
+    } else {
+        nextBtn.innerHTML = 'Siguiente <span class="material-symbols-outlined text-sm">arrow_forward</span>';
+    }
+
+    if (targetEl) {
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const rect = targetEl.getBoundingClientRect();
+        
+        const topPos = Math.min(window.innerHeight - 200, Math.max(20, rect.bottom + 10));
+        const leftPos = Math.min(window.innerWidth - 380, Math.max(20, rect.left));
+
+        tooltip.style.top = `${topPos}px`;
+        tooltip.style.left = `${leftPos}px`;
+    }
+}
+
+window.nextTourStep = function() {
+    if (currentTourStep >= tourSteps.length - 1) {
+        stopGuidedVirtualTour();
+        if (typeof showToast === 'function') showToast('¡Tour finalizado! Tu agenda está lista.', 'success');
+    } else {
+        showTourStep(currentTourStep + 1);
+    }
+};
+
+window.prevTourStep = function() {
+    if (currentTourStep > 0) {
+        showTourStep(currentTourStep - 1);
+    }
+};
+
+// Detección automática al cargar dashboard.html
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('welcome') === '1' || sessionStorage.getItem('show_welcome_modal') === 'true') {
+            sessionStorage.removeItem('show_welcome_modal');
+            openWelcomeNewAccountModal();
+        }
+    }, 700);
+});

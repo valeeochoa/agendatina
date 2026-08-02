@@ -49,7 +49,7 @@
                     <span class="material-symbols-outlined text-[22px]">receipt_long</span> Comprobantes de Pago
                 </a>
                 <a href="notificaciones.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
-                    <span class="material-symbols-outlined text-[22px]">notifications</span> Notificaciones
+                    <span class="material-symbols-outlined text-[22px]">notifications</span> Notificaciones <span id="navNotificacionesCount" class="font-extrabold text-[#fc8712] ml-0.5"></span>
                 </a>
                 <a href="papelera.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
                     <span class="material-symbols-outlined text-[22px]">delete_sweep</span> Papelera General
@@ -1961,6 +1961,21 @@ document.addEventListener('keydown', function(e) {
         if (typeof closeReceiptModal === 'function') closeReceiptModal();
     }
 });
+
+function loadAdminNavNotifsCount() {
+    fetch('../backend/admin_notificaciones_api.php')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                const unread = data.unread_count || 0;
+                const linkEl = document.getElementById('navNotificacionesCount');
+                if (linkEl) {
+                    linkEl.textContent = unread > 0 ? `(${unread})` : '';
+                }
+            }
+        }).catch(() => {});
+}
+document.addEventListener('DOMContentLoaded', loadAdminNavNotifsCount);
 </script>
 
 <!-- Modal Ver Comprobante (Admin) -->

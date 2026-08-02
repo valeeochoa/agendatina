@@ -79,10 +79,32 @@ if (empty($mensaje)) {
     exit;
 }
 
+// Asegurar tabla reportes_error
 try {
-    // Guardar notificación con identidad completa para el Superadmin
+    $pdo->query("SELECT 1 FROM reportes_error LIMIT 1");
+} catch (Exception $e) {
+    $pdo->exec("CREATE TABLE reportes_error (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        id_negocio INT NULL,
+        nombre_negocio VARCHAR(255) DEFAULT NULL,
+        id_usuario INT NULL,
+        nombre_usuario VARCHAR(255) DEFAULT NULL,
+        email_usuario VARCHAR(255) DEFAULT NULL,
+        modulo VARCHAR(100) DEFAULT 'General',
+        descripcion TEXT,
+        estado VARCHAR(50) DEFAULT 'pendiente',
+        fecha DATETIME DEFAULT CURRENT_TIMESTAMP
+    )");
+}
+
+try {
+    // 1. Guardar en la tabla oficial de reportes de error
+    $stmtRep = $pdo->prepare("INSERT INTO reportes_error (id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, modulo, descripcion) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmtRep->execute([$id_negocio, $nombre_negocio, $id_usuario, $nombre_usuario, $email_usuario, $segmento, $mensaje]);
+
+    // 2. Guardar notificación para el Superadmin
     $stmt = $pdo->prepare("INSERT INTO notificaciones_admin (segmento, mensaje, id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$segmento, $mensaje, $id_negocio, $nombre_negocio, $id_usuario, $nombre_usuario, $email_usuario, $rol_usuario]);
+    $stmt->execute(["Reporte de Error: " . $segmento, $mensaje, $id_negocio, $nombre_negocio, $id_usuario, $nombre_usuario, $email_usuario, $rol_usuario]);
 
     // Enviar Email a soporte
     $mail = new PHPMailer(true);
