@@ -333,8 +333,8 @@
                 onConfirm: () => {
                     fetch('../backend/admin_api.php', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: new URLSearchParams({ action: 'cambiar_estado', id: id, estado_pago: 'suspendido' })
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'cambiar_estado', id: id, id_negocio: id, estado_pago: 'suspendido' })
                     })
                     .then(r => r.json())
                     .then(d => {

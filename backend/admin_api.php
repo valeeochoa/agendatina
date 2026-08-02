@@ -251,8 +251,38 @@ if ($method === 'GET') {
 // CREAR NUEVO CLIENTE Y NEGOCIO (MÉTODO POST)
 // =========================================================================
 elseif ($method === 'POST') {
-    $data = json_decode(file_get_contents('php://input'), true);
-    if (!$data) $data = $_POST;
+    $rawInput = file_get_contents('php://input');
+    $jsonData = json_decode($rawInput, true);
+    $data = is_array($jsonData) ? $jsonData : $_POST;
+
+    if (!empty($_GET)) {
+        $data = array_merge($_GET, $data);
+    }
+
+    $action = trim($data['action'] ?? '');
+    $id_neg = (int)($data['id'] ?? $data['id_negocio'] ?? 0);
+    $nuevo_estado = trim($data['estado_pago'] ?? $data['estado'] ?? '');
+
+    // Acción Cambiar Estado (Dar de baja / Reactivar / Suspender negocio)
+    if ($action === 'cambiar_estado' || $action === 'update_status' || $action === 'dar_baja' || $action === 'baja' || $action === 'desactivar' || $action === 'suspender' || ($id_neg > 0 && !empty($nuevo_estado) && empty($data['nombre_completo']))) {
+        if ($id_neg > 0 && !empty($nuevo_estado)) {
+            try {
+                if ($nuevo_estado === 'eliminado' || $nuevo_estado === 'suspendido') {
+                    $stmt = $pdo->prepare("UPDATE negocios SET estado_pago = ?, fecha_eliminado = NOW() WHERE id = ?");
+                } else {
+                    $stmt = $pdo->prepare("UPDATE negocios SET estado_pago = ?, fecha_eliminado = NULL WHERE id = ?");
+                }
+                $stmt->execute([$nuevo_estado, $id_neg]);
+                echo json_encode(['success' => true, 'message' => 'Estado del negocio actualizado correctamente.']);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'error' => 'Error al cambiar el estado: ' . $e->getMessage()]);
+            }
+            exit;
+        } else {
+            echo json_encode(['success' => false, 'error' => 'ID de negocio o estado no válido.']);
+            exit;
+        }
+    }
 
     // Acciones Globales del SuperAdmin (Mover ARRIBA de las validaciones de nuevo cliente)
     if (isset($data['action']) && $data['action'] === 'send_notification') {
