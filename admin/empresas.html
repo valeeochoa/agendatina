@@ -46,6 +46,9 @@
                 <a href="notificaciones.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
                     <span class="material-symbols-outlined text-[22px]">notifications</span> Notificaciones <span id="navNotificacionesCount" class="font-extrabold text-[#fc8712] ml-0.5"></span>
                 </a>
+                <a href="papelera.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">delete_sweep</span> Papelera General
+                </a>
                 <div class="pt-3 mt-3 border-t border-slate-800">
                     <a href="../index.html" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-[#fc8712] hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-xs transition-all">
                         <span class="material-symbols-outlined text-[18px]">open_in_new</span> Ir a Inicio General
@@ -122,6 +125,26 @@
             </div>
         </div>
     </main>
+
+    <!-- Modal Confirmación Genérico (Dar de Baja / Dar de Alta / Eliminar BD) -->
+    <div id="confirmActionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full p-6 sm:p-8 text-center transform scale-95 transition-transform duration-300 relative overflow-hidden" id="confirmActionModalContent">
+            <div id="confirmIconContainer" class="w-16 h-16 rounded-3xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-3xl" id="confirmIcon">block</span>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display" id="confirmTitle">Confirmar Acción</h3>
+            <p class="text-xs text-slate-500 mb-6 leading-relaxed" id="confirmMessage">¿Estás seguro de realizar esta acción?</p>
+
+            <div class="flex gap-3">
+                <button onclick="closeConfirmActionModal()" class="flex-1 px-4 py-3 bg-slate-100 text-slate-700 font-bold rounded-2xl text-xs hover:bg-slate-200 transition-colors">
+                    Cancelar
+                </button>
+                <button id="btnConfirmActionSubmit" class="flex-1 px-4 py-3 bg-[#d11149] text-white font-bold rounded-2xl text-xs hover:bg-[#d11149]/90 transition-all shadow-lg shadow-[#d11149]/20">
+                    Aceptar
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script>
         let clientsData = [];
@@ -230,12 +253,18 @@
                                 <a href="empresa.html?id=${c.id}" class="px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm">
                                     <span class="material-symbols-outlined text-[14px]">visibility</span> Ficha
                                 </a>
-                                <button onclick="darDeBajaEmpresa(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm" title="Dar de baja / Suspender">
-                                    <span class="material-symbols-outlined text-[14px]">block</span> Dar de Baja
-                                </button>
-                                <button onclick="eliminarEmpresaSuperAdmin(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm" title="Mover a Papelera General">
-                                    <span class="material-symbols-outlined text-[14px]">delete</span> Eliminar
-                                </button>
+                                ${c.estado_pago === 'suspendido' ? `
+                                    <button onclick="reactivarEmpresa(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm" title="Dar de alta / Reactivar cuenta">
+                                        <span class="material-symbols-outlined text-[14px]">check_circle</span> Dar de Alta
+                                    </button>
+                                    <button onclick="eliminarEmpresaSuperAdmin(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm" title="Eliminar definitivamente de la Base de Datos">
+                                        <span class="material-symbols-outlined text-[14px]">delete_forever</span> Eliminar
+                                    </button>
+                                ` : `
+                                    <button onclick="darDeBajaEmpresa(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm" title="Dar de baja / Cancelar cuenta">
+                                        <span class="material-symbols-outlined text-[14px]">block</span> Dar de Baja
+                                    </button>
+                                `}
                             </div>
                         </td>
                     </tr>
@@ -244,40 +273,122 @@
             tbody.innerHTML = html;
         }
 
-        function darDeBajaEmpresa(id, nombre) {
-            if (confirm(`¿Seguro que deseas dar de baja / suspender la empresa "${nombre}"?`)) {
-                fetch('../backend/admin_api.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ action: 'cambiar_estado', id: id, estado_pago: 'suspendido' })
-                })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.success) {
-                        loadEmpresas();
-                    } else {
-                        alert(d.error || 'Error al dar de baja la empresa');
-                    }
-                });
+        let pendingActionCallback = null;
+
+        function showConfirmModal({ title, message, icon, iconBg, iconColor, btnText, btnBg, onConfirm }) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').innerHTML = message;
+            
+            const iconEl = document.getElementById('confirmIcon');
+            const iconContainer = document.getElementById('confirmIconContainer');
+            const btnSubmit = document.getElementById('btnConfirmActionSubmit');
+
+            iconEl.textContent = icon || 'help';
+            iconContainer.className = `w-16 h-16 rounded-3xl ${iconBg || 'bg-amber-100'} ${iconColor || 'text-amber-600'} flex items-center justify-center mx-auto mb-4`;
+            
+            btnSubmit.textContent = btnText || 'Aceptar';
+            btnSubmit.className = `flex-1 px-4 py-3 ${btnBg || 'bg-[#d11149] hover:bg-[#d11149]/90'} text-white font-bold rounded-2xl text-xs transition-all shadow-lg shadow-[#d11149]/20`;
+
+            pendingActionCallback = onConfirm;
+
+            const modal = document.getElementById('confirmActionModal');
+            const content = document.getElementById('confirmActionModalContent');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeConfirmActionModal() {
+            const modal = document.getElementById('confirmActionModal');
+            const content = document.getElementById('confirmActionModalContent');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                pendingActionCallback = null;
+            }, 300);
+        }
+
+        document.getElementById('btnConfirmActionSubmit').addEventListener('click', () => {
+            if (typeof pendingActionCallback === 'function') {
+                const cb = pendingActionCallback;
+                closeConfirmActionModal();
+                cb();
             }
+        });
+
+        function darDeBajaEmpresa(id, nombre) {
+            showConfirmModal({
+                title: 'Dar de Baja Empresa',
+                message: `¿Estás seguro de que deseas dar de baja / suspender la cuenta de <strong>"${nombre}"</strong> por falta de pago o movimientos extraños?`,
+                icon: 'block',
+                iconBg: 'bg-amber-100',
+                iconColor: 'text-amber-600',
+                btnText: 'Sí, Dar de Baja',
+                btnBg: 'bg-amber-600 hover:bg-amber-700',
+                onConfirm: () => {
+                    fetch('../backend/admin_api.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({ action: 'cambiar_estado', id: id, estado_pago: 'suspendido' })
+                    })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.success) loadEmpresas();
+                        else alert(d.error || 'Error al dar de baja la empresa');
+                    });
+                }
+            });
+        }
+
+        function reactivarEmpresa(id, nombre) {
+            showConfirmModal({
+                title: 'Dar de Alta Empresa',
+                message: `¿Deseas dar de alta / reactivar la suscripción de la empresa <strong>"${nombre}"</strong>?`,
+                icon: 'check_circle',
+                iconBg: 'bg-emerald-100',
+                iconColor: 'text-emerald-600',
+                btnText: 'Sí, Dar de Alta',
+                btnBg: 'bg-emerald-600 hover:bg-emerald-700',
+                onConfirm: () => {
+                    fetch('../backend/admin_api.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams({ action: 'cambiar_estado', id: id, estado_pago: 'prueba' })
+                    })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.success) loadEmpresas();
+                        else alert(d.error || 'Error al dar de alta la empresa');
+                    });
+                }
+            });
         }
 
         function eliminarEmpresaSuperAdmin(id, nombre) {
-            if (confirm(`¿Seguro que deseas mover la empresa "${nombre}" a la Papelera General?`)) {
-                fetch('../backend/admin_papelera.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'delete_empresa', id: id })
-                })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.success) {
-                        loadEmpresas();
-                    } else {
-                        alert(d.error || 'Error al mover a la papelera');
-                    }
-                });
-            }
+            showConfirmModal({
+                title: '❌ Eliminar de la Base de Datos',
+                message: `⚠️ <strong>ATENCIÓN</strong>: Se eliminará automáticamente la empresa <strong>"${nombre}"</strong> y todos sus datos de la <strong>Base de Datos</strong>. Esta acción NO se puede deshacer.`,
+                icon: 'delete_forever',
+                iconBg: 'bg-red-100',
+                iconColor: 'text-red-600',
+                btnText: 'Eliminar de la BD',
+                btnBg: 'bg-red-600 hover:bg-red-700',
+                onConfirm: () => {
+                    fetch(`../backend/admin_api.php?id=${id}`, {
+                        method: 'DELETE'
+                    })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.success) loadEmpresas();
+                        else alert(d.error || 'Error al eliminar de la base de datos');
+                    });
+                }
+            });
         }
 
         function loadAdminNavNotifsCount() {

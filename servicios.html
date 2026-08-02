@@ -170,17 +170,47 @@
         let servicesData = [];
         let professionalsData = [];
 
+        let currentOwnerName = 'Dueño Principal';
+
         document.addEventListener('DOMContentLoaded', () => {
             fetch('backend/perfil.php')
                 .then(r => r.json())
                 .then(d => {
                     if (!d.success) window.location.href = 'login.html';
                     else {
+                        currentOwnerName = d.nombre_completo || d.nombre_fantasia || 'Dueño Principal';
                         loadServices();
                         loadTeam();
                     }
                 });
         });
+
+        function populateProfSelect(profs) {
+            const select = document.getElementById('svcProfesional');
+            select.innerHTML = '';
+            
+            // Si no hay profesionales adicionales registrados, el dueño es la opción por defecto
+            if (!profs || profs.length === 0) {
+                select.innerHTML = `<option value="${currentOwnerName}">${currentOwnerName} (Dueño/a)</option>`;
+                return;
+            }
+            
+            let html = '';
+            const hasOwnerInList = profs.some(p => p.nombre_completo.toLowerCase().trim() === currentOwnerName.toLowerCase().trim());
+            
+            if (!hasOwnerInList) {
+                html += `<option value="${currentOwnerName}">${currentOwnerName} (Dueño/a)</option>`;
+            }
+            
+            profs.forEach(p => {
+                const isOwner = p.nombre_completo.toLowerCase().trim() === currentOwnerName.toLowerCase().trim();
+                const label = isOwner ? `${p.nombre_completo} (Dueño/a)` : p.nombre_completo;
+                html += `<option value="${p.nombre_completo}">${label}</option>`;
+            });
+            
+            html += '<option value="Cualquiera (Sin preferencia)">Cualquiera (Sin preferencia)</option>';
+            select.innerHTML = html;
+        }
 
         function loadServices() {
             fetch('backend/gestionar_servicios.php')
@@ -260,14 +290,6 @@
                 `;
             });
             container.innerHTML = html;
-        }
-
-        function populateProfSelect(profs) {
-            const select = document.getElementById('svcProfesional');
-            select.innerHTML = '<option value="Cualquiera (Sin preferencia)">Cualquiera (Sin preferencia)</option>';
-            profs.forEach(p => {
-                select.innerHTML += `<option value="${p.nombre_completo}">${p.nombre_completo}</option>`;
-            });
         }
 
         function openServiceModal() {

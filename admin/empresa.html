@@ -753,7 +753,10 @@ function closeReceiptModal() {
     const content = document.getElementById('receiptModalContent');
     modal.classList.add('opacity-0');
     content.classList.add('scale-95');
-    setTimeout(() => { modal.classList.add('hidden'); }, 300);
+    setTimeout(() => { 
+        modal.classList.add('hidden'); 
+        location.reload();
+    }, 300);
 }
 
 function darDeBajaEmpresaFicha() {
@@ -774,11 +777,9 @@ function darDeBajaEmpresaFicha() {
 
 function eliminarEmpresaFicha() {
     const id = new URLSearchParams(window.location.search).get('id');
-    if (confirm('¿Seguro que deseas enviar esta empresa a la Papelera General?')) {
-        fetch('../backend/admin_papelera.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'delete_empresa', id: id })
+    if (confirm('⚠️ ATENCIÓN: Se eliminará automáticamente la empresa y todos sus datos de la Base de Datos. ¿Deseas continuar?')) {
+        fetch(`../backend/admin_api.php?id=${id}`, {
+            method: 'DELETE'
         })
         .then(r => r.json())
         .then(d => {

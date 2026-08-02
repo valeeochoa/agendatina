@@ -14,15 +14,27 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     try {
-        // Obtener la lista de profesionales creados
+        // Obtener la lista de profesionales e integrantes del equipo (incluyendo admins)
         $stmt = $pdo->prepare("
-            SELECT u.id, u.nombre_completo, u.email 
+            SELECT u.id, u.nombre_completo, u.email, pn.rol_en_local 
             FROM usuarios u
             JOIN personal_negocio pn ON u.id = pn.id_usuario
-            WHERE pn.id_negocio = :id_negocio AND pn.rol_en_local = 'profesional'
+            WHERE pn.id_negocio = :id_negocio
+            ORDER BY (pn.rol_en_local = 'admin') DESC, u.id ASC
         ");
         $stmt->execute(['id_negocio' => $id_negocio]);
         $profesionales = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Auto-reparación: Si no se encuentran integrantes, vincular al dueño de la sesión activa
+        if (empty($profesionales) && isset($_SESSION['user_id'])) {
+            try {
+                $stmtFix = $pdo->prepare("INSERT IGNORE INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'admin')");
+                $stmtFix->execute([$id_negocio, $_SESSION['user_id']]);
+
+                $stmt->execute(['id_negocio' => $id_negocio]);
+                $profesionales = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } catch (Exception $eFix) {}
+        }
 
         // Obtener el límite dictado por el plan (SuperAdmin)
         $stmtLimit = $pdo->prepare("SELECT max_profesionales FROM negocios WHERE id = :id");
@@ -31,7 +43,7 @@ if ($method === 'GET') {
 
         echo json_encode(['success' => true, 'data' => $profesionales, 'limite' => $max_profesionales]);
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'error' => 'Error al cargar el equipo.']);
+        echo json_encode(['success' => false, 'error' => 'Error al cargar el equipo: ' . $e->getMessage()]);
     }
 } elseif ($method === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true) ?: $_POST;
@@ -63,21 +75,39 @@ if ($method === 'GET') {
             throw new Exception("Has alcanzado el límite máximo de $max_profesionales profesionales. Si necesitas más cuentas, contacta a soporte para ampliar tu plan.");
         }
 
-        // Verificar email duplicado en el sistema
-        $stmtCheck = $pdo->prepare("SELECT id FROM usuarios WHERE email = :email");
+        // Verificar si el usuario ya existe en la plataforma (puede trabajar en otro local o tener su propio negocio)
+        $stmtCheck = $pdo->prepare("SELECT id FROM usuarios WHERE email = :email LIMIT 1");
         $stmtCheck->execute(['email' => $email]);
-        if ($stmtCheck->fetch()) {
-            throw new Exception("El correo '$email' ya se encuentra registrado. Utiliza un correo corporativo o distinto.");
+        $existingUser = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+        if ($existingUser) {
+            $id_usuario = $existingUser['id'];
+
+            // Verificar si ya está vinculado a este negocio específico
+            $stmtPnCheck = $pdo->prepare("SELECT id FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ?");
+            $stmtPnCheck->execute([$id_negocio, $id_usuario]);
+            if ($stmtPnCheck->fetch()) {
+                throw new Exception("El profesional con el correo '$email' ya se encuentra formando parte de tu equipo.");
+            }
+
+            // Vincular la cuenta existente a este negocio
+            $stmtPn = $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'profesional')");
+            $stmtPn->execute([$id_negocio, $id_usuario]);
+        } else {
+            // Crear usuario nuevo (sin requerir verificación de correo)
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            try {
+                $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, email_verificado) VALUES (?, ?, ?, 1)");
+                $stmtUser->execute([$nombre, $email, $hash]);
+            } catch (Exception $eMailCol) {
+                $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password) VALUES (?, ?, ?)");
+                $stmtUser->execute([$nombre, $email, $hash]);
+            }
+            $id_usuario = $pdo->lastInsertId();
+
+            $stmtPn = $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'profesional')");
+            $stmtPn->execute([$id_negocio, $id_usuario]);
         }
-
-        // Crear usuario y darle rol de profesional
-        $hash = password_hash($password, PASSWORD_DEFAULT);
-        $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password) VALUES (?, ?, ?)");
-        $stmtUser->execute([$nombre, $email, $hash]);
-        $id_usuario = $pdo->lastInsertId();
-
-        $stmtPn = $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'profesional')");
-        $stmtPn->execute([$id_negocio, $id_usuario]);
 
         $pdo->commit();
 

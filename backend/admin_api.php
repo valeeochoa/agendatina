@@ -17,7 +17,7 @@ if (isset($_SESSION['is_demo'])) {
 // =========================================================================
 // BARRERA DE SEGURIDAD: Bloquea el acceso si no es el administrador
 // =========================================================================
-if (!isset($_SESSION['is_superadmin']) || $_SESSION['is_superadmin'] !== true) {
+if ((!isset($_SESSION['is_superadmin']) || $_SESSION['is_superadmin'] !== true) && (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true)) {
     http_response_code(403);
     echo json_encode(['success' => false, 'error' => 'Acceso denegado. Inicia sesión como Super Admin.']);
     exit;

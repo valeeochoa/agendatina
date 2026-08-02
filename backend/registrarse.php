@@ -48,7 +48,7 @@ try {
     $stmtCheck = $pdo->prepare("SELECT id FROM usuarios WHERE LOWER(email) = LOWER(:email) LIMIT 1");
     $stmtCheck->execute(['email' => $email]);
     if ($stmtCheck->fetch()) {
-        echo json_encode(['success' => false, 'error' => 'El correo electrónico ya se encuentra registrado.']);
+        echo json_encode(['success' => false, 'error' => 'El correo electrónico ya se encuentra registrado. Por el momento, un emprendedor puede registrar únicamente 1 negocio como dueño.']);
         exit;
     }
 

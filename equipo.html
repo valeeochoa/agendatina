@@ -169,7 +169,12 @@
 
             let html = '';
             team.forEach(p => {
-                const assignedSvcs = services.filter(s => s.profesional && s.profesional.toLowerCase().trim() === p.nombre_completo.toLowerCase().trim());
+                const pName = p.nombre_completo.toLowerCase().trim();
+                const assignedSvcs = services.filter(s => {
+                    if (!s.profesional || s.profesional.includes('Cualquiera')) return true;
+                    const sProf = s.profesional.toLowerCase().trim();
+                    return sProf.includes(pName) || pName.includes(sProf);
+                });
                 
                 let svcsTags = '';
                 if (assignedSvcs.length > 0) {

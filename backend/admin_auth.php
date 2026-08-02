@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($super_admin_user === $username && $password === $super_admin_pass) {
         $_SESSION['is_superadmin'] = true;
+        $_SESSION['admin_logged_in'] = true;
         $_SESSION['superadmin_last_activity'] = time();
         unset($_SESSION['is_demo']); // Asegurar que el admin opere en la BD real
         echo json_encode(['success' => true]);
