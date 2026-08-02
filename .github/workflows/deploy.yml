@@ -26,9 +26,12 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
-          protocol: ftp
+          protocol: ftps
+          security: loose
+          security-options: '{"rejectUnauthorized": false}'
           log-level: verbose
           server-dir: /public_html/
+          state-name: .ftp-deploy-sync-state.json
           exclude: |
             **/.git**
             **/.github**
