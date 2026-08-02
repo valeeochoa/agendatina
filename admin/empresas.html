@@ -43,6 +43,9 @@
                 <a href="comprobantes.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
                     <span class="material-symbols-outlined text-[22px]">receipt_long</span> Comprobantes de Pago
                 </a>
+                <a href="papelera.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">delete_sweep</span> Papelera General
+                </a>
                 <div class="pt-3 mt-3 border-t border-slate-800">
                     <a href="../index.html" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-[#fc8712] hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-xs transition-all">
                         <span class="material-symbols-outlined text-[18px]">open_in_new</span> Ir a Inicio General
@@ -223,14 +226,37 @@
                         <td class="p-4">${statusBadge}</td>
                         <td class="p-4 text-xs font-semibold text-slate-600">${diasText}</td>
                         <td class="p-4 text-center">
-                            <a href="empresa.html?id=${c.id}" class="px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm">
-                                <span class="material-symbols-outlined text-[14px]">visibility</span> Ver Ficha
-                            </a>
+                            <div class="flex items-center justify-center gap-1.5">
+                                <a href="empresa.html?id=${c.id}" class="px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm">
+                                    <span class="material-symbols-outlined text-[14px]">visibility</span> Ver Ficha
+                                </a>
+                                <button onclick="eliminarEmpresaSuperAdmin(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm" title="Mover a Papelera General">
+                                    <span class="material-symbols-outlined text-[14px]">delete</span> Eliminar
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
             });
             tbody.innerHTML = html;
+        }
+
+        function eliminarEmpresaSuperAdmin(id, nombre) {
+            if (confirm(`¿Seguro que deseas mover la empresa "${nombre}" a la Papelera General?`)) {
+                fetch('../backend/admin_papelera.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete_empresa', id: id })
+                })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) {
+                        loadEmpresas();
+                    } else {
+                        alert(d.error || 'Error al mover a la papelera');
+                    }
+                });
+            }
         }
 
         function logoutAdmin() {
