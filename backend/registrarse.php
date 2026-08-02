@@ -90,7 +90,11 @@ try {
         }
     } catch (Exception $e) {}
 
-    // Asegurar columnas de la tabla usuarios dinámicamente
+    // =========================================================================
+    // AUTO-MIGRACIÓN DE TABLAS Y COLUMNAS (ANTES DE LA TRANSACCIÓN)
+    // Las sentencias DDL (CREATE/ALTER) realizan un AUTO-COMMIT IMPLÍCITO en MySQL.
+    // Por ello DEBEN ejecutarse estrictamente ANTES de $pdo->beginTransaction().
+    // =========================================================================
     try { $pdo->query("SELECT codigo_verificacion FROM usuarios LIMIT 1"); } 
     catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN codigo_verificacion VARCHAR(10) DEFAULT NULL"); }
 
@@ -103,7 +107,6 @@ try {
     try { $pdo->query("SELECT fecha_creacion FROM usuarios LIMIT 1"); } 
     catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP"); }
 
-    // Asegurar columnas de la tabla negocios dinámicamente
     try { $pdo->query("SELECT plan FROM negocios LIMIT 1"); } 
     catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN plan VARCHAR(50) DEFAULT 'Básico'"); }
 
@@ -116,39 +119,6 @@ try {
     try { $pdo->query("SELECT fecha_alta FROM negocios LIMIT 1"); } 
     catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN fecha_alta DATETIME DEFAULT CURRENT_TIMESTAMP"); }
 
-    // Generar código numérico de 6 dígitos válido por 15 minutos
-    $codigoVerificacion = sprintf("%06d", mt_rand(1, 999999));
-    $verificacionExpira = date('Y-m-d H:i:s', strtotime('+15 minutes'));
-
-    $pdo->beginTransaction();
-
-    // 4. Crear usuario (con código de activación de 15 min)
-    $hashPass = password_hash($password, PASSWORD_DEFAULT);
-    $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, codigo_verificacion, verificacion_expira, email_verificado, fecha_creacion) VALUES (:nombre, :email, :pass, :cod, :exp, 0, NOW())");
-    $stmtUser->execute([
-        'nombre' => $nombre_completo,
-        'email' => $email,
-        'pass' => $hashPass,
-        'cod' => $codigoVerificacion,
-        'exp' => $verificacionExpira
-    ]);
-    $idUsuario = $pdo->lastInsertId();
-
-    // 5. Crear negocio con plan y límite de profesionales
-    $stmtNegocio = $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago, fecha_alta) VALUES (:nombre, :ruta, :plan, :max_p, 'prueba', NOW())");
-    $stmtNegocio->execute([
-        'nombre' => $nombre_fantasia,
-        'ruta' => $ruta,
-        'plan' => $plan,
-        'max_p' => $max_profesionales
-    ]);
-    $idNegocio = $pdo->lastInsertId();
-
-    // 6. Vincular usuario con negocio como admin del local
-    $stmtPersonal = $pdo->prepare("INSERT INTO personal_negocio (id_usuario, id_negocio, rol_en_local) VALUES (:id_u, :id_n, 'admin')");
-    $stmtPersonal->execute(['id_u' => $idUsuario, 'id_n' => $idNegocio]);
-
-    // 7. Crear configuración inicial del negocio (horarios, descanso, días laborables, color)
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS configuracion_web (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -184,6 +154,51 @@ try {
     }
 
     try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS notificaciones_admin (
+            id INT AUTO_INCREMENT PRIMARY KEY, 
+            segmento VARCHAR(100), 
+            mensaje TEXT, 
+            id_negocio INT NULL,
+            fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+            leida BOOLEAN DEFAULT FALSE
+        )");
+    } catch (Exception $eNotif) {}
+
+    // Generar código numérico de 6 dígitos válido por 15 minutos
+    $codigoVerificacion = sprintf("%06d", mt_rand(1, 999999));
+    $verificacionExpira = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+
+    // INICIAR TRANSACCIÓN DML (SOLO INSERTS/UPDATES DE DATOS)
+    $pdo->beginTransaction();
+
+    // 4. Crear usuario (con código de activación de 15 min)
+    $hashPass = password_hash($password, PASSWORD_DEFAULT);
+    $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, codigo_verificacion, verificacion_expira, email_verificado, fecha_creacion) VALUES (:nombre, :email, :pass, :cod, :exp, 0, NOW())");
+    $stmtUser->execute([
+        'nombre' => $nombre_completo,
+        'email' => $email,
+        'pass' => $hashPass,
+        'cod' => $codigoVerificacion,
+        'exp' => $verificacionExpira
+    ]);
+    $idUsuario = $pdo->lastInsertId();
+
+    // 5. Crear negocio con plan y límite de profesionales
+    $stmtNegocio = $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago, fecha_alta) VALUES (:nombre, :ruta, :plan, :max_p, 'prueba', NOW())");
+    $stmtNegocio->execute([
+        'nombre' => $nombre_fantasia,
+        'ruta' => $ruta,
+        'plan' => $plan,
+        'max_p' => $max_profesionales
+    ]);
+    $idNegocio = $pdo->lastInsertId();
+
+    // 6. Vincular usuario con negocio como admin del local
+    $stmtPersonal = $pdo->prepare("INSERT INTO personal_negocio (id_usuario, id_negocio, rol_en_local) VALUES (:id_u, :id_n, 'admin')");
+    $stmtPersonal->execute(['id_u' => $idUsuario, 'id_n' => $idNegocio]);
+
+    // 7. Crear configuración inicial del negocio
+    try {
         $stmtConfigWeb = $pdo->prepare("INSERT IGNORE INTO configuracion_web (id_negocio, titulo_banner, subtitulo_banner, color_primario, limite_eliminacion_dias, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo) VALUES (:id_n, :titulo, 'Bienvenido a nuestra agenda online', '#d11149', 30, :h_ap, :h_ci, :h_di, :h_df, :dias)");
         $stmtConfigWeb->execute([
             'id_n' => $idNegocio,
@@ -201,63 +216,40 @@ try {
     // 8. Auto-insertar turnos de demostración ÚNICAMENTE para la cuenta DEMO
     if ($ruta === 'demo' || strtolower($email) === 'demo@agendatina.site') {
         try {
-        // Asegurar columnas de turnos si es necesario
-        try { $pdo->query("SELECT cliente_nombre FROM turnos LIMIT 1"); } 
-        catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_nombre VARCHAR(255) DEFAULT ''"); }
-        try { $pdo->query("SELECT cliente_telefono FROM turnos LIMIT 1"); } 
-        catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_telefono VARCHAR(100) DEFAULT ''"); }
-        try { $pdo->query("SELECT cliente_email FROM turnos LIMIT 1"); } 
-        catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_email VARCHAR(255) DEFAULT ''"); }
-        try { $pdo->query("SELECT servicio FROM turnos LIMIT 1"); } 
-        catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN servicio VARCHAR(255) DEFAULT ''"); }
-        try { $pdo->query("SELECT precio FROM turnos LIMIT 1"); } 
-        catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN precio DECIMAL(10,2) DEFAULT 0.00"); }
+            $demoTurnos = [
+                ['cliente' => 'María González', 'tel' => '1123456789', 'email' => 'maria@gmail.com', 'servicio' => 'Corte & Peinado', 'monto' => 4500, 'offset' => 0, 'hora' => '10:00:00', 'estado' => 'confirmado'],
+                ['cliente' => 'Carlos Rodríguez', 'tel' => '1198765432', 'email' => 'carlos@gmail.com', 'servicio' => 'Perfilado de Barba', 'monto' => 3000, 'offset' => 0, 'hora' => '11:30:00', 'estado' => 'confirmado'],
+                ['cliente' => 'Ana Martínez', 'tel' => '1155443322', 'email' => 'ana@gmail.com', 'servicio' => 'Manicura Rusa', 'monto' => 3800, 'offset' => 0, 'hora' => '16:00:00', 'estado' => 'pendiente'],
+                ['cliente' => 'Lucía Fernández', 'tel' => '1166778899', 'email' => 'lucia@gmail.com', 'servicio' => 'Limpieza Facial Profunda', 'monto' => 5200, 'offset' => 1, 'hora' => '09:30:00', 'estado' => 'confirmado'],
+                ['cliente' => 'Diego López', 'tel' => '1133221100', 'email' => 'diego@gmail.com', 'servicio' => 'Diseño de Cejas & Barba', 'monto' => 3500, 'offset' => 1, 'hora' => '15:00:00', 'estado' => 'confirmado']
+            ];
 
-        $demoTurnos = [
-            ['cliente' => 'María González', 'tel' => '1123456789', 'email' => 'maria@gmail.com', 'servicio' => 'Corte & Peinado', 'monto' => 4500, 'offset' => 0, 'hora' => '10:00:00', 'estado' => 'confirmado'],
-            ['cliente' => 'Carlos Rodríguez', 'tel' => '1198765432', 'email' => 'carlos@gmail.com', 'servicio' => 'Perfilado de Barba', 'monto' => 3000, 'offset' => 0, 'hora' => '11:30:00', 'estado' => 'confirmado'],
-            ['cliente' => 'Ana Martínez', 'tel' => '1155443322', 'email' => 'ana@gmail.com', 'servicio' => 'Manicura Rusa', 'monto' => 3800, 'offset' => 0, 'hora' => '16:00:00', 'estado' => 'pendiente'],
-            ['cliente' => 'Lucía Fernández', 'tel' => '1166778899', 'email' => 'lucia@gmail.com', 'servicio' => 'Limpieza Facial Profunda', 'monto' => 5200, 'offset' => 1, 'hora' => '09:30:00', 'estado' => 'confirmado'],
-            ['cliente' => 'Diego López', 'tel' => '1133221100', 'email' => 'diego@gmail.com', 'servicio' => 'Diseño de Cejas & Barba', 'monto' => 3500, 'offset' => 1, 'hora' => '15:00:00', 'estado' => 'confirmado']
-        ];
+            $stmtTurno = $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_telefono, cliente_email, servicio, precio, fecha, hora, estado, creado_en) VALUES (:id_n, :cli, :tel, :email, :serv, :precio, :fecha, :hora, :estado, NOW())");
 
-        $stmtTurno = $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_telefono, cliente_email, servicio, precio, fecha, hora, estado, creado_en) VALUES (:id_n, :cli, :tel, :email, :serv, :precio, :fecha, :hora, :estado, NOW())");
-
-        foreach ($demoTurnos as $t) {
-            $fechaCalculada = date('Y-m-d', strtotime('+' . $t['offset'] . ' days'));
-            $stmtTurno->execute([
-                'id_n' => $idNegocio,
-                'cli' => $t['cliente'],
-                'tel' => $t['tel'],
-                'email' => $t['email'],
-                'serv' => $t['servicio'],
-                'precio' => $t['monto'],
-                'fecha' => $fechaCalculada,
-                'hora' => $t['hora'],
-                'estado' => $t['estado']
-            ]);
+            foreach ($demoTurnos as $t) {
+                $fechaCalculada = date('Y-m-d', strtotime('+' . $t['offset'] . ' days'));
+                $stmtTurno->execute([
+                    'id_n' => $idNegocio,
+                    'cli' => $t['cliente'],
+                    'tel' => $t['tel'],
+                    'email' => $t['email'],
+                    'serv' => $t['servicio'],
+                    'precio' => $t['monto'],
+                    'fecha' => $fechaCalculada,
+                    'hora' => $t['hora'],
+                    'estado' => $t['estado']
+                ]);
+            }
+        } catch (Exception $eTurnos) {
+            error_log("Aviso turnos demo no críticos: " . $eTurnos->getMessage());
         }
-    } catch (Exception $eTurnos) {
-        error_log("Aviso turnos demo no críticos: " . $eTurnos->getMessage());
     }
-}
 
     // Guardar notificación para el SuperAdmin
     try {
-        $pdo->query("SELECT 1 FROM notificaciones_admin LIMIT 1");
-    } catch (Exception $eNotif) {
-        $pdo->exec("CREATE TABLE notificaciones_admin (
-            id INT AUTO_INCREMENT PRIMARY KEY, 
-            segmento VARCHAR(100), 
-            mensaje TEXT, 
-            id_negocio INT NULL,
-            fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
-            leida BOOLEAN DEFAULT FALSE
-        )");
-    }
-    
-    $stmtNotifAdmin = $pdo->prepare("INSERT INTO notificaciones_admin (segmento, mensaje, id_negocio) VALUES ('Nuevo Registro', ?, ?)");
-    $stmtNotifAdmin->execute(["Nuevo emprendedor registrado: {$nombre_completo} ({$email}) - Negocio: {$nombre_fantasia} (Plan: {$plan})", $idNegocio]);
+        $stmtNotifAdmin = $pdo->prepare("INSERT INTO notificaciones_admin (segmento, mensaje, id_negocio) VALUES ('Nuevo Registro', ?, ?)");
+        $stmtNotifAdmin->execute(["Nuevo emprendedor registrado: {$nombre_completo} ({$email}) - Negocio: {$nombre_fantasia} (Plan: {$plan})", $idNegocio]);
+    } catch (Exception $eNotifAdmin) {}
 
     $pdo->commit();
 
