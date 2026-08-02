@@ -149,16 +149,54 @@ try {
     $stmtPersonal->execute(['id_u' => $idUsuario, 'id_n' => $idNegocio]);
 
     // 7. Crear configuración inicial del negocio (horarios, descanso, días laborables, color)
-    $stmtConfigWeb = $pdo->prepare("INSERT IGNORE INTO configuracion_web (id_negocio, titulo_banner, subtitulo_banner, color_primario, limite_eliminacion_dias, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo) VALUES (:id_n, :titulo, 'Bienvenido a nuestra agenda online', '#d11149', 30, :h_ap, :h_ci, :h_di, :h_df, :dias)");
-    $stmtConfigWeb->execute([
-        'id_n' => $idNegocio,
-        'titulo' => $nombre_fantasia,
-        'h_ap' => $hora_apertura,
-        'h_ci' => $hora_cierre,
-        'h_di' => $hora_descanso_inicio,
-        'h_df' => $hora_descanso_fin,
-        'dias' => $dias_trabajo
-    ]);
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS configuracion_web (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            id_negocio INT NOT NULL,
+            titulo_banner VARCHAR(255) DEFAULT NULL,
+            subtitulo_banner TEXT DEFAULT NULL,
+            color_primario VARCHAR(20) DEFAULT '#d11149',
+            limite_eliminacion_dias INT DEFAULT 30,
+            hora_apertura VARCHAR(10) DEFAULT '09:00',
+            hora_cierre VARCHAR(10) DEFAULT '19:00',
+            hora_descanso_inicio VARCHAR(10) DEFAULT NULL,
+            hora_descanso_fin VARCHAR(10) DEFAULT NULL,
+            dias_trabajo VARCHAR(50) DEFAULT '1,2,3,4,5,6',
+            UNIQUE KEY (id_negocio)
+        )");
+    } catch(Exception $e) {}
+
+    $configWebCols = [
+        'titulo_banner' => 'VARCHAR(255) DEFAULT NULL',
+        'subtitulo_banner' => 'TEXT DEFAULT NULL',
+        'color_primario' => "VARCHAR(20) DEFAULT '#d11149'",
+        'limite_eliminacion_dias' => 'INT DEFAULT 30',
+        'hora_apertura' => "VARCHAR(10) DEFAULT '09:00'",
+        'hora_cierre' => "VARCHAR(10) DEFAULT '19:00'",
+        'hora_descanso_inicio' => 'VARCHAR(10) DEFAULT NULL',
+        'hora_descanso_fin' => 'VARCHAR(10) DEFAULT NULL',
+        'dias_trabajo' => "VARCHAR(50) DEFAULT '1,2,3,4,5,6'"
+    ];
+
+    foreach ($configWebCols as $col => $def) {
+        try { $pdo->query("SELECT $col FROM configuracion_web LIMIT 1"); }
+        catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN $col $def"); }
+    }
+
+    try {
+        $stmtConfigWeb = $pdo->prepare("INSERT IGNORE INTO configuracion_web (id_negocio, titulo_banner, subtitulo_banner, color_primario, limite_eliminacion_dias, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo) VALUES (:id_n, :titulo, 'Bienvenido a nuestra agenda online', '#d11149', 30, :h_ap, :h_ci, :h_di, :h_df, :dias)");
+        $stmtConfigWeb->execute([
+            'id_n' => $idNegocio,
+            'titulo' => $nombre_fantasia,
+            'h_ap' => $hora_apertura,
+            'h_ci' => $hora_cierre,
+            'h_di' => $hora_descanso_inicio,
+            'h_df' => $hora_descanso_fin,
+            'dias' => $dias_trabajo
+        ]);
+    } catch (Exception $eConfig) {
+        error_log("Aviso config web no crítica: " . $eConfig->getMessage());
+    }
 
     // 8. Auto-insertar turnos de demostración ÚNICAMENTE para la cuenta DEMO
     if ($ruta === 'demo' || strtolower($email) === 'demo@agendatina.site') {
