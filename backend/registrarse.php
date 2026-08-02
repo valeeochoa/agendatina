@@ -301,7 +301,7 @@ try {
             $mailAdmin->Subject = "¡Nueva Cuenta Creada! - $nombre_fantasia";
             $mailAdmin->Body = "<div style='font-family: Arial, sans-serif; padding: 20px;'><h2 style='color: #22c55e;'>¡Nueva Cuenta Registrada!</h2><p><strong>Nombre:</strong> $nombre_completo</p><p><strong>Email:</strong> $email</p><p><strong>Emprendimiento:</strong> $nombre_fantasia</p><p><strong>Plan Elegido:</strong> $plan ($max_profesionales prof.)</p></div>";
             $mailAdmin->send();
-        } catch (Exception $mEx) {
+        } catch (\Throwable $mEx) {
             error_log("Error al enviar correos de bienvenida: " . $mEx->getMessage());
         }
     }
@@ -317,7 +317,11 @@ try {
 
     echo json_encode(['success' => true, 'redirect' => 'dashboard.html', 'message' => "¡Cuenta creada exitosamente! Cuentas con {$diasPrueba} días de prueba gratuita."]);
 } catch (Throwable $e) {
-    if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
+    try {
+        if (isset($pdo) && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+    } catch (Throwable $rollEx) {}
     echo json_encode(['success' => false, 'error' => 'Error al crear la cuenta: ' . $e->getMessage()]);
 }
 ?>

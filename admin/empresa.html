@@ -74,6 +74,12 @@
                     <button onclick="openEditInfoModal()" class="px-4 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm">
                         <span class="material-symbols-outlined text-[18px]">manage_accounts</span> Editar Datos
                     </button>
+                    <button onclick="darDeBajaEmpresaFicha()" class="px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm" title="Dar de Baja / Suspender">
+                        <span class="material-symbols-outlined text-[18px]">block</span> Dar de Baja
+                    </button>
+                    <button onclick="eliminarEmpresaFicha()" class="px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 shadow-sm" title="Mover a Papelera General">
+                        <span class="material-symbols-outlined text-[18px]">delete</span> Eliminar
+                    </button>
                 </div>
             </div>
 
@@ -748,6 +754,38 @@ function closeReceiptModal() {
     modal.classList.add('opacity-0');
     content.classList.add('scale-95');
     setTimeout(() => { modal.classList.add('hidden'); }, 300);
+}
+
+function darDeBajaEmpresaFicha() {
+    const id = new URLSearchParams(window.location.search).get('id');
+    if (confirm('¿Seguro que deseas dar de baja / suspender esta empresa?')) {
+        fetch('../backend/admin_api.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ action: 'cambiar_estado', id: id, estado_pago: 'suspendido' })
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) location.reload();
+            else alert(d.error || 'Error al dar de baja');
+        });
+    }
+}
+
+function eliminarEmpresaFicha() {
+    const id = new URLSearchParams(window.location.search).get('id');
+    if (confirm('¿Seguro que deseas enviar esta empresa a la Papelera General?')) {
+        fetch('../backend/admin_papelera.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete_empresa', id: id })
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.success) window.location.href = 'empresas.html';
+            else alert(d.error || 'Error al eliminar');
+        });
+    }
 }
 
 function logoutAdmin() {
