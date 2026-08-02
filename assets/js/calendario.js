@@ -2509,7 +2509,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 350);
 
-        // Cargar nombre oficial del negocio para el Navbar y Pestaña (Reemplaza hardcoded STUDIOGLAM)
+        // Cargar nombre oficial del negocio y logo para el Navbar y Pestaña
         fetch(negocioSlug ? `backend/guardar_web.php?n=${negocioSlug}` : `backend/guardar_web.php`)
         .then(res => res.json())
         .then(config => {
@@ -2518,27 +2518,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 let title = config.nombre_fantasia || config.nombre_negocio || config.titulo || 'Agendatina';
                 document.title = title + ' | Calendario de Turnos';
                 
-                const navBusinessNameText = document.getElementById('navBusinessNameText') || document.getElementById('navBusinessNameHeader');
+                const navBusinessNameText = document.getElementById('navBusinessNameText');
                 if (navBusinessNameText) {
                     navBusinessNameText.textContent = title;
-                } else {
-                    const navBusinessName = document.getElementById('navBusinessName');
-                    const navBrandAccent = document.getElementById('navBrandAccent');
-                    if (navBusinessName) {
-                        if (title.toLowerCase().trim() === 'agendatina') {
-                            navBusinessName.textContent = 'Agenda';
-                            if (navBrandAccent) navBrandAccent.textContent = 'tina';
-                        } else {
-                            navBusinessName.textContent = title;
-                            if (navBrandAccent) navBrandAccent.textContent = '';
-                        }
-                    }
                 }
+
+                const logoImg = document.getElementById('navBusinessLogoImg');
+                const iconEl = document.getElementById('navBusinessIcon');
+                if (config.url_logo && logoImg) {
+                    logoImg.src = config.url_logo;
+                    logoImg.classList.remove('hidden');
+                    if (iconEl) iconEl.classList.add('hidden');
+                } else if (iconEl) {
+                    iconEl.classList.remove('hidden');
+                    if (logoImg) logoImg.classList.add('hidden');
+                }
+
+                checkAdminCalendarSession(config);
             }
         }).catch(() => {
             document.title = 'Agendatina | Calendario de Turnos';
             const navBusinessNameText = document.getElementById('navBusinessNameText');
             if (navBusinessNameText) navBusinessNameText.textContent = 'Agendatina';
+            checkAdminCalendarSession();
         });
 
         const manageServicesBtn = document.getElementById('manageServicesBtn');
@@ -2590,3 +2592,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+function checkAdminCalendarSession(config = null) {
+    fetch('backend/perfil.php')
+    .then(res => res.json())
+    .then(data => {
+        if (data && data.success && data.business) {
+            const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
+            const currentRuta = (negocioSlug || (config ? config.ruta || config.subdominio : '') || '').toLowerCase().trim();
+            
+            // Si no hay slug o coincide con el local de la sesión iniciada
+            if (!currentRuta || loggedRuta === currentRuta || (config && data.business.id == config.id_negocio)) {
+                const adminMenu = document.getElementById('adminProfileMenu');
+                if (adminMenu) {
+                    adminMenu.classList.remove('hidden');
+                    adminMenu.classList.add('flex');
+                }
+                const sessionBadge = document.getElementById('adminSessionBadge');
+                if (sessionBadge) {
+                    sessionBadge.classList.remove('hidden');
+                    sessionBadge.classList.add('flex');
+                }
+            }
+        }
+    })
+    .catch(() => null);
+}

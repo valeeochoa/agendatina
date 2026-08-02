@@ -6,32 +6,43 @@
     <title>Ajustes del Sistema | Agendatina</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23D11149'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-2.5 5.43l-4.57 4.57-2.43-2.43 1.41-1.41 1.02 1.02 3.16-3.16 1.41 1.41z'/></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link rel="preload" href="assets/css/global.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="assets/css/global.css"></noscript>
     <script>
         tailwind.config = {
-            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Manrope', 'sans-serif'] }, colors: { primary: '#D11149', secondary: '#FC8712' } } }
+            theme: { extend: { fontFamily: { display: ['Plus Jakarta Sans', 'sans-serif'], brand: ['Fredoka', 'sans-serif'] }, colors: { primary: '#D11149', secondary: '#FC8712' } } }
         }
     </script>
 </head>
-<body class="bg-slate-100 text-slate-900 antialiased">
+<body class="bg-slate-50 text-slate-800 font-display antialiased">
 
-    <!-- Navbar del Dashboard -->
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-amber-500 text-3xl">settings_suggest</span>
-                <span class="font-bold text-xl tracking-tight hidden sm:block">Agendatina</span>
-            </div>
-            <div class="flex items-center gap-3 sm:gap-4">
-                <button onclick="openReportErrorModal('Ajustes')" class="text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg flex items-center gap-1 transition-colors">
-                    <span class="material-symbols-outlined text-[16px]">bug_report</span> <span class="hidden sm:inline">Reportar Error</span>
+    <!-- Navbar del Dashboard / Ajustes -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-xs px-4 sm:px-6 py-3.5">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+            <a href="dashboard.html" class="flex items-center gap-2 tracking-tighter hover:opacity-90 transition-opacity">
+                <img src="public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
+                <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
+                <span class="text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-xl hidden md:inline-flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[15px] text-[#d11149]">settings</span> Ajustes
+                </span>
+            </a>
+
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button type="button" onclick="openReportErrorModal('Ajustes')" class="text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl flex items-center gap-1 transition-colors" title="Reportar Error">
+                    <span class="material-symbols-outlined text-[16px]">bug_report</span>
+                    <span class="hidden md:inline">Reportar Error</span>
                 </button>
-                <button type="submit" form="calendarConfigForm" class="bg-amber-500 text-white font-bold py-1.5 px-3 sm:py-2 sm:px-4 rounded-lg sm:rounded-xl shadow-md hover:bg-amber-600 transition-all flex items-center gap-1 sm:gap-2">
-                    <span class="material-symbols-outlined text-[16px] sm:text-[18px]">save</span> <span class="hidden sm:inline">Guardar</span>
+
+                <button type="submit" form="calendarConfigForm" class="bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold py-2 px-4 rounded-xl shadow-md shadow-[#d11149]/20 transition-all flex items-center gap-1.5 text-xs sm:text-sm">
+                    <span class="material-symbols-outlined text-[18px]">save</span>
+                    <span>Guardar Ajustes</span>
                 </button>
-                <a href="dashboard.html" class="text-sm font-semibold hover:text-amber-500 transition-colors flex items-center gap-1">
-                   <span class="material-symbols-outlined text-sm">arrow_back</span> <span class="hidden sm:inline">Volver al panel</span>
+
+                <a href="dashboard.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold py-2 px-3.5 rounded-xl transition-all flex items-center gap-1.5 text-xs sm:text-sm" title="Volver al Panel">
+                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                    <span class="hidden sm:inline">Volver</span>
                 </a>
             </div>
         </div>
@@ -251,8 +262,8 @@
             </div>
 
             <div class="mt-12 text-right">
-                <button type="submit" id="btnConfigSubmit" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all text-lg">
-                    Guardar Ajustes
+                <button type="submit" id="btnConfigSubmit" class="bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold py-3.5 px-8 rounded-xl shadow-lg shadow-[#d11149]/20 active:scale-[0.98] transition-all text-base flex items-center gap-2 ml-auto">
+                    <span class="material-symbols-outlined text-[20px]">save</span> Guardar Ajustes
                 </button>
             </div>
         </form>
