@@ -189,12 +189,12 @@ window.deleteTeamMember = function(id) {
 // ==========================================
 // LÓGICA DE TOUR VIRTUAL (ONBOARDING)
 // ==========================================
-let currentTourStep = 0;
+let legacyTourStep = 0;
 let currentTourTarget = null;
 let tourResizeListener = null;
 let isAutoScrolling = false;
 
-const tourSteps = [
+const legacyTourSteps = [
     { target: 'cardCalendario', title: '1. Tu Motor Principal', text: 'Aquí definirás tus horarios de atención, el tipo de calendario (mensual o semanal) y los servicios que ofreces.', position: 'right' },
     { target: 'cardWeb', title: '2. Tu Vitrina Online', text: 'Personaliza la página pública que verán tus clientes al reservar. Sube fotos, certificados y cambia los colores.', position: 'left' },
     { target: 'cardAgenda', title: '3. Recepción de Turnos', text: 'En esta sección administrarás y confirmarás los turnos que tus clientes vayan solicitando en tu web.', position: 'right' },
@@ -256,7 +256,7 @@ window.startTour = function() {
                         <span id="tourStepIndicator" class="text-xs font-bold text-slate-400"></span>
                         <div class="flex items-center gap-2">
                             <button onclick="endTour()" class="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors px-3 py-2 rounded-lg hover:bg-slate-50">Omitir</button>
-                            <button id="tourNextBtn" onclick="nextTourStep()" class="bg-primary hover:bg-primary/90 text-white font-bold text-xs py-2 px-4 rounded-xl transition-all shadow-md shadow-primary/20 flex items-center gap-1"></button>
+                            <button id="tourNextBtn" onclick="nextLegacyTourStep()" class="bg-primary hover:bg-primary/90 text-white font-bold text-xs py-2 px-4 rounded-xl transition-all shadow-md shadow-primary/20 flex items-center gap-1"></button>
                         </div>
                     </div>
                 </div>
@@ -282,7 +282,7 @@ window.startTour = function() {
         document.head.appendChild(style);
     }
 
-    currentTourStep = 0;
+    legacyTourStep = 0;
     const overlay = document.getElementById('tourOverlay');
     const tooltip = document.getElementById('tourTooltip');
     const highlight = document.getElementById('tourHighlight');
@@ -299,12 +299,12 @@ window.startTour = function() {
     void overlay.offsetWidth; // Forzar Reflow para que las transiciones CSS funcionen
     overlay.classList.remove('opacity-0');
     
-    showTourStep(currentTourStep);
+    showLegacyTourStep(legacyTourStep);
 
     // Reposicionar dinámicamente si el usuario rota el teléfono o cambia el tamaño
     tourResizeListener = () => {
         if (isAutoScrolling) return;
-        showTourStep(currentTourStep, false);
+        showLegacyTourStep(legacyTourStep, false);
     };
     window.addEventListener('resize', tourResizeListener);
     window.addEventListener('scroll', tourResizeListener, true);
@@ -340,17 +340,17 @@ window.endTour = function() {
     }, 300);
 };
 
-window.nextTourStep = function() {
-    currentTourStep++;
-    if (currentTourStep >= tourSteps.length) {
+window.nextLegacyTourStep = function() {
+    legacyTourStep++;
+    if (legacyTourStep >= legacyTourSteps.length) {
         endTour();
         if (typeof showToast === 'function') showToast('¡Has completado el recorrido!', 'success');
     } else {
-        showTourStep(currentTourStep);
+        showLegacyTourStep(legacyTourStep);
     }
 };
 
-function showTourStep(index, doScroll = true) {
+function showLegacyTourStep(index, doScroll = true) {
     // Marcar dinámicamente los pasos a medida que se avanza en el recorrido
     if (window.currentUserData && window.currentUserData.email === 'demo@agendatina.site') {
         if (typeof window.markOnboardingStepComplete === 'function') {
@@ -360,14 +360,14 @@ function showTourStep(index, doScroll = true) {
         }
     }
 
-    const step = tourSteps[index];
+    const step = legacyTourSteps[index];
     const target = document.getElementById(step.target);
     const tooltip = document.getElementById('tourTooltip');
     const highlight = document.getElementById('tourHighlight');
     const arrow = document.getElementById('tourArrow');
 
     if (!target) {
-        if (doScroll) nextTourStep();
+        if (doScroll) nextLegacyTourStep();
         return;
     }
 
@@ -412,9 +412,9 @@ function showTourStep(index, doScroll = true) {
             tourTextEl.style.textAlign = '';
         }
         
-        document.getElementById('tourStepIndicator').textContent = `${index + 1}/${tourSteps.length}`;
+        document.getElementById('tourStepIndicator').textContent = `${index + 1}/${legacyTourSteps.length}`;
         const nextBtn = document.getElementById('tourNextBtn');
-        nextBtn.innerHTML = index === tourSteps.length - 1 ? 'Finalizar <span class="material-symbols-outlined text-[16px]">check</span>' : 'Siguiente <span class="material-symbols-outlined text-[16px]">arrow_forward</span>';
+        nextBtn.innerHTML = index === legacyTourSteps.length - 1 ? 'Finalizar <span class="material-symbols-outlined text-[16px]">check</span>' : 'Siguiente <span class="material-symbols-outlined text-[16px]">arrow_forward</span>';
 
         let pos = step.position;
         const gap = 20;
