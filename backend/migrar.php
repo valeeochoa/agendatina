@@ -213,8 +213,9 @@ try {
 
 // Migraciones de columnas
 $columnMigrations = [
-    // Agrega fecha_eliminado a turnos si no existe
+    // Agrega fecha_eliminado a turnos y negocios si no existe
     "ALTER TABLE `turnos` ADD COLUMN `fecha_eliminado` DATETIME DEFAULT NULL",
+    "ALTER TABLE `negocios` ADD COLUMN `fecha_eliminado` DATETIME DEFAULT NULL",
     "ALTER TABLE `usuarios` ADD COLUMN `reset_token` VARCHAR(255) DEFAULT NULL",
     "ALTER TABLE `usuarios` ADD COLUMN `reset_token_expire` DATETIME DEFAULT NULL",
 ];

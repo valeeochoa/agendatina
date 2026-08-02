@@ -267,6 +267,12 @@ elseif ($method === 'POST') {
     if ($action === 'cambiar_estado' || $action === 'update_status' || $action === 'dar_baja' || $action === 'baja' || $action === 'desactivar' || $action === 'suspender' || ($id_neg > 0 && !empty($nuevo_estado) && empty($data['nombre_completo']))) {
         if ($id_neg > 0 && !empty($nuevo_estado)) {
             try {
+                // Auto-migración: asegurar que la columna fecha_eliminado exista en la tabla negocios
+                try { $pdo->query("SELECT fecha_eliminado FROM negocios LIMIT 1"); } 
+                catch (Throwable $exCol) { 
+                    try { $pdo->exec("ALTER TABLE negocios ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL"); } catch (Throwable $e2) {} 
+                }
+
                 if ($nuevo_estado === 'eliminado' || $nuevo_estado === 'suspendido') {
                     $stmt = $pdo->prepare("UPDATE negocios SET estado_pago = ?, fecha_eliminado = NOW() WHERE id = ?");
                 } else {
