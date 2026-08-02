@@ -47,10 +47,14 @@ if ($requestMethod !== 'GET' && $requestMethod !== 'HEAD' && $requestMethod !== 
 }
 
 // 5. Configuración de conexión desde variables de entorno
+// 5. Configuración de conexión desde variables de entorno
 $host = $_ENV['DB_HOST'] ?? 'localhost';
 $dbname = $_ENV['DB_NAME'] ?? 'c2771918_tina';
 $username = $_ENV['DB_USER'] ?? 'root';
 $password = $_ENV['DB_PASS'] ?? '';
+
+$originalUser = $username;
+$originalPass = $password;
 
 // Detectar si un cliente público está visitando la URL de la Demo o interactuando con ella
 $is_demo_public = false;
@@ -74,7 +78,7 @@ if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || $is_demo_p
             $isLocalServer = true;
         }
     } else {
-        if (($host === 'localhost' || $host === '127.0.0.1') && $username === 'root') {
+        if (($host === 'localhost' || $host === '127.0.0.1')) {
             $isLocalServer = true;
         }
     }
@@ -103,25 +107,48 @@ try {
 } catch (PDOException $e) {
     // Si es la base de datos sandbox/demo y falló, intentar auto-crearla o usar fallback a la BD principal
     if (strpos($dbname, '_d') !== false) {
+        // Intento 1: Crear BD sandbox usando credenciales Demo o Principales
         try {
-            $pdo = new PDO("mysql:host=$host;charset=utf8mb4", $username, $password);
+            $uTry = $username;
+            $pTry = $password;
+            $pdo = new PDO("mysql:host=$host;charset=utf8mb4", $uTry, $pTry);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
             $pdo->exec("USE `$dbname` ");
             $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-        } catch (Throwable $eCreate) {
+        } catch (Throwable $eCreate1) {
+            // Intento 2: Crear BD sandbox usando credenciales Principales
             try {
-                $mainDb = str_replace('_d', '', $dbname);
-                $pdo = new PDO("mysql:host=$host;dbname=$mainDb;charset=utf8mb4", $username, $password);
+                $pdo = new PDO("mysql:host=$host;charset=utf8mb4", $originalUser, $originalPass);
                 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                $pdo->exec("CREATE DATABASE IF NOT EXISTS `$dbname` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                $pdo->exec("USE `$dbname` ");
                 $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-            } catch (Throwable $eMain) {
-                error_log('Error al acceder a base de datos demo: ' . $e->getMessage());
-                header('Content-Type: application/json');
-                die(json_encode([
-                    'success' => false,
-                    'error' => "Error de conexión al Demo. Asegúrate de haber creado la base de datos '$dbname' en tu panel de control y de haber VINCULADO a tu usuario MySQL a ella con todos los permisos."
-                ]));
+            } catch (Throwable $eCreate2) {
+                // Intento 3: Conectar a BD Demo existente usando credenciales Principales
+                try {
+                    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $originalUser, $originalPass);
+                    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+                } catch (Throwable $eDemoOrig) {
+                    // Intento 4: Fallback absoluto a la BD Principal utilizando credenciales Principales
+                    try {
+                        $mainDb = str_replace('_d', '', $dbname);
+                        $pdo = new PDO("mysql:host=$host;dbname=$mainDb;charset=utf8mb4", $originalUser, $originalPass);
+                        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                        $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+                    } catch (Throwable $eMain) {
+                        error_log('Error al acceder a base de datos demo: ' . $e->getMessage());
+                        if (isset($_SERVER['SCRIPT_NAME']) && strpos($_SERVER['SCRIPT_NAME'], 'demo.php') !== false) {
+                            throw new PDOException("Error de conexión a la base de datos Demo ('$dbname'): " . $e->getMessage());
+                        }
+                        header('Content-Type: application/json');
+                        die(json_encode([
+                            'success' => false,
+                            'error' => "Error de conexión al Demo. Asegúrate de haber creado la base de datos '$dbname' en tu panel de control y de haber VINCULADO a tu usuario MySQL a ella con todos los permisos."
+                        ]));
+                    }
+                }
             }
         }
     } else {
