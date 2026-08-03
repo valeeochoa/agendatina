@@ -711,7 +711,7 @@ function loadDashboardData() {
             }
 
             // Actualizar Plan en el Navbar
-            const isDemoAccount = (user.email && user.email.includes('demo')) || (business && (business.ruta === 'demo' || business.is_demo)) || (sessionStorage.getItem('is_demo_user') === 'true');
+            const isDemoAccount = (window.currentUserData && window.currentUserData.email && window.currentUserData.email.includes('demo')) || (business && (business.ruta === 'demo' || business.is_demo)) || (sessionStorage.getItem('is_demo_user') === 'true');
             const navPlanName = document.getElementById('navPlanName');
             let displayPlan = isDemoAccount ? 'Modo Demo' : (business.plan || 'Plan Básico');
             if (!isDemoAccount && !displayPlan.toLowerCase().includes('plan')) {
