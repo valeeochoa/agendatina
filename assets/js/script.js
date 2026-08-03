@@ -968,9 +968,12 @@ function checkSubscription(subscriptionData) {
             isDashboardBannerHidden = false;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-blue-50 border border-blue-200 text-blue-800';
             dashIcon = 'schedule';
-            dashMsg = `Estás en tu período de prueba. Te quedan ${diffToCycleEnd} días de acceso gratuito. Luego, deberás abonar tu primer mes${priceStr}, el cual correrá a partir de ese momento.`;
+            dashMsg = `Estás en tu período de prueba. Te quedan <strong>${diffToCycleEnd} días</strong> de acceso gratuito. Luego, deberás abonar tu primer mes${priceStr}, el cual correrá a partir de ese momento.`;
             dashBtnText = 'Pagar ahora';
-            subscriptionData.status = 'suspendido'; // Lo forzamos visualmente a suspendido
+            dashBtnClass = 'bg-blue-600 hover:bg-blue-700 text-white';
+            showActionBtn = true;
+        } else {
+            subscriptionData.status = 'suspendido';
             isDashboardBannerHidden = false;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-red-50 border border-red-200 text-red-800';
             dashIcon = 'error';
