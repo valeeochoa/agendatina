@@ -57,9 +57,27 @@
                 <img id="navLogo" src="" alt="Logo" class="hidden h-10 w-auto object-contain">
                 <span class="font-bold text-xl tracking-tight hidden sm:block" id="navTitle">Mi Negocio</span>
             </div>
-            <a id="navReservarBtn" href="calendarioMensual.html" class="bg-primary text-white px-5 py-2.5 rounded-full font-bold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all">
-                Reservar Turno
-            </a>
+            <div class="flex items-center gap-3">
+                <!-- Menú de Sesión Administrador / Demo -->
+                <div id="adminProfileMenu" class="hidden items-center gap-2 bg-slate-100 p-1.5 pl-3 rounded-2xl border border-slate-200 shadow-xs">
+                    <div id="adminSessionBadge" class="hidden flex items-center gap-1.5 mr-1">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        <span id="adminSessionBadgeText" class="text-[11px] font-extrabold text-amber-600 uppercase tracking-wider hidden md:inline">Modo Demo</span>
+                    </div>
+                    <button id="navReportBugBtn" onclick="openReportErrorModal('Página Web')" class="hidden text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-xl items-center gap-1 transition-colors" title="Reportar Error">
+                        <span class="material-symbols-outlined text-[16px]">bug_report</span>
+                        <span class="hidden lg:inline">Reportar Error</span>
+                    </button>
+                    <a href="dashboard.html" class="text-xs font-extrabold bg-[#d11149] text-white hover:bg-[#d11149]/90 px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 transition-all shadow-md shadow-[#d11149]/20" title="Volver a Mi Panel">
+                        <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                        <span class="hidden sm:inline">Volver a Mi Panel</span>
+                    </a>
+                </div>
+
+                <a id="navReservarBtn" href="calendarioMensual.html" class="bg-primary text-white px-5 py-2.5 rounded-full font-bold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all">
+                    Reservar Turno
+                </a>
+            </div>
         </div>
     </nav>
 

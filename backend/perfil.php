@@ -28,6 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $stmtN->execute([$id_negocio]);
     $business = $stmtN->fetch(PDO::FETCH_ASSOC);
 
+    if ($business) {
+        $business['is_demo'] = (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || (isset($business['ruta']) && $business['ruta'] === 'demo') || (isset($user['email']) && strpos($user['email'], 'demo') !== false);
+    }
+
     if (!$user || !$business) {
         echo json_encode(['success' => false, 'error' => 'No autorizado. Inicia sesión nuevamente.']);
         exit;
