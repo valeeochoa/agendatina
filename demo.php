@@ -6,12 +6,14 @@ unset($_SESSION['user_id'], $_SESSION['id_negocio']);
 require_once __DIR__ . '/backend/conexion.php';
 
 try {
-// Identificador único para aislar la demo por usuario/IP
-$clientIp = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
-$sessionToken = session_id();
-$demoHash = substr(md5($clientIp . '_' . $sessionToken), 0, 8);
-$emailDemo = 'demo_' . $demoHash . '@agendatina.site';
+// Usar únicamente la cuenta canonical única para la demo sin multiplicar registros
+$emailDemo = 'demo@agendatina.site';
 $rutaDemo = 'demo';
+
+// Limpiar cuentas dinámicas obsoletas (demo_xxxx@agendatina.site)
+try {
+    $pdo->exec("DELETE FROM usuarios WHERE email LIKE 'demo_%@agendatina.site' AND email != 'demo@agendatina.site'");
+} catch (Exception $eClean) {}
 
 $stmt = $pdo->prepare("SELECT id FROM usuarios WHERE email = :email LIMIT 1");
 $stmt->execute(['email' => $emailDemo]);
@@ -69,7 +71,7 @@ if (!$user) {
     
     try {
         if ($has_username) {
-            $pdo->prepare("INSERT INTO usuarios (nombre_completo, username, email, password, role, fecha_creacion) VALUES ('Agendatina DEMO', ?, ?, ?, 'admin', NOW())")->execute(['demo_' . $demoHash, $emailDemo, $hash]);
+            $pdo->prepare("INSERT INTO usuarios (nombre_completo, username, email, password, role, fecha_creacion) VALUES ('Agendatina DEMO', 'demo', ?, ?, 'admin', NOW())")->execute([$emailDemo, $hash]);
         } else {
             $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password) VALUES ('Agendatina DEMO', ?, ?)")->execute([$emailDemo, $hash]);
         }
@@ -104,7 +106,7 @@ if (!$negocioId) {
     $hasSubdominioCol = false;
     try { $pdo->query("SELECT subdominio FROM negocios LIMIT 1"); $hasSubdominioCol = true; } catch (Exception $eSub) {}
 
-    $rutasToTry = ['demo', 'demo_' . $demoHash, 'demo_' . time()];
+    $rutasToTry = ['demo'];
     foreach ($rutasToTry as $rTry) {
         try {
             if ($hasSubdominioCol) {
@@ -156,7 +158,7 @@ try {
 } catch(Exception $eWeb) {}
 
 // RESET AUTOMÁTICO CADA 10 MINUTOS O EN NUEVAS SESIONES DE NAVEGADOR
-$resetFile = __DIR__ . '/demo_reset_' . $demoHash . '.txt';
+$resetFile = __DIR__ . '/demo_reset.txt';
 $shouldReset = false;
 $lastReset = @file_get_contents($resetFile);
 if (!$lastReset || !is_numeric($lastReset) || (time() - intval($lastReset) > 600) || !isset($_SESSION['demo_session_active'])) {
