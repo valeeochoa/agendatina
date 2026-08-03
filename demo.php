@@ -207,35 +207,69 @@ if ($shouldReset && $negocioId) {
     $idServ4 = $servs[3]['id'] ?? null;
     $idServ5 = $servs[4]['id'] ?? null;
     
-    // 4. Recrear 10 Turnos de prueba distribuidos
+    // 4. Recrear Turnos futuros y pasados para alimentar Estadísticas y Agenda
     $t_hoy = date('Y-m-d');
     $t_m1 = date('Y-m-d', strtotime('+1 day'));
     $t_m2 = date('Y-m-d', strtotime('+2 days'));
     $t_m3 = date('Y-m-d', strtotime('+3 days'));
     $t_m4 = date('Y-m-d', strtotime('+4 days'));
+
+    $t_p1 = date('Y-m-d', strtotime('-1 day'));
+    $t_p3 = date('Y-m-d', strtotime('-3 days'));
+    $t_p5 = date('Y-m-d', strtotime('-5 days'));
+    $t_p8 = date('Y-m-d', strtotime('-8 days'));
+    $t_p12 = date('Y-m-d', strtotime('-12 days'));
+    $t_p15 = date('Y-m-d', strtotime('-15 days'));
+    $t_p20 = date('Y-m-d', strtotime('-20 days'));
+    $t_p25 = date('Y-m-d', strtotime('-25 days'));
+    $t_p35 = date('Y-m-d', strtotime('-35 days'));
+    $t_p50 = date('Y-m-d', strtotime('-50 days'));
     
-    $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, estado) VALUES 
-        (?, 'María Gómez', '1123456789', ?, '10:00', 'Corte de Demostración', 'Valentina', ?, 'confirmado'),
-        (?, 'Juan Pérez', '1198765432', ?, '11:30', 'Masaje Relajante', 'Valentina', ?, 'confirmado'),
-        (?, 'Ana Martínez', '1155443322', ?, '16:00', 'Manicura Semipermanente', 'Sofía', ?, 'pendiente'),
-        (?, 'Laura Díaz', '1166667777', ?, '09:30', 'Limpieza Facial Profunda', 'Camila', ?, 'confirmado'),
-        (?, 'Carlos Sánchez', '1133334444', ?, '15:00', 'Perfilado de Cejas', 'Marcos', ?, 'confirmado'),
-        (?, 'Sofía Pérez', '1144556677', ?, '11:00', 'Masaje Relajante', 'Valentina', ?, 'confirmado'),
-        (?, 'Mateo Gómez', '1177889900', ?, '17:30', 'Corte de Demostración', 'Valentina', ?, 'pendiente'),
-        (?, 'Valentina Silva', '1188990011', ?, '10:30', 'Manicura Semipermanente', 'Sofía', ?, 'confirmado'),
-        (?, 'Joaquín Navarro', '1122334455', ?, '14:00', 'Limpieza Facial Profunda', 'Camila', ?, 'confirmado'),
-        (?, 'Camila Torres', '1199001122', ?, '16:00', 'Perfilado de Cejas', 'Marcos', ?, 'confirmado')")->execute([
-            $negocioId, $t_m1, $idServ1,
-            $negocioId, $t_m1, $idServ2,
-            $negocioId, $t_hoy, $idServ4,
-            $negocioId, $t_m1, $idServ3,
-            $negocioId, $t_m1, $idServ5,
-            $negocioId, $t_m2, $idServ2,
-            $negocioId, $t_m2, $idServ1,
-            $negocioId, $t_m3, $idServ4,
-            $negocioId, $t_m4, $idServ3,
-            $negocioId, $t_m4, $idServ5
-        ]);
+    $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, estado, precio) VALUES 
+        (?, 'María Gómez', '1123456789', ?, '10:00', 'Corte de Demostración', 'Valentina', ?, 'confirmado', 8000),
+        (?, 'Juan Pérez', '1198765432', ?, '11:30', 'Masaje Relajante', 'Valentina', ?, 'confirmado', 15000),
+        (?, 'Ana Martínez', '1155443322', ?, '16:00', 'Manicura Semipermanente', 'Sofía', ?, 'pendiente', 9000),
+        (?, 'Laura Díaz', '1166667777', ?, '09:30', 'Limpieza Facial Profunda', 'Camila', ?, 'confirmado', 12000),
+        (?, 'Carlos Sánchez', '1133334444', ?, '15:00', 'Perfilado de Cejas', 'Marcos', ?, 'confirmado', 5000),
+        (?, 'Sofía Pérez', '1144556677', ?, '11:00', 'Masaje Relajante', 'Valentina', ?, 'confirmado', 15000),
+        (?, 'Mateo Gómez', '1177889900', ?, '17:30', 'Corte de Demostración', 'Valentina', ?, 'pendiente', 8000),
+        (?, 'Valentina Silva', '1188990011', ?, '10:30', 'Manicura Semipermanente', 'Sofía', ?, 'confirmado', 9000),
+        (?, 'Joaquín Navarro', '1122334455', ?, '14:00', 'Limpieza Facial Profunda', 'Camila', ?, 'confirmado', 12000),
+        (?, 'Camila Torres', '1199001122', ?, '16:00', 'Perfilado de Cejas', 'Marcos', ?, 'confirmado', 5000),
+
+        (?, 'Lucía Fernández', '1144332211', ?, '10:00', 'Masaje Relajante', 'Valentina', ?, 'atendido', 15000),
+        (?, 'Diego Romero', '1155667788', ?, '14:30', 'Corte de Demostración', 'Valentina', ?, 'atendido', 8000),
+        (?, 'Martina López', '1177665544', ?, '16:00', 'Limpieza Facial Profunda', 'Camila', ?, 'atendido', 12000),
+        (?, 'Agustín Vega', '1188776655', ?, '11:00', 'Perfilado de Cejas', 'Marcos', ?, 'atendido', 5000),
+        (?, 'Belén Castro', '1199887766', ?, '15:30', 'Manicura Semipermanente', 'Sofía', ?, 'atendido', 9000),
+        (?, 'Nicolas Benítez', '1122446688', ?, '10:30', 'Corte de Demostración', 'Valentina', ?, 'atendido', 8000),
+        (?, 'Paula Acosta', '1133557799', ?, '12:00', 'Masaje Relajante', 'Valentina', ?, 'atendido', 15000),
+        (?, 'Esteban Morales', '1144668800', ?, '17:00', 'Limpieza Facial Profunda', 'Camila', ?, 'atendido', 12000),
+        (?, 'Florencia Herrera', '1155779911', ?, '11:30', 'Manicura Semipermanente', 'Sofía', ?, 'atendido', 9000),
+        (?, 'Gonzalo Peralta', '1166880022', ?, '15:00', 'Corte de Demostración', 'Valentina', ?, 'atendido', 8000)
+    ")->execute([
+        $negocioId, $t_m1, $idServ1,
+        $negocioId, $t_m1, $idServ2,
+        $negocioId, $t_hoy, $idServ4,
+        $negocioId, $t_m1, $idServ3,
+        $negocioId, $t_m1, $idServ5,
+        $negocioId, $t_m2, $idServ2,
+        $negocioId, $t_m2, $idServ1,
+        $negocioId, $t_m3, $idServ4,
+        $negocioId, $t_m4, $idServ3,
+        $negocioId, $t_m4, $idServ5,
+
+        $negocioId, $t_p1, $idServ2,
+        $negocioId, $t_p3, $idServ1,
+        $negocioId, $t_p5, $idServ3,
+        $negocioId, $t_p8, $idServ5,
+        $negocioId, $t_p12, $idServ4,
+        $negocioId, $t_p15, $idServ1,
+        $negocioId, $t_p20, $idServ2,
+        $negocioId, $t_p25, $idServ3,
+        $negocioId, $t_p35, $idServ4,
+        $negocioId, $t_p50, $idServ1
+    ]);
         
     $pdo->prepare("INSERT INTO notificaciones (id_negocio, titulo, mensaje) VALUES 
         (?, '¡Bienvenido a Agendatina!', 'Prueba todas las funciones premium desde este panel de control interactivo.'),

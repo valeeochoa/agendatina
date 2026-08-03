@@ -648,8 +648,12 @@ const tourSteps = [
     }
 ];
 
+window.startTour = function() {
+    window.startGuidedVirtualTour();
+};
+
 window.startGuidedVirtualTour = function() {
-    closeWelcomeNewAccountModal();
+    if (typeof window.closeWelcomeNewAccountModal === 'function') closeWelcomeNewAccountModal();
     currentTourStep = 0;
     showTourStep(0);
 };
@@ -668,7 +672,18 @@ function showTourStep(index) {
     }
     currentTourStep = index;
     const step = tourSteps[index];
-    const targetEl = document.getElementById(step.targetId);
+    let targetEl = document.getElementById(step.targetId);
+
+    // Si la tarjeta está oculta por el plan contratado, saltear
+    if (targetEl && (targetEl.style.display === 'none' || targetEl.offsetParent === null)) {
+        if (index < tourSteps.length - 1) {
+            showTourStep(index + 1);
+            return;
+        } else {
+            stopGuidedVirtualTour();
+            return;
+        }
+    }
 
     const overlay = document.getElementById('tourOverlay');
     const tooltip = document.getElementById('tourTooltip');
@@ -691,13 +706,24 @@ function showTourStep(index) {
 
     if (targetEl) {
         targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        const rect = targetEl.getBoundingClientRect();
-        
-        const topPos = Math.min(window.innerHeight - 200, Math.max(20, rect.bottom + 10));
-        const leftPos = Math.min(window.innerWidth - 380, Math.max(20, rect.left));
+        setTimeout(() => {
+            const rect = targetEl.getBoundingClientRect();
+            const tooltipWidth = tooltip.offsetWidth || 340;
+            const tooltipHeight = tooltip.offsetHeight || 180;
+            
+            let topPos = rect.bottom + 12;
+            if (topPos + tooltipHeight > window.innerHeight) {
+                topPos = Math.max(20, rect.top - tooltipHeight - 12);
+            }
+            let leftPos = Math.max(20, Math.min(window.innerWidth - tooltipWidth - 20, rect.left));
 
-        tooltip.style.top = `${topPos}px`;
-        tooltip.style.left = `${leftPos}px`;
+            tooltip.style.top = `${topPos}px`;
+            tooltip.style.left = `${leftPos}px`;
+        }, 150);
+    } else {
+        tooltip.style.top = '50%';
+        tooltip.style.left = '50%';
+        tooltip.style.transform = 'translate(-50%, -50%)';
     }
 }
 

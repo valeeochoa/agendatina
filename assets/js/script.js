@@ -686,10 +686,13 @@ function loadDashboardData() {
                 setTimeout(() => showWelcomeAnimation(business.plan, false), 300);
             }
             
-            // Modo DEMO: Ocultar botones de reporte y soporte
-            if (window.currentUserData && window.currentUserData.email === 'demo@agendatina.site') {
-                const cardSupport = document.getElementById('cardSupport');
-                if (cardSupport) cardSupport.style.display = 'none';
+            // Modo DEMO: Ocultar botones de reporte y soporte / Mostrar para usuarios reales
+            const isDemoUserCheck = (window.currentUserData && window.currentUserData.email === 'demo@agendatina.site') || (business && (business.ruta === 'demo' || business.is_demo));
+            const cardSupport = document.getElementById('cardSupport');
+            if (cardSupport) {
+                cardSupport.style.display = isDemoUserCheck ? 'none' : 'flex';
+            }
+            if (isDemoUserCheck) {
                 document.querySelectorAll('button[onclick^="openReportErrorModal"]').forEach(btn => btn.style.display = 'none');
             }
 
@@ -711,10 +714,10 @@ function loadDashboardData() {
             }
 
             // Actualizar Plan en el Navbar
-            const isDemoAccount = (window.currentUserData && window.currentUserData.email && window.currentUserData.email.includes('demo')) || (business && (business.ruta === 'demo' || business.is_demo)) || (sessionStorage.getItem('is_demo_user') === 'true');
+            const isDemoAccount = (window.currentUserData && window.currentUserData.email && window.currentUserData.email.includes('demo')) || (business && (business.ruta === 'demo' || business.is_demo));
             const navPlanName = document.getElementById('navPlanName');
-            let displayPlan = isDemoAccount ? 'Modo Demo' : (business.plan || 'Plan Básico');
-            if (!isDemoAccount && !displayPlan.toLowerCase().includes('plan')) {
+            let displayPlan = isDemoAccount ? (business.plan ? `Plan ${business.plan}` : 'Plan Completo') : (business.plan || 'Plan Básico');
+            if (!displayPlan.toLowerCase().includes('plan')) {
                 displayPlan = 'Plan ' + displayPlan.charAt(0).toUpperCase() + displayPlan.slice(1);
             }
             if (navPlanName) navPlanName.textContent = displayPlan;
@@ -1686,6 +1689,10 @@ function applyCalendarConfigToForm(c) {
     if(document.getElementById('configConfirmacionAutomatica')) document.getElementById('configConfirmacionAutomatica').value = c.confirmacion_automatica || 'no';
     if(document.getElementById('configMetodosPago')) document.getElementById('configMetodosPago').value = c.metodos_pago || '';
     if(document.getElementById('configLimiteEliminacion')) document.getElementById('configLimiteEliminacion').value = c.limite_eliminacion_dias !== undefined ? c.limite_eliminacion_dias : 0;
+    
+    const tipoCalVal = c.tipo_calendario || 'clasico';
+    const calRadio = document.querySelector(`input[name="tipo_calendario"][value="${tipoCalVal}"]`);
+    if (calRadio) calRadio.checked = true;
     
     const ant = parseInt(c.anticipacion_turno_min || 0, 10);
     if(document.getElementById('configAnticipacionMin')) document.getElementById('configAnticipacionMin').value = ant;
@@ -2735,7 +2742,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('backend/perfil.php')
             .then(res => res.json())
             .then(data => {
-                const isDemoUser = (data.success && ((data.user && data.user.email && data.user.email.includes('demo')) || (data.business && (data.business.ruta === 'demo' || data.business.subdominio === 'demo'))));
+                const isDemoUser = (data.success && ((data.user && data.user.email && data.user.email.includes('demo')) || (data.business && (data.business.ruta === 'demo' || data.business.is_demo === true))));
                 if (isDemoUser) {
                     sessionStorage.setItem('is_demo_user', 'true');
                     hideDemoActions();
@@ -2743,6 +2750,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     observer.observe(document.body, { childList: true, subtree: true });
                 } else {
                     sessionStorage.setItem('is_demo_user', 'false');
+                    sessionStorage.removeItem('is_demo_user');
                 }
             })
             .catch(() => {});
@@ -2767,9 +2775,7 @@ function checkAdminGlobalSession(config = null) {
             const isDemo = (data.business.is_demo === true) || 
                            (data.user && data.user.email && data.user.email.includes('demo')) || 
                            (data.business.ruta === 'demo') || 
-                           (config && config.is_demo === true) ||
-                           (sessionStorage.getItem('agendatina_session') === 'active' && data.business.ruta === 'demo') ||
-                           (sessionStorage.getItem('is_demo_user') === 'true');
+                           (config && config.is_demo === true);
                            
             const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
             const urlParams = new URLSearchParams(window.location.search);
