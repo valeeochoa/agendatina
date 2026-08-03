@@ -2738,7 +2738,17 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(() => {});
     }
+
+    // Ejecutar chequeo global de sesión para el Navbar (Modo Demo / Tu Local)
+    checkAdminGlobalSession();
 });
+
+// Auto-ejecución inmediata por seguridad
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(checkAdminGlobalSession, 100);
+} else {
+    document.addEventListener('DOMContentLoaded', checkAdminGlobalSession);
+}
 
 function checkAdminGlobalSession(config = null) {
     fetch('backend/perfil.php')
@@ -2746,16 +2756,30 @@ function checkAdminGlobalSession(config = null) {
     .then(data => {
         if (data && data.success && data.business) {
             const isDemo = (data.business.is_demo === true) || 
-                           (data.user && data.user.email === 'demo@agendatina.site') || 
+                           (data.user && data.user.email && data.user.email.includes('demo')) || 
                            (data.business.ruta === 'demo') || 
                            (config && config.is_demo === true) ||
-                           (sessionStorage.getItem('agendatina_session') === 'active' && data.business.ruta === 'demo');
+                           (sessionStorage.getItem('agendatina_session') === 'active' && data.business.ruta === 'demo') ||
+                           (sessionStorage.getItem('is_demo_user') === 'true');
                            
             const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
             const urlParams = new URLSearchParams(window.location.search);
             const negocioSlug = urlParams.get('n') || window.location.pathname.split('/')[1] || '';
             const currentRuta = (negocioSlug || (config ? config.ruta || config.subdominio : '') || '').toLowerCase().trim();
             
+            // Badge del Dashboard
+            const demoBadge = document.getElementById('demoBadge');
+            if (demoBadge) {
+                if (isDemo) {
+                    demoBadge.classList.remove('hidden');
+                    demoBadge.classList.add('inline-flex');
+                    demoBadge.style.display = 'inline-flex';
+                } else {
+                    demoBadge.classList.add('hidden');
+                    demoBadge.style.display = 'none';
+                }
+            }
+
             if (isDemo || !currentRuta || loggedRuta === currentRuta || (config && data.business.id == config.id_negocio)) {
                 const adminMenu = document.getElementById('adminProfileMenu');
                 if (adminMenu) {
@@ -2787,15 +2811,17 @@ function checkAdminGlobalSession(config = null) {
                     }
                 }
 
-                const bugBtn = document.getElementById('navReportBugBtn');
-                if (bugBtn) {
-                    if (isDemo) {
-                        bugBtn.classList.add('hidden');
-                        bugBtn.style.display = 'none';
-                    } else {
-                        bugBtn.classList.remove('hidden');
-                        bugBtn.style.display = '';
-                    }
+                // Ocultar botones de reportar error si estamos en modo Demo
+                if (isDemo) {
+                    document.querySelectorAll('#navReportBugBtn, #btnReportarErrorAgenda, button[onclick^="openReportErrorModal"]').forEach(btn => {
+                        btn.classList.add('hidden');
+                        btn.style.display = 'none';
+                    });
+                } else {
+                    document.querySelectorAll('#navReportBugBtn, #btnReportarErrorAgenda').forEach(btn => {
+                        btn.classList.remove('hidden');
+                        btn.style.display = '';
+                    });
                 }
             }
         }

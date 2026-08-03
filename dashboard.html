@@ -29,10 +29,15 @@
             </a>
             <div class="flex items-center gap-4">
                 <div class="text-right hidden sm:block">
-                    <p class="text-sm font-bold text-slate-800 flex items-center gap-2" id="dashboardBusinessName">
+                    <p class="text-sm font-bold text-slate-800 flex items-center justify-end gap-2" id="dashboardBusinessName">
                         Cargando... 
                     </p>
-                    <p class="text-xs text-slate-500" id="navPlanName">Cargando plan...</p>
+                    <div class="flex items-center justify-end gap-2 mt-0.5">
+                        <span id="demoBadge" class="hidden items-center gap-1.5 bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-extrabold px-2 py-0.5 rounded-lg uppercase shadow-xs">
+                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Modo Demo
+                        </span>
+                        <p class="text-xs text-slate-500" id="navPlanName">Cargando plan...</p>
+                    </div>
                 </div>
                 <a href="perfil.html" id="navAvatar" class="w-10 h-10 rounded-full signature-glow text-white flex items-center justify-center font-bold shadow-md cursor-pointer overflow-hidden hover:ring-2 hover:ring-primary hover:ring-offset-2 transition-all" title="Ir a Mi Perfil">
                     ML

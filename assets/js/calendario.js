@@ -2646,3 +2646,9 @@ function checkAdminCalendarSession(config = null) {
     })
     .catch(() => null);
 }
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(checkAdminCalendarSession, 100);
+} else {
+    document.addEventListener('DOMContentLoaded', checkAdminCalendarSession);
+}
