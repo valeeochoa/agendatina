@@ -92,8 +92,7 @@
             <div>
                 <select id="statusFilter" onchange="filterReportes()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d11149] font-medium">
                     <option value="">Todos los Estados</option>
-                    <option value="nuevo">Nuevos</option>
-                    <option value="leido">Leídos</option>
+                    <option value="pendiente">Pendientes</option>
                     <option value="resuelto">Resueltos</option>
                 </select>
             </div>
@@ -156,10 +155,12 @@
                         document.getElementById('totalReportesBadge').textContent = `${data.pendientes_count || 0} Pendientes (${reportesData.length} Total)`;
                         filterReportes();
                     } else {
-                        document.getElementById('reportesList').innerHTML = '<tr><td colspan="4" class="p-8 text-center text-red-500 font-medium">Error al cargar reportes de error.</td></tr>';
+                        document.getElementById('totalReportesBadge').textContent = '0 Pendientes (0 Total)';
+                        document.getElementById('reportesList').innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 text-sm">No hay reportes de error registrados.</td></tr>';
                     }
                 })
                 .catch(() => {
+                    document.getElementById('totalReportesBadge').textContent = '0 Pendientes (0 Total)';
                     document.getElementById('reportesList').innerHTML = '<tr><td colspan="4" class="p-8 text-center text-red-500 font-medium">Error de conexión al cargar reportes.</td></tr>';
                 });
         }

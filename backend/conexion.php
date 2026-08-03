@@ -56,40 +56,57 @@ $password = $_ENV['DB_PASS'] ?? '';
 $originalUser = $username;
 $originalPass = $password;
 
-// Detectar si un cliente público está visitando la URL de la Demo o interactuando con ella
-$is_demo_public = false;
-if (isset($_GET['n']) && strtolower($_GET['n']) === 'demo') {
-    $is_demo_public = true;
-} elseif (isset($_POST['negocio']) && strtolower($_POST['negocio']) === 'demo') {
-    $is_demo_public = true;
-} elseif (isset($_POST['ruta']) && strtolower($_POST['ruta']) === 'demo') {
-    $is_demo_public = true;
-}
+// Detectar si la petición pertenece al SuperAdmin o a los scripts del Panel de Control de Administración
+$scriptUri = $_SERVER['SCRIPT_NAME'] ?? $_SERVER['REQUEST_URI'] ?? '';
+$isAdminEndpoint = (strpos($scriptUri, 'admin_api.php') !== false || strpos($scriptUri, 'admin_auth.php') !== false || strpos($scriptUri, '/admin/') !== false);
+$isSuperAdminSession = (!empty($_SESSION['is_superadmin']) || !empty($_SESSION['admin_logged_in']));
 
-// MODO SANDBOX: Conectar a BD clonada si es el Admin de Demo o la vista pública
-if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || $is_demo_public || (isset($_SESSION['ruta_negocio']) && $_SESSION['ruta_negocio'] === 'demo')) {
-    $_SESSION['is_demo'] = true;
-    $dbname = strpos($dbname, '_d') === false ? $dbname . '_d' : $dbname; 
-    
-    // Detectar si estamos en un servidor local (desarrollo) para no pisar credenciales locales
-    $isLocalServer = false;
-    if (isset($_SERVER['HTTP_HOST'])) {
-        if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false) {
-            $isLocalServer = true;
-        }
-    } else {
-        if (($host === 'localhost' || $host === '127.0.0.1')) {
-            $isLocalServer = true;
-        }
+if ($isAdminEndpoint || $isSuperAdminSession) {
+    // El SuperAdmin trabaja EXCLUSIVAMENTE sobre la Base de Datos principal (c2771918_tina)
+    unset($_SESSION['is_demo']);
+    if (isset($_SESSION['ruta_negocio']) && $_SESSION['ruta_negocio'] === 'demo') {
+        unset($_SESSION['ruta_negocio']);
     }
-    
-    // Si no es un servidor local y existen credenciales específicas para la demo en el entorno, utilizarlas
-    if (!$isLocalServer) {
-        if (isset($_ENV['DB_DEMO_USER']) && !empty($_ENV['DB_DEMO_USER'])) {
-            $username = $_ENV['DB_DEMO_USER'];
+    // Asegurar que la base de datos sea siempre la de producción principal sin sufijo '_d'
+    if (substr($dbname, -2) === '_d') {
+        $dbname = substr($dbname, 0, -2);
+    }
+} else {
+    // Detectar si un cliente público está visitando la URL de la Demo o interactuando con ella
+    $is_demo_public = false;
+    if (isset($_GET['n']) && strtolower($_GET['n']) === 'demo') {
+        $is_demo_public = true;
+    } elseif (isset($_POST['negocio']) && strtolower($_POST['negocio']) === 'demo') {
+        $is_demo_public = true;
+    } elseif (isset($_POST['ruta']) && strtolower($_POST['ruta']) === 'demo') {
+        $is_demo_public = true;
+    }
+
+    // MODO SANDBOX: Conectar a BD clonada si es el entorno Demo para usuarios corrientes
+    if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || $is_demo_public || (isset($_SESSION['ruta_negocio']) && $_SESSION['ruta_negocio'] === 'demo')) {
+        $_SESSION['is_demo'] = true;
+        $dbname = strpos($dbname, '_d') === false ? $dbname . '_d' : $dbname; 
+
+        // Detectar si estamos en un servidor local (desarrollo) para no pisar credenciales locales
+        $isLocalServer = false;
+        if (isset($_SERVER['HTTP_HOST'])) {
+            if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false || strpos($_SERVER['HTTP_HOST'], '127.0.0.1') !== false) {
+                $isLocalServer = true;
+            }
+        } else {
+            if (($host === 'localhost' || $host === '127.0.0.1')) {
+                $isLocalServer = true;
+            }
         }
-        if (isset($_ENV['DB_DEMO_PASS']) && !empty($_ENV['DB_DEMO_PASS'])) {
-            $password = $_ENV['DB_DEMO_PASS'];
+        
+        // Si no es un servidor local y existen credenciales específicas para la demo en el entorno, utilizarlas
+        if (!$isLocalServer) {
+            if (isset($_ENV['DB_DEMO_USER']) && !empty($_ENV['DB_DEMO_USER'])) {
+                $username = $_ENV['DB_DEMO_USER'];
+            }
+            if (isset($_ENV['DB_DEMO_PASS']) && !empty($_ENV['DB_DEMO_PASS'])) {
+                $password = $_ENV['DB_DEMO_PASS'];
+            }
         }
     }
 }

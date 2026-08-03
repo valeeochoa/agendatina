@@ -38,7 +38,7 @@ if ($method === 'GET') {
         $reportesEliminados = [];
         try {
             $stmtRep = $pdo->query("
-                SELECT id, modulo, descripcion, cliente_email, estado, fecha 
+                SELECT id, modulo, descripcion, email_usuario AS cliente_email, estado, fecha 
                 FROM reportes_error 
                 WHERE estado = 'eliminado' 
                 ORDER BY fecha DESC
