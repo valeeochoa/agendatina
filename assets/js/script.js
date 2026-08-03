@@ -969,9 +969,7 @@ function checkSubscription(subscriptionData) {
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-blue-50 border border-blue-200 text-blue-800';
             dashIcon = 'schedule';
             dashMsg = `Estás en tu período de prueba. Te quedan <strong>${diffToCycleEnd} días</strong> de acceso gratuito. Luego, deberás abonar tu primer mes${priceStr}, el cual correrá a partir de ese momento.`;
-            dashBtnText = 'Pagar ahora';
-            dashBtnClass = 'bg-blue-600 hover:bg-blue-700 text-white';
-            showActionBtn = true;
+            showActionBtn = false; // El botón de pago no estará habilitado durante la prueba gratuita
         } else {
             subscriptionData.status = 'suspendido';
             isDashboardBannerHidden = false;

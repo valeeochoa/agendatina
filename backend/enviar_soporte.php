@@ -20,19 +20,37 @@ if (empty($mensaje)) {
     exit;
 }
 
+$id_usuario = $_SESSION['user_id'] ?? null;
+$nombre_usuario = $_SESSION['nombre_completo'] ?? 'Usuario Desconocido';
+$email_usuario = $_SESSION['email'] ?? '';
+$rol_usuario = $_SESSION['rol_en_local'] ?? 'admin';
+$nombre_negocio = 'Usuario Desconocido';
+
+if ($id_negocio) {
+    $stmtN = $pdo->prepare("SELECT nombre_fantasia FROM negocios WHERE id = ? LIMIT 1");
+    $stmtN->execute([$id_negocio]);
+    $nombre_negocio = $stmtN->fetchColumn() ?: 'Usuario Desconocido';
+}
+
 try {
-    // Asegurarse de que la tabla exista
+    // Asegurar tabla notificaciones_admin
     try { $pdo->query("SELECT 1 FROM notificaciones_admin LIMIT 1"); } 
     catch(Exception $e) { 
         $pdo->exec("CREATE TABLE notificaciones_admin (
             id INT AUTO_INCREMENT PRIMARY KEY, segmento VARCHAR(100), mensaje TEXT, 
-            id_negocio INT NULL, fecha DATETIME DEFAULT CURRENT_TIMESTAMP, leida BOOLEAN DEFAULT FALSE
+            id_negocio INT NULL, nombre_negocio VARCHAR(255), id_usuario INT NULL, nombre_usuario VARCHAR(255), email_usuario VARCHAR(255), rol_usuario VARCHAR(50) DEFAULT 'admin', fecha DATETIME DEFAULT CURRENT_TIMESTAMP, leida BOOLEAN DEFAULT FALSE
         )"); 
     }
 
-    // Insertar el reporte en la Base de Datos del SuperAdmin
-    $stmt = $pdo->prepare("INSERT INTO notificaciones_admin (segmento, mensaje, id_negocio) VALUES (?, ?, ?)");
-    $stmt->execute([$segmento, $mensaje, $id_negocio]);
+    // 1. Insertar en reportes_error como Sugerencia / Mejora
+    try {
+        $stmtRep = $pdo->prepare("INSERT INTO reportes_error (id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario, tipo, modulo, descripcion) VALUES (?, ?, ?, ?, ?, ?, 'Sugerencia / Mejora', ?, ?)");
+        $stmtRep->execute([$id_negocio, $nombre_negocio, $id_usuario, $nombre_usuario, $email_usuario, $rol_usuario, $segmento, $mensaje]);
+    } catch (Exception $eRep) {}
+
+    // 2. Insertar en notificaciones_admin
+    $stmt = $pdo->prepare("INSERT INTO notificaciones_admin (segmento, mensaje, id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute(["Sugerencia / Mejora: " . $segmento, $mensaje, $id_negocio, $nombre_negocio, $id_usuario, $nombre_usuario, $email_usuario, $rol_usuario]);
 
     // Intentar enviar el correo (Aislado para que no rompa el guardado si el servidor SMTP falla)
     try {

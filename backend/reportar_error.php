@@ -90,17 +90,21 @@ try {
         id_usuario INT NULL,
         nombre_usuario VARCHAR(255) DEFAULT NULL,
         email_usuario VARCHAR(255) DEFAULT NULL,
+        rol_usuario VARCHAR(50) DEFAULT 'admin',
+        tipo VARCHAR(50) DEFAULT 'Reporte de Error',
         modulo VARCHAR(100) DEFAULT 'General',
         descripcion TEXT,
         estado VARCHAR(50) DEFAULT 'pendiente',
         fecha DATETIME DEFAULT CURRENT_TIMESTAMP
     )");
 }
+try { $pdo->query("SELECT tipo FROM reportes_error LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN tipo VARCHAR(50) DEFAULT 'Reporte de Error'"); }
+try { $pdo->query("SELECT rol_usuario FROM reportes_error LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN rol_usuario VARCHAR(50) DEFAULT 'admin'"); }
 
 try {
     // 1. Guardar en la tabla oficial de reportes de error
-    $stmtRep = $pdo->prepare("INSERT INTO reportes_error (id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, modulo, descripcion) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmtRep->execute([$id_negocio, $nombre_negocio, $id_usuario, $nombre_usuario, $email_usuario, $segmento, $mensaje]);
+    $stmtRep = $pdo->prepare("INSERT INTO reportes_error (id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario, tipo, modulo, descripcion) VALUES (?, ?, ?, ?, ?, ?, 'Reporte de Error', ?, ?)");
+    $stmtRep->execute([$id_negocio, $nombre_negocio, $id_usuario, $nombre_usuario, $email_usuario, $rol_usuario, $segmento, $mensaje]);
 
     // 2. Guardar notificación para el Superadmin
     $stmt = $pdo->prepare("INSERT INTO notificaciones_admin (segmento, mensaje, id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");

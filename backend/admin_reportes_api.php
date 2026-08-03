@@ -27,14 +27,15 @@ try {
         estado VARCHAR(50) DEFAULT 'pendiente',
         fecha DATETIME DEFAULT CURRENT_TIMESTAMP
     )");
-}
+try { $pdo->query("SELECT tipo FROM reportes_error LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN tipo VARCHAR(50) DEFAULT 'Reporte de Error'"); }
+try { $pdo->query("SELECT rol_usuario FROM reportes_error LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN rol_usuario VARCHAR(50) DEFAULT 'admin'"); }
 
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     try {
         $stmt = $pdo->query("
-            SELECT r.id, r.id_negocio, r.nombre_negocio, r.nombre_usuario, r.email_usuario, r.modulo, r.descripcion, r.estado, r.fecha, n.ruta
+            SELECT r.id, r.id_negocio, r.nombre_negocio, r.id_usuario, r.nombre_usuario, r.email_usuario, r.rol_usuario, r.tipo, r.modulo, r.descripcion, r.estado, r.fecha, n.ruta
             FROM reportes_error r
             LEFT JOIN negocios n ON r.id_negocio = n.id
             WHERE r.estado != 'eliminado'
