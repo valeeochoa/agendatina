@@ -1416,10 +1416,17 @@ function loadCustomization() {
                 const dashBusinessName = document.getElementById('dashboardBusinessName');
                 if (dashBusinessName) dashBusinessName.textContent = displayName;
                 
-                const navBusinessName = document.getElementById('navBusinessName');
-                const navBrandAccent = document.getElementById('navBrandAccent');
-                if (navBusinessName && data.titulo) navBusinessName.textContent = data.titulo;
-                if (navBrandAccent && data.titulo) navBrandAccent.textContent = '';
+                const navBusinessName = document.getElementById('navBusinessNameText');
+                if (navBusinessName && displayName) navBusinessName.textContent = displayName;
+                
+                const logoImg = document.getElementById('navBusinessLogoImg');
+                const iconEl = document.getElementById('navBusinessIcon');
+                const logoUrl = data.logo || data.url_logo;
+                if (logoUrl && logoImg) {
+                    logoImg.src = logoUrl;
+                    logoImg.classList.remove('hidden');
+                    if (iconEl) iconEl.classList.add('hidden');
+                }
                 
                 if (data.color_primario && document.getElementById('navIcon')) {
                     document.getElementById('navIcon').style.color = data.color_primario;
@@ -1634,6 +1641,19 @@ function closeProfileModal() {
 
 function applyCalendarConfigToForm(c) {
     if (!c) return;
+    const busTitle = c.nombre_fantasia || c.nombre_negocio || c.titulo;
+    if (busTitle) {
+        const navEl = document.getElementById('navBusinessNameText') || document.getElementById('navBusinessName');
+        if (navEl) navEl.textContent = busTitle;
+    }
+    const logoImg = document.getElementById('navBusinessLogoImg');
+    const iconEl = document.getElementById('navBusinessIcon');
+    const logoUrl = c.url_logo || c.logo;
+    if (logoUrl && logoImg) {
+        logoImg.src = logoUrl;
+        logoImg.classList.remove('hidden');
+        if (iconEl) iconEl.classList.add('hidden');
+    }
     const ha = c.hora_apertura ? c.hora_apertura.substring(0, 5) : '09:00';
     const hc = c.hora_cierre ? c.hora_cierre.substring(0, 5) : '18:00';
     if(document.getElementById('configHoraApertura')) document.getElementById('configHoraApertura').value = ha;
@@ -2402,12 +2422,9 @@ function applyWebCustomization() {
                 if (data.titulo) {
                     document.title = `${data.titulo} | Reservar Turno`;
                     
-                    const words = data.titulo.trim().split(' ');
-                    const navBusinessName = document.getElementById('navBusinessName');
-                    const navBrandAccent = document.getElementById('navBrandAccent');
-                    if (navBusinessName && navBrandAccent) {
-                        navBusinessName.textContent = data.titulo;
-                        navBrandAccent.textContent = '';
+                    const navBusinessNameText = document.getElementById('navBusinessNameText');
+                    if (navBusinessNameText && data.titulo) {
+                        navBusinessNameText.textContent = data.titulo;
                     }
                     
                     const navLinks = document.querySelectorAll('a[href="index.html"], a[href="/"], a[href="#"]');
