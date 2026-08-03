@@ -1641,7 +1641,7 @@ function closeProfileModal() {
 
 function applyCalendarConfigToForm(c) {
     if (!c) return;
-    const busTitle = c.nombre_fantasia || c.nombre_negocio || c.titulo;
+    const busTitle = c.nombre_fantasia || c.nombre_negocio || c.titulo || (window.currentBusinessData && window.currentBusinessData.nombre_fantasia) || 'Agendatina';
     if (busTitle) {
         const navEl = document.getElementById('navBusinessNameText') || document.getElementById('navBusinessName');
         if (navEl) navEl.textContent = busTitle;
