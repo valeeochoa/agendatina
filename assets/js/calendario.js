@@ -2598,20 +2598,48 @@ function checkAdminCalendarSession(config = null) {
     .then(res => res.json())
     .then(data => {
         if (data && data.success && data.business) {
+            const isDemo = (data.business.is_demo === true) || (data.user && data.user.email === 'demo@agendatina.site') || (data.business.ruta === 'demo') || (config && config.is_demo === true);
             const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
             const currentRuta = (negocioSlug || (config ? config.ruta || config.subdominio : '') || '').toLowerCase().trim();
             
-            // Si no hay slug o coincide con el local de la sesión iniciada
-            if (!currentRuta || loggedRuta === currentRuta || (config && data.business.id == config.id_negocio)) {
+            // Si es demo O no hay slug O coincide con el local de la sesión iniciada
+            if (isDemo || !currentRuta || loggedRuta === currentRuta || (config && data.business.id == config.id_negocio)) {
                 const adminMenu = document.getElementById('adminProfileMenu');
                 if (adminMenu) {
                     adminMenu.classList.remove('hidden');
                     adminMenu.classList.add('flex');
                 }
+                
                 const sessionBadge = document.getElementById('adminSessionBadge');
+                const sessionBadgeText = document.getElementById('adminSessionBadgeText');
                 if (sessionBadge) {
                     sessionBadge.classList.remove('hidden');
                     sessionBadge.classList.add('flex');
+                    
+                    const dot = sessionBadge.querySelector('span:first-child');
+                    if (isDemo) {
+                        if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
+                        if (sessionBadgeText) {
+                            sessionBadgeText.textContent = 'Modo Demo';
+                            sessionBadgeText.className = 'text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider hidden md:inline';
+                        }
+                    } else {
+                        if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
+                        if (sessionBadgeText) {
+                            sessionBadgeText.textContent = 'Tu Local';
+                            sessionBadgeText.className = 'text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider hidden md:inline';
+                        }
+                    }
+                }
+
+                // Ocultar botón de reportar error si estamos en modo Demo
+                const bugBtn = document.getElementById('navReportBugBtn');
+                if (bugBtn) {
+                    if (isDemo) {
+                        bugBtn.classList.add('hidden');
+                    } else {
+                        bugBtn.classList.remove('hidden');
+                    }
                 }
             }
         }

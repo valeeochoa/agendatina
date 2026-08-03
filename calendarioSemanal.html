@@ -65,14 +65,14 @@
         </div>
       </div>
 
-      <!-- Menú de Usuario con Sesión Iniciada (Dueño de este local) -->
+      <!-- Menú de Usuario con Sesión Iniciada (Dueño de este local o Demo) -->
       <div id="adminProfileMenu" class="hidden items-center gap-2 bg-slate-100/90 dark:bg-white/5 p-1.5 pl-3 sm:pl-4 rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-xs">
         <div id="adminSessionBadge" class="hidden items-center gap-1.5 mr-1">
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider hidden md:inline">Tu Local</span>
+          <span id="adminSessionBadgeText" class="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider hidden md:inline">Tu Local</span>
         </div>
 
-        <button onclick="openReportErrorModal('Calendario Semanal')" class="text-xs font-bold text-red-500 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 px-3 py-1.5 rounded-xl flex items-center gap-1 transition-colors" title="Reportar Error">
+        <button id="navReportBugBtn" onclick="openReportErrorModal('Calendario Semanal')" class="text-xs font-bold text-red-500 bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 px-3 py-1.5 rounded-xl flex items-center gap-1 transition-colors" title="Reportar Error">
             <span class="material-symbols-outlined text-[16px]">bug_report</span> <span class="hidden lg:inline">Reportar Error</span>
         </button>
         <a href="dashboard.html" class="text-xs font-extrabold bg-[#d11149] text-white hover:bg-[#d11149]/90 px-3.5 py-1.5 rounded-xl flex items-center gap-1.5 transition-all shadow-md shadow-[#d11149]/20" title="Volver a Mi Panel">
