@@ -173,6 +173,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             if ($stmtU->fetchColumn() === 'demo@agendatina.site') {
                 $config['is_demo'] = true;
             }
+        }
+
         // Consolidación del equipo de trabajo (personal_negocio + servicios)
         $profs_array = [];
         if (!empty($config['profesionales_json'])) {
