@@ -28,6 +28,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $stmtN->execute([$id_negocio]);
     $business = $stmtN->fetch(PDO::FETCH_ASSOC);
 
+    if (!$user || !$business) {
+        echo json_encode(['success' => false, 'error' => 'No autorizado. Inicia sesión nuevamente.']);
+        exit;
+    }
+
     // Obtener configuración web
     try {
         $stmtC = $pdo->prepare("SELECT color_primario, color_secundario, color_fondo FROM configuracion_web WHERE id_negocio = ?");
