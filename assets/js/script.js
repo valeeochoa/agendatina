@@ -711,9 +711,10 @@ function loadDashboardData() {
             }
 
             // Actualizar Plan en el Navbar
+            const isDemoAccount = (user.email && user.email.includes('demo')) || (business && (business.ruta === 'demo' || business.is_demo)) || (sessionStorage.getItem('is_demo_user') === 'true');
             const navPlanName = document.getElementById('navPlanName');
-            let displayPlan = business.plan || 'Plan Básico';
-            if (!displayPlan.toLowerCase().includes('plan')) {
+            let displayPlan = isDemoAccount ? 'Modo Demo' : (business.plan || 'Plan Básico');
+            if (!isDemoAccount && !displayPlan.toLowerCase().includes('plan')) {
                 displayPlan = 'Plan ' + displayPlan.charAt(0).toUpperCase() + displayPlan.slice(1);
             }
             if (navPlanName) navPlanName.textContent = displayPlan;
@@ -1032,6 +1033,14 @@ function checkSubscription(subscriptionData) {
             dashBtnClass = 'bg-red-600 hover:bg-red-700 text-white';
             showActionBtn = true;
         }
+    }
+
+    const isDemo = (window.currentUserData && window.currentUserData.email && window.currentUserData.email.includes('demo')) || 
+                   (window.currentBusinessData && (window.currentBusinessData.ruta === 'demo' || window.currentBusinessData.is_demo)) ||
+                   (sessionStorage.getItem('is_demo_user') === 'true');
+
+    if (isDemo) {
+        isDashboardBannerHidden = true;
     }
 
     // Renderizado en Dashboard
