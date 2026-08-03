@@ -2492,7 +2492,7 @@ function applyWebCustomization() {
                         if (Array.isArray(parsed)) allProfsScript = parsed;
                     } catch (e) {}
                 }
-                if (Array.isArray(servicesData) && servicesData.length > 0) {
+                if (typeof servicesData !== 'undefined' && Array.isArray(servicesData) && servicesData.length > 0) {
                     servicesData.forEach(s => {
                         if (s.profesional && s.profesional.trim() !== '' && s.profesional !== 'Cualquiera (Sin preferencia)') {
                             const profName = s.profesional.trim();
