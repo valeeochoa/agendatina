@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (form) {
         form.addEventListener('submit', handleCalendarConfigSubmit);
     }
-}
+});
 
 window.generarWaQr = function() {
     const container = document.getElementById('waQrContainer');
