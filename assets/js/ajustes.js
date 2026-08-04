@@ -128,16 +128,16 @@ function handleCalendarConfigSubmit(e) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            showToast('Configuración del calendario guardada con éxito.', 'success');
+            if (typeof showToast === 'function') showToast('Configuración del calendario guardada con éxito.', 'success');
             // Actualizar la configuración global para que otros scripts la usen
             window.businessWebConfig = { ...window.businessWebConfig, ...payload };
         } else {
-            showToast(data.error || 'Error al guardar la configuración.', 'error');
+            if (typeof showToast === 'function') showToast(data.error || 'Error al guardar la configuración.', 'error');
         }
     })
     .catch(err => {
         console.error('Error:', err);
-        showToast('Error de conexión al guardar.', 'error');
+        if (typeof showToast === 'function') showToast('Error de conexión al guardar.', 'error');
     })
     .finally(() => {
         if (submitBtn) {

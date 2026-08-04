@@ -1716,14 +1716,16 @@ function applyCalendarConfigToForm(c) {
         const validOpts = ['15','30','45','60','90','120'];
         if(validOpts.includes(c.intervalo_turnos?.toString())) {
             selectInterval.value = c.intervalo_turnos;
-            document.getElementById('divIntervaloCustom').classList.add('hidden');
+            if (document.getElementById('divIntervaloCustom')) document.getElementById('divIntervaloCustom').classList.add('hidden');
         } else if (c.intervalo_turnos === 'servicio') {
             selectInterval.value = 'servicio';
-            document.getElementById('divIntervaloCustom').classList.add('hidden');
+            if (document.getElementById('divIntervaloCustom')) document.getElementById('divIntervaloCustom').classList.add('hidden');
         } else {
             selectInterval.value = 'custom';
-            document.getElementById('divIntervaloCustom').classList.remove('hidden');
-            document.getElementById('inputIntervaloCustom').value = c.intervalo_turnos || 30;
+            if (document.getElementById('divIntervaloCustom')) document.getElementById('divIntervaloCustom').classList.remove('hidden');
+            if (document.getElementById('inputIntervaloCustom')) document.getElementById('inputIntervaloCustom').value = c.intervalo_turnos || 30;
+        }
+
         if (typeof window.updateIntervalHelpText === 'function') {
             window.updateIntervalHelpText();
         }
