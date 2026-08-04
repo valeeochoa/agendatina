@@ -23,26 +23,38 @@ if (!function_exists('notificarSuperAdminAlert')) {
             } catch(Exception $e) {}
         }
 
-        // 1. Guardar en notificaciones_admin
+        // 1. Guardar en notificaciones_admin con migración de columnas
         try {
-            $pdo->query("SELECT 1 FROM notificaciones_admin LIMIT 1");
-        } catch (Exception $e) {
-            $pdo->exec("CREATE TABLE notificaciones_admin (
-                id INT AUTO_INCREMENT PRIMARY KEY, 
-                segmento VARCHAR(100), 
-                mensaje TEXT, 
-                id_negocio INT NULL,
-                nombre_negocio VARCHAR(255) DEFAULT NULL,
-                id_usuario INT NULL,
-                nombre_usuario VARCHAR(255) DEFAULT NULL,
-                email_usuario VARCHAR(255) DEFAULT NULL,
-                rol_usuario VARCHAR(50) DEFAULT 'admin',
-                fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
-                leida BOOLEAN DEFAULT FALSE
-            )");
-        }
+            try {
+                $pdo->query("SELECT 1 FROM notificaciones_admin LIMIT 1");
+            } catch (Exception $e) {
+                $pdo->exec("CREATE TABLE notificaciones_admin (
+                    id INT AUTO_INCREMENT PRIMARY KEY, 
+                    segmento VARCHAR(100), 
+                    mensaje TEXT, 
+                    id_negocio INT NULL,
+                    nombre_negocio VARCHAR(255) DEFAULT NULL,
+                    id_usuario INT NULL,
+                    nombre_usuario VARCHAR(255) DEFAULT NULL,
+                    email_usuario VARCHAR(255) DEFAULT NULL,
+                    rol_usuario VARCHAR(50) DEFAULT 'admin',
+                    fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    leida BOOLEAN DEFAULT FALSE
+                )");
+            }
 
-        try {
+            $notifCols = [
+                'nombre_negocio' => 'VARCHAR(255) DEFAULT NULL',
+                'id_usuario' => 'INT NULL',
+                'nombre_usuario' => 'VARCHAR(255) DEFAULT NULL',
+                'email_usuario' => 'VARCHAR(255) DEFAULT NULL',
+                'rol_usuario' => "VARCHAR(50) DEFAULT 'admin'"
+            ];
+            foreach ($notifCols as $col => $tipo) {
+                try { $pdo->query("SELECT $col FROM notificaciones_admin LIMIT 1"); } 
+                catch(Exception $e) { $pdo->exec("ALTER TABLE notificaciones_admin ADD COLUMN $col $tipo"); }
+            }
+
             $stmtNotif = $pdo->prepare("INSERT INTO notificaciones_admin (segmento, mensaje, id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
             $stmtNotif->execute([$segmento, $mensaje, $id_negocio, $nombre_negocio, $id_usuario, $nombre_usuario, $email_usuario, $rol_usuario]);
         } catch(Exception $eNotif) {

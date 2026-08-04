@@ -125,8 +125,10 @@ if ($method === 'GET') {
 
         $pdo->commit();
 
-        require_once __DIR__ . '/helpers/notificar_admin_helper.php';
-        notificarSuperAdminAlert($pdo, 'Gestión de Equipo / Nuevo Profesional', "Se registró un nuevo profesional en el equipo: {$nombre} ({$email}). Total actual: " . ($current_count + 1) . " / {$max_profesionales}.", $id_negocio);
+        try {
+            require_once __DIR__ . '/helpers/notificar_admin_helper.php';
+            notificarSuperAdminAlert($pdo, 'Gestión de Equipo / Nuevo Profesional', "Se registró un nuevo profesional en el equipo: {$nombre} ({$email}). Total actual: " . ($current_count + 1) . " / {$max_profesionales}.", $id_negocio);
+        } catch (Exception $eNotif) {}
 
         echo json_encode(['success' => true]);
     } catch (Exception $e) {
