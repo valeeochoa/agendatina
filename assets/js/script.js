@@ -1942,7 +1942,7 @@ window.enableImagePreview = function(input) {
 // LÓGICA DEL CARRUSEL Y PLANES (LANDING)
 // ==========================================
 
-const carouselData = [
+var carouselData = [
     { 
         title: 'Plan Simple', 
         desc: 'Calendario online para que tus clientes puedan solicitar turnos de forma rápida y organizada.', 
