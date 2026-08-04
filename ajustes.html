@@ -22,16 +22,15 @@
     <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-xs px-4 sm:px-6 py-3.5">
         <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
             <div class="flex items-center gap-3">
+                <a href="dashboard.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold py-2 px-3 sm:px-4 rounded-xl transition-all flex items-center gap-1.5 text-xs sm:text-sm shadow-xs" title="Volver al Panel">
+                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                    <span>Volver al Panel</span>
+                </a>
+                <span class="text-slate-300 font-light text-lg hidden sm:inline">|</span>
                 <a href="dashboard.html" class="flex items-center gap-2 tracking-tighter hover:opacity-90 transition-opacity">
                     <img src="public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
                     <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
                 </a>
-                <span class="text-slate-300 font-light text-lg hidden sm:inline">|</span>
-                <div id="navBusinessNameHeader" class="flex items-center gap-2 bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 px-3 py-1.5 rounded-2xl shadow-xs">
-                    <img id="navBusinessLogoImg" src="" alt="Logo Negocio" class="hidden h-6 w-6 object-cover rounded-full border border-slate-300">
-                    <span id="navBusinessIcon" class="material-symbols-outlined text-[18px] text-[#d11149]">storefront</span>
-                    <span id="navBusinessNameText" class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-white">Ajustes</span>
-                </div>
             </div>
 
             <div class="flex items-center gap-2 sm:gap-3">
@@ -49,11 +48,6 @@
                     <span class="material-symbols-outlined text-[18px]">save</span>
                     <span>Guardar Ajustes</span>
                 </button>
-
-                <a href="dashboard.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold py-2 px-3.5 rounded-xl transition-all flex items-center gap-1.5 text-xs sm:text-sm" title="Volver al Panel">
-                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-                    <span class="hidden sm:inline">Volver</span>
-                </a>
             </div>
         </div>
     </nav>
@@ -154,7 +148,7 @@
                 <p class="text-sm text-slate-500 mb-6">Configura cómo y cada cuánto tiempo pueden reservar tus clientes.</p>
                 <div class="space-y-6">
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Frecuencia de turnos (Minutos)</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Intervalo entre Horarios Disponibles</label>
                         <select id="configIntervalo" name="intervalo_turnos" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
                             <option value="15">Cada 15 minutos</option>
                             <option value="30" selected>Cada 30 minutos</option>
@@ -167,7 +161,9 @@
                         <div id="divIntervaloCustom" class="hidden mt-2">
                             <input type="number" id="inputIntervaloCustom" placeholder="Minutos exactos (Ej: 20)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
                         </div>
-                        <p class="text-xs text-slate-500 mt-1">Cada cuánto tiempo se mostrará una nueva opción de horario en el calendario.</p>
+                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                            <strong>¿Qué significa?</strong> Determina los bloques de hora que se ofrecen al cliente en tu web. Por ejemplo: si eliges <em>"Cada 30 minutos"</em>, en tu agenda pública figurarán opciones como 10:00, 10:30, 11:00, 11:30...
+                        </p>
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">¿Permitir turnos simultáneos?</label>

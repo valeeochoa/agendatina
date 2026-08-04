@@ -207,26 +207,30 @@
 
         function populateProfSelect(profs) {
             const select = document.getElementById('svcProfesional');
+            if (!select) return;
             select.innerHTML = '';
             
-            // Si no hay profesionales adicionales registrados, el dueño es la opción por defecto
-            if (!profs || profs.length === 0) {
-                select.innerHTML = `<option value="${currentOwnerName}">${currentOwnerName} (Dueño/a)</option>`;
-                return;
-            }
-            
+            let list = Array.isArray(profs) ? profs : [];
             let html = '';
-            const hasOwnerInList = profs.some(p => p.nombre_completo.toLowerCase().trim() === currentOwnerName.toLowerCase().trim());
+
+            const ownerNameClean = (currentOwnerName || 'Dueño Principal').toLowerCase().trim();
+            const hasOwnerInList = list.some(p => p.nombre_completo && p.nombre_completo.toLowerCase().trim() === ownerNameClean);
             
-            if (!hasOwnerInList) {
+            if (!hasOwnerInList && currentOwnerName) {
                 html += `<option value="${currentOwnerName}">${currentOwnerName} (Dueño/a)</option>`;
             }
             
-            profs.forEach(p => {
-                const isOwner = p.nombre_completo.toLowerCase().trim() === currentOwnerName.toLowerCase().trim();
-                const label = isOwner ? `${p.nombre_completo} (Dueño/a)` : p.nombre_completo;
-                html += `<option value="${p.nombre_completo}">${label}</option>`;
+            list.forEach(p => {
+                if (!p.nombre_completo) return;
+                const pName = p.nombre_completo.trim();
+                const isOwner = (p.rol_en_local === 'admin') || (pName.toLowerCase() === ownerNameClean);
+                const label = isOwner ? `${pName} (Dueño/a)` : pName;
+                html += `<option value="${pName}">${label}</option>`;
             });
+
+            if (!html) {
+                html = `<option value="${currentOwnerName}">${currentOwnerName} (Dueño/a)</option>`;
+            }
             
             select.innerHTML = html;
         }
@@ -316,6 +320,7 @@
         function openServiceModal() {
             document.getElementById('serviceForm').reset();
             document.getElementById('svcId').value = '';
+            populateProfSelect(professionalsData);
             document.getElementById('serviceModalTitle').innerHTML = '<span class="material-symbols-outlined text-primary">add_task</span> Nuevo Servicio';
             document.getElementById('serviceModal').classList.remove('hidden');
         }
@@ -327,11 +332,14 @@
         function editService(id) {
             const s = servicesData.find(item => item.id == id);
             if (!s) return;
+            populateProfSelect(professionalsData);
             document.getElementById('svcId').value = s.id;
             document.getElementById('svcNombre').value = s.nombre;
             document.getElementById('svcDuracion').value = s.duracion;
             document.getElementById('svcPrecio').value = s.precio;
-            document.getElementById('svcProfesional').value = s.profesional || 'Cualquiera (Sin preferencia)';
+            if (s.profesional) {
+                document.getElementById('svcProfesional').value = s.profesional;
+            }
             document.getElementById('svcDescripcion').value = s.descripcion || '';
             document.getElementById('serviceModalTitle').innerHTML = '<span class="material-symbols-outlined text-primary">edit</span> Editar Servicio';
             document.getElementById('serviceModal').classList.remove('hidden');

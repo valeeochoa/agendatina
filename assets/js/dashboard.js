@@ -632,7 +632,7 @@ const tourSteps = [
         desc: 'Define los servicios que ofrece tu local con sus respectivos precios, duraciones y descripciones.'
     },
     {
-        targetId: 'cardTeam',
+        targetId: 'cardEquipo',
         title: '3. Equipo de Trabajo 👥',
         desc: 'Administra tus profesionales, asigna accesos independientes y consulta el límite permitido según tu plan.'
     },
@@ -665,6 +665,23 @@ window.stopGuidedVirtualTour = function() {
     if (tooltip) tooltip.classList.add('hidden');
 };
 
+window.toggleOnboardingCollapse = function() {
+    const body = document.getElementById('onboardingBody');
+    const icon = document.getElementById('iconToggleOnboarding');
+    if (!body || !icon) return;
+
+    const isCollapsed = body.classList.contains('hidden');
+    if (isCollapsed) {
+        body.classList.remove('hidden');
+        icon.textContent = 'remove';
+        localStorage.setItem('onboarding_collapsed', 'false');
+    } else {
+        body.classList.add('hidden');
+        icon.textContent = 'add';
+        localStorage.setItem('onboarding_collapsed', 'true');
+    }
+};
+
 function showTourStep(index) {
     if (index < 0 || index >= tourSteps.length) {
         stopGuidedVirtualTour();
@@ -672,7 +689,7 @@ function showTourStep(index) {
     }
     currentTourStep = index;
     const step = tourSteps[index];
-    let targetEl = document.getElementById(step.targetId);
+    let targetEl = document.getElementById(step.targetId) || (step.targetId === 'cardEquipo' ? document.getElementById('cardTeam') : null);
 
     // Si la tarjeta está oculta por el plan contratado, saltear
     if (targetEl && (targetEl.style.display === 'none' || targetEl.offsetParent === null)) {
@@ -745,10 +762,17 @@ window.prevTourStep = function() {
 // Detección automática al cargar dashboard.html
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
+        if (localStorage.getItem('onboarding_collapsed') === 'true') {
+            const body = document.getElementById('onboardingBody');
+            const icon = document.getElementById('iconToggleOnboarding');
+            if (body) body.classList.add('hidden');
+            if (icon) icon.textContent = 'add';
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('welcome') === '1' || sessionStorage.getItem('show_welcome_modal') === 'true') {
             sessionStorage.removeItem('show_welcome_modal');
             openWelcomeNewAccountModal();
         }
-    }, 700);
+    }, 400);
 });

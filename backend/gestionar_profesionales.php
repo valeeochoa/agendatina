@@ -3,14 +3,21 @@ session_start();
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/conexion.php';
 
-if (!isset($_SESSION['id_negocio']) || !isset($_SESSION['rol_en_local']) || $_SESSION['rol_en_local'] !== 'admin') {
+if (!isset($_SESSION['id_negocio'])) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'error' => 'Acceso denegado. Solo el administrador del negocio puede crear o eliminar cuentas de profesionales.']);
+    echo json_encode(['success' => false, 'error' => 'Acceso denegado. Sesión no válida.']);
     exit;
 }
 
 $id_negocio = $_SESSION['id_negocio'];
 $method = $_SERVER['REQUEST_METHOD'];
+
+// Para POST y DELETE (crear o eliminar profesionales), exigir ser administrador
+if ($method !== 'GET' && (!isset($_SESSION['rol_en_local']) || $_SESSION['rol_en_local'] !== 'admin')) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'error' => 'Acceso denegado. Solo el administrador del negocio puede modificar el equipo.']);
+    exit;
+}
 
 if ($method === 'GET') {
     try {

@@ -128,6 +128,19 @@
             </h3>
             <p class="text-xs text-slate-500 mb-6">Crea la cuenta de acceso exclusivo para un especialista de tu local.</p>
 
+            <div id="teamLimitReachedNotice" class="hidden text-center py-2">
+                <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center mx-auto mb-4 border border-amber-100 shadow-sm">
+                    <span class="material-symbols-outlined text-3xl">workspace_premium</span>
+                </div>
+                <h4 class="font-bold text-slate-900 text-lg mb-1">Límite de Plan Alcanzado</h4>
+                <p class="text-xs text-slate-500 mb-6 leading-relaxed">
+                    Has ocupado <strong id="modalLimitText" class="text-slate-800"></strong> de tu plan actual. Para incorporar más profesionales a tu equipo, solicita una ampliación de plan al Administrador de Agendatina.
+                </p>
+                <button onclick="requestTeamExpansion()" id="btnModalRequestExpansion" class="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 font-black py-3.5 rounded-xl shadow-lg shadow-amber-500/20 text-xs sm:text-sm transition-all flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">add_circle</span> Solicitar Ampliación de Plan
+                </button>
+            </div>
+
             <form id="teamForm" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre Completo</label>
@@ -191,6 +204,8 @@
         let servicesList = [];
         let profIdToDelete = null;
 
+        let currentLimit = 1;
+
         document.addEventListener('DOMContentLoaded', () => {
             fetch('backend/perfil.php')
                 .then(r => r.json())
@@ -210,16 +225,16 @@
                     teamList = teamData.data || [];
                     servicesList = Array.isArray(svcsData) ? svcsData : [];
 
-                    const limit = teamData.limite || 1;
+                    currentLimit = teamData.limite || 1;
                     const used = teamList.length;
-                    document.getElementById('planCapacityBadge').textContent = `${used} de ${limit} Cuentas Ocupadas`;
+                    document.getElementById('planCapacityBadge').textContent = `${used} de ${currentLimit} Cuentas Ocupadas`;
 
-                    renderTeamGrid(teamList, servicesList);
+                    renderTeamGrid(teamList, servicesList, currentLimit);
                 }
             });
         }
 
-        function renderTeamGrid(team, services) {
+        function renderTeamGrid(team, services, limit) {
             const grid = document.getElementById('teamGrid');
             if (team.length === 0) {
                 grid.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm border border-dashed border-slate-200 rounded-2xl col-span-full">No tienes cuentas de profesionales registradas. Haz clic en "Agregar Profesional" para crear la primera.</div>';
@@ -287,16 +302,94 @@
                     </div>
                 `;
             });
+
+            // Card de Ampliación de Plan cuando se alcanza el límite
+            if (team.length >= limit) {
+                html += `
+                    <div class="bg-gradient-to-br from-slate-900 via-purple-950 to-slate-900 text-white rounded-3xl p-6 border border-purple-500/30 shadow-xl flex flex-col justify-between hover:shadow-2xl transition-all relative overflow-hidden group">
+                        <div class="absolute -right-8 -bottom-8 w-36 h-36 bg-purple-500/20 rounded-full blur-2xl group-hover:scale-125 transition-transform"></div>
+                        
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md text-amber-300 flex items-center justify-center font-bold border border-white/20">
+                                    <span class="material-symbols-outlined text-2xl">workspace_premium</span>
+                                </div>
+                                <span class="bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
+                                    Límite Alcanzado
+                                </span>
+                            </div>
+                            
+                            <h3 class="font-extrabold text-white text-lg font-display mb-1">
+                                ¿Quieres sumar más profesionales?
+                            </h3>
+                            <p class="text-xs text-purple-200/90 font-medium leading-relaxed">
+                                Has completado las <strong class="text-amber-300">${team.length} de ${limit} cuentas</strong> de tu plan actual. Puedes solicitar al Administrador ampliar tus cupos.
+                            </p>
+                        </div>
+
+                        <div class="mt-6 pt-4 border-t border-white/10">
+                            <button onclick="requestTeamExpansion()" id="btnRequestExpansion" class="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 font-black py-3 rounded-2xl text-xs sm:text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-[18px]">add_circle</span> Solicitar Ampliación de Plan
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
             grid.innerHTML = html;
         }
 
         function openTeamModal() {
             document.getElementById('teamForm').reset();
+            const isLimitReached = teamList.length >= currentLimit;
+            const noticeEl = document.getElementById('teamLimitReachedNotice');
+            const formEl = document.getElementById('teamForm');
+
+            if (isLimitReached) {
+                document.getElementById('modalLimitText').textContent = `${teamList.length} de ${currentLimit} cuentas ocupadas`;
+                noticeEl.classList.remove('hidden');
+                formEl.classList.add('hidden');
+            } else {
+                noticeEl.classList.add('hidden');
+                formEl.classList.remove('hidden');
+            }
+
             document.getElementById('teamModal').classList.remove('hidden');
         }
 
         function closeTeamModal() {
             document.getElementById('teamModal').classList.add('hidden');
+        }
+
+        function requestTeamExpansion() {
+            const btns = [document.getElementById('btnRequestExpansion'), document.getElementById('btnModalRequestExpansion')].filter(Boolean);
+            btns.forEach(b => { b.disabled = true; b.textContent = 'Enviando solicitud...'; });
+
+            const formData = new FormData();
+            formData.append('segmento', 'Solicitud Ampliación de Plan (Profesionales)');
+            formData.append('mensaje', `El negocio solicita ampliar el cupo de profesionales (Límite actual: ${currentLimit}, Cuentas en uso: ${teamList.length}).`);
+
+            const csrfToken = document.cookie.match(/csrf_token=([^;]+)/)?.[1];
+            if (csrfToken) formData.append('csrf_token', csrfToken);
+
+            fetch('backend/enviar_soporte.php', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(d => {
+                    closeTeamModal();
+                    btns.forEach(b => {
+                        b.disabled = false;
+                        b.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> Solicitud Enviada';
+                    });
+                    showErrorModal('¡Solicitud enviada con éxito! El equipo de Agendatina ha recibido tu pedido de ampliación de profesionales y se pondrá en contacto a la brevedad.');
+                })
+                .catch(err => {
+                    closeTeamModal();
+                    btns.forEach(b => {
+                        b.disabled = false;
+                        b.innerHTML = '<span class="material-symbols-outlined text-[18px]">add_circle</span> Solicitar Ampliación de Plan';
+                    });
+                    showErrorModal('Ocurrió un inconveniente al enviar la solicitud. Por favor intenta nuevamente.');
+                });
         }
 
         function confirmDeleteTeamMember(id, name) {

@@ -6,7 +6,7 @@
     <title>Panel de Control | Agendatina</title>
     <link rel="icon" href="public/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <script>
         tailwind.config = {
@@ -25,7 +25,7 @@
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <a href="dashboard.html" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
                  <img src="public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
-                 <span class="font-brand font-bold text-2xl tracking-tight hidden sm:block text-slate-800">Agendatina</span>
+                 <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
             </a>
             <div class="flex items-center gap-4">
                 <div class="text-right hidden sm:block">
@@ -125,51 +125,56 @@
             <!-- Widget de Inicio Rápido -->
             <div id="onboardingWidget" class="hidden mb-10 bg-white border border-primary/20 rounded-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full opacity-50 pointer-events-none"></div>
-                <div class="absolute top-6 right-6 opacity-20 pointer-events-none">
-                    <span class="material-symbols-outlined text-7xl text-primary">rocket_launch</span>
-                </div>
                 
                 <div class="relative z-10">
-                    <h2 class="text-2xl font-extrabold text-slate-800 mb-2 font-display">Primeros pasos en Agendatina</h2>
-                    <p class="text-slate-500 mb-6 max-w-2xl">Completa esta breve guía para dejar tu sistema listo y comenzar a recibir reservas automáticamente.</p>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <!-- Step 1 -->
-                        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col transition-all hover:border-primary/50 hover:shadow-md group">
-                            <div class="flex items-center gap-3 mb-3">
-                                <div id="step1Icon" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">1</div>
-                                <h3 id="step1Text" class="font-bold text-slate-800">Horarios y Calendario</h3>
-                            </div>
-                            <p class="text-xs text-slate-500 mb-4 flex-1">Selecciona qué días trabajas, tus horarios de apertura y el tipo de calendario (Mensual o Semanal).</p>
-                            <a href="ajustes.html" class="text-sm font-bold text-primary hover:text-primary/80 flex items-center gap-1 group-hover:translate-x-1 transition-transform">Ir a Ajustes <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
-                        </div>
-
-                        <!-- Step 2 -->
-                        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col transition-all hover:border-primary/50 hover:shadow-md group">
-                            <div class="flex items-center gap-3 mb-3">
-                                <div id="step2Icon" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">2</div>
-                                <h3 id="step2Text" class="font-bold text-slate-800">Agregar un Servicio</h3>
-                            </div>
-                            <p class="text-xs text-slate-500 mb-4 flex-1">Crea al menos un servicio con su nombre, duración y precio para que tus clientes puedan elegirlo.</p>
-                            <a href="calendarioMensual.html" id="step2Link" class="text-sm font-bold text-primary hover:text-primary/80 flex items-center gap-1 group-hover:translate-x-1 transition-transform">Ir a Calendario <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
-                        </div>
-
-                        <!-- Step 3 -->
-                        <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col transition-all hover:border-primary/50 hover:shadow-md group">
-                            <div class="flex items-center gap-3 mb-3">
-                                <div id="step3Icon" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">3</div>
-                                <h3 id="step3Text" class="font-bold text-slate-800">Prueba tu Agenda</h3>
-                            </div>
-                            <p class="text-xs text-slate-500 mb-4 flex-1">Visita tu enlace público como si fueras un cliente y agenda tu primer turno de prueba.</p>
-                            <a href="#" id="step3Link" target="_blank" class="text-sm font-bold text-primary hover:text-primary/80 flex items-center gap-1 opacity-50 pointer-events-none transition-all">Ver mi web <span class="material-symbols-outlined text-[16px]">open_in_new</span></a>
-                        </div>
+                    <div class="flex items-center justify-between gap-4 mb-2">
+                        <h2 class="text-2xl font-extrabold text-slate-800 font-display">Primeros pasos en Agendatina</h2>
+                        <button onclick="toggleOnboardingCollapse()" id="btnToggleOnboarding" class="w-9 h-9 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-black text-xl transition-all shadow-xs" title="Minimizar / Maximizar">
+                            <span class="material-symbols-outlined text-[22px]" id="iconToggleOnboarding">remove</span>
+                        </button>
                     </div>
                     
-                    <div class="mt-8 pt-6 border-t border-primary/10 flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <p class="text-sm text-slate-500"><span class="font-bold">Tip:</span> Si no sabes por dónde empezar, mira el recorrido guiado.</p>
-                        <button onclick="startTour()" class="bg-primary/10 text-primary hover:bg-primary/20 font-bold py-2.5 px-6 rounded-xl transition-colors flex items-center gap-2 text-sm w-full sm:w-auto justify-center">
-                            <span class="material-symbols-outlined text-[18px]">explore</span> Iniciar Tour Virtual
-                        </button>
+                    <div id="onboardingBody">
+                        <p class="text-slate-500 mb-6 max-w-2xl">Completa esta breve guía para dejar tu sistema listo y comenzar a recibir reservas automáticamente.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Step 1 -->
+                            <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col transition-all hover:border-primary/50 hover:shadow-md group">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div id="step1Icon" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">1</div>
+                                    <h3 id="step1Text" class="font-bold text-slate-800">Horarios y Calendario</h3>
+                                </div>
+                                <p class="text-xs text-slate-500 mb-4 flex-1">Selecciona qué días trabajas, tus horarios de apertura y el tipo de calendario (Mensual o Semanal).</p>
+                                <a href="ajustes.html" class="text-sm font-bold text-primary hover:text-primary/80 flex items-center gap-1 group-hover:translate-x-1 transition-transform">Ir a Ajustes <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
+                            </div>
+
+                            <!-- Step 2 -->
+                            <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col transition-all hover:border-primary/50 hover:shadow-md group">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div id="step2Icon" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">2</div>
+                                    <h3 id="step2Text" class="font-bold text-slate-800">Agregar un Servicio</h3>
+                                </div>
+                                <p class="text-xs text-slate-500 mb-4 flex-1">Crea al menos un servicio con su nombre, duración y precio para que tus clientes puedan elegirlo.</p>
+                                <a href="calendarioMensual.html" id="step2Link" class="text-sm font-bold text-primary hover:text-primary/80 flex items-center gap-1 group-hover:translate-x-1 transition-transform">Ir a Calendario <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col transition-all hover:border-primary/50 hover:shadow-md group">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div id="step3Icon" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">3</div>
+                                    <h3 id="step3Text" class="font-bold text-slate-800">Prueba tu Agenda</h3>
+                                </div>
+                                <p class="text-xs text-slate-500 mb-4 flex-1">Visita tu enlace público como si fueras un cliente y agenda tu primer turno de prueba.</p>
+                                <a href="#" id="step3Link" target="_blank" class="text-sm font-bold text-primary hover:text-primary/80 flex items-center gap-1 opacity-50 pointer-events-none transition-all">Ver mi web <span class="material-symbols-outlined text-[16px]">open_in_new</span></a>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-8 pt-6 border-t border-primary/10 flex flex-col sm:flex-row justify-between items-center gap-4">
+                            <p class="text-sm text-slate-500"><span class="font-bold">Tip:</span> Si no sabes por dónde empezar, mira el recorrido guiado.</p>
+                            <button onclick="startTour()" class="bg-primary/10 text-primary hover:bg-primary/20 font-bold py-2.5 px-6 rounded-xl transition-colors flex items-center gap-2 text-sm w-full sm:w-auto justify-center">
+                                <span class="material-symbols-outlined text-[18px]">explore</span> Iniciar Tour Virtual
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
