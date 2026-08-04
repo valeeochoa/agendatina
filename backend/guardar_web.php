@@ -44,7 +44,7 @@ try { $pdo->query("SELECT hora_cierre FROM configuracion_web LIMIT 1"); }
 catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN hora_cierre VARCHAR(5) DEFAULT '18:00'"); }
 
 try { $pdo->query("SELECT intervalo_turnos FROM configuracion_web LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN intervalo_turnos INT DEFAULT 30"); }
+catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN intervalo_turnos VARCHAR(50) DEFAULT '30'"); }
 
 try { $pdo->query("SELECT fondo FROM configuracion_web LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN fondo VARCHAR(255) DEFAULT NULL"); }
@@ -367,7 +367,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $instagram_url = isset($data['instagram_url']) ? $data['instagram_url'] : ($oldData['instagram_url'] ?? '');
         $hora_apertura = isset($data['hora_apertura']) ? $data['hora_apertura'] : ($oldData['hora_apertura'] ?? '09:00');
         $hora_cierre = isset($data['hora_cierre']) ? $data['hora_cierre'] : ($oldData['hora_cierre'] ?? '18:00');
-        $intervalo_turnos = isset($data['intervalo_turnos']) ? (int)$data['intervalo_turnos'] : ($oldData['intervalo_turnos'] ?? 30);
+        $intervalo_turnos = isset($data['intervalo_turnos']) ? trim((string)$data['intervalo_turnos']) : ($oldData['intervalo_turnos'] ?? '30');
         $turnos_simultaneos = isset($data['turnos_simultaneos']) ? $data['turnos_simultaneos'] : ($oldData['turnos_simultaneos'] ?? 'no');
         $confirmacion_automatica = isset($data['confirmacion_automatica']) ? $data['confirmacion_automatica'] : ($oldData['confirmacion_automatica'] ?? 'no');
         $anticipacion_turno_min = isset($data['anticipacion_turno_min']) ? max(0, (int)$data['anticipacion_turno_min']) : ($oldData['anticipacion_turno_min'] ?? 0);

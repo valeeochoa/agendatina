@@ -21,7 +21,45 @@ document.addEventListener('DOMContentLoaded', () => {
     if (form) {
         form.addEventListener('submit', handleCalendarConfigSubmit);
     }
+    
+    // Inicializar estado del ayuda del intervalo de turnos
+    if (typeof window.updateIntervalHelpText === 'function') {
+        window.updateIntervalHelpText();
+    }
 });
+
+window.updateIntervalHelpText = function() {
+    const select = document.getElementById('configIntervalo');
+    const customDiv = document.getElementById('divIntervaloCustom');
+    const helpText = document.getElementById('intervaloHelpText');
+    if (!select) return;
+
+    const val = select.value;
+
+    if (val === 'custom') {
+        if (customDiv) customDiv.classList.remove('hidden');
+        if (helpText) {
+            helpText.innerHTML = `<strong>Modo Personalizado:</strong> Ingresa la cantidad exacta de minutos entre cada turno. Por ejemplo: si ingresas 20, en tu web se mostrarán horarios cada 20 minutos (10:00, 10:20, 10:40...).`;
+        }
+    } else {
+        if (customDiv) customDiv.classList.add('hidden');
+        
+        if (val === 'servicio') {
+            if (helpText) {
+                helpText.innerHTML = `<strong>Según la Duración del Servicio:</strong> Las opciones de horarios se calcularán dinámicamente según el tiempo que dura el servicio seleccionado por el cliente (Ej: Si el servicio dura 45 min, los horarios serán 10:00, 10:45, 11:30...).`;
+            }
+        } else {
+            const mins = parseInt(val) || 30;
+            let t2 = 10 * 60 + mins;
+            let h2 = Math.floor(t2 / 60);
+            let m2 = t2 % 60;
+            let ex2 = `${h2}:${m2 < 10 ? '0' : ''}${m2}`;
+            if (helpText) {
+                helpText.innerHTML = `<strong>Frecuencia fija de ${mins} minutos:</strong> En tu web pública figurarán bloques de horarios cada ${mins} minutos (Ej: 10:00, ${ex2}, ...).`;
+            }
+        }
+    }
+};
 
 window.generarWaQr = function() {
     const container = document.getElementById('waQrContainer');

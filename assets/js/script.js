@@ -1724,6 +1724,8 @@ function applyCalendarConfigToForm(c) {
             selectInterval.value = 'custom';
             document.getElementById('divIntervaloCustom').classList.remove('hidden');
             document.getElementById('inputIntervaloCustom').value = c.intervalo_turnos || 30;
+        if (typeof window.updateIntervalHelpText === 'function') {
+            window.updateIntervalHelpText();
         }
     }
     const radioCal = document.querySelector(`input[name="tipo_calendario"][value="${c.tipo_calendario || 'clasico'}"]`);

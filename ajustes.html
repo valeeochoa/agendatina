@@ -148,22 +148,28 @@
                 <p class="text-sm text-slate-500 mb-6">Configura cómo y cada cuánto tiempo pueden reservar tus clientes.</p>
                 <div class="space-y-6">
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Intervalo entre Horarios Disponibles</label>
-                        <select id="configIntervalo" name="intervalo_turnos" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">Frecuencia / Intervalo de Horarios Disponibles</label>
+                        <select id="configIntervalo" name="intervalo_turnos" onchange="updateIntervalHelpText()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none transition-all font-medium">
+                            <option value="servicio">Determinado por la duración del servicio (Ej: 45 min, 1 hora...)</option>
                             <option value="15">Cada 15 minutos</option>
-                            <option value="30" selected>Cada 30 minutos</option>
+                            <option value="30" selected>Cada 30 minutos (Recomendado)</option>
                             <option value="45">Cada 45 minutos</option>
                             <option value="60">Cada 1 hora</option>
                             <option value="90">Cada 1 hora y media</option>
                             <option value="120">Cada 2 horas</option>
-                            <option value="custom">Personalizado...</option>
+                            <option value="custom">Personalizado (ingresar minutos manualmente)...</option>
                         </select>
-                        <div id="divIntervaloCustom" class="hidden mt-2">
-                            <input type="number" id="inputIntervaloCustom" placeholder="Minutos exactos (Ej: 20)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
+                        
+                        <div id="divIntervaloCustom" class="hidden mt-3 p-3 bg-amber-50/50 border border-amber-200 rounded-xl">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Duración personalizada (minutos exactos):</label>
+                            <input type="number" id="inputIntervaloCustom" min="5" max="480" placeholder="Ej: 20" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-amber-500 outline-none transition-all font-medium">
                         </div>
-                        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-                            <strong>¿Qué significa?</strong> Determina los bloques de hora que se ofrecen al cliente en tu web. Por ejemplo: si eliges <em>"Cada 30 minutos"</em>, en tu agenda pública figurarán opciones como 10:00, 10:30, 11:00, 11:30...
-                        </p>
+
+                        <div class="mt-2.5 text-xs text-slate-600 bg-slate-100/70 border border-slate-200/80 rounded-xl p-3.5 leading-relaxed">
+                            <span id="intervaloHelpText">
+                                <strong>¿Qué significa?</strong> Determina cada cuántos minutos se genera una nueva opción de hora para el cliente en tu agenda. Por ejemplo: si eliges <em>"Cada 30 minutos"</em>, en tu web se mostrarán horarios como 10:00, 10:30, 11:00, 11:30...
+                            </span>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">¿Permitir turnos simultáneos?</label>
