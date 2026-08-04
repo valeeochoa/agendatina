@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script src="assets/js/csrf.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -266,6 +267,9 @@
             btn.textContent = 'Creando...';
 
             const formData = new FormData(this);
+            const csrfToken = document.cookie.match(/csrf_token=([^;]+)/)?.[1];
+            if (csrfToken) formData.append('csrf_token', csrfToken);
+
             fetch('backend/gestionar_profesionales.php', { method: 'POST', body: formData })
                 .then(r => r.json())
                 .then(d => {
