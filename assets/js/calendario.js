@@ -2645,14 +2645,15 @@ function checkAdminCalendarSession(config = null) {
         }
 
         if (isOwnerSession) {
-            if (btnVolver) btnVolver.classList.remove('hidden');
-            if (brand) brand.classList.remove('hidden');
-            if (sep) sep.classList.remove('hidden');
-            if (bugBtn && !isDemo) bugBtn.classList.remove('hidden');
+            if (btnVolver) { btnVolver.classList.remove('hidden'); btnVolver.style.display = ''; }
+            if (brand) { brand.classList.remove('hidden'); brand.style.display = ''; }
+            if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
+            if (bugBtn && !isDemo) { bugBtn.classList.remove('hidden'); bugBtn.style.display = ''; }
 
             if (sessionBadge) {
                 sessionBadge.classList.remove('hidden');
                 sessionBadge.classList.add('flex');
+                sessionBadge.style.display = '';
                 const dot = sessionBadge.querySelector('span:first-child');
                 if (isDemo) {
                     if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
@@ -2670,20 +2671,20 @@ function checkAdminCalendarSession(config = null) {
             }
         } else {
             // Vista Cliente
-            if (btnVolver) btnVolver.classList.add('hidden');
-            if (brand) brand.classList.add('hidden');
-            if (sep) sep.classList.add('hidden');
-            if (bugBtn) bugBtn.classList.add('hidden');
-            if (sessionBadge) sessionBadge.classList.add('hidden');
+            if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
+            if (brand) { brand.classList.add('hidden'); brand.style.display = 'none'; }
+            if (sep) { sep.classList.add('hidden'); sep.style.display = 'none'; }
+            if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
+            if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
         }
     })
     .catch(() => {
         if (negocioSlug) {
-            if (btnVolver) btnVolver.classList.add('hidden');
-            if (brand) brand.classList.add('hidden');
-            if (sep) sep.classList.add('hidden');
-            if (bugBtn) bugBtn.classList.add('hidden');
-            if (sessionBadge) sessionBadge.classList.add('hidden');
+            if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
+            if (brand) { brand.classList.add('hidden'); brand.style.display = 'none'; }
+            if (sep) { sep.classList.add('hidden'); sep.style.display = 'none'; }
+            if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
+            if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
         }
     });
 }
