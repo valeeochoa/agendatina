@@ -41,6 +41,37 @@ try {
             id_negocio INT NULL, nombre_negocio VARCHAR(255), id_usuario INT NULL, nombre_usuario VARCHAR(255), email_usuario VARCHAR(255), rol_usuario VARCHAR(50) DEFAULT 'admin', fecha DATETIME DEFAULT CURRENT_TIMESTAMP, leida BOOLEAN DEFAULT FALSE
         )"); 
     }
+    $notifCols = [
+        'nombre_negocio' => 'VARCHAR(255) DEFAULT NULL',
+        'id_usuario' => 'INT NULL',
+        'nombre_usuario' => 'VARCHAR(255) DEFAULT NULL',
+        'email_usuario' => 'VARCHAR(255) DEFAULT NULL',
+        'rol_usuario' => "VARCHAR(50) DEFAULT 'admin'"
+    ];
+    foreach ($notifCols as $col => $tipo) {
+        try { $pdo->query("SELECT $col FROM notificaciones_admin LIMIT 1"); } 
+        catch(Exception $e) { $pdo->exec("ALTER TABLE notificaciones_admin ADD COLUMN $col $tipo"); }
+    }
+
+    // Asegurar tabla reportes_error
+    try { $pdo->query("SELECT 1 FROM reportes_error LIMIT 1"); } 
+    catch(Exception $e) { 
+        $pdo->exec("CREATE TABLE reportes_error (
+            id INT AUTO_INCREMENT PRIMARY KEY, id_negocio INT NULL, nombre_negocio VARCHAR(255), id_usuario INT NULL, nombre_usuario VARCHAR(255), email_usuario VARCHAR(255), rol_usuario VARCHAR(50) DEFAULT 'admin', tipo VARCHAR(50) DEFAULT 'Reporte de Error', modulo VARCHAR(100) DEFAULT 'General', descripcion TEXT, estado VARCHAR(50) DEFAULT 'pendiente', fecha DATETIME DEFAULT CURRENT_TIMESTAMP
+        )"); 
+    }
+    $reportesCols = [
+        'nombre_negocio' => 'VARCHAR(255) DEFAULT NULL',
+        'id_usuario' => 'INT NULL',
+        'nombre_usuario' => 'VARCHAR(255) DEFAULT NULL',
+        'email_usuario' => 'VARCHAR(255) DEFAULT NULL',
+        'rol_usuario' => "VARCHAR(50) DEFAULT 'admin'",
+        'tipo' => "VARCHAR(50) DEFAULT 'Reporte de Error'"
+    ];
+    foreach ($reportesCols as $col => $tipo) {
+        try { $pdo->query("SELECT $col FROM reportes_error LIMIT 1"); } 
+        catch(Exception $e) { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN $col $tipo"); }
+    }
 
     // 1. Insertar en reportes_error como Sugerencia / Mejora
     try {

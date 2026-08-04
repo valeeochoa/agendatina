@@ -98,8 +98,18 @@ try {
         fecha DATETIME DEFAULT CURRENT_TIMESTAMP
     )");
 }
-try { $pdo->query("SELECT tipo FROM reportes_error LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN tipo VARCHAR(50) DEFAULT 'Reporte de Error'"); }
-try { $pdo->query("SELECT rol_usuario FROM reportes_error LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN rol_usuario VARCHAR(50) DEFAULT 'admin'"); }
+$reportesCols = [
+    'nombre_negocio' => 'VARCHAR(255) DEFAULT NULL',
+    'id_usuario' => 'INT NULL',
+    'nombre_usuario' => 'VARCHAR(255) DEFAULT NULL',
+    'email_usuario' => 'VARCHAR(255) DEFAULT NULL',
+    'rol_usuario' => "VARCHAR(50) DEFAULT 'admin'",
+    'tipo' => "VARCHAR(50) DEFAULT 'Reporte de Error'"
+];
+foreach ($reportesCols as $col => $tipo) {
+    try { $pdo->query("SELECT $col FROM reportes_error LIMIT 1"); } 
+    catch(Exception $e) { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN $col $tipo"); }
+}
 
 try {
     // 1. Guardar en la tabla oficial de reportes de error
