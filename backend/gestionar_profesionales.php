@@ -140,16 +140,25 @@ if ($method === 'GET') {
     try {
         $pdo->beginTransaction();
         
-        $stmtCheck = $pdo->prepare("SELECT rol_en_local FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ?");
-        $stmtCheck->execute([$id_negocio, $id_usuario]);
+        // 1. Buscar rol en personal_negocio para este negocio o en general
+        $stmtCheck = $pdo->prepare("SELECT rol_en_local FROM personal_negocio WHERE id_usuario = ? AND id_negocio = ?");
+        $stmtCheck->execute([$id_usuario, $id_negocio]);
         $roleInBiz = $stmtCheck->fetchColumn();
+
+        if (!$roleInBiz) {
+            $stmtCheckPn = $pdo->prepare("SELECT rol_en_local FROM personal_negocio WHERE id_usuario = ? LIMIT 1");
+            $stmtCheckPn->execute([$id_usuario]);
+            $roleInBiz = $stmtCheckPn->fetchColumn();
+        }
 
         if ($roleInBiz === 'admin') {
             throw new Exception("No es posible eliminar la cuenta del Administrador/Dueño principal del negocio.");
-        } elseif ($roleInBiz === 'profesional') {
-            $pdo->prepare("DELETE FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ?")->execute([$id_negocio, $id_usuario]);
+        } else {
+            // Eliminar de personal_negocio para este negocio o rol profesional
+            $pdo->prepare("DELETE FROM personal_negocio WHERE id_usuario = ? AND id_negocio = ?")->execute([$id_usuario, $id_negocio]);
+            $pdo->prepare("DELETE FROM personal_negocio WHERE id_usuario = ? AND rol_en_local = 'profesional'")->execute([$id_usuario]);
             
-            // Eliminar de usuarios solo si no forma parte de ningún otro negocio
+            // Eliminar de usuarios si no pertenece a ningún otro negocio activo
             $stmtCheckOther = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_usuario = ?");
             $stmtCheckOther->execute([$id_usuario]);
             if ($stmtCheckOther->fetchColumn() == 0) {
@@ -158,8 +167,6 @@ if ($method === 'GET') {
             
             $pdo->commit();
             echo json_encode(['success' => true]);
-        } else {
-            throw new Exception("El profesional no pertenece a tu equipo de trabajo.");
         }
     } catch (Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
