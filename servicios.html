@@ -190,7 +190,7 @@
         let servicesData = [];
         let professionalsData = [];
 
-        let currentOwnerName = 'Dueño Principal';
+        let currentOwnerName = '';
 
         document.addEventListener('DOMContentLoaded', () => {
             fetch('backend/perfil.php')
@@ -198,7 +198,7 @@
                 .then(d => {
                     if (!d.success) window.location.href = 'login.html';
                     else {
-                        currentOwnerName = d.nombre_completo || d.nombre_fantasia || 'Dueño Principal';
+                        currentOwnerName = (d.nombre_completo && d.nombre_completo !== 'Dueño Principal') ? d.nombre_completo : (d.nombre_fantasia || '');
                         loadServices();
                         loadTeam();
                     }
@@ -212,24 +212,26 @@
             
             let list = Array.isArray(profs) ? profs : [];
             let html = '';
+            const addedNames = new Set();
 
-            const ownerNameClean = (currentOwnerName || 'Dueño Principal').toLowerCase().trim();
-            const hasOwnerInList = list.some(p => p.nombre_completo && p.nombre_completo.toLowerCase().trim() === ownerNameClean);
-            
-            if (!hasOwnerInList && currentOwnerName) {
-                html += `<option value="${currentOwnerName}">${currentOwnerName} (Dueño/a)</option>`;
-            }
-            
             list.forEach(p => {
                 if (!p.nombre_completo) return;
                 const pName = p.nombre_completo.trim();
-                const isOwner = (p.rol_en_local === 'admin') || (pName.toLowerCase() === ownerNameClean);
-                const label = isOwner ? `${pName} (Dueño/a)` : pName;
-                html += `<option value="${pName}">${label}</option>`;
+                const pNameKey = pName.toLowerCase();
+                
+                if (pNameKey === 'dueño principal' || pNameKey === 'dueño/admin' || pNameKey === 'dueño' || pNameKey === 'administrador') return;
+                if (addedNames.has(pNameKey)) return;
+                
+                addedNames.add(pNameKey);
+                html += `<option value="${pName}">${pName}</option>`;
             });
 
-            if (!html) {
-                html = `<option value="${currentOwnerName}">${currentOwnerName} (Dueño/a)</option>`;
+            if (addedNames.size === 0 && currentOwnerName) {
+                const ownerClean = currentOwnerName.trim();
+                const ownerKey = ownerClean.toLowerCase();
+                if (ownerClean && ownerKey !== 'dueño principal' && ownerKey !== 'dueño/admin' && ownerKey !== 'dueño') {
+                    html = `<option value="${ownerClean}">${ownerClean}</option>`;
+                }
             }
             
             select.innerHTML = html;

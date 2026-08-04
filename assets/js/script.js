@@ -441,7 +441,7 @@ window.openEditTurnoModal = function(id) {
         // Profesionales
         const profSelect = document.getElementById('editTurnoProfesional');
         profSelect.innerHTML = '<option value="Cualquiera (Sin preferencia)">Cualquiera (Sin preferencia)</option>';
-        const uniqueProfs = [...new Set(servs.map(s => s.profesional).filter(p => p && p.trim() !== ''))];
+        const uniqueProfs = [...new Set(servs.map(s => s.profesional).filter(p => p && p.trim() !== '' && p.toLowerCase().trim() !== 'dueño principal'))];
         uniqueProfs.forEach(p => {
             const selected = p === turno.profesional ? 'selected' : '';
             profSelect.innerHTML += `<option value="${p}" ${selected}>${p}</option>`;
