@@ -195,12 +195,14 @@ let tourResizeListener = null;
 let isAutoScrolling = false;
 
 const legacyTourSteps = [
-    { target: 'cardCalendario', title: '1. Tu Motor Principal', text: 'Aquí definirás tus horarios de atención, el tipo de calendario (mensual o semanal) y los servicios que ofreces.', position: 'right' },
-    { target: 'cardWeb', title: '2. Tu Vitrina Online', text: 'Personaliza la página pública que verán tus clientes al reservar. Sube fotos, certificados y cambia los colores.', position: 'left' },
-    { target: 'cardAgenda', title: '3. Recepción de Turnos', text: 'En esta sección administrarás y confirmarás los turnos que tus clientes vayan solicitando en tu web.', position: 'right' },
-    { target: 'cardEstadisticas', title: '4. Estadísticas', text: 'Visualiza el rendimiento de tu negocio, ingresos generados y servicios más solicitados.', position: 'right' },
-    { target: 'cardAjustes', title: '5. Ajustes', text: 'Configura colores, horarios de atención, turnos y modalidad de trabajo.', position: 'left' },
-    { target: 'navAvatar', title: '6. Mi Perfil', text: 'Haz clic en el círculo de tu perfil para configurar tus datos de usuario, ver estadísticas rápidas y cambiar tu contraseña.', position: 'bottom' }
+    { target: 'cardServicios', title: '1. Servicios', text: 'Carga y administra todos los servicios que ofrece tu negocio, sus precios, duraciones en hs/min y profesionales a cargo.', position: 'right' },
+    { target: 'cardEquipo', title: '2. Equipo de Trabajo', text: 'Gestiona tu equipo de profesionales, asigna servicios y administra el límite de cuentas disponibles de tu plan.', position: 'right' },
+    { target: 'cardCalendario', title: '3. Gestionar Calendario', text: 'Define tus días de atención, franjas horarias de apertura/cierre, horarios de descanso y modalidad de trabajo.', position: 'right' },
+    { target: 'cardWeb', title: '4. Tu Página Web', text: 'Personaliza la página pública que verán tus clientes al reservar. Sube fotos, certificados y cambia los colores.', position: 'left' },
+    { target: 'cardAgenda', title: '5. Recepción de Turnos', text: 'En esta sección administrarás, confirmarás o reagendarás los turnos solicitados por tus clientes.', position: 'right' },
+    { target: 'cardEstadisticas', title: '6. Estadísticas', text: 'Visualiza el rendimiento de tu negocio, ingresos generados y servicios más solicitados.', position: 'right' },
+    { target: 'cardAjustes', title: '7. Ajustes', text: 'Configura colores, la modalidad de intervalo entre turnos (por duración del servicio o fija) y notificaciones.', position: 'left' },
+    { target: 'navAvatar', title: '8. Mi Perfil', text: 'Haz clic en tu perfil para configurar tus datos de usuario, ver estadísticas rápidas y cambiar tu contraseña.', position: 'bottom' }
 ];
 
 window.markOnboardingStepComplete = function(stepNumber, isCompleted) {
@@ -380,6 +382,10 @@ function showLegacyTourStep(index, doScroll = true) {
 
     currentTourTarget = target;
     window.previousTourTarget = target;
+
+    if (doScroll && target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
 
     // Elevar target actual sobre el fondo oscuro
     target.style.zIndex = '101';

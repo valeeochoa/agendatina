@@ -233,6 +233,11 @@ function cal_renderCalendar() {
             dayDiv.style.backgroundColor = 'rgba(209, 17, 73, 0.1)';
         } else if (cal_selectedDate && date.getTime() === cal_selectedDate.getTime() && !isMultiSelectMode) {
             dayDiv.classList.add('selected');
+            dayDiv.style.backgroundColor = 'var(--color-primario, #D11149)';
+            dayDiv.style.color = '#ffffff';
+            dayDiv.style.fontWeight = 'bold';
+            dayDiv.style.borderRadius = '0.75rem';
+            dayDiv.style.boxShadow = '0 4px 12px rgba(209, 17, 73, 0.35)';
         }
 
         if (isClickable) {
@@ -336,6 +341,11 @@ function cal_renderTimeSlots() {
             if (slotDate.getTime() < minAllowed.getTime()) isBooked = true;
         }
         
+        // Si es la vista del cliente público y el horario está reservado u ocupado, no mostrar la opción
+        if (isBooked && (!effectiveIsAdmin || isPreviewMode)) {
+            return;
+        }
+
         let spotsText = '';
         if (!isBooked && selectedCapacidad > 1) {
             const spotsLeft = selectedCapacidad - maxSpotsTaken;
@@ -872,8 +882,8 @@ function openManualTurnoModal(preselectedTime = null, preselectedProf = null) {
 
     const profToSelect = preselectedProf || globalSelectedProfessional;
     const profSelect = document.getElementById('manualProfesional');
-    profSelect.innerHTML = '<option value="Cualquiera (Sin preferencia)">Cualquiera (Sin preferencia)</option>';
-    const uniqueProfs = [...new Set(services.map(s => s.profesional).filter(p => p && p.trim() !== ''))];
+    profSelect.innerHTML = '';
+    const uniqueProfs = [...new Set(services.map(s => s.profesional).filter(p => p && p.trim() !== '' && p !== 'Cualquiera (Sin preferencia)'))];
     uniqueProfs.forEach(p => {
         const sel = profToSelect === p ? 'selected' : '';
         profSelect.innerHTML += `<option value="${p}" ${sel}>${p}</option>`;
@@ -1039,7 +1049,7 @@ function populateCalendarViewFilter() {
         const isSelectedCol = globalSelectedProfessional === 'columnas' ? 'selected' : '';
         select.innerHTML += `<option value="columnas" ${isSelectedCol}>📊 Todos en Columnas (Modo Admin)</option>`;
     } else {
-        select.innerHTML += '<option value="">👤 Cualquiera (Sin preferencia)</option>';
+        select.innerHTML += '<option value="" disabled selected>Selecciona un profesional...</option>';
     }
     
     uniqueProfs.forEach(prof => {
@@ -2528,8 +2538,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (config) {
                 window.businessWebConfig = config;
                 let title = config.nombre_fantasia || config.nombre_negocio || config.titulo || 'Agendatina';
-                document.title = title + ' | Calendario de Turnos';
+                document.title = title + ' | Reservar tu turno';
                 
+                const favicon = document.getElementById('favicon') || document.querySelector('link[rel="icon"]');
+                if (favicon) {
+                    favicon.href = config.url_logo || 'public/logo.png';
+                }
+
                 const navBusinessNameText = document.getElementById('navBusinessNameText');
                 if (navBusinessNameText) {
                     navBusinessNameText.textContent = title;
@@ -2606,57 +2621,71 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function checkAdminCalendarSession(config = null) {
+    const btnVolver = document.getElementById('btnVolverPanel');
+    const brand = document.getElementById('navAgendatinaBrand');
+    const sep = document.getElementById('navBrandSeparator');
+    const bugBtn = document.getElementById('navReportBugBtn');
+    const sessionBadge = document.getElementById('adminSessionBadge');
+    const sessionBadgeText = document.getElementById('adminSessionBadgeText');
+
     fetch('backend/perfil.php')
     .then(res => res.json())
     .then(data => {
+        let isOwnerSession = false;
+        let isDemo = false;
+
         if (data && data.success && data.business) {
-            const isDemo = (data.business.is_demo === true) || (data.user && data.user.email === 'demo@agendatina.site') || (data.business.ruta === 'demo') || (config && config.is_demo === true);
+            isDemo = (data.business.is_demo === true) || (data.user && data.user.email === 'demo@agendatina.site') || (data.business.ruta === 'demo') || (config && config.is_demo === true);
             const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
             const currentRuta = (negocioSlug || (config ? config.ruta || config.subdominio : '') || '').toLowerCase().trim();
             
-            // Si es demo O no hay slug O coincide con el local de la sesión iniciada
             if (isDemo || !currentRuta || loggedRuta === currentRuta || (config && data.business.id == config.id_negocio)) {
-                const adminMenu = document.getElementById('adminProfileMenu');
-                if (adminMenu) {
-                    adminMenu.classList.remove('hidden');
-                    adminMenu.classList.add('flex');
-                }
-                
-                const sessionBadge = document.getElementById('adminSessionBadge');
-                const sessionBadgeText = document.getElementById('adminSessionBadgeText');
-                if (sessionBadge) {
-                    sessionBadge.classList.remove('hidden');
-                    sessionBadge.classList.add('flex');
-                    
-                    const dot = sessionBadge.querySelector('span:first-child');
-                    if (isDemo) {
-                        if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
-                        if (sessionBadgeText) {
-                            sessionBadgeText.textContent = 'Modo Demo';
-                            sessionBadgeText.className = 'text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider hidden md:inline';
-                        }
-                    } else {
-                        if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
-                        if (sessionBadgeText) {
-                            sessionBadgeText.textContent = 'Tu Local';
-                            sessionBadgeText.className = 'text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider hidden md:inline';
-                        }
-                    }
-                }
+                isOwnerSession = true;
+            }
+        }
 
-                // Ocultar botón de reportar error si estamos en modo Demo
-                const bugBtn = document.getElementById('navReportBugBtn');
-                if (bugBtn) {
-                    if (isDemo) {
-                        bugBtn.classList.add('hidden');
-                    } else {
-                        bugBtn.classList.remove('hidden');
+        if (isOwnerSession) {
+            if (btnVolver) btnVolver.classList.remove('hidden');
+            if (brand) brand.classList.remove('hidden');
+            if (sep) sep.classList.remove('hidden');
+            if (bugBtn && !isDemo) bugBtn.classList.remove('hidden');
+
+            if (sessionBadge) {
+                sessionBadge.classList.remove('hidden');
+                sessionBadge.classList.add('flex');
+                const dot = sessionBadge.querySelector('span:first-child');
+                if (isDemo) {
+                    if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
+                    if (sessionBadgeText) {
+                        sessionBadgeText.textContent = 'Modo Demo';
+                        sessionBadgeText.className = 'text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider hidden md:inline';
+                    }
+                } else {
+                    if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
+                    if (sessionBadgeText) {
+                        sessionBadgeText.textContent = 'Tu Local';
+                        sessionBadgeText.className = 'text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider hidden md:inline';
                     }
                 }
             }
+        } else {
+            // Vista Cliente
+            if (btnVolver) btnVolver.classList.add('hidden');
+            if (brand) brand.classList.add('hidden');
+            if (sep) sep.classList.add('hidden');
+            if (bugBtn) bugBtn.classList.add('hidden');
+            if (sessionBadge) sessionBadge.classList.add('hidden');
         }
     })
-    .catch(() => null);
+    .catch(() => {
+        if (negocioSlug) {
+            if (btnVolver) btnVolver.classList.add('hidden');
+            if (brand) brand.classList.add('hidden');
+            if (sep) sep.classList.add('hidden');
+            if (bugBtn) bugBtn.classList.add('hidden');
+            if (sessionBadge) sessionBadge.classList.add('hidden');
+        }
+    });
 }
 
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
