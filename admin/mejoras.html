@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sugerencias y Mejoras | SuperAdmin Agendatina</title>
+    <link rel="icon" href="../public/logo.png" type="image/png">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../assets/css/global.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#d11149', secondary: '#fc8712' },
+                    fontFamily: { sans: ['Inter', 'sans-serif'], brand: ['Fredoka', 'sans-serif'] }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="bg-slate-100 text-slate-900 antialiased min-h-screen flex flex-col md:flex-row">
+
+    <!-- Sidebar Principal -->
+    <aside class="w-full md:w-64 bg-slate-900 text-white shrink-0 md:h-screen md:sticky md:top-0 flex flex-col justify-between p-4 sm:p-6 shadow-xl overflow-y-auto z-40">
+        <div>
+            <!-- Header Brand -->
+            <div class="flex items-center justify-between md:justify-start gap-3 mb-8 pb-4 border-b border-slate-800">
+                <a href="index.html" class="flex items-center gap-2">
+                    <img src="../public/logo.png" alt="Agendatina" class="h-8 w-auto">
+                    <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span> <span class="text-xs text-slate-400 font-sans font-bold block">SuperAdmin</span></span>
+                </a>
+            </div>
+
+            <!-- Navegación -->
+            <nav class="space-y-1">
+                <a href="index.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">dashboard</span> Dashboard (Resumen)
+                </a>
+                <a href="empresas.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">storefront</span> Todas las Empresas
+                </a>
+                <a href="tareas.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">check_box</span> Tareas Pendientes
+                </a>
+                <a href="reportes.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">bug_report</span> Reportes de Error
+                </a>
+                <a href="mejoras.html" class="flex items-center gap-3 px-4 py-3 bg-pink-600 text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-pink-600/30">
+                    <span class="material-symbols-outlined text-[22px]">lightbulb</span> Sugerencias y Mejoras
+                </a>
+                <a href="comprobantes.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">receipt_long</span> Comprobantes de Pago
+                </a>
+                <a href="notificaciones.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">notifications</span> Notificaciones
+                </a>
+                <a href="papelera.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">delete_sweep</span> Papelera General
+                </a>
+                <div class="pt-3 mt-3 border-t border-slate-800">
+                    <a href="../index.html" target="_blank" class="flex items-center gap-3 px-4 py-2.5 text-[#fc8712] hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-xs transition-all">
+                        <span class="material-symbols-outlined text-[18px]">open_in_new</span> Ir a Inicio General
+                    </a>
+                </div>
+            </nav>
+        </div>
+
+        <div class="pt-6 border-t border-slate-800">
+            <a href="logout.php" class="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-2xl font-bold text-sm transition-all">
+                <span class="material-symbols-outlined text-[22px]">logout</span> Cerrar Sesión
+            </a>
+        </div>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 p-6 sm:p-10 max-w-7xl mx-auto w-full">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2 font-display">
+                    <span class="material-symbols-outlined text-pink-600 text-3xl">lightbulb</span> Sugerencias y Mejoras
+                </h1>
+                <p class="text-sm text-slate-500 mt-1">Ideas y comentarios enviados por emprendedores para continuar mejorando Agendatina.</p>
+            </div>
+            <button onclick="loadMejoras()" class="px-4 py-2 bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]">refresh</span> Actualizar
+            </button>
+        </div>
+
+        <!-- Tabla de Mejoras -->
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                            <th class="p-4">Fecha</th>
+                            <th class="p-4">Emprendimiento / Emisor</th>
+                            <th class="p-4">Sugerencia / Idea</th>
+                            <th class="p-4 text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mejorasTbody" class="divide-y divide-slate-100 text-sm">
+                        <tr>
+                            <td colspan="4" class="p-8 text-center text-slate-400 text-sm">Cargando sugerencias...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', loadMejoras);
+
+        function loadMejoras() {
+            fetch('../backend/admin_reportes_api.php')
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) {
+                        const mejorasOnly = (d.data || []).filter(r => 
+                            (r.tipo && r.tipo.includes('Mejora')) || 
+                            (r.modulo && (r.modulo.includes('Sugerencia') || r.modulo.includes('Mejoras'))) || 
+                            (r.descripcion && r.descripcion.toLowerCase().includes('sugerencia'))
+                        );
+                        renderMejorasTable(mejorasOnly);
+                    }
+                });
+        }
+
+        function renderMejorasTable(list) {
+            const tbody = document.getElementById('mejorasTbody');
+            if (!list || list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 text-sm">No se registraron sugerencias de mejoras aún.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            list.forEach(r => {
+                const f = new Date(r.fecha).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+                const isResolved = r.estado === 'resuelto';
+                const statusBadge = isResolved ? 
+                    '<span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-0.5 rounded-lg border border-emerald-200">✓ Atendida</span>' : 
+                    '<span class="bg-pink-100 text-pink-800 text-[11px] font-bold px-2.5 py-0.5 rounded-lg border border-pink-200">💡 Pendiente</span>';
+
+                const isOwnerAdmin = !r.rol_usuario || r.rol_usuario === 'admin' || r.rol_usuario === 'dueño';
+                const roleTag = isOwnerAdmin ?
+                    '<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-amber-200 inline-block mt-1">👑 Admin del Negocio</span>' :
+                    '<span class="bg-purple-100 text-purple-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-purple-200 inline-block mt-1">👤 Profesional del Equipo</span>';
+
+                html += `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="p-4 text-xs font-semibold text-slate-500 whitespace-nowrap">
+                            ${f}
+                            <div class="mt-1">${statusBadge}</div>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex items-center gap-2 mb-0.5">
+                                <span class="font-extrabold text-slate-900 text-sm">${r.nombre_negocio || 'Sin Negocio'}</span>
+                                <span class="bg-slate-100 text-slate-600 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border border-slate-200">ID: #${r.id_negocio || '?'}</span>
+                            </div>
+                            <div class="text-xs text-slate-600 font-medium">
+                                <span class="font-bold text-slate-700">${r.nombre_usuario || 'Usuario Desconocido'}</span> 
+                                <span class="text-slate-400">(${r.email_usuario || 'Sin email'})</span>
+                            </div>
+                            <div>${roleTag}</div>
+                        </td>
+                        <td class="p-4">
+                            <span class="bg-pink-50 text-pink-700 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider inline-block mb-1 border border-pink-200">💡 ${r.modulo || 'Sugerencias y Mejoras'}</span>
+                            <p class="text-sm text-slate-800 font-medium leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200/60">${r.descripcion}</p>
+                        </td>
+                        <td class="p-4 text-center whitespace-nowrap">
+                            <div class="flex items-center justify-center gap-2">
+                                ${!isResolved ? `
+                                    <button onclick="marcarMejoraResuelta(${r.id})" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[16px]">check_circle</span> Marcar Atendida
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        function marcarMejoraResuelta(id) {
+            fetch('../backend/admin_reportes_api.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'resolver', id: id })
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) loadMejoras();
+            });
+        }
+    </script>
+</body>
+</html>

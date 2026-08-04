@@ -41,6 +41,9 @@
                 <a href="reportes.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
                     <span class="material-symbols-outlined text-[22px]">bug_report</span> Reportes de Error
                 </a>
+                <a href="mejoras.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">lightbulb</span> Sugerencias y Mejoras
+                </a>
                 <a href="comprobantes.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
                     <span class="material-symbols-outlined text-[22px]">receipt_long</span> Comprobantes de Pago
                 </a>
@@ -132,24 +135,38 @@
                 const isUnread = !n.leida;
                 const bgClass = isUnread ? 'bg-amber-50/60 border-amber-200' : 'bg-slate-50 border-slate-200';
                 const fDate = new Date(n.fecha).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+                const bizName = n.nombre_fantasia || n.nombre_negocio || 'Sin Negocio';
+                const bizId = n.id_negocio ? `#${n.id_negocio}` : '?';
 
                 // Segment badge
                 let segBadge = '<span class="bg-blue-100 text-blue-800 border border-blue-200 text-[11px] font-bold px-2.5 py-0.5 rounded-lg uppercase">Aviso</span>';
-                if (n.segmento.includes('Nuevo Registro')) segBadge = '<span class="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold px-2.5 py-0.5 rounded-lg uppercase">✨ Nuevo Usuario</span>';
+                if (n.segmento.includes('Sugerencia') || n.segmento.includes('Mejora')) segBadge = '<span class="bg-pink-100 text-pink-700 border border-pink-200 text-[11px] font-extrabold px-2.5 py-0.5 rounded-lg uppercase">💡 Sugerencia / Mejora</span>';
+                else if (n.segmento.includes('Error') || n.segmento.includes('Reporte')) segBadge = '<span class="bg-red-100 text-red-700 border border-red-200 text-[11px] font-extrabold px-2.5 py-0.5 rounded-lg uppercase">🐛 Reporte de Error</span>';
+                else if (n.segmento.includes('Nuevo Registro')) segBadge = '<span class="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold px-2.5 py-0.5 rounded-lg uppercase">✨ Nuevo Usuario</span>';
                 else if (n.segmento.includes('Equipo') || n.segmento.includes('Profesional')) segBadge = '<span class="bg-purple-100 text-purple-800 border border-purple-200 text-[11px] font-bold px-2.5 py-0.5 rounded-lg uppercase">👥 Profesional</span>';
                 else if (n.segmento.includes('Ampliación') || n.segmento.includes('Límite')) segBadge = '<span class="bg-red-100 text-red-800 border border-red-200 text-[11px] font-bold px-2.5 py-0.5 rounded-lg uppercase">⚠️ Límite / Ampliación</span>';
 
+                const isOwnerAdmin = !n.rol_usuario || n.rol_usuario === 'admin' || n.rol_usuario === 'dueño';
+                const roleTag = isOwnerAdmin ?
+                    '<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-amber-200">👑 Admin</span>' :
+                    '<span class="bg-purple-100 text-purple-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-purple-200">👤 Profesional</span>';
+
                 html += `
-                    <div class="${bgClass} border rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all">
+                    <div class="${bgClass} border rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all">
                         <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2 mb-1">
+                            <div class="flex flex-wrap items-center gap-2 mb-1.5">
                                 ${segBadge}
+                                <span class="font-extrabold text-slate-900 text-sm flex items-center gap-1">${bizName} <span class="bg-slate-200 text-slate-700 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border border-slate-300">ID: ${bizId}</span></span>
                                 ${isUnread ? '<span class="w-2 h-2 rounded-full bg-[#d11149]"></span>' : ''}
-                                <span class="text-xs text-slate-400 font-medium">${fDate}</span>
+                                <span class="text-xs text-slate-400 font-medium ml-auto">${fDate}</span>
                             </div>
-                            <p class="text-sm font-semibold text-slate-800 leading-relaxed">${n.mensaje}</p>
+                            <div class="text-xs text-slate-600 font-medium mb-2 flex items-center gap-2">
+                                <span>Emisor: <strong class="text-slate-800">${n.nombre_usuario || 'Desconocido'}</strong> (${n.email_usuario || 'Sin email'})</span>
+                                ${roleTag}
+                            </div>
+                            <p class="text-sm font-semibold text-slate-800 leading-relaxed bg-white/70 p-3 rounded-xl border border-slate-200/60">${n.mensaje}</p>
                         </div>
-                        <div class="flex items-center gap-2 shrink-0">
+                        <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
                             ${isUnread ? `
                                 <button onclick="marcarLeida(${n.id})" class="px-3 py-1.5 bg-white text-slate-700 hover:text-slate-900 border border-slate-200 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1">
                                     <span class="material-symbols-outlined text-[14px]">done</span> Marcar leída

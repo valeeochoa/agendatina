@@ -61,18 +61,26 @@ if ($method === 'GET') {
         $pdo->beginTransaction();
 
         // Validar límite
-        $stmtLimit = $pdo->prepare("SELECT max_profesionales FROM negocios WHERE id = :id FOR UPDATE");
+        $stmtLimit = $pdo->prepare("SELECT max_profesionales, plan FROM negocios WHERE id = :id FOR UPDATE");
         $stmtLimit->execute(['id' => $id_negocio]);
-        $max_profesionales = $stmtLimit->fetchColumn() ?: 1;
+        $bizInfo = $stmtLimit->fetch(PDO::FETCH_ASSOC) ?: [];
+        $planStr = strtolower($bizInfo['plan'] ?? 'basico');
+        
+        $max_profesionales = (int)($bizInfo['max_profesionales'] ?? 0);
+        if ($max_profesionales <= 1) {
+            if (strpos($planStr, 'premium') !== false) $max_profesionales = 20;
+            elseif (strpos($planStr, 'profesional') !== false) $max_profesionales = 5;
+            else $max_profesionales = 3;
+        }
 
         $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_negocio = :id AND rol_en_local = 'profesional'");
         $stmtCount->execute(['id' => $id_negocio]);
-        $current_count = $stmtCount->fetchColumn();
+        $current_count = (int)$stmtCount->fetchColumn();
 
         if ($current_count >= $max_profesionales) {
             require_once __DIR__ . '/helpers/notificar_admin_helper.php';
             notificarSuperAdminAlert($pdo, 'Solicitud Ampliación Equipo', "El negocio intentó registrar más profesionales pero alcanzó el límite de su plan ({$max_profesionales} profesionales).", $id_negocio);
-            throw new Exception("Has alcanzado el límite máximo de $max_profesionales profesionales. Si necesitas más cuentas, contacta a soporte para ampliar tu plan.");
+            throw new Exception("Has alcanzado el límite máximo de $max_profesionales profesionales adicionales para tu plan. Si necesitas ampliar la capacidad, contacta a soporte.");
         }
 
         // Verificar si el usuario ya existe en la plataforma (puede trabajar en otro local o tener su propio negocio)

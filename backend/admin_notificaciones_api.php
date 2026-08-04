@@ -24,12 +24,25 @@ catch(Exception $e) {
     )"); 
 }
 
+// Asegurar columnas de notificaciones_admin
+$cols = [
+    'nombre_negocio' => 'VARCHAR(255) DEFAULT NULL',
+    'id_usuario' => 'INT NULL',
+    'nombre_usuario' => 'VARCHAR(255) DEFAULT NULL',
+    'email_usuario' => 'VARCHAR(255) DEFAULT NULL',
+    'rol_usuario' => "VARCHAR(50) DEFAULT 'admin'"
+];
+foreach ($cols as $col => $tipo) {
+    try { $pdo->query("SELECT $col FROM notificaciones_admin LIMIT 1"); } 
+    catch(Exception $e) { $pdo->exec("ALTER TABLE notificaciones_admin ADD COLUMN $col $tipo"); }
+}
+
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     try {
         $stmt = $pdo->query("
-            SELECT n.id, n.segmento, n.mensaje, n.id_negocio, n.fecha, n.leida, neg.nombre_fantasia, neg.ruta 
+            SELECT n.id, n.segmento, n.mensaje, n.id_negocio, n.nombre_negocio, n.id_usuario, n.nombre_usuario, n.email_usuario, n.rol_usuario, n.fecha, n.leida, neg.nombre_fantasia, neg.ruta 
             FROM notificaciones_admin n
             LEFT JOIN negocios neg ON n.id_negocio = neg.id
             ORDER BY n.fecha DESC
