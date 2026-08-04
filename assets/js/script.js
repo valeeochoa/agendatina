@@ -2427,18 +2427,17 @@ function applyWebCustomization() {
                     }
                 }
 
-            if (data.hora_apertura || data.hora_cierre) {
-                generateTimeSlots(data.hora_apertura || '09:00', data.hora_cierre || '18:00', data.intervalo_turnos ? parseInt(data.intervalo_turnos) : 30);
-                if (cal_selectedDate) {
-                    if (isAdmin && !isPreviewMode) {
-                        renderAdminDayView(toYYYYMMDD(cal_selectedDate));
-                    } else {
-                        cal_renderTimeSlots();
+                window.businessWebConfig = data;
+                if (data.hora_apertura || data.hora_cierre) {
+                    generateTimeSlots(data.hora_apertura || '09:00', data.hora_cierre || '18:00', data.intervalo_turnos || 30);
+                    if (cal_selectedDate) {
+                        if (isAdmin && !isPreviewMode) {
+                            renderAdminDayView(toYYYYMMDD(cal_selectedDate));
+                        } else {
+                            cal_renderTimeSlots();
+                        }
                     }
                 }
-            }
-
-                window.businessWebConfig = data;
                 if (typeof cal_renderCalendar === 'function') cal_renderCalendar(); // Recargar si es necesario
 
                 if (data.titulo) {

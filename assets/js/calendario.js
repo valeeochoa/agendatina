@@ -72,10 +72,22 @@ window.isWorkingDay = function(date) {
 };
 
 function generateTimeSlots(startStr = '09:00', endStr = '18:00', interval = 30) {
-    interval = parseInt(interval) || 30;
+    if (interval === 'servicio' || (window.businessWebConfig && window.businessWebConfig.intervalo_turnos === 'servicio')) {
+        let servDur = 30;
+        const serviceSelect = document.getElementById('serviceSelect') || document.getElementById('manualServicio');
+        if (serviceSelect && serviceSelect.value && typeof services !== 'undefined' && Array.isArray(services)) {
+            const s = services.find(item => item.nombre === serviceSelect.value);
+            if (s && s.duracion) servDur = parseInt(s.duracion) || 30;
+        }
+        interval = servDur;
+    } else {
+        interval = parseInt(interval) || (window.businessWebConfig && parseInt(window.businessWebConfig.intervalo_turnos)) || 30;
+    }
+    if (isNaN(interval) || interval < 5) interval = 30;
+
     cal_availableTimes.length = 0;
-    let [startH, startM] = startStr.split(':').map(Number);
-    let [endH, endM] = endStr.split(':').map(Number);
+    let [startH, startM] = (startStr || '09:00').split(':').map(Number);
+    let [endH, endM] = (endStr || '18:00').split(':').map(Number);
 
     if (isNaN(startH)) startH = 9;
     if (isNaN(startM)) startM = 0;
