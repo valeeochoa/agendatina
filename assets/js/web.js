@@ -223,12 +223,22 @@ document.addEventListener('DOMContentLoaded', () => {
             tempDiv.innerHTML = service.descripcion || '';
             const plainTextDesc = tempDiv.textContent || tempDiv.innerText || 'Sin descripción detallada.';
 
+            const durFmt = (function(raw) {
+                const min = parseInt(raw) || 0;
+                if (min <= 0) return '15 min';
+                const h = Math.floor(min / 60);
+                const m = min % 60;
+                if (h > 0 && m > 0) return `${h}h ${m}min`;
+                if (h > 0) return `${h}h`;
+                return `${m} min`;
+            })(service.duracion);
+
                 grid.innerHTML += `
                     <div onclick="openWebModalService('${service.id}')" class="service-card cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                         ${imagesHtml}
                         <div class="p-6 flex flex-col flex-1">
                             <h3 class="text-xl font-bold text-slate-800 leading-tight mb-2">${service.nombre}</h3>
-                            <div class="flex items-center gap-2 text-sm font-medium text-slate-500 mb-4"><span class="material-symbols-outlined text-base">schedule</span> ${service.duracion} min</div>
+                            <div class="flex items-center gap-2 text-sm font-medium text-slate-500 mb-4"><span class="material-symbols-outlined text-base">schedule</span> ${durFmt}</div>
                         <div class="text-slate-500 text-sm mb-6 flex-1 line-clamp-3 overflow-hidden" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;" title="Clic para leer más">${plainTextDesc}</div>
                             <div class="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
                                 ${precio}
@@ -335,7 +345,16 @@ window.openWebModalService = function(id) {
     const service = window.webServicesData.find(s => s.id == id);
     if(!service) return;
     document.getElementById('webServiceModalTitle').textContent = service.nombre;
-    document.getElementById('webServiceModalDuration').innerHTML = `<span class="material-symbols-outlined text-base">schedule</span> ${service.duracion} min`;
+    const durFmtModal = (function(raw) {
+        const min = parseInt(raw) || 0;
+        if (min <= 0) return '15 min';
+        const h = Math.floor(min / 60);
+        const m = min % 60;
+        if (h > 0 && m > 0) return `${h}h ${m}min`;
+        if (h > 0) return `${h}h`;
+        return `${m} min`;
+    })(service.duracion);
+    document.getElementById('webServiceModalDuration').innerHTML = `<span class="material-symbols-outlined text-base">schedule</span> ${durFmtModal}`;
     document.getElementById('webServiceModalPrice').textContent = service.precio ? `$${service.precio}` : '';
     document.getElementById('webServiceModalDesc').innerHTML = service.descripcion || 'Sin descripción detallada.';
     const imgContainer = document.getElementById('webServiceModalImages');
