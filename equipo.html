@@ -149,9 +149,47 @@
         </div>
     </div>
 
+    <!-- MODAL CONFIRMAR ELIMINACIÓN DE PROFESIONAL -->
+    <div id="deleteTeamModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative text-center">
+            <div class="w-14 h-14 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4 border border-red-100 shadow-sm">
+                <span class="material-symbols-outlined text-3xl">person_remove</span>
+            </div>
+            
+            <h3 class="text-xl font-bold text-slate-900 mb-2">¿Revocar acceso al profesional?</h3>
+            <p class="text-xs sm:text-sm text-slate-500 mb-6 leading-relaxed">
+                Esta acción eliminará la cuenta del profesional <strong id="deleteProfName" class="text-slate-800"></strong> y desvinculará sus accesos al panel de tu local.
+            </p>
+
+            <div class="flex items-center gap-3">
+                <button onclick="closeDeleteTeamModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-2xl text-xs sm:text-sm transition-all border border-slate-200">
+                    Cancelar
+                </button>
+                <button id="btnConfirmDeleteTeam" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-2xl text-xs sm:text-sm transition-all shadow-lg shadow-red-600/20">
+                    Sí, Revocar Acceso
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ALERTA DE ERROR / NOTIFICACIÓN -->
+    <div id="errorModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl relative text-center">
+            <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center mx-auto mb-4 border border-amber-100">
+                <span class="material-symbols-outlined text-3xl">warning</span>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2">Atención</h3>
+            <p id="errorModalMessage" class="text-xs sm:text-sm text-slate-600 mb-6 leading-relaxed"></p>
+            <button onclick="closeErrorModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 rounded-2xl text-xs sm:text-sm transition-all shadow-md">
+                Entendido
+            </button>
+        </div>
+    </div>
+
     <script>
         let teamList = [];
         let servicesList = [];
+        let profIdToDelete = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             fetch('backend/perfil.php')
@@ -196,9 +234,10 @@
                     ? '<span class="bg-amber-100 text-amber-800 text-[11px] font-extrabold px-2.5 py-1 rounded-lg border border-amber-200">👑 Dueño / Admin</span>' 
                     : '<span class="bg-slate-100 text-slate-600 text-[11px] font-bold px-2.5 py-1 rounded-lg border border-slate-200">Profesional</span>';
                 
+                const safeName = p.nombre_completo.replace(/'/g, "\\'");
                 const actionBtn = isAdmin
                     ? '<span class="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">lock</span> Principal</span>'
-                    : `<button onclick="deleteTeamMember(${p.id})" class="text-xs font-bold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-xl border border-red-200 transition-colors flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">person_remove</span> Revocar</button>`;
+                    : `<button onclick="confirmDeleteTeamMember(${p.id}, '${safeName}')" class="text-xs font-bold text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-xl border border-red-200 transition-colors flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">person_remove</span> Revocar</button>`;
 
                 const assignedSvcs = services.filter(s => {
                     if (!s.profesional || s.profesional.includes('Cualquiera')) return true;
@@ -260,6 +299,57 @@
             document.getElementById('teamModal').classList.add('hidden');
         }
 
+        function confirmDeleteTeamMember(id, name) {
+            profIdToDelete = id;
+            document.getElementById('deleteProfName').textContent = name ? `"${name}"` : '';
+            document.getElementById('deleteTeamModal').classList.remove('hidden');
+        }
+
+        function closeDeleteTeamModal() {
+            profIdToDelete = null;
+            document.getElementById('deleteTeamModal').classList.add('hidden');
+        }
+
+        function showErrorModal(msg) {
+            document.getElementById('errorModalMessage').textContent = msg;
+            document.getElementById('errorModal').classList.remove('hidden');
+        }
+
+        function closeErrorModal() {
+            document.getElementById('errorModal').classList.add('hidden');
+        }
+
+        document.getElementById('btnConfirmDeleteTeam').addEventListener('click', () => {
+            if (!profIdToDelete) return;
+            const btn = document.getElementById('btnConfirmDeleteTeam');
+            btn.disabled = true;
+            btn.textContent = 'Revocando...';
+
+            fetch('backend/gestionar_profesionales.php?id=' + profIdToDelete, { 
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-Token': document.cookie.match(/csrf_token=([^;]+)/)?.[1] || ''
+                }
+            })
+            .then(r => r.json())
+            .then(d => {
+                btn.disabled = false;
+                btn.textContent = 'Sí, Revocar Acceso';
+                closeDeleteTeamModal();
+                if (d.success) {
+                    loadTeamAndServices();
+                } else {
+                    showErrorModal(d.error || 'Error al revocar el acceso.');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.textContent = 'Sí, Revocar Acceso';
+                closeDeleteTeamModal();
+                showErrorModal('Ocurrió un error al procesar la solicitud.');
+            });
+        });
+
         document.getElementById('teamForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const btn = document.getElementById('btnTeamSubmit');
@@ -278,20 +368,18 @@
                     if (d.success) {
                         closeTeamModal();
                         loadTeamAndServices();
-                    } else alert(d.error || 'Error al crear cuenta');
+                    } else {
+                        closeTeamModal();
+                        showErrorModal(d.error || 'Error al crear la cuenta.');
+                    }
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.textContent = 'Registrar Cuenta de Profesional';
+                    closeTeamModal();
+                    showErrorModal('Ocurrió un error inesperado.');
                 });
         });
-
-        function deleteTeamMember(id) {
-            if (confirm('¿Seguro que deseas revocar el acceso a este profesional?')) {
-                fetch('backend/gestionar_profesionales.php?id=' + id, { method: 'DELETE' })
-                    .then(r => r.json())
-                    .then(d => {
-                        if (d.success) loadTeamAndServices();
-                        else alert(d.error || 'Error al revocar');
-                    });
-            }
-        }
     </script>
 </body>
 </html>

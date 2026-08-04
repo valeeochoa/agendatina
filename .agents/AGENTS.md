@@ -12,3 +12,8 @@ En todas las vistas HTML de la plataforma (`index.html`, `login.html`, `registro
 ```html
 <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
 ```
+
+## Modal de Confirmación para Acciones Destructivas y Eliminaciones
+- **No utilizar `window.confirm()` ni `alert()` del navegador** para confirmar o notificar acciones destructivas (como eliminar o revocar cuentas/servicios).
+- Siempre utilizar modales de confirmación visuales en HTML (Tailwind CSS) con diseño moderno, backdrop difuminado (`backdrop-blur`), icono representativo, botón de cancelación y botón de confirmación de acción (ej. rojo para eliminar/revocar).
+

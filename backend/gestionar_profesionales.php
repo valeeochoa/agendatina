@@ -92,10 +92,16 @@ if ($method === 'GET') {
             $id_usuario = $existingUser['id'];
 
             // Verificar si ya está vinculado a este negocio específico
-            $stmtPnCheck = $pdo->prepare("SELECT id FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ?");
+            $stmtPnCheck = $pdo->prepare("SELECT rol_en_local FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ?");
             $stmtPnCheck->execute([$id_negocio, $id_usuario]);
-            if ($stmtPnCheck->fetch()) {
-                throw new Exception("El profesional con el correo '$email' ya se encuentra formando parte de tu equipo.");
+            $existingRole = $stmtPnCheck->fetchColumn();
+
+            if ($existingRole) {
+                if ($existingRole === 'admin') {
+                    throw new Exception("El correo '$email' pertenece al Administrador/Dueño principal del negocio y ya forma parte del equipo.");
+                } else {
+                    throw new Exception("El profesional con el correo '$email' ya forma parte de tu equipo.");
+                }
             }
 
             // Vincular la cuenta existente a este negocio
@@ -133,15 +139,27 @@ if ($method === 'GET') {
 
     try {
         $pdo->beginTransaction();
-        $stmtCheck = $pdo->prepare("SELECT id FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ? AND rol_en_local = 'profesional'");
+        
+        $stmtCheck = $pdo->prepare("SELECT rol_en_local FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ?");
         $stmtCheck->execute([$id_negocio, $id_usuario]);
-        if ($stmtCheck->fetch()) {
-            $pdo->prepare("DELETE FROM personal_negocio WHERE id_usuario = ?")->execute([$id_usuario]);
-            $pdo->prepare("DELETE FROM usuarios WHERE id = ?")->execute([$id_usuario]);
+        $roleInBiz = $stmtCheck->fetchColumn();
+
+        if ($roleInBiz === 'admin') {
+            throw new Exception("No es posible eliminar la cuenta del Administrador/Dueño principal del negocio.");
+        } elseif ($roleInBiz === 'profesional') {
+            $pdo->prepare("DELETE FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ?")->execute([$id_negocio, $id_usuario]);
+            
+            // Eliminar de usuarios solo si no forma parte de ningún otro negocio
+            $stmtCheckOther = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_usuario = ?");
+            $stmtCheckOther->execute([$id_usuario]);
+            if ($stmtCheckOther->fetchColumn() == 0) {
+                $pdo->prepare("DELETE FROM usuarios WHERE id = ?")->execute([$id_usuario]);
+            }
+            
             $pdo->commit();
             echo json_encode(['success' => true]);
         } else {
-            throw new Exception("Profesional no encontrado o no pertenece a tu negocio.");
+            throw new Exception("El profesional no pertenece a tu equipo de trabajo.");
         }
     } catch (Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
