@@ -2520,8 +2520,52 @@ document.addEventListener('DOMContentLoaded', () => {
             }).finally(() => { btnSubmit.disabled = false; btnSubmit.textContent = 'Solicitar Turno'; });
         });
 
-        cal_renderCalendar();
-        cal_fetchBookedTimes();
+        window.cargarConfiguracionAjustes = function() {
+            return fetch(negocioSlug ? `backend/guardar_web.php?n=${negocioSlug}` : `backend/guardar_web.php`)
+            .then(res => res.json())
+            .then(config => {
+                if (config) {
+                    window.businessWebConfig = config;
+                    let title = config.nombre_fantasia || config.nombre_negocio || config.titulo || 'Agendatina';
+                    document.title = title + ' | Reservar tu turno';
+                    
+                    const favicon = document.getElementById('favicon') || document.querySelector('link[rel="icon"]');
+                    if (favicon) {
+                        favicon.href = config.url_logo || 'public/logo.png';
+                    }
+
+                    const navBusinessNameText = document.getElementById('navBusinessNameText');
+                    if (navBusinessNameText) {
+                        navBusinessNameText.textContent = title;
+                    }
+
+                    const logoImg = document.getElementById('navBusinessLogoImg');
+                    const iconEl = document.getElementById('navBusinessIcon');
+                    if (config.url_logo && logoImg) {
+                        logoImg.src = config.url_logo;
+                        logoImg.classList.remove('hidden');
+                        if (iconEl) iconEl.classList.add('hidden');
+                    } else if (iconEl) {
+                        iconEl.classList.remove('hidden');
+                        if (logoImg) logoImg.classList.add('hidden');
+                    }
+
+                    if (typeof generateTimeSlots === 'function') generateTimeSlots();
+                    checkAdminCalendarSession(config);
+                    return config;
+                }
+            }).catch(() => {
+                document.title = 'Agendatina | Calendario de Turnos';
+                const navBusinessNameText = document.getElementById('navBusinessNameText');
+                if (navBusinessNameText) navBusinessNameText.textContent = 'Agendatina';
+                checkAdminCalendarSession();
+            });
+        };
+
+        window.cargarConfiguracionAjustes().finally(() => {
+            cal_renderCalendar();
+            cal_fetchBookedTimes();
+        });
 
         // Auto-selección del día de hoy para desplegar el panel de turnos inmediatamente
         setTimeout(() => {
@@ -2530,45 +2574,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 cal_selectDate(today);
             }
         }, 350);
-
-        // Cargar nombre oficial del negocio y logo para el Navbar y Pestaña
-        fetch(negocioSlug ? `backend/guardar_web.php?n=${negocioSlug}` : `backend/guardar_web.php`)
-        .then(res => res.json())
-        .then(config => {
-            if (config) {
-                window.businessWebConfig = config;
-                let title = config.nombre_fantasia || config.nombre_negocio || config.titulo || 'Agendatina';
-                document.title = title + ' | Reservar tu turno';
-                
-                const favicon = document.getElementById('favicon') || document.querySelector('link[rel="icon"]');
-                if (favicon) {
-                    favicon.href = config.url_logo || 'public/logo.png';
-                }
-
-                const navBusinessNameText = document.getElementById('navBusinessNameText');
-                if (navBusinessNameText) {
-                    navBusinessNameText.textContent = title;
-                }
-
-                const logoImg = document.getElementById('navBusinessLogoImg');
-                const iconEl = document.getElementById('navBusinessIcon');
-                if (config.url_logo && logoImg) {
-                    logoImg.src = config.url_logo;
-                    logoImg.classList.remove('hidden');
-                    if (iconEl) iconEl.classList.add('hidden');
-                } else if (iconEl) {
-                    iconEl.classList.remove('hidden');
-                    if (logoImg) logoImg.classList.add('hidden');
-                }
-
-                checkAdminCalendarSession(config);
-            }
-        }).catch(() => {
-            document.title = 'Agendatina | Calendario de Turnos';
-            const navBusinessNameText = document.getElementById('navBusinessNameText');
-            if (navBusinessNameText) navBusinessNameText.textContent = 'Agendatina';
-            checkAdminCalendarSession();
-        });
 
         const manageServicesBtn = document.getElementById('manageServicesBtn');
         if(manageServicesBtn) manageServicesBtn.addEventListener('click', openServicesModal);

@@ -199,6 +199,32 @@ if ($shouldReset && $negocioId) {
         (?, 'Manicura Semipermanente', 40, 9000, 'Diseños exclusivos y larga duración.', 'Sofía'),
         (?, 'Perfilado de Cejas', 20, 5000, 'Dale forma y estilo a tu mirada.', 'Marcos')")->execute([$negocioId, $negocioId, $negocioId, $negocioId, $negocioId]);
 
+    // 3.b Recrear integrantes del Equipo de Trabajo (Profesionales Demo)
+    $profsDemo = [
+        ['nombre' => 'Valentina Ochoa', 'email' => 'valentina@agendatina.site', 'rol' => 'admin'],
+        ['nombre' => 'Camila Benítez', 'email' => 'camila@agendatina.site', 'rol' => 'profesional'],
+        ['nombre' => 'Sofía Pérez', 'email' => 'sofia@agendatina.site', 'rol' => 'profesional'],
+        ['nombre' => 'Marcos Gómez', 'email' => 'marcos@agendatina.site', 'rol' => 'profesional']
+    ];
+
+    $pdo->prepare("UPDATE negocios SET max_profesionales = 10, plan = 'Premium' WHERE id = ?")->execute([$negocioId]);
+
+    foreach ($profsDemo as $pDemo) {
+        try {
+            $stmtP = $pdo->prepare("SELECT id FROM usuarios WHERE email = ? LIMIT 1");
+            $stmtP->execute([$pDemo['email']]);
+            $pId = $stmtP->fetchColumn();
+            if (!$pId) {
+                $hashP = password_hash('demo1234', PASSWORD_DEFAULT);
+                $stmtInsP = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, role) VALUES (?, ?, ?, ?)");
+                $stmtInsP->execute([$pDemo['nombre'], $pDemo['email'], $hashP, $pDemo['rol']]);
+                $pId = $pdo->lastInsertId();
+            }
+            $stmtPN = $pdo->prepare("INSERT IGNORE INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, ?)");
+            $stmtPN->execute([$negocioId, $pId, $pDemo['rol']]);
+        } catch (Exception $eP) {}
+    }
+
     $stmtServ = $pdo->prepare("SELECT id FROM servicios WHERE id_negocio = ?");
     $stmtServ->execute([$negocioId]);
     $servs = $stmtServ->fetchAll();
