@@ -10,9 +10,10 @@ try {
 $emailDemo = 'demo@agendatina.site';
 $rutaDemo = 'demo';
 
-// Limpiar cuentas dinámicas obsoletas (demo_xxxx@agendatina.site)
+// Limpiar cuentas dinámicas obsoletas (demo_xxxx@agendatina.site o valentina@agendatina.site o negocios duplicados con ruta demo)
 try {
-    $pdo->exec("DELETE FROM usuarios WHERE email LIKE 'demo_%@agendatina.site' AND email != 'demo@agendatina.site'");
+    $pdo->exec("DELETE FROM usuarios WHERE (email LIKE 'demo_%@agendatina.site' OR email = 'valentina@agendatina.site') AND email != 'demo@agendatina.site'");
+    $pdo->exec("DELETE FROM negocios WHERE (ruta = 'demo' OR subdominio = 'demo') AND id NOT IN (SELECT MIN(id) FROM (SELECT id FROM negocios WHERE ruta = 'demo' OR subdominio = 'demo') AS tmp)");
 } catch (Exception $eClean) {}
 
 $stmt = $pdo->prepare("SELECT id FROM usuarios WHERE email = :email LIMIT 1");

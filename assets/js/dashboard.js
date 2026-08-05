@@ -48,6 +48,15 @@ window.loadDashboardData = function() {
                 }
             }
 
+            if (isDemo || !sessionStorage.getItem('agendatina_welcome_shown')) {
+                sessionStorage.setItem('agendatina_welcome_shown', 'true');
+                setTimeout(() => {
+                    if (typeof window.openWelcomeNewAccountModal === 'function') {
+                        window.openWelcomeNewAccountModal();
+                    }
+                }, 500);
+            }
+
             const rol = window.currentUserData.rol_en_local;
             if (rol === 'profesional') {
                 // Ocultar tarjetas administrativas al empleado
@@ -235,7 +244,47 @@ window.markOnboardingStepComplete = function(stepNumber, isCompleted) {
     }
 };
 
+window.openWelcomeNewAccountModal = function() {
+    const modal = document.getElementById('welcomeNewAccountModal');
+    const content = document.getElementById('welcomeNewAccountContent');
+    if (!modal) return;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        if (content) content.classList.remove('scale-95');
+    }, 10);
+
+    // Lanzar confeti de bienvenida 🎉
+    if (typeof confetti === 'function') {
+        try {
+            confetti({
+                particleCount: 120,
+                spread: 80,
+                origin: { y: 0.6 }
+            });
+        } catch(eConfetti) {}
+    }
+};
+
+window.closeWelcomeNewAccountModal = function() {
+    const modal = document.getElementById('welcomeNewAccountModal');
+    const content = document.getElementById('welcomeNewAccountContent');
+    if (!modal) return;
+
+    modal.classList.add('opacity-0');
+    if (content) content.classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 300);
+};
+
 window.startTour = function() {
+    // Cerrar cartel de bienvenida
+    window.closeWelcomeNewAccountModal();
+
     // Resetear checklist en modo demo
     if (window.currentUserData && window.currentUserData.email === 'demo@agendatina.site') {
         if (typeof window.markOnboardingStepComplete === 'function') {
@@ -250,9 +299,9 @@ window.startTour = function() {
         const onboardingContainer = document.createElement('div');
         onboardingContainer.id = 'tourOnboardingContainer';
         onboardingContainer.innerHTML = `
-            <div id="tourOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-[2px] z-[100] transition-opacity duration-300 hidden opacity-0" onclick="endTour()"></div>
-            <div id="tourHighlight" class="fixed pointer-events-none z-[101] border-2 border-primary transition-all duration-300 shadow-[0_0_15px_rgba(209,17,73,0.4)] hidden opacity-0"></div>
-            <div id="tourTooltip" class="fixed bg-white rounded-3xl shadow-2xl p-6 border border-slate-100 max-w-sm w-[calc(100%-2rem)] sm:w-80 hidden z-[102] transition-all duration-300 opacity-0 scale-95">
+            <div id="tourOverlay" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-[200] transition-opacity duration-300 hidden opacity-0" onclick="endTour()"></div>
+            <div id="tourHighlight" class="fixed pointer-events-none z-[201] border-2 border-primary transition-all duration-300 shadow-[0_0_20px_rgba(209,17,73,0.5)] hidden opacity-0"></div>
+            <div id="tourTooltip" class="fixed bg-white rounded-3xl shadow-2xl p-6 border border-slate-100 max-w-sm w-[calc(100%-2rem)] sm:w-80 hidden z-[202] transition-all duration-300 opacity-0 scale-95">
                 <div id="tourArrow" class="absolute w-3 h-3 bg-white border border-slate-200 transform rotate-45 shadow-sm"></div>
                 <div class="relative z-10">
                     <h4 id="tourTitle" class="font-extrabold text-slate-800 text-base mb-2 font-display"></h4>
@@ -294,19 +343,17 @@ window.startTour = function() {
     
     if(!overlay || !tooltip || !highlight) return;
     
-    // Asegurar que el scroll funcione para centrar cada tarjeta
     document.body.style.overflow = '';
 
     overlay.classList.remove('hidden');
     highlight.classList.remove('hidden');
     tooltip.classList.remove('hidden');
     
-    void overlay.offsetWidth; // Forzar Reflow para que las transiciones CSS funcionen
+    void overlay.offsetWidth;
     overlay.classList.remove('opacity-0');
     
     showLegacyTourStep(legacyTourStep);
 
-    // Reposicionar dinámicamente si el usuario rota el teléfono o cambia el tamaño
     tourResizeListener = () => {
         if (isAutoScrolling) return;
         showLegacyTourStep(legacyTourStep, false);
@@ -314,6 +361,8 @@ window.startTour = function() {
     window.addEventListener('resize', tourResizeListener);
     window.addEventListener('scroll', tourResizeListener, true);
 };
+
+window.startGuidedVirtualTour = window.startTour;
 
 window.endTour = function() {
     if (window.previousTourTarget) {
@@ -327,10 +376,12 @@ window.endTour = function() {
     const tooltip = document.getElementById('tourTooltip');
     const highlight = document.getElementById('tourHighlight');
     
-    tooltip.classList.add('opacity-0', 'scale-95');
-    tooltip.classList.remove('opacity-100', 'scale-100');
-    highlight.classList.add('opacity-0');
-    overlay.classList.add('opacity-0');
+    if (tooltip) {
+        tooltip.classList.add('opacity-0', 'scale-95');
+        tooltip.classList.remove('opacity-100', 'scale-100');
+    }
+    if (highlight) highlight.classList.add('opacity-0');
+    if (overlay) overlay.classList.add('opacity-0');
 
     document.body.style.overflow = '';
     window.removeEventListener('resize', tourResizeListener);
@@ -345,12 +396,14 @@ window.endTour = function() {
     }
 
     setTimeout(() => {
-        overlay.classList.add('hidden');
-        tooltip.classList.add('hidden');
-        highlight.classList.add('hidden');
+        if (overlay) overlay.classList.add('hidden');
+        if (tooltip) tooltip.classList.add('hidden');
+        if (highlight) highlight.classList.add('hidden');
         currentTourTarget = null;
     }, 300);
 };
+
+window.stopGuidedVirtualTour = window.endTour;
 
 window.nextLegacyTourStep = function() {
     legacyTourStep++;
@@ -360,6 +413,13 @@ window.nextLegacyTourStep = function() {
     } else {
         showLegacyTourStep(legacyTourStep);
     }
+};
+
+window.nextTourStep = window.nextLegacyTourStep;
+
+window.prevTourStep = function() {
+    legacyTourStep = Math.max(0, legacyTourStep - 1);
+    showLegacyTourStep(legacyTourStep);
 };
 
 function showLegacyTourStep(index, doScroll = true) {

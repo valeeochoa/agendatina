@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -660,22 +661,7 @@
         </div>
     </div>
 
-    <!-- Overlay y Tooltip para Tour Virtual Guiado -->
-    <div id="tourOverlay" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-[300] hidden transition-opacity duration-300"></div>
-    <div id="tourTooltip" class="fixed z-[310] hidden bg-white rounded-3xl p-5 shadow-2xl border-2 border-[#d11149] max-w-sm w-full transition-all duration-300">
-        <div class="flex items-center justify-between mb-2">
-            <span id="tourStepBadge" class="bg-[#d11149] text-white text-[11px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">Paso 1 de 5</span>
-            <button onclick="stopGuidedVirtualTour()" class="text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined text-lg">close</span></button>
-        </div>
-        <h3 id="tourStepTitle" class="font-extrabold text-slate-900 text-base mb-1">Título del Paso</h3>
-        <p id="tourStepDesc" class="text-xs text-slate-600 leading-relaxed mb-4">Descripción del paso del tour.</p>
-        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-            <button id="tourBtnPrev" onclick="prevTourStep()" class="text-xs font-bold text-slate-500 hover:text-slate-800 disabled:opacity-30">Anterior</button>
-            <button id="tourBtnNext" onclick="nextTourStep()" class="bg-[#d11149] text-white text-xs font-bold px-4 py-2 rounded-xl hover:bg-[#d11149]/90 transition-all flex items-center gap-1 shadow-md">
-                Siguiente <span class="material-symbols-outlined text-sm">arrow_forward</span>
-            </button>
-        </div>
-    </div>
+    <!-- El container del Tour Virtual Guiado se genera e inyecta dinámicamente desde dashboard.js -->
 
     <script src="assets/js/script.js?v=1.1.2" defer></script>
     <script src="assets/js/dashboard.js?v=1.1.2" defer></script>
