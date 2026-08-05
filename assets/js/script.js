@@ -1990,7 +1990,7 @@ var carouselData = [
     }
 ];
 
-let currentCarouselIndex = 1;
+var currentCarouselIndex = window.currentCarouselIndex || 1;
 
 window.setCarouselIndex = function(index) {
     const titleEl = document.getElementById('carouselTitle');
