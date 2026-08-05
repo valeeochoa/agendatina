@@ -294,8 +294,8 @@ window.startTour = function() {
     
     if(!overlay || !tooltip || !highlight) return;
     
-    // Evitar scroll manual que desalinee el highlight
-    document.body.style.overflow = 'hidden';
+    // Asegurar que el scroll funcione para centrar cada tarjeta
+    document.body.style.overflow = '';
 
     overlay.classList.remove('hidden');
     highlight.classList.remove('hidden');
@@ -316,6 +316,13 @@ window.startTour = function() {
 };
 
 window.endTour = function() {
+    if (window.previousTourTarget) {
+        window.previousTourTarget.style.position = '';
+        window.previousTourTarget.style.zIndex = '';
+        const nav = window.previousTourTarget.closest('nav');
+        if (nav) nav.style.zIndex = '';
+    }
+
     const overlay = document.getElementById('tourOverlay');
     const tooltip = document.getElementById('tourTooltip');
     const highlight = document.getElementById('tourHighlight');
@@ -378,6 +385,7 @@ function showLegacyTourStep(index, doScroll = true) {
 
     // Limpiar target anterior para que vuelva a oscurecerse
     if (window.previousTourTarget) {
+        window.previousTourTarget.style.position = '';
         window.previousTourTarget.style.zIndex = '';
         const nav = window.previousTourTarget.closest('nav');
         if (nav) nav.style.zIndex = '';
@@ -386,11 +394,8 @@ function showLegacyTourStep(index, doScroll = true) {
     currentTourTarget = target;
     window.previousTourTarget = target;
 
-    if (doScroll && target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    // Elevar target actual sobre el fondo oscuro
+    // Elevar target actual sobre el fondo oscuro (z-index: 101 > overlay: 100)
+    target.style.position = 'relative';
     target.style.zIndex = '101';
     const nav = target.closest('nav');
     if (nav) nav.style.zIndex = '101';

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notas Internas | Agendatina SuperAdmin</title>
+    <link rel="icon" href="../public/logo.png" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/css/global.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#d11149', secondary: '#fc8712' },
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'], display: ['Plus Jakarta Sans', 'sans-serif'], brand: ['Fredoka', 'sans-serif'] }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex font-sans antialiased hidden">
+
+    <!-- Sidebar Navegación SuperAdmin -->
+    <aside class="w-72 bg-slate-950 border-r border-slate-800 p-6 flex flex-col justify-between shrink-0 hidden md:flex min-h-screen">
+        <div>
+            <!-- Branding -->
+            <div class="mb-8">
+                <a href="index.html" class="flex items-center gap-3">
+                    <img src="../public/logo.png" alt="Agendatina" class="h-10 w-auto">
+                    <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span> <span class="text-xs text-slate-400 font-sans font-bold block">SuperAdmin</span></span>
+                </a>
+            </div>
+
+            <!-- Navegación -->
+            <nav class="space-y-1">
+                <a href="index.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">dashboard</span> Dashboard (Resumen)
+                </a>
+                <a href="empresas.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">storefront</span> Todas las Empresas
+                </a>
+                <a href="tareas.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">check_box</span> Tareas Pendientes
+                </a>
+                <a href="reportes.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">bug_report</span> Reportes de Error
+                </a>
+                <a href="mejoras.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">lightbulb</span> Sugerencias y Mejoras
+                </a>
+                <a href="notas.html" class="flex items-center gap-3 px-4 py-3 bg-[#d11149] text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-[#d11149]/30">
+                    <span class="material-symbols-outlined text-[22px]">sticky_note_2</span> Notas Recientes
+                </a>
+                <a href="comprobantes.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">receipt_long</span> Comprobantes de Pago
+                </a>
+                <a href="notificaciones.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">notifications</span> Notificaciones
+                </a>
+                <a href="papelera.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">delete_sweep</span> Papelera General
+                </a>
+            </nav>
+        </div>
+
+        <div class="pt-6 border-t border-slate-800 mt-6">
+            <button onclick="logoutAdmin()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-red-600/20 text-slate-300 hover:text-red-400 rounded-xl text-xs font-bold transition-all">
+                <span class="material-symbols-outlined text-[18px]">logout</span> Cerrar Sesión
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full min-w-0 overflow-x-hidden">
+        
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-black text-white font-display flex items-center gap-3">
+                    <span class="p-2 bg-emerald-500/10 text-emerald-400 rounded-2xl border border-emerald-500/20">
+                        <span class="material-symbols-outlined text-2xl">sticky_note_2</span>
+                    </span>
+                    Notas & Anotaciones de Negocios
+                </h1>
+                <p class="text-slate-400 text-xs sm:text-sm mt-1">Registro de observaciones e incidencias internas por empresa.</p>
+            </div>
+
+            <button onclick="openNewNoteModal()" class="bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold px-5 py-3 rounded-2xl transition-all flex items-center gap-2 shadow-lg shadow-[#d11149]/20 text-xs sm:text-sm">
+                <span class="material-symbols-outlined text-[20px]">add_circle</span>
+                <span>Crear Nueva Nota</span>
+            </button>
+        </div>
+
+        <!-- Buscador -->
+        <div class="mb-6">
+            <div class="relative max-w-md">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                <input type="text" id="searchInput" oninput="filterNotes()" placeholder="Buscar por negocio o contenido..." class="w-full bg-slate-800 border border-slate-700 text-white pl-11 pr-4 py-3 rounded-2xl text-sm focus:outline-none focus:border-[#d11149] transition-all">
+            </div>
+        </div>
+
+        <!-- Tabla / Lista de Notas -->
+        <div class="bg-slate-800/50 border border-slate-700/60 rounded-3xl overflow-hidden shadow-xl">
+            <div class="p-4 sm:p-6 border-b border-slate-700/60 flex items-center justify-between">
+                <h2 class="font-extrabold text-white text-base">Historial Completo de Anotaciones</h2>
+                <span id="notesCount" class="text-xs font-bold text-slate-400 bg-slate-700 px-3 py-1 rounded-full">0 notas</span>
+            </div>
+
+            <div id="notesContainer" class="p-4 sm:p-6 space-y-4">
+                <div class="text-center py-12 text-slate-400">
+                    <span class="material-symbols-outlined text-4xl mb-2 animate-spin text-[#d11149]">refresh</span>
+                    <p class="text-sm font-medium">Cargando notas de la plataforma...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Crear Nueva Nota -->
+    <div id="newNoteModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl text-white">
+            <div class="flex justify-between items-center mb-6 border-b border-slate-700 pb-4">
+                <h3 class="text-lg font-extrabold flex items-center gap-2">
+                    <span class="material-symbols-outlined text-emerald-400">post_add</span>
+                    Agregar Nota Administrativa
+                </h3>
+                <button onclick="closeNewNoteModal()" class="text-slate-400 hover:text-white"><span class="material-symbols-outlined">close</span></button>
+            </div>
+
+            <form id="newNoteForm" onsubmit="handleNewNoteSubmit(event)" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Seleccionar Negocio:</label>
+                    <select id="noteBusinessSelect" required class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#d11149]">
+                        <option value="">Cargando empresas...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Anotación / Observación:</label>
+                    <textarea id="noteText" rows="4" required placeholder="Escribe aquí los detalles o recordatorios para este comercio..." class="w-full bg-slate-900 border border-slate-700 text-white rounded-xl p-4 text-sm focus:outline-none focus:border-[#d11149] resize-none"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeNewNoteModal()" class="px-5 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 font-bold text-xs">Cancelar</button>
+                    <button type="submit" id="btnSubmitNote" class="px-6 py-2.5 rounded-xl bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold text-xs shadow-md">Guardar Nota</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Confirmación Eliminación -->
+    <div id="deleteConfirmModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-3xl max-w-md w-full p-6 text-center text-white space-y-4">
+            <div class="w-12 h-12 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center mx-auto">
+                <span class="material-symbols-outlined text-2xl">delete</span>
+            </div>
+            <h3 class="text-lg font-extrabold">¿Eliminar esta anotación?</h3>
+            <p class="text-xs text-slate-400">Esta acción no se puede deshacer y borrará la nota permanentemente.</p>
+            <div class="flex justify-center gap-3 pt-2">
+                <button onclick="closeDeleteConfirmModal()" class="px-5 py-2.5 rounded-xl bg-slate-700 font-bold text-xs">Cancelar</button>
+                <button id="btnConfirmDelete" onclick="executeDeleteNote()" class="px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs">Sí, Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allNotes = [];
+        let noteToDeleteId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('../backend/admin_auth.php')
+                .then(res => res.json())
+                .then(data => {
+                    if (!data.logged_in) {
+                        window.location.href = 'login.html';
+                    } else {
+                        document.body.classList.remove('hidden');
+                        loadNotes();
+                        loadBusinessesDropdown();
+                    }
+                }).catch(() => { window.location.href = 'login.html'; });
+        });
+
+        function logoutAdmin() {
+            fetch('../backend/admin_auth.php?action=logout').then(() => window.location.href = 'login.html');
+        }
+
+        function loadNotes() {
+            fetch('../backend/admin_notas_api.php')
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success) {
+                        allNotes = res.data || [];
+                        renderNotes(allNotes);
+                    }
+                }).catch(err => console.error('Error al cargar notas:', err));
+        }
+
+        function loadBusinessesDropdown() {
+            fetch('../backend/admin_api.php')
+                .then(res => res.json())
+                .then(res => {
+                    const select = document.getElementById('noteBusinessSelect');
+                    if (res.success && res.negocios && select) {
+                        select.innerHTML = '<option value="">-- Selecciona una empresa --</option>';
+                        res.negocios.forEach(b => {
+                            select.innerHTML += `<option value="${b.id}">${b.nombre_fantasia || b.nombre} (ID: ${b.id})</option>`;
+                        });
+                    }
+                });
+        }
+
+        function renderNotes(notes) {
+            const container = document.getElementById('notesContainer');
+            const countEl = document.getElementById('notesCount');
+            if (countEl) countEl.textContent = `${notes.length} ${notes.length === 1 ? 'nota' : 'notas'}`;
+
+            if (!notes || notes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-400 bg-slate-900/40 rounded-2xl border border-dashed border-slate-700/60">
+                        <span class="material-symbols-outlined text-4xl mb-2 text-slate-600">sticky_note_2</span>
+                        <p class="text-sm font-medium">No hay notas o anotaciones guardadas.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = notes.map(n => {
+                const f = new Date(n.fecha).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                return `
+                    <div class="p-5 bg-slate-900/60 rounded-2xl border border-slate-700/60 hover:border-slate-600 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div class="space-y-1 flex-1">
+                            <div class="flex items-center gap-3 flex-wrap">
+                                <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-black uppercase tracking-wider">
+                                    🏢 ${n.nombre_negocio || 'Empresa #' + n.id_negocio}
+                                </span>
+                                <span class="text-xs text-slate-400 font-medium flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px]">schedule</span> ${f} hs
+                                </span>
+                            </div>
+                            <p class="text-sm text-slate-200 font-medium leading-relaxed pt-2">${n.nota}</p>
+                        </div>
+                        <button onclick="confirmDeleteNote(${n.id})" class="p-2.5 bg-slate-800 hover:bg-red-600/20 text-slate-400 hover:text-red-400 rounded-xl transition-colors border border-slate-700 shrink-0" title="Eliminar nota">
+                            <span class="material-symbols-outlined text-[18px]">delete</span>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterNotes() {
+            const q = document.getElementById('searchInput').value.toLowerCase().trim();
+            if (!q) {
+                renderNotes(allNotes);
+                return;
+            }
+            const filtered = allNotes.filter(n => 
+                (n.nombre_negocio && n.nombre_negocio.toLowerCase().includes(q)) ||
+                (n.nota && n.nota.toLowerCase().includes(q))
+            );
+            renderNotes(filtered);
+        }
+
+        function openNewNoteModal() {
+            document.getElementById('newNoteModal').classList.remove('hidden');
+        }
+
+        function closeNewNoteModal() {
+            document.getElementById('newNoteModal').classList.add('hidden');
+            document.getElementById('newNoteForm').reset();
+        }
+
+        function handleNewNoteSubmit(e) {
+            e.preventDefault();
+            const bizId = document.getElementById('noteBusinessSelect').value;
+            const text = document.getElementById('noteText').value;
+            const btn = document.getElementById('btnSubmitNote');
+            btn.disabled = true;
+
+            fetch('../backend/admin_notas_api.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_negocio: bizId, nota: text })
+            })
+            .then(res => res.json())
+            .then(res => {
+                if (res.success) {
+                    closeNewNoteModal();
+                    loadNotes();
+                } else {
+                    alert(res.error || 'Error al guardar nota.');
+                }
+            })
+            .finally(() => btn.disabled = false);
+        }
+
+        function confirmDeleteNote(id) {
+            noteToDeleteId = id;
+            document.getElementById('deleteConfirmModal').classList.remove('hidden');
+        }
+
+        function closeDeleteConfirmModal() {
+            noteToDeleteId = null;
+            document.getElementById('deleteConfirmModal').classList.add('hidden');
+        }
+
+        function executeDeleteNote() {
+            if (!noteToDeleteId) return;
+            const btn = document.getElementById('btnConfirmDelete');
+            btn.disabled = true;
+
+            fetch(`../backend/admin_notas_api.php?id=${noteToDeleteId}`, { method: 'DELETE' })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.success) {
+                        closeDeleteConfirmModal();
+                        loadNotes();
+                    } else {
+                        alert(res.error || 'Error al eliminar nota.');
+                    }
+                })
+                .finally(() => btn.disabled = false);
+        }
+    </script>
+</body>
+</html>

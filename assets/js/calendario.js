@@ -2684,11 +2684,17 @@ function checkAdminCalendarSession(config = null) {
         }
     })
     .catch(() => {
+        const forceOwner = (!negocioSlug || negocioSlug === 'demo' || sessionStorage.getItem('agendatina_session') === 'active' || sessionStorage.getItem('is_demo') === 'true');
         if (brand) { brand.classList.remove('hidden'); brand.style.display = 'flex'; }
         if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
-        if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
-        if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
-        if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
+        if (forceOwner) {
+            if (btnVolver) { btnVolver.classList.remove('hidden'); btnVolver.style.display = 'flex'; }
+            if (sessionBadge) { sessionBadge.classList.remove('hidden'); sessionBadge.style.display = 'flex'; }
+        } else {
+            if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
+            if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
+            if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
+        }
     });
 }
 

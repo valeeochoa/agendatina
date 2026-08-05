@@ -4,6 +4,23 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/conexion.php';
 
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_negocio'])) {
+    if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || (isset($_GET['n']) && strtolower($_GET['n']) === 'demo')) {
+        try {
+            $stmtDemoU = $pdo->query("SELECT id FROM usuarios WHERE email = 'demo@agendatina.site' LIMIT 1");
+            $dUser = $stmtDemoU ? $stmtDemoU->fetchColumn() : null;
+            $stmtDemoB = $pdo->query("SELECT id FROM negocios WHERE ruta = 'demo' OR subdominio = 'demo' LIMIT 1");
+            $dBiz = $stmtDemoB ? $stmtDemoB->fetchColumn() : null;
+            if ($dUser && $dBiz) {
+                $_SESSION['user_id'] = $dUser;
+                $_SESSION['id_negocio'] = $dBiz;
+                $_SESSION['is_demo'] = true;
+                $_SESSION['rol_en_local'] = 'admin';
+            }
+        } catch (Exception $eDemoAuto) {}
+    }
+}
+
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_negocio'])) {
     echo json_encode(['success' => false, 'error' => 'No autorizado. Inicia sesión.']);
     exit;
 }

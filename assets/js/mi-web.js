@@ -2,6 +2,22 @@
 // Lógica para el Editor Visual de la Página Web (mi-web.html)
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Verificar sesión y mostrar badge si es Demo
+    fetch('backend/perfil.php')
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.success && data.business) {
+                const isDemo = (data.business.is_demo === true) || (data.user && data.user.email === 'demo@agendatina.site') || (data.business.ruta === 'demo');
+                const badge = document.getElementById('adminSessionBadge');
+                const badgeText = document.getElementById('adminSessionBadgeText');
+                if (badge && isDemo) {
+                    badge.classList.remove('hidden');
+                    badge.classList.add('flex');
+                    if (badgeText) badgeText.textContent = 'Modo Demo';
+                }
+            }
+        }).catch(() => {});
+
     const webTitulo = document.getElementById('webTitulo');
     if (!webTitulo) return; // Si no estamos en la página mi-web.html, no ejecutar.
 

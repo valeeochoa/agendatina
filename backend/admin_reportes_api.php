@@ -54,6 +54,29 @@ if ($method === 'GET') {
         ");
         $reportes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // También incluir notificaciones de Sugerencias o Errores de notificaciones_admin para cobertura 100%
+        try {
+            $stmtNotif = $pdo->query("
+                SELECT id, id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario, segmento AS tipo, segmento AS modulo, mensaje AS descripcion, IF(leida=1, 'resuelto', 'pendiente') AS estado, fecha
+                FROM notificaciones_admin
+                WHERE (segmento LIKE '%Error%' OR segmento LIKE '%Bug%' OR segmento LIKE '%Mejora%' OR segmento LIKE '%Sugerencia%')
+                ORDER BY fecha DESC
+            ");
+            $notifItems = $stmtNotif->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($notifItems as $ni) {
+                $exists = false;
+                foreach ($reportes as $r) {
+                    if (trim($r['descripcion']) === trim($ni['descripcion'])) {
+                        $exists = true;
+                        break;
+                    }
+                }
+                if (!$exists) {
+                    $reportes[] = $ni;
+                }
+            }
+        } catch (Exception $eN) {}
+
         $pendientes = 0;
         foreach ($reportes as $rep) {
             if ($rep['estado'] === 'pendiente') $pendientes++;

@@ -48,6 +48,9 @@
                 <a href="mejoras.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
                     <span class="material-symbols-outlined text-[22px]">lightbulb</span> Sugerencias y Mejoras
                 </a>
+                <a href="#seccionNotas" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">sticky_note_2</span> Notas Recientes
+                </a>
                 <a href="comprobantes.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
                     <span class="material-symbols-outlined text-[22px]">receipt_long</span> Comprobantes de Pago
                 </a>
@@ -167,15 +170,21 @@
         </div>
 
         <!-- Sección de Notas Recientes -->
-        <div class="bg-white p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 w-full overflow-hidden flex flex-col h-full">
-            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-6">
-                <div class="w-12 h-12 shrink-0 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-2xl">sticky_note_2</span>
+        <div id="seccionNotas" class="bg-white p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 w-full overflow-hidden flex flex-col h-full">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-6">
+                <div class="flex items-center gap-3 sm:gap-4">
+                    <div class="w-12 h-12 shrink-0 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-2xl">sticky_note_2</span>
+                    </div>
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-bold text-slate-800">Notas Recientes</h2>
+                        <p class="text-xs sm:text-sm text-slate-500">Últimas anotaciones guardadas en los negocios</p>
+                    </div>
                 </div>
-                <div>
-                    <h2 class="text-lg sm:text-xl font-bold text-slate-800">Notas Recientes</h2>
-                    <p class="text-xs sm:text-sm text-slate-500">Últimas anotaciones guardadas en los negocios</p>
-                </div>
+                <a href="notas.html" class="text-xs font-extrabold text-[#d11149] hover:text-[#d11149]/80 bg-[#d11149]/10 px-3.5 py-2 rounded-xl transition-all flex items-center gap-1">
+                    <span>Ver Todas</span>
+                    <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </a>
             </div>
             <div id="adminNotesList" class="space-y-4 max-h-[350px] overflow-y-auto pr-1 sm:pr-2 w-full flex-1">
                 <div class="p-6 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-100">
@@ -1072,6 +1081,32 @@ function fetchClients() {
     .catch(err => {
         document.getElementById('clientsList').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-red-500 font-medium flex items-center justify-center gap-2"><span class="material-symbols-outlined">warning</span> Error al cargar los datos desde la BD.</td></tr>';
     });
+}
+
+function renderAdminNotes(notes) {
+    const listEl = document.getElementById('adminNotesList');
+    if (!listEl) return;
+    if (!notes || notes.length === 0) {
+        listEl.innerHTML = '<div class="p-6 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-100"><p class="font-medium text-sm">No hay notas recientes registradas.</p></div>';
+        return;
+    }
+    listEl.innerHTML = notes.slice(0, 5).map(n => {
+        const f = new Date(n.fecha).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        return `
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 hover:border-slate-300 transition-all flex justify-between items-start gap-3">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-extrabold text-[10px] uppercase border border-emerald-200">🏢 ${n.nombre_negocio || 'Empresa #' + n.id_negocio}</span>
+                        <span class="text-[11px] text-slate-400 font-medium">${f} hs</span>
+                    </div>
+                    <p class="text-xs text-slate-700 font-medium leading-relaxed">${n.nota}</p>
+                </div>
+                <a href="notas.html" class="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors shrink-0" title="Ver todas las notas">
+                    <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+                </a>
+            </div>
+        `;
+    }).join('');
 }
 
 function filterClients() {
