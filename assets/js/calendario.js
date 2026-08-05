@@ -2644,16 +2644,18 @@ function checkAdminCalendarSession(config = null) {
             }
         }
 
+        // El brand (Agendatina) y el separador se muestran para todos los usuarios
+        if (brand) { brand.classList.remove('hidden'); brand.style.display = 'flex'; }
+        if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
+
         if (isOwnerSession) {
-            if (btnVolver) { btnVolver.classList.remove('hidden'); btnVolver.style.display = ''; }
-            if (brand) { brand.classList.remove('hidden'); brand.style.display = ''; }
-            if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
-            if (bugBtn && !isDemo) { bugBtn.classList.remove('hidden'); bugBtn.style.display = ''; }
+            if (btnVolver) { btnVolver.classList.remove('hidden'); btnVolver.style.display = 'flex'; }
+            if (bugBtn && !isDemo) { bugBtn.classList.remove('hidden'); bugBtn.style.display = 'flex'; }
 
             if (sessionBadge) {
                 sessionBadge.classList.remove('hidden');
                 sessionBadge.classList.add('flex');
-                sessionBadge.style.display = '';
+                sessionBadge.style.display = 'flex';
                 const dot = sessionBadge.querySelector('span:first-child');
                 if (isDemo) {
                     if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
@@ -2670,22 +2672,18 @@ function checkAdminCalendarSession(config = null) {
                 }
             }
         } else {
-            // Vista Cliente
+            // Vista Cliente Público
             if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
-            if (brand) { brand.classList.add('hidden'); brand.style.display = 'none'; }
-            if (sep) { sep.classList.add('hidden'); sep.style.display = 'none'; }
             if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
             if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
         }
     })
     .catch(() => {
-        if (negocioSlug) {
-            if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
-            if (brand) { brand.classList.add('hidden'); brand.style.display = 'none'; }
-            if (sep) { sep.classList.add('hidden'); sep.style.display = 'none'; }
-            if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
-            if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
-        }
+        if (brand) { brand.classList.remove('hidden'); brand.style.display = 'flex'; }
+        if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
+        if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
+        if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
+        if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
     });
 }
 

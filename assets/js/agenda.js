@@ -67,47 +67,35 @@ window.cargarAgenda = function(force = false) {
 });
 };
 
-window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
-    var listPend = document.getElementById('lista-pendientes');
-    // Inyectar buscador si no existe en el DOM
-    if (!document.getElementById('agendaSearchContainer')) {
-        if (listPend) {
-            const searchContainer = document.createElement('div');
-            searchContainer.id = 'agendaSearchContainer';
-            searchContainer.className = 'mb-6 relative w-full';
-            searchContainer.innerHTML = `
-                <div class="flex flex-col sm:flex-row gap-3 w-full">
-                    <div class="relative w-full sm:flex-1">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <span class="material-symbols-outlined text-slate-400 text-[20px]">search</span>
-                        </div>
-                        <input type="text" id="agendaSearchInput" class="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-slate-200 bg-white shadow-sm focus:ring-2 focus:ring-primary outline-none transition-all text-sm font-medium text-slate-700 placeholder-slate-400" placeholder="Buscar por cliente, teléfono o servicio...">
-                    </div>
-                    <button onclick="window.descargarHistorialTurnos(this)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-3.5 rounded-2xl font-bold text-sm transition-colors flex items-center justify-center gap-2 border border-slate-200 shadow-sm whitespace-nowrap shrink-0 w-full sm:w-auto" title="Descargar Historial Completo (CSV)">
-                        <span class="material-symbols-outlined text-[20px]">download</span>
-                        <span class="inline sm:hidden lg:inline">Historial</span>
-                    </button>
-                </div>
-            `;
-            
-            // Colocar el buscador arriba de todo (antes de las pestañas si existen)
-            const tabs = document.querySelector('[role="tablist"]') || document.querySelector('.flex.bg-slate-100.p-1') || listPend.parentElement;
-            if (tabs && tabs.parentElement && tabs !== listPend.parentElement) {
-                tabs.parentElement.insertBefore(searchContainer, tabs);
-            } else {
-                listPend.parentElement.insertBefore(searchContainer, listPend.parentElement.firstChild);
-            }
+function setupAgendaSearchListeners() {
+    const desktopInput = document.getElementById('agendaSearchInput');
+    const mobileInput = document.getElementById('agendaSearchInputMobile');
 
-            // Evento para filtrar en tiempo real
-            document.getElementById('agendaSearchInput').addEventListener('input', (e) => {
-                window.renderAgendaTurnos(window.agendaData, e.target.value, window.currentAgendaProfTerm || '');
-            });
-            
-            if (searchTerm) {
-                document.getElementById('agendaSearchInput').value = searchTerm;
-            }
-        }
+    const handleSearchInput = (val) => {
+        if (desktopInput && desktopInput.value !== val) desktopInput.value = val;
+        if (mobileInput && mobileInput.value !== val) mobileInput.value = val;
+        window.renderAgendaTurnos(window.agendaData || [], val, window.currentAgendaProfTerm || '');
+    };
+
+    if (desktopInput && !desktopInput.dataset.bound) {
+        desktopInput.dataset.bound = 'true';
+        desktopInput.addEventListener('input', (e) => handleSearchInput(e.target.value));
     }
+    if (mobileInput && !mobileInput.dataset.bound) {
+        mobileInput.dataset.bound = 'true';
+        mobileInput.addEventListener('input', (e) => handleSearchInput(e.target.value));
+    }
+}
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setupAgendaSearchListeners();
+} else {
+    document.addEventListener('DOMContentLoaded', setupAgendaSearchListeners);
+}
+
+window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
+    setupAgendaSearchListeners();
+    var listPend = document.getElementById('lista-pendientes');
 
     // --- POBLAR TABS DE PROFESIONALES (CARPETAS) ---
     let profFilterContainer = document.getElementById('profesionalesAgendaTabs');
@@ -605,18 +593,41 @@ window.cancelarTurnoAdmin = function(id) {
 };
 
 window.confirmarTurnoAdmin = function(id) {
-    fetch('backend/cambiar_estado_turno.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: id, estado: 'confirmado' })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            if (typeof showToast === 'function') showToast('Turno confirmado exitosamente', 'success');
-            window.cargarAgenda(true);
-        }
-    });
+    if (typeof showConfirm === 'function') {
+        showConfirm('Confirmar Turno', '¿Agendar y confirmar este turno? Aparecerá como reservado en tu calendario.', 'Confirmar', 'bg-amber-500 hover:bg-amber-600', () => {
+            return fetch('backend/confirmar_turno.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ id: id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof showToast === 'function') showToast('Turno confirmado exitosamente y agendado', 'success');
+                    window.cargarAgenda(true);
+                    if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
+                } else {
+                    if (typeof showToast === 'function') showToast(data.error || 'No se pudo confirmar el turno.', 'error');
+                }
+            })
+            .catch(() => {
+                if (typeof showToast === 'function') showToast('Error de conexión', 'error');
+            });
+        });
+    } else {
+        fetch('backend/confirmar_turno.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ id: id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                if (typeof showToast === 'function') showToast('Turno confirmado exitosamente', 'success');
+                window.cargarAgenda(true);
+            }
+        });
+    }
 };
 
 window.restaurarTurnoAdmin = function(id) {
