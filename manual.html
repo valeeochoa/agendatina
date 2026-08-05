@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Manual de Uso | Agendatina</title>
+    <title>Manual de Uso Oficial | Agendatina</title>
     <link rel="icon" href="public/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -54,7 +54,7 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <span class="bg-sky-100 text-sky-800 text-xs font-black px-3 py-1.5 rounded-2xl border border-sky-200 flex items-center gap-1.5">
+                <span class="bg-sky-100 text-sky-800 text-xs font-black px-3 py-1.5 rounded-2xl border border-sky-200 flex items-center gap-1.5 shadow-xs">
                     <span class="material-symbols-outlined text-[18px]">auto_stories</span>
                     <span>Manual Oficial de Uso</span>
                 </span>
@@ -68,10 +68,10 @@
             <span class="material-symbols-outlined text-9xl text-primary">auto_stories</span>
         </div>
         <div class="max-w-5xl mx-auto text-center relative z-10">
-            <span class="px-3.5 py-1 rounded-full bg-primary/20 text-primary border border-primary/30 text-xs font-black uppercase tracking-wider inline-block mb-3">📖 Centro de Ayuda & Guía del Usuario</span>
-            <h1 class="text-3xl sm:text-4xl font-extrabold font-display mb-3">Manual de Uso Completo Agendatina</h1>
+            <span class="px-3.5 py-1 rounded-full bg-primary/20 text-primary border border-primary/30 text-xs font-black uppercase tracking-wider inline-block mb-3">📖 Centro de Ayuda & Guía Interactiva</span>
+            <h1 class="text-3xl sm:text-4xl font-extrabold font-display mb-3">Guía Explicativa & Manual de Funciones</h1>
             <p class="text-slate-300 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-                Descubre cómo sacar el máximo provecho a cada módulo de tu plataforma. Aprende las diferencias entre planes, la gestión de turnos y la configuración de tu negocio.
+                Aprende paso a paso cómo administrar tu agenda virtual, configurar tus horarios, personalizar tu página pública y aprovechar todas las herramientas según tu suscripción activa.
             </p>
         </div>
     </section>
@@ -101,116 +101,119 @@
             </button>
         </div>
 
-        <!-- SECCIÓN 1: PLANES -->
+        <!-- SECCIÓN 1: PLANES (Con Detección Dinámica de Plan Activo) -->
         <div id="sec-planes" class="tab-content space-y-6">
             <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
                 <h2 class="text-2xl font-bold text-slate-900 mb-2 flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary text-2xl">verified</span>
-                    Funcionalidades según tu Plan Activo
+                    Funcionalidades de tu Suscripción Activa
                 </h2>
-                <p class="text-slate-500 text-sm mb-6">Tu panel habilita herramientas específicas según la suscripción contratada:</p>
+                <p class="text-slate-500 text-sm mb-6">Tu cuenta dispone de herramientas adaptadas al plan contratado. A continuación se destaca tu plan actual:</p>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Simple -->
-                    <div class="border border-slate-200 rounded-2xl p-6 bg-slate-50/50">
+                    <!-- Plan Simple -->
+                    <div id="boxPlanSimple" class="border border-slate-200 rounded-2xl p-6 bg-slate-50/50 relative">
+                        <span id="badgePlanSimple" class="hidden absolute top-4 right-4 text-[10px] font-black uppercase bg-emerald-600 text-white px-2.5 py-0.5 rounded-full shadow-sm">🟢 TU PLAN ACTIVO</span>
                         <span class="text-xs font-black uppercase tracking-wider text-slate-500 bg-slate-200 px-2.5 py-1 rounded-md mb-3 inline-block">Plan Simple</span>
-                        <h3 class="text-lg font-bold text-slate-900 mb-2">Para Comenzar</h3>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">Para Emprendedores</h3>
                         <ul class="text-xs text-slate-600 space-y-2.5 font-medium">
                             <li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-500 text-[16px]">check_circle</span> 1 Profesional (Dueño/Admin)</li>
-                            <li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-500 text-[16px]">check_circle</span> Recepción de turnos online</li>
-                            <li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-500 text-[16px]">check_circle</span> Calendario con horarios fijos</li>
+                            <li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-500 text-[16px]">check_circle</span> Recepción de turnos online 24/7</li>
+                            <li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-500 text-[16px]">check_circle</span> Vista de Calendario con franjas fijos</li>
                             <li class="flex items-center gap-2"><span class="material-symbols-outlined text-emerald-500 text-[16px]">check_circle</span> Página web básica de reservas</li>
                         </ul>
                     </div>
 
-                    <!-- Profesional -->
-                    <div class="border-2 border-primary/60 rounded-2xl p-6 bg-primary/5 relative">
-                        <span class="absolute top-4 right-4 text-[10px] font-black uppercase bg-primary text-white px-2 py-0.5 rounded-full">Recomendado</span>
+                    <!-- Plan Profesional -->
+                    <div id="boxPlanProfesional" class="border border-slate-200 rounded-2xl p-6 bg-slate-50/50 relative">
+                        <span id="badgePlanProfesional" class="hidden absolute top-4 right-4 text-[10px] font-black uppercase bg-emerald-600 text-white px-2.5 py-0.5 rounded-full shadow-sm">🟢 TU PLAN ACTIVO</span>
                         <span class="text-xs font-black uppercase tracking-wider text-primary bg-primary/10 px-2.5 py-1 rounded-md mb-3 inline-block">Plan Profesional</span>
-                        <h3 class="text-lg font-bold text-slate-900 mb-2">Servicios Avanzados</h3>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">Gestión Avanzada</h3>
                         <ul class="text-xs text-slate-700 space-y-2.5 font-medium">
                             <li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[16px]">check_circle</span> Todo lo del Plan Simple</li>
-                            <li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[16px]">check_circle</span> Duraciones en horas y minutos</li>
-                            <li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[16px]">check_circle</span> Intervalo de turnos por servicio</li>
+                            <li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[16px]">check_circle</span> Duraciones en Horas y Minutos</li>
+                            <li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[16px]">check_circle</span> Intervalo de turnos dinámico por servicio</li>
                             <li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[16px]">check_circle</span> Notificaciones por correo electrónico</li>
-                            <li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[16px]">check_circle</span> Papelera e historial ilimitado</li>
+                            <li class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[16px]">check_circle</span> Papelera e historial sin vencimiento</li>
                         </ul>
                     </div>
 
-                    <!-- Premium -->
-                    <div class="border border-slate-200 rounded-2xl p-6 bg-slate-50/50">
+                    <!-- Plan Premium -->
+                    <div id="boxPlanPremium" class="border border-slate-200 rounded-2xl p-6 bg-slate-50/50 relative">
+                        <span id="badgePlanPremium" class="hidden absolute top-4 right-4 text-[10px] font-black uppercase bg-emerald-600 text-white px-2.5 py-0.5 rounded-full shadow-sm">🟢 TU PLAN ACTIVO</span>
                         <span class="text-xs font-black uppercase tracking-wider text-purple-700 bg-purple-100 px-2.5 py-1 rounded-md mb-3 inline-block">Plan Premium</span>
-                        <h3 class="text-lg font-bold text-slate-900 mb-2">Equipo Completo</h3>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">Equipo & Estadísticas</h3>
                         <ul class="text-xs text-slate-600 space-y-2.5 font-medium">
                             <li class="flex items-center gap-2"><span class="material-symbols-outlined text-purple-600 text-[16px]">check_circle</span> Todo lo del Plan Profesional</li>
-                            <li class="flex items-center gap-2"><span class="material-symbols-outlined text-purple-600 text-[16px]">check_circle</span> Múltiples profesionales con login</li>
+                            <li class="flex items-center gap-2"><span class="material-symbols-outlined text-purple-600 text-[16px]">check_circle</span> Múltiples profesionales con usuario</li>
                             <li class="flex items-center gap-2"><span class="material-symbols-outlined text-purple-600 text-[16px]">check_circle</span> Asignación individual de servicios</li>
                             <li class="flex items-center gap-2"><span class="material-symbols-outlined text-purple-600 text-[16px]">check_circle</span> Estadísticas avanzadas e ingresos</li>
-                            <li class="flex items-center gap-2"><span class="material-symbols-outlined text-purple-600 text-[16px]">check_circle</span> Mini web propia con portada y fotos</li>
+                            <li class="flex items-center gap-2"><span class="material-symbols-outlined text-purple-600 text-[16px]">check_circle</span> Mini web propia personalizada</li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- SECCIÓN 2: AGENDA VIRTUAL -->
+        <!-- SECCIÓN 2: AGENDA VIRTUAL DETALLADA -->
         <div id="sec-agenda" class="tab-content space-y-6 hidden">
             <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
                 <div>
                     <h2 class="text-2xl font-bold text-slate-900 mb-2 flex items-center gap-2">
                         <span class="material-symbols-outlined text-primary text-2xl">menu_book</span>
-                        Funcionamiento de Mi Agenda Virtual
+                        Guía de Mi Agenda Virtual & Buscador Inteligente
                     </h2>
-                    <p class="text-slate-500 text-sm">En este módulo administras todas las reservas enviadas por tus clientes.</p>
+                    <p class="text-slate-500 text-sm">En este módulo recibes, confirmas y administras todas las solicitudes de turnos.</p>
                 </div>
 
-                <!-- Destacado del Buscador Inteligente -->
-                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5">
-                    <h3 class="text-base font-extrabold text-amber-900 flex items-center gap-2 mb-2">
-                        <span class="material-symbols-outlined text-amber-600 text-[20px]">search_check</span>
-                        Buscador Inteligente en Tiempo Real
+                <!-- Explicación Detallada del Buscador -->
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-6">
+                    <h3 class="text-base font-extrabold text-amber-900 flex items-center gap-2 mb-3">
+                        <span class="material-symbols-outlined text-amber-600 text-[22px]">search_check</span>
+                        Buscador Inteligente de Clientes & Servicios
                     </h3>
-                    <p class="text-xs text-amber-800 leading-relaxed mb-3">
-                        El buscador filtra de forma instantánea según la <strong>pestaña activa en la que te encuentres posicionado</strong>:
+                    <p class="text-xs text-amber-800 leading-relaxed mb-4">
+                        El buscador en tiempo real te permite escribir cualquier coincidencia (Nombre, Apellido, Celular, Servicio o Profesional). Su comportamiento se adapta automáticamente según la <strong>pestaña activa en la que estés posicionado</strong>:
                     </p>
-                    <ul class="text-xs text-amber-900 space-y-2 font-semibold">
-                        <li class="flex items-start gap-2">
-                            <span class="material-symbols-outlined text-amber-600 text-[16px] shrink-0 mt-0.5">arrow_right</span>
-                            <span><strong>Pestaña Próximos:</strong> Busca y filtra únicamente entre los turnos agendados pendientes a realizarse.</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="material-symbols-outlined text-amber-600 text-[16px] shrink-0 mt-0.5">arrow_right</span>
-                            <span><strong>Pestaña Vencidos:</strong> Filtra reservas pasadas que no fueron confirmadas a tiempo.</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="material-symbols-outlined text-amber-600 text-[16px] shrink-0 mt-0.5">arrow_right</span>
-                            <span><strong>Pestaña Historial:</strong> Filtra el registro completo de turnos completados y atendidos.</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="material-symbols-outlined text-amber-600 text-[16px] shrink-0 mt-0.5">arrow_right</span>
-                            <span><strong>Pestaña Papelera:</strong> Filtra reservas eliminadas o rechazadas.</span>
-                        </li>
-                    </ul>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-white/80 p-4 rounded-xl border border-amber-200/80">
+                            <h4 class="font-bold text-amber-900 text-xs mb-1">📅 Pestaña Próximos</h4>
+                            <p class="text-[11px] text-amber-800">Filtra exclusivamente los turnos agendados futuros pendientes de atención.</p>
+                        </div>
+                        <div class="bg-white/80 p-4 rounded-xl border border-amber-200/80">
+                            <h4 class="font-bold text-amber-900 text-xs mb-1">⏰ Pestaña Vencidos</h4>
+                            <p class="text-[11px] text-amber-800">Filtra solicitudes cuya fecha y hora expiró sin confirmación previa del administrador.</p>
+                        </div>
+                        <div class="bg-white/80 p-4 rounded-xl border border-amber-200/80">
+                            <h4 class="font-bold text-amber-900 text-xs mb-1">📜 Pestaña Historial</h4>
+                            <p class="text-[11px] text-amber-800">Filtra el registro completo de citas atendidas o señadas exitosamente.</p>
+                        </div>
+                        <div class="bg-white/80 p-4 rounded-xl border border-amber-200/80">
+                            <h4 class="font-bold text-amber-900 text-xs mb-1">🗑️ Pestaña Papelera</h4>
+                            <p class="text-[11px] text-amber-800">Filtra reservas eliminadas o rechazadas con opción de restauración.</p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                     <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50">
                         <h4 class="font-bold text-slate-900 text-sm mb-2 flex items-center gap-2">
                             <span class="material-symbols-outlined text-emerald-600 text-[18px]">check_circle</span>
-                            Confirmar y Señar Turno
+                            Confirmación y Señado en Calendario
                         </h4>
                         <p class="text-xs text-slate-600 leading-relaxed">
-                            Al hacer clic en el botón <strong>Confirmar</strong>, la reserva se guarda definitivamente en la agenda y automáticamente <strong>bloquea la fecha y el horario en el Calendario</strong> impidiendo superposiciones.
+                            Al hacer clic en <strong>Confirmar</strong>, la reserva se marca como señada/aprobada y **bloquea automáticamente esa fecha y horario en el Calendario**, evitando reservas duplicadas del público.
                         </p>
                     </div>
 
                     <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50">
                         <h4 class="font-bold text-slate-900 text-sm mb-2 flex items-center gap-2">
                             <span class="material-symbols-outlined text-red-600 text-[18px]">delete</span>
-                            Gestión de la Papelera
+                            Eliminar & Restaurar
                         </h4>
                         <p class="text-xs text-slate-600 leading-relaxed">
-                            Si cancelas o rechazas una solicitud, el turno pasa a la <strong>Papelera</strong> donde podrás consultarlo o restaurarlo si el cliente reprograma la cita.
+                            Al cancelar un turno, se mueve a la <strong>Papelera</strong> para no perder información del cliente. En cualquier momento puedes ingresar a la pestaña Papelera y presionar <strong>Restaurar</strong> para reincorporarlo.
                         </p>
                     </div>
                 </div>
@@ -223,29 +226,29 @@
                 <div>
                     <h2 class="text-2xl font-bold text-slate-900 mb-2 flex items-center gap-2">
                         <span class="material-symbols-outlined text-secondary text-2xl">edit_calendar</span>
-                        Gestión de Calendario y Horarios
+                        Configuración de Calendarios & Bloqueos
                     </h2>
-                    <p class="text-slate-500 text-sm">Configura tus días de atención, franjas horarias y bloqueos manuales.</p>
+                    <p class="text-slate-500 text-sm">Gestiona la disponibilidad pública de tu local.</p>
                 </div>
 
                 <div class="space-y-4">
-                    <div class="border border-slate-200 rounded-2xl p-5">
+                    <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50">
                         <h3 class="font-bold text-slate-900 text-sm mb-2 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-secondary text-[18px]">schedule</span>
-                            Franja Horaria y Descanso
+                            <span class="material-symbols-outlined text-secondary text-[18px]">date_range</span>
+                            Vista Mensual y Semanal
                         </h3>
                         <p class="text-xs text-slate-600 leading-relaxed mb-3">
-                            En la sección de Ajustes puedes establecer tu horario de apertura (ej. 09:00), cierre (ej. 19:00) y pausa de almuerzo/descanso. Durante el descanso, el sistema omitirá automáticamente la generación de turnos.
+                            Puedes alternar entre la vista <strong>Calendario Mensual</strong> (ideal para visualizar todo el mes) y la vista <strong>Calendario Semanal</strong> (ideal para ver profesionales en columnas paralelas).
                         </p>
                     </div>
 
-                    <div class="border border-slate-200 rounded-2xl p-5">
+                    <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50">
                         <h3 class="font-bold text-slate-900 text-sm mb-2 flex items-center gap-2">
                             <span class="material-symbols-outlined text-secondary text-[18px]">block</span>
-                            Bloqueo Manual de Días y Horarios
+                            Bloqueo Manual de Horarios Específicos
                         </h3>
                         <p class="text-xs text-slate-600 leading-relaxed">
-                            Si deseas tomarte un feriado o bloquear un horario específico, ingresa a <strong>Gestionar Calendario</strong>, selecciona la fecha e indica los horarios a bloquear. Quedarán inhabilitados para reservas del público.
+                            Para bloquear un día completo o una hora particular (ejemplo: feriado o trámite personal), haz clic en el botón <strong>"Seleccionar días"</strong> o selecciona una celda en el calendario para marcarlo como Inhabilitado.
                         </p>
                     </div>
                 </div>
@@ -258,18 +261,18 @@
                 <div>
                     <h2 class="text-2xl font-bold text-slate-900 mb-2 flex items-center gap-2">
                         <span class="material-symbols-outlined text-[#d11149] text-2xl">content_cut</span>
-                        Catálogo de Servicios & Duraciones
+                        Menú de Servicios & Carga en Horas/Minutos
                     </h2>
-                    <p class="text-slate-500 text-sm">Carga el menú de prestaciones ofrecidas a tus clientes.</p>
+                    <p class="text-slate-500 text-sm">Carga tus prestaciones y tiempos de atención.</p>
                 </div>
 
                 <div class="bg-pink-50 border border-pink-200 rounded-2xl p-5">
                     <h3 class="font-bold text-pink-900 text-sm mb-2 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-pink-700 text-[18px]">timer</span>
-                        Carga de Duración en Horas y Minutos
+                        <span class="material-symbols-outlined text-pink-700 text-[18px]">more_time</span>
+                        Ingreso de Duraciones en Horas y Minutos
                     </h3>
                     <p class="text-xs text-pink-800 leading-relaxed">
-                        Para evitar convertir horas a minutos mentalmente, el formulario de servicios permite ingresar la duración expresada en <strong>horas y minutos</strong> (ejemplo: 1 hora y 45 minutos), calculando automáticamente la suma total de bloques en el calendario.
+                        En el panel de Servicios puedes especificar la duración seleccionando <strong>Horas y Minutos</strong> (ej. 1 hora 30 minutos). El sistema calculará internamente la ocupación de bloques en la grilla sin requerir cálculos matemáticos.
                     </p>
                 </div>
             </div>
@@ -281,18 +284,18 @@
                 <div>
                     <h2 class="text-2xl font-bold text-slate-900 mb-2 flex items-center gap-2">
                         <span class="material-symbols-outlined text-purple-600 text-2xl">group</span>
-                        Equipo de Trabajo & Cuentas de Acceso
+                        Equipo de Trabajo & Accesos por Profesional
                     </h2>
-                    <p class="text-slate-500 text-sm">Administra los profesionales de tu local.</p>
+                    <p class="text-slate-500 text-sm">Crea cuentas independientes para cada integrante de tu staff.</p>
                 </div>
 
                 <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50">
                     <h3 class="font-bold text-slate-900 text-sm mb-2 flex items-center gap-2">
                         <span class="material-symbols-outlined text-purple-600 text-[18px]">badge</span>
-                        Gestión de Cuentas de Profesionales
+                        Cuentas Individuales de Acceso
                     </h3>
                     <p class="text-xs text-slate-600 leading-relaxed">
-                        En el Plan Premium puedes crear cuentas individuales para cada profesional de tu equipo con su propio email y contraseña. Los profesionales pueden acceder a su propia agenda virtual sin ver la información financiera general del negocio.
+                        Cada profesional que crees tendrá su propio correo y contraseña para iniciar sesión en la plataforma. Podrá administrar sus turnos desde su propio celular respetando los límites de su cuenta.
                     </p>
                 </div>
             </div>
@@ -304,18 +307,18 @@
                 <div>
                     <h2 class="text-2xl font-bold text-slate-900 mb-2 flex items-center gap-2">
                         <span class="material-symbols-outlined text-emerald-500 text-2xl">dvr</span>
-                        Mi Página Web Pública
+                        Personalización de tu Página Web Pública
                     </h2>
-                    <p class="text-slate-500 text-sm">Personaliza la vitrina digital donde tus clientes reservan sus turnos.</p>
+                    <p class="text-slate-500 text-sm">Configura la cara visible de tu comercio.</p>
                 </div>
 
                 <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50">
                     <h3 class="font-bold text-slate-900 text-sm mb-2 flex items-center gap-2">
                         <span class="material-symbols-outlined text-emerald-600 text-[18px]">palette</span>
-                        Personalización de Portada y Colores
+                        Imagen de Marca, Portada y Enlace Público
                     </h3>
                     <p class="text-xs text-slate-600 leading-relaxed">
-                        Desde el panel <strong>Mi Página Web</strong> puedes subir el logo de tu comercio, cambiar la foto de portada, definir tu color de marca primario y secundario, y compartir tu enlace público (ejemplo: <code>agendatina.site/tu-local</code>).
+                        Sube tu logotipo oficial, cambia la portada, define tu paleta de colores (primario y secundario) y comparte tu link directo a tus clientes en redes sociales y WhatsApp.
                     </p>
                 </div>
             </div>
@@ -330,10 +333,40 @@
     </footer>
 
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Obtener el plan activo del usuario y marcar la insignia dinámica
+            fetch('backend/perfil.php')
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.success && data.business) {
+                        const planName = (data.business.plan || 'Basico').toLowerCase();
+                        
+                        const badgeSimple = document.getElementById('badgePlanSimple');
+                        const badgePro = document.getElementById('badgePlanProfesional');
+                        const badgePrem = document.getElementById('badgePlanPremium');
+
+                        const boxSimple = document.getElementById('boxPlanSimple');
+                        const boxPro = document.getElementById('boxPlanProfesional');
+                        const boxPrem = document.getElementById('boxPlanPremium');
+
+                        if (planName.includes('basico') || planName.includes('simple')) {
+                            if (badgeSimple) { badgeSimple.classList.remove('hidden'); badgeSimple.textContent = '🟢 TU PLAN ACTIVO'; }
+                            if (boxSimple) boxSimple.className = 'border-2 border-emerald-500 rounded-2xl p-6 bg-emerald-50/20 relative shadow-md';
+                        } else if (planName.includes('intermedio') || planName.includes('profesional')) {
+                            if (badgePro) { badgePro.classList.remove('hidden'); badgePro.textContent = '🟢 TU PLAN ACTIVO'; }
+                            if (boxPro) boxPro.className = 'border-2 border-emerald-500 rounded-2xl p-6 bg-emerald-50/20 relative shadow-md';
+                        } else if (planName.includes('completo') || planName.includes('premium')) {
+                            if (badgePrem) { badgePrem.classList.remove('hidden'); badgePrem.textContent = '🟢 TU PLAN ACTIVO'; }
+                            if (boxPrem) boxPrem.className = 'border-2 border-emerald-500 rounded-2xl p-6 bg-emerald-50/20 relative shadow-md';
+                        }
+                    }
+                }).catch(() => {});
+        });
+
         function switchTab(tabId) {
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('active');
-                btn.classList.add('text-[#475569]');
+                btn.classList.add('text-slate-700');
             });
             document.querySelectorAll('.tab-content').forEach(content => {
                 content.classList.add('hidden');
@@ -344,6 +377,7 @@
 
             if (targetBtn && targetSec) {
                 targetBtn.classList.add('active');
+                targetBtn.classList.remove('text-slate-700');
                 targetSec.classList.remove('hidden');
             }
         }

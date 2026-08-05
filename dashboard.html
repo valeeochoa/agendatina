@@ -99,11 +99,15 @@
                 <a href="ajustes.html" class="px-5 py-2.5 rounded-xl text-white text-sm font-bold transition-transform hover:-translate-y-0.5 bg-red-600 hover:bg-red-700 whitespace-nowrap text-center w-full sm:w-auto">Configurar Días</a>
             </div>
 
-            <div class="mb-10 flex justify-between items-start flex-wrap gap-4">
+            <div class="mb-10 flex justify-between items-center flex-wrap gap-4">
                 <div>
                     <h1 class="text-3xl font-extrabold font-display mb-2" id="dashGreeting">¡Hola, bienvenido!</h1>
                     <p class="text-slate-500" id="dashSubGreeting">¿Qué deseas hacer hoy? Gestiona tu negocio desde aquí.</p>
                 </div>
+                <button onclick="startTour()" class="bg-primary/10 hover:bg-primary/20 text-primary font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 shadow-xs border border-primary/20">
+                    <span class="material-symbols-outlined text-[18px]">explore</span>
+                    <span>Recorrido Virtual</span>
+                </button>
             </div>
             
             <!-- Banner de Verificación de Cuenta por Correo (Código 15 min) -->
@@ -176,75 +180,7 @@
                             </button>
                         </div>
                     </div>
-                <            <!-- Resumen Visual de Planes y Precios -->
-            <div id="pricingSummaryBox" class="mb-10 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden border border-slate-700/50">
-                <div class="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-                    <span class="material-symbols-outlined text-9xl text-primary">sell</span>
                 </div>
-                
-                <div class="relative z-10">
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 border-b border-slate-700/60 pb-4">
-                        <div>
-                            <span class="px-3 py-1 rounded-full bg-primary/20 text-primary border border-primary/30 text-xs font-black uppercase tracking-wider inline-block mb-2">⭐ Planes & Tarifas Agendatina</span>
-                            <h2 class="text-xl sm:text-2xl font-extrabold font-display">Resumen Visual de Suscripción</h2>
-                        </div>
-                        <a href="index.html#precios" target="_blank" class="text-xs font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-600 px-4 py-2 rounded-xl transition-all flex items-center gap-1.5">
-                            <span>Ver detalles en web</span>
-                            <span class="material-symbols-outlined text-[16px]">open_in_new</span>
-                        </a>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-                        <!-- Plan Simple -->
-                        <div class="bg-white/5 border border-white/10 hover:border-primary/50 p-5 rounded-2xl transition-all flex flex-col justify-between relative group">
-                            <span class="absolute top-3 right-3 text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">10% OFF</span>
-                            <div>
-                                <h3 class="text-base font-extrabold text-white mb-1">Plan Simple</h3>
-                                <p class="text-xs text-slate-400 mb-3">Ideal para comenzar tu agenda online</p>
-                            </div>
-                            <div class="mt-2 pt-3 border-t border-white/10 flex items-baseline justify-between">
-                                <div>
-                                    <span class="text-xs text-slate-400 line-through mr-2">$8.889</span>
-                                    <span class="text-xl font-black text-white font-display">$8.000</span>
-                                </div>
-                                <span class="text-[11px] font-bold text-slate-400">/ mes</span>
-                            </div>
-                        </div>
-
-                        <!-- Plan Profesional -->
-                        <div class="bg-white/10 border-2 border-primary/60 p-5 rounded-2xl transition-all flex flex-col justify-between relative shadow-lg shadow-primary/10">
-                            <span class="absolute top-3 right-3 text-[10px] font-black uppercase bg-primary text-white px-2 py-0.5 rounded-full shadow-sm">Popular • 10% OFF</span>
-                            <div>
-                                <h3 class="text-base font-extrabold text-white mb-1">Plan Profesional</h3>
-                                <p class="text-xs text-slate-300 mb-3">Notificaciones y servicios ilimitados</p>
-                            </div>
-                            <div class="mt-2 pt-3 border-t border-white/10 flex items-baseline justify-between">
-                                <div>
-                                    <span class="text-xs text-slate-400 line-through mr-2">$12.222</span>
-                                    <span class="text-2xl font-black text-primary font-display">$11.000</span>
-                                </div>
-                                <span class="text-[11px] font-bold text-slate-300">/ mes</span>
-                            </div>
-                        </div>
-
-                        <!-- Plan Premium -->
-                        <div class="bg-white/5 border border-white/10 hover:border-primary/50 p-5 rounded-2xl transition-all flex flex-col justify-between relative group">
-                            <span class="absolute top-3 right-3 text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">10% OFF</span>
-                            <div>
-                                <h3 class="text-base font-extrabold text-white mb-1">Plan Premium</h3>
-                                <p class="text-xs text-slate-400 mb-3">Equipo completo y mini web propia</p>
-                            </div>
-                            <div class="mt-2 pt-3 border-t border-white/10 flex items-baseline justify-between">
-                                <div>
-                                    <span class="text-xs text-slate-400 line-through mr-2">$16.667</span>
-                                    <span class="text-xl font-black text-white font-display">$15.000</span>
-                                </div>
-                                <span class="text-[11px] font-bold text-slate-400">/ mes</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Grilla Principal de Tarjetas (4 Filas) -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
