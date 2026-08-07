@@ -48,13 +48,13 @@ window.loadDashboardData = function() {
                 }
             }
 
-            if (isDemo || !sessionStorage.getItem('agendatina_welcome_shown')) {
+            if (isDemo || localStorage.getItem('agendatina_tour_completed') !== 'true' || !sessionStorage.getItem('agendatina_welcome_shown')) {
                 sessionStorage.setItem('agendatina_welcome_shown', 'true');
                 setTimeout(() => {
                     if (typeof window.openWelcomeNewAccountModal === 'function') {
                         window.openWelcomeNewAccountModal();
                     }
-                }, 500);
+                }, 600);
             }
 
             const rol = window.currentUserData.rol_en_local;
@@ -454,11 +454,11 @@ function showLegacyTourStep(index, doScroll = true) {
     currentTourTarget = target;
     window.previousTourTarget = target;
 
-    // Elevar target actual sobre el fondo oscuro (z-index: 101 > overlay: 100)
+    // Elevar target actual sobre el fondo oscuro (z-index: 201 > overlay: 200)
     target.style.position = 'relative';
-    target.style.zIndex = '101';
+    target.style.zIndex = '201';
     const nav = target.closest('nav');
-    if (nav) nav.style.zIndex = '101';
+    if (nav) nav.style.zIndex = '201';
 
     const executeStep = () => {
         const rect = target.getBoundingClientRect();
