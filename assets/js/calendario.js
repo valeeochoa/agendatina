@@ -2657,7 +2657,6 @@ function checkAdminCalendarSession(config = null) {
     if (brand) { brand.classList.remove('hidden'); brand.style.display = 'flex'; }
     if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
     if (btnVolver) { btnVolver.classList.remove('hidden'); btnVolver.style.display = 'flex'; }
-    if (bugBtn) { bugBtn.classList.remove('hidden'); bugBtn.style.display = 'flex'; }
     if (logoutBtn) { logoutBtn.classList.remove('hidden'); logoutBtn.style.display = 'flex'; }
     if (bizHeader) { bizHeader.classList.remove('hidden'); bizHeader.style.display = 'flex'; }
 
@@ -2681,6 +2680,16 @@ function checkAdminCalendarSession(config = null) {
             }
         } else {
             isDemo = (!negocioSlug || negocioSlug === 'demo' || sessionStorage.getItem('is_demo') === 'true');
+        }
+
+        if (bugBtn) {
+            if (isDemo) {
+                bugBtn.classList.add('hidden');
+                bugBtn.style.display = 'none';
+            } else {
+                bugBtn.classList.remove('hidden');
+                bugBtn.style.display = 'flex';
+            }
         }
 
         if (sessionBadge) {

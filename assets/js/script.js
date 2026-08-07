@@ -2778,12 +2778,14 @@ function checkAdminGlobalSession(config = null) {
     fetch('backend/perfil.php')
     .then(res => res.json())
     .then(data => {
+        let isDemo = false;
         if (data && data.success && data.business) {
-            const isDemo = (data.business.is_demo === true) || 
-                           (data.user && data.user.email && data.user.email.includes('demo')) || 
-                           (data.business.ruta === 'demo') || 
-                           (config && config.is_demo === true);
-                           
+            isDemo = (data.business.is_demo === true) || 
+                     (data.user && data.user.email && data.user.email.includes('demo')) || 
+                     (data.business.ruta === 'demo') || 
+                     (config && config.is_demo === true) ||
+                     sessionStorage.getItem('is_demo') === 'true';
+
             const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
             const urlParams = new URLSearchParams(window.location.search);
             const negocioSlug = urlParams.get('n') || window.location.pathname.split('/')[1] || '';
@@ -2832,14 +2834,21 @@ function checkAdminGlobalSession(config = null) {
                         }
                     }
                 }
-
-                // Asegurar que los botones de reporte permanezcan visibles
-                document.querySelectorAll('#navReportBugBtn, #btnReportarErrorAgenda').forEach(btn => {
-                    btn.classList.remove('hidden');
-                    btn.style.display = '';
-                });
             }
+        } else {
+            isDemo = (sessionStorage.getItem('is_demo') === 'true' || window.location.search.includes('n=demo'));
         }
+
+        // Si la sesión es demo, ocultar botón de reportar error. Si es un negocio real, mostrarlo.
+        document.querySelectorAll('#navReportBugBtn, #btnReportarErrorAgenda').forEach(btn => {
+            if (isDemo) {
+                btn.classList.add('hidden');
+                btn.style.display = 'none';
+            } else {
+                btn.classList.remove('hidden');
+                btn.style.display = 'flex';
+            }
+        });
     })
     .catch(() => null);
 }
