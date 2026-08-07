@@ -216,7 +216,7 @@ if ($shouldReset && $negocioId) {
         ['nombre' => 'Marcos Gómez', 'email' => 'marcos@agendatina.site', 'rol' => 'profesional']
     ];
 
-    $pdo->prepare("UPDATE negocios SET max_profesionales = 10, plan = 'Premium' WHERE id = ?")->execute([$negocioId]);
+    $pdo->prepare("UPDATE negocios SET max_profesionales = 5, plan = 'Premium' WHERE id = ?")->execute([$negocioId]);
 
     foreach ($profsDemo as $pDemo) {
         try {

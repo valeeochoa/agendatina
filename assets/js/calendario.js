@@ -2722,8 +2722,17 @@ function checkAdminCalendarSession(config = null) {
     });
 }
 
+// Ocultar pantalla de carga de seguridad tras 800ms para garantizar visibilidad del header
+setTimeout(() => {
+    const gl = document.getElementById('globalLoader');
+    if (gl) {
+        gl.classList.add('opacity-0');
+        setTimeout(() => gl.classList.add('hidden'), 200);
+    }
+}, 800);
+
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setTimeout(checkAdminCalendarSession, 100);
+    setTimeout(checkAdminCalendarSession, 50);
 } else {
     document.addEventListener('DOMContentLoaded', checkAdminCalendarSession);
 }
