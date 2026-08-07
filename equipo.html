@@ -251,6 +251,7 @@
 
         function renderTeamGrid(team, services, limit) {
             const grid = document.getElementById('teamGrid');
+            if (!grid) return;
             if (team.length === 0) {
                 grid.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm border border-dashed border-slate-200 rounded-2xl col-span-full">No tienes cuentas de profesionales registradas. Haz clic en "Agregar Profesional" para crear la primera.</div>';
                 return;
