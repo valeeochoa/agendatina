@@ -48,13 +48,16 @@ window.loadDashboardData = function() {
                 }
             }
 
-            if (isDemo || localStorage.getItem('agendatina_tour_completed') !== 'true' || !sessionStorage.getItem('agendatina_welcome_shown')) {
-                sessionStorage.setItem('agendatina_welcome_shown', 'true');
-                setTimeout(() => {
-                    if (typeof window.openWelcomeNewAccountModal === 'function') {
-                        window.openWelcomeNewAccountModal();
-                    }
-                }, 600);
+            // Cartel de bienvenida: NUNCA en modo Demo, SOLAMENTE por única vez en cuentas reales
+            if (!isDemo) {
+                const bizId = (window.currentBusinessData && window.currentBusinessData.id) || 'real_business';
+                if (localStorage.getItem('agendatina_welcome_shown_' + bizId) !== 'true') {
+                    setTimeout(() => {
+                        if (typeof window.openWelcomeNewAccountModal === 'function') {
+                            window.openWelcomeNewAccountModal();
+                        }
+                    }, 600);
+                }
             }
 
             const rol = window.currentUserData.rol_en_local;
@@ -214,7 +217,9 @@ const legacyTourSteps = [
     { target: 'cardManual', title: '8. Manual de Uso', text: 'Guía interactiva completa con explicaciones paso a paso de cada módulo y alcance por plan.', position: 'left' },
     { target: 'cardFaq', title: '9. Consultas Frecuentes', text: 'Accede a preguntas frecuentes y respuestas rápidas sobre la plataforma.', position: 'left' },
     { target: 'cardMejora', title: '10. Sugerencias y Mejoras', text: 'Envía comentarios o sugerencias directamente a nuestro equipo de desarrollo.', position: 'top' },
-    { target: 'navAvatar', title: '11. Mi Perfil', text: 'Haz clic en tu perfil para configurar tus datos de usuario, ver estadísticas rápidas y cambiar tu contraseña.', position: 'bottom' }
+    { target: 'navAvatar', title: '11. Mi Perfil', text: 'Haz clic en tu perfil para configurar tus datos de usuario, ver estadísticas rápidas y cambiar tu contraseña.', position: 'bottom' },
+    { target: 'navNotifBtn', title: '12. Notificaciones 🔔', text: 'Consulta en tiempo real las notificaciones de nuevas reservas, cancelaciones o cambios en tus turnos.', position: 'bottom' },
+    { target: 'navLogoutBtn', title: '13. Cerrar Sesión 🚪', text: 'Haz clic aquí para salir de tu cuenta de forma segura al finalizar tus tareas.', position: 'bottom' }
 ];
 
 window.markOnboardingStepComplete = function(stepNumber, isCompleted) {
@@ -245,9 +250,21 @@ window.markOnboardingStepComplete = function(stepNumber, isCompleted) {
 };
 
 window.openWelcomeNewAccountModal = function() {
+    // Si la cuenta es demo, NUNCA mostrar el modal de bienvenida
+    const isDemo = (window.currentUserData && (window.currentUserData.email === 'demo@agendatina.site' || window.currentUserData.email.includes('demo'))) || (window.currentBusinessData && (window.currentBusinessData.ruta === 'demo' || window.currentBusinessData.is_demo));
+    if (isDemo) return;
+
     const modal = document.getElementById('welcomeNewAccountModal');
     const content = document.getElementById('welcomeNewAccountContent');
     if (!modal) return;
+
+    const bizId = (window.currentBusinessData && window.currentBusinessData.id) || 'real_business';
+    localStorage.setItem('agendatina_welcome_shown_' + bizId, 'true');
+
+    if (window.currentBusinessData && window.currentBusinessData.nombre_fantasia) {
+        const bNameEl = document.getElementById('welcomeBusinessName');
+        if (bNameEl) bNameEl.textContent = window.currentBusinessData.nombre_fantasia;
+    }
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -272,6 +289,9 @@ window.closeWelcomeNewAccountModal = function() {
     const modal = document.getElementById('welcomeNewAccountModal');
     const content = document.getElementById('welcomeNewAccountContent');
     if (!modal) return;
+
+    const bizId = (window.currentBusinessData && window.currentBusinessData.id) || 'real_business';
+    localStorage.setItem('agendatina_welcome_shown_' + bizId, 'true');
 
     modal.classList.add('opacity-0');
     if (content) content.classList.add('scale-95');
@@ -300,7 +320,7 @@ window.startTour = function() {
         onboardingContainer.id = 'tourOnboardingContainer';
         onboardingContainer.innerHTML = `
             <div id="tourOverlay" class="fixed inset-0 bg-slate-900/70 backdrop-blur-xs z-[200] transition-opacity duration-300 hidden opacity-0" onclick="endTour()"></div>
-            <div id="tourHighlight" class="fixed pointer-events-none z-[201] border-2 border-primary transition-all duration-300 shadow-[0_0_20px_rgba(209,17,73,0.5)] hidden opacity-0"></div>
+            <div id="tourHighlight" class="fixed pointer-events-none z-[201] bg-white border-2 border-primary transition-all duration-300 shadow-[0_0_30px_rgba(209,17,73,0.5)] hidden opacity-0"></div>
             <div id="tourTooltip" class="fixed bg-white rounded-3xl shadow-2xl p-6 border border-slate-100 max-w-sm w-[calc(100%-2rem)] sm:w-80 hidden z-[202] transition-all duration-300 opacity-0 scale-95">
                 <div id="tourArrow" class="absolute w-3 h-3 bg-white border border-slate-200 transform rotate-45 shadow-sm"></div>
                 <div class="relative z-10">
@@ -454,11 +474,11 @@ function showLegacyTourStep(index, doScroll = true) {
     currentTourTarget = target;
     window.previousTourTarget = target;
 
-    // Elevar target actual sobre el fondo oscuro (z-index: 201 > overlay: 200)
+    // Elevar target actual sobre el marco blanco y fondo oscuro (z-index: 202 > highlight: 201 > overlay: 200)
     target.style.position = 'relative';
-    target.style.zIndex = '201';
+    target.style.zIndex = '202';
     const nav = target.closest('nav');
-    if (nav) nav.style.zIndex = '201';
+    if (nav) nav.style.zIndex = '202';
 
     const executeStep = () => {
         const rect = target.getBoundingClientRect();
@@ -666,32 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Modal de Bienvenida para Cuentas Nuevas
-window.openWelcomeNewAccountModal = function() {
-    const modal = document.getElementById('welcomeNewAccountModal');
-    const content = document.getElementById('welcomeNewAccountContent');
-    if (!modal || !content) return;
 
-    if (window.currentBusinessData && window.currentBusinessData.nombre_fantasia) {
-        const bNameEl = document.getElementById('welcomeBusinessName');
-        if (bNameEl) bNameEl.textContent = window.currentBusinessData.nombre_fantasia;
-    }
-
-    modal.classList.remove('hidden');
-    setTimeout(() => {
-        modal.classList.remove('opacity-0');
-        content.classList.remove('scale-95');
-    }, 10);
-};
-
-window.closeWelcomeNewAccountModal = function() {
-    const modal = document.getElementById('welcomeNewAccountModal');
-    const content = document.getElementById('welcomeNewAccountContent');
-    if (!modal || !content) return;
-    modal.classList.add('opacity-0');
-    content.classList.add('scale-95');
-    setTimeout(() => { modal.classList.add('hidden'); }, 300);
-};
 
 // Tour Virtual Guiado Interactivo
 window.startGuidedVirtualTour = window.startTour;

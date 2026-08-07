@@ -77,6 +77,9 @@ window.updateIntervalHelpText = function() {
     }
 };
 
+/* =========================================================================
+   FUNCIONES DE WHATSAPP (MODULO RESERVADO PARA IMPLEMENTACION FUTURA)
+   =========================================================================
 window.generarWaQr = function() {
     const container = document.getElementById('waQrContainer');
     const status = document.getElementById('waQrStatus');
@@ -96,6 +99,9 @@ window.generarWaQr = function() {
         }
     }, 1000);
 };
+*/
+
+
 
 function handleCalendarConfigSubmit(e) {
     e.preventDefault();
