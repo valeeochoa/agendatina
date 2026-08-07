@@ -32,6 +32,17 @@ if ($id_negocio) {
     $nombre_negocio = $stmtN->fetchColumn() ?: 'Usuario Desconocido';
 }
 
+// Determinar el tipo exacto según el formulario que envió la solicitud
+if ($action === 'report_error') {
+    $tipoReporte = 'Reporte de Error';
+    $prefixNotif = 'Reporte de Error: ';
+    $subjectPrefix = '[Agendatina] REPORTE DE ERROR';
+} else {
+    $tipoReporte = 'Sugerencia / Mejora';
+    $prefixNotif = 'Sugerencia / Mejora: ';
+    $subjectPrefix = '[Agendatina] SUGERENCIA / MEJORA';
+}
+
 try {
     // Asegurar tabla notificaciones_admin
     try { $pdo->query("SELECT 1 FROM notificaciones_admin LIMIT 1"); } 
@@ -73,15 +84,15 @@ try {
         catch(Exception $e) { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN $col $tipo"); }
     }
 
-    // 1. Insertar en reportes_error como Sugerencia / Mejora
+    // 1. Insertar en reportes_error con el tipo correspondiente (Reporte de Error o Sugerencia / Mejora)
     try {
-        $stmtRep = $pdo->prepare("INSERT INTO reportes_error (id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario, tipo, modulo, descripcion) VALUES (?, ?, ?, ?, ?, ?, 'Sugerencia / Mejora', ?, ?)");
-        $stmtRep->execute([$id_negocio, $nombre_negocio, $id_usuario, $nombre_usuario, $email_usuario, $rol_usuario, $segmento, $mensaje]);
+        $stmtRep = $pdo->prepare("INSERT INTO reportes_error (id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario, tipo, modulo, descripcion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmtRep->execute([$id_negocio, $nombre_negocio, $id_usuario, $nombre_usuario, $email_usuario, $rol_usuario, $tipoReporte, $segmento, $mensaje]);
     } catch (Exception $eRep) {}
 
-    // 2. Insertar en notificaciones_admin
+    // 2. Insertar en notificaciones_admin con prefijo correspondiente
     $stmt = $pdo->prepare("INSERT INTO notificaciones_admin (segmento, mensaje, id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->execute(["Sugerencia / Mejora: " . $segmento, $mensaje, $id_negocio, $nombre_negocio, $id_usuario, $nombre_usuario, $email_usuario, $rol_usuario]);
+    $stmt->execute([$prefixNotif . $segmento, $mensaje, $id_negocio, $nombre_negocio, $id_usuario, $nombre_usuario, $email_usuario, $rol_usuario]);
 
     // Intentar enviar el correo (Aislado para que no rompa el guardado si el servidor SMTP falla)
     try {
@@ -100,8 +111,8 @@ try {
         $mail->addAddress('soportes@agendatina.site'); // Correo de soportes
         $mail->addAddress('vochoaolguin@gmail.com'); // Correo del SuperAdmin
         $mail->isHTML(true);
-        $mail->Subject = "Nuevo Soporte: $segmento";
-        $mail->Body = "<h3>Nuevo mensaje de $segmento</h3><p><strong>ID Negocio:</strong> " . ($id_negocio ?? 'No identificado (Sesión Expirada)') . "</p><p><strong>Mensaje:</strong><br/>" . nl2br(htmlspecialchars($mensaje)) . "</p>";
+        $mail->Subject = "$subjectPrefix: $segmento ($nombre_negocio)";
+        $mail->Body = "<h3>$tipoReporte en $segmento</h3><p><strong>Negocio:</strong> " . htmlspecialchars($nombre_negocio) . " (ID: " . ($id_negocio ?? 'N/A') . ")</p><p><strong>Usuario:</strong> " . htmlspecialchars($nombre_usuario) . " (" . htmlspecialchars($email_usuario) . ")</p><p><strong>Mensaje:</strong><br/>" . nl2br(htmlspecialchars($mensaje)) . "</p>";
         $mail->send();
     } catch (PHPMailerException $mailEx) {
         // Falló el email, pero el reporte ya está en la Base de Datos a salvo
