@@ -2652,12 +2652,19 @@ function checkAdminCalendarSession(config = null) {
         let isOwnerSession = false;
         let isDemo = false;
 
+        const hasActiveSession = sessionStorage.getItem('agendatina_session') === 'active' || sessionStorage.getItem('is_demo') === 'true';
+
         if (data && data.success && data.business) {
-            isDemo = (data.business.is_demo === true) || (data.user && data.user.email === 'demo@agendatina.site') || (data.business.ruta === 'demo') || (config && config.is_demo === true);
+            isDemo = (data.business.is_demo === true) || 
+                     (data.user && data.user.email === 'demo@agendatina.site') || 
+                     (data.business.ruta === 'demo') || 
+                     (config && config.is_demo === true) ||
+                     sessionStorage.getItem('is_demo') === 'true';
+
             const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
             const currentRuta = (negocioSlug || (config ? config.ruta || config.subdominio : '') || '').toLowerCase().trim();
             
-            if (isDemo || !currentRuta || loggedRuta === currentRuta || (config && data.business.id == config.id_negocio)) {
+            if (isDemo || hasActiveSession || !currentRuta || currentRuta === 'demo' || loggedRuta === currentRuta || (config && data.business.id == config.id_negocio)) {
                 isOwnerSession = true;
             }
 
@@ -2667,6 +2674,8 @@ function checkAdminCalendarSession(config = null) {
                 bizLogo.classList.remove('hidden');
             }
             if (bizHeader) { bizHeader.classList.remove('hidden'); bizHeader.style.display = 'flex'; }
+        } else if (hasActiveSession || !negocioSlug || negocioSlug === 'demo') {
+            isOwnerSession = true;
         }
 
         if (brand) { brand.classList.remove('hidden'); brand.style.display = 'flex'; }
@@ -2682,7 +2691,7 @@ function checkAdminCalendarSession(config = null) {
                 sessionBadge.classList.add('flex');
                 sessionBadge.style.display = 'flex';
                 const dot = sessionBadge.querySelector('span:first-child');
-                if (isDemo) {
+                if (isDemo || sessionStorage.getItem('is_demo') === 'true' || negocioSlug === 'demo') {
                     if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
                     if (sessionBadgeText) {
                         sessionBadgeText.textContent = 'Modo Demo';
@@ -2697,7 +2706,7 @@ function checkAdminCalendarSession(config = null) {
                 }
             }
         } else {
-            // Vista Cliente Público
+            // Vista Cliente Público puro
             if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
             if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
             if (logoutBtn) { logoutBtn.classList.add('hidden'); logoutBtn.style.display = 'none'; }
