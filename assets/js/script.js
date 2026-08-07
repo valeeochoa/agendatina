@@ -2833,18 +2833,11 @@ function checkAdminGlobalSession(config = null) {
                     }
                 }
 
-                // Ocultar botones de reportar error si estamos en modo Demo
-                if (isDemo) {
-                    document.querySelectorAll('#navReportBugBtn, #btnReportarErrorAgenda, button[onclick^="openReportErrorModal"]').forEach(btn => {
-                        btn.classList.add('hidden');
-                        btn.style.display = 'none';
-                    });
-                } else {
-                    document.querySelectorAll('#navReportBugBtn, #btnReportarErrorAgenda').forEach(btn => {
-                        btn.classList.remove('hidden');
-                        btn.style.display = '';
-                    });
-                }
+                // Asegurar que los botones de reporte permanezcan visibles
+                document.querySelectorAll('#navReportBugBtn, #btnReportarErrorAgenda').forEach(btn => {
+                    btn.classList.remove('hidden');
+                    btn.style.display = '';
+                });
             }
         }
     })
