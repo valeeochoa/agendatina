@@ -45,6 +45,11 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     try {
+        // Auto-reparación: Corregir tipo para reportes cuyos módulos no son sugerencias/mejoras
+        try {
+            $pdo->exec("UPDATE reportes_error SET tipo = 'Reporte de Error' WHERE modulo NOT LIKE '%Sugerencia%' AND modulo NOT LIKE '%Mejora%' AND (tipo IS NULL OR tipo = '' OR tipo = 'Sugerencia / Mejora')");
+        } catch(Exception $eFix) {}
+
         $stmt = $pdo->query("
             SELECT r.id, r.id_negocio, r.nombre_negocio, r.id_usuario, r.nombre_usuario, r.email_usuario, r.rol_usuario, r.tipo, r.modulo, r.descripcion, COALESCE(r.estado, 'pendiente') AS estado, r.fecha, n.ruta
             FROM reportes_error r
@@ -79,7 +84,11 @@ if ($method === 'GET') {
 
         $pendientes = 0;
         foreach ($reportes as $rep) {
-            if ($rep['estado'] === 'pendiente') $pendientes++;
+            $isMejora = ($rep['tipo'] && (strpos($rep['tipo'], 'Mejora') !== false || strpos($rep['tipo'], 'Sugerencia') !== false)) ||
+                        ($rep['modulo'] && (strpos($rep['modulo'], 'Mejora') !== false || strpos($rep['modulo'], 'Sugerencia') !== false));
+            if (!$isMejora && ($rep['estado'] ?? 'pendiente') === 'pendiente') {
+                $pendientes++;
+            }
         }
 
         echo json_encode([

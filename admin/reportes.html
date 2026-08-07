@@ -176,19 +176,26 @@
             const search = document.getElementById('searchInput').value.toLowerCase().trim();
             const status = document.getElementById('statusFilter').value;
 
-            const filtered = (reportesData || []).filter(r => {
-                // Excluir estrictamente sugerencias y mejoras de la vista de reportes de error
+            const errorReportesOnly = (reportesData || []).filter(r => {
                 const isMejora = (r.tipo && (r.tipo.includes('Mejora') || r.tipo.includes('Sugerencia'))) || 
                                  (r.modulo && (r.modulo.includes('Mejora') || r.modulo.includes('Sugerencia')));
-                if (isMejora) return false;
+                return !isMejora;
+            });
 
+            const pendingCount = errorReportesOnly.filter(r => (r.estado || 'pendiente') === 'pendiente').length;
+            const badge = document.getElementById('totalReportesBadge');
+            if (badge) {
+                badge.textContent = `${pendingCount} Pendientes (${errorReportesOnly.length} Total)`;
+            }
+
+            const filtered = errorReportesOnly.filter(r => {
                 const matchSearch = !search || 
                     (r.nombre_negocio && r.nombre_negocio.toLowerCase().includes(search)) ||
                     (r.email_usuario && r.email_usuario.toLowerCase().includes(search)) ||
                     (r.modulo && r.modulo.toLowerCase().includes(search)) ||
                     (r.descripcion && r.descripcion.toLowerCase().includes(search));
 
-                const matchStatus = !status || r.estado === status;
+                const matchStatus = !status || (r.estado || 'pendiente') === status;
                 return matchSearch && matchStatus;
             });
 
