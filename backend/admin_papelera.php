@@ -11,13 +11,30 @@ if ((!isset($_SESSION['is_superadmin']) || $_SESSION['is_superadmin'] !== true) 
 
 require_once __DIR__ . '/conexion.php';
 
-// Asegurar columna fecha_eliminado en la tabla negocios
+// Asegurar columnas de eliminación suave en las tablas del sistema
 try { $pdo->query("SELECT fecha_eliminado FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL"); }
 
-// Asegurar tabla notificaciones_admin o reportes si aplica
-try { $pdo->query("SELECT fecha_eliminado FROM notificaciones_admin LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE notificaciones_admin ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL"); }
+try { $pdo->query("SELECT fecha_eliminado FROM reportes_error LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL"); }
+
+try {
+    $pdo->query("SELECT estado FROM admin_tareas LIMIT 1");
+} catch(Exception $e) {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `admin_tareas` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `tarea` TEXT NOT NULL,
+        `estado` VARCHAR(20) DEFAULT 'pendiente',
+        `fecha_creacion` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        `fecha_cumplimiento` DATETIME DEFAULT NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+}
+
+try {
+    $pdo->query("SELECT estado FROM admin_notas LIMIT 1");
+} catch(Exception $e) {
+    $pdo->exec("ALTER TABLE admin_notas ADD COLUMN estado VARCHAR(20) DEFAULT 'activo', ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL");
+}
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -30,7 +47,7 @@ if ($method === 'GET') {
             LEFT JOIN personal_negocio pn ON n.id = pn.id_negocio AND pn.rol_en_local = 'admin'
             LEFT JOIN usuarios u ON pn.id_usuario = u.id
             WHERE n.estado_pago = 'eliminado' OR n.fecha_eliminado IS NOT NULL
-            ORDER BY n.fecha_eliminado DESC
+            ORDER BY COALESCE(n.fecha_eliminado, n.fecha_alta) DESC
         ");
         $empresasEliminadas = $stmtEmpresas->fetchAll(PDO::FETCH_ASSOC);
 
@@ -38,15 +55,52 @@ if ($method === 'GET') {
         $reportesEliminados = [];
         try {
             $stmtRep = $pdo->query("
-                SELECT id, modulo, descripcion, email_usuario AS cliente_email, estado, fecha 
+                SELECT id, modulo, descripcion, email_usuario AS cliente_email, estado, fecha, nombre_negocio 
                 FROM reportes_error 
-                WHERE estado = 'eliminado' 
+                WHERE estado = 'eliminado' AND (tipo IS NULL OR tipo = '' OR tipo = 'Reporte de Error' OR tipo LIKE '%Error%')
                 ORDER BY fecha DESC
             ");
             $reportesEliminados = $stmtRep->fetchAll(PDO::FETCH_ASSOC);
         } catch(Exception $eRep) {}
 
-        // 3. Comprobantes archivados / rechazados
+        // 3. Mejoras y Sugerencias eliminadas
+        $mejorasEliminadas = [];
+        try {
+            $stmtMej = $pdo->query("
+                SELECT id, modulo, descripcion, email_usuario AS cliente_email, estado, fecha, nombre_negocio 
+                FROM reportes_error 
+                WHERE estado = 'eliminado' AND (tipo LIKE '%Mejora%' OR tipo LIKE '%Sugerencia%' OR modulo LIKE '%Mejora%' OR modulo LIKE '%Sugerencia%')
+                ORDER BY fecha DESC
+            ");
+            $mejorasEliminadas = $stmtMej->fetchAll(PDO::FETCH_ASSOC);
+        } catch(Exception $eMej) {}
+
+        // 4. Tareas eliminadas
+        $tareasEliminadas = [];
+        try {
+            $stmtTar = $pdo->query("
+                SELECT id, tarea, estado, fecha_creacion, fecha_cumplimiento 
+                FROM admin_tareas 
+                WHERE estado = 'eliminado'
+                ORDER BY fecha_creacion DESC
+            ");
+            $tareasEliminadas = $stmtTar->fetchAll(PDO::FETCH_ASSOC);
+        } catch(Exception $eTar) {}
+
+        // 5. Notas eliminadas
+        $notasEliminadas = [];
+        try {
+            $stmtNot = $pdo->query("
+                SELECT an.id, an.id_negocio, n.nombre_fantasia AS nombre_negocio, an.nota, an.fecha, an.fecha_eliminado 
+                FROM admin_notas an
+                LEFT JOIN negocios n ON an.id_negocio = n.id
+                WHERE an.estado = 'eliminado'
+                ORDER BY an.fecha DESC
+            ");
+            $notasEliminadas = $stmtNot->fetchAll(PDO::FETCH_ASSOC);
+        } catch(Exception $eNot) {}
+
+        // 6. Comprobantes archivados / rechazados
         $comprobantesEliminados = [];
         try {
             $stmtComp = $pdo->query("
@@ -61,6 +115,9 @@ if ($method === 'GET') {
             'success' => true,
             'empresas' => $empresasEliminadas,
             'reportes' => $reportesEliminados,
+            'mejoras' => $mejorasEliminadas,
+            'tareas' => $tareasEliminadas,
+            'notas' => $notasEliminadas,
             'comprobantes' => $comprobantesEliminados
         ]);
     } catch (Exception $e) {
@@ -84,7 +141,6 @@ if ($method === 'GET') {
             echo json_encode(['success' => true, 'message' => 'Empresa restaurada exitosamente.']);
 
         } elseif ($action === 'purge_empresa' && $id > 0) {
-            // Eliminar registros asociados en cascada
             $pdo->prepare("DELETE FROM turnos WHERE id_negocio = ?")->execute([$id]);
             $pdo->prepare("DELETE FROM servicios WHERE id_negocio = ?")->execute([$id]);
             $pdo->prepare("DELETE FROM configuracion_web WHERE id_negocio = ?")->execute([$id]);
@@ -93,16 +149,32 @@ if ($method === 'GET') {
             echo json_encode(['success' => true, 'message' => 'Empresa eliminada definitivamente.']);
 
         } elseif ($action === 'restore_reporte' && $id > 0) {
-            $pdo->prepare("UPDATE reportes_error SET estado = 'pendiente' WHERE id = ?")->execute([$id]);
+            $pdo->prepare("UPDATE reportes_error SET estado = 'pendiente', fecha_eliminado = NULL WHERE id = ?")->execute([$id]);
             echo json_encode(['success' => true, 'message' => 'Reporte restaurado a pendiente.']);
 
         } elseif ($action === 'purge_reporte' && $id > 0) {
             $pdo->prepare("DELETE FROM reportes_error WHERE id = ?")->execute([$id]);
             echo json_encode(['success' => true, 'message' => 'Reporte eliminado definitivamente.']);
 
+        } elseif ($action === 'restore_tarea' && $id > 0) {
+            $pdo->prepare("UPDATE admin_tareas SET estado = 'pendiente', fecha_cumplimiento = NULL WHERE id = ?")->execute([$id]);
+            echo json_encode(['success' => true, 'message' => 'Tarea restaurada a pendientes.']);
+
+        } elseif ($action === 'purge_tarea' && $id > 0) {
+            $pdo->prepare("DELETE FROM admin_tareas WHERE id = ?")->execute([$id]);
+            echo json_encode(['success' => true, 'message' => 'Tarea eliminada definitivamente.']);
+
+        } elseif ($action === 'restore_nota' && $id > 0) {
+            $pdo->prepare("UPDATE admin_notas SET estado = 'activo', fecha_eliminado = NULL WHERE id = ?")->execute([$id]);
+            echo json_encode(['success' => true, 'message' => 'Nota restaurada exitosamente.']);
+
+        } elseif ($action === 'purge_nota' && $id > 0) {
+            $pdo->prepare("DELETE FROM admin_notas WHERE id = ?")->execute([$id]);
+            echo json_encode(['success' => true, 'message' => 'Nota eliminada definitivamente.']);
+
         } elseif ($action === 'empty_all_trash') {
-            // Eliminar todas las empresas en estado eliminado
-            $stmtElim = $pdo->query("SELECT id FROM negocios WHERE estado_pago = 'eliminado'");
+            // 1. Eliminar empresas en papelera
+            $stmtElim = $pdo->query("SELECT id FROM negocios WHERE estado_pago = 'eliminado' OR fecha_eliminado IS NOT NULL");
             $ids = $stmtElim->fetchAll(PDO::FETCH_COLUMN);
             foreach ($ids as $nId) {
                 $pdo->prepare("DELETE FROM turnos WHERE id_negocio = ?")->execute([$nId]);
@@ -111,7 +183,15 @@ if ($method === 'GET') {
                 $pdo->prepare("DELETE FROM personal_negocio WHERE id_negocio = ?")->execute([$nId]);
                 $pdo->prepare("DELETE FROM negocios WHERE id = ?")->execute([$nId]);
             }
+
+            // 2. Eliminar reportes en papelera
             try { $pdo->exec("DELETE FROM reportes_error WHERE estado = 'eliminado'"); } catch(Exception $e) {}
+
+            // 3. Eliminar tareas en papelera
+            try { $pdo->exec("DELETE FROM admin_tareas WHERE estado = 'eliminado'"); } catch(Exception $e) {}
+
+            // 4. Eliminar notas en papelera
+            try { $pdo->exec("DELETE FROM admin_notas WHERE estado = 'eliminado'"); } catch(Exception $e) {}
 
             echo json_encode(['success' => true, 'message' => 'Papelera General vaciada por completo.']);
         } else {

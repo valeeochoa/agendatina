@@ -44,6 +44,9 @@
                 <a href="mejoras.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
                     <span class="material-symbols-outlined text-[22px]">lightbulb</span> Sugerencias y Mejoras
                 </a>
+                <a href="notas.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                    <span class="material-symbols-outlined text-[22px]">sticky_note_2</span> Notas Recientes
+                </a>
                 <a href="comprobantes.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
                     <span class="material-symbols-outlined text-[22px]">receipt_long</span> Comprobantes de Pago
                 </a>
@@ -78,9 +81,9 @@
                     <span class="material-symbols-outlined text-[#d11149] text-3xl">delete_sweep</span>
                     Papelera General del Sistema
                 </h1>
-                <p class="text-xs sm:text-sm text-slate-500 mt-1">Empresas eliminadas, reportes descartados y comprobantes archivados.</p>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">Empresas eliminadas, reportes descartados, tareas canceladas y notas archivadas.</p>
             </div>
-            <button onclick="vaciarPapeleraGeneral()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2.5 rounded-2xl text-xs shadow-lg shadow-red-600/20 flex items-center gap-2 self-start sm:self-auto transition-all">
+            <button onclick="confirmVaciarPapelera()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2.5 rounded-2xl text-xs shadow-lg shadow-red-600/20 flex items-center gap-2 self-start sm:self-auto transition-all">
                 <span class="material-symbols-outlined text-[18px]">cleaning_services</span> Vaciar Papelera General
             </button>
         </div>
@@ -99,32 +102,69 @@
             </div>
         </div>
 
-        <!-- SECCIÓN 2: REPORTES Y OTROS ARCHIVOS -->
+        <!-- SECCIÓN 2: REPORTES, MEJORAS, TAREAS Y NOTAS -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Reportes de Error Descartados -->
             <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
                 <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
-                    <span class="material-symbols-outlined text-amber-500">bug_report</span> Reportes Descartados
+                    <span class="material-symbols-outlined text-red-500">bug_report</span> Reportes de Error Descartados
                 </h2>
                 <div id="reportesTrashList" class="space-y-3">
-                    <p class="text-center text-slate-400 py-6 text-xs">No hay reportes descartados.</p>
+                    <p class="text-center text-slate-400 py-6 text-xs">Sin reportes descartados.</p>
                 </div>
             </div>
 
-            <!-- Comprobantes Rechazados -->
+            <!-- Sugerencias y Mejoras Descartadas -->
             <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
                 <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
-                    <span class="material-symbols-outlined text-purple-600">receipt_long</span> Comprobantes Rechazados
+                    <span class="material-symbols-outlined text-amber-500">lightbulb</span> Sugerencias y Mejoras Descartadas
                 </h2>
-                <div id="comprobantesTrashList" class="space-y-3">
-                    <p class="text-center text-slate-400 py-6 text-xs">No hay comprobantes rechazados.</p>
+                <div id="mejorasTrashList" class="space-y-3">
+                    <p class="text-center text-slate-400 py-6 text-xs">Sin mejoras descartadas.</p>
+                </div>
+            </div>
+
+            <!-- Tareas Administrativas Eliminadas -->
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+                <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
+                    <span class="material-symbols-outlined text-blue-600">check_box</span> Tareas en Papelera
+                </h2>
+                <div id="tareasTrashList" class="space-y-3">
+                    <p class="text-center text-slate-400 py-6 text-xs">Sin tareas en la papelera.</p>
+                </div>
+            </div>
+
+            <!-- Notas Internas Eliminadas -->
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+                <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
+                    <span class="material-symbols-outlined text-emerald-600">sticky_note_2</span> Notas Internas Archivadas
+                </h2>
+                <div id="notasTrashList" class="space-y-3">
+                    <p class="text-center text-slate-400 py-6 text-xs">Sin notas archivadas.</p>
                 </div>
             </div>
         </div>
 
     </main>
 
+    <!-- Modal Confirmación Acción Destructiva -->
+    <div id="confirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl">
+            <div id="confirmIconContainer" class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-2xl" id="confirmIcon">delete_forever</span>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2" id="confirmTitle">¿Confirmar Acción?</h3>
+            <p class="text-xs text-slate-500 mb-6" id="confirmMessage">¿Estás seguro de realizar esta acción?</p>
+            <div class="flex gap-3">
+                <button onclick="closeConfirmModal()" class="flex-1 px-4 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl text-xs hover:bg-slate-200 transition-colors">Cancelar</button>
+                <button id="btnConfirmAction" class="flex-1 px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors shadow-lg shadow-red-600/30">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        let pendingActionCallback = null;
+
         document.addEventListener('DOMContentLoaded', () => {
             fetch('../backend/admin_auth.php')
                 .then(r => r.json())
@@ -141,7 +181,9 @@
                     if (data.success) {
                         renderEmpresasTrash(data.empresas || []);
                         renderReportesTrash(data.reportes || []);
-                        renderComprobantesTrash(data.comprobantes || []);
+                        renderMejorasTrash(data.mejoras || []);
+                        renderTareasTrash(data.tareas || []);
+                        renderNotasTrash(data.notas || []);
                     }
                 });
         }
@@ -194,12 +236,12 @@
                 html += `
                     <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3">
                         <div class="min-w-0 flex-1">
-                            <h5 class="font-bold text-slate-800 text-xs truncate">${r.modulo} - ${r.cliente_email || 'Anónimo'}</h5>
+                            <h5 class="font-bold text-slate-800 text-xs truncate">🐛 ${r.modulo || 'General'} - ${r.nombre_negocio || 'Sin Negocio'}</h5>
                             <p class="text-[11px] text-slate-500 truncate">${r.descripcion}</p>
                         </div>
                         <div class="flex items-center gap-1">
                             <button onclick="restaurarReporte(${r.id})" class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Restaurar"><span class="material-symbols-outlined text-[16px]">restore</span></button>
-                            <button onclick="purgarReporte(${r.id})" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Eliminar"><span class="material-symbols-outlined text-[16px]">delete</span></button>
+                            <button onclick="purgarReporte(${r.id})" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Eliminar Definitivo"><span class="material-symbols-outlined text-[16px]">delete_forever</span></button>
                         </div>
                     </div>
                 `;
@@ -207,57 +249,124 @@
             container.innerHTML = html;
         }
 
-        function renderComprobantesTrash(list) {
-            const container = document.getElementById('comprobantesTrashList');
+        function renderMejorasTrash(list) {
+            const container = document.getElementById('mejorasTrashList');
             if (list.length === 0) {
-                container.innerHTML = '<div class="p-4 text-center text-slate-400 text-xs border border-dashed border-slate-200 rounded-2xl">Sin comprobantes rechazados.</div>';
+                container.innerHTML = '<div class="p-4 text-center text-slate-400 text-xs border border-dashed border-slate-200 rounded-2xl">Sin mejoras descartadas.</div>';
                 return;
             }
             let html = '';
-            list.forEach(c => {
+            list.forEach(r => {
                 html += `
                     <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3">
                         <div class="min-w-0 flex-1">
-                            <h5 class="font-bold text-slate-800 text-xs truncate">${c.nombre_fantasia}</h5>
-                            <p class="text-[11px] text-red-500 font-bold">Estado: Rechazado</p>
+                            <h5 class="font-bold text-slate-800 text-xs truncate">💡 ${r.modulo || 'Sugerencia'} - ${r.nombre_negocio || 'Sin Negocio'}</h5>
+                            <p class="text-[11px] text-slate-500 truncate">${r.descripcion}</p>
                         </div>
-                        <button onclick="restaurarEmpresa(${c.id})" class="px-2.5 py-1 bg-emerald-50 text-emerald-700 font-bold text-[11px] rounded-lg border border-emerald-200">
-                            Revisar
-                        </button>
+                        <div class="flex items-center gap-1">
+                            <button onclick="restaurarReporte(${r.id})" class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Restaurar"><span class="material-symbols-outlined text-[16px]">restore</span></button>
+                            <button onclick="purgarReporte(${r.id})" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Eliminar Definitivo"><span class="material-symbols-outlined text-[16px]">delete_forever</span></button>
+                        </div>
                     </div>
                 `;
             });
             container.innerHTML = html;
         }
 
+        function renderTareasTrash(list) {
+            const container = document.getElementById('tareasTrashList');
+            if (list.length === 0) {
+                container.innerHTML = '<div class="p-4 text-center text-slate-400 text-xs border border-dashed border-slate-200 rounded-2xl">Sin tareas en la papelera.</div>';
+                return;
+            }
+            let html = '';
+            list.forEach(t => {
+                html += `
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                            <h5 class="font-bold text-slate-800 text-xs truncate line-through opacity-70">${t.tarea}</h5>
+                            <p class="text-[10px] text-slate-400">Cancelada</p>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button onclick="restaurarTarea(${t.id})" class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Restaurar"><span class="material-symbols-outlined text-[16px]">restore</span></button>
+                            <button onclick="purgarTarea(${t.id})" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Eliminar Definitivo"><span class="material-symbols-outlined text-[16px]">delete_forever</span></button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function renderNotasTrash(list) {
+            const container = document.getElementById('notasTrashList');
+            if (list.length === 0) {
+                container.innerHTML = '<div class="p-4 text-center text-slate-400 text-xs border border-dashed border-slate-200 rounded-2xl">Sin notas archivadas.</div>';
+                return;
+            }
+            let html = '';
+            list.forEach(n => {
+                html += `
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3">
+                        <div class="min-w-0 flex-1">
+                            <h5 class="font-bold text-slate-800 text-xs truncate">📝 ${n.nombre_negocio || 'Negocio'}</h5>
+                            <p class="text-[11px] text-slate-500 truncate">${n.nota}</p>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button onclick="restaurarNota(${n.id})" class="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Restaurar"><span class="material-symbols-outlined text-[16px]">restore</span></button>
+                            <button onclick="purgarNota(${n.id})" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg" title="Eliminar Definitivo"><span class="material-symbols-outlined text-[16px]">delete_forever</span></button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // --- MANEJADORES CON MODAL VISUAL ---
+        function showConfirmModal(title, message, icon, btnText, isDanger, callback) {
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            document.getElementById('confirmIcon').textContent = icon || 'delete_forever';
+            
+            const btn = document.getElementById('btnConfirmAction');
+            btn.textContent = btnText || 'Confirmar';
+            btn.className = isDanger ?
+                'flex-1 px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors shadow-lg shadow-red-600/30' :
+                'flex-1 px-4 py-2.5 bg-emerald-600 text-white font-bold rounded-xl text-xs hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-600/30';
+
+            pendingActionCallback = callback;
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        function closeConfirmModal() {
+            pendingActionCallback = null;
+            document.getElementById('confirmModal').classList.add('hidden');
+        }
+
+        document.getElementById('btnConfirmAction').addEventListener('click', () => {
+            if (typeof pendingActionCallback === 'function') {
+                pendingActionCallback();
+            }
+            closeConfirmModal();
+        });
+
         function restaurarEmpresa(id) {
-            if (confirm('¿Deseas restaurar esta empresa y devolverla al catálogo activo?')) {
+            showConfirmModal('Restaurar Empresa', '¿Deseas restaurar esta empresa y devolverla al catálogo activo?', 'restore', 'Restaurar', false, () => {
                 fetch('../backend/admin_papelera.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'restore_empresa', id: id })
-                })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.success) loadGeneralTrash();
-                    else alert(d.error || 'Error al restaurar');
-                });
-            }
+                }).then(() => loadGeneralTrash());
+            });
         }
 
         function purgarEmpresa(id) {
-            if (confirm('¿ATENCIÓN: Seguro que deseas eliminar DEFINITIVAMENTE esta empresa y todos sus datos? Esta acción NO se puede deshacer.')) {
+            showConfirmModal('Eliminar Definitivamente', '¿ATENCIÓN: Seguro que deseas eliminar DEFINITIVAMENTE esta empresa? Se borrarán sus datos asociados.', 'delete_forever', 'Eliminar Definitivo', true, () => {
                 fetch('../backend/admin_papelera.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'purge_empresa', id: id })
-                })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.success) loadGeneralTrash();
-                    else alert(d.error || 'Error al purgar');
-                });
-            }
+                }).then(() => loadGeneralTrash());
+            });
         }
 
         function restaurarReporte(id) {
@@ -269,25 +378,55 @@
         }
 
         function purgarReporte(id) {
+            showConfirmModal('Eliminar Reporte', '¿Seguro que deseas borrar este reporte permanentemente?', 'delete_forever', 'Eliminar', true, () => {
+                fetch('../backend/admin_papelera.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'purge_reporte', id: id })
+                }).then(() => loadGeneralTrash());
+            });
+        }
+
+        function restaurarTarea(id) {
             fetch('../backend/admin_papelera.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'purge_reporte', id: id })
+                body: JSON.stringify({ action: 'restore_tarea', id: id })
             }).then(() => loadGeneralTrash());
         }
 
-        function vaciarPapeleraGeneral() {
-            if (confirm('¿Seguro que deseas vaciar la Papelera General? Se eliminarán permanentemente todas las empresas y registros en ella.')) {
+        function purgarTarea(id) {
+            fetch('../backend/admin_papelera.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'purge_tarea', id: id })
+            }).then(() => loadGeneralTrash());
+        }
+
+        function restaurarNota(id) {
+            fetch('../backend/admin_papelera.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'restore_nota', id: id })
+            }).then(() => loadGeneralTrash());
+        }
+
+        function purgarNota(id) {
+            fetch('../backend/admin_papelera.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'purge_nota', id: id })
+            }).then(() => loadGeneralTrash());
+        }
+
+        function confirmVaciarPapelera() {
+            showConfirmModal('Vaciar Papelera General', '¿ATENCIÓN: Seguro que deseas vaciar la Papelera General? Se eliminarán permanentemente todas las empresas, reportes, tareas y notas en ella.', 'cleaning_services', 'Vaciar Todo', true, () => {
                 fetch('../backend/admin_papelera.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'empty_all_trash' })
-                })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.success) loadGeneralTrash();
-                });
-            }
+                }).then(() => loadGeneralTrash());
+            });
         }
 
         function logoutAdmin() {

@@ -24,6 +24,7 @@ if ($method === 'GET') {
             SELECT an.id, an.id_negocio, n.nombre_fantasia AS nombre_negocio, n.ruta, an.nota, an.fecha
             FROM admin_notas an
             LEFT JOIN negocios n ON an.id_negocio = n.id
+            WHERE (an.estado IS NULL OR an.estado != 'eliminado')
             ORDER BY an.fecha DESC
         ");
         $notas = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -65,10 +66,13 @@ if ($method === 'GET') {
     }
 
     try {
-        $stmt = $pdo->prepare("DELETE FROM admin_notas WHERE id = ?");
+        // Asegurar que exista columna estado y fecha_eliminado
+        try { $pdo->exec("ALTER TABLE admin_notas ADD COLUMN estado VARCHAR(20) DEFAULT 'activo', ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL"); } catch(Exception $eE) {}
+
+        $stmt = $pdo->prepare("UPDATE admin_notas SET estado = 'eliminado', fecha_eliminado = NOW() WHERE id = ?");
         $stmt->execute([$id]);
 
-        echo json_encode(['success' => true, 'message' => 'Nota eliminada con éxito.']);
+        echo json_encode(['success' => true, 'message' => 'Nota enviada a la papelera.']);
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'error' => 'Error al eliminar nota: ' . $e->getMessage()]);
     }

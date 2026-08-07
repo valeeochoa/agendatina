@@ -28,7 +28,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     try {
-        $stmt = $pdo->query("SELECT id, tarea, estado, fecha_creacion, fecha_cumplimiento FROM admin_tareas ORDER BY estado ASC, fecha_creacion DESC");
+        $stmt = $pdo->query("SELECT id, tarea, estado, fecha_creacion, fecha_cumplimiento FROM admin_tareas WHERE estado != 'eliminado' ORDER BY estado ASC, fecha_creacion DESC");
         $tareas = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
         echo json_encode(['success' => true, 'data' => $tareas]);
     } catch(Exception $e) {
@@ -93,9 +93,9 @@ if ($method === 'DELETE') {
     }
 
     try {
-        $stmt = $pdo->prepare("DELETE FROM admin_tareas WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE admin_tareas SET estado = 'eliminado', fecha_cumplimiento = NOW() WHERE id = ?");
         $stmt->execute([$id]);
-        echo json_encode(['success' => true]);
+        echo json_encode(['success' => true, 'message' => 'Tarea enviada a la papelera.']);
     } catch(Exception $e) {
         echo json_encode(['success' => false, 'error' => $e->getMessage()]);
     }
