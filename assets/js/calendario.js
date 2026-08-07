@@ -71,8 +71,11 @@ window.isWorkingDay = function(date) {
     return workingDays.includes(date.getDay());
 };
 
-function generateTimeSlots(startStr = '09:00', endStr = '18:00', interval = 30) {
-    if (interval === 'servicio' || (window.businessWebConfig && window.businessWebConfig.intervalo_turnos === 'servicio')) {
+function generateTimeSlots(startStr = null, endStr = null, interval = null) {
+    if (!startStr) startStr = window.businessWebConfig?.hora_apertura || '09:00';
+    if (!endStr) endStr = window.businessWebConfig?.hora_cierre || '18:00';
+    
+    if (interval === 'servicio' || (!interval && window.businessWebConfig && window.businessWebConfig.intervalo_turnos === 'servicio')) {
         let servDur = 30;
         const serviceSelect = document.getElementById('serviceSelect') || document.getElementById('manualServicio');
         if (serviceSelect && serviceSelect.value && typeof services !== 'undefined' && Array.isArray(services)) {
@@ -103,7 +106,10 @@ function generateTimeSlots(startStr = '09:00', endStr = '18:00', interval = 30) 
     while (current < end) {
         let h = current.getHours().toString().padStart(2, '0');
         let m = current.getMinutes().toString().padStart(2, '0');
-        cal_availableTimes.push(`${h}:${m}`);
+        let timeSlot = `${h}:${m}`;
+        if (!window.isTimeInBreak(timeSlot)) {
+            cal_availableTimes.push(timeSlot);
+        }
         current.setMinutes(current.getMinutes() + interval);
     }
 }
@@ -2551,8 +2557,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (logoImg) logoImg.classList.add('hidden');
                     }
 
-                    if (typeof generateTimeSlots === 'function') generateTimeSlots();
+                    let interval = config.intervalo_turnos;
+                    generateTimeSlots(config.hora_apertura, config.hora_cierre, interval);
                     checkAdminCalendarSession(config);
+
+                    // Sincronizar tipo de vista de calendario según la configuración elegida en Ajustes
+                    if (config.tipo_calendario) {
+                        const isWeeklyPage = !!document.getElementById('weeklyCalendarView');
+                        if (config.tipo_calendario === 'semanal' && !isWeeklyPage && !sessionStorage.getItem('manual_view_override')) {
+                            window.location.href = 'calendarioSemanal.html' + (negocioSlug ? '?n=' + negocioSlug : '');
+                        } else if (config.tipo_calendario === 'clasico' && isWeeklyPage && !sessionStorage.getItem('manual_view_override')) {
+                            window.location.href = 'calendarioMensual.html' + (negocioSlug ? '?n=' + negocioSlug : '');
+                        }
+                    }
+
                     return config;
                 }
             }).catch(() => {
