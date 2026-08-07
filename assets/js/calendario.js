@@ -308,6 +308,7 @@ function cal_renderTimeSlots() {
     generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval);
 
     const blocksNeeded = Math.ceil(selectedDuration / interval);
+    const effectiveIsAdmin = isAdmin && !isPreviewMode;
 
     cal_availableTimes.forEach((time, index) => {
         if (window.isTimeInBreak(time)) return; 
