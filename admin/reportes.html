@@ -176,7 +176,7 @@
             const search = document.getElementById('searchInput').value.toLowerCase().trim();
             const status = document.getElementById('statusFilter').value;
 
-            const filtered = allReportesData.filter(r => {
+            const filtered = (reportesData || []).filter(r => {
                 // Excluir estrictamente sugerencias y mejoras de la vista de reportes de error
                 const isMejora = (r.tipo && (r.tipo.includes('Mejora') || r.tipo.includes('Sugerencia'))) || 
                                  (r.modulo && (r.modulo.includes('Mejora') || r.modulo.includes('Sugerencia')));
