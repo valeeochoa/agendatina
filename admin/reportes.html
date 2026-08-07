@@ -38,7 +38,7 @@
                 <a href="tareas.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
                     <span class="material-symbols-outlined text-[22px]">check_box</span> Tareas Pendientes
                 </a>
-                <a href="reportes.html" class="flex items-center gap-3 px-4 py-3 bg-[#d11149] text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-[#d11149]/30">
+                <a href="reportes.html" class="flex items-center gap-3 px-4 py-3 bg-emerald-600 text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-emerald-600/30">
                     <span class="material-symbols-outlined text-[22px]">bug_report</span> Reportes de Error
                 </a>
                 <a href="mejoras.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
@@ -167,7 +167,7 @@
                     }
                 })
                 .catch(() => {
-                    document.getElementById('totalReportesBadge').textContent = '0 Pendientes (0 Total)';
+                    document.getElementById('totalReportesBadge').textContent = '0 Pendientes';
                     document.getElementById('reportesList').innerHTML = '<tr><td colspan="4" class="p-8 text-center text-red-500 font-medium">Error de conexión al cargar reportes.</td></tr>';
                 });
         }
@@ -176,7 +176,12 @@
             const search = document.getElementById('searchInput').value.toLowerCase().trim();
             const status = document.getElementById('statusFilter').value;
 
-            const filtered = reportesData.filter(r => {
+            const filtered = allReportesData.filter(r => {
+                // Excluir estrictamente sugerencias y mejoras de la vista de reportes de error
+                const isMejora = (r.tipo && (r.tipo.includes('Mejora') || r.tipo.includes('Sugerencia'))) || 
+                                 (r.modulo && (r.modulo.includes('Mejora') || r.modulo.includes('Sugerencia')));
+                if (isMejora) return false;
+
                 const matchSearch = !search || 
                     (r.nombre_negocio && r.nombre_negocio.toLowerCase().includes(search)) ||
                     (r.email_usuario && r.email_usuario.toLowerCase().includes(search)) ||
@@ -193,7 +198,7 @@
         function renderTable(list) {
             const tbody = document.getElementById('reportesList');
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 text-sm">No se encontraron reportes de error enviados por usuarios.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 text-sm">No se encontraron reportes de error.</td></tr>';
                 return;
             }
 
@@ -205,15 +210,20 @@
                     '<span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-0.5 rounded-lg border border-emerald-200">✓ Resuelto</span>' : 
                     '<span class="bg-amber-100 text-amber-800 text-[11px] font-bold px-2.5 py-0.5 rounded-lg border border-amber-200">⚠️ Pendiente</span>';
 
-                const isMejora = (r.tipo && r.tipo.includes('Mejora')) || (r.modulo && r.modulo.includes('Sugerencia')) || (r.descripcion && r.descripcion.toLowerCase().includes('sugerencia'));
-                const typeBadge = isMejora ? 
-                    '<span class="bg-pink-100 text-pink-700 border border-pink-200 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider inline-flex items-center gap-1 mb-1">💡 Sugerencia / Mejora</span>' : 
-                    '<span class="bg-red-100 text-red-700 border border-red-200 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider inline-flex items-center gap-1 mb-1">🐛 Reporte de Error</span>';
+                const typeBadge = '<span class="bg-red-100 text-red-700 border border-red-200 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider inline-flex items-center gap-1 mb-1">🐛 Reporte de Error</span>';
 
                 const isOwnerAdmin = !r.rol_usuario || r.rol_usuario === 'admin' || r.rol_usuario === 'dueño';
                 const roleTag = isOwnerAdmin ?
                     '<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-amber-200 inline-block mt-1">👑 Admin del Negocio</span>' :
                     '<span class="bg-purple-100 text-purple-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-purple-200 inline-block mt-1">👤 Profesional del Equipo</span>';
+
+                const statusBtn = isResolved ?
+                    `<button onclick="marcarReportePendiente(${r.id})" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs" title="Volver a marcar como pendiente">
+                        <span class="material-symbols-outlined text-[16px]">undo</span> Reabrir
+                    </button>` :
+                    `<button onclick="marcarReporteResuelto(${r.id})" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs" title="Marcar manualmente como atendido/resuelto">
+                        <span class="material-symbols-outlined text-[16px]">check_circle</span> Marcar Resuelto
+                    </button>`;
 
                 html += `
                     <tr class="hover:bg-slate-50 border-b border-slate-100 transition-colors">
@@ -241,11 +251,7 @@
                         </td>
                         <td class="p-4 text-center whitespace-nowrap">
                             <div class="flex items-center justify-center gap-2">
-                                ${!isResolved ? `
-                                    <button onclick="marcarReporteResuelto(${r.id})" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1">
-                                        <span class="material-symbols-outlined text-[16px]">check_circle</span> Resolver
-                                    </button>
-                                ` : ''}
+                                ${statusBtn}
                                 <button onclick="confirmDeleteReport(${r.id})" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-xl border border-red-200 transition-colors" title="Descartar Reporte">
                                     <span class="material-symbols-outlined text-[18px]">delete</span>
                                 </button>
@@ -263,9 +269,25 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'resolver', id: id })
             })
-            .then(r => r.json())
-            .then(d => {
-                if (d.success) loadReportes();
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    loadReportesData();
+                }
+            });
+        }
+
+        function marcarReportePendiente(id) {
+            fetch('../backend/admin_reportes_api.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'marcar_pendiente', id: id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    loadReportesData();
+                }
             });
         }
 

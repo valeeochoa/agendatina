@@ -46,7 +46,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {
     try {
         $stmt = $pdo->query("
-            SELECT r.id, r.id_negocio, r.nombre_negocio, r.id_usuario, r.nombre_usuario, r.email_usuario, r.rol_usuario, r.tipo, r.modulo, r.descripcion, r.estado, r.fecha, n.ruta
+            SELECT r.id, r.id_negocio, r.nombre_negocio, r.id_usuario, r.nombre_usuario, r.email_usuario, r.rol_usuario, r.tipo, r.modulo, r.descripcion, COALESCE(r.estado, 'pendiente') AS estado, r.fecha, n.ruta
             FROM reportes_error r
             LEFT JOIN negocios n ON r.id_negocio = n.id
             WHERE r.estado != 'eliminado'
@@ -54,12 +54,12 @@ if ($method === 'GET') {
         ");
         $reportes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // También incluir notificaciones de Sugerencias o Errores de notificaciones_admin para cobertura 100%
+        // También incluir notificaciones de Errores de notificaciones_admin (excluyendo sugerencias/mejoras)
         try {
             $stmtNotif = $pdo->query("
-                SELECT id, id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario, segmento AS tipo, segmento AS modulo, mensaje AS descripcion, IF(leida=1, 'resuelto', 'pendiente') AS estado, fecha
+                SELECT id, id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario, 'Reporte de Error' AS tipo, segmento AS modulo, mensaje AS descripcion, 'pendiente' AS estado, fecha
                 FROM notificaciones_admin
-                WHERE (segmento LIKE '%Error%' OR segmento LIKE '%Bug%' OR segmento LIKE '%Mejora%' OR segmento LIKE '%Sugerencia%')
+                WHERE (segmento LIKE '%Error%' OR segmento LIKE '%Bug%') AND segmento NOT LIKE '%Mejora%' AND segmento NOT LIKE '%Sugerencia%'
                 ORDER BY fecha DESC
             ");
             $notifItems = $stmtNotif->fetchAll(PDO::FETCH_ASSOC);
@@ -95,12 +95,23 @@ if ($method === 'GET') {
     $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
     $action = $input['action'] ?? '';
     $id = (int)($input['id'] ?? 0);
+    $nuevo_estado = trim($input['estado'] ?? '');
 
     try {
         if ($action === 'resolver' && $id > 0) {
             $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'resuelto' WHERE id = ?");
             $stmt->execute([$id]);
             echo json_encode(['success' => true, 'message' => 'Reporte marcado como resuelto.']);
+
+        } elseif ($action === 'marcar_pendiente' && $id > 0) {
+            $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'pendiente' WHERE id = ?");
+            $stmt->execute([$id]);
+            echo json_encode(['success' => true, 'message' => 'Reporte marcado como pendiente.']);
+
+        } elseif ($action === 'cambiar_estado' && $id > 0 && !empty($nuevo_estado)) {
+            $stmt = $pdo->prepare("UPDATE reportes_error SET estado = ? WHERE id = ?");
+            $stmt->execute([$nuevo_estado, $id]);
+            echo json_encode(['success' => true, 'message' => 'Estado actualizado a ' . $nuevo_estado]);
 
         } elseif ($action === 'eliminar' && $id > 0) {
             $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'eliminado' WHERE id = ?");

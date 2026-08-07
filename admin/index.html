@@ -33,7 +33,7 @@
 
             <!-- Navegación -->
             <nav class="space-y-1">
-                <a href="index.html" class="flex items-center gap-3 px-4 py-3 bg-[#d11149] text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-[#d11149]/30">
+                <a href="index.html" class="flex items-center gap-3 px-4 py-3 bg-emerald-600 text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-emerald-600/30">
                     <span class="material-symbols-outlined text-[22px]">dashboard</span> Dashboard (Resumen)
                 </a>
                 <a href="empresas.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
@@ -48,7 +48,7 @@
                 <a href="mejoras.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
                     <span class="material-symbols-outlined text-[22px]">lightbulb</span> Sugerencias y Mejoras
                 </a>
-                <a href="#seccionNotas" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
+                <a href="notas.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
                     <span class="material-symbols-outlined text-[22px]">sticky_note_2</span> Notas Recientes
                 </a>
                 <a href="comprobantes.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
@@ -107,8 +107,8 @@
                     </div>
                     <div class="mt-2 pt-3 border-t border-white/10 flex items-baseline justify-between">
                         <div>
-                            <span class="text-xs text-slate-400 line-through mr-2">$8.889</span>
-                            <span class="text-xl font-black text-white font-display">$8.000</span>
+                            <span id="cardPriceSimpleOld" class="text-xs text-slate-400 line-through mr-2">$8.889</span>
+                            <span id="cardPriceSimpleBox" class="text-xl font-black text-white font-display">$8.000</span>
                         </div>
                         <span class="text-[11px] font-bold text-slate-400">/ mes</span>
                     </div>
@@ -123,8 +123,8 @@
                     </div>
                     <div class="mt-2 pt-3 border-t border-white/10 flex items-baseline justify-between">
                         <div>
-                            <span class="text-xs text-slate-400 line-through mr-2">$12.222</span>
-                            <span class="text-2xl font-black text-[#fc8712] font-display">$11.000</span>
+                            <span id="cardPriceProOld" class="text-xs text-slate-400 line-through mr-2">$11.111</span>
+                            <span id="cardPriceProBox" class="text-2xl font-black text-[#fc8712] font-display">$10.000</span>
                         </div>
                         <span class="text-[11px] font-bold text-slate-300">/ mes</span>
                     </div>
@@ -139,8 +139,8 @@
                     </div>
                     <div class="mt-2 pt-3 border-t border-white/10 flex items-baseline justify-between">
                         <div>
-                            <span class="text-xs text-slate-400 line-through mr-2">$16.667</span>
-                            <span class="text-xl font-black text-white font-display">$15.000</span>
+                            <span id="cardPricePremOld" class="text-xs text-slate-400 line-through mr-2">$16.667</span>
+                            <span id="cardPricePremBox" class="text-xl font-black text-white font-display">$15.000</span>
                         </div>
                         <span class="text-[11px] font-bold text-slate-400">/ mes</span>
                     </div>
@@ -1065,6 +1065,33 @@ function fetchClients() {
                 } else {
                     document.getElementById('descuentoHasta').value = '';
                 }
+
+                // Actualizar tarjeta de precios resumen en vivo
+                const desc = parseInt(data.config_global.descuento_porcentaje) || 10;
+                const factor = (100 - desc) / 100;
+                
+                const pSimpleBase = Math.round(data.config_global.precio_basico || 8889);
+                const pSimpleFinal = Math.round(pSimpleBase * factor);
+                
+                const pProBase = Math.round(data.config_global.precio_intermedio || 11111);
+                const pProFinal = Math.round(pProBase * factor);
+                
+                const pPremBase = Math.round(data.config_global.precio_premium || 16667);
+                const pPremFinal = Math.round(pPremBase * factor);
+
+                const elSimpleOld = document.getElementById('cardPriceSimpleOld');
+                const elSimpleBox = document.getElementById('cardPriceSimpleBox');
+                const elProOld = document.getElementById('cardPriceProOld');
+                const elProBox = document.getElementById('cardPriceProBox');
+                const elPremOld = document.getElementById('cardPricePremOld');
+                const elPremBox = document.getElementById('cardPricePremBox');
+
+                if (elSimpleOld) elSimpleOld.textContent = '$' + pSimpleBase.toLocaleString('es-AR');
+                if (elSimpleBox) elSimpleBox.textContent = '$' + pSimpleFinal.toLocaleString('es-AR');
+                if (elProOld) elProOld.textContent = '$' + pProBase.toLocaleString('es-AR');
+                if (elProBox) elProBox.textContent = '$' + pProFinal.toLocaleString('es-AR');
+                if (elPremOld) elPremOld.textContent = '$' + pPremBase.toLocaleString('es-AR');
+                if (elPremBox) elPremBox.textContent = '$' + pPremFinal.toLocaleString('es-AR');
             }
             // Renderizar los reportes de error que devuelve la API
             if (data.notificaciones) {
@@ -1819,16 +1846,23 @@ function renderAdminReports(notificaciones) {
     const listContainer = document.getElementById('adminReportsList');
     if (!listContainer) return;
     
-    window.adminReportsCount = notificaciones ? notificaciones.length : 0;
-    updateAdminTitleAndSound();
+    // Filtrar estrictamente solo reportes de error (excluir mejoras, sugerencias y avisos)
+    const filteredNotifs = (notificaciones || []).filter(n => {
+        const seg = (n.segmento || n.modulo || '').toLowerCase();
+        const tipo = (n.tipo || '').toLowerCase();
+        const isMejora = seg.includes('mejora') || seg.includes('sugerencia') || tipo.includes('mejora') || tipo.includes('sugerencia');
+        return !isMejora;
+    });
 
+    window.adminReportsCount = filteredNotifs.length;
+    updateAdminTitleAndSound();
     
     let reportsHtml = '';
 
-    if (!notificaciones || notificaciones.length === 0) {
-        reportsHtml = `<div class="p-6 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-300"><span class="material-symbols-outlined text-4xl mb-2 text-slate-300">check_circle</span><p class="font-medium text-sm">Todo funciona perfecto. No hay reportes recientes.</p></div>`;
+    if (!filteredNotifs || filteredNotifs.length === 0) {
+        reportsHtml = `<div class="p-6 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-300"><span class="material-symbols-outlined text-4xl mb-2 text-slate-300">check_circle</span><p class="font-medium text-sm">Todo funciona perfecto. No hay reportes de error pendientes.</p></div>`;
     } else {
-        notificaciones.forEach(notif => {
+        filteredNotifs.forEach(notif => {
             // Reemplazar guiones por barras para compatibilidad con Safari/iOS
             const dateObj = new Date(notif.fecha.replace(/-/g, '/')); 
             const fechaFormat = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
