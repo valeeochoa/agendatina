@@ -438,7 +438,7 @@ function showLegacyTourStep(index, doScroll = true) {
     const highlight = document.getElementById('tourHighlight');
     const arrow = document.getElementById('tourArrow');
 
-    if (!target) {
+    if (!target || target.offsetParent === null || window.getComputedStyle(target).display === 'none') {
         if (doScroll) nextLegacyTourStep();
         return;
     }
@@ -463,7 +463,8 @@ function showLegacyTourStep(index, doScroll = true) {
     const executeStep = () => {
         const rect = target.getBoundingClientRect();
         
-        tooltip.classList.remove('hidden', 'scale-95');
+        tooltip.classList.remove('hidden', 'scale-95', 'opacity-0');
+        tooltip.classList.add('opacity-100', 'scale-100');
         const tWidth = tooltip.offsetWidth;
         const tHeight = tooltip.offsetHeight;
         

@@ -169,11 +169,19 @@ if (!$lastReset || !is_numeric($lastReset) || (time() - intval($lastReset) > 600
 }
 
 if ($shouldReset && $negocioId) {
-    // 1. Limpiar Base de Datos
+    // 1. Limpiar Base de Datos del negocio demo (incluyendo asignaciones de personal duplicadas)
     $pdo->prepare("DELETE FROM turnos WHERE id_negocio = ?")->execute([$negocioId]);
     $pdo->prepare("DELETE FROM servicios WHERE id_negocio = ?")->execute([$negocioId]);
     $pdo->prepare("DELETE FROM notificaciones WHERE id_negocio = ?")->execute([$negocioId]);
-    $pdo->prepare("DELETE FROM dias_bloqueados WHERE id_negocio = ?")->execute([$negocioId]); // Resetear bloqueos
+    $pdo->prepare("DELETE FROM dias_bloqueados WHERE id_negocio = ?")->execute([$negocioId]);
+    $pdo->prepare("DELETE FROM personal_negocio WHERE id_negocio = ?")->execute([$negocioId]);
+
+    // Re-vincular únicamente la cuenta principal demo@agendatina.site
+    if ($userId) {
+        try {
+            $pdo->prepare("INSERT IGNORE INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'admin')")->execute([$negocioId, $userId]);
+        } catch (Exception $eRelink) {}
+    }
     
     // 2. Limpiar imágenes físicas subidas por el negocio Demo
     $uploadDir = __DIR__ . '/uploads/';

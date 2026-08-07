@@ -21,13 +21,14 @@ if ($method !== 'GET' && (!isset($_SESSION['rol_en_local']) || $_SESSION['rol_en
 
 if ($method === 'GET') {
     try {
-        // Obtener la lista de profesionales e integrantes del equipo (incluyendo admins)
+        // Obtener la lista de profesionales e integrantes del equipo (deduplicando usuarios)
         $stmt = $pdo->prepare("
-            SELECT u.id, u.nombre_completo, u.email, pn.rol_en_local 
+            SELECT u.id, u.nombre_completo, u.email, MIN(pn.rol_en_local) AS rol_en_local 
             FROM usuarios u
             JOIN personal_negocio pn ON u.id = pn.id_usuario
             WHERE pn.id_negocio = :id_negocio
-            ORDER BY (pn.rol_en_local = 'admin') DESC, u.id ASC
+            GROUP BY u.id, u.nombre_completo, u.email
+            ORDER BY (MIN(pn.rol_en_local) = 'admin') DESC, u.id ASC
         ");
         $stmt->execute(['id_negocio' => $id_negocio]);
         $profesionales = $stmt->fetchAll(PDO::FETCH_ASSOC);
