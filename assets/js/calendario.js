@@ -2561,12 +2561,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     generateTimeSlots(config.hora_apertura, config.hora_cierre, interval);
                     checkAdminCalendarSession(config);
 
-                    // Sincronizar tipo de vista de calendario según la configuración elegida en Ajustes
+                    // Sincronizar tipo de vista de calendario exclusivamente según la configuración elegida en Ajustes
                     if (config.tipo_calendario) {
                         const isWeeklyPage = !!document.getElementById('weeklyCalendarView');
-                        if (config.tipo_calendario === 'semanal' && !isWeeklyPage && !sessionStorage.getItem('manual_view_override')) {
+                        if (config.tipo_calendario === 'semanal' && !isWeeklyPage) {
                             window.location.href = 'calendarioSemanal.html' + (negocioSlug ? '?n=' + negocioSlug : '');
-                        } else if (config.tipo_calendario === 'clasico' && isWeeklyPage && !sessionStorage.getItem('manual_view_override')) {
+                        } else if (config.tipo_calendario === 'clasico' && isWeeklyPage) {
                             window.location.href = 'calendarioMensual.html' + (negocioSlug ? '?n=' + negocioSlug : '');
                         }
                     }
