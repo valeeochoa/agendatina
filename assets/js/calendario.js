@@ -2645,88 +2645,69 @@ function checkAdminCalendarSession(config = null) {
     const bizText = document.getElementById('navBusinessNameText');
     const bizLogo = document.getElementById('navBusinessLogoImg');
     const bizHeader = document.getElementById('navBusinessNameHeader');
+    const headerEl = document.querySelector('header');
+
+    // Garantizar presencia permanente del header sin contracción
+    if (headerEl) {
+        headerEl.classList.remove('hidden');
+        headerEl.style.display = 'block';
+        headerEl.style.visibility = 'visible';
+    }
+
+    if (brand) { brand.classList.remove('hidden'); brand.style.display = 'flex'; }
+    if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
+    if (btnVolver) { btnVolver.classList.remove('hidden'); btnVolver.style.display = 'flex'; }
+    if (bugBtn) { bugBtn.classList.remove('hidden'); bugBtn.style.display = 'flex'; }
+    if (logoutBtn) { logoutBtn.classList.remove('hidden'); logoutBtn.style.display = 'flex'; }
+    if (bizHeader) { bizHeader.classList.remove('hidden'); bizHeader.style.display = 'flex'; }
 
     fetch('backend/perfil.php')
     .then(res => res.json())
     .then(data => {
-        let isOwnerSession = false;
         let isDemo = false;
-
-        const hasActiveSession = sessionStorage.getItem('agendatina_session') === 'active' || sessionStorage.getItem('is_demo') === 'true';
 
         if (data && data.success && data.business) {
             isDemo = (data.business.is_demo === true) || 
                      (data.user && data.user.email === 'demo@agendatina.site') || 
                      (data.business.ruta === 'demo') || 
                      (config && config.is_demo === true) ||
-                     sessionStorage.getItem('is_demo') === 'true';
-
-            const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
-            const currentRuta = (negocioSlug || (config ? config.ruta || config.subdominio : '') || '').toLowerCase().trim();
-            
-            if (isDemo || hasActiveSession || !currentRuta || currentRuta === 'demo' || loggedRuta === currentRuta || (config && data.business.id == config.id_negocio)) {
-                isOwnerSession = true;
-            }
+                     sessionStorage.getItem('is_demo') === 'true' ||
+                     negocioSlug === 'demo';
 
             if (bizText) bizText.textContent = data.business.nombre_fantasia || 'Agendatina';
             if (bizLogo && data.config && data.config.url_logo) {
                 bizLogo.src = data.config.url_logo;
                 bizLogo.classList.remove('hidden');
             }
-            if (bizHeader) { bizHeader.classList.remove('hidden'); bizHeader.style.display = 'flex'; }
-        } else if (hasActiveSession || !negocioSlug || negocioSlug === 'demo') {
-            isOwnerSession = true;
+        } else {
+            isDemo = (!negocioSlug || negocioSlug === 'demo' || sessionStorage.getItem('is_demo') === 'true');
         }
 
-        if (brand) { brand.classList.remove('hidden'); brand.style.display = 'flex'; }
-        if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
-
-        if (isOwnerSession) {
-            if (btnVolver) { btnVolver.classList.remove('hidden'); btnVolver.style.display = 'flex'; }
-            if (bugBtn) { bugBtn.classList.remove('hidden'); bugBtn.style.display = 'flex'; }
-            if (logoutBtn) { logoutBtn.classList.remove('hidden'); logoutBtn.style.display = 'flex'; }
-
-            if (sessionBadge) {
-                sessionBadge.classList.remove('hidden');
-                sessionBadge.classList.add('flex');
-                sessionBadge.style.display = 'flex';
-                const dot = sessionBadge.querySelector('span:first-child');
-                if (isDemo || sessionStorage.getItem('is_demo') === 'true' || negocioSlug === 'demo') {
-                    if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
-                    if (sessionBadgeText) {
-                        sessionBadgeText.textContent = 'Modo Demo';
-                        sessionBadgeText.className = 'text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider hidden md:inline';
-                    }
-                } else {
-                    if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
-                    if (sessionBadgeText) {
-                        sessionBadgeText.textContent = 'Tu Local';
-                        sessionBadgeText.className = 'text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider hidden md:inline';
-                    }
+        if (sessionBadge) {
+            sessionBadge.classList.remove('hidden');
+            sessionBadge.classList.add('flex');
+            sessionBadge.style.display = 'flex';
+            const dot = sessionBadge.querySelector('span:first-child');
+            if (isDemo) {
+                if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
+                if (sessionBadgeText) {
+                    sessionBadgeText.textContent = 'Modo Demo';
+                    sessionBadgeText.className = 'text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider hidden md:inline';
+                }
+            } else {
+                if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
+                if (sessionBadgeText) {
+                    sessionBadgeText.textContent = 'Tu Local';
+                    sessionBadgeText.className = 'text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider hidden md:inline';
                 }
             }
-        } else {
-            // Vista Cliente Público puro
-            if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
-            if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
-            if (logoutBtn) { logoutBtn.classList.add('hidden'); logoutBtn.style.display = 'none'; }
-            if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
         }
     })
     .catch(() => {
-        const forceOwner = (!negocioSlug || negocioSlug === 'demo' || sessionStorage.getItem('agendatina_session') === 'active' || sessionStorage.getItem('is_demo') === 'true');
-        if (brand) { brand.classList.remove('hidden'); brand.style.display = 'flex'; }
-        if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
-        if (forceOwner) {
-            if (btnVolver) { btnVolver.classList.remove('hidden'); btnVolver.style.display = 'flex'; }
-            if (bugBtn) { bugBtn.classList.remove('hidden'); bugBtn.style.display = 'flex'; }
-            if (logoutBtn) { logoutBtn.classList.remove('hidden'); logoutBtn.style.display = 'flex'; }
-            if (sessionBadge) { sessionBadge.classList.remove('hidden'); sessionBadge.style.display = 'flex'; }
-        } else {
-            if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
-            if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
-            if (logoutBtn) { logoutBtn.classList.add('hidden'); logoutBtn.style.display = 'none'; }
-            if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
+        if (sessionBadge) {
+            sessionBadge.classList.remove('hidden');
+            sessionBadge.classList.add('flex');
+            sessionBadge.style.display = 'flex';
         }
     });
 }

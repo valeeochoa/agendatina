@@ -5,23 +5,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
-    rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-    rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
   <link rel="icon" id="favicon" href="public/logo.png" type="image/png" />
-  <link rel="preload" href="assets/css/global.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="assets/css/global.css"></noscript>
-
-  <script>
-    // Fuerza a que las rutas relativas se carguen desde la carpeta correcta (Evita error 404)
-    const basePath = window.location.pathname.includes("/agendatina/")
-      ? "/agendatina/"
-      : "/";
-    const baseEl = document.createElement("base");
-    baseEl.href = basePath;
-    document.head.insertBefore(baseEl, document.head.firstChild);
-  </script>
+  <link rel="stylesheet" href="assets/css/global.css">
 
   <script id="tailwind-config">
     tailwind.config = {

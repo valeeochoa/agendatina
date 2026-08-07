@@ -778,8 +778,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 setInterval(fetchClients, 10000); // Polling cada 10 segundos
                 
                 // Sincronizar plan con límite de profesionales sugerido
-                const planDefaults = { 'Basico': 1, 'Intermedio': 3, 'Completo': 5 };
-                const planLabels = { 'Basico': 'Básico', 'Intermedio': 'Intermedio', 'Completo': 'Completo' };
+                const planDefaults = { 'Basico': 1, 'Simple': 1, 'Intermedio': 3, 'Profesional': 3, 'Completo': 5, 'Premium': 5 };
+                const planLabels = { 'Basico': 'Simple', 'Simple': 'Simple', 'Intermedio': 'Profesional', 'Profesional': 'Profesional', 'Completo': 'Premium', 'Premium': 'Premium' };
 
                 function setupPlanSync(planElId, maxProfsElId, hintElId) {
                     const planEl = document.getElementById(planElId);

@@ -716,8 +716,10 @@ function loadDashboardData() {
             // Actualizar Plan en el Navbar
             const isDemoAccount = (window.currentUserData && window.currentUserData.email && window.currentUserData.email.includes('demo')) || (business && (business.ruta === 'demo' || business.is_demo));
             const navPlanName = document.getElementById('navPlanName');
-            let displayPlan = isDemoAccount ? (business.plan ? `Plan ${business.plan}` : 'Plan Completo') : (business.plan || 'Plan Básico');
-            if (!displayPlan.toLowerCase().includes('plan')) {
+            let displayPlan = isDemoAccount ? (business.plan ? `Plan ${business.plan}` : 'Plan Completo') : (business.plan || 'Plan Simple');
+            if (displayPlan.toLowerCase().includes('básico') || displayPlan.toLowerCase().includes('basico')) {
+                displayPlan = 'Plan Simple';
+            } else if (!displayPlan.toLowerCase().includes('plan')) {
                 displayPlan = 'Plan ' + displayPlan.charAt(0).toUpperCase() + displayPlan.slice(1);
             }
             if (navPlanName) navPlanName.textContent = displayPlan;
@@ -754,7 +756,7 @@ function loadDashboardData() {
                 cardWeb.style.display = 'flex';
                 
                 if (planStr.includes('básico') || planStr.includes('basico') || planStr.includes('simple')) {
-                    cardAgenda.style.display = 'none'; // Plan básico: Oculta Agenda y Web
+                    cardAgenda.style.display = 'none'; // Plan simple: Oculta Agenda y Web
                     cardWeb.style.display = 'none';
                 } else if (planStr.includes('intermedio') || planStr.includes('profesional')) {
                     cardWeb.style.display = 'none';    // Plan Profesional/Intermedio: Oculta la Web Pública
@@ -763,8 +765,9 @@ function loadDashboardData() {
                 // Respaldo de seguridad por si el plan falló en cargar antes
                 if (data.plan) {
                     const navPlanName = document.getElementById('navPlanName');
-                    if (navPlanName && (navPlanName.textContent === 'Cargando plan...' || navPlanName.textContent === 'Plan Básico')) {
+                    if (navPlanName && (navPlanName.textContent === 'Cargando plan...' || navPlanName.textContent === 'Plan Básico' || navPlanName.textContent === 'Plan Simple')) {
                         let pName = data.plan;
+                        if (pName.toLowerCase().includes('básico') || pName.toLowerCase().includes('basico')) pName = 'Simple';
                         if (!pName.toLowerCase().includes('plan')) pName = 'Plan ' + pName.charAt(0).toUpperCase() + pName.slice(1);
                         navPlanName.textContent = pName;
                     }
@@ -778,7 +781,7 @@ function loadDashboardData() {
                 status: dbStatus,
                 fechaAlta: fechaAltaStr,
                 lastPaymentDate: business.ultimo_pago ? business.ultimo_pago.split(' ')[0] : null,
-                plan: business.plan || 'Básico'
+                plan: (business.plan && !business.plan.toLowerCase().includes('basic')) ? business.plan : 'Simple'
             };
 
             // Integrar la carga de precios al Banner de Suscripción y al Modal de Pago
