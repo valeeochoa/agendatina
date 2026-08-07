@@ -5,19 +5,16 @@ on:
     branches:
       - main
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   web-deploy:
     name: Deploy to Ferozo
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Descargar el código
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Necesario para que compare el commit actual con el anterior
+          fetch-depth: 0
 
       - name: Sincronizar solo cambios por FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -26,8 +23,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
-          protocol: ftps
-          security: loose
+          protocol: ftp
           log-level: verbose
           server-dir: /public_html/
           state-name: .ftp-deploy-sync-state.json
