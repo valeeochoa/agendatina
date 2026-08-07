@@ -126,11 +126,15 @@
                 .then(r => r.json())
                 .then(d => {
                     if (d.success) {
-                        const mejorasOnly = (d.data || []).filter(r => 
-                            (r.tipo && r.tipo.includes('Mejora')) || 
-                            (r.modulo && (r.modulo.includes('Sugerencia') || r.modulo.includes('Mejoras'))) || 
-                            (r.descripcion && r.descripcion.toLowerCase().includes('sugerencia'))
-                        );
+                        const mejorasOnly = (d.data || []).filter(r => {
+                            const isError = (r.tipo && (r.tipo.includes('Error') || r.tipo.includes('Bug'))) ||
+                                            (r.modulo && (r.modulo.includes('Error') || r.modulo.includes('Bug')));
+                            if (isError) return false;
+
+                            return (r.tipo && (r.tipo.includes('Mejora') || r.tipo.includes('Sugerencia'))) || 
+                                   (r.modulo && (r.modulo.includes('Sugerencia') || r.modulo.includes('Mejora') || r.modulo.includes('Soporte'))) || 
+                                   (r.descripcion && (r.descripcion.toLowerCase().includes('sugerencia') || r.descripcion.toLowerCase().includes('mejora')));
+                        });
                         renderMejorasTable(mejorasOnly);
                     }
                 });
