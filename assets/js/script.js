@@ -2720,20 +2720,22 @@ window.closeReusableReceiptModal = function() {
 
 // Ocultar reportes de error y contacto para cuentas de demostración (Demo)
 document.addEventListener('DOMContentLoaded', () => {
-    // Si la sesión no está activa en sessionStorage, no realizamos la comprobación
     if (!sessionStorage.getItem('agendatina_session')) return;
 
-    const hideDemoActions = () => {
-        // Ocultar tarjeta de soporte y elementos de ayuda/reporte de error
+    const applyDemoButtonVisibility = () => {
         const cardSupport = document.getElementById('cardSupport');
-        if (cardSupport) cardSupport.style.display = 'none';
+        const isDemo = (sessionStorage.getItem('is_demo_user') === 'true' || sessionStorage.getItem('agendatina_demo_alert') === 'true');
 
-        document.querySelectorAll('a, button, div').forEach(el => {
-            const txt = (el.textContent || '').trim();
-            const href = el.getAttribute('href') || '';
-            const onclick = el.getAttribute('onclick') || '';
-            if (txt.includes('Reportar Error') || txt.includes('Hablar con Soporte') || onclick.includes('ReportError') || onclick.includes('Soporte') || href.includes('soporte')) {
-                el.style.display = 'none';
+        if (cardSupport) cardSupport.style.display = isDemo ? 'none' : '';
+
+        // Ocultar SOLAMENTE los botones específicos de reportar error en modo Demo, sin tocar contenedores ni el header
+        document.querySelectorAll('#navReportBugBtn, #btnReportarErrorAgenda').forEach(btn => {
+            if (isDemo) {
+                btn.classList.add('hidden');
+                btn.style.display = 'none';
+            } else {
+                btn.classList.remove('hidden');
+                btn.style.display = 'flex';
             }
         });
     };
@@ -2741,29 +2743,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const isDemoCached = sessionStorage.getItem('is_demo_user');
     if (isDemoCached === 'true' || sessionStorage.getItem('agendatina_demo_alert') === 'true') {
         sessionStorage.setItem('is_demo_user', 'true');
-        hideDemoActions();
-        const observer = new MutationObserver(hideDemoActions);
-        observer.observe(document.body, { childList: true, subtree: true });
+        applyDemoButtonVisibility();
     } else {
-        // Consultar backend para saber si el usuario logueado o local es demo
         fetch('backend/perfil.php')
             .then(res => res.json())
             .then(data => {
                 const isDemoUser = (data.success && ((data.user && data.user.email && data.user.email.includes('demo')) || (data.business && (data.business.ruta === 'demo' || data.business.is_demo === true))));
-                if (isDemoUser) {
-                    sessionStorage.setItem('is_demo_user', 'true');
-                    hideDemoActions();
-                    const observer = new MutationObserver(hideDemoActions);
-                    observer.observe(document.body, { childList: true, subtree: true });
-                } else {
-                    sessionStorage.setItem('is_demo_user', 'false');
-                    sessionStorage.removeItem('is_demo_user');
-                }
+                sessionStorage.setItem('is_demo_user', isDemoUser ? 'true' : 'false');
+                applyDemoButtonVisibility();
             })
-            .catch(() => {});
+            .catch(() => applyDemoButtonVisibility());
     }
 
-    // Ejecutar chequeo global de sesión para el Navbar (Modo Demo / Tu Local)
     checkAdminGlobalSession();
 });
 
