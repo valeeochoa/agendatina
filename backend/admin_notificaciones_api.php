@@ -41,6 +41,14 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     try {
+        // Auto-reparación: Corregir prefijo de notificaciones creadas anteriormente como Sugerencia para módulos de error
+        try {
+            $pdo->exec("UPDATE notificaciones_admin 
+                        SET segmento = REPLACE(segmento, 'Sugerencia / Mejora:', 'Reporte de Error:') 
+                        WHERE segmento LIKE 'Sugerencia / Mejora:%' 
+                        AND (segmento LIKE '%Calendario%' OR segmento LIKE '%Agenda%' OR segmento LIKE '%Ajustes%' OR segmento LIKE '%Equipo%' OR segmento LIKE '%Editor%' OR segmento LIKE '%Servicios%')");
+        } catch(Exception $eFixN) {}
+
         $stmt = $pdo->query("
             SELECT n.id, n.segmento, n.mensaje, n.id_negocio, n.nombre_negocio, n.id_usuario, n.nombre_usuario, n.email_usuario, n.rol_usuario, n.fecha, n.leida, neg.nombre_fantasia, neg.ruta 
             FROM notificaciones_admin n
