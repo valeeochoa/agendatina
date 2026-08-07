@@ -32,24 +32,39 @@
     <!-- Header Navbar -->
     <header class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40 mb-6">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-4">
-                <a href="dashboard.html" class="p-2 text-slate-400 hover:text-slate-600 rounded-xl bg-slate-100 hover:bg-slate-200 transition-all flex items-center" title="Volver al Panel">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <a href="dashboard.html" id="btnVolverPanel" class="p-2 text-slate-600 hover:text-slate-900 rounded-xl bg-slate-100 hover:bg-slate-200 transition-all flex items-center gap-1 font-bold text-xs sm:text-sm shadow-xs" title="Volver al panel">
                     <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+                    <span class="hidden sm:inline">Volver al panel</span>
                 </a>
-                <a href="dashboard.html" class="flex items-center gap-2">
-                    <img src="public/logo.png" alt="Agendatina" class="h-8 w-auto">
+                <span id="navBrandSeparator" class="text-slate-300 font-light text-lg hidden sm:inline">|</span>
+                <a href="dashboard.html" id="navAgendatinaBrand" class="flex items-center gap-2 tracking-tighter hover:opacity-90 transition-opacity">
+                    <img src="public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
                     <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
                 </a>
+                <span class="text-slate-300 font-light text-lg hidden sm:inline">|</span>
+                <div id="navBusinessNameHeader" class="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-2xl shadow-xs">
+                    <img id="navBusinessLogoImg" src="" alt="Logo Negocio" class="hidden h-6 w-6 object-cover rounded-full border border-slate-300">
+                    <span id="navBusinessIcon" class="material-symbols-outlined text-[18px] text-[#d11149]">storefront</span>
+                    <span id="navBusinessNameText" class="text-xs sm:text-sm font-extrabold text-slate-800">Equipo</span>
+                </div>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 sm:gap-3">
                 <div id="adminSessionBadge" class="hidden items-center gap-1.5 bg-amber-100 border border-amber-200 px-3 py-1 rounded-xl shadow-xs">
                     <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
                     <span id="adminSessionBadgeText" class="text-[11px] font-extrabold text-amber-700 uppercase tracking-wider hidden md:inline">Modo Demo</span>
                 </div>
-                <span class="bg-purple-100 text-purple-700 px-3.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5">
-                    <span class="material-symbols-outlined text-[16px]">group</span> Equipo y Profesionales
-                </span>
+
+                <button id="navReportBugBtn" onclick="openReportErrorModal('Equipo')" class="text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl flex items-center gap-1 transition-colors" title="Reportar Error">
+                    <span class="material-symbols-outlined text-[16px]">bug_report</span>
+                    <span class="hidden md:inline">Reportar Error</span>
+                </button>
+
+                <button id="navLogoutBtn" onclick="logoutAdminSession()" class="text-xs font-bold text-slate-600 hover:text-red-600 bg-slate-100 hover:bg-red-50 px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-xs" title="Cerrar Sesión">
+                    <span class="material-symbols-outlined text-[18px]">logout</span>
+                    <span class="hidden md:inline">Cerrar sesión</span>
+                </button>
             </div>
         </div>
     </header>

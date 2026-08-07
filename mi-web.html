@@ -22,16 +22,21 @@
     <!-- Navbar del Dashboard / Editar Web -->
     <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-xs px-4 sm:px-6 py-3.5">
         <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
-            <div class="flex items-center gap-3">
-                <a href="dashboard.html" class="flex items-center gap-2 tracking-tighter hover:opacity-90 transition-opacity">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <a href="dashboard.html" id="btnVolverPanel" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold py-2 px-3 sm:px-4 rounded-xl transition-all flex items-center gap-1.5 text-xs sm:text-sm shadow-xs" title="Volver al Panel">
+                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                    <span class="hidden sm:inline">Volver al panel</span>
+                </a>
+                <span id="navBrandSeparator" class="text-slate-300 font-light text-lg hidden sm:inline">|</span>
+                <a href="dashboard.html" id="navAgendatinaBrand" class="flex items-center gap-2 tracking-tighter hover:opacity-90 transition-opacity">
                     <img src="public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
                     <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
                 </a>
                 <span class="text-slate-300 font-light text-lg hidden sm:inline">|</span>
-                <div id="navBusinessNameHeader" class="flex items-center gap-2 bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/10 px-3 py-1.5 rounded-2xl shadow-xs">
+                <div id="navBusinessNameHeader" class="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-2xl shadow-xs">
                     <img id="navBusinessLogoImg" src="" alt="Logo Negocio" class="hidden h-6 w-6 object-cover rounded-full border border-slate-300">
                     <span id="navBusinessIcon" class="material-symbols-outlined text-[18px] text-[#d11149]">storefront</span>
-                    <span id="navBusinessNameText" class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-white">Editor Web</span>
+                    <span id="navBusinessNameText" class="text-xs sm:text-sm font-extrabold text-slate-800">Página Web</span>
                 </div>
             </div>
 
@@ -51,10 +56,10 @@
                     <span class="hidden md:inline">Reportar Error</span>
                 </button>
 
-                <a href="dashboard.html" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold py-2 px-3.5 rounded-xl transition-all flex items-center gap-1.5 text-xs sm:text-sm" title="Volver al Panel">
-                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-                    <span class="hidden sm:inline">Volver</span>
-                </a>
+                <button id="navLogoutBtn" onclick="logoutAdminSession()" class="text-xs font-bold text-slate-600 hover:text-red-600 bg-slate-100 hover:bg-red-50 px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-xs" title="Cerrar Sesión">
+                    <span class="material-symbols-outlined text-[18px]">logout</span>
+                    <span class="hidden md:inline">Cerrar sesión</span>
+                </button>
             </div>
         </div>
     </nav>

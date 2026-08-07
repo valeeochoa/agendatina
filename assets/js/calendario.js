@@ -2625,13 +2625,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+window.logoutAdminSession = function() {
+    sessionStorage.clear();
+    localStorage.clear();
+    fetch('backend/logout.php')
+        .then(() => { window.location.href = 'login.html'; })
+        .catch(() => { window.location.href = 'login.html'; });
+};
+
 function checkAdminCalendarSession(config = null) {
     const btnVolver = document.getElementById('btnVolverPanel');
     const brand = document.getElementById('navAgendatinaBrand');
     const sep = document.getElementById('navBrandSeparator');
     const bugBtn = document.getElementById('navReportBugBtn');
+    const logoutBtn = document.getElementById('navLogoutBtn');
     const sessionBadge = document.getElementById('adminSessionBadge');
     const sessionBadgeText = document.getElementById('adminSessionBadgeText');
+    const bizText = document.getElementById('navBusinessNameText');
+    const bizLogo = document.getElementById('navBusinessLogoImg');
+    const bizHeader = document.getElementById('navBusinessNameHeader');
 
     fetch('backend/perfil.php')
     .then(res => res.json())
@@ -2647,15 +2659,22 @@ function checkAdminCalendarSession(config = null) {
             if (isDemo || !currentRuta || loggedRuta === currentRuta || (config && data.business.id == config.id_negocio)) {
                 isOwnerSession = true;
             }
+
+            if (bizText) bizText.textContent = data.business.nombre_fantasia || 'Agendatina';
+            if (bizLogo && data.config && data.config.url_logo) {
+                bizLogo.src = data.config.url_logo;
+                bizLogo.classList.remove('hidden');
+            }
+            if (bizHeader) { bizHeader.classList.remove('hidden'); bizHeader.style.display = 'flex'; }
         }
 
-        // El brand (Agendatina) y el separador se muestran para todos los usuarios
         if (brand) { brand.classList.remove('hidden'); brand.style.display = 'flex'; }
         if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
 
         if (isOwnerSession) {
             if (btnVolver) { btnVolver.classList.remove('hidden'); btnVolver.style.display = 'flex'; }
-            if (bugBtn && !isDemo) { bugBtn.classList.remove('hidden'); bugBtn.style.display = 'flex'; }
+            if (bugBtn) { bugBtn.classList.remove('hidden'); bugBtn.style.display = 'flex'; }
+            if (logoutBtn) { logoutBtn.classList.remove('hidden'); logoutBtn.style.display = 'flex'; }
 
             if (sessionBadge) {
                 sessionBadge.classList.remove('hidden');
@@ -2680,6 +2699,7 @@ function checkAdminCalendarSession(config = null) {
             // Vista Cliente Público
             if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
             if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
+            if (logoutBtn) { logoutBtn.classList.add('hidden'); logoutBtn.style.display = 'none'; }
             if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
         }
     })
@@ -2689,10 +2709,13 @@ function checkAdminCalendarSession(config = null) {
         if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
         if (forceOwner) {
             if (btnVolver) { btnVolver.classList.remove('hidden'); btnVolver.style.display = 'flex'; }
+            if (bugBtn) { bugBtn.classList.remove('hidden'); bugBtn.style.display = 'flex'; }
+            if (logoutBtn) { logoutBtn.classList.remove('hidden'); logoutBtn.style.display = 'flex'; }
             if (sessionBadge) { sessionBadge.classList.remove('hidden'); sessionBadge.style.display = 'flex'; }
         } else {
             if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
             if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
+            if (logoutBtn) { logoutBtn.classList.add('hidden'); logoutBtn.style.display = 'none'; }
             if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
         }
     });
