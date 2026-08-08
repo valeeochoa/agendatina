@@ -2790,8 +2790,12 @@ function checkAdminGlobalSession(config = null) {
             const urlParams = new URLSearchParams(window.location.search);
             const negocioSlug = urlParams.get('n') || window.location.pathname.split('/')[1] || '';
             const currentRuta = (negocioSlug || (config ? config.ruta || config.subdominio : '') || '').toLowerCase().trim();
+            
+            const adminPages = ['dashboard', 'ajustes', 'estadisticas', 'servicios', 'equipo', 'mi-web', 'agenda', 'manual', 'consultas', 'perfil', 'pago'];
+            const currentPath = window.location.pathname.toLowerCase();
+            const isAdminPage = adminPages.some(page => currentPath.includes(page)) || !currentRuta;
 
-            if (isDemo || !currentRuta || loggedRuta === currentRuta || (config && data.business.id == config.id_negocio)) {
+            if (isDemo || isAdminPage || loggedRuta === currentRuta || (config && data.business.id == config.id_negocio)) {
                 isUserAdmin = true;
             }
         }

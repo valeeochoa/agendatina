@@ -2672,8 +2672,6 @@ function checkAdminCalendarSession(config = null) {
         headerEl.style.visibility = 'visible';
     }
 
-    if (brand) { brand.classList.remove('hidden'); brand.style.display = 'flex'; }
-    if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
     if (bizHeader) { bizHeader.classList.remove('hidden'); bizHeader.style.display = 'flex'; }
 
     fetch('backend/perfil.php')
@@ -2704,7 +2702,9 @@ function checkAdminCalendarSession(config = null) {
         }
 
         if (isUserAdmin) {
-            // Usuario es Administrador de la cuenta: Mostrar controles administrativos
+            // Usuario es Administrador de la cuenta: Mostrar marca Agendatina y controles administrativos
+            if (brand) { brand.classList.remove('hidden'); brand.style.display = 'flex'; }
+            if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
             if (btnVolver) { btnVolver.classList.remove('hidden'); btnVolver.style.display = 'inline-flex'; }
             if (logoutBtn) { logoutBtn.classList.remove('hidden'); logoutBtn.style.display = 'inline-flex'; }
 
@@ -2737,7 +2737,9 @@ function checkAdminCalendarSession(config = null) {
                 }
             }
         } else {
-            // Usuario es Cliente / Visitante: OCULTAR todos los botones administrativos
+            // Usuario es Cliente / Visitante: OCULTAR marca Agendatina del header y todos los botones administrativos
+            if (brand) { brand.classList.add('hidden'); brand.style.display = 'none'; }
+            if (sep) { sep.classList.add('hidden'); sep.style.display = 'none'; }
             if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
             if (logoutBtn) { logoutBtn.classList.add('hidden'); logoutBtn.style.display = 'none'; }
             if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
@@ -2745,7 +2747,9 @@ function checkAdminCalendarSession(config = null) {
         }
     })
     .catch(() => {
-        // En caso de error o sesión cerrada, ocultar botones de administración
+        // En caso de error o sesión cerrada, ocultar marca Agendatina del header y botones de administración
+        if (brand) { brand.classList.add('hidden'); brand.style.display = 'none'; }
+        if (sep) { sep.classList.add('hidden'); sep.style.display = 'none'; }
         if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
         if (logoutBtn) { logoutBtn.classList.add('hidden'); logoutBtn.style.display = 'none'; }
         if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
