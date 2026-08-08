@@ -25,10 +25,8 @@ window.loadDashboardData = function() {
         
         // 3. Gestionar permisos según el rol y verificación de correo (Modo DEMO oculta banners de verificación y pago)
         if (window.currentUserData) {
-            const isDemo = sessionStorage.getItem('is_demo_user') === 'true' || 
-                           sessionStorage.getItem('agendatina_demo_alert') === 'true' || 
-                           (window.currentUserData.email && window.currentUserData.email.includes('demo')) ||
-                           (window.currentBusinessData && (window.currentBusinessData.ruta === 'demo' || window.currentBusinessData.subdominio === 'demo'));
+            const isDemo = (window.currentUserData.email && window.currentUserData.email.includes('demo')) ||
+                           (window.currentBusinessData && (window.currentBusinessData.ruta === 'demo' || window.currentBusinessData.subdominio === 'demo' || window.currentBusinessData.is_demo === true));
 
             const vBanner = document.getElementById('verifyEmailBanner');
             const sBanner = document.getElementById('subscriptionBanner');
@@ -38,9 +36,10 @@ window.loadDashboardData = function() {
                 if (sBanner) { sBanner.classList.add('hidden'); sBanner.style.setProperty('display', 'none', 'important'); }
             } else {
                 if (vBanner) {
-                    if (parseInt(window.currentUserData.email_verificado) === 0) {
+                    const isVerified = parseInt(window.currentUserData.email_verificado || 0) === 1;
+                    if (!isVerified) {
                         vBanner.classList.remove('hidden');
-                        vBanner.style.display = '';
+                        vBanner.style.display = 'flex';
                     } else {
                         vBanner.classList.add('hidden');
                         vBanner.style.display = 'none';

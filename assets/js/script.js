@@ -818,7 +818,7 @@ function loadDashboardData() {
             subscriptionData.priceFormatted = formattedPrice;
             checkSubscription(subscriptionData);
             
-            // --- ONBOARDING WIDGET (TUTORIAL) ---
+            // --- ONBOARDING WIDGET (TUTORIAL & TOUR VIRTUAL) ---
             const onboardingWidget = document.getElementById('onboardingWidget');
             if (onboardingWidget) {
                 let hasConfig = webData.dias_trabajo && webData.dias_trabajo.trim() !== '';
@@ -827,10 +827,12 @@ function loadDashboardData() {
 
                 if (hasConfig && hasServices && hasTurnos && window.currentUserData.email !== 'demo@agendatina.site') {
                     onboardingWidget.classList.add('hidden');
+                    onboardingWidget.style.display = 'none';
                 } else {
                     onboardingWidget.classList.remove('hidden');
+                    onboardingWidget.style.display = 'block';
                     
-                    const isDemoUser = window.currentUserData && window.currentUserData.email === 'demo@agendatina.site';
+                    const isDemoUser = (window.currentUserData && window.currentUserData.email && window.currentUserData.email.includes('demo')) || (business && (business.ruta === 'demo' || business.is_demo));
                     
                     const step1Icon = document.getElementById('step1Icon');
                     const step1Text = document.getElementById('step1Text');
@@ -2776,76 +2778,97 @@ function checkAdminGlobalSession(config = null) {
     .then(res => res.json())
     .then(data => {
         let isDemo = false;
+        let isUserAdmin = false;
+
         if (data && data.success && data.business) {
             isDemo = (data.business.is_demo === true) || 
                      (data.user && data.user.email && data.user.email.includes('demo')) || 
                      (data.business.ruta === 'demo') || 
-                     (config && config.is_demo === true) ||
-                     sessionStorage.getItem('is_demo') === 'true';
+                     (config && config.is_demo === true);
 
             const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
             const urlParams = new URLSearchParams(window.location.search);
             const negocioSlug = urlParams.get('n') || window.location.pathname.split('/')[1] || '';
             const currentRuta = (negocioSlug || (config ? config.ruta || config.subdominio : '') || '').toLowerCase().trim();
-            
-            // Badge del Dashboard
-            const demoBadge = document.getElementById('demoBadge');
-            if (demoBadge) {
-                if (isDemo) {
-                    demoBadge.classList.remove('hidden');
-                    demoBadge.classList.add('inline-flex');
-                    demoBadge.style.display = 'inline-flex';
-                } else {
-                    demoBadge.classList.add('hidden');
-                    demoBadge.style.display = 'none';
-                }
-            }
 
             if (isDemo || !currentRuta || loggedRuta === currentRuta || (config && data.business.id == config.id_negocio)) {
-                const adminMenu = document.getElementById('adminProfileMenu');
-                if (adminMenu) {
-                    adminMenu.classList.remove('hidden');
-                    adminMenu.classList.add('flex');
-                    adminMenu.style.display = 'flex';
-                }
-                
-                const sessionBadge = document.getElementById('adminSessionBadge');
-                const sessionBadgeText = document.getElementById('adminSessionBadgeText');
-                if (sessionBadge) {
-                    sessionBadge.classList.remove('hidden');
-                    sessionBadge.classList.add('flex');
-                    sessionBadge.style.display = 'flex';
-                    
-                    const dot = sessionBadge.querySelector('span:first-child');
-                    if (isDemo) {
-                        if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
-                        if (sessionBadgeText) {
-                            sessionBadgeText.textContent = 'Modo Demo';
-                            sessionBadgeText.className = 'text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider hidden md:inline';
-                        }
-                    } else {
-                        if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
-                        if (sessionBadgeText) {
-                            sessionBadgeText.textContent = 'Tu Local';
-                            sessionBadgeText.className = 'text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider hidden md:inline';
-                        }
+                isUserAdmin = true;
+            }
+        }
+
+        // 1. Badge del Dashboard (solo si es demo)
+        const demoBadge = document.getElementById('demoBadge');
+        if (demoBadge) {
+            if (isDemo) {
+                demoBadge.classList.remove('hidden');
+                demoBadge.style.display = 'inline-flex';
+            } else {
+                demoBadge.classList.add('hidden');
+                demoBadge.style.display = 'none';
+            }
+        }
+
+        // 2. Menú de perfil y badge de sesión en el Header
+        const adminMenu = document.getElementById('adminProfileMenu');
+        const sessionBadge = document.getElementById('adminSessionBadge');
+        const sessionBadgeText = document.getElementById('adminSessionBadgeText');
+        const btnVolverPanel = document.getElementById('btnVolverPanel');
+        const navLogoutBtn = document.getElementById('navLogoutBtn');
+
+        if (isUserAdmin) {
+            if (adminMenu) {
+                adminMenu.classList.remove('hidden');
+                adminMenu.style.display = 'flex';
+            }
+            if (sessionBadge) {
+                sessionBadge.classList.remove('hidden');
+                sessionBadge.style.display = 'flex';
+                const dot = sessionBadge.querySelector('span:first-child');
+                if (isDemo) {
+                    if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
+                    if (sessionBadgeText) {
+                        sessionBadgeText.textContent = 'Modo Demo';
+                        sessionBadgeText.className = 'text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider hidden md:inline';
+                    }
+                } else {
+                    if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
+                    if (sessionBadgeText) {
+                        sessionBadgeText.textContent = 'Tu Local';
+                        sessionBadgeText.className = 'text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider hidden md:inline';
                     }
                 }
             }
+            if (btnVolverPanel) {
+                btnVolverPanel.classList.remove('hidden');
+                btnVolverPanel.style.display = 'inline-flex';
+            }
+            if (navLogoutBtn) {
+                navLogoutBtn.classList.remove('hidden');
+                navLogoutBtn.style.display = 'inline-flex';
+            }
         } else {
-            isDemo = (sessionStorage.getItem('is_demo') === 'true' || window.location.search.includes('n=demo'));
+            // Usuario es cliente / visitante sin sesión de admin en este local: OCULTAR TODOS LOS BOTONES DE ADMIN
+            if (adminMenu) { adminMenu.classList.add('hidden'); adminMenu.style.display = 'none'; }
+            if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
+            if (btnVolverPanel) { btnVolverPanel.classList.add('hidden'); btnVolverPanel.style.display = 'none'; }
+            if (navLogoutBtn) { navLogoutBtn.classList.add('hidden'); navLogoutBtn.style.display = 'none'; }
         }
 
-        // Si la sesión es demo, ocultar botón de reportar error. Si es un negocio real, mostrarlo.
+        // 3. Botón de Reportar Bug: SOLAMENTE visible para Administradores de Cuentas Reales (no demo, no clientes)
         document.querySelectorAll('#navReportBugBtn, #btnReportarErrorAgenda').forEach(btn => {
-            if (isDemo) {
+            if (isUserAdmin && !isDemo) {
+                btn.classList.remove('hidden');
+                btn.style.display = 'inline-flex';
+            } else {
                 btn.classList.add('hidden');
                 btn.style.display = 'none';
-            } else {
-                btn.classList.remove('hidden');
-                btn.style.display = 'flex';
             }
         });
     })
-    .catch(() => null);
+    .catch(() => {
+        // En caso de error de red o sin sesión, asegurar que la vista cliente esté limpia de botones admin
+        document.querySelectorAll('#navReportBugBtn, #btnReportarErrorAgenda, #navLogoutBtn, #btnVolverPanel, #adminSessionBadge, #adminProfileMenu').forEach(el => {
+            if (el) { el.classList.add('hidden'); el.style.display = 'none'; }
+        });
+    });
 }

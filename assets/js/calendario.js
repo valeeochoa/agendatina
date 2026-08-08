@@ -2665,7 +2665,7 @@ function checkAdminCalendarSession(config = null) {
     const bizHeader = document.getElementById('navBusinessNameHeader');
     const headerEl = document.querySelector('header');
 
-    // Garantizar presencia permanente del header sin contracción
+    // Garantizar presencia permanente del header
     if (headerEl) {
         headerEl.classList.remove('hidden');
         headerEl.style.display = 'block';
@@ -2674,68 +2674,82 @@ function checkAdminCalendarSession(config = null) {
 
     if (brand) { brand.classList.remove('hidden'); brand.style.display = 'flex'; }
     if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
-    if (btnVolver) { btnVolver.classList.remove('hidden'); btnVolver.style.display = 'flex'; }
-    if (logoutBtn) { logoutBtn.classList.remove('hidden'); logoutBtn.style.display = 'flex'; }
     if (bizHeader) { bizHeader.classList.remove('hidden'); bizHeader.style.display = 'flex'; }
 
     fetch('backend/perfil.php')
     .then(res => res.json())
     .then(data => {
         let isDemo = false;
+        let isUserAdmin = false;
 
         if (data && data.success && data.business) {
             isDemo = (data.business.is_demo === true) || 
                      (data.user && data.user.email === 'demo@agendatina.site') || 
                      (data.business.ruta === 'demo') || 
                      (config && config.is_demo === true) ||
-                     sessionStorage.getItem('is_demo') === 'true' ||
                      negocioSlug === 'demo';
 
-            if (bizText) bizText.textContent = data.business.nombre_fantasia || 'Agendatina';
+            const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
+            const currentRuta = (negocioSlug || (config ? config.ruta || config.subdominio : '') || '').toLowerCase().trim();
+
+            if (isDemo || !currentRuta || loggedRuta === currentRuta || (config && data.business.id == config.id_negocio)) {
+                isUserAdmin = true;
+            }
+
+            if (bizText && data.business.nombre_fantasia) bizText.textContent = data.business.nombre_fantasia;
             if (bizLogo && data.config && data.config.url_logo) {
                 bizLogo.src = data.config.url_logo;
                 bizLogo.classList.remove('hidden');
             }
+        }
+
+        if (isUserAdmin) {
+            // Usuario es Administrador de la cuenta: Mostrar controles administrativos
+            if (btnVolver) { btnVolver.classList.remove('hidden'); btnVolver.style.display = 'inline-flex'; }
+            if (logoutBtn) { logoutBtn.classList.remove('hidden'); logoutBtn.style.display = 'inline-flex'; }
+
+            if (sessionBadge) {
+                sessionBadge.classList.remove('hidden');
+                sessionBadge.style.display = 'flex';
+                const dot = sessionBadge.querySelector('span:first-child');
+                if (isDemo) {
+                    if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
+                    if (sessionBadgeText) {
+                        sessionBadgeText.textContent = 'Modo Demo';
+                        sessionBadgeText.className = 'text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider hidden md:inline';
+                    }
+                } else {
+                    if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
+                    if (sessionBadgeText) {
+                        sessionBadgeText.textContent = 'Tu Local';
+                        sessionBadgeText.className = 'text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider hidden md:inline';
+                    }
+                }
+            }
+
+            if (bugBtn) {
+                if (isDemo) {
+                    bugBtn.classList.add('hidden');
+                    bugBtn.style.display = 'none';
+                } else {
+                    bugBtn.classList.remove('hidden');
+                    bugBtn.style.display = 'inline-flex';
+                }
+            }
         } else {
-            isDemo = (!negocioSlug || negocioSlug === 'demo' || sessionStorage.getItem('is_demo') === 'true');
-        }
-
-        if (bugBtn) {
-            if (isDemo) {
-                bugBtn.classList.add('hidden');
-                bugBtn.style.display = 'none';
-            } else {
-                bugBtn.classList.remove('hidden');
-                bugBtn.style.display = 'flex';
-            }
-        }
-
-        if (sessionBadge) {
-            sessionBadge.classList.remove('hidden');
-            sessionBadge.classList.add('flex');
-            sessionBadge.style.display = 'flex';
-            const dot = sessionBadge.querySelector('span:first-child');
-            if (isDemo) {
-                if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
-                if (sessionBadgeText) {
-                    sessionBadgeText.textContent = 'Modo Demo';
-                    sessionBadgeText.className = 'text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider hidden md:inline';
-                }
-            } else {
-                if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
-                if (sessionBadgeText) {
-                    sessionBadgeText.textContent = 'Tu Local';
-                    sessionBadgeText.className = 'text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider hidden md:inline';
-                }
-            }
+            // Usuario es Cliente / Visitante: OCULTAR todos los botones administrativos
+            if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
+            if (logoutBtn) { logoutBtn.classList.add('hidden'); logoutBtn.style.display = 'none'; }
+            if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
+            if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
         }
     })
     .catch(() => {
-        if (sessionBadge) {
-            sessionBadge.classList.remove('hidden');
-            sessionBadge.classList.add('flex');
-            sessionBadge.style.display = 'flex';
-        }
+        // En caso de error o sesión cerrada, ocultar botones de administración
+        if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
+        if (logoutBtn) { logoutBtn.classList.add('hidden'); logoutBtn.style.display = 'none'; }
+        if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
+        if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
     });
 }
 

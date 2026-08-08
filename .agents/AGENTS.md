@@ -17,3 +17,8 @@ En todas las vistas HTML de la plataforma (`index.html`, `login.html`, `registro
 - **No utilizar `window.confirm()` ni `alert()` del navegador** para confirmar o notificar acciones destructivas (como eliminar o revocar cuentas/servicios).
 - Siempre utilizar modales de confirmación visuales en HTML (Tailwind CSS) con diseño moderno, backdrop difuminado (`backdrop-blur`), icono representativo, botón de cancelación y botón de confirmación de acción (ej. rojo para eliminar/revocar).
 
+## Comportamiento del Onboarding / Tour Virtual (`#onboardingWidget`)
+- Mantener la lógica de auto-ocultar la sección "Primeros Pasos en Agendatina" (`#onboardingWidget`) cuando la cuenta real de negocio ya haya completado los 3 pasos iniciales (`hasConfig && hasServices && hasTurnos`).
+- **REGLA EXPLICITA DEL USUARIO**: Si en el futuro el usuario solicita modificar la visibilidad de este bloque de Primeros Pasos / Tour Virtual, se le debe **recordar previamente que él solicitó explícitamente mantener esta regla** antes de realizar cualquier modificación.
+
+
