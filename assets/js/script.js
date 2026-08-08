@@ -623,12 +623,6 @@ function logout(redirect = 'login.html') {
 window.currentWebData = window.currentWebData || {};
 
 function loadDashboardData() {
-    // SEGURIDAD: Cierra sesión si la pestaña fue cerrada previamente y se intenta reabrir sin login
-    if (!sessionStorage.getItem('agendatina_session')) {
-        fetch('backend/logout.php').then(() => window.location.href = 'login.html');
-        return;
-    }
-
     Promise.all([
         fetch('backend/perfil.php')
             .then(async res => {
@@ -654,8 +648,17 @@ function loadDashboardData() {
         fetch('backend/obtener_agenda.php').then(res => res.json()).catch(() => [])
     ])
     .then(([data, webData, pData, services, turnos]) => {
-        if (data.success) {
-            const business = data.business || {};
+        if (!data || !data.success) {
+            if (data && data.error && data.error.toLowerCase().includes('inicia sesión')) {
+                window.location.href = 'login.html';
+            } else {
+                showDashboardError((data && data.error) || 'No se pudieron recuperar los datos de usuario o negocio.');
+            }
+            return;
+        }
+
+        sessionStorage.setItem('agendatina_session', 'active');
+        const business = data.business || {};
             if (webData && !webData.error && webData.fecha_alta) {
                 business.fecha_alta = webData.fecha_alta;
                 if (webData.plan) business.plan = webData.plan;
@@ -889,11 +892,6 @@ function loadDashboardData() {
                 mainContent.classList.remove('hidden');
                 setTimeout(() => mainContent.classList.remove('opacity-0'), 50);
             }
-        } else if (data.error && data.error.toLowerCase().includes('inicia sesión')) {
-            window.location.href = 'login.html';
-        } else {
-            showDashboardError(data.error || 'No se pudieron recuperar los datos de usuario o negocio.');
-        }
     })
     .catch(err => {
         console.error('Error al cargar datos del dashboard:', err);

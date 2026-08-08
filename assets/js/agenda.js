@@ -758,12 +758,6 @@ function renderPapeleraModalList(list) {
 document.addEventListener('DOMContentLoaded', () => {
     // ---- Lógica para agenda.html ----
     if (document.getElementById('lista-pendientes')) {
-        // Seguridad: si no hay sesión, redirigir al login
-        if (!sessionStorage.getItem('agendatina_session')) {
-            fetch('backend/logout.php').then(() => window.location.href = 'login.html');
-            return;
-        }
-        
         window.cargarAgenda();
 
         // Verificar si es usuario demo y ocultar botón de reportar error

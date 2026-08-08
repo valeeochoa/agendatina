@@ -225,8 +225,47 @@
             fetch('backend/perfil.php')
                 .then(r => r.json())
                 .then(d => {
-                    if (!d.success) window.location.href = 'login.html';
-                    else loadTeamAndServices();
+                    if (!d.success) {
+                        window.location.href = 'login.html';
+                    } else {
+                        const isDemo = (d.user && d.user.email && d.user.email.includes('demo')) ||
+                                       (d.business && (d.business.ruta === 'demo' || d.business.is_demo === true));
+                        
+                        const btnReportBug = document.getElementById('navReportBugBtn');
+                        if (btnReportBug) {
+                            if (isDemo) {
+                                btnReportBug.classList.add('hidden');
+                                btnReportBug.style.display = 'none';
+                            } else {
+                                btnReportBug.classList.remove('hidden');
+                                btnReportBug.style.display = 'inline-flex';
+                            }
+                        }
+
+                        const sessionBadge = document.getElementById('adminSessionBadge');
+                        const sessionBadgeText = document.getElementById('adminSessionBadgeText');
+                        if (sessionBadge) {
+                            sessionBadge.classList.remove('hidden');
+                            sessionBadge.classList.add('flex');
+                            sessionBadge.style.display = 'flex';
+                            const dot = sessionBadge.querySelector('span:first-child');
+                            if (isDemo) {
+                                if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
+                                if (sessionBadgeText) {
+                                    sessionBadgeText.textContent = 'Modo Demo';
+                                    sessionBadgeText.className = 'text-[11px] font-extrabold text-amber-700 uppercase tracking-wider hidden md:inline';
+                                }
+                            } else {
+                                if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
+                                if (sessionBadgeText) {
+                                    sessionBadgeText.textContent = 'Tu Local';
+                                    sessionBadgeText.className = 'text-[11px] font-extrabold text-emerald-700 uppercase tracking-wider hidden md:inline';
+                                }
+                            }
+                        }
+
+                        loadTeamAndServices();
+                    }
                 });
         });
 
@@ -490,5 +529,6 @@
                 });
         });
     </script>
+    <script src="assets/js/script.js?v=1.1.4" defer></script>
 </body>
 </html>

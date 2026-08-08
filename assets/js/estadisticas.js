@@ -5,11 +5,6 @@ let ingresosSemanaChartInstance;
 let pagosChartInstance;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Seguridad: si no hay sesión, redirigir al login
-    if (!sessionStorage.getItem('agendatina_session')) {
-        fetch('backend/logout.php').then(() => window.location.href = 'login.html');
-        return;
-    }
     
     const fechaDesdeInput = document.getElementById('fechaDesde');
     const fechaHastaInput = document.getElementById('fechaHasta');
