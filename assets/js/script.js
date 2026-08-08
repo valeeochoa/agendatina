@@ -1152,7 +1152,10 @@ function checkNotifications() {
     }
 
     fetch('backend/obtener_agenda.php')
-    .then(res => res.json())
+    .then(res => {
+        if (!res.ok) throw new Error('Error en respuesta del servidor (' + res.status + ')');
+        return res.json();
+    })
     .then(data => {
         let notifState = JSON.parse(localStorage.getItem(window.getNotifStorageKey()) || '{}');
         let currentNotifs = [];
@@ -1269,7 +1272,12 @@ function checkNotifications() {
         } else {
             notifList.innerHTML = '<div class="p-4 text-center text-sm text-slate-400">No hay notificaciones nuevas</div>';
         }
-    }).catch(err => console.error('Error notificaciones:', err));
+    }).catch(err => {
+        // Manejo silencioso de desconexión/DNS temporal sin interrumpir el funcionamiento de la app
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            console.warn('Conexión con el servidor intermitente:', err.message);
+        }
+    });
 }
 
 window.toggleNotifications = function(e) {
