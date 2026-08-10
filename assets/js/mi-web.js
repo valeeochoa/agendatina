@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data && !data.error) {
             if (data.ruta) {
                 const btnVer = document.getElementById('btnVerMiPagina');
-                if (btnVer) btnVer.href = '/' + data.ruta;
+                if (btnVer) btnVer.href = 'web.html?n=' + encodeURIComponent(data.ruta) + '&preview=1';
             }
                 window.currentWebData = data;
                 if (data.titulo) webTitulo.value = data.titulo;

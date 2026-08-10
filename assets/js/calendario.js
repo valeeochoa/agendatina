@@ -1750,7 +1750,7 @@ function renderAdminWeeklyGrid() {
                 if (!isBooked && isToday && slotDate.getTime() <= new Date().getTime()) isBooked = true;
                 
                 const slot = document.createElement('div');
-                slot.className = `p-2 text-center text-xs font-bold rounded-lg border ${isBooked ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/50 text-red-400 cursor-not-allowed' : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/50 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-800/50 cursor-pointer transition-colors'}`;
+                slot.className = `p-2.5 text-center text-xs font-extrabold rounded-xl border transition-all ${isBooked ? 'bg-slate-100/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 hover:border-emerald-500 cursor-pointer shadow-xs hover:shadow-md'}`;
                 
                 if (!isBooked) {
                     slot.textContent = time;

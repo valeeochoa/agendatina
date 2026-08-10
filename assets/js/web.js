@@ -33,37 +33,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 const calSegment = data.tipo_calendario === 'semanal' ? 'calendarioSemanal' : 'calendarioMensual';
                 const cleanLink = negocioSlug ? `/${negocioSlug}/${calSegment}` : `${calSegment}.html${queryParam}`;
 
-                // Redirigir al calendario si el plan no incluye la mini-web
-                if (planStr.includes('básico') || planStr.includes('basico') || planStr.includes('simple') || planStr.includes('intermedio')) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const isPreview = urlParams.has('preview') || urlParams.get('preview') === '1' || data.is_demo === true || window.location.pathname.endsWith('web.html');
+
+                // Redirigir al calendario solo si es un cliente directo en una cuenta con plan simple sin miniweb
+                if (!isPreview && (planStr.includes('básico') || planStr.includes('basico') || planStr.includes('simple'))) {
                     window.location.replace(cleanLink);
                     return;
                 }
 
                 // Actualizar enlaces al calendario usando la ruta dinámica
-                document.getElementById('navReservarBtn').href = cleanLink;
-                document.getElementById('heroReservarBtn').href = cleanLink;
+                if (document.getElementById('navReservarBtn')) document.getElementById('navReservarBtn').href = cleanLink;
+                if (document.getElementById('heroReservarBtn')) document.getElementById('heroReservarBtn').href = cleanLink;
 
                 const title = data.titulo || 'Mi Negocio';
                 document.title = title;
-                document.getElementById('navTitle').textContent = title;
-                document.getElementById('heroTitle').textContent = title;
-                document.getElementById('footerName').textContent = title;
+                
+                const navTitle = document.getElementById('navBusinessNameText') || document.getElementById('navTitle');
+                if (navTitle) navTitle.textContent = title;
+                
+                const heroTitle = document.getElementById('heroTitle');
+                if (heroTitle) heroTitle.textContent = title;
+                
+                const footerName = document.getElementById('footerName');
+                if (footerName) footerName.textContent = title;
 
-                if (data.subtitulo) {
+                if (data.subtitulo && document.getElementById('heroSubtitle')) {
                     document.getElementById('heroSubtitle').textContent = data.subtitulo;
                 }
 
-                if (data.fondo) {
+                if (data.fondo && document.getElementById('heroBackground')) {
                     document.getElementById('heroBackground').style.backgroundImage = `url('${data.fondo}')`;
                     document.getElementById('heroBackground').classList.remove('opacity-40');
                     document.getElementById('heroBackground').classList.add('opacity-50');
                 }
 
                 if (data.logo) {
-                    document.getElementById('navIcon').classList.add('hidden');
-                    const navLogo = document.getElementById('navLogo');
-                    navLogo.src = data.logo;
-                    navLogo.classList.remove('hidden');
+                    const navIcon = document.getElementById('navBusinessIcon') || document.getElementById('navIcon');
+                    if (navIcon) navIcon.classList.add('hidden');
+                    const navLogo = document.getElementById('navBusinessLogoImg') || document.getElementById('navLogo');
+                    if (navLogo) {
+                        navLogo.src = data.logo;
+                        navLogo.classList.remove('hidden');
+                    }
 
                     const favicon = document.querySelector('link[rel="icon"]');
                     if (favicon) favicon.href = data.logo;
@@ -86,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (data.color_fondo) {
                         stylesHTML += `body, .bg-slate-50 { background-color: ${data.color_fondo} !important; }`;
                     }
-                    style.innerHTML = stylesHTML;
+                    if (style) style.innerHTML = stylesHTML;
                 }
 
                 if (data.alineacion_servicios) {
@@ -127,46 +139,60 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     } catch (e) {}
                 }
+                
+                // Consolidar equipo / profesionales
                 let allProfs = [];
-                if (Array.isArray(personalData) && personalData.length > 0) {
-                    personalData.forEach(p => {
-                        const name = p.nombre_completo || p.nombre || p.email;
-                        if (name) {
-                            allProfs.push({
-                                nombre: name,
-                                descripcion: p.rol_en_local === 'admin' ? 'Administrador del local' : 'Especialista del equipo',
-                                foto: p.foto || ''
-                            });
-                        }
-                    });
-                }
                 if (data.profesionales_json) {
                     try {
                         const parsed = JSON.parse(data.profesionales_json);
                         if (Array.isArray(parsed)) {
                             parsed.forEach(p => {
-                                if (p.nombre && !allProfs.some(existP => existP.nombre.toLowerCase() === p.nombre.toLowerCase())) {
-                                    allProfs.push(p);
+                                if (p.nombre && p.nombre.trim() !== '') {
+                                    allProfs.push({
+                                        nombre: p.nombre.trim(),
+                                        descripcion: p.descripcion || 'Especialista del equipo',
+                                        foto: p.foto || ''
+                                    });
                                 }
                             });
                         }
                     } catch (e) {}
                 }
-                if (Array.isArray(servicesData) && servicesData.length > 0) {
-                    servicesData.forEach(s => {
-                        if (s.profesional && s.profesional.trim() !== '' && s.profesional !== 'Cualquiera (Sin preferencia)') {
-                            const profName = s.profesional.trim();
-                            const exists = allProfs.some(p => p.nombre && p.nombre.toLowerCase() === profName.toLowerCase());
+                
+                if (Array.isArray(personalData) && personalData.length > 0) {
+                    personalData.forEach(p => {
+                        const name = p.nombre_completo || p.nombre;
+                        if (name && !name.includes('@')) {
+                            const exists = allProfs.some(existP => existP.nombre.toLowerCase() === name.trim().toLowerCase());
                             if (!exists) {
                                 allProfs.push({
-                                    nombre: profName,
-                                    descripcion: 'Especialista del equipo',
-                                    foto: s.foto_profesional || ''
+                                    nombre: name.trim(),
+                                    descripcion: p.rol_en_local === 'admin' ? 'Administrador del local' : 'Especialista del equipo',
+                                    foto: p.foto || ''
                                 });
                             }
                         }
                     });
                 }
+                
+                if (Array.isArray(servicesData) && servicesData.length > 0) {
+                    servicesData.forEach(s => {
+                        if (s.profesional && s.profesional.trim() !== '' && s.profesional !== 'Cualquiera (Sin preferencia)') {
+                            const profName = s.profesional.trim();
+                            if (!profName.includes('@')) {
+                                const exists = allProfs.some(p => p.nombre && p.nombre.toLowerCase() === profName.toLowerCase());
+                                if (!exists) {
+                                    allProfs.push({
+                                        nombre: profName,
+                                        descripcion: 'Especialista del equipo',
+                                        foto: s.foto_profesional || ''
+                                    });
+                                }
+                            }
+                        }
+                    });
+                }
+                
                 if (allProfs.length > 0 && document.getElementById('publicProfesionalesList')) {
                     const container = document.getElementById('publicProfesionalesList');
                     container.innerHTML = '';
