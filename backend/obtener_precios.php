@@ -18,6 +18,7 @@ catch(Exception $e) {
 }
 
 try {
+    $pdo->exec("UPDATE configuracion_global SET precio_basico = 8889, precio_intermedio = 11111, precio_premium = 16667, descuento_porcentaje = 10 WHERE id = 1");
     $stmt = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta FROM configuracion_global WHERE id = 1");
     $precios = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$precios) $precios = ['precio_basico' => 8889, 'precio_intermedio' => 11111, 'precio_premium' => 16667, 'descuento_porcentaje' => 10, 'descuento_hasta' => null];

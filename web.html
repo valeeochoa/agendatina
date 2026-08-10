@@ -51,9 +51,14 @@
 
     <!-- Navbar -->
     <nav class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <a href="dashboard.html" class="flex items-center gap-2 tracking-tighter hover:opacity-90 transition-opacity">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex justify-between items-center gap-3">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <a href="dashboard.html" id="btnVolverPanel" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold py-2 px-3 sm:px-4 rounded-xl transition-all flex items-center gap-1.5 text-xs sm:text-sm shadow-xs" title="Volver al Panel">
+                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                    <span class="hidden sm:inline">Volver al panel</span>
+                </a>
+                <span id="navBrandSeparator" class="text-slate-300 font-light text-lg hidden sm:inline">|</span>
+                <a href="dashboard.html" id="navAgendatinaBrand" class="flex items-center gap-2 tracking-tighter hover:opacity-90 transition-opacity">
                     <img src="public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
                     <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
                 </a>
@@ -70,11 +75,6 @@
                     <span class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
                     <span id="adminSessionBadgeText" class="text-[11px] font-extrabold text-amber-700 uppercase tracking-wider hidden md:inline">Modo Demo</span>
                 </div>
-
-                <a href="dashboard.html" id="btnVolverWebPanel" class="bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold py-2 px-3.5 rounded-xl flex items-center gap-1.5 transition-all shadow-md shadow-[#d11149]/20 text-xs sm:text-sm" title="Volver al Panel">
-                    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
-                    <span class="hidden sm:inline">Volver a Mi Panel</span>
-                </a>
 
                 <a id="navReservarBtn" href="calendarioMensual.html" class="bg-primary text-white px-5 py-2.5 rounded-full font-bold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all">
                     Reservar Turno

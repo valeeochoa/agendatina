@@ -2262,22 +2262,23 @@ document.addEventListener('DOMContentLoaded', () => {
             window.renderPricing = function() {
                 const pData = window.pricingData || {};
                 
-                let b = parseFloat(pData.precio_basico);
-                if (!b || isNaN(b) || b > 12000) b = 8000;
+                let rawB = parseFloat(pData.precio_basico) || 8889;
+                let rawI = parseFloat(pData.precio_intermedio) || 11111;
+                let rawP = parseFloat(pData.precio_premium) || 16667;
+
+                if (rawB > 9500 || rawB < 7500) rawB = 8889;
+                if (rawI > 12500 || rawI < 9500) rawI = 11111;
+                if (rawP > 18000 || rawP < 14000) rawP = 16667;
+
+                const b = Math.round(rawB * 0.9); // 8.000
+                const i = Math.round(rawI * 0.9); // 10.000
+                const p = Math.round(rawP * 0.9); // 15.000
                 
-                let i = parseFloat(pData.precio_intermedio);
-                if (!i || isNaN(i) || i > 14000) i = 10000;
-                
-                let p = parseFloat(pData.precio_premium);
-                if (!p || isNaN(p) || p > 20000) p = 15000;
-                
-                const getFinalPrice = (finalPriceForOne, count) => {
-                    let rawOldPrice = Math.round(finalPriceForOne / 0.9);
-                    
+                const getFinalPrice = (finalPriceForOne, rawBasePrice, count) => {
                     if (count === 1) {
                         return {
                             final: finalPriceForOne,
-                            oldPrice: rawOldPrice,
+                            oldPrice: rawBasePrice,
                             badgeText: `-10% OFF`,
                             showOldPrice: true
                         };
@@ -2285,25 +2286,25 @@ document.addEventListener('DOMContentLoaded', () => {
                         let volumeDiscount = count * 10;
                         if (volumeDiscount > 50) volumeDiscount = 50;
                         
-                        let multiplied = finalPriceForOne * count;
-                        let final = multiplied * (1 - volumeDiscount / 100);
+                        let totalBeforeVol = finalPriceForOne * count;
+                        let final = totalBeforeVol * (1 - volumeDiscount / 100);
                         
                         return {
-                            final: final,
-                            oldPrice: multiplied,
+                            final: Math.round(final),
+                            oldPrice: Math.round(totalBeforeVol),
                             badgeText: `-${volumeDiscount}% POR EQUIPO`,
                             showOldPrice: true
                         };
                     }
                 };
                 
-                const updateBox = (boxId, oldId, basePrice, labelClass, perPersonId, planKey) => {
+                const updateBox = (boxId, oldId, finalPriceOne, rawBaseOne, labelClass, perPersonId, planKey) => {
                     const box = document.getElementById(boxId);
                     const old = document.getElementById(oldId);
                     const perPerson = document.getElementById(perPersonId);
                     
                     let count = window.numProfessionals[planKey];
-                    let info = getFinalPrice(basePrice, count);
+                    let info = getFinalPrice(finalPriceOne, rawBaseOne, count);
                     
                     if (box) box.innerHTML = `$${info.final.toLocaleString('es-AR', {maximumFractionDigits:0})}<span class="text-sm font-normal ${labelClass} ml-1">/mes</span>`;
                     if (old) {
@@ -2330,17 +2331,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 };
                 
-                updateBox('priceBasicBox', 'priceBasicOld', b, 'text-slate-500', 'perPersonBasic', 'basic');
-                updateBox('priceInterBox', 'priceInterOld', i, 'text-white/80', 'perPersonInter', 'inter');
-                updateBox('pricePremBox', 'pricePremOld', p, 'text-slate-500', 'perPersonPrem', 'prem');
+                updateBox('priceBasicBox', 'priceBasicOld', b, rawB, 'text-slate-500', 'perPersonBasic', 'basic');
+                updateBox('priceInterBox', 'priceInterOld', i, rawI, 'text-white/80', 'perPersonInter', 'inter');
+                updateBox('pricePremBox', 'pricePremOld', p, rawP, 'text-slate-500', 'perPersonPrem', 'prem');
                 
                 // Actualizar info para el Carrusel flotante utilizando la misma lógica unificada
                 const planKeys = ['basic', 'inter', 'prem'];
-                const prices = [b, i, p];
+                const finalPrices = [b, i, p];
+                const rawPrices = [rawB, rawI, rawP];
                 
                 for(let idx = 0; idx < 3; idx++) {
                     let k = planKeys[idx];
-                    let info = getFinalPrice(prices[idx], window.numProfessionals[k]);
+                    let info = getFinalPrice(finalPrices[idx], rawPrices[idx], window.numProfessionals[k]);
                     carouselData[idx].price = '$' + info.final.toLocaleString('es-AR', {maximumFractionDigits:0});
                     carouselData[idx].oldPrice = '$' + info.oldPrice.toLocaleString('es-AR', {maximumFractionDigits:0});
                     carouselData[idx].badgeText = info.badgeText;
