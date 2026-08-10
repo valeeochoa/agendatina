@@ -1906,32 +1906,33 @@ function renderWeeklyCalendar() {
         let bgClass = '', textClass = '', borderClass = 'border-transparent';
 
         if (visuallyDisabled) {
-            bgClass = 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/50';
-            textClass = 'text-red-500 dark:text-red-400';
+            bgClass = 'bg-slate-100/70 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/60';
+            textClass = 'text-slate-400 dark:text-slate-500';
+            borderClass = 'border-slate-200/80 dark:border-slate-700/60';
         } else {
-            bgClass = 'bg-green-100 dark:bg-green-900/30 border-green-400 dark:border-green-600/50';
-            textClass = 'text-green-700 dark:text-green-400';
+            bgClass = 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700/60';
+            textClass = 'text-emerald-800 dark:text-emerald-300';
+            borderClass = 'border-emerald-300 dark:border-emerald-700/60';
         }
 
         if (selectedTimeValue === date.getTime()) {
-            borderClass = 'border-primary ring-4 ring-primary/30 ring-offset-2';
+            borderClass = 'border-primary ring-4 ring-primary/20 ring-offset-2';
             bgClass = 'bg-primary';
-            textClass = 'text-primary-contrast';
-        } else {
-            borderClass = visuallyDisabled ? 'border-red-200 dark:border-red-800/50' : 'border-green-400 dark:border-green-600/50';
+            textClass = 'text-white';
         }
 
-        dayDiv.className = `flex flex-col items-center justify-center py-4 px-1 rounded-2xl border-2 shadow-sm ${borderClass} ${bgClass} ${textClass} min-w-[70px] sm:min-w-[85px] shrink-0`;
+        dayDiv.className = `flex flex-col items-center justify-center py-4 px-1 rounded-2xl border-2 shadow-xs ${borderClass} ${bgClass} ${textClass} min-w-[70px] sm:min-w-[85px] shrink-0 transition-all`;
         
         if (visuallyDisabled) {
-            dayDiv.classList.add('opacity-50', 'cursor-not-allowed');
+            dayDiv.classList.add('opacity-60', 'cursor-not-allowed');
         } else {
-            dayDiv.classList.add('cursor-pointer', 'hover:scale-105', 'transition-transform', 'hover:border-green-500');
+            dayDiv.classList.add('cursor-pointer', 'hover:scale-105', 'transition-all', 'hover:border-emerald-500', 'hover:shadow-md');
             const currentIterDate = new Date(date);
             dayDiv.addEventListener('click', () => selectWeeklyDate(currentIterDate));
         }
         
-        dayDiv.innerHTML = `<span class="text-[10px] font-bold tracking-widest mb-1 opacity-80">${dayName}</span><span class="text-2xl font-extrabold">${date.getDate()}</span>`;
+        const activeDot = (!visuallyDisabled && selectedTimeValue !== date.getTime()) ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mb-1 animate-pulse"></span>' : '<span class="w-1.5 h-1.5 rounded-full bg-transparent mb-1"></span>';
+        dayDiv.innerHTML = `${activeDot}<span class="text-[10px] font-extrabold tracking-widest mb-0.5 opacity-80">${dayName}</span><span class="text-2xl font-black">${date.getDate()}</span>`;
         fragment.appendChild(dayDiv);
     }
     calendarDays.appendChild(fragment);
@@ -2107,14 +2108,14 @@ function selectWeeklyDate(date) {
             }
             
             slot.innerHTML = `${time}${spotsText}`;
-            slot.className = 'time-slot flex flex-col justify-center items-center bg-slate-100 dark:bg-slate-800 py-2 rounded-xl text-sm font-extrabold border border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary cursor-pointer transition-all hover:shadow-md';
+            slot.className = 'time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-800/90 py-3 px-2 rounded-2xl text-sm font-extrabold border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-primary hover:text-primary hover:bg-primary/5 cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5';
             slot.addEventListener('click', () => {
                 document.querySelectorAll('#weeklyTimeSlots .time-slot').forEach(el => {
-                    el.classList.remove('selected', 'bg-primary', 'text-primary-contrast', 'border-primary', 'shadow-md');
-                    el.classList.add('bg-slate-100', 'dark:bg-slate-800');
+                    el.classList.remove('selected', 'bg-primary', 'text-white', 'border-primary', 'shadow-lg', 'shadow-primary/30', 'scale-105');
+                    el.classList.add('bg-white', 'dark:bg-slate-800/90', 'border-slate-200', 'text-slate-700');
                 });
-                slot.classList.add('selected', 'bg-primary', 'text-primary-contrast', 'border-primary', 'shadow-md');
-                slot.classList.remove('bg-slate-100', 'dark:bg-slate-800');
+                slot.classList.add('selected', 'bg-primary', 'text-white', 'border-primary', 'shadow-lg', 'shadow-primary/30', 'scale-105');
+                slot.classList.remove('bg-white', 'dark:bg-slate-800/90', 'border-slate-200', 'text-slate-700');
                 cal2_selectedTime = time;
                 document.getElementById('weeklyHora').value = time;
             });
