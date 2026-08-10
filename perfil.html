@@ -11,6 +11,10 @@
             darkMode: 'class',
             theme: {
                 extend: {
+                    fontFamily: {
+                        display: ['Plus Jakarta Sans', 'sans-serif'],
+                        brand: ['Fredoka', 'sans-serif']
+                    },
                     colors: {
                         primary: '#D11149',
                         secondary: '#FC8712'
@@ -19,9 +23,9 @@
             }
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <style> body { font-family: 'Plus Jakarta Sans', sans-serif; } </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
     <!-- Navbar del Dashboard / Perfil (Siempre Visible) -->
@@ -79,10 +83,16 @@
                     <form id="perfilForm" class="space-y-5">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <div>
-                                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Nombre Completo</label>
-                                <input type="text" id="perfilNombre" name="nombre" class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-primary outline-none transition-all font-medium" required>
+                                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Nombre del Negocio / Marca</label>
+                                <input type="text" id="perfilNombreNegocio" name="nombre_fantasia" class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-primary outline-none transition-all font-medium" placeholder="Ej. Barbería Don Juan" required>
+                                <span id="negocioNombreHelp" class="hidden text-[11px] text-amber-600 font-semibold mt-1 block">Solo el administrador del local puede modificar el nombre del negocio.</span>
                             </div>
                             <div>
+                                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Nombre del Administrador / Usuario</label>
+                                <input type="text" id="perfilNombre" name="nombre" class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-primary outline-none transition-all font-medium" placeholder="Tu nombre" required>
+                            </div>
+                            
+                            <div class="sm:col-span-2">
                                 <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Correo Electrónico</label>
                                 <input type="email" id="perfilEmail" class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-100 text-slate-400 text-sm cursor-not-allowed font-medium" disabled title="El email no puede ser modificado aquí">
                             </div>
@@ -212,8 +222,21 @@
                             btnPass.innerHTML = '<span class="material-symbols-outlined text-[20px]">lock</span> Cambiar Contraseña (No disponible en Demo)';
                         }
                     }
+
+                    // Restricción de Rol para Nombre del Negocio
+                    const negocioInput = document.getElementById('perfilNombreNegocio');
+                    const negocioHelp = document.getElementById('negocioNombreHelp');
+                    const isStaff = (data.user.rol === 'profesional' || data.user.rol === 'empleado');
+                    if (isStaff && negocioInput) {
+                        negocioInput.disabled = true;
+                        negocioInput.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
+                        negocioInput.title = 'Solo el administrador del local puede modificar el nombre del negocio.';
+                        if (negocioHelp) negocioHelp.classList.remove('hidden');
+                    }
                 }
                 if(data.business) {
+                    const negocioInput = document.getElementById('perfilNombreNegocio');
+                    if (negocioInput) negocioInput.value = data.business.nombre_fantasia || '';
                     document.getElementById('suscripcionPlan').textContent = data.business.plan || 'Basico';
                     const uPago = data.business.ultimo_pago ? data.business.ultimo_pago.split(' ')[0] : 'No registrado';
                     document.getElementById('suscripcionUltimoPago').textContent = uPago;

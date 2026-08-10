@@ -40,6 +40,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $stmtU->execute([$id_usuario]);
     $user = $stmtU->fetch(PDO::FETCH_ASSOC);
 
+    $userRole = $_SESSION['rol_en_local'] ?? 'admin';
+    if ($user) {
+        $user['rol'] = $userRole;
+    }
+
     // Obtener datos del negocio
     $stmtN = $pdo->prepare("SELECT nombre_fantasia, ruta, plan, estado_pago, ultimo_pago, comprobante FROM negocios WHERE id = ?");
     $stmtN->execute([$id_negocio]);
@@ -83,7 +88,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = $_POST;
     }
 
-    $nombre = $data['nombre'] ?? '';
+    $nombre = trim($data['nombre'] ?? '');
+    $nombre_fantasia = trim($data['nombre_fantasia'] ?? '');
     $password = $data['password'] ?? '';
     $rutaRaw = $data['ruta'] ?? $data['subdominio'] ?? '';
     $ruta = preg_replace('/[^a-zA-Z0-9-]/', '', strtolower(trim($rutaRaw)));
@@ -94,11 +100,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $pdo->beginTransaction();
 
-        // 1. Actualizar Usuario y/o Contraseña (con verificación de seguridad de la contraseña actual)
-        // 1. Actualizar Nombre Completo
+        // 1. Actualizar Nombre Completo del Usuario
         if (!empty($nombre)) {
             $pdo->prepare("UPDATE usuarios SET nombre_completo = ? WHERE id = ?")->execute([$nombre, $id_usuario]);
             $_SESSION['nombre_completo'] = $nombre; // Refrescar sesión
+        }
+
+        // 2. Actualizar Nombre del Negocio (Solo Administrador)
+        if (!empty($nombre_fantasia)) {
+            $userRole = $_SESSION['rol_en_local'] ?? 'admin';
+            if ($userRole !== 'admin' && (!isset($_SESSION['is_demo']) || $_SESSION['is_demo'] !== true)) {
+                throw new Exception("Solo el administrador del local puede modificar el nombre del negocio.");
+            }
+            $pdo->prepare("UPDATE negocios SET nombre_fantasia = ? WHERE id = ?")->execute([$nombre_fantasia, $id_negocio]);
         }
 
         // 2. Actualizar Contraseña (con verificación de seguridad obligatoria de la contraseña actual)
