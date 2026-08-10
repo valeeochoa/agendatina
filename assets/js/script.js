@@ -2265,14 +2265,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 let rawB = parseFloat(pData.precio_basico) || 8889;
                 let rawI = parseFloat(pData.precio_intermedio) || 11111;
                 let rawP = parseFloat(pData.precio_premium) || 16667;
+                let discPct = parseInt(pData.descuento_porcentaje);
+                if (isNaN(discPct) || discPct < 0) discPct = 10;
 
-                if (rawB > 9500 || rawB < 7500) rawB = 8889;
-                if (rawI > 12500 || rawI < 9500) rawI = 11111;
-                if (rawP > 18000 || rawP < 14000) rawP = 16667;
+                const factor = (100 - discPct) / 100;
 
-                const b = Math.round(rawB * 0.9); // 8.000
-                const i = Math.round(rawI * 0.9); // 10.000
-                const p = Math.round(rawP * 0.9); // 15.000
+                const b = Math.round(rawB * factor);
+                const i = Math.round(rawI * factor);
+                const p = Math.round(rawP * factor);
                 
                 const getFinalPrice = (finalPriceForOne, rawBasePrice, count) => {
                     if (count === 1) {

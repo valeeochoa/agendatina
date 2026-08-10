@@ -255,6 +255,14 @@
                 }
             });
         }
+        window.regPricingData = { precio_basico: 8889, precio_intermedio: 11111, precio_premium: 16667, descuento_porcentaje: 10 };
+        fetch('backend/obtener_precios.php').then(r=>r.json()).then(pData => {
+            if (pData && pData.success && pData.data) {
+                window.regPricingData = pData.data;
+                recalcRegPrices();
+            }
+        }).catch(() => {});
+
         recalcRegPrices();
     });
 
@@ -270,17 +278,22 @@
 
     function recalcRegPrices() {
         const count = parseInt(document.getElementById('regProfs').value) || 1;
-        const rawB = 8889, rawI = 11111, rawP = 16667;
+        const pData = window.regPricingData || {};
+        const rawB = parseFloat(pData.precio_basico) || 8889;
+        const rawI = parseFloat(pData.precio_intermedio) || 11111;
+        const rawP = parseFloat(pData.precio_premium) || 16667;
+        const discPct = parseInt(pData.descuento_porcentaje) || 10;
+        const factor = (100 - discPct) / 100;
 
         function calc(rawBase) {
+            const priceForOne = Math.round(rawBase * factor);
             if (count === 1) {
-                return { final: Math.round(rawBase * 0.90), old: rawBase };
+                return { final: priceForOne, old: Math.round(rawBase), showOld: discPct > 0 };
             } else {
                 let volDisc = Math.min(count * 10, 50);
-                let priceForOne = rawBase * 0.90;
                 let totalBeforeVol = priceForOne * count;
                 let final = totalBeforeVol * (1 - volDisc / 100);
-                return { final: Math.round(final), old: Math.round(totalBeforeVol) };
+                return { final: Math.round(final), old: Math.round(totalBeforeVol), showOld: true };
             }
         }
 
@@ -292,14 +305,20 @@
         const iPerProf = count > 1 ? `<div class="mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md inline-block">¡Queda en $${Math.round(iRes.final / count).toLocaleString('es-AR')} p/profesional!</div>` : '';
         const pPerProf = count > 1 ? `<div class="mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md inline-block">¡Queda en $${Math.round(pRes.final / count).toLocaleString('es-AR')} p/profesional!</div>` : '';
 
+        const oldBEl = document.getElementById('regBasicOldPrice');
+        if (oldBEl) oldBEl.style.display = bRes.showOld ? 'inline' : 'none';
         document.getElementById('regBasicOldPrice').textContent = '$' + bRes.old.toLocaleString('es-AR');
         document.getElementById('regBasicPrice').innerHTML = '$' + bRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + bPerProf;
         document.getElementById('regBasicSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Calendario Online`;
 
+        const oldIEl = document.getElementById('regInterOldPrice');
+        if (oldIEl) oldIEl.style.display = iRes.showOld ? 'inline' : 'none';
         document.getElementById('regInterOldPrice').textContent = '$' + iRes.old.toLocaleString('es-AR');
         document.getElementById('regInterPrice').innerHTML = '$' + iRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + iPerProf;
         document.getElementById('regInterSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Agenda Virtual`;
 
+        const oldPEl = document.getElementById('regPremOldPrice');
+        if (oldPEl) oldPEl.style.display = pRes.showOld ? 'inline' : 'none';
         document.getElementById('regPremOldPrice').textContent = '$' + pRes.old.toLocaleString('es-AR');
         document.getElementById('regPremPrice').innerHTML = '$' + pRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + pPerProf;
         document.getElementById('regPremSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Mini Web Integrada`;
