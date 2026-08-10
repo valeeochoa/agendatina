@@ -440,8 +440,17 @@ elseif ($method === 'PUT') {
             // Asegurar que exista la columna dias_prueba_defecto
             try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN dias_prueba_defecto INT NOT NULL DEFAULT 30"); } catch(Exception $ex) {}
 
-            $pdo->prepare("UPDATE configuracion_global SET precio_basico = ?, precio_intermedio = ?, precio_premium = ?, descuento_porcentaje = ?, descuento_hasta = ?, dias_prueba_defecto = ? WHERE id = 1")->execute([$basico, $intermedio, $premium, $descuento_porcentaje, $descuento_hasta, $dias_prueba]);
+            $stmt = $pdo->prepare("UPDATE configuracion_global SET precio_basico = ?, precio_intermedio = ?, precio_premium = ?, descuento_porcentaje = ?, descuento_hasta = ?, dias_prueba_defecto = ? WHERE id = 1");
+            $stmt->execute([$basico, $intermedio, $premium, $descuento_porcentaje, $descuento_hasta, $dias_prueba]);
             
+            if ($stmt->rowCount() === 0) {
+                $check = $pdo->query("SELECT id FROM configuracion_global WHERE id = 1")->fetch();
+                if (!$check) {
+                    $pdo->prepare("INSERT INTO configuracion_global (id, precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, dias_prueba_defecto) VALUES (1, ?, ?, ?, ?, ?, ?)")
+                        ->execute([$basico, $intermedio, $premium, $descuento_porcentaje, $descuento_hasta, $dias_prueba]);
+                }
+            }
+
             echo json_encode(['success' => true]);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => 'Error al actualizar precios: ' . $e->getMessage()]);

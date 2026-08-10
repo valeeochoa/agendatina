@@ -1055,15 +1055,23 @@ function fetchClients() {
                 document.getElementById('clientsList').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500 font-medium">Aún no hay clientes registrados en el sistema.</td></tr>';
             }
             if (data.config_global) {
-                document.getElementById('precioBasico').value = data.config_global.precio_basico;
-                document.getElementById('precioIntermedio').value = data.config_global.precio_intermedio;
-                document.getElementById('precioPremium').value = data.config_global.precio_premium;
-                document.getElementById('descuentoPorcentaje').value = data.config_global.descuento_porcentaje || 0;
-                document.getElementById('diasPruebaDefecto').value = data.config_global.dias_prueba_defecto || 30;
-                if (data.config_global.descuento_hasta) {
-                    document.getElementById('descuentoHasta').value = data.config_global.descuento_hasta.substring(0, 16);
-                } else {
-                    document.getElementById('descuentoHasta').value = '';
+                window.globalConfig = data.config_global;
+
+                // Solo actualizar campos si el modal de precios no está visible para evitar borrar lo que el usuario está escribiendo
+                const pricesModal = document.getElementById('pricesModal');
+                const isPricesModalOpen = pricesModal && !pricesModal.classList.contains('hidden');
+
+                if (!isPricesModalOpen) {
+                    document.getElementById('precioBasico').value = data.config_global.precio_basico;
+                    document.getElementById('precioIntermedio').value = data.config_global.precio_intermedio;
+                    document.getElementById('precioPremium').value = data.config_global.precio_premium;
+                    document.getElementById('descuentoPorcentaje').value = data.config_global.descuento_porcentaje || 0;
+                    document.getElementById('diasPruebaDefecto').value = data.config_global.dias_prueba_defecto || 30;
+                    if (data.config_global.descuento_hasta) {
+                        document.getElementById('descuentoHasta').value = data.config_global.descuento_hasta.substring(0, 16);
+                    } else {
+                        document.getElementById('descuentoHasta').value = '';
+                    }
                 }
 
                 // Actualizar tarjeta de precios resumen en vivo
@@ -1506,6 +1514,18 @@ document.getElementById('noteForm').addEventListener('submit', function(e) {
 // EDICIÓN PRECIOS DE SUSCRIPCIÓN GLOBAL
 // ==========================================
 function openPricesModal() {
+    if (window.globalConfig) {
+        document.getElementById('precioBasico').value = window.globalConfig.precio_basico !== undefined ? window.globalConfig.precio_basico : '';
+        document.getElementById('precioIntermedio').value = window.globalConfig.precio_intermedio !== undefined ? window.globalConfig.precio_intermedio : '';
+        document.getElementById('precioPremium').value = window.globalConfig.precio_premium !== undefined ? window.globalConfig.precio_premium : '';
+        document.getElementById('descuentoPorcentaje').value = window.globalConfig.descuento_porcentaje !== undefined ? window.globalConfig.descuento_porcentaje : 0;
+        document.getElementById('diasPruebaDefecto').value = window.globalConfig.dias_prueba_defecto !== undefined ? window.globalConfig.dias_prueba_defecto : 30;
+        if (window.globalConfig.descuento_hasta) {
+            document.getElementById('descuentoHasta').value = window.globalConfig.descuento_hasta.substring(0, 16);
+        } else {
+            document.getElementById('descuentoHasta').value = '';
+        }
+    }
     const modal = document.getElementById('pricesModal');
     const content = document.getElementById('pricesModalContent');
     modal.classList.remove('hidden'); modal.classList.add('flex');
