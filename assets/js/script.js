@@ -2265,6 +2265,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 let rawB = parseFloat(pData.precio_basico) || 8889;
                 let rawI = parseFloat(pData.precio_intermedio) || 11111;
                 let rawP = parseFloat(pData.precio_premium) || 16667;
+
+                if (rawB > 12000) rawB = 8889;
+
                 let discPct = parseInt(pData.descuento_porcentaje);
                 if (isNaN(discPct) || discPct < 0) discPct = 10;
 
