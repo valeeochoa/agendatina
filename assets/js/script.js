@@ -2733,8 +2733,6 @@ window.closeReusableReceiptModal = function() {
 
 // Ocultar reportes de error y contacto para cuentas de demostración (Demo)
 document.addEventListener('DOMContentLoaded', () => {
-    if (!sessionStorage.getItem('agendatina_session')) return;
-
     const applyDemoButtonVisibility = () => {
         const cardSupport = document.getElementById('cardSupport');
         const isDemo = (sessionStorage.getItem('is_demo_user') === 'true' || sessionStorage.getItem('agendatina_demo_alert') === 'true');
@@ -2746,9 +2744,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isDemo) {
                 btn.classList.add('hidden');
                 btn.style.display = 'none';
-            } else {
-                btn.classList.remove('hidden');
-                btn.style.display = 'flex';
             }
         });
     };
@@ -2789,6 +2784,8 @@ function checkAdminGlobalSession(config = null) {
             isDemo = (data.business.is_demo === true) || 
                      (data.user && data.user.email && data.user.email.includes('demo')) || 
                      (data.business.ruta === 'demo') || 
+                     (sessionStorage.getItem('is_demo_user') === 'true') ||
+                     (sessionStorage.getItem('agendatina_demo_alert') === 'true') ||
                      (config && config.is_demo === true);
 
             const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
@@ -2802,6 +2799,23 @@ function checkAdminGlobalSession(config = null) {
 
             if (isDemo || isAdminPage || loggedRuta === currentRuta || (config && data.business.id == config.id_negocio)) {
                 isUserAdmin = true;
+            }
+
+            // Actualizar nombre del negocio e imagen del logo en el Header
+            const bizNameText = document.getElementById('navBusinessNameText');
+            const bizLogoImg = document.getElementById('navBusinessLogoImg');
+            const bizIcon = document.getElementById('navBusinessIcon');
+            
+            if (bizNameText) {
+                bizNameText.textContent = data.business.nombre_fantasia || (isDemo ? 'Agendatina' : 'Mi Negocio');
+            }
+            if (bizLogoImg && (data.business.logo || data.business.url_logo)) {
+                const logoUrl = data.business.logo || data.business.url_logo;
+                if (logoUrl && logoUrl !== 'null' && logoUrl !== 'undefined' && logoUrl.trim() !== '') {
+                    bizLogoImg.src = logoUrl;
+                    bizLogoImg.classList.remove('hidden');
+                    if (bizIcon) bizIcon.classList.add('hidden');
+                }
             }
         }
 
