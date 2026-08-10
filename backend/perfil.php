@@ -95,28 +95,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->beginTransaction();
 
         // 1. Actualizar Usuario y/o Contraseña (con verificación de seguridad de la contraseña actual)
-        if (!empty($nombre) || !empty($password)) {
-            // Obtener la contraseña actual en la base de datos
+        // 1. Actualizar Nombre Completo
+        if (!empty($nombre)) {
+            $pdo->prepare("UPDATE usuarios SET nombre_completo = ? WHERE id = ?")->execute([$nombre, $id_usuario]);
+            $_SESSION['nombre_completo'] = $nombre; // Refrescar sesión
+        }
+
+        // 2. Actualizar Contraseña (con verificación de seguridad obligatoria de la contraseña actual)
+        if (!empty($password)) {
+            if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || (isset($_SESSION['email']) && strpos($_SESSION['email'], 'demo') !== false)) {
+                throw new Exception("Función no disponible en la versión demo.");
+            }
+            $current_password = $data['current_password'] ?? '';
+            if (empty($current_password)) {
+                throw new Exception("Para cambiar tu contraseña debes ingresar tu contraseña actual.");
+            }
             $stmtCheck = $pdo->prepare("SELECT password FROM usuarios WHERE id = ?");
             $stmtCheck->execute([$id_usuario]);
             $userDb = $stmtCheck->fetch();
 
-            $current_password = $data['current_password'] ?? '';
-
             if (!$userDb || !password_verify($current_password, $userDb['password'])) {
-                throw new Exception("La contraseña actual es incorrecta. No se pueden guardar los cambios.");
+                throw new Exception("La contraseña actual ingresada es incorrecta.");
             }
 
-            if (!empty($nombre)) {
-                $pdo->prepare("UPDATE usuarios SET nombre_completo = ? WHERE id = ?")->execute([$nombre, $id_usuario]);
-                $_SESSION['nombre_completo'] = $nombre; // Refrescar sesión
-            }
-            if (!empty($password)) {
-                $hash = password_hash($password, PASSWORD_DEFAULT);
-                $pdo->prepare("UPDATE usuarios SET password = ? WHERE id = ?")->execute([$hash, $id_usuario]);
-                require_once __DIR__ . '/helpers/notificar_admin_helper.php';
-                notificarSuperAdminAlert($pdo, 'Seguridad / Contraseña', "El usuario '{$nombre}' modificó su contraseña de acceso.", $id_negocio);
-            }
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            $pdo->prepare("UPDATE usuarios SET password = ? WHERE id = ?")->execute([$hash, $id_usuario]);
+            require_once __DIR__ . '/helpers/notificar_admin_helper.php';
+            notificarSuperAdminAlert($pdo, 'Seguridad / Contraseña', "El usuario '{$nombre}' modificó su contraseña de acceso.", $id_negocio);
         }
 
         // 2. Actualizar Ruta (verificando que sea única)
