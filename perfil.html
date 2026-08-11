@@ -93,8 +93,27 @@
                             </div>
                             
                             <div class="sm:col-span-2">
-                                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Correo Electrónico</label>
+                                <div class="flex items-center justify-between mb-2">
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Correo Electrónico</label>
+                                    <span id="perfilEmailStatusBadge" class="hidden text-[11px] font-extrabold px-2.5 py-0.5 rounded-full"></span>
+                                </div>
                                 <input type="email" id="perfilEmail" class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-100 text-slate-400 text-sm cursor-not-allowed font-medium" disabled title="El email no puede ser modificado aquí">
+                                
+                                <!-- Card / Banner de Verificación de Cuenta en Perfil -->
+                                <div id="perfilVerifyCard" class="hidden mt-3 p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-all">
+                                    <div class="flex items-center gap-3">
+                                        <div id="perfilVerifyIconBg" class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0">
+                                            <span id="perfilVerifyIcon" class="material-symbols-outlined text-[22px]">mark_email_unread</span>
+                                        </div>
+                                        <div>
+                                            <strong id="perfilVerifyTitle" class="block font-extrabold text-xs sm:text-sm">Verificación de Cuenta</strong>
+                                            <p id="perfilVerifyDesc" class="text-xs mt-0.5">Te enviamos un código de 6 dígitos válido por 15 minutos a tu correo.</p>
+                                        </div>
+                                    </div>
+                                    <button type="button" id="btnVerifyPerfil" onclick="openVerifyEmailModalPerfil()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider transition-all shrink-0 shadow-xs flex items-center justify-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[18px]">verified</span> Ingresar Código
+                                    </button>
+                                </div>
                             </div>
                             
                             <div class="sm:col-span-2 mt-1">
@@ -109,7 +128,7 @@
                                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                                     <div>
                                         <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                                            <span class="material-symbols-outlined text-primary text-[18px]">palette</span> Personalización de Colores
+                                            <span class="material-symbols-outlined text-primary text-[18px]">palette</span> Personalización de Colores de Marca
                                         </label>
                                         <span id="planColorBadge" class="text-[11px] font-bold text-purple-600">Plan Básico: 2 colores base</span>
                                     </div>
@@ -119,19 +138,28 @@
                                     </button>
                                 </div>
 
+                                <!-- Nota Informativa de aplicación de colores -->
+                                <div class="bg-blue-50/90 border border-blue-200/80 rounded-2xl p-4 mb-4 text-xs text-blue-900 flex items-start gap-3">
+                                    <span class="material-symbols-outlined text-blue-600 text-[22px] shrink-0 mt-0.5">info</span>
+                                    <div class="leading-relaxed">
+                                        <strong class="font-extrabold block text-blue-950 text-xs mb-1">¿Dónde se aplican tus colores personalizados?</strong>
+                                        <span class="text-slate-600 font-medium">Tus colores elegidos se aplicarán automáticamente a tu <strong>Dashboard privado</strong> (Agenda, Calendarios, Servicios, Perfil, Ajustes) adaptando fondos, bordes de tarjetas y detalles, y también a tu <strong>Página Web pública de reservas</strong> (<a href="mi-web.html" class="text-blue-700 font-bold underline">mi-web.html</a>). El portal de inicio de Agendatina mantendrá la estética oficial de la marca.</span>
+                                    </div>
+                                </div>
+
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Color Principal</label>
                                         <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
                                             <input type="color" id="perfilColor1" name="color_primario" value="#D11149" class="w-10 h-10 rounded-xl border-none cursor-pointer p-0 bg-transparent" onchange="previewColorsInRealTime()">
-                                            <span class="text-xs text-slate-500 font-bold">Botones y destacados</span>
+                                            <span class="text-xs text-slate-500 font-bold">Botones, fondos suaves y destacados</span>
                                         </div>
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Color Secundario</label>
                                         <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
                                             <input type="color" id="perfilColor2" name="color_secundario" value="#FC8712" class="w-10 h-10 rounded-xl border-none cursor-pointer p-0 bg-transparent" onchange="previewColorsInRealTime()">
-                                            <span class="text-xs text-slate-500 font-bold">Detalles e iconos</span>
+                                            <span class="text-xs text-slate-500 font-bold">Bordes de cards, detalles e iconos</span>
                                         </div>
                                     </div>
                                 </div>
@@ -232,6 +260,49 @@
                     sessionStorage.setItem('is_demo_user', isDemoUser ? 'true' : 'false');
                     window.isDemoUser = isDemoUser;
                     
+                    // Actualizar UI de Verificación de Cuenta en Perfil
+                    const isVerified = parseInt(data.user.email_verificado || 0) === 1 || isDemoUser;
+                    const vBadge = document.getElementById('perfilEmailStatusBadge');
+                    const vCard = document.getElementById('perfilVerifyCard');
+                    const vIconBg = document.getElementById('perfilVerifyIconBg');
+                    const vIcon = document.getElementById('perfilVerifyIcon');
+                    const vTitle = document.getElementById('perfilVerifyTitle');
+                    const vDesc = document.getElementById('perfilVerifyDesc');
+                    const vBtn = document.getElementById('btnVerifyPerfil');
+
+                    if (vBadge) {
+                        vBadge.classList.remove('hidden');
+                        if (isVerified) {
+                            vBadge.className = 'text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200';
+                            vBadge.textContent = '✓ Verificado';
+                        } else {
+                            vBadge.className = 'text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200';
+                            vBadge.textContent = '⚠️ Sin Verificar';
+                        }
+                    }
+
+                    if (vCard) {
+                        vCard.classList.remove('hidden');
+                        if (isVerified) {
+                            vCard.className = 'mt-3 p-4 rounded-2xl border border-emerald-200/80 bg-emerald-50/70 text-emerald-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-all';
+                            if (vIconBg) vIconBg.className = 'w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0';
+                            if (vIcon) vIcon.textContent = 'verified_user';
+                            if (vTitle) vTitle.textContent = 'Cuenta Verificada';
+                            if (vDesc) vDesc.textContent = 'Tu dirección de correo electrónico está verificada y protegida.';
+                            if (vBtn) vBtn.classList.add('hidden');
+                        } else {
+                            vCard.className = 'mt-3 p-4 rounded-2xl border border-amber-200/90 bg-amber-50/90 text-amber-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-all';
+                            if (vIconBg) vIconBg.className = 'w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0';
+                            if (vIcon) vIcon.textContent = 'mark_email_unread';
+                            if (vTitle) vTitle.textContent = '¡Verifica tu cuenta para asegurar tus reservas!';
+                            if (vDesc) vDesc.textContent = 'Te enviamos un código de 6 dígitos válido por 15 minutos a tu correo.';
+                            if (vBtn) {
+                                vBtn.classList.remove('hidden');
+                                vBtn.className = 'w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shrink-0 shadow-xs flex items-center justify-center gap-1.5';
+                            }
+                        }
+                    }
+
                     if (isDemoUser) {
                         const passInputs = document.querySelectorAll('#passwordForm input');
                         passInputs.forEach(i => {
@@ -809,5 +880,96 @@
             </form>
         </div>
     </div>
+
+    <!-- Modal Verificación de Correo en Perfil -->
+    <div id="verifyEmailModalPerfil" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative">
+            <button type="button" onclick="closeVerifyEmailModalPerfil()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2"><span class="material-symbols-outlined">close</span></button>
+            
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 bg-amber-500/10 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <span class="material-symbols-outlined text-3xl">mark_email_read</span>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800">Verificar Cuenta</h3>
+                <p class="text-xs text-slate-500 mt-1">Ingresa el código de 6 dígitos enviado a tu correo. Válido por 15 minutos.</p>
+            </div>
+
+            <form id="verifyEmailFormPerfil" class="space-y-4">
+                <div>
+                    <input type="text" id="verifyCodeInputPerfil" maxlength="6" pattern="[0-9]{6}" required placeholder="000000" class="w-full text-center text-3xl font-extrabold tracking-[10px] py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary outline-none">
+                </div>
+                <div id="verifyEmailMsgPerfil" class="hidden text-xs font-bold p-3 rounded-xl text-center"></div>
+                <button type="submit" id="btnSubmitVerifyPerfil" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-3.5 rounded-2xl shadow-md transition-all text-sm">
+                    Verificar mi cuenta
+                </button>
+            </form>
+
+            <div class="mt-4 text-center">
+                <button type="button" onclick="resendVerifyCodePerfil(this)" class="text-xs font-bold text-slate-500 hover:text-slate-800 underline transition-colors">
+                    ¿No recibiste el código? Reenviar código
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.openVerifyEmailModalPerfil = function() {
+            const modal = document.getElementById('verifyEmailModalPerfil');
+            if (modal) modal.classList.remove('hidden');
+        };
+
+        window.closeVerifyEmailModalPerfil = function() {
+            const modal = document.getElementById('verifyEmailModalPerfil');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        window.resendVerifyCodePerfil = function(btn) {
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+            
+            fetch('backend/reenviar_codigo.php', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                const msg = document.getElementById('verifyEmailMsgPerfil');
+                if (msg) {
+                    msg.className = data.success ? 'text-xs font-bold p-3 rounded-xl text-center bg-emerald-100 text-emerald-800' : 'text-xs font-bold p-3 rounded-xl text-center bg-red-100 text-red-800';
+                    msg.textContent = data.message || data.error;
+                    msg.classList.remove('hidden');
+                }
+            }).catch(() => {
+                if (typeof showToast === 'function') showToast('Error de conexión.', 'error');
+            }).finally(() => { btn.disabled = false; btn.innerHTML = orig; });
+        };
+
+        document.getElementById('verifyEmailFormPerfil')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const code = document.getElementById('verifyCodeInputPerfil').value;
+            const btn = document.getElementById('btnSubmitVerifyPerfil');
+            const msg = document.getElementById('verifyEmailMsgPerfil');
+            btn.disabled = true; btn.textContent = 'Verificando...';
+
+            const formData = new FormData();
+            formData.append('codigo', code);
+
+            fetch('backend/verificar_email.php', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    msg.className = 'text-xs font-bold p-3 rounded-xl text-center bg-emerald-100 text-emerald-800';
+                    msg.textContent = '¡Cuenta verificada exitosamente!';
+                    msg.classList.remove('hidden');
+                    setTimeout(() => {
+                        closeVerifyEmailModalPerfil();
+                        location.reload();
+                    }, 1200);
+                } else {
+                    msg.className = 'text-xs font-bold p-3 rounded-xl text-center bg-red-100 text-red-800';
+                    msg.textContent = data.error || 'Código incorrecto.';
+                    msg.classList.remove('hidden');
+                }
+            }).finally(() => { btn.disabled = false; btn.textContent = 'Verificar mi cuenta'; });
+        });
+    </script>
 </body>
 </html>

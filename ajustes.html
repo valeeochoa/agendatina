@@ -223,61 +223,49 @@
                     </div>
 
             <!-- =========================================================================
-                 NOTIFICACIONES POR WHATSAPP (MODULO RESERVADO PARA IMPLEMENTACION FUTURA)
-                 =========================================================================
-            <!-- 
-            <div class="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-slate-200">
+                 NOTIFICACIONES AUTOMÁTICAS POR WHATSAPP A PROFESIONALES (META CLOUD API)
+                 ========================================================================= -->
+            <div class="bg-white p-5 sm:p-8 rounded-3xl shadow-xs border border-slate-200/80 mb-8">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
                     <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-2xl bg-[#fcb0b3]/30 text-[#d11149] flex items-center justify-center font-bold">
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center font-bold">
                             <span class="material-symbols-outlined text-2xl">chat</span>
                         </div>
                         <div>
-                            <h2 class="text-xl font-bold text-slate-800">Notificaciones por WhatsApp</h2>
-                            <p class="text-xs sm:text-sm text-slate-500">Conecta tu número de WhatsApp para enviar confirmaciones y recordatorios automáticos.</p>
+                            <h2 class="text-xl font-bold text-slate-800">Notificaciones por WhatsApp a Profesionales</h2>
+                            <p class="text-xs sm:text-sm text-slate-500">Envío automático en segundo plano vía Meta Cloud API al crearse o solicitarse un turno.</p>
                         </div>
                     </div>
-                    <span id="waStatusBadge" class="bg-[#fcb0b3]/30 text-[#d11149] px-3 py-1 rounded-full text-xs font-bold border border-[#fcb0b3] flex items-center gap-1">
-                        <span class="w-2 h-2 rounded-full bg-[#d11149] animate-pulse"></span> Pendiente de Conectar
+                    <span id="waStatusBadge" class="bg-emerald-50 text-emerald-700 px-3.5 py-1.5 rounded-full text-xs font-bold border border-emerald-200 flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Servicio Meta Cloud Activo
                     </span>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                    <div class="space-y-4">
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-[#fcb0b3]/30 text-[#d11149] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
-                            <p class="text-sm text-slate-600">Abre WhatsApp en tu teléfono celular.</p>
+                <div class="space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="p-3 bg-white rounded-xl border border-slate-100">
+                            <strong class="block text-slate-900 font-bold mb-1">Plan Básico</strong>
+                            <span class="text-slate-500 text-xs">Sin notificaciones por WhatsApp (Únicamente avisos por correo electrónico).</span>
                         </div>
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-[#fcb0b3]/30 text-[#d11149] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
-                            <p class="text-sm text-slate-600">Ve a <strong>Menú / Ajustes</strong> &gt; <strong>Dispositivos vinculados</strong>.</p>
+                        <div class="p-3 bg-purple-50/60 rounded-xl border border-purple-100">
+                            <strong class="block text-purple-950 font-bold mb-1">Plan Profesional</strong>
+                            <span class="text-purple-900 text-xs"><strong>50 WPP/mes base</strong> (+10 extra por cada profesional sumado a partir del 2do).</span>
                         </div>
-                        <div class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-full bg-[#fcb0b3]/30 text-[#d11149] font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">3</span>
-                            <p class="text-sm text-slate-600">Toca en <strong>Vincular un dispositivo</strong> y escanea el código QR.</p>
-                        </div>
-
-                        <div class="pt-3">
-                            <button type="button" onclick="generarWaQr()" class="px-6 py-3 signature-glow text-white font-bold text-sm rounded-xl shadow-lg shadow-[#d11149]/20 transition-all flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span> Generar Código QR de Conexión
-                            </button>
+                        <div class="p-3 bg-emerald-50/60 rounded-xl border border-emerald-100">
+                            <strong class="block text-emerald-950 font-bold mb-1">Plan Premium</strong>
+                            <span class="text-emerald-900 text-xs"><strong>100 WPP/mes base</strong> (+10 extra por cada profesional sumado a partir del 2do).</span>
                         </div>
                     </div>
 
-                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-center">
-                        <div id="waQrContainer" class="w-48 h-48 bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-center shadow-sm mb-3">
-                            <div class="text-center text-slate-400">
-                                <span class="material-symbols-outlined text-4xl mb-1 text-slate-300">qr_code_2</span>
-                                <p class="text-xs">Haz clic en "Generar Código QR" para vincular</p>
-                            </div>
+                    <div class="bg-blue-50/90 border border-blue-200/80 rounded-2xl p-4 text-xs text-blue-900 flex items-start gap-3">
+                        <span class="material-symbols-outlined text-blue-600 text-[22px] shrink-0 mt-0.5">info</span>
+                        <div>
+                            <strong class="font-extrabold block text-blue-950 text-xs mb-1">Bolsa Global acumulada por Negocio y Excedentes</strong>
+                            <span>La cantidad de notificaciones corresponde al <strong>TOTAL acumulado por la cuenta del NEGOCIO</strong> y es compartida entre todos los profesionales. En caso de agotar la bolsa mensual, cada WhatsApp adicional consumido tendrá un costo de <strong>$60 ARS</strong> cobrados al final del ciclo mensual de facturación.</span>
                         </div>
-                        <p class="text-xs text-slate-400 font-medium" id="waQrStatus">Estado: WhatsApp desconectado</p>
                     </div>
                 </div>
-
-                <div class="mt-6 pt-6 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">
-                        <input type="checkbox" name="wa_notif_confirmacion" class="w-4 h-4 text-[#d11149] focus:ring-[#d11149] rounded" checked>
+            </div>
                         <span class="text-xs font-bold text-slate-700">Enviar WhatsApp al confirmar un turno</span>
                     </label>
                     <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">

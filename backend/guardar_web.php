@@ -178,6 +178,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             }
         }
 
+        // Cargar estadísticas de notificaciones WhatsApp para la bolsa global del negocio
+        try {
+            $currentMonthStr = date('Y-m');
+            $stmtNW = $pdo->prepare("SELECT plan, wpp_enviados_mes, mes_wpp_contador FROM negocios WHERE id = ?");
+            $stmtNW->execute([$id_negocio]);
+            $bizW = $stmtNW->fetch(PDO::FETCH_ASSOC);
+
+            if ($bizW) {
+                if ($bizW['mes_wpp_contador'] !== $currentMonthStr) {
+                    try {
+                        $pdo->prepare("UPDATE negocios SET wpp_enviados_mes = 0, mes_wpp_contador = ? WHERE id = ?")->execute([$currentMonthStr, $id_negocio]);
+                        $bizW['wpp_enviados_mes'] = 0;
+                    } catch(Exception $eUpW) {}
+                }
+
+                $profCount = 1;
+                try {
+                    $stmtProf = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_negocio = ?");
+                    $stmtProf->execute([$id_negocio]);
+                    $profCount = max(1, (int)$stmtProf->fetchColumn());
+                } catch(Exception $eP) {}
+
+                $planLower = strtolower($bizW['plan'] ?? 'basico');
+                $isBasic = strpos($planLower, 'básico') !== false || strpos($planLower, 'basico') !== false || strpos($planLower, 'simple') !== false;
+                $isPremium = strpos($planLower, 'premium') !== false;
+
+                $extraProfs = max(0, $profCount - 1);
+                $wppBase = $isBasic ? 0 : ($isPremium ? 100 : 50);
+                $wppBonus = $isBasic ? 0 : ($extraProfs * 10);
+                $wppLimiteTotal = $wppBase + $wppBonus;
+                $wppUsados = (int)($bizW['wpp_enviados_mes'] ?? 0);
+                $wppExcedentes = max(0, $wppUsados - $wppLimiteTotal);
+                $wppCostoExtra = $wppExcedentes * 60;
+
+                $config['wpp_stats'] = [
+                    'habilitado' => !$isBasic,
+                    'plan' => $bizW['plan'] ?? 'Básico',
+                    'profesionales_count' => $profCount,
+                    'extra_profesionales' => $extraProfs,
+                    'base' => $wppBase,
+                    'bonus' => $wppBonus,
+                    'limite_total' => $wppLimiteTotal,
+                    'usados' => $wppUsados,
+                    'excedentes' => $wppExcedentes,
+                    'costo_extra_ars' => $wppCostoExtra
+                ];
+            }
+        } catch(Exception $eWppStats) {}
+
         // Consolidación del equipo de trabajo (personal_negocio + servicios)
         $profs_array = [];
         if (!empty($config['profesionales_json'])) {

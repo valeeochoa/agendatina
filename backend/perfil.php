@@ -62,12 +62,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $_SESSION['permisos'] = $user['permisos'];
     }
 
-    // Obtener datos del negocio
-    $stmtN = $pdo->prepare("SELECT nombre_fantasia, ruta, plan, estado_pago, ultimo_pago, comprobante FROM negocios WHERE id = ?");
+    // Auto-Migración para contador mensual de WhatsApp por negocio
+    try { $pdo->query("SELECT wpp_enviados_mes FROM negocios LIMIT 1"); } 
+    catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN wpp_enviados_mes INT DEFAULT 0"); }
+    
+    try { $pdo->query("SELECT mes_wpp_contador FROM negocios LIMIT 1"); } 
+    catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN mes_wpp_contador VARCHAR(7) DEFAULT NULL"); }
+
+    // Reseteo mensual automático si cambió el mes (YYYY-MM)
+    $currentMonthStr = date('Y-m');
+    $stmtN = $pdo->prepare("SELECT nombre_fantasia, ruta, plan, estado_pago, ultimo_pago, comprobante, wpp_enviados_mes, mes_wpp_contador FROM negocios WHERE id = ?");
     $stmtN->execute([$id_negocio]);
     $business = $stmtN->fetch(PDO::FETCH_ASSOC);
 
     if ($business) {
+        if ($business['mes_wpp_contador'] !== $currentMonthStr) {
+            try {
+                $pdo->prepare("UPDATE negocios SET wpp_enviados_mes = 0, mes_wpp_contador = ? WHERE id = ?")->execute([$currentMonthStr, $id_negocio]);
+                $business['wpp_enviados_mes'] = 0;
+                $business['mes_wpp_contador'] = $currentMonthStr;
+            } catch(Exception $eUp) {}
+        }
+
+        // Cantidad de profesionales registrados en el equipo de este negocio
+        $profCount = 1;
+        try {
+            $stmtProf = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_negocio = ?");
+            $stmtProf->execute([$id_negocio]);
+            $profCount = max(1, (int)$stmtProf->fetchColumn());
+        } catch(Exception $eProf) {}
+
+        $planLower = strtolower($business['plan'] ?? 'basico');
+        $isBasic = strpos($planLower, 'básico') !== false || strpos($planLower, 'basico') !== false || strpos($planLower, 'simple') !== false;
+        $isPremium = strpos($planLower, 'premium') !== false;
+        
+        $extraProfs = max(0, $profCount - 1);
+        $wppBase = $isBasic ? 0 : ($isPremium ? 100 : 50);
+        $wppBonus = $isBasic ? 0 : ($extraProfs * 10);
+        $wppLimiteTotal = $wppBase + $wppBonus;
+        $wppUsados = (int)($business['wpp_enviados_mes'] ?? 0);
+        $wppExcedentes = max(0, $wppUsados - $wppLimiteTotal);
+        $wppCostoExtra = $wppExcedentes * 60; // $60 ARS por WhatsApp extra superada la bolsa global
+
+        $business['wpp_stats'] = [
+            'habilitado' => !$isBasic,
+            'plan' => $business['plan'] ?? 'Básico',
+            'profesionales_count' => $profCount,
+            'extra_profesionales' => $extraProfs,
+            'base' => $wppBase,
+            'bonus' => $wppBonus,
+            'limite_total' => $wppLimiteTotal,
+            'usados' => $wppUsados,
+            'excedentes' => $wppExcedentes,
+            'costo_extra_ars' => $wppCostoExtra
+        ];
+
         $business['is_demo'] = (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || (isset($business['ruta']) && $business['ruta'] === 'demo') || (isset($user['email']) && strpos($user['email'], 'demo') !== false);
     }
 

@@ -88,9 +88,9 @@ h1, h2, h3, h4 {
         color: var(--color-primario, #D11149);
     }
     .time-slot:hover:not(.booked) {
-        border-color: #D11149;
+        border-color: var(--color-secundario, #FC8712);
         background: white;
-        color: #D11149;
+        color: var(--color-primario, #D11149);
     }
 }
 
@@ -127,9 +127,9 @@ h1, h2, h3, h4 {
 }
 
 .time-slot.selected {
-    background: #D11149;
-    color: white;
-    border-color: #D11149;
+    background: var(--color-primario, #D11149) !important;
+    color: white !important;
+    border-color: var(--color-primario, #D11149) !important;
 }
 
 .time-slot.booked {
@@ -153,14 +153,14 @@ h1, h2, h3, h4 {
     font-weight: 700;
     border-radius: 0.3rem;
     cursor: pointer;
-    background: #FCB0B3;
-    color: #D11149;
+    background: var(--color-secundario, #FC8712);
+    color: white;
     transition: all 0.2s;
 }
 
 .mini-calendar-day.selected {
-    background: #D11149;
-    color: white;
+    background: var(--color-primario, #D11149) !important;
+    color: white !important;
 }
 
 .mini-disabled {
@@ -185,9 +185,9 @@ h1, h2, h3, h4 {
 }
 
 .mini-time-slot.selected {
-    background: #D11149;
-    color: white;
-    border-color: #D11149;
+    background: var(--color-primario, #D11149) !important;
+    color: white !important;
+    border-color: var(--color-primario, #D11149) !important;
 }
 
 @keyframes fadeInImg {

@@ -124,6 +124,46 @@
                 </button>
             </div>
 
+            <!-- Widget Contador de Notificaciones por WhatsApp del Negocio -->
+            <div id="wppQuotaWidget" class="hidden mb-8 bg-white border border-emerald-200/80 rounded-3xl p-5 sm:p-6 shadow-xs relative overflow-hidden transition-all">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3.5">
+                        <div id="wppQuotaIconBg" class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-2xl">chat</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 class="font-extrabold text-slate-800 text-base sm:text-lg">Notificaciones por WhatsApp del Negocio</h3>
+                                <span id="wppPlanBadge" class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-700">Plan ...</span>
+                            </div>
+                            <p id="wppQuotaSubtitle" class="text-xs text-slate-500 mt-0.5">Bolsa total de notificaciones acumuladas este mes compartida por todo el equipo.</p>
+                        </div>
+                    </div>
+
+                    <!-- Contador / Barra de progreso -->
+                    <div id="wppCounterBox" class="w-full sm:w-auto min-w-[240px] bg-slate-50 border border-slate-200/70 p-3.5 rounded-2xl">
+                        <div class="flex items-center justify-between gap-3 text-xs font-extrabold mb-1.5">
+                            <span class="text-slate-600">Bolsa mensual:</span>
+                            <span id="wppQuotaRatio" class="text-emerald-700 font-extrabold">0 / 50 enviadas</span>
+                        </div>
+                        <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                            <div id="wppProgressBar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detalle de Excedentes o Aviso Plan Básico -->
+                <div id="wppQuotaFooter" class="mt-3.5 pt-3 border-t border-slate-100 text-xs text-slate-500 flex items-center justify-between flex-wrap gap-2">
+                    <span id="wppBreakdownText" class="flex items-center gap-1.5 font-medium">
+                        <span class="material-symbols-outlined text-[16px] text-emerald-600" id="wppInfoIcon">info</span>
+                        <span id="wppBreakdownContent">50 base + 0 por profesionales extra = 50 WhatsApps/mes totales negocio</span>
+                    </span>
+                    <span id="wppOverageBadge" class="hidden text-purple-800 bg-purple-50 px-3 py-1 rounded-xl border border-purple-200 font-extrabold text-[11px]">
+                        ⚠️ Excedente: 0 WPP ($60 ARS c/u al final del ciclo)
+                    </span>
+                </div>
+            </div>
+
             <!-- Widget de Inicio Rápido -->
             <div id="onboardingWidget" class="hidden mb-10 bg-white border border-primary/20 rounded-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full opacity-50 pointer-events-none"></div>

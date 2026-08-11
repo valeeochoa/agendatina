@@ -1504,10 +1504,75 @@ function loadCustomization() {
                     const webPreview = document.getElementById('webLogoPreview');
                     if (webPreview) { webPreview.src = logoUrl; webPreview.classList.remove('hidden'); }
                 }
+
+                if (data.wpp_stats && typeof window.renderWppQuotaWidget === 'function') {
+                    window.renderWppQuotaWidget(data.wpp_stats);
+                }
             }
         })
         .catch(err => console.error('Error al cargar personalización:', err));
 }
+
+window.renderWppQuotaWidget = function(stats) {
+    const widget = document.getElementById('wppQuotaWidget');
+    if (!widget || !stats) return;
+
+    widget.classList.remove('hidden');
+
+    const badge = document.getElementById('wppPlanBadge');
+    const ratio = document.getElementById('wppQuotaRatio');
+    const progress = document.getElementById('wppProgressBar');
+    const breakdown = document.getElementById('wppBreakdownContent');
+    const overage = document.getElementById('wppOverageBadge');
+    const counterBox = document.getElementById('wppCounterBox');
+
+    if (badge) badge.textContent = `Plan ${stats.plan || 'Básico'}`;
+
+    if (!stats.habilitado) {
+        // Plan Básico (Sin notificaciones por WhatsApp)
+        if (ratio) ratio.textContent = '0 enviadas (Deshabilitado)';
+        if (progress) {
+            progress.style.width = '0%';
+            progress.className = 'h-full bg-slate-300 rounded-full';
+        }
+        if (breakdown) breakdown.innerHTML = '<strong class="text-amber-800">Plan Básico: Notificaciones por WhatsApp deshabilitadas (Solo Email).</strong> Mejora a Plan Profesional o Premium para activarlas.';
+        if (overage) overage.classList.add('hidden');
+        if (counterBox) counterBox.className = 'w-full sm:w-auto min-w-[240px] bg-amber-50/70 border border-amber-200/70 p-3.5 rounded-2xl';
+        return;
+    }
+
+    // Plan Profesional o Premium
+    const usados = stats.usados || 0;
+    const limite = stats.limite_total || 50;
+    const pct = Math.min(100, Math.round((usados / limite) * 100));
+
+    if (ratio) ratio.textContent = `${usados} / ${limite} enviadas`;
+    if (progress) {
+        progress.style.width = `${pct}%`;
+        if (usados > limite) {
+            progress.className = 'h-full bg-purple-600 rounded-full animate-pulse';
+        } else if (pct >= 85) {
+            progress.className = 'h-full bg-amber-500 rounded-full';
+        } else {
+            progress.className = 'h-full bg-emerald-500 rounded-full';
+        }
+    }
+
+    const extraProfs = stats.extra_profesionales || 0;
+    if (breakdown) {
+        const bonusTxt = extraProfs > 0 ? ` + ${stats.bonus} por ${extraProfs} profesional(es) extra` : '';
+        breakdown.textContent = `${stats.base} base${bonusTxt} = ${limite} WhatsApps/mes bolsa total del negocio`;
+    }
+
+    if (overage) {
+        if (stats.excedentes > 0) {
+            overage.textContent = `⚠️ Excedente: ${stats.excedentes} WPP extra ($${stats.costo_extra_ars.toLocaleString('es-AR')} ARS a abonar a fin de mes)`;
+            overage.classList.remove('hidden');
+        } else {
+            overage.classList.add('hidden');
+        }
+    }
+};
 
 function openPaymentModal() {
     const modal = document.getElementById('paymentModal');
@@ -2861,7 +2926,42 @@ function checkAdminGlobalSession(config = null) {
     });
 }
 
+window.isPublicAgendatinaOfficialPage = function() {
+    const path = window.location.pathname.toLowerCase();
+    // Excepción explícita: Si estamos en la página web del negocio (mi-web.html o landing pública del negocio), NO es página oficial del SaaS
+    if (path.includes('mi-web') || window.location.search.includes('ruta=')) {
+        return false;
+    }
+    // Páginas institucionales públicas oficiales de la plataforma Agendatina
+    const officialPages = [
+        'index.html',
+        'login.html',
+        'registro.html',
+        'terminos.html',
+        'manual.html',
+        'consultas.html',
+        '/modelos/',
+        '/admin/'
+    ];
+    
+    // Si la ruta es la raíz del dominio o index.html o carpeta admin
+    if (path === '/' || path.endsWith('/agendatina/') || path.endsWith('/agendatina/index.html')) {
+        return true;
+    }
+    
+    return officialPages.some(page => path.includes(page));
+};
+
 window.applyUserCustomColors = function(pColor, sColor, extraColors) {
+    let style = document.getElementById('agendatina-user-custom-colors');
+
+    // Si estamos en una página oficial institucional de Agendatina (ej. index.html, login.html, terminos.html, admin/), 
+    // JAMÁS aplicamos los colores personalizados de ningún negocio. Preservamos la identidad de marca oficial Agendatina.
+    if (window.isPublicAgendatinaOfficialPage && window.isPublicAgendatinaOfficialPage()) {
+        if (style) style.remove();
+        return;
+    }
+
     if (!pColor) pColor = localStorage.getItem('user_color_primario') || '#D11149';
     if (!sColor) sColor = localStorage.getItem('user_color_secundario') || '#FC8712';
 
@@ -2877,7 +2977,6 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
     localStorage.setItem('user_color_secundario', sColor);
     localStorage.setItem('user_colores_extra_json', JSON.stringify(extraColors));
 
-    let style = document.getElementById('agendatina-user-custom-colors');
     if (!style) {
         style = document.createElement('style');
         style.id = 'agendatina-user-custom-colors';
@@ -2894,12 +2993,12 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
     }
     if (extraColors.color_header) {
         extraCss += `
-            header:not(#adminHeader), nav:not(#adminHeader) { background-color: ${extraColors.color_header} !important; }
+            header:not(#adminHeader):not(#mainNav), nav:not(#adminHeader):not(#mainNav) { background-color: ${extraColors.color_header} !important; }
         `;
     }
     if (extraColors.color_texto_titulos) {
         extraCss += `
-            h1, h2, h3, h4, .font-display { color: ${extraColors.color_texto_titulos} !important; }
+            main h1, main h2, main h3, main h4 { color: ${extraColors.color_texto_titulos} !important; }
         `;
     }
     if (extraColors.color_botones) {
@@ -2909,7 +3008,7 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
     }
     if (extraColors.color_cards) {
         extraCss += `
-            .card-custom, .bg-white.rounded-3xl { background-color: ${extraColors.color_cards} !important; }
+            .card-custom { background-color: ${extraColors.color_cards} !important; }
         `;
     }
     if (extraColors.color_hover) {
@@ -2926,23 +3025,83 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
             --secondary: ${sColor};
             --color-terciario: ${extraColors.color_terciario || '#8b5cf6'};
         }
-        /* Colores primarios dinámicos elegidos por el usuario */
-        .bg-primary, .bg-\\[\\#d11149\\], button.bg-primary { background-color: ${pColor} !important; }
-        .text-primary, .text-\\[\\#d11149\\] { color: ${pColor} !important; }
-        .border-primary, .border-\\[\\#d11149\\] { border-color: ${pColor} !important; }
-        .hover\\:bg-primary\\/90:hover, .hover\\:bg-\\[\\#d11149\\]\\/90:hover { background-color: color-mix(in srgb, ${pColor} 90%, black) !important; }
-        .focus\\:ring-primary:focus, .focus\\:ring-\\[\\#d11149\\]:focus { --tw-ring-color: ${pColor} !important; }
-        .shadow-primary\\/30, .shadow-\\[\\#d11149\\]\\/30 { --tw-shadow-color: color-mix(in srgb, ${pColor} 30%, transparent) !important; }
-        .shadow-primary\\/20, .shadow-\\[\\#d11149\\]\\/20 { --tw-shadow-color: color-mix(in srgb, ${pColor} 20%, transparent) !important; }
 
-        /* Colores secundarios dinámicos */
-        .bg-secondary, .bg-\\[\\#fc8712\\] { background-color: ${sColor} !important; }
-        .text-secondary, .text-\\[\\#fc8712\\] { color: ${sColor} !important; }
-        .border-secondary, .border-\\[\\#fc8712\\] { border-color: ${sColor} !important; }
+        /* 1. Fondo suave y sutil del Dashboard derivado del color primario seleccionado */
+        body {
+            background-color: color-mix(in srgb, ${pColor} 4%, #f8fafc) !important;
+        }
+
+        /* 2. Bordes de Cards y Contenedores derivados del color secundario */
+        .card-custom, 
+        .bg-white.rounded-3xl, 
+        div.border-slate-200, 
+        div.border-slate-200\\/80, 
+        .border-slate-100 {
+            border-color: color-mix(in srgb, ${sColor} 22%, #e2e8f0) !important;
+        }
+
+        /* 3. Colores Primarios (Botones, Acciones, Destacados) */
+        .bg-primary, button.bg-primary, .btn-primary { background-color: ${pColor} !important; }
+        .text-primary { color: ${pColor} !important; }
+        .border-primary { border-color: ${pColor} !important; }
+        .hover\\:bg-primary\\/90:hover { background-color: color-mix(in srgb, ${pColor} 90%, black) !important; }
+        .focus\\:ring-primary:focus { --tw-ring-color: ${pColor} !important; }
+        .shadow-primary\\/30 { --tw-shadow-color: color-mix(in srgb, ${pColor} 30%, transparent) !important; }
+        .shadow-primary\\/20 { --tw-shadow-color: color-mix(in srgb, ${pColor} 20%, transparent) !important; }
+
+        /* 4. Colores Secundarios (Detalles, Bordes, Iconos, Accents) */
+        .bg-secondary { background-color: ${sColor} !important; }
+        .text-secondary { color: ${sColor} !important; }
+        .border-secondary { border-color: ${sColor} !important; }
+
+        /* 5. Uniformidad Completa del Calendario (Sustitución de rosas/magentas por primario y secundario) */
+        .calendar-day:not(.disabled) {
+            border-color: color-mix(in srgb, ${sColor} 35%, #e2e8f0) !important;
+        }
+        .calendar-day:not(.disabled):hover {
+            border-color: ${pColor} !important;
+            color: ${pColor} !important;
+            background-color: color-mix(in srgb, ${pColor} 8%, #ffffff) !important;
+        }
+        .calendar-day.selected, .time-slot.selected, .mini-calendar-day.selected, .mini-time-slot.selected {
+            background-color: ${pColor} !important;
+            color: #ffffff !important;
+            border-color: ${pColor} !important;
+        }
+        .time-slot:hover:not(.booked) {
+            border-color: ${sColor} !important;
+            color: ${pColor} !important;
+            background-color: color-mix(in srgb, ${pColor} 6%, #ffffff) !important;
+        }
+        .mini-calendar-day {
+            background-color: color-mix(in srgb, ${sColor} 20%, #ffffff) !important;
+            color: ${pColor} !important;
+        }
+        .prof-tab-pill.active, .tab-cal-active {
+            background-color: ${pColor} !important;
+            color: #ffffff !important;
+            border-color: ${pColor} !important;
+        }
+        .prof-tab-pill:not(.active) {
+            border-color: color-mix(in srgb, ${sColor} 30%, #cbd5e1) !important;
+        }
+        button#prevWeek, button#nextWeek, button#prevMonth, button#nextMonth {
+            color: ${sColor} !important;
+            border-color: color-mix(in srgb, ${sColor} 30%, #cbd5e1) !important;
+        }
+        .bg-pink-100, .bg-pink-50, .bg-red-50 {
+            background-color: color-mix(in srgb, ${pColor} 8%, #ffffff) !important;
+        }
+        .text-pink-700, .text-pink-800, .text-red-600 {
+            color: ${pColor} !important;
+        }
+        .border-pink-200, .border-red-200 {
+            border-color: color-mix(in srgb, ${sColor} 30%, #e2e8f0) !important;
+        }
 
         ${extraCss}
 
-        /* Protección estricta del logo e identidad oficial Agendatina en Header y Footer */
+        /* Protección del logo institucional de Agendatina en Header/Footer */
         .font-brand.font-semibold.text-2xl.tracking-tight.text-\\[\\#d11149\\],
         #navAgendatinaBrand .text-\\[\\#d11149\\],
         header .font-brand .text-\\[\\#d11149\\],
@@ -2959,11 +3118,23 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (window.isPublicAgendatinaOfficialPage && window.isPublicAgendatinaOfficialPage()) {
+        const style = document.getElementById('agendatina-user-custom-colors');
+        if (style) style.remove();
+        return; // Preservar tema de Agendatina en páginas oficiales
+    }
+
+    // 1. Carga inmediata desde el almacenamiento local para renderizado instantáneo
     const cachedP = localStorage.getItem('user_color_primario');
     const cachedS = localStorage.getItem('user_color_secundario');
     const cachedExtra = localStorage.getItem('user_colores_extra_json');
     if (cachedP || cachedS || cachedExtra) {
         window.applyUserCustomColors(cachedP, cachedS, cachedExtra);
+    }
+
+    // 2. Sincronización obligatoria desde el servidor para que Dueño/Admin y Profesionales compartan siempre los mismos colores
+    if (typeof loadCustomization === 'function') {
+        loadCustomization();
     }
 });
 
