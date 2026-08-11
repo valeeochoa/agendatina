@@ -100,7 +100,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                 <!-- Plan Simple -->
                 <div class="bg-white/5 border border-white/10 hover:border-[#d11149]/50 p-5 rounded-2xl transition-all flex flex-col justify-between relative group">
-                    <span class="absolute top-3 right-3 text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">10% OFF</span>
+                    <span id="cardDiscountSimpleBadge" class="absolute top-3 right-3 text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">10% OFF</span>
                     <div>
                         <h3 class="text-base font-extrabold text-white mb-1">Plan Simple</h3>
                         <p class="text-xs text-slate-400 mb-3">Agenda online e individual</p>
@@ -116,7 +116,7 @@
 
                 <!-- Plan Profesional -->
                 <div class="bg-white/10 border-2 border-[#d11149]/60 p-5 rounded-2xl transition-all flex flex-col justify-between relative shadow-lg shadow-[#d11149]/10">
-                    <span class="absolute top-3 right-3 text-[10px] font-black uppercase bg-[#d11149] text-white px-2 py-0.5 rounded-full shadow-sm">Popular • 10% OFF</span>
+                    <span id="cardDiscountProBadge" class="absolute top-3 right-3 text-[10px] font-black uppercase bg-[#d11149] text-white px-2 py-0.5 rounded-full shadow-sm">Popular • 10% OFF</span>
                     <div>
                         <h3 class="text-base font-extrabold text-white mb-1">Plan Profesional</h3>
                         <p class="text-xs text-slate-300 mb-3">Notificaciones y servicios ilimitados</p>
@@ -132,7 +132,7 @@
 
                 <!-- Plan Premium -->
                 <div class="bg-white/5 border border-white/10 hover:border-[#d11149]/50 p-5 rounded-2xl transition-all flex flex-col justify-between relative group">
-                    <span class="absolute top-3 right-3 text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">10% OFF</span>
+                    <span id="cardDiscountPremBadge" class="absolute top-3 right-3 text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">10% OFF</span>
                     <div>
                         <h3 class="text-base font-extrabold text-white mb-1">Plan Premium</h3>
                         <p class="text-xs text-slate-400 mb-3">Equipo completo y mini web propia</p>
@@ -629,6 +629,41 @@
     </div>
 </div>
 
+<!-- Modal Notificación / Alerta Visual del SuperAdmin -->
+<div id="adminNoticeModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div id="adminNoticeModalContent" class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full p-6 sm:p-8 text-center transform scale-95 transition-transform duration-300 relative overflow-hidden">
+        <div id="adminNoticeIconBg" class="w-16 h-16 rounded-3xl bg-purple-100 text-purple-600 flex items-center justify-center mx-auto mb-4 transition-all">
+            <span class="material-symbols-outlined text-3xl" id="adminNoticeIcon">payments</span>
+        </div>
+        <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display" id="adminNoticeTitle">¡Precios Actualizados!</h3>
+        <p class="text-xs text-slate-500 mb-6 leading-relaxed" id="adminNoticeMessage">Los precios oficiales y la configuración de planes se guardaron correctamente.</p>
+
+        <button onclick="closeAdminNoticeModal()" class="w-full px-5 py-3 bg-[#d11149] hover:bg-[#f44979] text-white font-bold rounded-2xl text-xs transition-all shadow-lg shadow-[#d11149]/20">
+            Entendido
+        </button>
+    </div>
+</div>
+
+<!-- Modal Confirmación Genérico Visual SuperAdmin -->
+<div id="adminConfirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[120] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div id="adminConfirmModalContent" class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full p-6 sm:p-8 text-center transform scale-95 transition-transform duration-300 relative overflow-hidden">
+        <div id="adminConfirmIconBg" class="w-16 h-16 rounded-3xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4 transition-all">
+            <span class="material-symbols-outlined text-3xl" id="adminConfirmIcon">warning</span>
+        </div>
+        <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display" id="adminConfirmTitle">Confirmar Acción</h3>
+        <p class="text-xs text-slate-500 mb-6 leading-relaxed" id="adminConfirmMessage">¿Estás seguro de realizar esta acción?</p>
+
+        <div class="flex gap-3">
+            <button onclick="closeAdminConfirmModal(false)" class="flex-1 px-4 py-3 bg-slate-100 text-slate-700 font-bold rounded-2xl text-xs hover:bg-slate-200 transition-colors">
+                Cancelar
+            </button>
+            <button id="btnAdminConfirmSubmit" onclick="closeAdminConfirmModal(true)" class="flex-1 px-4 py-3 bg-[#d11149] text-white font-bold rounded-2xl text-xs hover:bg-[#d11149]/90 transition-all shadow-lg shadow-[#d11149]/20">
+                Confirmar
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Modal Ficha Detallada de Emprendimiento -->
 <div id="clientDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[80] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
     <div id="clientDetailModalContent" class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto">
@@ -1075,7 +1110,8 @@ function fetchClients() {
                 }
 
                 // Actualizar tarjeta de precios resumen en vivo
-                const desc = parseInt(data.config_global.descuento_porcentaje) || 10;
+                const descRaw = parseInt(data.config_global.descuento_porcentaje);
+                const desc = isNaN(descRaw) ? 0 : descRaw;
                 const factor = (100 - desc) / 100;
                 
                 const pSimpleBase = Math.round(data.config_global.precio_basico || 8889);
@@ -1094,12 +1130,32 @@ function fetchClients() {
                 const elPremOld = document.getElementById('cardPricePremOld');
                 const elPremBox = document.getElementById('cardPricePremBox');
 
+                const elSimpleBadge = document.getElementById('cardDiscountSimpleBadge');
+                const elProBadge = document.getElementById('cardDiscountProBadge');
+                const elPremBadge = document.getElementById('cardDiscountPremBadge');
+
                 if (elSimpleOld) elSimpleOld.textContent = '$' + pSimpleBase.toLocaleString('es-AR');
                 if (elSimpleBox) elSimpleBox.textContent = '$' + pSimpleFinal.toLocaleString('es-AR');
                 if (elProOld) elProOld.textContent = '$' + pProBase.toLocaleString('es-AR');
                 if (elProBox) elProBox.textContent = '$' + pProFinal.toLocaleString('es-AR');
                 if (elPremOld) elPremOld.textContent = '$' + pPremBase.toLocaleString('es-AR');
                 if (elPremBox) elPremBox.textContent = '$' + pPremFinal.toLocaleString('es-AR');
+
+                if (desc > 0) {
+                    if (elSimpleBadge) { elSimpleBadge.textContent = desc + '% OFF'; elSimpleBadge.classList.remove('hidden'); }
+                    if (elProBadge) { elProBadge.textContent = 'Popular • ' + desc + '% OFF'; elProBadge.classList.remove('hidden'); }
+                    if (elPremBadge) { elPremBadge.textContent = desc + '% OFF'; elPremBadge.classList.remove('hidden'); }
+                    if (elSimpleOld) elSimpleOld.classList.remove('hidden');
+                    if (elProOld) elProOld.classList.remove('hidden');
+                    if (elPremOld) elPremOld.classList.remove('hidden');
+                } else {
+                    if (elSimpleBadge) elSimpleBadge.classList.add('hidden');
+                    if (elProBadge) elProBadge.textContent = 'Popular';
+                    if (elPremBadge) elPremBadge.classList.add('hidden');
+                    if (elSimpleOld) elSimpleOld.classList.add('hidden');
+                    if (elProOld) elProOld.classList.add('hidden');
+                    if (elPremOld) elPremOld.classList.add('hidden');
+                }
             }
             // Renderizar los reportes de error que devuelve la API
             if (data.notificaciones) {
@@ -1540,24 +1596,165 @@ function closePricesModal() {
 document.getElementById('pricesForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const btn = document.getElementById('btnPricesSubmit'); const orig = btn.innerHTML;
-    btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span>...';
+    btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span> Guardando...';
     fetch('../backend/admin_api.php', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ action: 'update_prices', precio_basico: document.getElementById('precioBasico').value, precio_intermedio: document.getElementById('precioIntermedio').value, precio_premium: document.getElementById('precioPremium').value, descuento_porcentaje: document.getElementById('descuentoPorcentaje').value, descuento_hasta: document.getElementById('descuentoHasta').value, dias_prueba_defecto: document.getElementById('diasPruebaDefecto').value }) })
     .then(res => res.json()).then(data => {
-        if(data.success) { alert('Precios y días de prueba actualizados correctamente.'); closePricesModal(); fetchClients(); } else { alert(data.error); }
+        if(data.success) {
+            closePricesModal(); 
+            fetchClients(); 
+            showAdminNotice('¡Precios Actualizados!', 'Los precios oficiales de los planes, descuentos y días de prueba se actualizaron correctamente.', 'prices');
+        } else { 
+            showAdminNotice('Error', data.error || 'Ocurrió un error al actualizar los precios.', 'error');
+        }
+    }).catch(() => {
+        showAdminNotice('Error de Conexión', 'No se pudo comunicar con el servidor para guardar los precios.', 'error');
     }).finally(() => { btn.disabled = false; btn.innerHTML = orig; });
 });
+
+function showAdminNotice(title, message, type = 'success') {
+    const modal = document.getElementById('adminNoticeModal');
+    const content = document.getElementById('adminNoticeModalContent');
+    const iconBg = document.getElementById('adminNoticeIconBg');
+    const icon = document.getElementById('adminNoticeIcon');
+    const titleEl = document.getElementById('adminNoticeTitle');
+    const msgEl = document.getElementById('adminNoticeMessage');
+
+    if (!modal || !content) return;
+
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+
+    if (type === 'success') {
+        iconBg.className = 'w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4';
+        icon.textContent = 'check_circle';
+    } else if (type === 'error') {
+        iconBg.className = 'w-16 h-16 rounded-3xl bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4';
+        icon.textContent = 'error';
+    } else if (type === 'info' || type === 'prices') {
+        iconBg.className = 'w-16 h-16 rounded-3xl bg-purple-100 text-purple-600 flex items-center justify-center mx-auto mb-4';
+        icon.textContent = 'payments';
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+    }, 10);
+}
+
+function closeAdminNoticeModal() {
+    const modal = document.getElementById('adminNoticeModal');
+    const content = document.getElementById('adminNoticeModalContent');
+    if (!modal || !content) return;
+    modal.classList.add('opacity-0');
+    content.classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 300);
+}
+
+let adminConfirmCallback = null;
+
+function showAdminConfirm(title, message, options = {}) {
+    const modal = document.getElementById('adminConfirmModal');
+    const content = document.getElementById('adminConfirmModalContent');
+    const iconBg = document.getElementById('adminConfirmIconBg');
+    const icon = document.getElementById('adminConfirmIcon');
+    const titleEl = document.getElementById('adminConfirmTitle');
+    const msgEl = document.getElementById('adminConfirmMessage');
+    const btnSubmit = document.getElementById('btnAdminConfirmSubmit');
+
+    if (!modal || !content) return;
+
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+    icon.textContent = options.icon || 'help';
+    iconBg.className = options.iconBg || 'w-16 h-16 rounded-3xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4 transition-all';
+    btnSubmit.className = options.btnClass || 'flex-1 px-4 py-3 bg-[#d11149] text-white font-bold rounded-2xl text-xs hover:bg-[#d11149]/90 transition-all shadow-lg shadow-[#d11149]/20';
+    btnSubmit.textContent = options.btnText || 'Confirmar';
+
+    adminConfirmCallback = options.onConfirm || null;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+    }, 10);
+}
+
+function closeAdminConfirmModal(confirmed = false) {
+    const modal = document.getElementById('adminConfirmModal');
+    const content = document.getElementById('adminConfirmModalContent');
+    if (!modal || !content) return;
+    modal.classList.add('opacity-0');
+    content.classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        if (confirmed && typeof adminConfirmCallback === 'function') {
+            const cb = adminConfirmCallback;
+            adminConfirmCallback = null;
+            cb();
+        } else {
+            adminConfirmCallback = null;
+        }
+    }, 300);
+}
 
 // ==========================================
 // ACCIONES RÁPIDAS
 // ==========================================
 function registrarPago(idNegocio) {
-    if (!confirm('✅ ¿Registrar nuevo pago mensual?\n\nEsto actualizará la fecha de último pago a hoy y desbloqueará el sistema automáticamente para este cliente.')) return;
-    fetch('../backend/admin_api.php', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_negocio: idNegocio, action: 'registrar_pago' }) }).then(res => res.json()).then(data => { if (data.success) fetchClients(); else alert(data.error); });
+    showAdminConfirm(
+        'Registrar Pago', 
+        '¿Deseas registrar un nuevo pago mensual? Esto actualizará la fecha de último pago a hoy y desbloqueará el sistema para este cliente.', 
+        {
+            icon: 'check_circle',
+            iconBg: 'w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4 transition-all',
+            btnText: 'Sí, Registrar',
+            btnClass: 'flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl text-xs transition-all shadow-lg shadow-emerald-600/20',
+            onConfirm: () => {
+                fetch('../backend/admin_api.php', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_negocio: idNegocio, action: 'registrar_pago' }) })
+                .then(res => res.json())
+                .then(data => { 
+                    if (data.success) {
+                        fetchClients(); 
+                        showAdminNotice('¡Pago Registrado!', 'El pago ha sido registrado correctamente y la cuenta está activa.', 'success');
+                    } else {
+                        showAdminNotice('Error', data.error || 'No se pudo registrar el pago.', 'error');
+                    }
+                });
+            }
+        }
+    );
 }
 
 function suspenderNegocio(idNegocio) {
-    if (!confirm('⚠️ ¿Estás seguro de que deseas SUSPENDER este negocio?\n\nEl dueño conservará sus datos, pero su sistema quedará marcado como impago.')) return;
-    fetch('../backend/admin_api.php', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_negocio: idNegocio, estado_pago: 'suspendido' }) }).then(res => res.json()).then(data => { if (data.success) fetchClients(); else alert(data.error); });
+    showAdminConfirm(
+        'Suspender Negocio',
+        '¿Estás seguro de que deseas SUSPENDER este negocio? El cliente conservará sus datos pero el acceso quedará bloqueado por falta de pago.',
+        {
+            icon: 'pause_circle',
+            iconBg: 'w-16 h-16 rounded-3xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4 transition-all',
+            btnText: 'Sí, Suspender',
+            btnClass: 'flex-1 px-4 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-2xl text-xs transition-all shadow-lg shadow-amber-600/20',
+            onConfirm: () => {
+                fetch('../backend/admin_api.php', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_negocio: idNegocio, estado_pago: 'suspendido' }) })
+                .then(res => res.json())
+                .then(data => { 
+                    if (data.success) {
+                        fetchClients(); 
+                        showAdminNotice('Negocio Suspendido', 'El estado del negocio ha sido cambiado a suspendido.', 'info');
+                    } else {
+                        showAdminNotice('Error', data.error || 'No se pudo suspender el negocio.', 'error');
+                    }
+                });
+            }
+        }
+    );
 }
 
 let currentReceiptId = null;
@@ -2115,6 +2312,8 @@ function closeReceiptModal() {
 // Cierre de modales en panel Admin mediante la tecla Escape (ESC)
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' || e.key === 'Esc') {
+        if (typeof closeAdminConfirmModal === 'function') closeAdminConfirmModal(false);
+        if (typeof closeAdminNoticeModal === 'function') closeAdminNoticeModal();
         if (typeof closePricesModal === 'function') closePricesModal();
         if (typeof closeClientDetailModal === 'function') closeClientDetailModal();
         if (typeof closeEditModal === 'function') closeEditModal();

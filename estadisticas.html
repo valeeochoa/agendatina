@@ -213,23 +213,29 @@
             // Map de precios de servicios
             const servicePrices = {};
             rawServicios.forEach(s => {
-                servicePrices[s.nombre_servicio] = parseFloat(s.precio || 0);
+                const sName = s.nombre || s.nombre_servicio;
+                if (sName) {
+                    servicePrices[sName] = parseFloat(s.precio || 0);
+                }
             });
 
             // 2. Ingresos y Clientes
             let totalIngresos = 0;
             const uniqueClients = new Set();
             const serviceCounts = {};
+            const serviceTotals = {};
 
             filteredTurnos.forEach(t => {
                 const sName = t.servicio || 'General';
-                const p = parseFloat(t.precio || servicePrices[sName] || 0);
+                const rawP = t.precio !== undefined && t.precio !== null && t.precio !== '' ? parseFloat(t.precio) : NaN;
+                const p = !isNaN(rawP) ? rawP : (servicePrices[sName] || 0);
                 totalIngresos += p;
 
                 const clientKey = t.cliente_celular || t.celular || t.cliente_nombre || t.nombre;
                 if (clientKey) uniqueClients.add(clientKey);
 
                 serviceCounts[sName] = (serviceCounts[sName] || 0) + 1;
+                serviceTotals[sName] = (serviceTotals[sName] || 0) + p;
             });
 
             document.getElementById('statTotalIngresos').textContent = '$' + totalIngresos.toLocaleString('es-AR', {maximumFractionDigits: 0});
@@ -252,7 +258,7 @@
             renderChartServices(serviceCounts);
 
             // 5. Tabla Desglose
-            renderBreakdownTable(serviceCounts, servicePrices);
+            renderBreakdownTable(serviceCounts, serviceTotals, servicePrices);
         }
 
         function renderChartDays(turnos) {
@@ -315,26 +321,26 @@
             });
         }
 
-        function renderBreakdownTable(counts, prices) {
+        function renderBreakdownTable(counts, totals, prices) {
             const tbody = document.getElementById('servicesBreakdownBody');
             const keys = Object.keys(counts);
             if (keys.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400 text-xs">No hay reservas registradas en este período.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-400 text-xs font-medium">No hay reservas registradas en este período.</td></tr>';
                 return;
             }
 
             let html = '';
-            keys.sort((a, b) => counts[b] - counts[a]).forEach(s => {
-                const count = counts[s];
-                const unitPrice = prices[s] || 0;
-                const total = count * unitPrice;
+            keys.sort((a, b) => (totals[b] || 0) - (totals[a] || 0)).forEach(s => {
+                const count = counts[s] || 0;
+                const total = totals[s] !== undefined ? totals[s] : 0;
+                const unitPrice = prices[s] !== undefined && prices[s] > 0 ? prices[s] : (count > 0 ? total / count : 0);
 
                 html += `
                     <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                         <td class="p-4 font-bold text-slate-800 text-sm">${s}</td>
                         <td class="p-4 font-semibold text-slate-600 text-sm">${count}</td>
-                        <td class="p-4 text-slate-500 text-sm">$${unitPrice.toLocaleString('es-AR')}</td>
-                        <td class="p-4 font-extrabold text-emerald-600 text-sm text-right">$${total.toLocaleString('es-AR')}</td>
+                        <td class="p-4 text-slate-500 text-sm">$${Math.round(unitPrice).toLocaleString('es-AR')}</td>
+                        <td class="p-4 font-extrabold text-emerald-600 text-sm text-right">$${Math.round(total).toLocaleString('es-AR')}</td>
                     </tr>
                 `;
             });

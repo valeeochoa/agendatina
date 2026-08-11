@@ -2269,7 +2269,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (rawB > 12000) rawB = 8889;
 
                 let discPct = parseInt(pData.descuento_porcentaje);
-                if (isNaN(discPct) || discPct < 0) discPct = 10;
+                if (isNaN(discPct) || discPct < 0) discPct = 0;
 
                 const factor = (100 - discPct) / 100;
 
@@ -2282,8 +2282,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         return {
                             final: finalPriceForOne,
                             oldPrice: rawBasePrice,
-                            badgeText: `-10% OFF`,
-                            showOldPrice: true
+                            badgeText: discPct > 0 ? `-${discPct}% OFF` : '',
+                            showOldPrice: discPct > 0
                         };
                     } else {
                         let volumeDiscount = count * 10;

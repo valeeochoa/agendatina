@@ -63,8 +63,21 @@ try {
     
     $profesional_filter = "";
     if (isset($_SESSION['rol_en_local']) && $_SESSION['rol_en_local'] === 'profesional') {
-        // Restricción: Si entra el profesional, la base de datos SOLO entrega sus turnos
-        $profesional_filter = " AND profesional = :mi_nombre ";
+        $permisos = $_SESSION['permisos'] ?? null;
+        $verTodos = true;
+        if (is_array($permisos) && isset($permisos['ver_todos_turnos'])) {
+            $verTodos = !empty($permisos['ver_todos_turnos']);
+        } elseif (is_string($permisos)) {
+            $parsedP = json_decode($permisos, true);
+            if (is_array($parsedP) && isset($parsedP['ver_todos_turnos'])) {
+                $verTodos = !empty($parsedP['ver_todos_turnos']);
+            }
+        }
+
+        // Si el admin deshabilitó la opción de ver los turnos de todo el equipo, solo muestra sus turnos
+        if (!$verTodos) {
+            $profesional_filter = " AND (profesional = :mi_nombre OR profesional LIKE :mi_nombre_like) ";
+        }
     }
 
     if ($historial) {
@@ -75,7 +88,10 @@ try {
                 ORDER BY fecha DESC, hora ASC";
         $stmt = $pdo->prepare($sql);
         $params = ['id_negocio' => $_SESSION['id_negocio']];
-        if ($profesional_filter) $params['mi_nombre'] = $_SESSION['nombre_completo'];
+        if ($profesional_filter) {
+            $params['mi_nombre'] = $_SESSION['nombre_completo'];
+            $params['mi_nombre_like'] = '%' . $_SESSION['nombre_completo'] . '%';
+        }
         $stmt->execute($params);
     } else {
         // Ventana de tiempo (60 días) para vista normal de agenda
@@ -88,7 +104,10 @@ try {
                 ORDER BY fecha DESC, hora ASC";
         $stmt = $pdo->prepare($sql);
         $params = ['id_negocio' => $_SESSION['id_negocio'], 'min_fecha' => $min_fecha];
-        if ($profesional_filter) $params['mi_nombre'] = $_SESSION['nombre_completo'];
+        if ($profesional_filter) {
+            $params['mi_nombre'] = $_SESSION['nombre_completo'];
+            $params['mi_nombre_like'] = '%' . $_SESSION['nombre_completo'] . '%';
+        }
         $stmt->execute($params);
     }
     

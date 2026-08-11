@@ -12,18 +12,24 @@ if (!isset($_SESSION['id_negocio'])) {
 $id_negocio = $_SESSION['id_negocio'];
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Para POST y DELETE (crear o eliminar profesionales), exigir ser administrador
+// Asegurar la existencia de la columna permisos en personal_negocio
+try { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN permisos TEXT NULL"); } catch(Exception $e) {}
+
+// Para POST, PUT y DELETE (crear, modificar o eliminar profesionales), exigir ser administrador
 if ($method !== 'GET' && (!isset($_SESSION['rol_en_local']) || $_SESSION['rol_en_local'] !== 'admin')) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'error' => 'Acceso denegado. Solo el administrador del negocio puede modificar el equipo.']);
+    echo json_encode(['success' => false, 'error' => 'Acceso denegado. Solo el administrador del negocio puede modificar el equipo y sus permisos.']);
     exit;
 }
+
+$defaultProfPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 0, 'servicios' => 0, 'estadisticas' => 0, 'equipo' => 0];
+$defaultAdminPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 1, 'servicios' => 1, 'estadisticas' => 1, 'equipo' => 1];
 
 if ($method === 'GET') {
     try {
         // Obtener la lista de profesionales e integrantes del equipo (deduplicando usuarios)
         $stmt = $pdo->prepare("
-            SELECT u.id, u.nombre_completo, u.email, MIN(pn.rol_en_local) AS rol_en_local 
+            SELECT u.id, u.nombre_completo, u.email, MIN(pn.rol_en_local) AS rol_en_local, MAX(pn.permisos) AS permisos
             FROM usuarios u
             JOIN personal_negocio pn ON u.id = pn.id_usuario
             WHERE pn.id_negocio = :id_negocio
@@ -44,6 +50,16 @@ if ($method === 'GET') {
             } catch (Exception $eFix) {}
         }
 
+        foreach ($profesionales as &$p) {
+            if ($p['rol_en_local'] === 'admin') {
+                $p['permisos'] = $defaultAdminPerms;
+            } else {
+                $pPerms = !empty($p['permisos']) ? json_decode($p['permisos'], true) : null;
+                $p['permisos'] = is_array($pPerms) ? array_merge($defaultProfPerms, $pPerms) : $defaultProfPerms;
+            }
+        }
+        unset($p);
+
         // Obtener el límite dictado por el plan (SuperAdmin)
         $stmtLimit = $pdo->prepare("SELECT max_profesionales FROM negocios WHERE id = :id");
         $stmtLimit->execute(['id' => $id_negocio]);
@@ -53,12 +69,59 @@ if ($method === 'GET') {
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'error' => 'Error al cargar el equipo: ' . $e->getMessage()]);
     }
+} elseif ($method === 'PUT') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $action = $data['action'] ?? '';
+
+    if ($action === 'actualizar_permisos') {
+        $id_usuario = (int)($data['id_usuario'] ?? 0);
+        $permisos = $data['permisos'] ?? null;
+
+        if (!$id_usuario || !is_array($permisos)) {
+            echo json_encode(['success' => false, 'error' => 'Datos incompletos para actualizar permisos.']);
+            exit;
+        }
+
+        $stmtRole = $pdo->prepare("SELECT rol_en_local FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ?");
+        $stmtRole->execute([$id_negocio, $id_usuario]);
+        $role = $stmtRole->fetchColumn();
+
+        if (!$role) {
+            echo json_encode(['success' => false, 'error' => 'El profesional no pertenece a este negocio.']);
+            exit;
+        }
+        if ($role === 'admin') {
+            echo json_encode(['success' => false, 'error' => 'No es necesario modificar permisos para la cuenta del Administrador principal.']);
+            exit;
+        }
+
+        $permisosJson = json_encode([
+            'agenda' => !empty($permisos['agenda']) ? 1 : 0,
+            'ver_todos_turnos' => !empty($permisos['ver_todos_turnos']) ? 1 : 0,
+            'web' => !empty($permisos['web']) ? 1 : 0,
+            'servicios' => !empty($permisos['servicios']) ? 1 : 0,
+            'estadisticas' => !empty($permisos['estadisticas']) ? 1 : 0,
+            'equipo' => !empty($permisos['equipo']) ? 1 : 0
+        ]);
+
+        $stmtUpd = $pdo->prepare("UPDATE personal_negocio SET permisos = ? WHERE id_negocio = ? AND id_usuario = ?");
+        $stmtUpd->execute([$permisosJson, $id_negocio, $id_usuario]);
+
+        echo json_encode(['success' => true, 'permisos' => json_decode($permisosJson, true)]);
+        exit;
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Acción no válida.']);
+        exit;
+    }
 } elseif ($method === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true) ?: $_POST;
     
     $nombre = trim($data['nombre'] ?? '');
     $email = filter_var(trim($data['email'] ?? ''), FILTER_SANITIZE_EMAIL);
     $password = trim($data['password'] ?? '');
+    $permisosInput = $data['permisos'] ?? null;
+    $permisosFinal = is_array($permisosInput) ? array_merge($defaultProfPerms, $permisosInput) : $defaultProfPerms;
+    $permisosJson = json_encode($permisosFinal);
 
     if (!$nombre || !$email || !$password) {
         echo json_encode(['success' => false, 'error' => 'Por favor completa todos los campos (Nombre, Email y Contraseña).']);
@@ -91,7 +154,7 @@ if ($method === 'GET') {
             throw new Exception("Has alcanzado el límite máximo de $max_profesionales profesionales adicionales para tu plan. Si necesitas ampliar la capacidad, contacta a soporte.");
         }
 
-        // Verificar si el usuario ya existe en la plataforma (puede trabajar en otro local o tener su propio negocio)
+        // Verificar si el usuario ya existe en la plataforma
         $stmtCheck = $pdo->prepare("SELECT id FROM usuarios WHERE email = :email LIMIT 1");
         $stmtCheck->execute(['email' => $email]);
         $existingUser = $stmtCheck->fetch(PDO::FETCH_ASSOC);
@@ -113,8 +176,8 @@ if ($method === 'GET') {
             }
 
             // Vincular la cuenta existente a este negocio
-            $stmtPn = $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'profesional')");
-            $stmtPn->execute([$id_negocio, $id_usuario]);
+            $stmtPn = $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local, permisos) VALUES (?, ?, 'profesional', ?)");
+            $stmtPn->execute([$id_negocio, $id_usuario, $permisosJson]);
         } else {
             // Crear usuario nuevo (sin requerir verificación de correo)
             $hash = password_hash($password, PASSWORD_DEFAULT);
@@ -127,8 +190,8 @@ if ($method === 'GET') {
             }
             $id_usuario = $pdo->lastInsertId();
 
-            $stmtPn = $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'profesional')");
-            $stmtPn->execute([$id_negocio, $id_usuario]);
+            $stmtPn = $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local, permisos) VALUES (?, ?, 'profesional', ?)");
+            $stmtPn->execute([$id_negocio, $id_usuario, $permisosJson]);
         }
 
         $pdo->commit();
@@ -150,7 +213,6 @@ if ($method === 'GET') {
     try {
         $pdo->beginTransaction();
         
-        // 1. Buscar rol en personal_negocio para este negocio o en general
         $stmtCheck = $pdo->prepare("SELECT rol_en_local FROM personal_negocio WHERE id_usuario = ? AND id_negocio = ?");
         $stmtCheck->execute([$id_usuario, $id_negocio]);
         $roleInBiz = $stmtCheck->fetchColumn();
@@ -164,11 +226,9 @@ if ($method === 'GET') {
         if ($roleInBiz === 'admin') {
             throw new Exception("No es posible eliminar la cuenta del Administrador/Dueño principal del negocio.");
         } else {
-            // Eliminar de personal_negocio para este negocio o rol profesional
             $pdo->prepare("DELETE FROM personal_negocio WHERE id_usuario = ? AND id_negocio = ?")->execute([$id_usuario, $id_negocio]);
             $pdo->prepare("DELETE FROM personal_negocio WHERE id_usuario = ? AND rol_en_local = 'profesional'")->execute([$id_usuario]);
             
-            // Eliminar de usuarios si no pertenece a ningún otro negocio activo
             $stmtCheckOther = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_usuario = ?");
             $stmtCheckOther->execute([$id_usuario]);
             if ($stmtCheckOther->fetchColumn() == 0) {

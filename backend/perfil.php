@@ -41,8 +41,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $user = $stmtU->fetch(PDO::FETCH_ASSOC);
 
     $userRole = $_SESSION['rol_en_local'] ?? 'admin';
+    $defaultProfPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 0, 'servicios' => 0, 'estadisticas' => 0, 'equipo' => 0];
+    $defaultAdminPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 1, 'servicios' => 1, 'estadisticas' => 1, 'equipo' => 1];
+
     if ($user) {
         $user['rol'] = $userRole;
+        if ($userRole === 'admin') {
+            $user['permisos'] = $defaultAdminPerms;
+        } else {
+            try {
+                $stmtPnPerms = $pdo->prepare("SELECT permisos FROM personal_negocio WHERE id_usuario = ? AND id_negocio = ? LIMIT 1");
+                $stmtPnPerms->execute([$id_usuario, $id_negocio]);
+                $rawPerms = $stmtPnPerms->fetchColumn();
+                $parsedPerms = !empty($rawPerms) ? json_decode($rawPerms, true) : ($_SESSION['permisos'] ?? null);
+                $user['permisos'] = is_array($parsedPerms) ? array_merge($defaultProfPerms, $parsedPerms) : $defaultProfPerms;
+            } catch (Exception $ePerms) {
+                $user['permisos'] = $defaultProfPerms;
+            }
+        }
+        $_SESSION['permisos'] = $user['permisos'];
     }
 
     // Obtener datos del negocio

@@ -59,21 +59,41 @@ window.loadDashboardData = function() {
                 }
             }
 
-            const rol = window.currentUserData.rol_en_local;
+            const rol = window.currentUserData.rol || window.currentUserData.rol_en_local;
+            const perms = window.currentUserData.permisos || {};
+
             if (rol === 'profesional') {
-                // Ocultar tarjetas administrativas al empleado
-                ['cardCalendario', 'cardWeb', 'cardTeam'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.style.display = 'none';
-                });
+                // Ocultar o mostrar tarjetas según permisos individuales
+                if (perms.agenda === 0) {
+                    ['cardAgenda', 'cardCalendario'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.style.display = 'none';
+                    });
+                }
+                if (perms.web === 0) {
+                    const elW = document.getElementById('cardWeb');
+                    if (elW) elW.style.display = 'none';
+                }
+                if (perms.servicios === 0) {
+                    const elS = document.getElementById('cardServicios');
+                    if (elS) elS.style.display = 'none';
+                }
+                if (perms.estadisticas === 0) {
+                    const elEst = document.getElementById('cardEstadisticas');
+                    if (elEst) elEst.style.display = 'none';
+                }
+                if (perms.equipo === 0) {
+                    const elT = document.getElementById('cardTeam');
+                    if (elT) elT.style.display = 'none';
+                }
                 
-                // Ocultar Banner de pago y Ajustes Generales
+                // Ocultar Banner de pago
                 const banner = document.getElementById('subscriptionBanner');
                 if (banner) banner.style.display = 'none';
                 
-                // Cambiar saludo y redireccionar enlace
+                // Cambiar saludo
                 const subGreeting = document.getElementById('dashSubGreeting');
-                if (subGreeting) subGreeting.textContent = 'Aquí puedes visualizar y gestionar tu propia lista de turnos asignados.';
+                if (subGreeting) subGreeting.textContent = 'Aquí puedes visualizar las secciones y turnos habilitados por la administración.';
             } else {
                 // Si es dueño (admin), cargar la lista de profesionales para el límite
                 loadTeamList();

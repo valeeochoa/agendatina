@@ -74,7 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Buscamos TODOS los usuarios que coincidan con ese email
-        $sql = "SELECT u.id, u.nombre_completo, u.password, pn.id_negocio, pn.rol_en_local, n.plan 
+        try { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN permisos TEXT NULL"); } catch(Exception $e) {}
+
+        $sql = "SELECT u.id, u.nombre_completo, u.password, pn.id_negocio, pn.rol_en_local, pn.permisos, n.plan 
                 FROM usuarios u
                 LEFT JOIN personal_negocio pn ON u.id = pn.id_usuario
                 LEFT JOIN negocios n ON pn.id_negocio = n.id
@@ -114,9 +116,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Credenciales correctas: Creamos la sesión
         $_SESSION['user_id'] = $validUser['id']; 
         $_SESSION['nombre_completo'] = $validUser['nombre_completo'];
-        $_SESSION['rol_en_local'] = $validUser['rol_en_local'];
+        $_SESSION['rol_en_local'] = $validUser['rol_en_local'] ?? 'admin';
         $_SESSION['id_negocio'] = $validUser['id_negocio']; // Clave para aislar la información
         $_SESSION['plan'] = $validUser['plan']; // Guardamos el plan en sesión
+
+        $defaultProfPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 0, 'servicios' => 0, 'estadisticas' => 0, 'equipo' => 0];
+        $defaultAdminPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 1, 'servicios' => 1, 'estadisticas' => 1, 'equipo' => 1];
+
+        if ($_SESSION['rol_en_local'] === 'admin') {
+            $_SESSION['permisos'] = $defaultAdminPerms;
+        } else {
+            $parsedPerms = !empty($validUser['permisos']) ? json_decode($validUser['permisos'], true) : null;
+            $_SESSION['permisos'] = is_array($parsedPerms) ? array_merge($defaultProfPerms, $parsedPerms) : $defaultProfPerms;
+        }
         
         echo json_encode(['success' => true, 'plan' => $validUser['plan']]);
         exit;
