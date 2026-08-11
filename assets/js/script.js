@@ -383,7 +383,15 @@ window.openEditTurnoModal = function(id) {
 
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Notas internas (Ej: Mal trato, me cae bien, etc.)</label>
-                        <textarea id="editTurnoNotas" name="notas" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700 resize-none" placeholder="Agregar notas sobre este cliente..."></textarea>
+                        <textarea id="editTurnoNotas" name="notas" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700 resize-none" placeholder="Agregar notas sobre este cliente..."></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Asistencia al Turno</label>
+                        <select id="editTurnoAsistio" name="asistio" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm font-bold text-slate-700">
+                            <option value="1">✓ Sí Asistió (Suma a Estadísticas)</option>
+                            <option value="0">✕ No Asistió / Pendiente</option>
+                        </select>
                     </div>
                     
                     <button type="submit" class="w-full bg-primary hover:bg-primary/95 text-white font-bold py-3.5 rounded-xl mt-2 transition-all flex items-center justify-center gap-2 shadow-lg shrink-0">Guardar Cambios</button>
@@ -410,10 +418,11 @@ window.openEditTurnoModal = function(id) {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
                 if (data.success) {
-                    showToast('Turno modificado correctamente', 'success');
+                    showToast('Turno y asistencia modificados correctamente', 'success');
                     window.closeEditTurnoModal();
                     if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
                     if (typeof window.cargarAgenda === 'function') window.cargarAgenda();
+                    if (typeof window.loadStatistics === 'function') window.loadStatistics();
                 } else {
                     showToast(data.error || 'Error al modificar el turno', 'error');
                 }
@@ -473,6 +482,10 @@ window.openEditTurnoModal = function(id) {
     document.getElementById('editTurnoFecha').value = turno.fecha;
     document.getElementById('editTurnoHora').value = turno.hora.substring(0, 5);
     document.getElementById('editTurnoNotas').value = turno.notas || '';
+    if (document.getElementById('editTurnoAsistio')) {
+        const estAsistio = (parseInt(turno.asistio) === 1 || turno.asistio === 'si' || turno.asistio === true || turno.estado === 'atendido' || turno.estado === 'asistio') ? '1' : '0';
+        document.getElementById('editTurnoAsistio').value = estAsistio;
+    }
     
     // Configurar UI según sea pasado o futuro
     const alertEl = document.getElementById('pastTurnoAlert');
@@ -490,7 +503,7 @@ window.openEditTurnoModal = function(id) {
     
     const submitBtn = document.getElementById('editTurnoForm')?.querySelector('button[type="submit"]');
     if (submitBtn) {
-        submitBtn.textContent = isPast ? 'Guardar Notas' : 'Guardar Cambios';
+        submitBtn.textContent = isPast ? 'Guardar Cambios / Asistencia' : 'Guardar Cambios';
     }
 
     const inputsToLock = [
@@ -541,6 +554,30 @@ window.closeEditTurnoModal = function() {
             modal.classList.add('hidden');
         }, 300);
     }
+};
+
+window.toggleAsistenciaTurno = function(idTurno, nuevoEstado) {
+    fetch('backend/marcar_asistencia.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_turno: idTurno, asistio: nuevoEstado })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            if (typeof showToast === 'function') {
+                showToast(nuevoEstado === 1 ? '✓ Asistencia confirmada' : 'Asistencia registrada como no asistió', 'success');
+            }
+            if (typeof window.cargarAgenda === 'function') window.cargarAgenda();
+            if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
+            if (typeof window.loadStatistics === 'function') window.loadStatistics();
+        } else {
+            if (typeof showToast === 'function') showToast(res.error || 'Error al actualizar asistencia', 'error');
+        }
+    })
+    .catch(() => {
+        if (typeof showToast === 'function') showToast('Error de conexión', 'error');
+    });
 };
 
 // Función global para iniciar demostración interactiva (Botón Pruébalo ahora)
@@ -805,13 +842,11 @@ function loadDashboardData() {
             
             const hasDiscount = discount > 0;
             let finalPrice = hasDiscount ? basePrice * (1 - discount/100) : basePrice;
-            if (dbStatus === 'prueba') finalPrice = finalPrice / 2;
             let formattedPrice = finalPrice.toLocaleString('es-AR', {maximumFractionDigits:0});
             
             if (paymentPrice) {
                 let discountBadge = '';
-                if (dbStatus === 'prueba') discountBadge = '<span class="block text-sm font-bold text-emerald-500 mb-1">50% OFF - Primer Mes</span>';
-                else if (hasDiscount) discountBadge = `<div class="flex flex-wrap items-center justify-center gap-2 mb-1"><span class="text-sm text-slate-400 line-through font-medium">$${basePrice.toLocaleString('es-AR', {maximumFractionDigits:0})}</span><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-${discount}% OFF</span></div>`;
+                if (hasDiscount) discountBadge = `<div class="flex flex-wrap items-center justify-center gap-2 mb-1"><span class="text-sm text-slate-400 line-through font-medium">$${basePrice.toLocaleString('es-AR', {maximumFractionDigits:0})}</span><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-${discount}% OFF</span></div>`;
                 paymentPrice.innerHTML = `${discountBadge}$${formattedPrice} <span class="text-base font-normal text-slate-400">/mes</span>`;
             }
             
@@ -930,24 +965,14 @@ function checkSubscription(subscriptionData) {
     const fechaAlta = new Date(subscriptionData.fechaAlta.replace(/-/g, '/') + ' 00:00:00');
     const lastPayment = subscriptionData.lastPaymentDate ? new Date(subscriptionData.lastPaymentDate.replace(/-/g, '/') + ' 00:00:00') : null;
 
-    let cycleStart = fechaAlta;
-    let cycleDays = 30;
-    let graceDays = 0;
-
-    if (subscriptionData.status === 'activo' || subscriptionData.status === 'pagado') {
-        if (lastPayment) cycleStart = lastPayment;
-        cycleDays = 30;
-        graceDays = 5;
-    } else if (subscriptionData.status === 'prueba') {
-        cycleDays = 15;
-        graceDays = 0;
-    } else if (subscriptionData.status === 'beta') {
-        cycleDays = 30;
-        graceDays = 5;
-    }
+    let cycleStart = lastPayment ? lastPayment : fechaAlta;
+    let cycleDays = 30; // Estándar de 30 días para todos los períodos de facturación
+    let graceDays = (subscriptionData.status === 'prueba') ? 0 : 5;
 
     const cycleEnd = new Date(cycleStart);
     cycleEnd.setDate(cycleEnd.getDate() + cycleDays);
+
+    const nextBillingStr = cycleEnd.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
     const paymentDeadline = new Date(cycleEnd);
     paymentDeadline.setDate(paymentDeadline.getDate() + graceDays);
@@ -971,14 +996,14 @@ function checkSubscription(subscriptionData) {
             isDashboardBannerHidden = false;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-blue-50 border border-blue-200 text-blue-800';
             dashIcon = 'schedule';
-            dashMsg = `Estás en tu período de prueba. Te quedan <strong>${diffToCycleEnd} días</strong> de acceso gratuito. Luego, deberás abonar tu primer mes${priceStr}, el cual correrá a partir de ese momento.`;
+            dashMsg = `Estás en tu período de prueba. Te quedan <strong>${diffToCycleEnd} días</strong> de acceso gratuito. Tu próximo período de facturación inicia el <strong>${nextBillingStr}</strong> (Abonarás tu primer mes${priceStr}). <em>Nota: Los aumentos de tarifa se aplican a partir de tu siguiente ciclo de facturación.</em>`;
             showActionBtn = false; // El botón de pago no estará habilitado durante la prueba gratuita
         } else {
             subscriptionData.status = 'suspendido';
             isDashboardBannerHidden = false;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-red-50 border border-red-200 text-red-800';
             dashIcon = 'error';
-            dashMsg = `Tu período de prueba ha finalizado. Debes abonar tu primer mes${priceStr} para reactivar el servicio. El nuevo mes correrá a partir de que el pago sea aprobado.`;
+            dashMsg = `Tu período de prueba ha finalizado. Debes abonar tu primer mes${priceStr} para reactivar el servicio. El nuevo ciclo de 30 días correrá a partir de que el pago sea aprobado.`;
             dashBtnText = 'Pagar Plan';
             dashBtnClass = 'bg-red-600 hover:bg-red-700 text-white';
             showActionBtn = true;
@@ -2296,8 +2321,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 let rawI = parseFloat(pData.precio_intermedio) || 11111;
                 let rawP = parseFloat(pData.precio_premium) || 16667;
 
-                if (rawB > 12000) rawB = 8889;
-
                 let discPct = parseInt(pData.descuento_porcentaje);
                 if (isNaN(discPct) || discPct < 0) discPct = 0;
 
@@ -2368,6 +2391,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateBox('priceInterBox', 'priceInterOld', i, rawI, 'text-white/80', 'perPersonInter', 'inter');
                 updateBox('pricePremBox', 'pricePremOld', p, rawP, 'text-slate-500', 'perPersonPrem', 'prem');
                 
+                // Actualizar insignias de notificaciones de WhatsApp dinámicamente según cantidad de profesionales
+                const countInter = window.numProfessionals['inter'] || 1;
+                const countPrem = window.numProfessionals['prem'] || 1;
+
+                const extraInter = Math.max(0, countInter - 1);
+                const extraPrem = Math.max(0, countPrem - 1);
+
+                const wppInter = 50 + (extraInter * 10);
+                const wppPrem = 100 + (extraPrem * 10);
+
+                const badgeInter = document.getElementById('wppQuotaDisplay_inter');
+                if (badgeInter) {
+                    badgeInter.textContent = `${wppInter} WPP/mes total negocio`;
+                }
+
+                const badgePrem = document.getElementById('wppQuotaDisplay_prem');
+                if (badgePrem) {
+                    badgePrem.textContent = `${wppPrem} WPP/mes total negocio`;
+                }
+
                 // Actualizar info para el Carrusel flotante utilizando la misma lógica unificada
                 const planKeys = ['basic', 'inter', 'prem'];
                 const finalPrices = [b, i, p];
@@ -3026,9 +3069,9 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
             --color-terciario: ${extraColors.color_terciario || '#8b5cf6'};
         }
 
-        /* 1. Fondo suave y sutil del Dashboard derivado del color primario seleccionado */
+        /* 1. Fondo del Calendario y Dashboard (Color Primario Atenuado) */
         body {
-            background-color: color-mix(in srgb, ${pColor} 4%, #f8fafc) !important;
+            background-color: color-mix(in srgb, ${pColor} 8%, #f8fafc) !important;
         }
 
         /* 2. Bordes de Cards y Contenedores derivados del color secundario */
@@ -3054,29 +3097,69 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
         .text-secondary { color: ${sColor} !important; }
         .border-secondary { border-color: ${sColor} !important; }
 
-        /* 5. Uniformidad Completa del Calendario (Sustitución de rosas/magentas por primario y secundario) */
-        .calendar-day:not(.disabled) {
-            border-color: color-mix(in srgb, ${sColor} 35%, #e2e8f0) !important;
+        /* 5. Personalización Completa del Calendario (Exclusivo Color Primario y Secundario) */
+        /* Cuadrados / Segmentos del Calendario */
+        .calendar-day:not(.disabled), 
+        .mini-calendar-day:not(.disabled),
+        #calendarDays > div:not(.disabled):not(:empty),
+        #weeklyCalendarDays > div:not(.disabled):not(:empty) {
+            background-color: color-mix(in srgb, ${pColor} 16%, #ffffff) !important;
+            border: 1.5px solid color-mix(in srgb, ${sColor} 35%, ${pColor}) !important;
+            color: ${sColor} !important;
+            font-weight: 800 !important;
         }
-        .calendar-day:not(.disabled):hover {
-            border-color: ${pColor} !important;
-            color: ${pColor} !important;
-            background-color: color-mix(in srgb, ${pColor} 8%, #ffffff) !important;
+
+        /* Hover de los cuadrados */
+        .calendar-day:not(.disabled):hover,
+        .mini-calendar-day:not(.disabled):hover,
+        #calendarDays > div:not(.disabled):not(:empty):hover,
+        #weeklyCalendarDays > div:not(.disabled):not(:empty):hover {
+            background-color: color-mix(in srgb, ${pColor} 32%, #ffffff) !important;
+            border-color: ${sColor} !important;
+            color: ${sColor} !important;
         }
-        .calendar-day.selected, .time-slot.selected, .mini-calendar-day.selected, .mini-time-slot.selected {
+
+        /* Día Seleccionado / Activo */
+        .calendar-day.selected, 
+        .mini-calendar-day.selected, 
+        .time-slot.selected, 
+        .mini-time-slot.selected,
+        #calendarDays > div.selected,
+        #weeklyCalendarDays > div.selected {
             background-color: ${pColor} !important;
             color: #ffffff !important;
-            border-color: ${pColor} !important;
+            border-color: ${sColor} !important;
+            font-weight: 900 !important;
+            box-shadow: 0 4px 14px color-mix(in srgb, ${pColor} 40%, transparent) !important;
+        }
+
+        /* Franjas Horarias */
+        .time-slot:not(.booked) {
+            background-color: color-mix(in srgb, ${pColor} 10%, #ffffff) !important;
+            border-color: color-mix(in srgb, ${sColor} 35%, ${pColor}) !important;
+            color: ${pColor} !important;
+            font-weight: 700 !important;
         }
         .time-slot:hover:not(.booked) {
+            background-color: color-mix(in srgb, ${pColor} 25%, #ffffff) !important;
             border-color: ${sColor} !important;
             color: ${pColor} !important;
-            background-color: color-mix(in srgb, ${pColor} 6%, #ffffff) !important;
         }
-        .mini-calendar-day {
-            background-color: color-mix(in srgb, ${sColor} 20%, #ffffff) !important;
+
+        /* Navegación y Encabezados de Calendario */
+        #monthYear, #selectedDateText, #weekRangeDisplay {
             color: ${pColor} !important;
         }
+        button#prevWeek, button#nextWeek, button#prevMonth, button#nextMonth {
+            background-color: color-mix(in srgb, ${pColor} 12%, #ffffff) !important;
+            color: ${sColor} !important;
+            border-color: color-mix(in srgb, ${sColor} 40%, ${pColor}) !important;
+        }
+        button#prevWeek:hover, button#nextWeek:hover, button#prevMonth:hover, button#nextMonth:hover {
+            background-color: color-mix(in srgb, ${pColor} 25%, #ffffff) !important;
+            border-color: ${sColor} !important;
+        }
+
         .prof-tab-pill.active, .tab-cal-active {
             background-color: ${pColor} !important;
             color: #ffffff !important;
@@ -3084,19 +3167,6 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
         }
         .prof-tab-pill:not(.active) {
             border-color: color-mix(in srgb, ${sColor} 30%, #cbd5e1) !important;
-        }
-        button#prevWeek, button#nextWeek, button#prevMonth, button#nextMonth {
-            color: ${sColor} !important;
-            border-color: color-mix(in srgb, ${sColor} 30%, #cbd5e1) !important;
-        }
-        .bg-pink-100, .bg-pink-50, .bg-red-50 {
-            background-color: color-mix(in srgb, ${pColor} 8%, #ffffff) !important;
-        }
-        .text-pink-700, .text-pink-800, .text-red-600 {
-            color: ${pColor} !important;
-        }
-        .border-pink-200, .border-red-200 {
-            border-color: color-mix(in srgb, ${sColor} 30%, #e2e8f0) !important;
         }
 
         ${extraCss}

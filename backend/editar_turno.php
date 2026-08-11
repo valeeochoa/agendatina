@@ -27,6 +27,7 @@ $hora = $_POST['hora'] ?? '';
 $servicio = trim($_POST['servicio'] ?? '');
 $profesional = trim($_POST['profesional'] ?? 'Cualquiera (Sin preferencia)');
 $notas = trim($_POST['notas'] ?? '');
+$asistio = isset($_POST['asistio']) ? (int)$_POST['asistio'] : 0;
 
 if (empty($id)) {
     http_response_code(400);
@@ -37,6 +38,10 @@ if (empty($id)) {
 require_once __DIR__ . '/conexion.php';
 
 try {
+    // Auto-migración asistio
+    try { $pdo->query("SELECT asistio FROM turnos LIMIT 1"); } 
+    catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN asistio TINYINT DEFAULT 0"); }
+
     // Obtener el estado y fecha/hora actual del turno en la base de datos
     $stmtCheck = $pdo->prepare("SELECT fecha, hora, estado FROM turnos WHERE id = :id AND id_negocio = :id_negocio LIMIT 1");
     $stmtCheck->execute(['id' => $id, 'id_negocio' => $id_negocio]);
@@ -53,10 +58,11 @@ try {
     $isPast = $turnoDateTime < $now;
 
     if ($isPast) {
-        // Solo actualizar notas
-        $stmtUpdate = $pdo->prepare("UPDATE turnos SET notas = :notas WHERE id = :id AND id_negocio = :id_negocio");
+        // En el historial actualizar notas y asistencia
+        $stmtUpdate = $pdo->prepare("UPDATE turnos SET notas = :notas, asistio = :asistio WHERE id = :id AND id_negocio = :id_negocio");
         $stmtUpdate->execute([
             'notas' => $notas,
+            'asistio' => $asistio,
             'id' => $id,
             'id_negocio' => $id_negocio
         ]);
@@ -87,6 +93,7 @@ try {
             servicio = :servicio, 
             profesional = :profesional, 
             id_servicio = :id_servicio,
+            asistio = :asistio,
             notas = :notas
             WHERE id = :id AND id_negocio = :id_negocio");
 
@@ -101,6 +108,7 @@ try {
             'servicio' => $servicio,
             'profesional' => $profesional,
             'id_servicio' => $id_servicio,
+            'asistio' => $asistio,
             'notas' => $notas,
             'id' => $id,
             'id_negocio' => $id_negocio

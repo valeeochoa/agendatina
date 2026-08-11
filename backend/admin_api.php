@@ -104,11 +104,9 @@ catch(Exception $e) {
         precio_intermedio DECIMAL(10,2) DEFAULT 11111,
         precio_premium DECIMAL(10,2) DEFAULT 16667
     )"); 
-    $pdo->exec("INSERT IGNORE INTO configuracion_global (id) VALUES (1)");
-    $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN descuento_porcentaje INT DEFAULT 10");
-    $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN descuento_hasta DATETIME DEFAULT NULL");
-    
-    $pdo->exec("UPDATE configuracion_global SET precio_basico = 8889, precio_intermedio = 11111, precio_premium = 16667, descuento_porcentaje = 10 WHERE id = 1");
+    $pdo->exec("INSERT IGNORE INTO configuracion_global (id, precio_basico, precio_intermedio, precio_premium) VALUES (1, 8889, 11111, 16667)");
+    try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN descuento_porcentaje INT DEFAULT 10"); } catch(Exception $ex) {}
+    try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN descuento_hasta DATETIME DEFAULT NULL"); } catch(Exception $ex) {}
 }
 
 // Ampliar la columna password para que no corte la encriptación

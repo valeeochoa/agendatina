@@ -219,7 +219,7 @@
                         <span class="material-symbols-outlined text-primary">credit_card</span> Estado del Servicio y Pago
                     </h2>
                     
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 hover:shadow-sm transition-all">
                             <span class="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Plan Actual</span>
                             <span class="text-lg font-black text-slate-800" id="suscripcionPlan">Cargando...</span>
@@ -232,10 +232,20 @@
                             <span class="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Último Pago</span>
                             <span class="text-base font-black text-slate-800" id="suscripcionUltimoPago">---</span>
                         </div>
-                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 hover:shadow-sm transition-all">
-                            <span class="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Vencimiento</span>
-                            <span class="text-base font-black text-slate-800" id="suscripcionVencimiento">---</span>
+                        <div class="bg-purple-50/70 p-4 rounded-2xl border border-purple-200/80 hover:shadow-sm transition-all">
+                            <span class="block text-[11px] font-extrabold text-purple-600 uppercase tracking-wider mb-1">Próximo Período de Facturación</span>
+                            <span class="text-base font-black text-purple-950" id="suscripcionVencimiento">---</span>
                         </div>
+                    </div>
+
+                    <!-- Banner Informativo sobre Período de Facturación, Prorrateo y Aumentos -->
+                    <div class="mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-200/80 text-xs text-slate-600 leading-relaxed space-y-1.5">
+                        <div class="flex items-center gap-1.5 font-extrabold text-slate-800 text-xs">
+                            <span class="material-symbols-outlined text-purple-600 text-[18px]">event_repeat</span>
+                            <span>Información de Facturación de 30 Días</span>
+                        </div>
+                        <p>Cada ciclo de facturación se contempla de forma general como un período de <strong>30 días</strong>. Al finalizar la prueba gratuita, el primer mes se cobra proporcionalmente según los días cobrables <code>((30 - Días de Prueba) / 30 * Precio Plan)</code>.</p>
+                        <p class="text-slate-500"><strong>Aumentos de tarifa:</strong> Si se modifica el precio del plan, el nuevo valor se aplicará a partir de tu <strong>próximo período de facturación</strong>, respetando la tarifa acordada durante tu ciclo en curso.</p>
                     </div>
 
                     <a href="pago.html" id="btnPagarSuscripcion" class="hidden text-center w-full bg-emerald-500 hover:bg-emerald-600 text-white font-extrabold py-4 px-6 rounded-2xl transition-all text-sm shadow-lg shadow-emerald-500/20 hover:-translate-y-0.5 flex items-center justify-center gap-2">
@@ -350,13 +360,10 @@
                     document.getElementById('suscripcionUltimoPago').textContent = uPago;
                     
                     let fAlta = data.business.fecha_alta ? new Date(data.business.fecha_alta.replace(/-/g, '/')) : new Date();
-                    if(data.business.estado_pago === 'prueba') fAlta.setDate(fAlta.getDate() + 15);
-                    else if(data.business.estado_pago === 'beta') fAlta.setDate(fAlta.getDate() + 30);
-                    else if(data.business.ultimo_pago) {
-                        fAlta = new Date(data.business.ultimo_pago.replace(/-/g, '/'));
-                        fAlta.setDate(fAlta.getDate() + 30);
-                    }
-                    document.getElementById('suscripcionVencimiento').textContent = fAlta.toLocaleDateString();
+                    let cycleStart = data.business.ultimo_pago ? new Date(data.business.ultimo_pago.replace(/-/g, '/')) : fAlta;
+                    let nextBilling = new Date(cycleStart);
+                    nextBilling.setDate(nextBilling.getDate() + 30);
+                    document.getElementById('suscripcionVencimiento').textContent = nextBilling.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     
                     const compEl = document.getElementById('suscripcionComprobante');
                     const btnPago = document.getElementById('btnPagarSuscripcion');

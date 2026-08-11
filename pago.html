@@ -69,13 +69,37 @@
                     if(data.business) {
                         const plan = (data.business.plan || 'Basico').toLowerCase();
                         let basePrice = pBasico;
-                        if(plan.includes('intermedio')) basePrice = pIntermedio;
+                        if(plan.includes('intermedio') || plan.includes('profesional')) basePrice = pIntermedio;
                         if(plan.includes('completo') || plan.includes('premium')) basePrice = pPremium;
                         
-                        let finalPrice = discount > 0 ? basePrice * (1 - discount/100) : basePrice;
+                        let fullMonthPrice = discount > 0 ? basePrice * (1 - discount/100) : basePrice;
+                        let finalPrice = fullMonthPrice;
+                        let notaProrrateo = '';
+
+                        if (data.business.estado_pago === 'prueba') {
+                            const fAlta = data.business.fecha_alta ? new Date(data.business.fecha_alta.replace(/-/g, '/')) : new Date();
+                            const today = new Date();
+                            const trialDaysUsed = Math.min(30, Math.max(0, Math.floor((today - fAlta) / (1000 * 60 * 60 * 24))));
+                            const trialDaysConfigured = trialDaysUsed > 0 ? trialDaysUsed : 15; // Por defecto 15 o 30 días de prueba
+                            const billableDays = Math.max(0, 30 - trialDaysConfigured);
+                            const factorCobro = billableDays / 30;
+                            finalPrice = Math.round(fullMonthPrice * factorCobro);
+                            
+                            if (billableDays === 0) {
+                                notaProrrateo = ' (Período de prueba de 30 días completo: $0)';
+                            } else {
+                                notaProrrateo = ` (Prorrateado por ${billableDays} días cobrables de 30)`;
+                            }
+                        }
+
+                        const fAltaObj = data.business.fecha_alta ? new Date(data.business.fecha_alta.replace(/-/g, '/')) : new Date();
+                        const cycleStart = data.business.ultimo_pago ? new Date(data.business.ultimo_pago.replace(/-/g, '/')) : fAltaObj;
+                        const nextBilling = new Date(cycleStart);
+                        nextBilling.setDate(nextBilling.getDate() + 30);
+                        const nextBillingStr = nextBilling.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
                         document.getElementById('pagoPlanNombre').textContent = 'Plan ' + plan.charAt(0).toUpperCase() + plan.slice(1);
-                        document.getElementById('pagoMonto').textContent = '$' + finalPrice.toLocaleString('es-AR', {maximumFractionDigits:0});
+                        document.getElementById('pagoMonto').innerHTML = `$${finalPrice.toLocaleString('es-AR', {maximumFractionDigits:0})} <span class="text-xs text-slate-500 font-normal">${notaProrrateo}</span><br><span class="text-xs font-bold text-purple-700 block mt-1">Próximo Período: ${nextBillingStr}</span>`;
                     }
                 });
             });

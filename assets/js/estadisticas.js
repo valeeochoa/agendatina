@@ -40,21 +40,32 @@ function loadStatistics() {
             return;
         }
 
+        const todayStr = new Date().toISOString().split('T')[0];
+
         const turnosFiltrados = turnos.filter(t => {
             if (fechaDesde && t.fecha < fechaDesde) return false;
             if (fechaHasta && t.fecha > fechaHasta) return false;
-            return t.estado === 'confirmado';
+            if (t.estado === 'cancelado' || t.estado === 'eliminado') return false;
+
+            // REGLA SOLICITADA POR EL USUARIO:
+            // Se debe sumar los turnos que ya son pasados y que estos asistieron al turno.
+            const esPasado = t.fecha <= todayStr;
+            const asistio = parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio';
+            
+            return esPasado && asistio;
         });
 
-        // 1. Calcular Ingresos Totales del Mes
+        // 1. Calcular Ingresos Totales del Mes (usando asistencias pasadas)
         const ingresosTotales = turnosFiltrados.reduce((total, turno) => {
+            const pDirect = parseFloat(turno.precio);
+            if (!isNaN(pDirect) && pDirect > 0) return total + pDirect;
             const servicio = servicios.find(s => s.nombre === turno.servicio);
             return total + (servicio ? parseFloat(servicio.precio) || 0 : 0);
         }, 0);
         document.getElementById('statIngresos').textContent = `$${ingresosTotales.toLocaleString('es-AR', {maximumFractionDigits: 0})}`;
 
-        // 2. Total de Turnos del Mes
-        document.getElementById('statTurnos').textContent = turnosFiltrados.length + " turnos";
+        // 2. Total de Turnos Asistidos del Mes
+        document.getElementById('statTurnos').textContent = turnosFiltrados.length + " asistidos";
 
         // 3. Servicio Más Solicitado
         const conteoServicios = turnosFiltrados.reduce((acc, turno) => {
@@ -69,9 +80,7 @@ function loadStatistics() {
         document.getElementById('statClientes').textContent = clientesUnicos.size;
 
         // Horas Ocupadas Hoy
-        const now = new Date();
-        const hoyString = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-        const turnosHoy = turnos.filter(t => t.fecha === hoyString && t.estado === 'confirmado');
+        const turnosHoy = turnos.filter(t => t.fecha === todayStr && (parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido'));
         const minutosHoy = turnosHoy.reduce((total, turno) => {
             const servicio = servicios.find(s => s.nombre === turno.servicio);
             return total + (servicio ? parseInt(servicio.duracion) || 30 : 30);
@@ -126,7 +135,8 @@ function renderTurnosPorDiaChart(allTurnos, startDate, endDate) {
         labels.push(currentDate.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }));
         
         const fechaFiltro = currentDate.toISOString().split('T')[0];
-        const turnosDelDia = allTurnos.filter(t => t.fecha === fechaFiltro && t.estado === 'confirmado').length;
+        const todayStr = new Date().toISOString().split('T')[0];
+        const turnosDelDia = allTurnos.filter(t => t.fecha === fechaFiltro && t.fecha <= todayStr && (parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido')).length;
         data.push(turnosDelDia);
 
         currentDate.setDate(currentDate.getDate() + 1);
@@ -141,7 +151,7 @@ function renderTurnosPorDiaChart(allTurnos, startDate, endDate) {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Turnos Confirmados',
+                label: 'Turnos Asistidos',
                 data: data,
                 borderColor: '#D11149',
                 backgroundColor: 'rgba(209, 17, 73, 0.1)',

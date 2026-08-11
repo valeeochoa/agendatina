@@ -336,12 +336,20 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                 `;
                 
                 gruposConf[fecha].forEach(t => {
+                    const isAttended = parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio';
+                    const asistBtn = isAttended
+                        ? `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 0)" class="text-xs font-extrabold px-3 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all flex items-center gap-1 shadow-xs" title="Asistencia confirmada. Click para desmarcar"><span class="material-symbols-outlined text-[15px]">check_circle</span> Asistió</button>`
+                        : `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 1)" class="text-xs font-extrabold px-3 py-1 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcar si asistió al turno"><span class="material-symbols-outlined text-[15px]">how_to_reg</span> ¿Asistió?</button>`;
+
                     htmlDia += `
                         <div id="turno-${t.id}" onclick="if(!event.target.closest('button')) window.openEditTurnoModal('${t.id}')" class="shadow-sm rounded-2xl p-5 hover:shadow-lg cursor-pointer transition-shadow relative overflow-hidden" style="background-color: #ffffff; border: 1px solid #e2e8f0;">
                             <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
                             <div class="flex justify-between items-start mb-3">
                                 <span class="text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wider" style="background-color: #eff6ff; color: #1d4ed8;">${t.hora} hs</span>
-                                ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1" style="background-color: #f1f5f9; color: #475569;"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
+                                <div class="flex items-center gap-2">
+                                    ${asistBtn}
+                                    ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1" style="background-color: #f1f5f9; color: #475569;"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
+                                </div>
                             </div>
                             <p class="text-lg font-bold mb-1" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
                             <div class="flex items-center gap-3 mb-4">
@@ -408,14 +416,22 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                     const isNewLoaded = window.isLoadingMoreHistory && globalHistIndex > (window.historyLimit - 15);
                     const animClass = isNewLoaded ? 'animate-new-item' : '';
                     const customStyle = isNewLoaded ? 'opacity: 0;' : 'opacity: 0.85;';
+                    const isAttended = parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio';
+                    const asistBtn = isAttended
+                        ? `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 0)" class="text-xs font-black px-3 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all flex items-center gap-1 shadow-xs" title="Asistencia confirmada. Click para desmarcar"><span class="material-symbols-outlined text-[15px]">check_circle</span> Asistió</button>`
+                        : `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 1)" class="text-xs font-black px-3 py-1 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcar si asistió al turno"><span class="material-symbols-outlined text-[15px]">how_to_reg</span> ¿Asistió?</button>`;
+
                     htmlDia += `
                         <div id="turno-${t.id}" onclick="if(!event.target.closest('button')) window.openEditTurnoModal('${t.id}')" class="shadow-sm rounded-3xl p-5 flex flex-col gap-3 hover:opacity-100 hover:shadow-xl hover:-translate-y-1 cursor-pointer transition-all relative overflow-hidden ${animClass}" style="background-color: #ffffff; border: 1px solid #e2e8f0; --target-opacity: 0.85; ${customStyle}">
                             <div class="absolute top-0 left-0 w-1.5 h-full opacity-60 bg-blue-500"></div>
                             <div class="flex justify-between items-start">
                                 <div class="flex-1 min-w-0">
-                                    <span class="text-xs font-extrabold px-3 py-1.5 rounded-xl inline-flex items-center gap-1.5 mb-4 uppercase tracking-wide border shadow-sm w-max" style="background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;">
-                                        <span class="material-symbols-outlined text-[15px]">schedule</span> ${t.hora} hs
-                                    </span>
+                                    <div class="flex items-center justify-between mb-3">
+                                        <span class="text-xs font-extrabold px-3 py-1.5 rounded-xl inline-flex items-center gap-1.5 uppercase tracking-wide border shadow-sm w-max" style="background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;">
+                                            <span class="material-symbols-outlined text-[15px]">schedule</span> ${t.hora} hs
+                                        </span>
+                                        ${asistBtn}
+                                    </div>
                                     <p class="text-2xl font-black mb-3 leading-tight tracking-tight" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
                                     <div class="space-y-2 p-3 rounded-2xl" style="background-color: #f1f5f9;">
                                         <p class="text-sm font-semibold flex items-center gap-2.5" style="color: #334155;">

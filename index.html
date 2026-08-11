@@ -334,6 +334,11 @@
                             Notificaciones automáticas por email
                         </li>
 
+                        <li class="flex gap-2 text-slate-400">
+                            <span class="material-symbols-outlined text-slate-300 text-sm">block</span>
+                            <span>Notificaciones por WhatsApp (Solo email)</span>
+                        </li>
+
                     </ul>
 
                     <button onclick="selectPlan('Plan Simple', 'basic')"
@@ -411,6 +416,14 @@
                             <span class="material-symbols-outlined text-white text-sm">done</span>
                             Notificaciones por correo
                         </li>
+
+                        <li class="flex gap-2 items-center">
+                            <span class="material-symbols-outlined text-emerald-300 text-sm">chat</span>
+                            <div class="leading-tight">
+                                <span class="block">Notificaciones por WhatsApp:</span>
+                                <strong id="wppQuotaDisplay_inter" class="text-xs font-black text-emerald-200 bg-emerald-400/20 px-2 py-0.5 rounded-md border border-emerald-400/30 inline-block mt-0.5">50 WPP/mes total negocio</strong>
+                            </div>
+                        </li>
                     </ul>
                     <button onclick="selectPlan('Plan Profesional', 'inter')"
                         class="w-full py-4 rounded-xl bg-white text-primary font-bold hover:bg-slate-50 transition-all">
@@ -479,6 +492,14 @@
                             Listado de servicios y descripción
                         </li>
 
+                        <li class="flex gap-2 items-center">
+                            <span class="material-symbols-outlined text-emerald-600 text-sm">chat</span>
+                            <div class="leading-tight">
+                                <span class="block text-slate-700 font-medium">Notificaciones por WhatsApp:</span>
+                                <strong id="wppQuotaDisplay_prem" class="text-xs font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200 inline-block mt-0.5">100 WPP/mes total negocio</strong>
+                            </div>
+                        </li>
+
                     </ul>
 
                     <button onclick="selectPlan('Plan Premium', 'prem')"
@@ -530,6 +551,12 @@
                                         class="material-symbols-outlined text-green-500 font-bold">check</span></td>
                                 <td class="p-4 text-center"><span
                                         class="material-symbols-outlined text-green-500 font-bold">check</span></td>
+                            </tr>
+                            <tr class="border-b border-slate-100 hover:bg-primary/5 transition-colors bg-emerald-50/40">
+                                <td class="p-4 md:px-6 font-bold text-slate-800 flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-600 text-sm">chat</span> Notificaciones por WhatsApp</td>
+                                <td class="p-4 text-center text-slate-400 text-xs font-semibold">Sin WhatsApp (Solo email)</td>
+                                <td class="p-4 text-center text-primary text-xs font-bold">50 WPP/mes (+10 por prof. extra)</td>
+                                <td class="p-4 text-center text-emerald-600 text-xs font-extrabold">100 WPP/mes (+10 por prof. extra)</td>
                             </tr>
                             <tr class="border-b border-slate-100 hover:bg-primary/5 transition-colors">
                                 <td class="p-4 md:px-6 font-medium">Agenda Virtual de reservas</td>

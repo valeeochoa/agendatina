@@ -51,7 +51,8 @@ try {
         'apellido' => 'VARCHAR(255) DEFAULT NULL',
         'celular' => 'VARCHAR(255) DEFAULT NULL',
         'profesional' => "VARCHAR(255) DEFAULT 'Cualquiera (Sin preferencia)'",
-        'estado' => "VARCHAR(50) DEFAULT 'pendiente'"
+        'estado' => "VARCHAR(50) DEFAULT 'pendiente'",
+        'asistio' => 'TINYINT DEFAULT 0'
     ];
 
     foreach ($columnas as $columna => $tipo) {
@@ -82,7 +83,7 @@ try {
 
     if ($historial) {
         // Sin límite de fecha para exportar el historial completo a Excel
-        $sql = "SELECT id, cliente_nombre, nombre, apellido, cliente_celular, celular, fecha, hora, servicio, profesional, estado, notas, fecha_eliminado, metodo_pago, precio 
+        $sql = "SELECT id, cliente_nombre, nombre, apellido, cliente_celular, celular, fecha, hora, servicio, profesional, estado, asistio, notas, fecha_eliminado, metodo_pago, precio 
                 FROM turnos 
                 WHERE id_negocio = :id_negocio $profesional_filter
                 ORDER BY fecha DESC, hora ASC";
@@ -96,7 +97,7 @@ try {
     } else {
         // Ventana de tiempo (60 días) para vista normal de agenda
         $min_fecha = date('Y-m-d', strtotime('-60 days'));
-        $sql = "SELECT id, cliente_nombre, nombre, apellido, cliente_celular, celular, fecha, hora, servicio, profesional, estado, notas, fecha_eliminado, metodo_pago, precio 
+        $sql = "SELECT id, cliente_nombre, nombre, apellido, cliente_celular, celular, fecha, hora, servicio, profesional, estado, asistio, notas, fecha_eliminado, metodo_pago, precio 
                 FROM turnos 
                 WHERE id_negocio = :id_negocio 
                 AND (fecha >= :min_fecha OR estado IN ('eliminado', 'cancelado'))
