@@ -143,13 +143,15 @@ if ($method === 'GET') {
         
         // Obtener la lista de profesionales de cada negocio
         $stmtProfs = $pdo->query("
-            SELECT pn.id_negocio, u.id as id_usuario, u.nombre_completo, u.email 
+            SELECT pn.id_negocio, u.id as id_usuario, u.nombre_completo, u.email, pn.rol_en_local
             FROM usuarios u 
             JOIN personal_negocio pn ON u.id = pn.id_usuario 
-            WHERE pn.rol_en_local = 'profesional'
         ");
-        $todos_profesionales = $stmtProfs->fetchAll(PDO::FETCH_ASSOC);
+        $todos_profesionales = $stmtProfs ? $stmtProfs->fetchAll(PDO::FETCH_ASSOC) : [];
         
+        $stmtProfCounts = $pdo->query("SELECT id_negocio, COUNT(*) as total_profs FROM personal_negocio GROUP BY id_negocio");
+        $counts_profesionales = $stmtProfCounts ? $stmtProfCounts->fetchAll(PDO::FETCH_KEY_PAIR) : [];
+
         // Obtener la cantidad de turnos totales y comprobantes por negocio
         $stmtTurnosCount = $pdo->query("SELECT id_negocio, COUNT(*) as total_turnos FROM turnos GROUP BY id_negocio");
         $counts_turnos = $stmtTurnosCount ? $stmtTurnosCount->fetchAll(PDO::FETCH_KEY_PAIR) : [];
@@ -180,9 +182,12 @@ if ($method === 'GET') {
         }
 
         foreach ($negocios as &$negocio) {
-            $negocio['profesionales'] = array_values(array_filter($todos_profesionales, function($p) use ($negocio) {
+            $profsList = array_values(array_filter($todos_profesionales, function($p) use ($negocio) {
                 return $p['id_negocio'] == $negocio['id'];
             }));
+            $negocio['profesionales'] = $profsList;
+            $realCount = isset($counts_profesionales[$negocio['id']]) ? (int)$counts_profesionales[$negocio['id']] : max(1, count($profsList));
+            $negocio['profesionales_count'] = max(1, $realCount);
             $negocio['turnos_count'] = isset($counts_turnos[$negocio['id']]) ? (int)$counts_turnos[$negocio['id']] : 0;
             $compList = array_values(array_filter($todos_comprobantes, function($c) use ($negocio) {
                 return $c['id_negocio'] == $negocio['id'];

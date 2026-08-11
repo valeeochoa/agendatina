@@ -984,7 +984,7 @@ function renderTable(dataToRender) {
                     fechaAltaText = `<p class="text-[11px] text-slate-400 mt-1.5 font-medium">Alta: ${fAlta.toLocaleDateString('es-AR')}</p>`;
                 }
 
-            const totalProfs = (client.profesionales ? client.profesionales.length : 0) + 1;
+            const totalProfs = client.profesionales_count !== undefined ? client.profesionales_count : ((client.profesionales ? client.profesionales.length : 0) || 1);
             const maxProfs = client.max_profesionales || 1;
             const limitClass = totalProfs >= maxProfs ? 'text-red-500 font-bold' : 'text-slate-500 font-medium';
 
@@ -1827,7 +1827,7 @@ function openClientDetailModal(index) {
 
     document.getElementById('cdMetricPlan').textContent = client.plan || 'Básico';
     document.getElementById('cdMetricTurnos').textContent = client.turnos_count !== undefined ? client.turnos_count : 0;
-    const profsCount = client.profesionales ? client.profesionales.length + 1 : 1;
+    const profsCount = client.profesionales_count !== undefined ? client.profesionales_count : ((client.profesionales ? client.profesionales.length : 0) || 1);
     document.getElementById('cdMetricEquipo').textContent = `${profsCount} / ${client.max_profesionales || 1}`;
     
     const comps = client.comprobantes || [];

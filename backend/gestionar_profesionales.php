@@ -179,13 +179,16 @@ if ($method === 'GET') {
             $stmtPn = $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local, permisos) VALUES (?, ?, 'profesional', ?)");
             $stmtPn->execute([$id_negocio, $id_usuario, $permisosJson]);
         } else {
-            // Crear usuario nuevo (sin requerir verificación de correo)
+            // Crear usuario nuevo (marcado para cambio obligatorio de contraseña en su primer inicio)
             $hash = password_hash($password, PASSWORD_DEFAULT);
+            try { $pdo->query("SELECT debe_cambiar_pass FROM usuarios LIMIT 1"); } 
+            catch(Exception $e) { try { $pdo->exec("ALTER TABLE usuarios ADD COLUMN debe_cambiar_pass TINYINT DEFAULT 0"); } catch(Exception $e2) {} }
+
             try {
-                $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, email_verificado) VALUES (?, ?, ?, 1)");
+                $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, email_verificado, debe_cambiar_pass) VALUES (?, ?, ?, 1, 1)");
                 $stmtUser->execute([$nombre, $email, $hash]);
             } catch (Exception $eMailCol) {
-                $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password) VALUES (?, ?, ?)");
+                $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, debe_cambiar_pass) VALUES (?, ?, ?, 1)");
                 $stmtUser->execute([$nombre, $email, $hash]);
             }
             $id_usuario = $pdo->lastInsertId();

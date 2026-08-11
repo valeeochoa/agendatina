@@ -55,7 +55,7 @@
                     <span id="adminSessionBadgeText" class="text-[11px] font-extrabold text-amber-700 uppercase tracking-wider hidden md:inline">Modo Demo</span>
                 </div>
 
-                <button type="button" id="navReportBugBtn" onclick="openReportErrorModal('Perfil')" class="hidden text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl items-center gap-1 transition-colors" title="Reportar Error">
+                <button type="button" id="navReportBugBtn" onclick="openReportErrorModal('Perfil')" class="text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl flex items-center gap-1 transition-colors" title="Reportar Error">
                     <span class="material-symbols-outlined text-[16px]">bug_report</span>
                     <span class="hidden md:inline">Reportar Error</span>
                 </button>
@@ -130,7 +130,7 @@
                                         <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                                             <span class="material-symbols-outlined text-primary text-[18px]">palette</span> Personalización de Colores de Marca
                                         </label>
-                                        <span id="planColorBadge" class="text-[11px] font-bold text-purple-600">Plan Básico: 2 colores base</span>
+                                        <span id="planColorBadge" class="text-[11px] font-bold text-purple-600">Plan Simple: 2 colores base</span>
                                     </div>
                                     <button type="button" onclick="openAddColorModal()" id="btnAddColorPlus" class="bg-purple-100 hover:bg-purple-200 text-purple-800 font-extrabold px-3.5 py-2 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-xs w-fit">
                                         <span class="material-symbols-outlined text-[18px]">add_circle</span>
@@ -244,7 +244,7 @@
                             <span class="material-symbols-outlined text-purple-600 text-[18px]">event_repeat</span>
                             <span>Información de Facturación de 30 Días</span>
                         </div>
-                        <p>Cada ciclo de facturación se contempla de forma general como un período de <strong>30 días</strong>. Al finalizar la prueba gratuita, el primer mes se cobra proporcionalmente según los días cobrables <code>((30 - Días de Prueba) / 30 * Precio Plan)</code>.</p>
+                        <p>Cada ciclo de facturación se contempla de forma general como un período de <strong>30 días</strong>.</p>
                         <p class="text-slate-500"><strong>Aumentos de tarifa:</strong> Si se modifica el precio del plan, el nuevo valor se aplicará a partir de tu <strong>próximo período de facturación</strong>, respetando la tarifa acordada durante tu ciclo en curso.</p>
                     </div>
 
@@ -339,7 +339,8 @@
                     }
                 }
                 if(data.business) {
-                    currentPlan = data.business.plan || 'Basico';
+                    const rawPlan = data.business.plan || 'Simple';
+                    currentPlan = (rawPlan.toLowerCase().includes('basico') || rawPlan.toLowerCase().includes('simple')) ? 'Simple' : rawPlan;
                     updatePlanBadge();
 
                     const negocioInput = document.getElementById('perfilNombreNegocio');
@@ -355,7 +356,7 @@
                         if (navBizIcon) navBizIcon.classList.add('hidden');
                     }
 
-                    document.getElementById('suscripcionPlan').textContent = data.business.plan || 'Basico';
+                    document.getElementById('suscripcionPlan').textContent = currentPlan;
                     const uPago = data.business.ultimo_pago ? data.business.ultimo_pago.split(' ')[0] : 'No registrado';
                     document.getElementById('suscripcionUltimoPago').textContent = uPago;
                     
@@ -674,7 +675,7 @@
             const used = Object.keys(extraColorsObj).length;
             if (badge) {
                 if (max === 0) {
-                    badge.textContent = `Plan ${currentPlan || 'Básico'}: 2 colores base (Actualiza a Profesional o Premium para sumar más)`;
+                    badge.textContent = `Plan ${currentPlan || 'Simple'}: 2 colores base (Actualiza a Profesional o Premium para sumar más)`;
                     badge.className = 'text-[11px] font-bold text-amber-600';
                 } else {
                     badge.textContent = `Plan ${currentPlan}: ${used} de ${max} colores extra en uso (Total: ${2 + used} colores)`;
@@ -745,7 +746,7 @@
                         <span class="material-symbols-outlined text-amber-600 text-xl">lock</span>
                         <div>
                             <strong class="text-slate-900 text-xs block mb-1">Personalización Avanzada de Colores</strong>
-                            <span>Tu plan actual (<strong>${currentPlan || 'Básico'}</strong>) incluye 2 colores principales.<br>
+                            <span>Tu plan actual (<strong>${currentPlan || 'Simple'}</strong>) incluye 2 colores principales.<br>
                             Los planes <strong>Profesional</strong> (1 color extra) y <strong>Premium</strong> (3 colores extras) permiten personalizar el Header, Títulos, Botones CTA, Tarjetas, Terciario y Hover.</span>
                             <div class="mt-3">
                                 <a href="pago.html" class="inline-flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-3 py-1.5 rounded-xl text-xs shadow-xs transition-colors">
@@ -977,6 +978,32 @@
                 }
             }).finally(() => { btn.disabled = false; btn.textContent = 'Verificar mi cuenta'; });
         });
-    </script>
+    <!-- Modal Reportar Error -->
+    <div id="reportErrorModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4 sm:p-6 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300" id="reportErrorModalContent">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold font-display text-slate-800 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-red-500">bug_report</span> Reportar Error
+                </h2>
+                <button onclick="closeReportErrorModal()" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <form id="reportErrorForm" class="space-y-4">
+                <input type="hidden" id="reportSegment" name="segmento" value="">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Sección donde ocurrió:</label>
+                    <input type="text" id="reportSegmentDisplay" class="w-full bg-slate-100 text-slate-500 px-4 py-3 rounded-xl cursor-not-allowed border-none font-medium text-sm" readonly>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Describe el problema:</label>
+                    <textarea name="mensaje" rows="4" required placeholder="¿Qué estabas intentando hacer y qué ocurrió?" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700 resize-none"></textarea>
+                </div>
+                <button type="submit" id="btnReportSubmit" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl mt-2 transition-all flex items-center justify-center gap-2">Enviar Reporte</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[60] flex flex-col gap-3 pointer-events-none"></div>
+
+    <script src="assets/js/script.js"></script>
 </body>
 </html>

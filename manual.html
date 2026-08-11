@@ -38,6 +38,9 @@
         .manual-nav-item.active .material-symbols-outlined {
             color: #ffffff !important;
         }
+        .manual-nav-item.active span {
+            color: #ffffff !important;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased min-h-screen flex flex-col leading-relaxed">
@@ -69,7 +72,7 @@
                     <span id="adminSessionBadgeText" class="text-[11px] font-extrabold text-amber-700 uppercase tracking-wider hidden md:inline">Modo Demo</span>
                 </div>
 
-                <button id="navReportBugBtn" onclick="openReportErrorModal('Manual de Uso')" class="text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl flex items-center gap-1 transition-colors" title="Reportar Error">
+                <button type="button" id="navReportBugBtn" onclick="openReportErrorModal('Manual de Uso')" class="text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl flex items-center gap-1 transition-colors" title="Reportar Error">
                     <span class="material-symbols-outlined text-[16px]">bug_report</span>
                     <span class="hidden md:inline">Reportar Error</span>
                 </button>
@@ -98,82 +101,92 @@
         <!-- MENÚ LATERAL IZQUIERDO -->
         <aside class="lg:col-span-4 xl:col-span-3">
             <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm sticky top-24">
+                
+                <!-- Banner de Plan Activo -->
+                <div id="manualActivePlanCard" class="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-950 rounded-2xl text-xs font-extrabold flex items-center justify-between shadow-xs">
+                    <span class="flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-emerald-600 text-[18px]">verified</span>
+                        <span id="manualActivePlanText">Tu Plan: Plan Simple</span>
+                    </span>
+                    <a href="pago.html" class="text-[10px] uppercase font-black tracking-wider text-emerald-700 hover:underline">Cambiar</a>
+                </div>
+
                 <h2 class="text-xs font-black uppercase tracking-wider text-slate-400 px-3 mb-3 flex items-center gap-1.5">
                     <span class="material-symbols-outlined text-primary text-[16px]">menu_open</span>
                     Segmentos del Manual
                 </h2>
 
                 <nav class="space-y-1.5 flex flex-col">
-                    <button onclick="switchTab('planes')" id="tab-planes" class="manual-nav-item active w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-3 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
+                    <button onclick="switchTab('planes')" id="tab-planes" class="manual-nav-item active w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
                         <span class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-primary text-[20px]">verified</span>
                             <span>Alcance por Plan</span>
                         </span>
-                        <span class="material-symbols-outlined text-[16px] text-slate-400">chevron_right</span>
+                        <span id="badge-planes" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Incluido</span>
                     </button>
 
-                    <button onclick="switchTab('cards')" id="tab-cards" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-3 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
+                    <button onclick="switchTab('cards')" id="tab-cards" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
                         <span class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-secondary text-[20px]">dashboard</span>
                             <span>Módulos del Dashboard</span>
                         </span>
-                        <span class="material-symbols-outlined text-[16px] text-slate-400">chevron_right</span>
+                        <span id="badge-cards" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Incluido</span>
                     </button>
 
-                    <button onclick="switchTab('agenda')" id="tab-agenda" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-3 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
+                    <button onclick="switchTab('agenda')" id="tab-agenda" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
                         <span class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-emerald-600 text-[20px]">menu_book</span>
                             <span>Agenda Virtual & Asistencia</span>
                         </span>
-                        <span class="material-symbols-outlined text-[16px] text-slate-400">chevron_right</span>
+                        <span id="badge-agenda" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Incluido</span>
                     </button>
 
-                    <button onclick="switchTab('calendario')" id="tab-calendario" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-3 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
+                    <button onclick="switchTab('calendario')" id="tab-calendario" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
                         <span class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-sky-600 text-[20px]">edit_calendar</span>
                             <span>Horarios & Bloqueos 24hs</span>
                         </span>
-                        <span class="material-symbols-outlined text-[16px] text-slate-400">chevron_right</span>
+                        <span id="badge-calendario" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Incluido</span>
                     </button>
 
-                    <button onclick="switchTab('servicios')" id="tab-servicios" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-3 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
+                    <button onclick="switchTab('servicios')" id="tab-servicios" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
                         <span class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-pink-600 text-[20px]">content_cut</span>
                             <span>Servicios & Duración</span>
                         </span>
-                        <span class="material-symbols-outlined text-[16px] text-slate-400">chevron_right</span>
+                        <span id="badge-servicios" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Incluido</span>
                     </button>
 
-                    <button onclick="switchTab('equipo')" id="tab-equipo" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-3 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
+                    <button onclick="switchTab('equipo')" id="tab-equipo" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
                         <span class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-purple-600 text-[20px]">group</span>
                             <span>Equipo & Permisos</span>
                         </span>
-                        <span class="material-symbols-outlined text-[16px] text-slate-400">chevron_right</span>
+                        <span id="badge-equipo" class="text-[10px] font-extrabold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md shrink-0">Profesional</span>
                     </button>
 
-                    <button onclick="switchTab('web')" id="tab-web" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-3 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
+                    <button onclick="switchTab('web')" id="tab-web" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
                         <span class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-indigo-600 text-[20px]">dvr</span>
                             <span>Página Web & Colores</span>
                         </span>
-                        <span class="material-symbols-outlined text-[16px] text-slate-400">chevron_right</span>
+                        <span id="badge-web" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Incluido</span>
                     </button>
 
-                    <button onclick="switchTab('estadisticas')" id="tab-estadisticas" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-3 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
+                    <button onclick="switchTab('estadisticas')" id="tab-estadisticas" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
                         <span class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-teal-600 text-[20px]">query_stats</span>
                             <span>Estadísticas & Métricas</span>
                         </span>
-                        <span class="material-symbols-outlined text-[16px] text-slate-400">chevron_right</span>
+                        <span id="badge-estadisticas" class="text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0">Premium</span>
                     </button>
 
-                    <button onclick="switchTab('ajustes')" id="tab-ajustes" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-3 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
+                    <button onclick="switchTab('ajustes')" id="tab-ajustes" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
                         <span class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-amber-600 text-[20px]">settings_suggest</span>
                             <span>Ajustes & Facturación</span>
                         </span>
-                        <span class="material-symbols-outlined text-[16px] text-slate-400">chevron_right</span>
+                        <span id="badge-ajustes" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Incluido</span>
                     </button>
                 </nav>
             </div>
@@ -198,7 +211,7 @@
                         <div id="boxPlanSimple" class="border-2 border-slate-200 rounded-3xl p-6 bg-slate-50/50 relative flex flex-col justify-between">
                             <div>
                                 <span id="badgePlanSimple" class="hidden absolute top-4 right-4 text-[10px] font-black uppercase bg-emerald-600 text-white px-2.5 py-1 rounded-full shadow-sm">🟢 TU PLAN ACTIVO</span>
-                                <span class="text-xs font-black uppercase tracking-wider text-slate-600 bg-slate-200 px-3 py-1 rounded-lg mb-4 inline-block">Plan Básico</span>
+                                <span class="text-xs font-black uppercase tracking-wider text-slate-600 bg-slate-200 px-3 py-1 rounded-lg mb-4 inline-block">Plan Simple</span>
                                 <h3 class="text-xl font-bold text-slate-900 mb-3">Para Emprendedores</h3>
                                 <ul class="text-sm text-slate-700 space-y-3 font-medium">
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> 1 Profesional (Dueño del local)</li>
@@ -216,7 +229,7 @@
                                 <span class="text-xs font-black uppercase tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-lg mb-4 inline-block">Plan Profesional</span>
                                 <h3 class="text-xl font-bold text-slate-900 mb-3">Gestión Avanzada</h3>
                                 <ul class="text-sm text-slate-700 space-y-3 font-medium">
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Todo lo del Plan Básico</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Todo lo del Plan Simple</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Duraciones en Horas y Minutos</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Intervalo dinámico por servicio</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> +1 Color de personalización extra (+1)</li>
@@ -252,7 +265,7 @@
                             <span class="material-symbols-outlined text-secondary text-3xl">dashboard</span>
                             Guía de Módulos del Dashboard
                         </h2>
-                        <p class="text-slate-600 text-base">A continuación tenés la explicación detallada de qué podés hacer en cada uno de los 10 módulos principales de tu panel:</p>
+                        <p class="text-slate-600 text-base">A continuación tenés la explicación detallada de qué podés hacer en cada uno de los módulos principales de tu panel:</p>
                     </div>
 
                     <div class="space-y-6">
@@ -447,6 +460,19 @@
                         <p class="text-slate-600 text-base">Administra las cuentas de tu staff y sus niveles de acceso:</p>
                     </div>
 
+                    <div id="noticeEquipoUpgrade" class="hidden bg-amber-50 border border-amber-200 rounded-3xl p-6">
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-amber-600 text-2xl">workspace_premium</span>
+                            <div>
+                                <h3 class="font-bold text-amber-900 text-sm mb-1">Módulo Disponible en Plan Profesional y Premium</h3>
+                                <p class="text-xs text-amber-800 leading-relaxed mb-3">Tu plan activo actual es el Plan Simple (1 Profesional). Al actualizar a un Plan Profesional o Premium podrás dar de alta a múltiples profesionales con contraseña propia.</p>
+                                <a href="pago.html" class="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-xs transition-all">
+                                    <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Ver Planes y Actualizar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="bg-purple-50 border border-purple-200 rounded-3xl p-6 space-y-3">
                         <h3 class="font-bold text-purple-900 text-base flex items-center gap-2">
                             <span class="material-symbols-outlined text-purple-600 text-[22px]">edit</span>
@@ -497,6 +523,19 @@
                         <p class="text-slate-600 text-base">Entiende el comportamiento de tus ingresos y concurrencia:</p>
                     </div>
 
+                    <div id="noticeEstadisticasUpgrade" class="hidden bg-purple-50 border border-purple-200 rounded-3xl p-6">
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-purple-600 text-2xl">workspace_premium</span>
+                            <div>
+                                <h3 class="font-bold text-purple-900 text-sm mb-1">Módulo Exclusivo del Plan Premium</h3>
+                                <p class="text-xs text-purple-800 leading-relaxed mb-3">El análisis avanzado de métricas e ingresos está reservado para cuentas con Plan Premium activo.</p>
+                                <a href="pago.html" class="inline-flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-xs transition-all">
+                                    <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Actualizar a Plan Premium
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="bg-teal-50 border border-teal-200 rounded-3xl p-6 space-y-3">
                         <h3 class="font-bold text-teal-900 text-base flex items-center gap-2">
                             <span class="material-symbols-outlined text-teal-600 text-[22px]">auto_graph</span>
@@ -542,14 +581,41 @@
         </a>
     </footer>
 
+    <!-- Modal Reportar Error -->
+    <div id="reportErrorModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4 sm:p-6 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300" id="reportErrorModalContent">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold font-display text-slate-800 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-red-500">bug_report</span> Reportar Error
+                </h2>
+                <button onclick="closeReportErrorModal()" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <form id="reportErrorForm" class="space-y-4">
+                <input type="hidden" id="reportSegment" name="segmento" value="">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Sección donde ocurrió:</label>
+                    <input type="text" id="reportSegmentDisplay" class="w-full bg-slate-100 text-slate-500 px-4 py-3 rounded-xl cursor-not-allowed border-none font-medium text-sm" readonly>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Describe el problema:</label>
+                    <textarea name="mensaje" rows="4" required placeholder="¿Qué estabas intentando hacer y qué ocurrió?" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700 resize-none"></textarea>
+                </div>
+                <button type="submit" id="btnReportSubmit" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl mt-2 transition-all flex items-center justify-center gap-2">Enviar Reporte</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[60] flex flex-col gap-3 pointer-events-none"></div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             fetch('backend/perfil.php')
                 .then(res => res.json())
                 .then(data => {
                     if (data && data.success && data.business) {
-                        const planName = (data.business.plan || 'Basico').toLowerCase();
-                        
+                        const rawPlan = (data.business.plan || 'Simple').toLowerCase();
+                        let displayPlan = 'Plan Simple';
+
                         const badgeSimple = document.getElementById('badgePlanSimple');
                         const badgePro = document.getElementById('badgePlanProfesional');
                         const badgePrem = document.getElementById('badgePlanPremium');
@@ -558,16 +624,53 @@
                         const boxPro = document.getElementById('boxPlanProfesional');
                         const boxPrem = document.getElementById('boxPlanPremium');
 
-                        if (planName.includes('basico') || planName.includes('simple')) {
+                        const badgeEquipo = document.getElementById('badge-equipo');
+                        const badgeEstadisticas = document.getElementById('badge-estadisticas');
+                        const noticeEquipo = document.getElementById('noticeEquipoUpgrade');
+                        const noticeEstadisticas = document.getElementById('noticeEstadisticasUpgrade');
+
+                        if (rawPlan.includes('basico') || rawPlan.includes('simple')) {
+                            displayPlan = 'Plan Simple';
                             if (badgeSimple) { badgeSimple.classList.remove('hidden'); badgeSimple.textContent = '🟢 TU PLAN ACTIVO'; }
                             if (boxSimple) boxSimple.className = 'border-2 border-emerald-500 rounded-3xl p-6 bg-emerald-50/20 relative shadow-md flex flex-col justify-between';
-                        } else if (planName.includes('intermedio') || planName.includes('profesional')) {
+                            
+                            if (badgeEquipo) badgeEquipo.className = 'text-[10px] font-extrabold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md shrink-0';
+                            if (badgeEquipo) badgeEquipo.textContent = 'Profesional';
+                            if (badgeEstadisticas) badgeEstadisticas.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0';
+                            if (badgeEstadisticas) badgeEstadisticas.textContent = 'Premium';
+                            
+                            if (noticeEquipo) noticeEquipo.classList.remove('hidden');
+                            if (noticeEstadisticas) noticeEstadisticas.classList.remove('hidden');
+
+                        } else if (rawPlan.includes('intermedio') || rawPlan.includes('profesional')) {
+                            displayPlan = 'Plan Profesional';
                             if (badgePro) { badgePro.classList.remove('hidden'); badgePro.textContent = '🟢 TU PLAN ACTIVO'; }
                             if (boxPro) boxPro.className = 'border-2 border-emerald-500 rounded-3xl p-6 bg-emerald-50/20 relative shadow-md flex flex-col justify-between';
-                        } else if (planName.includes('completo') || planName.includes('premium')) {
+
+                            if (badgeEquipo) badgeEquipo.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0';
+                            if (badgeEquipo) badgeEquipo.textContent = 'Incluido';
+                            if (badgeEstadisticas) badgeEstadisticas.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0';
+                            if (badgeEstadisticas) badgeEstadisticas.textContent = 'Premium';
+                            
+                            if (noticeEquipo) noticeEquipo.classList.add('hidden');
+                            if (noticeEstadisticas) noticeEstadisticas.classList.remove('hidden');
+
+                        } else if (rawPlan.includes('completo') || rawPlan.includes('premium')) {
+                            displayPlan = 'Plan Premium';
                             if (badgePrem) { badgePrem.classList.remove('hidden'); badgePrem.textContent = '🟢 TU PLAN ACTIVO'; }
                             if (boxPrem) boxPrem.className = 'border-2 border-emerald-500 rounded-3xl p-6 bg-emerald-50/20 relative shadow-md flex flex-col justify-between';
+
+                            if (badgeEquipo) badgeEquipo.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0';
+                            if (badgeEquipo) badgeEquipo.textContent = 'Incluido';
+                            if (badgeEstadisticas) badgeEstadisticas.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0';
+                            if (badgeEstadisticas) badgeEstadisticas.textContent = 'Incluido';
+
+                            if (noticeEquipo) noticeEquipo.classList.add('hidden');
+                            if (noticeEstadisticas) noticeEstadisticas.classList.add('hidden');
                         }
+
+                        const planTextEl = document.getElementById('manualActivePlanText');
+                        if (planTextEl) planTextEl.textContent = `Tu Plan: ${displayPlan}`;
                     }
                 }).catch(() => {});
         });

@@ -425,7 +425,7 @@ function renderEmpresaDetails(client) {
 
     document.getElementById('empresaMetricPlan').textContent = client.plan || 'Básico';
     document.getElementById('empresaMetricTurnos').textContent = client.turnos_count !== undefined ? client.turnos_count : 0;
-    const profsCount = client.profesionales ? client.profesionales.length + 1 : 1;
+    const profsCount = client.profesionales_count !== undefined ? client.profesionales_count : ((client.profesionales ? client.profesionales.length : 0) || 1);
     document.getElementById('empresaMetricEquipo').textContent = `${profsCount} / ${client.max_profesionales || 1}`;
 
     renderEquipo(client);

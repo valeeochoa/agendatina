@@ -721,9 +721,22 @@ function loadDashboardData() {
             if (sessionStorage.getItem('agendatina_demo_alert')) {
                 sessionStorage.removeItem('agendatina_demo_alert');
                 setTimeout(() => showWelcomeAnimation('Premium', true), 300);
-            } else if (!localStorage.getItem('welcomed_' + (business.id || 'new'))) {
-                localStorage.setItem('welcomed_' + (business.id || 'new'), 'true');
+            } else if (!localStorage.getItem('welcomed_' + (business.id || 'new')) || (data.user && data.user.is_profesional && !localStorage.getItem('welcomed_prof_' + data.user.id))) {
+                if (data.user && data.user.is_profesional) {
+                    localStorage.setItem('welcomed_prof_' + data.user.id, 'true');
+                } else {
+                    localStorage.setItem('welcomed_' + (business.id || 'new'), 'true');
+                }
                 setTimeout(() => showWelcomeAnimation(business.plan, false), 300);
+            }
+
+            // Si el profesional debe cambiar su contraseña obligatoriamente por seguridad
+            if (data.user && data.user.must_change_password) {
+                setTimeout(() => {
+                    if (typeof window.openObligatoryPasswordModal === 'function') {
+                        window.openObligatoryPasswordModal();
+                    }
+                }, 1200);
             }
             
             // Modo DEMO: Ocultar botones de reporte y soporte / Mostrar para usuarios reales
@@ -1831,6 +1844,134 @@ window.closeCalendarConfigModal = function() {
     content.classList.add('scale-95');
     setTimeout(() => { modal.classList.add('hidden'); }, 300);
 }
+
+window.toggleProfPasswordVisibility = function(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const icon = btn ? btn.querySelector('.material-symbols-outlined') : null;
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) icon.textContent = 'visibility_off';
+    } else {
+        input.type = 'password';
+        if (icon) icon.textContent = 'visibility';
+    }
+};
+
+window.openObligatoryPasswordModal = function() {
+    let modal = document.getElementById('modalCambiarPasswordObligatorio');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'modalCambiarPasswordObligatorio';
+        modal.className = 'fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[300] hidden flex items-center justify-center p-4';
+        modal.innerHTML = `
+            <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative text-center border border-purple-100 animate-in fade-in zoom-in duration-300">
+                <div class="w-16 h-16 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center mx-auto mb-4 border border-purple-200 shadow-xs">
+                    <span class="material-symbols-outlined text-3xl">lock_reset</span>
+                </div>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-slate-800 mb-2 font-display">Actualiza tu Contraseña</h3>
+                <p class="text-xs sm:text-sm text-slate-500 mb-6 leading-relaxed">
+                    Has ingresado a tu cuenta de profesional por primera vez. Por tu seguridad, establece tu contraseña personal para reemplazar la inicial.
+                </p>
+
+                <form id="formCambiarPasswordObligatorio" onsubmit="window.handleCambiarPasswordObligatorio(event)" class="space-y-4 text-left">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Nueva Contraseña</label>
+                        <div class="relative">
+                            <input type="password" id="inputNuevaPasswordProf" required minlength="6" placeholder="Mínimo 6 caracteres" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-11 py-3 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                            <button type="button" onclick="toggleProfPasswordVisibility('inputNuevaPasswordProf', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1" title="Ver contraseña">
+                                <span class="material-symbols-outlined text-[20px]">visibility</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Confirmar Nueva Contraseña</label>
+                        <div class="relative">
+                            <input type="password" id="inputConfirmarPasswordProf" required minlength="6" placeholder="Repite tu contraseña" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-11 py-3 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                            <button type="button" onclick="toggleProfPasswordVisibility('inputConfirmarPasswordProf', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1" title="Ver contraseña">
+                                <span class="material-symbols-outlined text-[20px]">visibility</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="msgCambiarPasswordProf" class="hidden text-xs font-bold p-3 rounded-xl text-center"></div>
+
+                    <button type="submit" id="btnSubmitCambiarPasswordProf" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-purple-600/20 text-sm transition-all flex items-center justify-center gap-2 mt-2">
+                        <span class="material-symbols-outlined text-[18px]">verified_user</span> Guardar Nueva Contraseña
+                    </button>
+                </form>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    modal.classList.remove('hidden');
+};
+
+window.handleCambiarPasswordObligatorio = function(e) {
+    e.preventDefault();
+    const pass1 = document.getElementById('inputNuevaPasswordProf')?.value || '';
+    const pass2 = document.getElementById('inputConfirmarPasswordProf')?.value || '';
+    const msgEl = document.getElementById('msgCambiarPasswordProf');
+    const btn = document.getElementById('btnSubmitCambiarPasswordProf');
+
+    if (pass1 !== pass2) {
+        if (msgEl) {
+            msgEl.textContent = 'Las contraseñas no coinciden. Por favor verifica los datos.';
+            msgEl.className = 'text-xs font-bold p-3 rounded-xl text-center bg-red-100 text-red-700 border border-red-200 block';
+        }
+        return;
+    }
+
+    if (pass1.length < 6) {
+        if (msgEl) {
+            msgEl.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+            msgEl.className = 'text-xs font-bold p-3 rounded-xl text-center bg-red-100 text-red-700 border border-red-200 block';
+        }
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">refresh</span> Guardando...';
+    }
+
+    fetch('backend/cambiar_password_profesional.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nueva_password: pass1 })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (msgEl) {
+                msgEl.textContent = '¡Contraseña actualizada con éxito!';
+                msgEl.className = 'text-xs font-bold p-3 rounded-xl text-center bg-emerald-100 text-emerald-800 border border-emerald-200 block';
+            }
+            if (typeof showToast === 'function') showToast('Contraseña actualizada correctamente.', 'success');
+            setTimeout(() => {
+                const modal = document.getElementById('modalCambiarPasswordObligatorio');
+                if (modal) modal.classList.add('hidden');
+            }, 1200);
+        } else {
+            if (msgEl) {
+                msgEl.textContent = data.error || 'Error al actualizar la contraseña.';
+                msgEl.className = 'text-xs font-bold p-3 rounded-xl text-center bg-red-100 text-red-700 border border-red-200 block';
+            }
+        }
+    })
+    .catch(err => {
+        if (msgEl) {
+            msgEl.textContent = 'Error de conexión. Inténtalo nuevamente.';
+            msgEl.className = 'text-xs font-bold p-3 rounded-xl text-center bg-red-100 text-red-700 border border-red-200 block';
+        }
+    })
+    .finally(() => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">verified_user</span> Guardar Nueva Contraseña';
+        }
+    });
+};
 
 window.closeContactSuccessModal = function() {
     const modal = document.getElementById('contactSuccessModal');
@@ -3104,12 +3245,14 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
         .text-secondary { color: ${sColor} !important; }
         .border-secondary { border-color: ${sColor} !important; }
 
-        /* 5. Personalización Completa del Calendario (Exclusivo Color Primario Fuerte en Números) */
-        /* Cuadrados / Segmentos del Calendario */
+        /* 5. Personalización Completa del Calendario (Exclusivo Color Primario Fuerte en Números y Secundario en Detalle) */
+        /* Cuadrados / Segmentos del Calendario (Mensual y Semanal) */
         .calendar-day:not(.disabled), 
         .mini-calendar-day:not(.disabled),
         #calendarDays > div:not(.disabled):not(:empty),
-        #weeklyCalendarDays > div:not(.disabled):not(:empty) {
+        #weeklyCalendarDays > div:not(.disabled):not(:empty),
+        #adminWeeklyGrid > div:not(.disabled):not(:empty),
+        .weekly-day-card {
             background-color: color-mix(in srgb, ${pColor} 26%, #ffffff) !important;
             border: 1.5px solid color-mix(in srgb, ${pColor} 45%, #ffffff) !important;
             color: ${pColor} !important;
@@ -3120,7 +3263,8 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
         .calendar-day, 
         .mini-calendar-day,
         #calendarDays > div,
-        #weeklyCalendarDays > div {
+        #weeklyCalendarDays > div,
+        #adminWeeklyGrid > div {
             color: ${pColor} !important;
             font-weight: 800 !important;
         }
@@ -3129,7 +3273,8 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
         .calendar-day:not(.disabled):hover,
         .mini-calendar-day:not(.disabled):hover,
         #calendarDays > div:not(.disabled):not(:empty):hover,
-        #weeklyCalendarDays > div:not(.disabled):not(:empty):hover {
+        #weeklyCalendarDays > div:not(.disabled):not(:empty):hover,
+        #adminWeeklyGrid > div:not(.disabled):not(:empty):hover {
             background-color: color-mix(in srgb, ${pColor} 40%, #ffffff) !important;
             border-color: ${pColor} !important;
             color: ${pColor} !important;
@@ -3141,7 +3286,8 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
         .time-slot.selected, 
         .mini-time-slot.selected,
         #calendarDays > div.selected,
-        #weeklyCalendarDays > div.selected {
+        #weeklyCalendarDays > div.selected,
+        #adminWeeklyGrid > div.selected {
             background-color: ${pColor} !important;
             color: #ffffff !important;
             border-color: ${sColor} !important;
@@ -3150,40 +3296,49 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
         }
 
         /* Franjas Horarias */
-        .time-slot:not(.booked) {
+        .time-slot:not(.booked),
+        #weeklyTimeSlots > button:not(.disabled) {
             background-color: color-mix(in srgb, ${pColor} 18%, #ffffff) !important;
             border-color: color-mix(in srgb, ${pColor} 45%, #ffffff) !important;
             color: ${pColor} !important;
             font-weight: 800 !important;
         }
-        .time-slot:hover:not(.booked) {
+        .time-slot:hover:not(.booked),
+        #weeklyTimeSlots > button:not(.disabled):hover {
             background-color: color-mix(in srgb, ${pColor} 35%, #ffffff) !important;
             border-color: ${pColor} !important;
             color: ${pColor} !important;
         }
 
-        /* Navegación y Encabezados de Calendario */
-        #monthYear, #selectedDateText, #weekRangeDisplay, .grid-cols-7 > div {
+        /* Navegación y Encabezados del Calendario */
+        #monthYear, #selectedDateText, #weekRangeDisplay, #weekMonthYear, #adminWeekMonthYear, #selectedDateLabel, .grid-cols-7 > div {
             color: ${pColor} !important;
             font-weight: 800 !important;
         }
-        button#prevWeek, button#nextWeek, button#prevMonth, button#nextMonth {
+        button#prevWeek, button#nextWeek, button#adminPrevWeekBtn, button#adminNextWeekBtn, button#prevMonth, button#nextMonth {
             background-color: color-mix(in srgb, ${pColor} 20%, #ffffff) !important;
             color: ${pColor} !important;
             border-color: color-mix(in srgb, ${pColor} 45%, #ffffff) !important;
         }
-        button#prevWeek:hover, button#nextWeek:hover, button#prevMonth:hover, button#nextMonth:hover {
+        button#prevWeek:hover, button#nextWeek:hover, button#adminPrevWeekBtn:hover, button#adminNextWeekBtn:hover, button#prevMonth:hover, button#nextMonth:hover {
             background-color: color-mix(in srgb, ${pColor} 35%, #ffffff) !important;
             border-color: ${pColor} !important;
+        }
+
+        /* Botones de Acción y Paneles */
+        #btnWeeklySubmit, #adminControls, #btnMultiSelect {
+            border-color: color-mix(in srgb, ${pColor} 40%, #e2e8f0) !important;
         }
 
         .prof-tab-pill.active, .tab-cal-active {
             background-color: ${pColor} !important;
             color: #ffffff !important;
-            border-color: ${pColor} !important;
+            border-color: ${sColor} !important;
         }
         .prof-tab-pill:not(.active) {
-            border-color: color-mix(in srgb, ${sColor} 30%, #cbd5e1) !important;
+            background-color: color-mix(in srgb, ${pColor} 15%, #ffffff) !important;
+            color: ${pColor} !important;
+            border-color: color-mix(in srgb, ${pColor} 30%, #e2e8f0) !important;
         }
 
         ${extraCss}

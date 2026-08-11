@@ -34,6 +34,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (typeof applyCalendarConfigToForm === 'function') {
                     applyCalendarConfigToForm(data);
                 }
+                if (typeof window.renderHorariosDetalladosResumen === 'function') {
+                    window.renderHorariosDetalladosResumen();
+                }
             }
         })
         .catch(err => console.error('Error al cargar la configuración inicial:', err));
@@ -206,6 +209,81 @@ window.removeTramoHorario = function(dayKey, idx) {
     }
 };
 
+window.renderHorariosDetalladosResumen = function() {
+    const hiddenInp = document.getElementById('horariosDetalladosJsonInput');
+    const container = document.getElementById('horariosDetalladosResumenContainer');
+    if (!hiddenInp || !container) return;
+
+    let data = {};
+    try {
+        data = JSON.parse(hiddenInp.value || '{}');
+    } catch(e) {
+        data = {};
+    }
+
+    const dayKeys = Object.keys(data);
+    if (dayKeys.length === 0) {
+        container.classList.add('hidden');
+        return;
+    }
+
+    let hasCustom = false;
+    let summaryCardsHtml = '';
+    const activeDaysArr = [];
+
+    DIAS_SEMANA_MAP.forEach(dia => {
+        const diaData = data[dia.key];
+        if (diaData) {
+            hasCustom = true;
+            const activo = diaData.activo !== false;
+            if (activo) activeDaysArr.push(dia.key);
+
+            let tramosText = '';
+            if (activo && diaData.tramos && diaData.tramos.length > 0) {
+                tramosText = diaData.tramos.map(t => `${t.inicio || '09:00'} - ${t.fin || '18:00'}`).join(' / ');
+            }
+
+            summaryCardsHtml += `
+                <div class="flex items-center justify-between p-2.5 bg-white rounded-xl border border-purple-100 shadow-2xs">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full ${activo ? 'bg-emerald-500' : 'bg-slate-300'}"></span>
+                        <strong class="text-xs text-slate-800 font-bold">${dia.nombre}</strong>
+                    </div>
+                    <span class="text-xs ${activo ? 'text-purple-900 font-bold' : 'text-slate-400 italic'}">
+                        ${activo ? (tramosText || 'Abierto') : 'Cerrado'}
+                    </span>
+                </div>
+            `;
+        }
+    });
+
+    if (!hasCustom) {
+        container.classList.add('hidden');
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="flex items-center justify-between gap-3 mb-3">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-purple-600 text-[20px]">tune</span>
+                <strong class="text-xs sm:text-sm font-extrabold text-purple-950">Horarios Personalizados Configurados (Lunes a Domingo)</strong>
+            </div>
+            <span class="text-[10px] font-black uppercase bg-purple-600 text-white px-2.5 py-1 rounded-full shadow-xs">Activos</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            ${summaryCardsHtml}
+        </div>
+    `;
+    container.classList.remove('hidden');
+
+    // Sincronizar checkboxes de días laborables en la pantalla principal
+    if (activeDaysArr.length > 0) {
+        document.querySelectorAll('input[name="dias_trabajo"]').forEach(cb => {
+            cb.checked = activeDaysArr.includes(cb.value);
+        });
+    }
+};
+
 window.saveHorariosDetalladosModal = function() {
     // Recopilar tramos actualizados desde los inputs
     const tramoInputs = document.querySelectorAll('.tramo-input');
@@ -221,6 +299,10 @@ window.saveHorariosDetalladosModal = function() {
     const jsonStr = JSON.stringify(currentHorariosDetallados);
     const hiddenInp = document.getElementById('horariosDetalladosJsonInput');
     if (hiddenInp) hiddenInp.value = jsonStr;
+
+    if (typeof window.renderHorariosDetalladosResumen === 'function') {
+        window.renderHorariosDetalladosResumen();
+    }
 
     if (typeof showToast === 'function') showToast('Horarios personalizados listos para guardar.', 'success');
     closeHorariosDetalladosModal();
