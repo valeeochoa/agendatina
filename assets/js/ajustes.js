@@ -24,6 +24,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data && !data.error) {
                 // Guardar la configuración para usarla en otros modales si es necesario
                 window.businessWebConfig = data;
+
+                if (data.horarios_detallados_json) {
+                    const hInp = document.getElementById('horariosDetalladosJsonInput');
+                    if (hInp) hInp.value = data.horarios_detallados_json;
+                }
+
                 // Poblar el formulario con los datos cargados
                 if (typeof applyCalendarConfigToForm === 'function') {
                     applyCalendarConfigToForm(data);
@@ -78,30 +84,147 @@ window.updateIntervalHelpText = function() {
 };
 
 /* =========================================================================
-   FUNCIONES DE WHATSAPP (MODULO RESERVADO PARA IMPLEMENTACION FUTURA)
-   =========================================================================
-window.generarWaQr = function() {
-    const container = document.getElementById('waQrContainer');
-    const status = document.getElementById('waQrStatus');
-    const badge = document.getElementById('waStatusBadge');
+   LÓGICA DE HORARIOS PERSONALIZADOS POR DÍA (LUNES A DOMINGO - FORMATO 24HS)
+   ========================================================================= */
+let currentHorariosDetallados = {};
+
+const DIAS_SEMANA_MAP = [
+    { key: '1', nombre: 'Lunes' },
+    { key: '2', nombre: 'Martes' },
+    { key: '3', nombre: 'Miércoles' },
+    { key: '4', nombre: 'Jueves' },
+    { key: '5', nombre: 'Viernes' },
+    { key: '6', nombre: 'Sábado' },
+    { key: '0', nombre: 'Domingo' }
+];
+
+window.openHorariosDetalladosModal = function() {
+    const rawVal = document.getElementById('horariosDetalladosJsonInput')?.value || '{}';
+    try {
+        currentHorariosDetallados = JSON.parse(rawVal);
+    } catch(e) {
+        currentHorariosDetallados = {};
+    }
+
+    renderDiasHorariosContainer();
+
+    const modal = document.getElementById('modalHorariosDetallados');
+    if (modal) modal.classList.remove('hidden');
+};
+
+window.closeHorariosDetalladosModal = function() {
+    const modal = document.getElementById('modalHorariosDetallados');
+    if (modal) modal.classList.add('hidden');
+};
+
+function renderDiasHorariosContainer() {
+    const container = document.getElementById('diasHorariosContainer');
     if (!container) return;
 
-    container.innerHTML = '<span class="material-symbols-outlined text-4xl animate-spin text-emerald-600">refresh</span><p class="text-xs text-slate-500 mt-2 font-medium">Generando código QR...</p>';
-    if (status) status.textContent = 'Estado: Generando código QR dinámico...';
+    const defaultApertura = document.getElementById('configHoraApertura')?.value || '09:00';
+    const defaultCierre = document.getElementById('configHoraCierre')?.value || '18:00';
 
-    setTimeout(() => {
-        const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=AGENDATINA_WA_SESSION_' + Math.random().toString(36).substring(2, 10);
-        container.innerHTML = `<img src="${qrUrl}" alt="Código QR WhatsApp" class="w-full h-full object-contain animate-fade-in">`;
-        if (status) status.textContent = 'Estado: Escanea este QR con tu teléfono';
-        if (badge) {
-            badge.className = 'bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold border border-blue-200 flex items-center gap-1';
-            badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span> Esperando Escaneo';
-        }
-    }, 1000);
+    container.innerHTML = '';
+
+    DIAS_SEMANA_MAP.forEach(dia => {
+        const diaData = currentHorariosDetallados[dia.key] || { activo: true, tramos: [{ inicio: defaultApertura, fin: defaultCierre }] };
+        const activo = diaData.activo !== false;
+        const tramos = (diaData.tramos && diaData.tramos.length > 0) ? diaData.tramos : [{ inicio: defaultApertura, fin: defaultCierre }];
+
+        let tramosHtml = '';
+        tramos.forEach((t, idx) => {
+            tramosHtml += `
+                <div class="flex items-center gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-200/80">
+                    <span class="text-xs font-extrabold text-slate-500">Tramo ${idx + 1}:</span>
+                    <input type="time" value="${t.inicio || '09:00'}" data-day="${dia.key}" data-idx="${idx}" data-field="inicio" class="tramo-input w-28 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none" title="Formato 24hs: 10:00 (10 hs mañana) vs 22:00 (10 hs noche)">
+                    <span class="text-xs font-bold text-slate-400">a</span>
+                    <input type="time" value="${t.fin || '18:00'}" data-day="${dia.key}" data-idx="${idx}" data-field="fin" class="tramo-input w-28 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none" title="Formato 24hs: 12:00 (mediodía) vs 20:00 (8 hs noche)">
+                    ${tramos.length > 1 ? `
+                        <button type="button" onclick="removeTramoHorario('${dia.key}', ${idx})" class="text-red-400 hover:text-red-600 p-1 rounded-lg hover:bg-red-50 transition-colors" title="Eliminar tramo">
+                            <span class="material-symbols-outlined text-[18px]">delete</span>
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+        });
+
+        container.innerHTML += `
+            <div class="p-4 rounded-2xl border ${activo ? 'border-slate-200 bg-white' : 'border-slate-200/60 bg-slate-50/50'} transition-all">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <div class="flex items-center gap-2.5">
+                        <input type="checkbox" id="checkDia_${dia.key}" ${activo ? 'checked' : ''} onchange="toggleDiaActivo('${dia.key}', this.checked)" class="w-5 h-5 text-purple-600 focus:ring-purple-500 rounded border-slate-300 cursor-pointer">
+                        <label for="checkDia_${dia.key}" class="font-extrabold text-sm sm:text-base text-slate-800 cursor-pointer">${dia.nombre}</label>
+                        <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full ${activo ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-slate-200 text-slate-500'}">
+                            ${activo ? 'Abierto' : 'Cerrado'}
+                        </span>
+                    </div>
+
+                    ${activo ? `
+                        <button type="button" onclick="addTramoHorario('${dia.key}')" class="text-xs font-extrabold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1 shadow-xs">
+                            <span class="material-symbols-outlined text-[16px]">add_circle</span>
+                            <span>Agregar Tramo (+)</span>
+                        </button>
+                    ` : ''}
+                </div>
+
+                ${activo ? `
+                    <div class="flex flex-wrap gap-2.5 items-center">
+                        ${tramosHtml}
+                    </div>
+                ` : '<p class="text-xs text-slate-400 font-medium italic">Este día permanecerá cerrado (Sin atención).</p>'}
+            </div>
+        `;
+    });
+}
+
+window.toggleDiaActivo = function(dayKey, isChecked) {
+    if (!currentHorariosDetallados[dayKey]) {
+        const defaultApertura = document.getElementById('configHoraApertura')?.value || '09:00';
+        const defaultCierre = document.getElementById('configHoraCierre')?.value || '18:00';
+        currentHorariosDetallados[dayKey] = { activo: isChecked, tramos: [{ inicio: defaultApertura, fin: defaultCierre }] };
+    } else {
+        currentHorariosDetallados[dayKey].activo = isChecked;
+    }
+    renderDiasHorariosContainer();
 };
-*/
 
+window.addTramoHorario = function(dayKey) {
+    if (!currentHorariosDetallados[dayKey]) {
+        currentHorariosDetallados[dayKey] = { activo: true, tramos: [] };
+    }
+    if (!currentHorariosDetallados[dayKey].tramos) {
+        currentHorariosDetallados[dayKey].tramos = [];
+    }
+    currentHorariosDetallados[dayKey].tramos.push({ inicio: '14:00', fin: '18:00' });
+    renderDiasHorariosContainer();
+};
 
+window.removeTramoHorario = function(dayKey, idx) {
+    if (currentHorariosDetallados[dayKey] && currentHorariosDetallados[dayKey].tramos) {
+        currentHorariosDetallados[dayKey].tramos.splice(idx, 1);
+        renderDiasHorariosContainer();
+    }
+};
+
+window.saveHorariosDetalladosModal = function() {
+    // Recopilar tramos actualizados desde los inputs
+    const tramoInputs = document.querySelectorAll('.tramo-input');
+    tramoInputs.forEach(inp => {
+        const day = inp.dataset.day;
+        const idx = parseInt(inp.dataset.idx);
+        const field = inp.dataset.field;
+        if (currentHorariosDetallados[day] && currentHorariosDetallados[day].tramos && currentHorariosDetallados[day].tramos[idx]) {
+            currentHorariosDetallados[day].tramos[idx][field] = inp.value;
+        }
+    });
+
+    const jsonStr = JSON.stringify(currentHorariosDetallados);
+    const hiddenInp = document.getElementById('horariosDetalladosJsonInput');
+    if (hiddenInp) hiddenInp.value = jsonStr;
+
+    if (typeof showToast === 'function') showToast('Horarios personalizados listos para guardar.', 'success');
+    closeHorariosDetalladosModal();
+};
 
 function handleCalendarConfigSubmit(e) {
     e.preventDefault();
@@ -139,7 +262,8 @@ function handleCalendarConfigSubmit(e) {
         anticipacion_turno_min: form.querySelector('#configAnticipacionMin')?.value,
         intervalo_turnos: intervalo,
         tipo_calendario: tipoCalendario,
-        limite_eliminacion_dias: form.querySelector('#configLimiteEliminacion')?.value || 0
+        limite_eliminacion_dias: form.querySelector('#configLimiteEliminacion')?.value || 0,
+        horarios_detallados_json: form.querySelector('#horariosDetalladosJsonInput')?.value || '{}'
     };
 
     fetch('backend/guardar_web.php', {
