@@ -21,4 +21,11 @@ En todas las vistas HTML de la plataforma (`index.html`, `login.html`, `registro
 - Mantener la lógica de auto-ocultar la sección "Primeros Pasos en Agendatina" (`#onboardingWidget`) cuando la cuenta real de negocio ya haya completado los 3 pasos iniciales (`hasConfig && hasServices && hasTurnos`).
 - **REGLA EXPLICITA DEL USUARIO**: Si en el futuro el usuario solicita modificar la visibilidad de este bloque de Primeros Pasos / Tour Virtual, se le debe **recordar previamente que él solicitó explícitamente mantener esta regla** antes de realizar cualquier modificación.
 
+## Personalización Avanzada de Colores según el Plan Contratado
+- **Plan Básico / Simple / Demo**: Incluye 2 colores base de personalización (Color Principal y Color Secundario).
+- **Plan Profesional (Intermedio)**: Incluye 2 colores base + **1 opción adicional de color personalizado (+1)** a elección del cliente (Color Terciario, Fondo del Header, Color de Títulos, Botones CTA, Fondo de Tarjetas o Efectos Hover). Total: 3 colores.
+- **Plan Premium**: Incluye 2 colores base + **hasta 3 opciones adicionales de colores personalizados (+3)** a elección del cliente (Color Terciario, Fondo del Header, Color de Títulos, Botones CTA, Fondo de Tarjetas o Efectos Hover). Total: 5 colores.
+- **Formato del Modal (+)**: Al presionar el botón `+` en `perfil.html`, se muestra un modal desplegable con las opciones de destino del nuevo color (Fondo del Header, Color de Títulos, Botones CTA, Fondo de Tarjetas, Color Terciario, Hover) y un selector cromático de color.
+
+
 

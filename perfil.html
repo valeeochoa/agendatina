@@ -105,19 +105,39 @@
                                 </div>
                             </div>
                             
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Color Principal</label>
-                                <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
-                                    <input type="color" id="perfilColor1" name="color_primario" value="#D11149" class="w-10 h-10 rounded-xl border-none cursor-pointer p-0 bg-transparent">
-                                    <span class="text-xs text-slate-500 font-bold">Botones y destacados</span>
+                            <div class="sm:col-span-2 border-t border-slate-100 pt-5 mt-2">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                                    <div>
+                                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                                            <span class="material-symbols-outlined text-primary text-[18px]">palette</span> Personalización de Colores
+                                        </label>
+                                        <span id="planColorBadge" class="text-[11px] font-bold text-purple-600">Plan Básico: 2 colores base</span>
+                                    </div>
+                                    <button type="button" onclick="openAddColorModal()" id="btnAddColorPlus" class="bg-purple-100 hover:bg-purple-200 text-purple-800 font-extrabold px-3.5 py-2 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-xs w-fit">
+                                        <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                                        <span>Personalizar Más (+)</span>
+                                    </button>
                                 </div>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Color Secundario</label>
-                                <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
-                                    <input type="color" id="perfilColor2" name="color_secundario" value="#FC8712" class="w-10 h-10 rounded-xl border-none cursor-pointer p-0 bg-transparent">
-                                    <span class="text-xs text-slate-500 font-bold">Detalles e iconos</span>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Color Principal</label>
+                                        <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+                                            <input type="color" id="perfilColor1" name="color_primario" value="#D11149" class="w-10 h-10 rounded-xl border-none cursor-pointer p-0 bg-transparent" onchange="previewColorsInRealTime()">
+                                            <span class="text-xs text-slate-500 font-bold">Botones y destacados</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Color Secundario</label>
+                                        <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+                                            <input type="color" id="perfilColor2" name="color_secundario" value="#FC8712" class="w-10 h-10 rounded-xl border-none cursor-pointer p-0 bg-transparent" onchange="previewColorsInRealTime()">
+                                            <span class="text-xs text-slate-500 font-bold">Detalles e iconos</span>
+                                        </div>
+                                    </div>
                                 </div>
+                                
+                                <div id="extraColorsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4"></div>
+                                <input type="hidden" id="coloresExtraJsonInput" name="colores_extra_json" value="{}">
                             </div>
                         </div>
                         
@@ -238,6 +258,9 @@
                     }
                 }
                 if(data.business) {
+                    currentPlan = data.business.plan || 'Basico';
+                    updatePlanBadge();
+
                     const negocioInput = document.getElementById('perfilNombreNegocio');
                     if (negocioInput) negocioInput.value = data.business.nombre_fantasia || '';
                     
@@ -321,10 +344,17 @@
                         prev.src = logoUrl;
                         prev.classList.remove('hidden');
                     }
+
+                    if (data.colores_extra_json) {
+                        try {
+                            extraColorsObj = typeof data.colores_extra_json === 'string' ? JSON.parse(data.colores_extra_json) : data.colores_extra_json;
+                            renderExtraColorsGrid();
+                        } catch(e) {}
+                    }
                     
                     // Propagar colores de marca dinámicos
                     if (window.applyUserCustomColors) {
-                        window.applyUserCustomColors(data.color_primario, data.color_secundario);
+                        window.applyUserCustomColors(data.color_primario, data.color_secundario, extraColorsObj);
                     }
                 }
             });
@@ -541,6 +571,182 @@
                 }
             }, 300);
         }
+        let currentPlan = 'Basico';
+        let extraColorsObj = {};
+
+        const TARGET_LABELS = {
+            'color_terciario': { label: 'Color Terciario', desc: 'Acentos especiales' },
+            'color_header': { label: 'Fondo del Header', desc: 'Navegación principal' },
+            'color_texto_titulos': { label: 'Color de Títulos', desc: 'Encabezados y H1/H2' },
+            'color_botones': { label: 'Color de Botones CTA', desc: 'Acciones principales' },
+            'color_cards': { label: 'Fondo de Tarjetas', desc: 'Contenedores y cards' },
+            'color_hover': { label: 'Efectos Hover', desc: 'Color al pasar cursor' }
+        };
+
+        function getMaxExtraSlots(plan) {
+            const p = (plan || '').toLowerCase();
+            if (p.includes('premium')) return 3;
+            if (p.includes('profesional') || p.includes('intermedio')) return 1;
+            return 0;
+        }
+
+        function updatePlanBadge() {
+            const badge = document.getElementById('planColorBadge');
+            const max = getMaxExtraSlots(currentPlan);
+            const used = Object.keys(extraColorsObj).length;
+            if (badge) {
+                if (max === 0) {
+                    badge.textContent = `Plan ${currentPlan || 'Básico'}: 2 colores base (Actualiza a Profesional o Premium para sumar más)`;
+                    badge.className = 'text-[11px] font-bold text-amber-600';
+                } else {
+                    badge.textContent = `Plan ${currentPlan}: ${used} de ${max} colores extra en uso (Total: ${2 + used} colores)`;
+                    badge.className = 'text-[11px] font-bold text-purple-600';
+                }
+            }
+        }
+
+        function renderExtraColorsGrid() {
+            const grid = document.getElementById('extraColorsGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            
+            Object.keys(extraColorsObj).forEach(key => {
+                const info = TARGET_LABELS[key] || { label: key, desc: 'Personalizado' };
+                const val = extraColorsObj[key];
+
+                const card = document.createElement('div');
+                card.className = 'flex items-center justify-between gap-3 bg-purple-50/60 p-3 rounded-2xl border border-purple-200/80 shadow-xs';
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <input type="color" value="${val}" class="w-10 h-10 rounded-xl border-none cursor-pointer p-0 bg-transparent" onchange="updateExtraColorVal('${key}', this.value)">
+                        <div>
+                            <label class="block text-xs font-extrabold text-purple-900">${info.label}</label>
+                            <span class="text-[11px] text-purple-600 font-bold">${info.desc}</span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="removeExtraColorSlot('${key}')" class="text-red-400 hover:text-red-600 p-1 rounded-xl hover:bg-red-50 transition-colors" title="Eliminar este color">
+                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
+                `;
+                grid.appendChild(card);
+            });
+
+            document.getElementById('coloresExtraJsonInput').value = JSON.stringify(extraColorsObj);
+            updatePlanBadge();
+        }
+
+        function updateExtraColorVal(key, val) {
+            extraColorsObj[key] = val;
+            document.getElementById('coloresExtraJsonInput').value = JSON.stringify(extraColorsObj);
+            previewColorsInRealTime();
+        }
+
+        function removeExtraColorSlot(key) {
+            delete extraColorsObj[key];
+            renderExtraColorsGrid();
+            previewColorsInRealTime();
+        }
+
+        function previewColorsInRealTime() {
+            const p = document.getElementById('perfilColor1').value;
+            const s = document.getElementById('perfilColor2').value;
+            if (window.applyUserCustomColors) {
+                window.applyUserCustomColors(p, s, extraColorsObj);
+            }
+        }
+
+        function openAddColorModal() {
+            const max = getMaxExtraSlots(currentPlan);
+            const used = Object.keys(extraColorsObj).length;
+            const notice = document.getElementById('addColorNoticeContainer');
+            const form = document.getElementById('addColorForm');
+
+            if (max === 0) {
+                notice.innerHTML = `
+                    <div class="flex items-start gap-2.5">
+                        <span class="material-symbols-outlined text-amber-600 text-xl">lock</span>
+                        <div>
+                            <strong class="text-slate-900 text-xs block mb-1">Personalización Avanzada de Colores</strong>
+                            <span>Tu plan actual (<strong>${currentPlan || 'Básico'}</strong>) incluye 2 colores principales.<br>
+                            Los planes <strong>Profesional</strong> (1 color extra) y <strong>Premium</strong> (3 colores extras) permiten personalizar el Header, Títulos, Botones CTA, Tarjetas, Terciario y Hover.</span>
+                            <div class="mt-3">
+                                <a href="pago.html" class="inline-flex items-center gap-1 bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-3 py-1.5 rounded-xl text-xs shadow-xs transition-colors">
+                                    <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Ver Planes y Actualizar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                notice.classList.remove('hidden');
+                form.classList.add('hidden');
+            } else if (used >= max) {
+                notice.innerHTML = `
+                    <div class="flex items-start gap-2.5">
+                        <span class="material-symbols-outlined text-amber-600 text-xl">info</span>
+                        <div>
+                            <strong class="text-slate-900 text-xs block mb-1">Límite de Colores Extras Alcanzado</strong>
+                            <span>Tu <strong>Plan ${currentPlan}</strong> te permite personalizar hasta <strong>${max} color extra</strong> (actualmente en uso: ${used}).<br>
+                            Para sumar hasta 3 colores personalizados adicionales, puedes mejorar al <strong>Plan Premium</strong>.</span>
+                            ${currentPlan.toLowerCase().includes('profesional') || currentPlan.toLowerCase().includes('intermedio') ? `
+                            <div class="mt-3">
+                                <a href="pago.html" class="inline-flex items-center gap-1 bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-3 py-1.5 rounded-xl text-xs shadow-xs transition-colors">
+                                    <span class="material-symbols-outlined text-[16px]">workspace_premium</span> Actualizar a Plan Premium
+                                </a>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                `;
+                notice.classList.remove('hidden');
+                form.classList.add('hidden');
+            } else {
+                notice.classList.add('hidden');
+                form.classList.remove('hidden');
+
+                // Filtrar targets disponibles
+                const select = document.getElementById('selectColorTarget');
+                select.innerHTML = '';
+                Object.keys(TARGET_LABELS).forEach(key => {
+                    if (!extraColorsObj[key]) {
+                        const opt = document.createElement('option');
+                        opt.value = key;
+                        opt.textContent = `${TARGET_LABELS[key].label} (${TARGET_LABELS[key].desc})`;
+                        select.appendChild(opt);
+                    }
+                });
+            }
+
+            const modal = document.getElementById('addColorModal');
+            const content = document.getElementById('addColorModalContent');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeAddColorModal() {
+            const modal = document.getElementById('addColorModal');
+            const content = document.getElementById('addColorModalContent');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        function confirmAddColorSlot() {
+            const select = document.getElementById('selectColorTarget');
+            if (!select || !select.value) return;
+            const targetKey = select.value;
+            const colorVal = document.getElementById('inputNewColorPicker').value;
+
+            extraColorsObj[targetKey] = colorVal;
+            renderExtraColorsGrid();
+            previewColorsInRealTime();
+            closeAddColorModal();
+        }
     </script>
     <script src="assets/js/script.js"></script>
 
@@ -555,6 +761,52 @@
             <button onclick="closeProfileNoticeModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-3.5 rounded-2xl text-xs sm:text-sm transition-all shadow-lg">
                 Entendido
             </button>
+        </div>
+    </div>
+
+    <!-- MODAL AGREGAR COLOR PERSONALIZADO (+) -->
+    <div id="addColorModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="addColorModalContent" class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative transform scale-95 transition-transform duration-300">
+            <button type="button" onclick="closeAddColorModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+
+            <div id="addColorModalHeader" class="mb-5">
+                <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center mb-3">
+                    <span class="material-symbols-outlined text-2xl">palette</span>
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-900 font-display">Personalización de Color Avanzada</h3>
+                <p class="text-xs text-slate-500 mt-1" id="addColorModalSubtitle">Selecciona el elemento de la plataforma que deseas personalizar.</p>
+            </div>
+
+            <div id="addColorNoticeContainer" class="hidden bg-amber-50 border border-amber-200 text-amber-900 p-4 rounded-2xl mb-5 text-xs font-semibold leading-relaxed"></div>
+
+            <form id="addColorForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Elemento a Personalizar</label>
+                    <select id="selectColorTarget" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-xs sm:text-sm font-semibold outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="color_terciario">🎨 Color Terciario (Acentos Especiales)</option>
+                        <option value="color_header">🏛️ Fondo del Encabezado (Header Navbar)</option>
+                        <option value="color_texto_titulos">✏️ Color de Títulos y Encabezados</option>
+                        <option value="color_botones">🔘 Color de Botones Destacados (CTA)</option>
+                        <option value="color_cards">🃏 Fondo de Tarjetas y Contenedores</option>
+                        <option value="color_hover">✨ Color de Efectos Hover y Seleccionados</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Selecciona el Color</label>
+                    <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                        <input type="color" id="inputNewColorPicker" value="#8b5cf6" class="w-10 h-10 rounded-xl border-none cursor-pointer p-0 bg-transparent" onchange="document.getElementById('hexNewColorText').textContent = this.value.toUpperCase()">
+                        <span class="text-xs font-extrabold text-slate-600" id="hexNewColorText">#8B5CF6</span>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex gap-3">
+                    <button type="button" onclick="closeAddColorModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-2xl text-xs sm:text-sm transition-all">Cancelar</button>
+                    <button type="button" onclick="confirmAddColorSlot()" id="btnConfirmAddColor" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-extrabold py-3 rounded-2xl text-xs sm:text-sm transition-all shadow-lg shadow-purple-600/20">Agregar Color</button>
+                </div>
+            </form>
         </div>
     </div>
 </body>

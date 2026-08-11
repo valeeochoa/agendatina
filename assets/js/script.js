@@ -2858,12 +2858,21 @@ function checkAdminGlobalSession(config = null) {
     });
 }
 
-window.applyUserCustomColors = function(pColor, sColor) {
+window.applyUserCustomColors = function(pColor, sColor, extraColors) {
     if (!pColor) pColor = localStorage.getItem('user_color_primario') || '#D11149';
     if (!sColor) sColor = localStorage.getItem('user_color_secundario') || '#FC8712';
 
+    if (!extraColors && localStorage.getItem('user_colores_extra_json')) {
+        try { extraColors = JSON.parse(localStorage.getItem('user_colores_extra_json')); } catch(e) {}
+    }
+    if (typeof extraColors === 'string') {
+        try { extraColors = JSON.parse(extraColors); } catch(e) { extraColors = {}; }
+    }
+    extraColors = extraColors || {};
+
     localStorage.setItem('user_color_primario', pColor);
     localStorage.setItem('user_color_secundario', sColor);
+    localStorage.setItem('user_colores_extra_json', JSON.stringify(extraColors));
 
     let style = document.getElementById('agendatina-user-custom-colors');
     if (!style) {
@@ -2872,12 +2881,47 @@ window.applyUserCustomColors = function(pColor, sColor) {
         document.head.appendChild(style);
     }
 
+    let extraCss = '';
+    if (extraColors.color_terciario) {
+        extraCss += `
+            .bg-tertiary { background-color: ${extraColors.color_terciario} !important; }
+            .text-tertiary { color: ${extraColors.color_terciario} !important; }
+            .border-tertiary { border-color: ${extraColors.color_terciario} !important; }
+        `;
+    }
+    if (extraColors.color_header) {
+        extraCss += `
+            header:not(#adminHeader), nav:not(#adminHeader) { background-color: ${extraColors.color_header} !important; }
+        `;
+    }
+    if (extraColors.color_texto_titulos) {
+        extraCss += `
+            h1, h2, h3, h4, .font-display { color: ${extraColors.color_texto_titulos} !important; }
+        `;
+    }
+    if (extraColors.color_botones) {
+        extraCss += `
+            .btn-cta, button.bg-primary, a.bg-primary { background-color: ${extraColors.color_botones} !important; }
+        `;
+    }
+    if (extraColors.color_cards) {
+        extraCss += `
+            .card-custom, .bg-white.rounded-3xl { background-color: ${extraColors.color_cards} !important; }
+        `;
+    }
+    if (extraColors.color_hover) {
+        extraCss += `
+            .hover\\:bg-primary\\/90:hover { background-color: ${extraColors.color_hover} !important; }
+        `;
+    }
+
     style.innerHTML = `
         :root {
             --color-primario: ${pColor};
             --color-secundario: ${sColor};
             --primary: ${pColor};
             --secondary: ${sColor};
+            --color-terciario: ${extraColors.color_terciario || '#8b5cf6'};
         }
         /* Colores primarios dinámicos elegidos por el usuario */
         .bg-primary, .bg-\\[\\#d11149\\], button.bg-primary { background-color: ${pColor} !important; }
@@ -2892,6 +2936,8 @@ window.applyUserCustomColors = function(pColor, sColor) {
         .bg-secondary, .bg-\\[\\#fc8712\\] { background-color: ${sColor} !important; }
         .text-secondary, .text-\\[\\#fc8712\\] { color: ${sColor} !important; }
         .border-secondary, .border-\\[\\#fc8712\\] { border-color: ${sColor} !important; }
+
+        ${extraCss}
 
         /* Protección estricta del logo e identidad oficial Agendatina en Header y Footer */
         .font-brand.font-semibold.text-2xl.tracking-tight.text-\\[\\#d11149\\],
@@ -2912,7 +2958,8 @@ window.applyUserCustomColors = function(pColor, sColor) {
 document.addEventListener('DOMContentLoaded', () => {
     const cachedP = localStorage.getItem('user_color_primario');
     const cachedS = localStorage.getItem('user_color_secundario');
-    if (cachedP || cachedS) {
-        window.applyUserCustomColors(cachedP, cachedS);
+    const cachedExtra = localStorage.getItem('user_colores_extra_json');
+    if (cachedP || cachedS || cachedExtra) {
+        window.applyUserCustomColors(cachedP, cachedS, cachedExtra);
     }
 });

@@ -78,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     // Obtener configuración web
     try {
-        $stmtC = $pdo->prepare("SELECT color_primario, color_secundario, color_fondo FROM configuracion_web WHERE id_negocio = ?");
+        $stmtC = $pdo->prepare("SELECT color_primario, color_secundario, color_fondo, colores_extra_json FROM configuracion_web WHERE id_negocio = ?");
         $stmtC->execute([$id_negocio]);
         $config = $stmtC->fetch(PDO::FETCH_ASSOC);
     } catch(Exception $e) { $config = null; } // Si la tabla no existe o está vacía
@@ -113,6 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $color_primario = $data['color_primario'] ?? null;
     $color_secundario = $data['color_secundario'] ?? null;
     $color_fondo = $data['color_fondo'] ?? null;
+    $colores_extra_json = $data['colores_extra_json'] ?? null;
 
     try {
         $pdo->beginTransaction();
@@ -168,8 +169,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // 3. Actualizar Colores
-        if ($color_primario || $color_secundario || $color_fondo) {
-            $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, color_fondo) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE color_primario = ?, color_secundario = ?, color_fondo = ?")->execute([$id_negocio, $color_primario, $color_secundario, $color_fondo, $color_primario, $color_secundario, $color_fondo]);
+        if ($color_primario || $color_secundario || $color_fondo || $colores_extra_json !== null) {
+            $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, color_fondo, colores_extra_json) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE color_primario = ?, color_secundario = ?, color_fondo = ?, colores_extra_json = ?")->execute([$id_negocio, $color_primario, $color_secundario, $color_fondo, $colores_extra_json, $color_primario, $color_secundario, $color_fondo, $colores_extra_json]);
         }
 
         $pdo->commit();
