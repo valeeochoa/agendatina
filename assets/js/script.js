@@ -1488,10 +1488,9 @@ function loadCustomization() {
                     }
                 }
                 
-                if (data.color_primario || data.color_secundario) {
-                    window.applyUserCustomColors(data.color_primario, data.color_secundario);
+                if (data.color_primario || data.color_secundario || data.colores_extra_json) {
+                    window.applyUserCustomColors(data.color_primario, data.color_secundario, data.colores_extra_json);
                 }
-            }
                 if (data.logo && data.logo !== 'null' && data.logo !== 'undefined') {
                     // Corregir la ruta del logo si solo viene el nombre de archivo
                     const logoUrl = data.logo.includes('/') ? data.logo : `backend/uploads/logos/${data.logo}`;
