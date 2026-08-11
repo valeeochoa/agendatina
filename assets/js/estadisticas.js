@@ -12,14 +12,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnLimpiarFiltro = document.getElementById('btnLimpiarFiltro');
 
     const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
 
-    fechaDesdeInput.value = firstDayOfMonth.toISOString().split('T')[0];
+    fechaDesdeInput.value = thirtyDaysAgo.toISOString().split('T')[0];
     fechaHastaInput.value = today.toISOString().split('T')[0];
 
     btnFiltrar.addEventListener('click', () => loadStatistics());
     btnLimpiarFiltro.addEventListener('click', () => {
-        fechaDesdeInput.value = firstDayOfMonth.toISOString().split('T')[0];
+        fechaDesdeInput.value = thirtyDaysAgo.toISOString().split('T')[0];
         fechaHastaInput.value = today.toISOString().split('T')[0];
         loadStatistics();
     });
@@ -88,6 +89,22 @@ function loadStatistics() {
         const horas = Math.floor(minutosHoy / 60);
         const minutos = minutosHoy % 60;
         document.getElementById('statHorasHoy').textContent = minutosHoy > 0 ? `${horas}h ${minutos}m` : '0h';
+
+        // Aviso cuando no hay turnos asistidos
+        let noticeEl = document.getElementById('noAttendedNotice');
+        if (turnosFiltrados.length === 0) {
+            if (!noticeEl) {
+                noticeEl = document.createElement('div');
+                noticeEl.id = 'noAttendedNotice';
+                noticeEl.className = 'bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl p-4 mb-6 flex items-center gap-3 shadow-xs';
+                noticeEl.innerHTML = '<span class="material-symbols-outlined text-amber-600 text-xl">info</span><span class="text-sm font-semibold">Las estadísticas cargarán cuando empieces a marcar turnos como asistidos.</span>';
+                const main = document.querySelector('main');
+                if (main && main.children.length > 1) main.insertBefore(noticeEl, main.children[1]);
+            }
+            noticeEl.classList.remove('hidden');
+        } else if (noticeEl) {
+            noticeEl.classList.add('hidden');
+        }
 
         // 5. Gráfico de Turnos por Día (últimos 30 días)
         renderTurnosPorDiaChart(turnos, fechaDesde, fechaHasta);
@@ -177,13 +194,19 @@ function renderPagosChart(conteoPagos) {
     const canvas = document.getElementById('pagosChart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const labels = Object.keys(conteoPagos);
-    const data = Object.values(conteoPagos);
+    let labels = Object.keys(conteoPagos);
+    let data = Object.values(conteoPagos);
 
-    const backgroundColors = [
+    let backgroundColors = [
         '#50E3C2', '#4A90E2', '#D11149', '#F8E71C', '#FC8712', 
         '#7B68EE', '#B8E986', '#F44979', '#FF9D73', '#FCB0B3'
     ];
+
+    if (labels.length === 0) {
+        labels = ['Sin turnos asistidos aún'];
+        data = [1];
+        backgroundColors = ['#cbd5e1'];
+    }
 
     if (pagosChartInstance) {
         pagosChartInstance.destroy();
@@ -210,7 +233,6 @@ function renderIngresosPorSemanaChart(turnosFiltrados, servicios, startDate, end
     let currentStart = new Date(start);
     let weekIndex = 1;
 
-    // Dividir el rango total en bloques de 7 días
     while (currentStart <= end) {
         let currentEnd = new Date(currentStart);
         currentEnd.setDate(currentEnd.getDate() + 6);
@@ -229,7 +251,6 @@ function renderIngresosPorSemanaChart(turnosFiltrados, servicios, startDate, end
         weekIndex++;
     }
 
-    // Sumar ingresos dentro de la semana correspondiente
     turnosFiltrados.forEach(t => {
         const tDate = new Date(t.fecha.replace(/-/g, '/') + ' 00:00:00');
         const servicio = servicios.find(s => s.nombre === t.servicio);
@@ -264,10 +285,14 @@ function renderIngresosPorServicioChart(ingresosData) {
     const ctx = document.getElementById('ingresosPorServicioChart')?.getContext('2d');
     if (!ctx) return;
 
-    // Ordenar de mayor a menor para un mejor visual
     const sortedData = Object.entries(ingresosData).sort(([,a],[,b]) => b-a);
-    const labels = sortedData.map(item => item[0]);
-    const data = sortedData.map(item => item[1]);
+    let labels = sortedData.map(item => item[0]);
+    let data = sortedData.map(item => item[1]);
+
+    if (labels.length === 0) {
+        labels = ['Sin turnos asistidos aún'];
+        data = [0];
+    }
 
     const backgroundColors = [
         '#D11149', '#FC8712', '#F44979', '#FF9D73', '#FCB0B3',
@@ -285,7 +310,7 @@ function renderIngresosPorServicioChart(ingresosData) {
             datasets: [{
                 label: 'Ingresos ($)',
                 data: data,
-                backgroundColor: backgroundColors.map(c => c + 'E6'), // 90% opacity
+                backgroundColor: backgroundColors.map(c => c + 'E6'),
                 borderColor: backgroundColors,
                 borderWidth: 2
             }]
@@ -293,7 +318,7 @@ function renderIngresosPorServicioChart(ingresosData) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            indexAxis: 'y', // Gráfico de barras horizontales
+            indexAxis: 'y',
             scales: {
                 x: {
                     beginAtZero: true,
@@ -305,23 +330,7 @@ function renderIngresosPorServicioChart(ingresosData) {
                 }
             },
             plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            if (context.parsed.x !== null) {
-                                label += new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(context.parsed.x);
-                            }
-                            return label;
-                        }
-                    }
-                }
+                legend: { display: false }
             }
         }
     });
@@ -329,13 +338,19 @@ function renderIngresosPorServicioChart(ingresosData) {
 
 function renderServiciosChart(conteoServicios) {
     const ctx = document.getElementById('serviciosChart').getContext('2d');
-    const labels = Object.keys(conteoServicios);
-    const data = Object.values(conteoServicios);
+    let labels = Object.keys(conteoServicios);
+    let data = Object.values(conteoServicios);
 
-    const backgroundColors = [
+    let backgroundColors = [
         '#D11149', '#FC8712', '#F44979', '#FF9D73', '#FCB0B3',
         '#4A90E2', '#50E3C2', '#B8E986', '#F8E71C', '#7B68EE'
     ];
+
+    if (labels.length === 0) {
+        labels = ['Sin turnos asistidos aún'];
+        data = [1];
+        backgroundColors = ['#cbd5e1'];
+    }
 
     if (serviciosChartInstance) {
         serviciosChartInstance.destroy();

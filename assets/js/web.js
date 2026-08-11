@@ -102,9 +102,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (data.alineacion_servicios) {
-                    const styleAlign = document.createElement('style');
-                    styleAlign.innerHTML = `.service-card { text-align: ${data.alineacion_servicios}; }`;
-                    document.head.appendChild(styleAlign);
+                    const alignVal = data.alineacion_servicios;
+                    const flexAlign = alignVal === 'center' ? 'center' : (alignVal === 'right' ? 'flex-end' : 'flex-start');
+                    let styleAlign = document.getElementById('agendatina-service-alignment');
+                    if (!styleAlign) {
+                        styleAlign = document.createElement('style');
+                        styleAlign.id = 'agendatina-service-alignment';
+                        document.head.appendChild(styleAlign);
+                    }
+                    styleAlign.innerHTML = `
+                        .service-card, .card-servicio { text-align: ${alignVal} !important; }
+                        .service-card .p-6, .card-servicio .p-6, .service-card .flex-col { align-items: ${flexAlign} !important; text-align: ${alignVal} !important; }
+                        .service-card h3, .card-servicio h3 { text-align: ${alignVal} !important; width: 100% !important; }
+                        .service-card .flex, .card-servicio .flex { justify-content: ${flexAlign} !important; width: 100% !important; }
+                        .service-card p, .card-servicio p, .service-card .line-clamp-3 { text-align: ${alignVal} !important; width: 100% !important; }
+                    `;
                 }
 
                 // Inyectar Secciones de Información Dinámica

@@ -49,6 +49,24 @@ document.addEventListener('DOMContentLoaded', () => {
         enableImagePreview(formServ.querySelector('input[name="imagen1_file"]'));
         enableImagePreview(formServ.querySelector('input[name="imagen2_file"]'));
         enableImagePreview(formServ.querySelector('input[name="imagen3_file"]'));
+    if (webAlineacion) {
+        webAlineacion.addEventListener('change', () => {
+            const alignVal = webAlineacion.value;
+            const flexAlign = alignVal === 'center' ? 'center' : (alignVal === 'right' ? 'flex-end' : 'flex-start');
+            let styleAlign = document.getElementById('agendatina-service-alignment');
+            if (!styleAlign) {
+                styleAlign = document.createElement('style');
+                styleAlign.id = 'agendatina-service-alignment';
+                document.head.appendChild(styleAlign);
+            }
+            styleAlign.innerHTML = `
+                .service-card, .card-servicio { text-align: ${alignVal} !important; }
+                .service-card .p-6, .card-servicio .p-6, .service-card .flex-col { align-items: ${flexAlign} !important; text-align: ${alignVal} !important; }
+                .service-card h3, .card-servicio h3 { text-align: ${alignVal} !important; width: 100% !important; }
+                .service-card .flex, .card-servicio .flex { justify-content: ${flexAlign} !important; width: 100% !important; }
+                .service-card p, .card-servicio p, .service-card .line-clamp-3 { text-align: ${alignVal} !important; width: 100% !important; }
+            `;
+        });
     }
 
     // 1. CARGAR DATOS WEB AL INICIAR
@@ -74,7 +92,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.ubicacion_maps && webUbicacionMaps) webUbicacionMaps.value = data.ubicacion_maps;
                 if (data.instagram_url && webInstagramUrl) webInstagramUrl.value = data.instagram_url;
                 if (data.whatsapp_contacto && webWhatsappContacto) webWhatsappContacto.value = data.whatsapp_contacto;
-                if (data.alineacion_servicios && webAlineacion) webAlineacion.value = data.alineacion_servicios;
+                if (data.alineacion_servicios && webAlineacion) {
+                    webAlineacion.value = data.alineacion_servicios;
+                    const event = new Event('change');
+                    webAlineacion.dispatchEvent(event);
+                }
 
                 if (data.color_primario_web) webColorPrimario.value = data.color_primario_web;
                 else if (data.color_primario) webColorPrimario.value = data.color_primario;

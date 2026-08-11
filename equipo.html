@@ -443,19 +443,20 @@
                     permsBadges = badgeList.map(b => `<span class="bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded-md text-[11px] font-semibold inline-block mr-1 mb-1">${b}</span>`).join('');
                 }
 
-                const permsBtn = isAdmin ? '' : `<button onclick="openPermisosModal(${p.id})" class="text-xs font-bold text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-xl border border-purple-200 transition-colors flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">tune</span> Permisos</button>`;
+                const editBtn = `<button onclick="openPermisosModal(${p.id})" class="text-xs font-bold text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-xl border border-purple-200 transition-colors flex items-center gap-1" title="Editar profesional"><span class="material-symbols-outlined text-[15px]">edit</span> Editar</button>`;
 
                 html += `
-                    <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+                    <div onclick="if(!event.target.closest('button') && !event.target.closest('a')) openPermisosModal(${p.id})" class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-xl hover:border-purple-300 cursor-pointer transition-all group/card">
                         <div>
                             <div class="flex items-start justify-between gap-3 mb-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-lg">
+                                    <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-lg group-hover/card:scale-105 transition-transform">
                                         ${p.nombre_completo.charAt(0).toUpperCase()}
                                     </div>
                                     <div>
-                                        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                                        <h3 class="font-bold text-slate-900 text-base flex items-center gap-1.5">
                                             ${p.nombre_completo}
+                                            <span class="material-symbols-outlined text-[16px] text-purple-600 opacity-70 group-hover/card:opacity-100 transition-opacity" title="Editar profesional">edit</span>
                                         </h3>
                                         <p class="text-xs text-slate-500 font-medium">${p.email}</p>
                                     </div>
@@ -481,7 +482,7 @@
                                 Asignar Servicios <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
                             </a>
                             <div class="flex items-center gap-2">
-                                ${permsBtn}
+                                ${editBtn}
                                 ${actionBtn}
                             </div>
                         </div>
@@ -609,7 +610,7 @@
             if (!p) return;
 
             document.getElementById('permisosUserId').value = p.id;
-            document.getElementById('permisosModalTitle').textContent = `Permisos: ${p.nombre_completo}`;
+            document.getElementById('permisosModalTitle').textContent = `Editar Profesional: ${p.nombre_completo}`;
 
             const perms = p.permisos || {};
             document.getElementById('perm_agenda').checked = perms.agenda !== 0;

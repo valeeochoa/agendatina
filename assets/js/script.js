@@ -2636,14 +2636,21 @@ function applyWebCustomization() {
                 // ------------------------------------------------
                 
                 if (data.alineacion_servicios) {
-                    const alignValue = data.alineacion_servicios;
-                    const flexJustify = alignValue === 'center' ? 'center' : (alignValue === 'right' ? 'flex-end' : 'flex-start');
-                    const alignStyle = document.createElement('style');
+                    const alignVal = data.alineacion_servicios;
+                    const flexAlign = alignVal === 'center' ? 'center' : (alignVal === 'right' ? 'flex-end' : 'flex-start');
+                    let alignStyle = document.getElementById('agendatina-service-alignment');
+                    if (!alignStyle) {
+                        alignStyle = document.createElement('style');
+                        alignStyle.id = 'agendatina-service-alignment';
+                        document.head.appendChild(alignStyle);
+                    }
                     alignStyle.innerHTML = `
-                        #publicServicesList { justify-content: ${flexJustify} !important; text-align: ${alignValue} !important; }
-                        .service-card { text-align: ${alignValue} !important; align-items: ${alignValue === 'center' ? 'center' : (alignValue === 'right' ? 'flex-end' : 'flex-start')} !important; }
+                        .service-card, .card-servicio, div[id^="card-servicio-"] { text-align: ${alignVal} !important; }
+                        .service-card .p-6, .card-servicio .p-6, .service-card .flex-col { align-items: ${flexAlign} !important; text-align: ${alignVal} !important; }
+                        .service-card h3, .card-servicio h3 { text-align: ${alignVal} !important; width: 100% !important; }
+                        .service-card .flex, .card-servicio .flex { justify-content: ${flexAlign} !important; width: 100% !important; }
+                        .service-card p, .card-servicio p, .service-card .line-clamp-3 { text-align: ${alignVal} !important; width: 100% !important; }
                     `;
-                    document.head.appendChild(alignStyle);
                 }
 
                 if (!document.getElementById('agendatinaFooter') && (!isAdmin || isPreviewMode)) {
@@ -3069,18 +3076,18 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
             --color-terciario: ${extraColors.color_terciario || '#8b5cf6'};
         }
 
-        /* 1. Fondo del Calendario y Dashboard (Color Primario Atenuado) */
-        body {
-            background-color: color-mix(in srgb, ${pColor} 8%, #f8fafc) !important;
+        /* 1. Fondo del Calendario y Dashboard (Color Primario Atenuado Visible) */
+        body, html {
+            background-color: color-mix(in srgb, ${pColor} 16%, #ffffff) !important;
         }
 
-        /* 2. Bordes de Cards y Contenedores derivados del color secundario */
+        /* 2. Bordes de Cards y Contenedores derivados del color primario y secundario */
         .card-custom, 
         .bg-white.rounded-3xl, 
         div.border-slate-200, 
         div.border-slate-200\\/80, 
         .border-slate-100 {
-            border-color: color-mix(in srgb, ${sColor} 22%, #e2e8f0) !important;
+            border-color: color-mix(in srgb, ${pColor} 30%, #e2e8f0) !important;
         }
 
         /* 3. Colores Primarios (Botones, Acciones, Destacados) */
@@ -3097,15 +3104,24 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
         .text-secondary { color: ${sColor} !important; }
         .border-secondary { border-color: ${sColor} !important; }
 
-        /* 5. Personalización Completa del Calendario (Exclusivo Color Primario y Secundario) */
+        /* 5. Personalización Completa del Calendario (Exclusivo Color Primario Fuerte en Números) */
         /* Cuadrados / Segmentos del Calendario */
         .calendar-day:not(.disabled), 
         .mini-calendar-day:not(.disabled),
         #calendarDays > div:not(.disabled):not(:empty),
         #weeklyCalendarDays > div:not(.disabled):not(:empty) {
-            background-color: color-mix(in srgb, ${pColor} 16%, #ffffff) !important;
-            border: 1.5px solid color-mix(in srgb, ${sColor} 35%, ${pColor}) !important;
-            color: ${sColor} !important;
+            background-color: color-mix(in srgb, ${pColor} 26%, #ffffff) !important;
+            border: 1.5px solid color-mix(in srgb, ${pColor} 45%, #ffffff) !important;
+            color: ${pColor} !important;
+            font-weight: 800 !important;
+        }
+
+        /* Letras y Números del Calendario (Color Principal Fuerte) */
+        .calendar-day, 
+        .mini-calendar-day,
+        #calendarDays > div,
+        #weeklyCalendarDays > div {
+            color: ${pColor} !important;
             font-weight: 800 !important;
         }
 
@@ -3114,9 +3130,9 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
         .mini-calendar-day:not(.disabled):hover,
         #calendarDays > div:not(.disabled):not(:empty):hover,
         #weeklyCalendarDays > div:not(.disabled):not(:empty):hover {
-            background-color: color-mix(in srgb, ${pColor} 32%, #ffffff) !important;
-            border-color: ${sColor} !important;
-            color: ${sColor} !important;
+            background-color: color-mix(in srgb, ${pColor} 40%, #ffffff) !important;
+            border-color: ${pColor} !important;
+            color: ${pColor} !important;
         }
 
         /* Día Seleccionado / Activo */
@@ -3130,34 +3146,35 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
             color: #ffffff !important;
             border-color: ${sColor} !important;
             font-weight: 900 !important;
-            box-shadow: 0 4px 14px color-mix(in srgb, ${pColor} 40%, transparent) !important;
+            box-shadow: 0 4px 14px color-mix(in srgb, ${pColor} 45%, transparent) !important;
         }
 
         /* Franjas Horarias */
         .time-slot:not(.booked) {
-            background-color: color-mix(in srgb, ${pColor} 10%, #ffffff) !important;
-            border-color: color-mix(in srgb, ${sColor} 35%, ${pColor}) !important;
+            background-color: color-mix(in srgb, ${pColor} 18%, #ffffff) !important;
+            border-color: color-mix(in srgb, ${pColor} 45%, #ffffff) !important;
             color: ${pColor} !important;
-            font-weight: 700 !important;
+            font-weight: 800 !important;
         }
         .time-slot:hover:not(.booked) {
-            background-color: color-mix(in srgb, ${pColor} 25%, #ffffff) !important;
-            border-color: ${sColor} !important;
+            background-color: color-mix(in srgb, ${pColor} 35%, #ffffff) !important;
+            border-color: ${pColor} !important;
             color: ${pColor} !important;
         }
 
         /* Navegación y Encabezados de Calendario */
-        #monthYear, #selectedDateText, #weekRangeDisplay {
+        #monthYear, #selectedDateText, #weekRangeDisplay, .grid-cols-7 > div {
             color: ${pColor} !important;
+            font-weight: 800 !important;
         }
         button#prevWeek, button#nextWeek, button#prevMonth, button#nextMonth {
-            background-color: color-mix(in srgb, ${pColor} 12%, #ffffff) !important;
-            color: ${sColor} !important;
-            border-color: color-mix(in srgb, ${sColor} 40%, ${pColor}) !important;
+            background-color: color-mix(in srgb, ${pColor} 20%, #ffffff) !important;
+            color: ${pColor} !important;
+            border-color: color-mix(in srgb, ${pColor} 45%, #ffffff) !important;
         }
         button#prevWeek:hover, button#nextWeek:hover, button#prevMonth:hover, button#nextMonth:hover {
-            background-color: color-mix(in srgb, ${pColor} 25%, #ffffff) !important;
-            border-color: ${sColor} !important;
+            background-color: color-mix(in srgb, ${pColor} 35%, #ffffff) !important;
+            border-color: ${pColor} !important;
         }
 
         .prof-tab-pill.active, .tab-cal-active {
