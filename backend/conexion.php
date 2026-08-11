@@ -182,6 +182,7 @@ if (isset($pdo)) {
     // 1. Columnas en turnos
     try { $pdo->query("SELECT notas FROM turnos LIMIT 1"); } catch (Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN notas TEXT DEFAULT NULL"); } catch (Throwable $ex) {} }
     try { $pdo->query("SELECT fecha_eliminado FROM turnos LIMIT 1"); } catch (Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL"); } catch (Throwable $ex) {} }
+    try { $pdo->query("SELECT asistio FROM turnos LIMIT 1"); } catch (Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN asistio TINYINT DEFAULT 0"); } catch (Throwable $ex) {} }
 
     // 2. Columnas en configuracion_web
     try { $pdo->query("SELECT limite_eliminacion_dias FROM configuracion_web LIMIT 1"); } catch (Throwable $e) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN limite_eliminacion_dias INT DEFAULT 30"); } catch (Throwable $ex) {} }

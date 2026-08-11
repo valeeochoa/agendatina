@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS `turnos` (
   `celular` VARCHAR(255) DEFAULT NULL,
   `notas` TEXT DEFAULT NULL,
   `fecha_eliminado` DATETIME DEFAULT NULL,
+  `asistio` TINYINT DEFAULT 0,
   FOREIGN KEY (`id_negocio`) REFERENCES `negocios` (`id`) ON DELETE CASCADE,
   FOREIGN KEY (`id_servicio`) REFERENCES `servicios` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

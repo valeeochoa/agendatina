@@ -267,11 +267,10 @@ if ($shouldReset && $negocioId) {
     $t_p8 = date('Y-m-d', strtotime('-8 days'));
     $t_p12 = date('Y-m-d', strtotime('-12 days'));
     $t_p15 = date('Y-m-d', strtotime('-15 days'));
-    $t_p20 = date('Y-m-d', strtotime('-20 days'));
-    $t_p25 = date('Y-m-d', strtotime('-25 days'));
-    $t_p35 = date('Y-m-d', strtotime('-35 days'));
-    $t_p50 = date('Y-m-d', strtotime('-50 days'));
-    
+    // Auto-migración asistio en turnos para evitar errores SQLSTATE 1054
+    try { $pdo->query("SELECT asistio FROM turnos LIMIT 1"); } 
+    catch (Throwable $eCol) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN asistio TINYINT DEFAULT 0"); } catch (Throwable $ex) {} }
+
     $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, estado, asistio, precio) VALUES 
         (?, 'María Gómez', '1123456789', ?, '10:00', 'Corte de Demostración', 'Valentina', ?, 'confirmado', 0, 8000),
         (?, 'Juan Pérez', '1198765432', ?, '11:30', 'Masaje Relajante', 'Valentina', ?, 'confirmado', 0, 15000),
