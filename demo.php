@@ -145,6 +145,9 @@ if ($userId && $negocioId) {
         if (!$stmtLink->fetch()) {
             $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'admin')")->execute([$negocioId, $userId]);
         }
+        // Blindaje: asegurar que únicamente la cuenta demo principal sea 'admin'
+        $pdo->prepare("UPDATE personal_negocio SET rol_en_local = 'admin' WHERE id_negocio = ? AND id_usuario = ?")->execute([$negocioId, $userId]);
+        $pdo->prepare("UPDATE personal_negocio SET rol_en_local = 'profesional' WHERE id_negocio = ? AND id_usuario != ?")->execute([$negocioId, $userId]);
     } catch(Exception $eLk) {}
 }
 
@@ -210,7 +213,7 @@ if ($shouldReset && $negocioId) {
 
     // 3.b Recrear integrantes del Equipo de Trabajo (Profesionales Demo)
     $profsDemo = [
-        ['nombre' => 'Valentina Ochoa', 'email' => 'valentina@agendatina.site', 'rol' => 'admin'],
+        ['nombre' => 'Valentina Ochoa', 'email' => 'valentina@agendatina.site', 'rol' => 'profesional'],
         ['nombre' => 'Camila Benítez', 'email' => 'camila@agendatina.site', 'rol' => 'profesional'],
         ['nombre' => 'Sofía Pérez', 'email' => 'sofia@agendatina.site', 'rol' => 'profesional'],
         ['nombre' => 'Marcos Gómez', 'email' => 'marcos@agendatina.site', 'rol' => 'profesional']
@@ -226,12 +229,20 @@ if ($shouldReset && $negocioId) {
             if (!$pId) {
                 $hashP = password_hash('demo1234', PASSWORD_DEFAULT);
                 $stmtInsP = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, role) VALUES (?, ?, ?, ?)");
-                $stmtInsP->execute([$pDemo['nombre'], $pDemo['email'], $hashP, $pDemo['rol']]);
+                $stmtInsP->execute([$pDemo['nombre'], $pDemo['email'], $hashP, 'profesional']);
                 $pId = $pdo->lastInsertId();
+            } else {
+                $pdo->prepare("UPDATE usuarios SET role = 'profesional' WHERE id = ?")->execute([$pId]);
             }
-            $stmtPN = $pdo->prepare("INSERT IGNORE INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, ?)");
-            $stmtPN->execute([$negocioId, $pId, $pDemo['rol']]);
+            $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'profesional') ON DUPLICATE KEY UPDATE rol_en_local = 'profesional'")->execute([$negocioId, $pId]);
         } catch (Exception $eP) {}
+    }
+
+    // Normalización: Asegurar que solo el usuario demo principal (demo@agendatina.site) mantenga el rol 'admin'
+    if ($userId) {
+        try {
+            $pdo->prepare("UPDATE personal_negocio SET rol_en_local = 'profesional' WHERE id_negocio = ? AND id_usuario != ?")->execute([$negocioId, $userId]);
+        } catch (Exception $eCleanAdmin) {}
     }
 
     $stmtServ = $pdo->prepare("SELECT id FROM servicios WHERE id_negocio = ?");

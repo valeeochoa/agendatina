@@ -23,8 +23,10 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
-          protocol: ftps
+          protocol: ftp
+          max-connections: 1
           security: loose
+          timeout: 60000
           log-level: verbose
           server-dir: /public_html/
           state-name: .ftp-deploy-sync-state.json
@@ -35,5 +37,8 @@ jobs:
             .env
             .env.example
             implementation_plan.md
+            walkthrough.md
             temp_zip/**
             actualizacion.zip
+            backend/conexion.php
+            backend/admin_auth.php
