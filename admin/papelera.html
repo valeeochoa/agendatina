@@ -36,22 +36,22 @@
                     <span class="material-symbols-outlined text-[22px]">storefront</span> Todas las Empresas
                 </a>
                 <a href="tareas.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
-                    <span class="material-symbols-outlined text-[22px]">check_box</span> Tareas Pendientes
+                    <span class="material-symbols-outlined text-[22px]">check_box</span> Tareas Pendientes <span id="navTareasCount"></span>
                 </a>
                 <a href="reportes.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
-                    <span class="material-symbols-outlined text-[22px]">bug_report</span> Reportes de Error
+                    <span class="material-symbols-outlined text-[22px]">bug_report</span> Reportes de Error <span id="navReportesCount"></span>
                 </a>
                 <a href="mejoras.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
-                    <span class="material-symbols-outlined text-[22px]">lightbulb</span> Sugerencias y Mejoras
+                    <span class="material-symbols-outlined text-[22px]">lightbulb</span> Sugerencias y Mejoras <span id="navMejorasCount"></span>
                 </a>
                 <a href="notas.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
                     <span class="material-symbols-outlined text-[22px]">sticky_note_2</span> Notas Recientes
                 </a>
                 <a href="comprobantes.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
-                    <span class="material-symbols-outlined text-[22px]">receipt_long</span> Comprobantes de Pago
+                    <span class="material-symbols-outlined text-[22px]">receipt_long</span> Comprobantes de Pago <span id="navComprobantesCount"></span>
                 </a>
                 <a href="notificaciones.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
-                    <span class="material-symbols-outlined text-[22px]">notifications</span> Notificaciones
+                    <span class="material-symbols-outlined text-[22px]">notifications</span> Notificaciones <span id="navNotificacionesCount"></span>
                 </a>
                 <a href="papelera.html" class="flex items-center gap-3 px-4 py-3 bg-[#d11149] text-white rounded-2xl font-bold text-sm transition-all shadow-lg shadow-[#d11149]/30">
                     <span class="material-symbols-outlined text-[22px]">delete_sweep</span> Papelera General
@@ -434,5 +434,6 @@
                 .then(() => window.location.href = 'login.html');
         }
     </script>
+    <script src="admin_nav.js"></script>
 </body>
 </html>

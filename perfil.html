@@ -200,14 +200,17 @@
     </div>
     <script src="assets/js/csrf.js"></script>
     <script>
+        let isDemoUser = false;
         document.addEventListener('DOMContentLoaded', () => {
-            let isDemoUser = false;
             fetch('backend/perfil.php').then(r=>r.json()).then(data => {
                 if(data.user) {
                     document.getElementById('perfilNombre').value = data.user.nombre_completo || '';
                     document.getElementById('perfilEmail').value = data.user.email || '';
                     
-                    isDemoUser = (data.user.email && data.user.email.includes('demo')) || (data.business && (data.business.ruta === 'demo' || data.business.is_demo)) || sessionStorage.getItem('is_demo_user') === 'true';
+                    isDemoUser = (data.user.email && data.user.email === 'demo@agendatina.site') || 
+                                 (data.business && (data.business.ruta === 'demo' || data.business.is_demo == 1 || data.business.is_demo === true));
+                    sessionStorage.setItem('is_demo_user', isDemoUser ? 'true' : 'false');
+                    window.isDemoUser = isDemoUser;
                     
                     if (isDemoUser) {
                         const passInputs = document.querySelectorAll('#passwordForm input');
@@ -237,6 +240,17 @@
                 if(data.business) {
                     const negocioInput = document.getElementById('perfilNombreNegocio');
                     if (negocioInput) negocioInput.value = data.business.nombre_fantasia || '';
+                    
+                    const navBizText = document.getElementById('navBusinessNameText');
+                    if (navBizText) navBizText.textContent = data.business.nombre_fantasia || 'Mi Negocio';
+                    
+                    const navBizLogo = document.getElementById('navBusinessLogoImg');
+                    const navBizIcon = document.getElementById('navBusinessIcon');
+                    if (data.business.logo) {
+                        if (navBizLogo) { navBizLogo.src = data.business.logo; navBizLogo.classList.remove('hidden'); }
+                        if (navBizIcon) navBizIcon.classList.add('hidden');
+                    }
+
                     document.getElementById('suscripcionPlan').textContent = data.business.plan || 'Basico';
                     const uPago = data.business.ultimo_pago ? data.business.ultimo_pago.split(' ')[0] : 'No registrado';
                     document.getElementById('suscripcionUltimoPago').textContent = uPago;
@@ -308,19 +322,10 @@
                         prev.classList.remove('hidden');
                     }
                     
-                    // Inyectar colores de marca dinámicos
-                    const pColor = data.color_primario || '#D11149';
-                    const sColor = data.color_secundario || '#FC8712';
-                    const style = document.createElement('style');
-                    style.innerHTML = `
-                        .bg-primary { background-color: ${pColor} !important; }
-                        .text-primary { color: ${pColor} !important; }
-                        .border-primary { border-color: ${pColor} !important; }
-                        .hover\\:bg-primary\\/90:hover { background-color: ${pColor}ee !important; }
-                        .shadow-primary\\/20 { --tw-shadow-color: ${pColor}33 !important; }
-                        .text-secondary { color: ${sColor} !important; }
-                    `;
-                    document.head.appendChild(style);
+                    // Propagar colores de marca dinámicos
+                    if (window.applyUserCustomColors) {
+                        window.applyUserCustomColors(data.color_primario, data.color_secundario);
+                    }
                 }
             });
             
@@ -354,13 +359,20 @@
                 ])
                 .then(([perfilData, webData]) => {
                     if (perfilData.success && (webData.success || webData.error)) {
-                        alert('Tus datos y diseño de perfil fueron actualizados correctamente.');
-                        window.location.reload();
+                        const pColor = formData.get('color_primario');
+                        const sColor = formData.get('color_secundario');
+                        if (pColor) localStorage.setItem('user_color_primario', pColor);
+                        if (sColor) localStorage.setItem('user_color_secundario', sColor);
+                        if (window.applyUserCustomColors) window.applyUserCustomColors(pColor, sColor);
+
+                        showProfileNoticeModal('¡Perfil Actualizado!', 'Tus datos y personalización de perfil fueron guardados correctamente.', true, () => {
+                            window.location.reload();
+                        });
                     } else {
-                        alert(perfilData.error || webData.error || 'Ocurrió un error al guardar los datos del perfil.');
+                        showProfileNoticeModal('Atención', perfilData.error || webData.error || 'Ocurrió un error al guardar los datos del perfil.', false);
                     }
                 })
-                .catch(err => alert('Error de conexión con el servidor.'))
+                .catch(err => showProfileNoticeModal('Error de Conexión', 'Ocurrió un error al comunicarse con el servidor.', false))
                 .finally(() => { btn.disabled = false; btn.innerHTML = origText; });
             });
 
@@ -487,6 +499,63 @@
                 document.getElementById('reusableReceiptImage').src = '';
             }, 300);
         };
+
+        let profileNoticeCallback = null;
+        function showProfileNoticeModal(title, msg, isSuccess = true, callback = null) {
+            profileNoticeCallback = callback;
+            document.getElementById('profileNoticeTitle').textContent = title;
+            document.getElementById('profileNoticeMessage').textContent = msg;
+            const iconContainer = document.getElementById('profileNoticeIconContainer');
+            const iconEl = document.getElementById('profileNoticeIcon');
+
+            if (isSuccess) {
+                iconContainer.className = 'w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4 border border-emerald-100 shadow-sm';
+                iconEl.textContent = 'check_circle';
+            } else {
+                iconContainer.className = 'w-14 h-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4 border border-red-100 shadow-sm';
+                iconEl.textContent = 'error';
+            }
+
+            const modal = document.getElementById('profileNoticeModal');
+            const content = document.getElementById('profileNoticeModalContent');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeProfileNoticeModal() {
+            const modal = document.getElementById('profileNoticeModal');
+            const content = document.getElementById('profileNoticeModalContent');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                if (typeof profileNoticeCallback === 'function') {
+                    const cb = profileNoticeCallback;
+                    profileNoticeCallback = null;
+                    cb();
+                }
+            }, 300);
+        }
     </script>
+    <script src="assets/js/script.js"></script>
+
+    <!-- Modal Notificación/Confirmación (Perfil) -->
+    <div id="profileNoticeModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="profileNoticeModalContent" class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl text-center transform scale-95 transition-transform duration-300">
+            <div id="profileNoticeIconContainer" class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4 border border-emerald-100 shadow-sm">
+                <span id="profileNoticeIcon" class="material-symbols-outlined text-3xl">check_circle</span>
+            </div>
+            <h3 id="profileNoticeTitle" class="text-xl font-bold text-slate-900 mb-2">¡Cambios Guardados!</h3>
+            <p id="profileNoticeMessage" class="text-xs sm:text-sm text-slate-500 mb-6 leading-relaxed">Tus datos y personalización del perfil fueron actualizados con éxito.</p>
+            <button onclick="closeProfileNoticeModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-3.5 rounded-2xl text-xs sm:text-sm transition-all shadow-lg">
+                Entendido
+            </button>
+        </div>
+    </div>
 </body>
 </html>

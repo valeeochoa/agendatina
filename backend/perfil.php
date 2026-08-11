@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // 2. Actualizar Contraseña (con verificación de seguridad obligatoria de la contraseña actual)
         if (!empty($password)) {
-            if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || (isset($_SESSION['email']) && strpos($_SESSION['email'], 'demo') !== false)) {
+            if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || (isset($_SESSION['email']) && $_SESSION['email'] === 'demo@agendatina.site')) {
                 throw new Exception("Función no disponible en la versión demo.");
             }
             $current_password = $data['current_password'] ?? '';

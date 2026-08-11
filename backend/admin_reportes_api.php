@@ -115,11 +115,29 @@ if ($method === 'GET') {
         if ($action === 'resolver' && $id > 0) {
             $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'resuelto' WHERE id = ?");
             $stmt->execute([$id]);
+            try {
+                $stmtGet = $pdo->prepare("SELECT descripcion FROM reportes_error WHERE id = ?");
+                $stmtGet->execute([$id]);
+                $desc = $stmtGet->fetchColumn();
+                if ($desc) {
+                    $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE mensaje = ? OR id = ?")->execute([$desc, $id]);
+                } else {
+                    $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE id = ?")->execute([$id]);
+                }
+            } catch(Exception $eS) {}
             echo json_encode(['success' => true, 'message' => 'Reporte marcado como resuelto.']);
 
         } elseif ($action === 'marcar_pendiente' && $id > 0) {
             $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'pendiente' WHERE id = ?");
             $stmt->execute([$id]);
+            try {
+                $stmtGet = $pdo->prepare("SELECT descripcion FROM reportes_error WHERE id = ?");
+                $stmtGet->execute([$id]);
+                $desc = $stmtGet->fetchColumn();
+                if ($desc) {
+                    $pdo->prepare("UPDATE notificaciones_admin SET leida = 0 WHERE mensaje = ? OR id = ?")->execute([$desc, $id]);
+                }
+            } catch(Exception $eS) {}
             echo json_encode(['success' => true, 'message' => 'Reporte marcado como pendiente.']);
 
         } elseif ($action === 'cambiar_estado' && $id > 0 && !empty($nuevo_estado)) {
@@ -130,6 +148,16 @@ if ($method === 'GET') {
         } elseif ($action === 'eliminar' && $id > 0) {
             $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'eliminado' WHERE id = ?");
             $stmt->execute([$id]);
+            try {
+                $stmtGet = $pdo->prepare("SELECT descripcion FROM reportes_error WHERE id = ?");
+                $stmtGet->execute([$id]);
+                $desc = $stmtGet->fetchColumn();
+                if ($desc) {
+                    $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE mensaje = ? OR id = ?")->execute([$desc, $id]);
+                } else {
+                    $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE id = ?")->execute([$id]);
+                }
+            } catch(Exception $eS) {}
             echo json_encode(['success' => true, 'message' => 'Reporte descartado.']);
 
         } else {

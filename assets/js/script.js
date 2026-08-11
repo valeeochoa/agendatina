@@ -1488,48 +1488,10 @@ function loadCustomization() {
                     }
                 }
                 
-                if (data.color_primario) {
-                    let hex = data.color_primario.replace('#', '');
-                    if(hex.length === 3) hex = hex.split('').map(x => x+x).join('');
-                    let r = parseInt(hex.substr(0, 2), 16) || 0;
-                    let g = parseInt(hex.substr(2, 2), 16) || 0;
-                    let b = parseInt(hex.substr(4, 2), 16) || 0;
-                    let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-                    
-                    let textColor = (yiq >= 128) ? '#1e293b' : '#ffffff';
-                    let textMuted = (yiq >= 128) ? '#475569' : 'rgba(255,255,255,0.8)';
-                    let borderMuted = (yiq >= 128) ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.2)';
-                    let badgeBg = (yiq >= 128) ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.2)';
-                    let badgeText = (yiq >= 128) ? '#0f172a' : '#ffffff';
-
-                    const style = document.getElementById('dynamic-dashboard-styles') || document.createElement('style');
-                    style.id = 'dynamic-dashboard-styles';
-                    style.innerHTML = `
-                        :root {
-                            --color-primario: ${data.color_primario};
-                            --color-secundario: ${data.color_secundario || '#FC8712'};
-                            --color-texto-contraste: ${textColor};
-                            --color-texto-mutado: ${textMuted};
-                            --border-contraste: ${borderMuted};
-                            --badge-bg: ${badgeBg};
-                            --badge-text: ${badgeText};
-                        }
-                        .bg-primary { background-color: ${data.color_primario} !important; }
-                        .text-primary { color: ${data.color_primario} !important; }
-                        .border-primary { border-color: ${data.color_primario} !important; }
-                    .hover\\:border-primary\\/50:hover { border-color: color-mix(in srgb, ${data.color_primario} 50%, transparent) !important; }
-                    .hover\\:shadow-primary\\/20:hover { --tw-shadow-color: color-mix(in srgb, ${data.color_primario} 20%, transparent) !important; }
-                    .bg-primary\\/10 { background-color: color-mix(in srgb, ${data.color_primario} 70%, transparent) !important; color: #ffffff !important; border-color: transparent !important; }
-                    .text-primary { color: ${data.color_primario} !important; }
-                    .shadow-primary\\/30 { --tw-shadow-color: color-mix(in srgb, ${data.color_primario} 30%, transparent) !important; }
-                    .shadow-primary\\/40 { --tw-shadow-color: color-mix(in srgb, ${data.color_primario} 40%, transparent) !important; }
-                    .signature-glow { background: linear-gradient(135deg, ${data.color_primario} 0%, ${data.color_secundario || '#FC8712'} 100%) !important; }
-                    body, .bg-slate-50 { background-color: color-mix(in srgb, ${data.color_primario} 4%, #f8fafc) !important; }
-                    `;
-                    if (!document.getElementById('dynamic-dashboard-styles')) {
-                        document.head.appendChild(style);
-                    }
+                if (data.color_primario || data.color_secundario) {
+                    window.applyUserCustomColors(data.color_primario, data.color_secundario);
                 }
+            }
                 if (data.logo && data.logo !== 'null' && data.logo !== 'undefined') {
                     // Corregir la ruta del logo si solo viene el nombre de archivo
                     const logoUrl = data.logo.includes('/') ? data.logo : `backend/uploads/logos/${data.logo}`;
@@ -2895,3 +2857,62 @@ function checkAdminGlobalSession(config = null) {
         });
     });
 }
+
+window.applyUserCustomColors = function(pColor, sColor) {
+    if (!pColor) pColor = localStorage.getItem('user_color_primario') || '#D11149';
+    if (!sColor) sColor = localStorage.getItem('user_color_secundario') || '#FC8712';
+
+    localStorage.setItem('user_color_primario', pColor);
+    localStorage.setItem('user_color_secundario', sColor);
+
+    let style = document.getElementById('agendatina-user-custom-colors');
+    if (!style) {
+        style = document.createElement('style');
+        style.id = 'agendatina-user-custom-colors';
+        document.head.appendChild(style);
+    }
+
+    style.innerHTML = `
+        :root {
+            --color-primario: ${pColor};
+            --color-secundario: ${sColor};
+            --primary: ${pColor};
+            --secondary: ${sColor};
+        }
+        /* Colores primarios dinámicos elegidos por el usuario */
+        .bg-primary, .bg-\\[\\#d11149\\], button.bg-primary { background-color: ${pColor} !important; }
+        .text-primary, .text-\\[\\#d11149\\] { color: ${pColor} !important; }
+        .border-primary, .border-\\[\\#d11149\\] { border-color: ${pColor} !important; }
+        .hover\\:bg-primary\\/90:hover, .hover\\:bg-\\[\\#d11149\\]\\/90:hover { background-color: color-mix(in srgb, ${pColor} 90%, black) !important; }
+        .focus\\:ring-primary:focus, .focus\\:ring-\\[\\#d11149\\]:focus { --tw-ring-color: ${pColor} !important; }
+        .shadow-primary\\/30, .shadow-\\[\\#d11149\\]\\/30 { --tw-shadow-color: color-mix(in srgb, ${pColor} 30%, transparent) !important; }
+        .shadow-primary\\/20, .shadow-\\[\\#d11149\\]\\/20 { --tw-shadow-color: color-mix(in srgb, ${pColor} 20%, transparent) !important; }
+
+        /* Colores secundarios dinámicos */
+        .bg-secondary, .bg-\\[\\#fc8712\\] { background-color: ${sColor} !important; }
+        .text-secondary, .text-\\[\\#fc8712\\] { color: ${sColor} !important; }
+        .border-secondary, .border-\\[\\#fc8712\\] { border-color: ${sColor} !important; }
+
+        /* Protección estricta del logo e identidad oficial Agendatina en Header y Footer */
+        .font-brand.font-semibold.text-2xl.tracking-tight.text-\\[\\#d11149\\],
+        #navAgendatinaBrand .text-\\[\\#d11149\\],
+        header .font-brand .text-\\[\\#d11149\\],
+        footer .font-brand .text-\\[\\#d11149\\] {
+            color: #d11149 !important;
+        }
+        .font-brand.font-semibold.text-2xl.tracking-tight .text-\\[\\#fc8712\\],
+        #navAgendatinaBrand .text-\\[\\#fc8712\\],
+        header .font-brand .text-\\[\\#fc8712\\],
+        footer .font-brand .text-\\[\\#fc8712\\] {
+            color: #fc8712 !important;
+        }
+    `;
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const cachedP = localStorage.getItem('user_color_primario');
+    const cachedS = localStorage.getItem('user_color_secundario');
+    if (cachedP || cachedS) {
+        window.applyUserCustomColors(cachedP, cachedS);
+    }
+});

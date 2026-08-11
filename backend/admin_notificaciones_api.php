@@ -58,14 +58,45 @@ if ($method === 'GET') {
         ");
         $notifs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $unreadCount = 0;
+        // 1. Notificaciones no leídas totales
+        $unreadTotal = 0;
         foreach ($notifs as $n) {
-            if (!$n['leida']) $unreadCount++;
+            if (empty($n['leida'])) $unreadTotal++;
         }
+
+        // 2. Reportes de Error pendientes
+        $stmtRep = $pdo->query("SELECT COUNT(*) FROM reportes_error WHERE estado = 'pendiente' AND (tipo IS NULL OR tipo = '' OR tipo = 'Reporte de Error')");
+        $repCount = (int)($stmtRep ? $stmtRep->fetchColumn() : 0);
+        
+        $stmtNotifErr = $pdo->query("SELECT COUNT(*) FROM notificaciones_admin WHERE leida = 0 AND (segmento LIKE '%Error%' OR segmento LIKE '%Bug%' OR segmento LIKE '%Calendario%' OR segmento LIKE '%Agenda%' OR segmento LIKE '%Ajustes%' OR segmento LIKE '%Equipo%' OR segmento LIKE '%Editor%' OR segmento LIKE '%Servicios%')");
+        $notifErrCount = (int)($stmtNotifErr ? $stmtNotifErr->fetchColumn() : 0);
+        $reportesCount = max($repCount, $notifErrCount);
+
+        // 3. Sugerencias / Mejoras
+        $stmtMej = $pdo->query("SELECT COUNT(*) FROM notificaciones_admin WHERE leida = 0 AND (segmento LIKE '%Sugerencia%' OR segmento LIKE '%Mejora%')");
+        $mejorasCount = (int)($stmtMej ? $stmtMej->fetchColumn() : 0);
+
+        // 4. Comprobantes de pago pendientes de revisión
+        $stmtComp = $pdo->query("SELECT COUNT(*) FROM negocios WHERE estado_pago = 'pendiente_revision'");
+        $comprobantesCount = (int)($stmtComp ? $stmtComp->fetchColumn() : 0);
+
+        // 5. Tareas pendientes
+        $tareasCount = 0;
+        try {
+            $stmtTar = $pdo->query("SELECT COUNT(*) FROM admin_tareas WHERE completada = 0");
+            $tareasCount = (int)($stmtTar ? $stmtTar->fetchColumn() : 0);
+        } catch(Exception $eT) {}
 
         echo json_encode([
             'success' => true,
-            'unread_count' => $unreadCount,
+            'unread_count' => $unreadTotal,
+            'counts' => [
+                'reportes' => $reportesCount,
+                'mejoras' => $mejorasCount,
+                'comprobantes' => $comprobantesCount,
+                'tareas' => $tareasCount,
+                'notificaciones' => $unreadTotal
+            ],
             'data' => $notifs
         ]);
     } catch (Exception $e) {
