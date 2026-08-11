@@ -37,6 +37,10 @@ foreach ($cols as $col => $tipo) {
     catch(Exception $e) { $pdo->exec("ALTER TABLE notificaciones_admin ADD COLUMN $col $tipo"); }
 }
 
+// Asegurar id_reporte en notificaciones_admin
+try { $pdo->query("SELECT id_reporte FROM notificaciones_admin LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE notificaciones_admin ADD COLUMN id_reporte INT NULL"); }
+
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
@@ -50,13 +54,24 @@ if ($method === 'GET') {
         } catch(Exception $eFixN) {}
 
         $stmt = $pdo->query("
-            SELECT n.id, n.segmento, n.mensaje, n.id_negocio, n.nombre_negocio, n.id_usuario, n.nombre_usuario, n.email_usuario, n.rol_usuario, n.fecha, n.leida, neg.nombre_fantasia, neg.ruta 
+            SELECT n.id, n.id_reporte, n.segmento, n.mensaje, n.id_negocio, n.nombre_negocio, n.id_usuario, n.nombre_usuario, n.email_usuario, n.rol_usuario, n.fecha, n.leida, neg.nombre_fantasia, neg.ruta 
             FROM notificaciones_admin n
             LEFT JOIN negocios neg ON n.id_negocio = neg.id
             ORDER BY n.fecha DESC
             LIMIT 100
         ");
         $notifs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($notifs as &$nItem) {
+            if (empty($nItem['id_reporte']) && !empty($nItem['id_negocio'])) {
+                $stmtFind = $pdo->prepare("SELECT id FROM reportes_error WHERE id_negocio = ? ORDER BY id DESC LIMIT 1");
+                $stmtFind->execute([$nItem['id_negocio']]);
+                $foundId = $stmtFind->fetchColumn();
+                if ($foundId) {
+                    $nItem['id_reporte'] = (int)$foundId;
+                }
+            }
+        }
 
         // 1. Notificaciones no leídas totales
         $unreadTotal = 0;

@@ -177,21 +177,41 @@
                             </div>
                             <div>${roleTag}</div>
                         </td>
+                const safeNombre = (r.nombre_negocio || 'Negocio').replace(/'/g, "\\'");
+                const safeDesc = (r.descripcion || '').replace(/'/g, "\\'").replace(/\r?\n|\r/g, ' ');
+
+                html += `
+                    <tr class="hover:bg-slate-50 transition-colors cursor-pointer" onclick="if(!event.target.closest('button')) abrirModalResponder(${r.id}, '${safeNombre}', '${r.estado || 'pendiente'}', '${safeDesc}', '${f}')">
+                        <td class="p-4 text-xs font-semibold text-slate-500 whitespace-nowrap">
+                            ${f}
+                            <div class="mt-1">${statusBadge}</div>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex items-center gap-2 mb-0.5">
+                                <span class="font-extrabold text-slate-900 text-sm">${r.nombre_negocio || 'Sin Negocio'}</span>
+                                <span class="bg-slate-100 text-slate-600 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border border-slate-200">ID: #${r.id_negocio || '?'}</span>
+                            </div>
+                            <div class="text-xs text-slate-600 font-medium">
+                                <span class="font-bold text-slate-700">${r.nombre_usuario || 'Usuario Desconocido'}</span> 
+                                <span class="text-slate-400">(${r.email_usuario || 'Sin email'})</span>
+                            </div>
+                            <div>${roleTag}</div>
+                        </td>
                         <td class="p-4">
                             <span class="bg-pink-50 text-pink-700 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider inline-block mb-1 border border-pink-200">💡 ${r.modulo || 'Sugerencias y Mejoras'}</span>
-                            <p class="text-sm text-slate-800 font-medium leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200/60">${r.descripcion}</p>
+                            <p class="text-sm text-slate-800 font-medium leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200/60 hover:text-blue-600 transition-colors">${r.descripcion}</p>
                         </td>
-                        <td class="p-4 text-center whitespace-nowrap">
+                        <td class="p-4 text-center whitespace-nowrap" onclick="event.stopPropagation()">
                             <div class="flex items-center justify-center gap-2">
-                                <button onclick="abrirModalResponder(${r.id}, '${r.nombre_negocio ? r.nombre_negocio.replace(/'/g, "\\'") : 'Negocio'}', '${r.estado || 'pendiente'}')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs" title="Enviar respuesta al negocio">
-                                    <span class="material-symbols-outlined text-[16px]">reply</span> Responder
+                                <button onclick="abrirModalResponder(${r.id}, '${safeNombre}', '${r.estado || 'pendiente'}', '${safeDesc}', '${f}')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs" title="Ver mensajes y responder al negocio">
+                                    <span class="material-symbols-outlined text-[16px]">forum</span> Ver Hilo / Responder
                                 </button>
                                 ${!isResolved ? `
-                                    <button onclick="abrirModalResponder(${r.id}, '${r.nombre_negocio ? r.nombre_negocio.replace(/'/g, "\\'") : 'Negocio'}', 'resuelto')" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs" title="Marcar como atendida y notificar al negocio">
+                                    <button onclick="abrirModalResponder(${r.id}, '${safeNombre}', 'resuelto', '${safeDesc}', '${f}')" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs" title="Marcar como atendida y notificar al negocio">
                                         <span class="material-symbols-outlined text-[16px]">check_circle</span> Atender & Notificar
                                     </button>
                                 ` : `
-                                    <button onclick="abrirModalResponder(${r.id}, '${r.nombre_negocio ? r.nombre_negocio.replace(/'/g, "\\'") : 'Negocio'}', 'pendiente')" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs" title="Volver a marcar como pendiente">
+                                    <button onclick="abrirModalResponder(${r.id}, '${safeNombre}', 'pendiente', '${safeDesc}', '${f}')" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs" title="Volver a marcar como pendiente">
                                         <span class="material-symbols-outlined text-[16px]">undo</span> Reabrir
                                     </button>
                                 `}
@@ -211,15 +231,15 @@
 
         let currentActiveReportId = null;
 
-        function abrirModalResponder(id, nombreNegocio, estadoDeseado = 'resuelto') {
+        function abrirModalResponder(id, nombreNegocio, estadoDeseado = 'resuelto', descOriginal = '', fechaOriginal = '') {
             currentActiveReportId = id;
             document.getElementById('adminReporteId').value = id;
-            document.getElementById('modalResponderTitulo').textContent = `Responder a ${nombreNegocio} (Sugerencia #${id})`;
+            document.getElementById('modalResponderTitulo').textContent = `Conversación con ${nombreNegocio} (Sugerencia #${id})`;
             const selectEstado = document.getElementById('adminSelectEstado');
             selectEstado.value = estadoDeseado;
             
             cargarPlantillaGenerica();
-            cargarHistorialMensajes(id);
+            cargarHistorialMensajes(id, descOriginal, nombreNegocio, fechaOriginal);
 
             const modal = document.getElementById('modalResponderSuperAdmin');
             const content = document.getElementById('modalResponderSuperAdminContent');
@@ -237,35 +257,64 @@
             textEl.value = GENERIC_MESSAGES[estado] || GENERIC_MESSAGES['resuelto'];
         }
 
-        function cargarHistorialMensajes(idReporte) {
+        function cargarHistorialMensajes(idReporte, descOriginal = '', nombreNegocio = '', fechaOriginal = '') {
             const container = document.getElementById('hiloMensajesContainer');
-            container.innerHTML = '<div class="text-center text-slate-400 font-medium">Cargando conversación...</div>';
+            container.innerHTML = '<div class="text-center text-slate-400 font-medium py-4"><span class="material-symbols-outlined animate-spin text-xl">refresh</span> Cargando conversación...</div>';
             
             fetch(`../backend/admin_reportes_api.php?action=obtener_mensajes&id_reporte=${idReporte}`)
                 .then(r => r.json())
                 .then(d => {
+                    let html = '';
+
+                    // 1. Mostrar siempre el mensaje inicial enviado por el negocio si está disponible
+                    if (descOriginal) {
+                        html += `
+                            <div class="p-3.5 rounded-2xl bg-pink-50/90 border border-pink-200/90 text-slate-800 mb-3 shadow-xs">
+                                <div class="flex justify-between items-center mb-1">
+                                    <strong class="text-xs font-black text-pink-900 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[16px] text-pink-600">lightbulb</span> 
+                                        🏢 Sugerencia / Idea Inicial de ${nombreNegocio || 'Negocio'}
+                                    </strong>
+                                    <span class="text-[10px] text-pink-700 font-bold">${fechaOriginal || ''}</span>
+                                </div>
+                                <p class="text-xs sm:text-sm font-semibold leading-relaxed text-slate-900">${descOriginal}</p>
+                            </div>
+                        `;
+                    }
+
+                    // 2. Renderizar los mensajes e hilos de respuesta intercambiados
                     if (d.success && d.data && d.data.length > 0) {
-                        let html = '';
                         d.data.forEach(m => {
                             const isSuper = m.emisor === 'admin';
                             const f = new Date(m.fecha).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
                             html += `
-                                <div class="p-3 rounded-2xl ${isSuper ? 'bg-blue-50 border border-blue-100 text-blue-900 ml-4' : 'bg-slate-100 border border-slate-200 text-slate-800 mr-4'}">
+                                <div class="p-3.5 rounded-2xl mb-3 shadow-xs ${isSuper ? 'bg-blue-50 border border-blue-200 text-blue-950 ml-4' : 'bg-emerald-50 border border-emerald-200 text-emerald-950 mr-4'}">
                                     <div class="flex justify-between items-center mb-1">
-                                        <strong class="text-[11px] font-black">${isSuper ? '🛡️ Soporte Agendatina' : '🏢 ' + (m.nombre_emisor || 'Negocio')}</strong>
-                                        <span class="text-[10px] text-slate-400">${f}</span>
+                                        <strong class="text-xs font-black flex items-center gap-1 ${isSuper ? 'text-blue-800' : 'text-emerald-900'}">
+                                            <span class="material-symbols-outlined text-[16px]">${isSuper ? 'shield' : 'business'}</span>
+                                            ${isSuper ? '🛡️ Tu Respuesta (Soporte Agendatina)' : '🏢 Respuesta de ' + (m.nombre_emisor || nombreNegocio || 'Negocio')}
+                                        </strong>
+                                        <span class="text-[10px] ${isSuper ? 'text-blue-500' : 'text-emerald-700'} font-bold">${f}</span>
                                     </div>
-                                    <p class="leading-relaxed font-medium">${m.mensaje}</p>
+                                    <p class="text-xs sm:text-sm leading-relaxed font-semibold">${m.mensaje}</p>
                                 </div>
                             `;
                         });
-                        container.innerHTML = html;
-                        container.scrollTop = container.scrollHeight;
-                    } else {
-                        container.innerHTML = '<div class="text-center text-slate-400 text-xs py-2">No hay mensajes previos registrados.</div>';
+                    } else if (!descOriginal) {
+                        html += '<div class="text-center text-slate-400 text-xs py-4">No hay mensajes anteriores registrados.</div>';
                     }
+
+                    container.innerHTML = html;
+                    container.scrollTop = container.scrollHeight;
                 })
-                .catch(() => container.innerHTML = '<div class="text-center text-slate-400 text-xs py-2">Sin mensajes previos.</div>');
+                .catch(() => {
+                    container.innerHTML = descOriginal ? `
+                        <div class="p-3.5 rounded-2xl bg-pink-50 border border-pink-200 text-slate-800 mb-3 shadow-xs">
+                            <strong class="text-xs font-black text-pink-900 block mb-1">🏢 Sugerencia / Idea Inicial</strong>
+                            <p class="text-xs sm:text-sm font-semibold">${descOriginal}</p>
+                        </div>
+                    ` : '<div class="text-center text-slate-400 text-xs py-2">Sin mensajes previos.</div>';
+                });
         }
 
         function cerrarModalResponder() {
