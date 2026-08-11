@@ -41,9 +41,37 @@ foreach ($reportesCols as $col => $tipo) {
     catch(Exception $e) { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN $col $tipo"); }
 }
 
+// Asegurar tabla mensajes_soporte
+try {
+    $pdo->query("SELECT 1 FROM mensajes_soporte LIMIT 1");
+} catch (Exception $e) {
+    $pdo->exec("CREATE TABLE mensajes_soporte (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        id_reporte INT NOT NULL,
+        id_negocio INT NOT NULL,
+        emisor VARCHAR(20) NOT NULL DEFAULT 'admin',
+        nombre_emisor VARCHAR(255) DEFAULT 'Soporte Agendatina',
+        mensaje TEXT NOT NULL,
+        fecha DATETIME DEFAULT CURRENT_TIMESTAMP
+    )");
+}
+
+// Asegurar id_reporte en notificaciones
+try { $pdo->query("SELECT id_reporte FROM notificaciones LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE notificaciones ADD COLUMN id_reporte INT NULL"); }
+
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
+    if (isset($_GET['action']) && $_GET['action'] === 'obtener_mensajes' && !empty($_GET['id_reporte'])) {
+        $idRep = (int)$_GET['id_reporte'];
+        $stmtM = $pdo->prepare("SELECT * FROM mensajes_soporte WHERE id_reporte = ? ORDER BY fecha ASC");
+        $stmtM->execute([$idRep]);
+        $msgs = $stmtM->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(['success' => true, 'data' => $msgs]);
+        exit;
+    }
+
     try {
         // Auto-reparación: Corregir tipo para reportes cuyos módulos no son sugerencias/mejoras
         try {
@@ -112,7 +140,47 @@ if ($method === 'GET') {
     $nuevo_estado = trim($input['estado'] ?? '');
 
     try {
-        if ($action === 'resolver' && $id > 0) {
+        if ($action === 'responder' && $id > 0) {
+            $mensaje = trim($input['mensaje'] ?? '');
+            $nuevo_estado = trim($input['estado'] ?? 'resuelto');
+            if (empty($nuevo_estado)) $nuevo_estado = 'resuelto';
+
+            // Obtener datos del reporte
+            $stmtGet = $pdo->prepare("SELECT id_negocio, nombre_negocio, modulo, descripcion FROM reportes_error WHERE id = ?");
+            $stmtGet->execute([$id]);
+            $rep = $stmtGet->fetch(PDO::FETCH_ASSOC);
+
+            if ($rep) {
+                $idNegocio = $rep['id_negocio'];
+                
+                // Actualizar estado del reporte
+                $pdo->prepare("UPDATE reportes_error SET estado = ? WHERE id = ?")->execute([$nuevo_estado, $id]);
+
+                // Marcar leída notificación de admin
+                try {
+                    if ($rep['descripcion']) {
+                        $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE mensaje = ? OR id = ?")->execute([$rep['descripcion'], $id]);
+                    }
+                } catch(Exception $eS) {}
+
+                // Guardar mensaje en el hilo mensajes_soporte
+                if (!empty($mensaje)) {
+                    $pdo->prepare("INSERT INTO mensajes_soporte (id_reporte, id_negocio, emisor, nombre_emisor, mensaje) VALUES (?, ?, 'admin', 'Soporte Agendatina', ?)")
+                        ->execute([$id, $idNegocio, $mensaje]);
+
+                    // Notificar al negocio en notificaciones
+                    $tituloNotif = ($nuevo_estado === 'resuelto') ? "💬 Soporte Agendatina: Reporte #{$id} Resuelto" : "💬 Soporte Agendatina: Respuesta sobre Reporte #{$id}";
+                    $pdo->prepare("INSERT INTO notificaciones (id_negocio, titulo, mensaje, id_reporte) VALUES (?, ?, ?, ?)")
+                        ->execute([$idNegocio, $tituloNotif, $mensaje, $id]);
+                }
+
+                echo json_encode(['success' => true, 'message' => 'Respuesta enviada y estado actualizado correctamente.']);
+            } else {
+                echo json_encode(['success' => false, 'error' => 'No se encontró el reporte especificado.']);
+            }
+            exit;
+
+        } elseif ($action === 'resolver' && $id > 0) {
             $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'resuelto' WHERE id = ?");
             $stmt->execute([$id]);
             try {

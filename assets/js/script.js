@@ -1186,6 +1186,7 @@ function checkNotifications() {
         cNotifs.forEach(n => {
             currentNotifs.push({
                 id: 'custom_' + n.id,
+                id_reporte: n.id_reporte || null,
                 icon: 'campaign',
                 color: 'text-blue-500',
                 bg: 'bg-blue-100',
@@ -1211,7 +1212,7 @@ function checkNotifications() {
 
         currentNotifs.forEach(n => {
             if (!notifState[n.id]) { notifState[n.id] = { ...n, read: false, deleted: false, time: Date.now() }; } 
-            else { notifState[n.id].title = n.title; notifState[n.id].text = n.text; notifState[n.id].link = n.link; }
+            else { notifState[n.id].title = n.title; notifState[n.id].text = n.text; notifState[n.id].link = n.link; notifState[n.id].id_reporte = n.id_reporte; }
         });
 
         // Auto-Limpieza: Eliminamos notificaciones huérfanas (ej. de la Demo o turnos borrados) para no mezclarlas
@@ -1248,8 +1249,10 @@ function checkNotifications() {
 
         if (displayNotifs.length > 0) {
             displayNotifs.forEach(n => {
-                const onClickAction = n.link === '#' ? '' : `onclick="window.location.href='${n.link ? n.link : 'agenda.html'}'"`;
-                const cursorStyle = n.link === '#' ? 'cursor-default' : 'cursor-pointer hover:bg-slate-100';
+                const isReport = n.id_reporte || (n.title && (n.title.includes('Soporte') || n.title.includes('Reporte')));
+                const safeTitle = (n.title || '').replace(/'/g, "\\'");
+                const onClickAction = isReport ? `onclick="window.abrirHiloSoporteCliente(${n.id_reporte || 0}, '${safeTitle}')"` : (n.link === '#' ? '' : `onclick="window.location.href='${n.link ? n.link : 'agenda.html'}'"`);
+                const cursorStyle = (n.link === '#' && !isReport) ? 'cursor-default' : 'cursor-pointer hover:bg-slate-100';
                 const dot = n.read ? '' : '<span class="w-2 h-2 rounded-full bg-red-500 mt-2"></span>';
                 
                 notifList.innerHTML += `
@@ -1260,6 +1263,7 @@ function checkNotifications() {
                         <div class="flex-1 pr-6">
                             <p class="text-sm font-bold text-slate-800">${n.title}</p>
                             <p class="text-xs text-slate-500 leading-tight mt-0.5">${n.text}</p>
+                            ${isReport ? '<span class="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 mt-1.5 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100"><span class="material-symbols-outlined text-[12px]">forum</span> Ver conversación / Responder</span>' : ''}
                         </div>
                         <div class="absolute right-3 top-3 flex flex-col items-end gap-2">
                             ${dot}
@@ -2962,3 +2966,147 @@ document.addEventListener('DOMContentLoaded', () => {
         window.applyUserCustomColors(cachedP, cachedS, cachedExtra);
     }
 });
+
+// --- LÓGICA DE HILO DE SOPORTE PARA CLIENTES / NEGOCIOS ---
+window.abrirHiloSoporteCliente = function(idReporte, titulo) {
+    let modal = document.getElementById('modalSoporteHiloCliente');
+    if (!modal) {
+        const div = document.createElement('div');
+        div.innerHTML = `
+        <div id="modalSoporteHiloCliente" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+            <div id="modalSoporteHiloClienteContent" class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative transform scale-95 transition-transform duration-300">
+                <button type="button" onclick="window.cerrarHiloSoporteCliente()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+
+                <div class="mb-4">
+                    <div class="flex items-center gap-2 text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">
+                        <span class="material-symbols-outlined text-lg">support_agent</span>
+                        <span>Soporte Técnico Agendatina</span>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-slate-900 font-display" id="hiloClienteTitulo">Conversación de Soporte</h3>
+                    <p class="text-xs text-slate-500 mt-1">Hilo directo de comunicación sobre tu reporte o solicitud.</p>
+                </div>
+
+                <div id="hiloClienteMensajes" class="bg-slate-50 rounded-2xl p-4 border border-slate-200 mb-4 max-h-60 overflow-y-auto space-y-3 text-xs">
+                    <div class="text-center text-slate-400 font-medium">Cargando conversación...</div>
+                </div>
+
+                <form onsubmit="window.enviarRespuestaClienteSoporte(event)" class="space-y-3">
+                    <input type="hidden" id="hiloClienteReporteId" value="">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Responder a Soporte</label>
+                        <textarea id="hiloClienteTextarea" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-primary font-medium" placeholder="Escribe tu mensaje o respuesta a Soporte aquí..." required></textarea>
+                    </div>
+                    <div class="flex justify-end gap-3 pt-1">
+                        <button type="button" onclick="window.cerrarHiloSoporteCliente()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-2.5 rounded-xl text-xs transition-all">Cerrar</button>
+                        <button type="submit" id="btnEnviarClienteSoporte" class="bg-primary hover:bg-primary/90 text-white font-extrabold px-6 py-2.5 rounded-xl text-xs transition-all shadow-md shadow-primary/20 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[16px]">send</span> Enviar Respuesta
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>`;
+        document.body.appendChild(div.firstElementChild);
+        modal = document.getElementById('modalSoporteHiloCliente');
+    }
+
+    document.getElementById('hiloClienteReporteId').value = idReporte || '';
+    if (titulo) document.getElementById('hiloClienteTitulo').textContent = titulo;
+
+    const container = document.getElementById('hiloClienteMensajes');
+    container.innerHTML = '<div class="text-center text-slate-400 font-medium">Cargando conversación...</div>';
+
+    if (idReporte && idReporte > 0) {
+        fetch(`backend/enviar_soporte.php?action=obtener_hilo&id_reporte=${idReporte}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d.success && d.data && d.data.length > 0) {
+                    let html = '';
+                    d.data.forEach(m => {
+                        const isSuper = m.emisor === 'admin';
+                        const f = new Date(m.fecha).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+                        html += `
+                            <div class="p-3 rounded-2xl ${isSuper ? 'bg-blue-50 border border-blue-100 text-blue-900 mr-4' : 'bg-primary/10 border border-primary/20 text-slate-900 ml-4'}">
+                                <div class="flex justify-between items-center mb-1">
+                                    <strong class="text-[11px] font-black">${isSuper ? '🛡️ Soporte Agendatina' : '👤 Tú'}</strong>
+                                    <span class="text-[10px] text-slate-400">${f}</span>
+                                </div>
+                                <p class="leading-relaxed font-medium">${m.mensaje}</p>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                    container.scrollTop = container.scrollHeight;
+                } else {
+                    container.innerHTML = '<div class="text-center text-slate-400 text-xs py-2">Sin mensajes registrados aún. Escribe tu respuesta abajo.</div>';
+                }
+            })
+            .catch(() => container.innerHTML = '<div class="text-center text-slate-400 text-xs py-2">Sin mensajes previos.</div>');
+    } else {
+        container.innerHTML = '<div class="text-center text-slate-400 text-xs py-2">Puedes enviar un mensaje directo al equipo de soporte de Agendatina.</div>';
+    }
+
+    const content = document.getElementById('modalSoporteHiloClienteContent');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+    }, 10);
+};
+
+window.cerrarHiloSoporteCliente = function() {
+    const modal = document.getElementById('modalSoporteHiloCliente');
+    if (!modal) return;
+    const content = document.getElementById('modalSoporteHiloClienteContent');
+    modal.classList.add('opacity-0');
+    content.classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 300);
+};
+
+window.enviarRespuestaClienteSoporte = function(e) {
+    e.preventDefault();
+    const idReporte = document.getElementById('hiloClienteReporteId').value;
+    const mensaje = document.getElementById('hiloClienteTextarea').value;
+    const btn = document.getElementById('btnEnviarClienteSoporte');
+    
+    if (!mensaje.trim()) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">refresh</span> Enviando...';
+
+    const formData = new FormData();
+    formData.append('action', 'responder_cliente');
+    formData.append('id_reporte', idReporte);
+    formData.append('mensaje', mensaje);
+
+    const csrfToken = document.cookie.match(/csrf_token=([^;]+)/)?.[1];
+    if (csrfToken) formData.append('csrf_token', csrfToken);
+
+    fetch('backend/enviar_soporte.php', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(d => {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">send</span> Enviar Respuesta';
+            if (d.success) {
+                document.getElementById('hiloClienteTextarea').value = '';
+                if (idReporte) {
+                    window.abrirHiloSoporteCliente(idReporte);
+                } else {
+                    window.cerrarHiloSoporteCliente();
+                    alert('Tu mensaje fue enviado a Soporte correctamente.');
+                }
+            } else {
+                alert(d.error || 'Error al enviar respuesta.');
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">send</span> Enviar Respuesta';
+            alert('Error de conexión con el servidor.');
+        });
+};

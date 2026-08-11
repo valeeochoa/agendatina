@@ -15,6 +15,16 @@ $segmento = $_POST['segmento'] ?? 'Soporte';
 $mensaje = $_POST['mensaje'] ?? '';
 $id_negocio = $_SESSION['id_negocio'] ?? null;
 
+if (isset($_GET['action']) && $_GET['action'] === 'obtener_hilo' && !empty($_GET['id_reporte'])) {
+    $idRep = (int)$_GET['id_reporte'];
+    $id_negocio = $_SESSION['id_negocio'] ?? null;
+    $stmtM = $pdo->prepare("SELECT * FROM mensajes_soporte WHERE id_reporte = ? AND id_negocio = ? ORDER BY fecha ASC");
+    $stmtM->execute([$idRep, $id_negocio]);
+    $msgs = $stmtM->fetchAll(PDO::FETCH_ASSOC);
+    echo json_encode(['success' => true, 'data' => $msgs]);
+    exit;
+}
+
 if (empty($mensaje)) {
     echo json_encode(['success' => false, 'error' => 'El mensaje está vacío.']);
     exit;
@@ -30,6 +40,30 @@ if ($id_negocio) {
     $stmtN = $pdo->prepare("SELECT nombre_fantasia FROM negocios WHERE id = ? LIMIT 1");
     $stmtN->execute([$id_negocio]);
     $nombre_negocio = $stmtN->fetchColumn() ?: 'Usuario Desconocido';
+}
+
+if ($action === 'responder_cliente' || !empty($_POST['id_reporte'])) {
+    $id_reporte = (int)($_POST['id_reporte'] ?? 0);
+    if ($id_reporte > 0) {
+        try {
+            $pdo->query("SELECT 1 FROM mensajes_soporte LIMIT 1");
+        } catch (Exception $e) {
+            $pdo->exec("CREATE TABLE mensajes_soporte (
+                id INT AUTO_INCREMENT PRIMARY KEY, id_reporte INT NOT NULL, id_negocio INT NOT NULL, emisor VARCHAR(20) DEFAULT 'admin', nombre_emisor VARCHAR(255), mensaje TEXT, fecha DATETIME DEFAULT CURRENT_TIMESTAMP
+            )");
+        }
+
+        $pdo->prepare("INSERT INTO mensajes_soporte (id_reporte, id_negocio, emisor, nombre_emisor, mensaje) VALUES (?, ?, 'cliente', ?, ?)")
+            ->execute([$id_reporte, $id_negocio, $nombre_usuario, $mensaje]);
+
+        $pdo->prepare("UPDATE reportes_error SET estado = 'pendiente' WHERE id = ?")->execute([$id_reporte]);
+
+        $stmtNotifAdmin = $pdo->prepare("INSERT INTO notificaciones_admin (segmento, mensaje, id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario, leida) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)");
+        $stmtNotifAdmin->execute(['Soporte / Respuesta de Cliente', "Respuesta en Reporte #{$id_reporte}: {$mensaje}", $id_negocio, $nombre_negocio, $id_usuario, $nombre_usuario, $email_usuario, $rol_usuario]);
+
+        echo json_encode(['success' => true, 'message' => 'Respuesta enviada a soporte.']);
+        exit;
+    }
 }
 
 // Determinar el tipo exacto según el formulario que envió la solicitud

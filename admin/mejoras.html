@@ -183,11 +183,18 @@
                         </td>
                         <td class="p-4 text-center whitespace-nowrap">
                             <div class="flex items-center justify-center gap-2">
+                                <button onclick="abrirModalResponder(${r.id}, '${r.nombre_negocio ? r.nombre_negocio.replace(/'/g, "\\'") : 'Negocio'}', '${r.estado || 'pendiente'}')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs" title="Enviar respuesta al negocio">
+                                    <span class="material-symbols-outlined text-[16px]">reply</span> Responder
+                                </button>
                                 ${!isResolved ? `
-                                    <button onclick="marcarMejoraResuelta(${r.id})" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1">
-                                        <span class="material-symbols-outlined text-[16px]">check_circle</span> Marcar Atendida
+                                    <button onclick="abrirModalResponder(${r.id}, '${r.nombre_negocio ? r.nombre_negocio.replace(/'/g, "\\'") : 'Negocio'}', 'resuelto')" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs" title="Marcar como atendida y notificar al negocio">
+                                        <span class="material-symbols-outlined text-[16px]">check_circle</span> Atender & Notificar
                                     </button>
-                                ` : ''}
+                                ` : `
+                                    <button onclick="abrirModalResponder(${r.id}, '${r.nombre_negocio ? r.nombre_negocio.replace(/'/g, "\\'") : 'Negocio'}', 'pendiente')" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs" title="Volver a marcar como pendiente">
+                                        <span class="material-symbols-outlined text-[16px]">undo</span> Reabrir
+                                    </button>
+                                `}
                             </div>
                         </td>
                     </tr>
@@ -196,21 +203,168 @@
             tbody.innerHTML = html;
         }
 
-        function marcarMejoraResuelta(id) {
+        const GENERIC_MESSAGES = {
+            'resuelto': '¡Hola! Te informamos que tu sugerencia / propuesta de mejora ha sido revisada por el equipo de soporte de Agendatina. Si deseas agregar más comentarios sobre esta idea, puedes responder en este hilo.',
+            'en_revision': '¡Hola! Queremos informarte que hemos tomado tu sugerencia de mejora y se encuentra en nuestro backlog de desarrollo. Te notificaremos con novedades.',
+            'pendiente': '¡Hola! Muchas gracias por tu sugerencia. Para comprender mejor la propuesta, ¿podrías detallarnos un poco más tu caso de uso respondiendo aquí?'
+        };
+
+        let currentActiveReportId = null;
+
+        function abrirModalResponder(id, nombreNegocio, estadoDeseado = 'resuelto') {
+            currentActiveReportId = id;
+            document.getElementById('adminReporteId').value = id;
+            document.getElementById('modalResponderTitulo').textContent = `Responder a ${nombreNegocio} (Sugerencia #${id})`;
+            const selectEstado = document.getElementById('adminSelectEstado');
+            selectEstado.value = estadoDeseado;
+            
+            cargarPlantillaGenerica();
+            cargarHistorialMensajes(id);
+
+            const modal = document.getElementById('modalResponderSuperAdmin');
+            const content = document.getElementById('modalResponderSuperAdminContent');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function cargarPlantillaGenerica() {
+            const estado = document.getElementById('adminSelectEstado').value;
+            const textEl = document.getElementById('adminTextMensaje');
+            textEl.value = GENERIC_MESSAGES[estado] || GENERIC_MESSAGES['resuelto'];
+        }
+
+        function cargarHistorialMensajes(idReporte) {
+            const container = document.getElementById('hiloMensajesContainer');
+            container.innerHTML = '<div class="text-center text-slate-400 font-medium">Cargando conversación...</div>';
+            
+            fetch(`../backend/admin_reportes_api.php?action=obtener_mensajes&id_reporte=${idReporte}`)
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success && d.data && d.data.length > 0) {
+                        let html = '';
+                        d.data.forEach(m => {
+                            const isSuper = m.emisor === 'admin';
+                            const f = new Date(m.fecha).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+                            html += `
+                                <div class="p-3 rounded-2xl ${isSuper ? 'bg-blue-50 border border-blue-100 text-blue-900 ml-4' : 'bg-slate-100 border border-slate-200 text-slate-800 mr-4'}">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <strong class="text-[11px] font-black">${isSuper ? '🛡️ Soporte Agendatina' : '🏢 ' + (m.nombre_emisor || 'Negocio')}</strong>
+                                        <span class="text-[10px] text-slate-400">${f}</span>
+                                    </div>
+                                    <p class="leading-relaxed font-medium">${m.mensaje}</p>
+                                </div>
+                            `;
+                        });
+                        container.innerHTML = html;
+                        container.scrollTop = container.scrollHeight;
+                    } else {
+                        container.innerHTML = '<div class="text-center text-slate-400 text-xs py-2">No hay mensajes previos registrados.</div>';
+                    }
+                })
+                .catch(() => container.innerHTML = '<div class="text-center text-slate-400 text-xs py-2">Sin mensajes previos.</div>');
+        }
+
+        function cerrarModalResponder() {
+            const modal = document.getElementById('modalResponderSuperAdmin');
+            const content = document.getElementById('modalResponderSuperAdminContent');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        function enviarRespuestaSuperAdmin(e) {
+            e.preventDefault();
+            const id = document.getElementById('adminReporteId').value;
+            const estado = document.getElementById('adminSelectEstado').value;
+            const mensaje = document.getElementById('adminTextMensaje').value;
+
+            const btn = document.getElementById('btnEnviarRespuestaAdmin');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">refresh</span> Enviando...';
+
             fetch('../backend/admin_reportes_api.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'resolver', id: id })
+                body: JSON.stringify({ action: 'responder', id: id, estado: estado, mensaje: mensaje })
             })
-            .then(r => r.json())
-            .then(d => {
-                if (d.success) {
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">send</span> Enviar y Guardar';
+                if (data.success) {
+                    cerrarModalResponder();
                     loadMejoras();
                     if (window.loadAdminNavNotifsCount) window.loadAdminNavNotifsCount();
+                } else {
+                    alert(data.error || 'Error al enviar la respuesta.');
                 }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">send</span> Enviar y Guardar';
+                alert('Error de conexión con el servidor.');
             });
         }
     </script>
     <script src="admin_nav.js"></script>
+
+    <!-- MODAL RESPONDER REPORTES / MEJORAS (SuperAdmin) -->
+    <div id="modalResponderSuperAdmin" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="modalResponderSuperAdminContent" class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative transform scale-95 transition-transform duration-300">
+            <button type="button" onclick="cerrarModalResponder()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+
+            <div class="mb-4">
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    <span class="material-symbols-outlined text-blue-600 text-lg">support_agent</span>
+                    <span>Atención de Soporte</span>
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-900" id="modalResponderTitulo">Responder a Sugerencia #...</h3>
+                <p class="text-xs text-slate-500 mt-1" id="modalResponderSubtitulo">Envia una respuesta o consulta al negocio emisor.</p>
+            </div>
+
+            <!-- Conversación Previa / Hilo -->
+            <div id="hiloMensajesContainer" class="bg-slate-50 rounded-2xl p-4 border border-slate-200 mb-4 max-h-48 overflow-y-auto space-y-3 text-xs">
+                <div class="text-center text-slate-400 font-medium">Cargando mensajes...</div>
+            </div>
+
+            <form id="formResponderSuperAdmin" onsubmit="enviarRespuestaSuperAdmin(event)" class="space-y-4">
+                <input type="hidden" id="adminReporteId" value="">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Estado de la Solicitud</label>
+                    <select id="adminSelectEstado" onchange="cargarPlantillaGenerica()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="resuelto" selected>✓ Marcar como Atendida</option>
+                        <option value="en_revision">⏳ En Revisión / En Proceso</option>
+                        <option value="pendiente">💡 Pendiente (Requiere más información)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Mensaje para el Negocio</label>
+                        <button type="button" onclick="cargarPlantillaGenerica()" class="text-[11px] font-bold text-blue-600 hover:text-blue-800 underline">Restablecer Texto Genérico</button>
+                    </div>
+                    <textarea id="adminTextMensaje" rows="4" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium leading-relaxed" placeholder="Escribe tu respuesta o personalización aquí..."></textarea>
+                    <p class="text-[11px] text-slate-400 mt-1">El negocio recibirá una notificación inmediata en su panel con este mensaje.</p>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="cerrarModalResponder()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-2xl text-xs transition-all">Cancelar</button>
+                    <button type="submit" id="btnEnviarRespuestaAdmin" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3 rounded-2xl text-xs transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-1.5">
+                        <span class="material-symbols-outlined text-[18px]">send</span> Enviar y Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
