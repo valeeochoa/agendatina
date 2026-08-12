@@ -1112,12 +1112,56 @@ function checkSubscription(subscriptionData) {
         if (subscriptionData.status === 'pendiente_revision' && window.currentBusinessData && window.currentBusinessData.comprobante) {
             subActionBtn.onclick = () => window.verComprobanteModal(window.currentBusinessData.comprobante);
         } else {
-            subActionBtn.onclick = () => window.location.href = 'pago.html';
+            subActionBtn.onclick = () => {
+                if (isDemo) {
+                    window.showDemoPaymentNoticeModal();
+                } else {
+                    window.location.href = 'pago.html';
+                }
+            };
         }
     } else {
         subActionBtn.classList.add('hidden');
     }
 }
+
+window.showDemoPaymentNoticeModal = function() {
+    let modal = document.getElementById('globalDemoPaymentModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'globalDemoPaymentModal';
+        modal.className = 'fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300';
+        modal.innerHTML = `
+            <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-100 text-center animate-modal-pop">
+                <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-2xl bg-amber-50 text-amber-500 mb-4 border border-amber-100">
+                    <span class="material-symbols-outlined text-3xl">info</span>
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-800 mb-2">Cuenta de Demostración</h3>
+                <p class="text-slate-600 text-sm leading-relaxed mb-6">
+                    Estás explorando Agendatina en modo de <strong>Demostración</strong>. No es necesario abonar planes ni realizar pagos en esta cuenta de prueba.
+                </p>
+                <button onclick="document.getElementById('globalDemoPaymentModal').classList.add('hidden')" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-extrabold py-3.5 px-6 rounded-2xl transition-all shadow-md cursor-pointer">
+                    Entendido
+                </button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    } else {
+        modal.classList.remove('hidden');
+    }
+};
+
+document.addEventListener('click', function(e) {
+    const link = e.target.closest('a[href*="pago.html"]');
+    if (link) {
+        const isDemo = (sessionStorage.getItem('is_demo_user') === 'true') ||
+                       (sessionStorage.getItem('agendatina_demo_alert') === 'true');
+        if (isDemo) {
+            e.preventDefault();
+            window.showDemoPaymentNoticeModal();
+        }
+    }
+});
 
 // --- GRÁFICO SEMANAL (CHART.JS) ---
 function loadDashboardChart(chartColor) {
@@ -2615,23 +2659,56 @@ function closeWebModal() {
     document.body.style.overflow = 'auto';
 }
 
+function showSuspendedAccountModal(message) {
+    let modal = document.getElementById('suspendedAccountModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'suspendedAccountModal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[999] flex items-center justify-center p-4 sm:p-6 transition-all duration-300';
+        modal.innerHTML = `
+            <div class="bg-white rounded-3xl shadow-2xl border border-red-100 max-w-md w-full p-6 sm:p-8 text-center animate-modal-pop">
+                <div class="w-16 h-16 rounded-2xl bg-red-50 text-red-500 border border-red-100 flex items-center justify-center mx-auto mb-4 shadow-xs">
+                    <span class="material-symbols-outlined text-3xl">block</span>
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-800 mb-2">Cuenta Suspendida</h3>
+                <p class="text-sm text-slate-600 font-medium mb-6">${message || 'Tu cuenta está suspendida por falta de pago. Serás redirigido al panel de control para regularizar tu situación.'}</p>
+                <button onclick="window.location.href='dashboard.html'" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3.5 px-6 rounded-2xl transition-all shadow-lg shadow-red-500/20 active:scale-95">
+                    Ir al Panel de Control
+                </button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    } else {
+        modal.classList.remove('hidden');
+    }
+}
+
 function isAccountSuspended(dbStatus, lastPaymentStr, fechaAltaStr) {
+    // Si es cuenta Demo o está en sesión demo, NUNCA está suspendida
+    const isDemo = (window.currentUserData && window.currentUserData.email && window.currentUserData.email.includes('demo')) ||
+                   (window.currentBusinessData && (window.currentBusinessData.ruta === 'demo' || (window.currentBusinessData.ruta && window.currentBusinessData.ruta.indexOf('demo') === 0) || window.currentBusinessData.is_demo)) ||
+                   (sessionStorage.getItem('is_demo_user') === 'true') ||
+                   (sessionStorage.getItem('agendatina_demo_alert') === 'true');
+    if (isDemo) return false;
+
     if (dbStatus === 'suspendido') return true;
     
     const today = new Date();
     
     if (dbStatus === 'prueba' || dbStatus === 'beta') {
-        const fechaAlta = fechaAltaStr ? new Date(fechaAltaStr.replace(/-/g, '/')) : new Date();
+        if (!fechaAltaStr) return false;
+        const fechaAlta = new Date(fechaAltaStr.replace(/-/g, '/'));
         const trialEnd = new Date(fechaAlta);
-        const days = 30; // Período de prueba de 30 días
-        trialEnd.setDate(trialEnd.getDate() + days);
+        trialEnd.setDate(trialEnd.getDate() + 30);
         return today > trialEnd;
     } 
     
     if (dbStatus === 'activo' || dbStatus === 'pagado') {
-        const lastPayment = lastPaymentStr ? new Date(lastPaymentStr.replace(/-/g, '/')) : new Date(0);
+        if (!lastPaymentStr) return false; // Si aún no registra fecha de pago en cuenta activa, se asume vigente
+        const lastPayment = new Date(lastPaymentStr.replace(/-/g, '/'));
+        if (isNaN(lastPayment.getTime())) return false;
         const paymentDeadline = new Date(lastPayment);
-        paymentDeadline.setDate(paymentDeadline.getDate() + 40); // 30 días de ciclo + 10 de gracia
+        paymentDeadline.setDate(paymentDeadline.getDate() + 40); // 30 días + 10 días de gracia
         return today > paymentDeadline;
     }
     
@@ -2655,8 +2732,10 @@ function applyWebCustomization() {
                                             ((path.includes('calendarioMensual') || path.includes('calendarioSemanal')) && (!negocioSlug || negocioSlug === ''));
                                             
                         if (isAdminPage) {
-                            alert('Tu cuenta está suspendida por falta de pago. Serás redirigido al panel de control para regularizar tu situación.');
-                            window.location.href = 'dashboard.html';
+                            showSuspendedAccountModal('Tu cuenta está suspendida por falta de pago. Serás redirigido al panel de control para regularizar tu situación.');
+                            setTimeout(() => {
+                                window.location.href = 'dashboard.html';
+                            }, 2500);
                             return;
                         } else {
                             document.body.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100vh; background:#fff; color:#333; font-family:sans-serif; font-size:24px; font-weight:bold; margin:0;">Error</div>';
@@ -3231,21 +3310,28 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
             --color-terciario: ${extraColors.color_terciario || '#8b5cf6'};
         }
 
-        /* 1. Fondo del Calendario y Dashboard (Color Primario Atenuado Visible) */
+        /* 1. Fondo del Panel con matiz armónico de ambos colores */
         body, html {
-            background-color: color-mix(in srgb, ${pColor} 16%, #ffffff) !important;
+            background-color: color-mix(in srgb, ${pColor} 8%, color-mix(in srgb, ${sColor} 6%, #ffffff)) !important;
         }
 
-        /* 2. Bordes de Cards y Contenedores derivados del color primario y secundario */
+        /* 2. Bordes de Cards y Resaltado Hover con Color Secundario */
         .card-custom, 
         .bg-white.rounded-3xl, 
         div.border-slate-200, 
         div.border-slate-200\\/80, 
         .border-slate-100 {
-            border-color: color-mix(in srgb, ${pColor} 30%, #e2e8f0) !important;
+            border-color: color-mix(in srgb, ${sColor} 30%, color-mix(in srgb, ${pColor} 15%, #e2e8f0)) !important;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        /* 3. Colores Primarios (Botones, Acciones, Destacados) */
+        .card-custom:hover, 
+        .bg-white.rounded-3xl:hover {
+            border-color: ${sColor} !important;
+            box-shadow: 0 10px 25px -5px color-mix(in srgb, ${sColor} 25%, transparent) !important;
+        }
+
+        /* 3. Colores Primarios (Botones principales, enlaces, destacados) */
         .bg-primary, button.bg-primary, .btn-primary { background-color: ${pColor} !important; }
         .text-primary { color: ${pColor} !important; }
         .border-primary { border-color: ${pColor} !important; }
@@ -3254,47 +3340,36 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
         .shadow-primary\\/30 { --tw-shadow-color: color-mix(in srgb, ${pColor} 30%, transparent) !important; }
         .shadow-primary\\/20 { --tw-shadow-color: color-mix(in srgb, ${pColor} 20%, transparent) !important; }
 
-        /* 4. Colores Secundarios (Detalles, Bordes, Iconos, Accents) */
-        .bg-secondary { background-color: ${sColor} !important; }
+        /* 4. Colores Secundarios (Destacados, Iconos, Badges, Botones Secundarios) */
+        .bg-secondary, button.bg-secondary, .btn-secondary { background-color: ${sColor} !important; }
         .text-secondary { color: ${sColor} !important; }
         .border-secondary { border-color: ${sColor} !important; }
+        
+        .bg-secondary\\/10 { background-color: color-mix(in srgb, ${sColor} 12%, #ffffff) !important; color: ${sColor} !important; }
+        .bg-secondary\\/20 { background-color: color-mix(in srgb, ${sColor} 20%, #ffffff) !important; color: ${sColor} !important; }
 
-        /* 5. Personalización Completa del Calendario (Exclusivo Color Primario Fuerte en Números y Secundario en Detalle) */
-        /* Cuadrados / Segmentos del Calendario (Mensual y Semanal) */
+        /* Iconos de cabecera e insignias con acento secundario */
+        .w-14.h-14.rounded-2xl,
+        .w-13.h-13.rounded-2xl,
+        .w-12.h-12.rounded-2xl {
+            border-color: color-mix(in srgb, ${sColor} 40%, transparent) !important;
+        }
+
+        /* 5. Calendario y Franjas Horarias */
+        /* Cuadrados del Calendario */
         .calendar-day:not(.disabled), 
         .mini-calendar-day:not(.disabled),
         #calendarDays > div:not(.disabled):not(:empty),
         #weeklyCalendarDays > div:not(.disabled):not(:empty),
         #adminWeeklyGrid > div:not(.disabled):not(:empty),
         .weekly-day-card {
-            background-color: color-mix(in srgb, ${pColor} 26%, #ffffff) !important;
-            border: 1.5px solid color-mix(in srgb, ${pColor} 45%, #ffffff) !important;
+            background-color: color-mix(in srgb, ${pColor} 15%, #ffffff) !important;
+            border: 1.5px solid color-mix(in srgb, ${sColor} 40%, #ffffff) !important;
             color: ${pColor} !important;
             font-weight: 800 !important;
         }
 
-        /* Letras y Números del Calendario (Color Principal Fuerte) */
-        .calendar-day, 
-        .mini-calendar-day,
-        #calendarDays > div,
-        #weeklyCalendarDays > div,
-        #adminWeeklyGrid > div {
-            color: ${pColor} !important;
-            font-weight: 800 !important;
-        }
-
-        /* Hover de los cuadrados */
-        .calendar-day:not(.disabled):hover,
-        .mini-calendar-day:not(.disabled):hover,
-        #calendarDays > div:not(.disabled):not(:empty):hover,
-        #weeklyCalendarDays > div:not(.disabled):not(:empty):hover,
-        #adminWeeklyGrid > div:not(.disabled):not(:empty):hover {
-            background-color: color-mix(in srgb, ${pColor} 40%, #ffffff) !important;
-            border-color: ${pColor} !important;
-            color: ${pColor} !important;
-        }
-
-        /* Día Seleccionado / Activo */
+        /* Día Seleccionado / Activo con Gradiente de Primario a Secundario */
         .calendar-day.selected, 
         .mini-calendar-day.selected, 
         .time-slot.selected, 
@@ -3302,26 +3377,19 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
         #calendarDays > div.selected,
         #weeklyCalendarDays > div.selected,
         #adminWeeklyGrid > div.selected {
-            background-color: ${pColor} !important;
+            background: linear-gradient(135deg, ${pColor} 0%, ${sColor} 100%) !important;
             color: #ffffff !important;
             border-color: ${sColor} !important;
             font-weight: 900 !important;
-            box-shadow: 0 4px 14px color-mix(in srgb, ${pColor} 45%, transparent) !important;
+            box-shadow: 0 4px 16px color-mix(in srgb, ${sColor} 35%, transparent) !important;
         }
 
-        /* Franjas Horarias */
-        .time-slot:not(.booked),
-        #weeklyTimeSlots > button:not(.disabled) {
-            background-color: color-mix(in srgb, ${pColor} 18%, #ffffff) !important;
-            border-color: color-mix(in srgb, ${pColor} 45%, #ffffff) !important;
-            color: ${pColor} !important;
-            font-weight: 800 !important;
-        }
+        /* Hover de Franjas Horarias */
         .time-slot:hover:not(.booked),
         #weeklyTimeSlots > button:not(.disabled):hover {
-            background-color: color-mix(in srgb, ${pColor} 35%, #ffffff) !important;
-            border-color: ${pColor} !important;
-            color: ${pColor} !important;
+            background-color: color-mix(in srgb, ${sColor} 20%, #ffffff) !important;
+            border-color: ${sColor} !important;
+            color: ${sColor} !important;
         }
 
         /* Navegación y Encabezados del Calendario */
@@ -3344,15 +3412,23 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
             border-color: color-mix(in srgb, ${pColor} 40%, #e2e8f0) !important;
         }
 
+        /* Pestañas de Profesionales Activas / Inactivas con Gradiente */
         .prof-tab-pill.active, .tab-cal-active {
-            background-color: ${pColor} !important;
+            background: linear-gradient(135deg, ${pColor} 0%, ${sColor} 100%) !important;
             color: #ffffff !important;
             border-color: ${sColor} !important;
+            box-shadow: 0 4px 12px color-mix(in srgb, ${sColor} 30%, transparent) !important;
         }
         .prof-tab-pill:not(.active) {
-            background-color: color-mix(in srgb, ${pColor} 15%, #ffffff) !important;
-            color: ${pColor} !important;
-            border-color: color-mix(in srgb, ${pColor} 30%, #e2e8f0) !important;
+            background-color: color-mix(in srgb, ${sColor} 10%, #ffffff) !important;
+            color: ${sColor} !important;
+            border-color: color-mix(in srgb, ${sColor} 35%, #e2e8f0) !important;
+        }
+
+        /* Avatar del Usuario en Navbar con Gradiente Primario a Secundario */
+        #navAvatar:not(:has(img)) {
+            background: linear-gradient(135deg, ${pColor} 0%, ${sColor} 100%) !important;
+            color: #ffffff !important;
         }
 
         ${extraCss}

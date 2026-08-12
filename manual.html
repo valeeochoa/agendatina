@@ -108,7 +108,7 @@
                         <span class="material-symbols-outlined text-emerald-600 text-[18px]">verified</span>
                         <span id="manualActivePlanText">Tu Plan: Plan Simple</span>
                     </span>
-                    <a href="pago.html" class="text-[10px] uppercase font-black tracking-wider text-emerald-700 hover:underline">Cambiar</a>
+                    <button onclick="switchTab('planes')" class="text-[10px] uppercase font-black tracking-wider text-emerald-700 hover:underline border-none bg-transparent cursor-pointer">Ver Planes</button>
                 </div>
 
                 <h2 class="text-xs font-black uppercase tracking-wider text-slate-400 px-3 mb-3 flex items-center gap-1.5">
@@ -466,9 +466,9 @@
                             <div>
                                 <h3 class="font-bold text-amber-900 text-sm mb-1">Módulo Disponible en Plan Profesional y Premium</h3>
                                 <p class="text-xs text-amber-800 leading-relaxed mb-3">Tu plan activo actual es el Plan Simple (1 Profesional). Al actualizar a un Plan Profesional o Premium podrás dar de alta a múltiples profesionales con contraseña propia.</p>
-                                <a href="pago.html" class="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-xs transition-all">
-                                    <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Ver Planes y Actualizar
-                                </a>
+                                <button onclick="switchTab('planes')" class="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-xs transition-all border-none cursor-pointer">
+                                    <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Ver Planes y Alcances
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -529,9 +529,9 @@
                             <div>
                                 <h3 class="font-bold text-purple-900 text-sm mb-1">Módulo Exclusivo del Plan Premium</h3>
                                 <p class="text-xs text-purple-800 leading-relaxed mb-3">El análisis avanzado de métricas e ingresos está reservado para cuentas con Plan Premium activo.</p>
-                                <a href="pago.html" class="inline-flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-xs transition-all">
-                                    <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Actualizar a Plan Premium
-                                </a>
+                                <button onclick="switchTab('planes')" class="inline-flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-xs transition-all border-none cursor-pointer">
+                                    <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Ver Alcance Plan Premium
+                                </button>
                             </div>
                         </div>
                     </div>

@@ -38,11 +38,16 @@ try {
         $fechaAlta = new DateTime($fechaAltaStr);
         $fechaAlta->modify('+30 days');
         if ($today > $fechaAlta) { $isSuspended = true; }
+    if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || (isset($negocio['ruta']) && strpos($negocio['ruta'], 'demo') === 0)) {
+        $isSuspended = false;
     } elseif ($dbStatus === 'activo' || $dbStatus === 'pagado') {
-        $ultimoPagoStr = !empty($negocio['ultimo_pago']) ? $negocio['ultimo_pago'] : '2000-01-01';
-        $ultimoPago = new DateTime($ultimoPagoStr);
-        $ultimoPago->modify('+40 days');
-        if ($today > $ultimoPago) { $isSuspended = true; }
+        if (!empty($negocio['ultimo_pago'])) {
+            $ultimoPago = new DateTime($negocio['ultimo_pago']);
+            $ultimoPago->modify('+40 days');
+            if ($today > $ultimoPago) { $isSuspended = true; }
+        } else {
+            $isSuspended = false;
+        }
     }
 
     if ($isSuspended) {

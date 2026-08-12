@@ -146,23 +146,40 @@
                                         <span class="text-slate-600 font-medium">Tus colores elegidos se aplicarán automáticamente a tu <strong>Dashboard privado</strong> (Agenda, Calendarios, Servicios, Perfil, Ajustes) adaptando fondos, bordes de tarjetas y detalles, y también a tu <strong>Página Web pública de reservas</strong> (<a href="mi-web.html" class="text-blue-700 font-bold underline">mi-web.html</a>). El portal de inicio de Agendatina mantendrá la estética oficial de la marca.</span>
                                     </div>
                                 </div>
-
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Color Principal</label>
-                                        <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
-                                            <input type="color" id="perfilColor1" name="color_primario" value="#D11149" class="w-10 h-10 rounded-xl border-none cursor-pointer p-0 bg-transparent" onchange="previewColorsInRealTime()">
-                                            <span class="text-xs text-slate-500 font-bold">Botones, fondos suaves y destacados</span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Color Secundario</label>
-                                        <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
-                                            <input type="color" id="perfilColor2" name="color_secundario" value="#FC8712" class="w-10 h-10 rounded-xl border-none cursor-pointer p-0 bg-transparent" onchange="previewColorsInRealTime()">
-                                            <span class="text-xs text-slate-500 font-bold">Bordes de cards, detalles e iconos</span>
-                                        </div>
-                                    </div>
-                                </div>
+                                     <div>
+                                         <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Color Principal</label>
+                                         <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+                                             <input type="color" id="perfilColor1" name="color_primario" value="#D11149" class="w-10 h-10 rounded-xl border-none cursor-pointer p-0 bg-transparent" oninput="previewColorsInRealTime()" onchange="previewColorsInRealTime()">
+                                             <span class="text-xs text-slate-500 font-bold">Botones, fondos suaves y destacados</span>
+                                         </div>
+                                     </div>
+                                     <div>
+                                         <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wider">Color Secundario</label>
+                                         <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+                                             <input type="color" id="perfilColor2" name="color_secundario" value="#FC8712" class="w-10 h-10 rounded-xl border-none cursor-pointer p-0 bg-transparent" oninput="previewColorsInRealTime()" onchange="previewColorsInRealTime()">
+                                             <span class="text-xs text-slate-500 font-bold">Bordes de cards, hovers, detalles e iconos</span>
+                                         </div>
+                                     </div>
+                                 </div>
+
+                                 <!-- Tarjeta de Vista Previa en Tiempo Real de la Combinación de Colores -->
+                                 <div class="mt-4 bg-white border border-slate-200 p-4 rounded-2xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+                                     <div class="flex items-center gap-3">
+                                         <div class="w-10 h-10 rounded-xl bg-secondary/10 text-secondary border border-secondary flex items-center justify-center font-bold shrink-0">
+                                             <span class="material-symbols-outlined text-xl">palette</span>
+                                         </div>
+                                         <div>
+                                             <p class="text-xs font-extrabold text-slate-800">Vista Previa en Vivo</p>
+                                             <p class="text-[11px] text-slate-500">Mueve los selectores para ver los efectos instantáneos.</p>
+                                         </div>
+                                     </div>
+                                     <div class="flex items-center gap-2 flex-wrap justify-center">
+                                         <span class="px-3 py-1.5 text-xs font-bold text-white rounded-xl shadow-xs bg-primary">Primario</span>
+                                         <span class="px-3 py-1.5 text-xs font-bold text-white rounded-xl shadow-xs bg-secondary">Secundario</span>
+                                         <span class="px-3 py-1.5 text-xs font-bold text-white rounded-xl shadow-xs prof-tab-pill active">Combinado</span>
+                                     </div>
+                                 </div>
                                 
                                 <div id="extraColorsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4"></div>
                                 <input type="hidden" id="coloresExtraJsonInput" name="colores_extra_json" value="{}">

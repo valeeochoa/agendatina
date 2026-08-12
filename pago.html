@@ -50,7 +50,37 @@
     </div>
     <script src="assets/js/csrf.js"></script>
     <script>
+        function showDemoNoticeModal() {
+            let modal = document.getElementById('demoPaymentModal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'demoPaymentModal';
+                modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-all duration-300';
+                modal.innerHTML = `
+                    <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-100 text-center animate-modal-pop">
+                        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-2xl bg-amber-50 text-amber-500 mb-4 border border-amber-100">
+                            <span class="material-symbols-outlined text-3xl">info</span>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-slate-800 mb-2">Cuenta de Demostración</h3>
+                        <p class="text-slate-600 text-sm leading-relaxed mb-6">
+                            Estás explorando Agendatina en modo de <strong>Demostración</strong>. No es necesario realizar pagos en esta cuenta de prueba.
+                        </p>
+                        <button onclick="window.location.href='dashboard.html'" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-extrabold py-3.5 px-6 rounded-2xl transition-all shadow-md cursor-pointer">
+                            Volver al Panel de Control
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            const isDemo = (sessionStorage.getItem('is_demo_user') === 'true') || (sessionStorage.getItem('agendatina_demo_alert') === 'true');
+            if (isDemo) {
+                showDemoNoticeModal();
+                return;
+            }
+
             fetch('backend/obtener_precios.php').then(r=>r.json()).then(priceData => {
                 let pBasico = 8889, pIntermedio = 11111, pPremium = 16667;
                 let discount = 10;
