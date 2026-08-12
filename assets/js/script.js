@@ -1504,6 +1504,7 @@ function loadCustomization() {
                 if (data.color_primario && document.getElementById('navIcon')) {
                     document.getElementById('navIcon').style.color = data.color_primario;
                 }
+                const navBrandAccent = document.getElementById('navBrandAccent');
                 if (data.color_secundario && navBrandAccent) {
                     navBrandAccent.style.color = data.color_secundario;
                 }
