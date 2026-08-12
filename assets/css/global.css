@@ -33,27 +33,45 @@ h1, h2, h3, h4 {
     -webkit-text-fill-color: transparent;
 }
 
-/* Scrollbar global y personalizada */
+/* Scrollbar global y destacada de horarios (Color Secundario) */
 ::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(252, 135, 18, 0.1);
+    border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
+    background: var(--secondary, #FC8712);
+    border-radius: 9999px;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(252, 135, 18, 0.3);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #e07409;
+}
 
-    border-radius: 10px;
+.custom-scrollbar, .time-slots-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--secondary, #FC8712) rgba(252, 135, 18, 0.12);
 }
-.custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
+.custom-scrollbar::-webkit-scrollbar, .time-slots-scrollbar::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
 }
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+.custom-scrollbar::-webkit-scrollbar-track, .time-slots-scrollbar::-webkit-scrollbar-track {
+    background: rgba(252, 135, 18, 0.12);
+    border-radius: 9999px;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
+.custom-scrollbar::-webkit-scrollbar-thumb, .time-slots-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--secondary, #FC8712);
+    border-radius: 9999px;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(252, 135, 18, 0.35);
 }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+.custom-scrollbar::-webkit-scrollbar-thumb:hover, .time-slots-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #e07409;
 }
 
 /* Estética del Calendario */

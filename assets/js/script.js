@@ -3345,6 +3345,41 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
             background-attachment: fixed !important;
         }
 
+        /* 1.c. Barra desplazadora destacada con Color Secundario */
+        .custom-scrollbar::-webkit-scrollbar, 
+        .time-slots-scrollbar::-webkit-scrollbar,
+        #gridHorarios::-webkit-scrollbar,
+        [id*="slots"]::-webkit-scrollbar {
+            width: 9px !important;
+            height: 9px !important;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track,
+        .time-slots-scrollbar::-webkit-scrollbar-track,
+        #gridHorarios::-webkit-scrollbar-track,
+        [id*="slots"]::-webkit-scrollbar-track {
+            background: color-mix(in srgb, ${sColor} 14%, #f1f5f9) !important;
+            border-radius: 9999px !important;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb,
+        .time-slots-scrollbar::-webkit-scrollbar-thumb,
+        #gridHorarios::-webkit-scrollbar-thumb,
+        [id*="slots"]::-webkit-scrollbar-thumb {
+            background: ${sColor} !important;
+            border-radius: 9999px !important;
+            border: 2px solid #ffffff !important;
+            box-shadow: 0 2px 6px color-mix(in srgb, ${sColor} 40%, transparent) !important;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover,
+        .time-slots-scrollbar::-webkit-scrollbar-thumb:hover,
+        #gridHorarios::-webkit-scrollbar-thumb:hover,
+        [id*="slots"]::-webkit-scrollbar-thumb:hover {
+            background: color-mix(in srgb, ${sColor} 85%, black) !important;
+        }
+        .custom-scrollbar, .time-slots-scrollbar, #gridHorarios, [id*="slots"] {
+            scrollbar-width: thin !important;
+            scrollbar-color: ${sColor} color-mix(in srgb, ${sColor} 14%, #f1f5f9) !important;
+        }
+
         /* 2. Bordes de Cards y Resaltado Hover con Color Secundario */
         .card-custom, 
         .bg-white.rounded-3xl, 
