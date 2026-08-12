@@ -3339,8 +3339,9 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
         }
 
         /* 1.b. Fondo Degradé dinámico de colores de marca para el Calendario */
-        body.calendar-degrade-active, body[data-degrade="1"] {
-            background: linear-gradient(135deg, color-mix(in srgb, ${pColor} 18%, #f8fafc) 0%, #ffffff 45%, color-mix(in srgb, ${sColor} 22%, #f8fafc) 100%) !important;
+        body.calendar-degrade-active, body[data-degrade="1"], html.calendar-degrade-active, html[data-degrade="1"] {
+            background-color: transparent !important;
+            background-image: linear-gradient(135deg, color-mix(in srgb, ${pColor} 25%, #ffffff) 0%, #ffffff 40%, color-mix(in srgb, ${sColor} 30%, #ffffff) 100%) !important;
             background-attachment: fixed !important;
         }
 

@@ -25,7 +25,18 @@ window.cargarAgenda = function(force = false) {
     }
 
     const fetchConfig = typeof window.configData === 'undefined'
-        ? fetch('backend/guardar_web.php').then(res => res.json()).then(conf => { window.configData = conf; })
+        ? fetch('backend/guardar_web.php').then(res => res.json()).then(conf => { 
+            window.configData = conf; 
+            if (conf) {
+                if (conf.usar_fondo_degrade == 1 || conf.usar_fondo_degrade === '1' || conf.usar_fondo_degrade === true) {
+                    document.body.setAttribute('data-degrade', '1');
+                    document.body.classList.add('calendar-degrade-active');
+                } else {
+                    document.body.removeAttribute('data-degrade');
+                    document.body.classList.remove('calendar-degrade-active');
+                }
+            }
+        })
         : Promise.resolve();
 
     fetchConfig.finally(() => {

@@ -150,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             echo json_encode([]); exit;
         }
 
-        $stmt = $pdo->prepare("SELECT color_primario, color_secundario, color_primario_web, color_secundario_web, color_fondo, colores_extra_json, url_logo AS logo, fondo, mensaje_bienvenida AS titulo, subtitulo, whatsapp_contacto, instagram_url, hora_apertura, hora_cierre, intervalo_turnos, turnos_simultaneos, confirmacion_automatica, anticipacion_turno_min, alineacion_servicios, tipo_calendario, texto_local, ubicacion_maps, cursos_html, cursos_json, profesionales_json, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, metodos_pago, limite_eliminacion_dias, horarios_detallados_json FROM configuracion_web WHERE id_negocio = :id_negocio");
+        $stmt = $pdo->prepare("SELECT color_primario, color_secundario, color_primario_web, color_secundario_web, color_fondo, colores_extra_json, url_logo AS logo, fondo, mensaje_bienvenida AS titulo, subtitulo, whatsapp_contacto, instagram_url, hora_apertura, hora_cierre, intervalo_turnos, turnos_simultaneos, confirmacion_automatica, anticipacion_turno_min, alineacion_servicios, tipo_calendario, texto_local, ubicacion_maps, cursos_html, cursos_json, profesionales_json, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, metodos_pago, limite_eliminacion_dias, horarios_detallados_json, usar_fondo_degrade FROM configuracion_web WHERE id_negocio = :id_negocio");
         $stmt->execute(['id_negocio' => $id_negocio]);
         $config = $stmt->fetch();
         

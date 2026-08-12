@@ -2562,6 +2562,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     generateTimeSlots(config.hora_apertura, config.hora_cierre, interval);
                     checkAdminCalendarSession(config);
 
+                    if (config.color_primario || config.color_secundario || config.colores_extra_json) {
+                        if (typeof window.applyUserCustomColors === 'function') {
+                            window.applyUserCustomColors(config.color_primario, config.color_secundario, config.colores_extra_json);
+                        }
+                    }
+
+                    if (config.usar_fondo_degrade == 1 || config.usar_fondo_degrade === '1' || config.usar_fondo_degrade === true) {
+                        document.body.setAttribute('data-degrade', '1');
+                        document.body.classList.add('calendar-degrade-active');
+                    } else {
+                        document.body.removeAttribute('data-degrade');
+                        document.body.classList.remove('calendar-degrade-active');
+                    }
+
                     // Sincronizar tipo de vista de calendario exclusivamente según la configuración elegida en Ajustes
                     if (config.tipo_calendario) {
                         const isWeeklyPage = !!document.getElementById('weeklyCalendarView');
