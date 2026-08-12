@@ -642,11 +642,17 @@ function handleWebConfigSubmit(e) {
 }
 
 // ==========================================
-// LÓGICA DE PERFIL (ADMIN)
-// ==========================================
+window.clearUserCustomColors = function() {
+    localStorage.removeItem('user_color_primario');
+    localStorage.removeItem('user_color_secundario');
+    localStorage.removeItem('user_colores_extra_json');
+    const style = document.getElementById('agendatina-user-custom-colors');
+    if (style) style.remove();
+};
 
 function logout(redirect = 'login.html') {
     showConfirm('Cerrar sesión', '¿Estás seguro que deseas salir de tu cuenta?', 'Cerrar sesión', 'bg-red-600 hover:bg-red-700', () => {
+        if (typeof window.clearUserCustomColors === 'function') window.clearUserCustomColors();
         Object.keys(localStorage).forEach(k => { if (k.startsWith('agendatina_notifs_state_')) localStorage.removeItem(k); });
         sessionStorage.removeItem('agendatina_session');
         return fetch('backend/logout.php').then(() => window.location.href = redirect);
@@ -3146,9 +3152,10 @@ window.isPublicAgendatinaOfficialPage = function() {
 window.applyUserCustomColors = function(pColor, sColor, extraColors) {
     let style = document.getElementById('agendatina-user-custom-colors');
 
-    // Si estamos en una página oficial institucional de Agendatina (ej. index.html, login.html, terminos.html, admin/), 
-    // JAMÁS aplicamos los colores personalizados de ningún negocio. Preservamos la identidad de marca oficial Agendatina.
-    if (window.isPublicAgendatinaOfficialPage && window.isPublicAgendatinaOfficialPage()) {
+    // Si estamos en una página oficial institucional de Agendatina o en la web pública de un negocio (web.html),
+    // NO debemos inyectar estilos de sesión de administrador para evitar mezclar temas entre negocios.
+    const isPublicWebPage = window.location.pathname.includes('web.html');
+    if ((window.isPublicAgendatinaOfficialPage && window.isPublicAgendatinaOfficialPage()) || isPublicWebPage) {
         if (style) style.remove();
         return;
     }
@@ -3156,13 +3163,18 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
     if (!pColor) pColor = localStorage.getItem('user_color_primario') || '#D11149';
     if (!sColor) sColor = localStorage.getItem('user_color_secundario') || '#FC8712';
 
-    if (!extraColors && localStorage.getItem('user_colores_extra_json')) {
-        try { extraColors = JSON.parse(localStorage.getItem('user_colores_extra_json')); } catch(e) {}
-    }
-    if (typeof extraColors === 'string') {
+    // Resolver extraColors sin arrastrar configuraciones residuales de otras cuentas
+    if (extraColors === undefined || extraColors === null) {
+        const cachedExtra = localStorage.getItem('user_colores_extra_json');
+        if (cachedExtra) {
+            try { extraColors = JSON.parse(cachedExtra); } catch(e) { extraColors = {}; }
+        } else {
+            extraColors = {};
+        }
+    } else if (typeof extraColors === 'string') {
         try { extraColors = JSON.parse(extraColors); } catch(e) { extraColors = {}; }
     }
-    extraColors = extraColors || {};
+    extraColors = (extraColors && typeof extraColors === 'object') ? extraColors : {};
 
     localStorage.setItem('user_color_primario', pColor);
     localStorage.setItem('user_color_secundario', sColor);
@@ -3360,10 +3372,11 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (window.isPublicAgendatinaOfficialPage && window.isPublicAgendatinaOfficialPage()) {
+    const isPublicWebPage = window.location.pathname.includes('web.html');
+    if ((window.isPublicAgendatinaOfficialPage && window.isPublicAgendatinaOfficialPage()) || isPublicWebPage) {
         const style = document.getElementById('agendatina-user-custom-colors');
         if (style) style.remove();
-        return; // Preservar tema de Agendatina en páginas oficiales
+        return; // Preservar tema de Agendatina en páginas oficiales y web pública
     }
 
     // 1. Carga inmediata desde el almacenamiento local para renderizado instantáneo

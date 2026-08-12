@@ -2646,6 +2646,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.logoutAdminSession = function() {
+    if (typeof window.clearUserCustomColors === 'function') window.clearUserCustomColors();
     sessionStorage.clear();
     localStorage.clear();
     fetch('backend/logout.php')

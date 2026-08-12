@@ -174,6 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (typeof showToast === 'function') showToast('Cambios guardados con éxito', 'success');
                 
                 try { if (typeof applyWebCustomization === 'function') applyWebCustomization(); } catch(e) { console.error(e); }
+                try { if (typeof loadCustomization === 'function') loadCustomization(); } catch(e) { console.error(e); }
                 
                 setTimeout(() => {
                     saveWebDataBtn.textContent = 'Guardar Cambios';

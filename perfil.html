@@ -472,7 +472,7 @@
                         const sColor = formData.get('color_secundario');
                         if (pColor) localStorage.setItem('user_color_primario', pColor);
                         if (sColor) localStorage.setItem('user_color_secundario', sColor);
-                        if (window.applyUserCustomColors) window.applyUserCustomColors(pColor, sColor);
+                        if (window.applyUserCustomColors) window.applyUserCustomColors(pColor, sColor, extraColorsObj);
 
                         showProfileNoticeModal('¡Perfil Actualizado!', 'Tus datos y personalización de perfil fueron guardados correctamente.', true, () => {
                             window.location.reload();
