@@ -23,8 +23,10 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
-          protocol: ftp
-          timeout: 120000
+          protocol: ftps
+          security: loose
+          security-options: '{"rejectUnauthorized": false}'
+          timeout: 60000
           log-level: verbose
           server-dir: /public_html/
           state-name: .ftp-deploy-sync-state.json
