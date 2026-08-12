@@ -46,7 +46,9 @@ if ($method === 'GET') {
             FROM negocios n 
             LEFT JOIN personal_negocio pn ON n.id = pn.id_negocio AND pn.rol_en_local = 'admin'
             LEFT JOIN usuarios u ON pn.id_usuario = u.id
-            WHERE n.estado_pago = 'eliminado' OR n.fecha_eliminado IS NOT NULL
+            WHERE (n.estado_pago = 'eliminado' OR n.fecha_eliminado IS NOT NULL)
+              AND (n.ruta IS NULL OR n.ruta NOT LIKE 'demo%')
+              AND (u.email IS NULL OR u.email NOT LIKE 'demo%')
             ORDER BY COALESCE(n.fecha_eliminado, n.fecha_alta) DESC
         ");
         $empresasEliminadas = $stmtEmpresas->fetchAll(PDO::FETCH_ASSOC);

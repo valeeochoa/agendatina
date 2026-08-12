@@ -9,7 +9,7 @@ require_once __DIR__ . '/backend/conexion.php';
 try {
     // 1. LIMPIEZA AUTOMÁTICA DE CUENTAS DEMO EXPIRADAS (Mayores a 30 minutos)
     try {
-        $stmtOld = $pdo->query("SELECT id FROM negocios WHERE (ruta LIKE 'demo-%' OR subdominio LIKE 'demo-%' OR fecha_alta < NOW() - INTERVAL 30 MINUTE) AND (ruta != 'demo')");
+        $stmtOld = $pdo->query("SELECT id FROM negocios WHERE (ruta LIKE 'demo-%' OR subdominio LIKE 'demo-%' OR nombre_fantasia LIKE 'Demo%') AND (fecha_alta < NOW() - INTERVAL 30 MINUTE OR fecha_alta IS NULL)");
         if ($stmtOld) {
             $oldIds = $stmtOld->fetchAll(PDO::FETCH_COLUMN);
             foreach ($oldIds as $oldId) {
@@ -36,6 +36,7 @@ try {
                 }
             }
         }
+        $pdo->exec("DELETE FROM usuarios WHERE (email LIKE 'demo_%@agendatina.site' OR email LIKE 'demo%@agendatina.site') AND id NOT IN (SELECT id_usuario FROM personal_negocio)");
     } catch (Exception $eGC) {}
 
     // BARRERA DE PROTECCIÓN: Asegurar columnas necesarias en la BD

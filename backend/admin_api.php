@@ -137,6 +137,9 @@ if ($method === 'GET') {
             LEFT JOIN usuarios u ON pn.id_usuario = u.id
             LEFT JOIN configuracion_web cw ON n.id = cw.id_negocio
             LEFT JOIN admin_notas an ON n.id = an.id_negocio
+            WHERE (n.ruta IS NULL OR n.ruta NOT LIKE 'demo%') 
+              AND (u.email IS NULL OR u.email NOT LIKE 'demo%') 
+              AND (n.nombre_fantasia IS NULL OR n.nombre_fantasia NOT LIKE '%Demo%')
             ORDER BY n.id DESC
         ");
         $negocios = $stmt->fetchAll(PDO::FETCH_ASSOC);
