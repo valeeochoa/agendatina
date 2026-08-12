@@ -3172,21 +3172,18 @@ function checkAdminGlobalSession(config = null) {
                 adminMenu.style.display = 'flex';
             }
             if (sessionBadge) {
-                sessionBadge.classList.remove('hidden');
-                sessionBadge.style.display = 'flex';
-                const dot = sessionBadge.querySelector('span:first-child');
                 if (isDemo) {
+                    sessionBadge.classList.remove('hidden');
+                    sessionBadge.style.display = 'flex';
+                    const dot = sessionBadge.querySelector('span:first-child');
                     if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
                     if (sessionBadgeText) {
                         sessionBadgeText.textContent = 'Modo Demo';
                         sessionBadgeText.className = 'text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider hidden md:inline';
                     }
                 } else {
-                    if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse';
-                    if (sessionBadgeText) {
-                        sessionBadgeText.textContent = 'Tu Local';
-                        sessionBadgeText.className = 'text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider hidden md:inline';
-                    }
+                    sessionBadge.classList.add('hidden');
+                    sessionBadge.style.display = 'none';
                 }
             }
             if (btnVolverPanel) {
