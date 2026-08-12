@@ -1585,6 +1585,13 @@ function loadCustomization() {
                 if (data.color_primario || data.color_secundario || data.colores_extra_json) {
                     window.applyUserCustomColors(data.color_primario, data.color_secundario, data.colores_extra_json);
                 }
+                if (data.usar_fondo_degrade == 1 || data.usar_fondo_degrade === '1' || data.usar_fondo_degrade === true) {
+                    document.body.setAttribute('data-degrade', '1');
+                    document.body.classList.add('calendar-degrade-active');
+                } else {
+                    document.body.removeAttribute('data-degrade');
+                    document.body.classList.remove('calendar-degrade-active');
+                }
                 if (data.logo && data.logo !== 'null' && data.logo !== 'undefined') {
                     // Corregir la ruta del logo si solo viene el nombre de archivo
                     const logoUrl = data.logo.includes('/') ? data.logo : `backend/uploads/logos/${data.logo}`;
@@ -1825,6 +1832,11 @@ function applyCalendarConfigToForm(c) {
     const tipoCalVal = c.tipo_calendario || 'clasico';
     const calRadio = document.querySelector(`input[name="tipo_calendario"][value="${tipoCalVal}"]`);
     if (calRadio) calRadio.checked = true;
+
+    const degradeCb = document.getElementById('configFondoDegrade');
+    if (degradeCb) {
+        degradeCb.checked = (c.usar_fondo_degrade == 1 || c.usar_fondo_degrade === '1' || c.usar_fondo_degrade === true);
+    }
     
     const ant = parseInt(c.anticipacion_turno_min || 0, 10);
     if(document.getElementById('configAnticipacionMin')) document.getElementById('configAnticipacionMin').value = ant;
@@ -3324,6 +3336,12 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
         /* 1. Fondo del Panel con matiz armónico de ambos colores */
         body, html {
             background-color: color-mix(in srgb, ${pColor} 8%, color-mix(in srgb, ${sColor} 6%, #ffffff)) !important;
+        }
+
+        /* 1.b. Fondo Degradé dinámico de colores de marca para el Calendario */
+        body.calendar-degrade-active, body[data-degrade="1"] {
+            background: linear-gradient(135deg, color-mix(in srgb, ${pColor} 18%, #f8fafc) 0%, #ffffff 45%, color-mix(in srgb, ${sColor} 22%, #f8fafc) 100%) !important;
+            background-attachment: fixed !important;
         }
 
         /* 2. Bordes de Cards y Resaltado Hover con Color Secundario */

@@ -344,6 +344,7 @@ function handleCalendarConfigSubmit(e) {
         anticipacion_turno_min: form.querySelector('#configAnticipacionMin')?.value,
         intervalo_turnos: intervalo,
         tipo_calendario: tipoCalendario,
+        usar_fondo_degrade: form.querySelector('#configFondoDegrade')?.checked ? 1 : 0,
         limite_eliminacion_dias: form.querySelector('#configLimiteEliminacion')?.value || 0,
         horarios_detallados_json: form.querySelector('#horariosDetalladosJsonInput')?.value || '{}'
     };
