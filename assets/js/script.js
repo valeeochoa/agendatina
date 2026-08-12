@@ -2204,47 +2204,47 @@ window.enableImagePreview = function(input) {
 var carouselData = [
     { 
         title: 'Plan Simple', 
-        desc: 'Calendario online para que tus clientes puedan solicitar turnos de forma rápida y organizada.', 
+        desc: 'Calendario de turnos online para que tus clientes soliciten reservas de forma rápida y organizada 24/7.', 
         oldPrice: '$8.889',
         price: '$8.000', 
         tag: 'Ideal para comenzar',
         mockupDesktop: 'public/mockup_calendar_computer.png',
         mockupMobile: 'public/mockup_calendar_phone.png',
         features: [
-            'Calendario de turnos personalizado',
-            'Logo y colores del negocio',
-            'Configuración de días y horarios disponibles',
-            'Notificaciones automáticas por email'
+            'Calendario de reservas online 24/7',
+            'Notificaciones automáticas por email',
+            'Personalización de 2 colores base de marca',
+            'Bloqueo manual de días feriados y vacaciones'
         ]
     },
     { 
         title: 'Plan Profesional', 
-        desc: 'Sistema de turnos con agenda virtual para administrar todas tus reservas desde un solo lugar.', 
+        desc: 'Sistema de turnos con Agenda Virtual interactiva y notificaciones por WhatsApp para gestionar tu negocio.', 
         oldPrice: '$11.111',
         price: '$10.000', 
         tag: 'Más Elegido',
         mockupDesktop: 'public/mockup_miagenda_computer.png',
         mockupMobile: 'public/mockup_miagenda_phone.png',
         features: [
-            'Todo lo del Plan Simple',
-            'Agenda virtual con listado de reservas',
-            'Visualización de turnos confirmados y pendientes',
-            'Gestión manual de disponibilidad'
+            'Todo lo incluido en el Plan Simple',
+            'Agenda Virtual interactiva con listado de reservas',
+            '50 notificaciones por WhatsApp/mes (bolsa base)',
+            '1 opción adicional de color personalizado (+1)'
         ]
     },
     { 
         title: 'Plan Premium', 
-        desc: 'Plataforma completa con turnero y mini página para mostrar tu negocio y captar más clientes.', 
+        desc: 'Plataforma completa con mini página web de reservas y módulo exclusivo de estadísticas de facturación.', 
         oldPrice: '$16.667',
         price: '$15.000', 
         tag: 'Presencia Online',
         mockupDesktop: 'public/mockup_miagenda_computer.png',
         mockupMobile: 'public/mockup_miagenda_phone.png',
         features: [
-            'Todo lo del Plan Intermedio',
-            'Mini página personalizada del negocio',
-            'Imagen de portada destacada',
-            'Listado de servicios y descripción'
+            'Todo lo incluido en el Plan Profesional',
+            'Página web pública de reservas (mi-web)',
+            '100 notificaciones por WhatsApp/mes (bolsa base)',
+            'Módulo de Estadísticas y Métricas de Facturación'
         ]
     }
 ];
@@ -2257,7 +2257,19 @@ window.setCarouselIndex = function(index) {
 
     currentCarouselIndex = index;
     document.getElementById('carouselTitle').textContent = carouselData[index].title;
-    document.getElementById('carouselDesc').textContent = carouselData[index].desc;
+    
+    const descEl = document.getElementById('carouselDesc');
+    if (descEl) descEl.textContent = carouselData[index].desc;
+
+    const featuresEl = document.getElementById('carouselFeatures');
+    if (featuresEl && carouselData[index].features) {
+        featuresEl.innerHTML = carouselData[index].features.map(f => `
+            <li class="flex items-center gap-4">
+                <span class="material-symbols-outlined text-primary">check_circle</span>
+                <span>${f}</span>
+            </li>
+        `).join('');
+    }
     
     // Renderizar Nuevo y Viejo Precio con el 10% OFF
     // Actualizar precios dinámicamente respetando la estructura HTML de index.html
