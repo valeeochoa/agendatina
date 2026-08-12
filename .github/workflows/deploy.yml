@@ -8,7 +8,7 @@ on:
 jobs:
   web-deploy:
     name: Deploy to Ferozo
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Descargar el código
@@ -23,9 +23,8 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
-          protocol: ftps
-          security: loose
-          timeout: 60000
+          protocol: ftp
+          timeout: 120000
           log-level: verbose
           server-dir: /public_html/
           state-name: .ftp-deploy-sync-state.json
@@ -38,6 +37,6 @@ jobs:
             implementation_plan.md
             walkthrough.md
             temp_zip/**
-            actualizacion.zip
+            actualizacion*.zip
             backend/conexion.php
             backend/admin_auth.php

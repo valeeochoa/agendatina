@@ -87,17 +87,20 @@ if ($method === 'GET') {
         ");
         $reportes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // También incluir notificaciones de notificaciones_admin (tanto de Errores como de Sugerencias / Mejoras)
+        // También incluir notificaciones de notificaciones_admin (solo reportes de error o sugerencias enviadas)
         try {
             $stmtNotif = $pdo->query("
                 SELECT id, id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario, 
                        CASE 
-                           WHEN segmento LIKE '%Error%' OR segmento LIKE '%Bug%' OR segmento LIKE '%Calendario%' OR segmento LIKE '%Agenda%' OR segmento LIKE '%Ajustes%' OR segmento LIKE '%Equipo%' OR segmento LIKE '%Editor%' OR segmento LIKE '%Servicios%' THEN 'Reporte de Error'
+                           WHEN segmento LIKE '%Error%' OR segmento LIKE '%Bug%' THEN 'Reporte de Error'
                            ELSE 'Sugerencia / Mejora'
                        END AS tipo, 
                        segmento AS modulo, mensaje AS descripcion, 'pendiente' AS estado, fecha
                 FROM notificaciones_admin
-                WHERE segmento LIKE '%Error%' OR segmento LIKE '%Bug%' OR segmento LIKE '%Sugerencia%' OR segmento LIKE '%Mejora%' OR segmento LIKE '%Soporte%'
+                WHERE (segmento LIKE '%Error%' OR segmento LIKE '%Bug%' OR segmento LIKE '%Sugerencia%' OR segmento LIKE '%Mejora%' OR segmento LIKE '%Soporte%')
+                  AND segmento NOT LIKE '%Nuevo Profesional%'
+                  AND segmento NOT LIKE '%Seguridad%'
+                  AND segmento NOT LIKE '%Enlace Web%'
                 ORDER BY fecha DESC
             ");
             $notifItems = $stmtNotif->fetchAll(PDO::FETCH_ASSOC);

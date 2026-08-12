@@ -83,7 +83,7 @@ if ($method === 'GET') {
         $stmtRep = $pdo->query("SELECT COUNT(*) FROM reportes_error WHERE estado = 'pendiente' AND (tipo IS NULL OR tipo = '' OR tipo = 'Reporte de Error')");
         $repCount = (int)($stmtRep ? $stmtRep->fetchColumn() : 0);
         
-        $stmtNotifErr = $pdo->query("SELECT COUNT(*) FROM notificaciones_admin WHERE leida = 0 AND (segmento LIKE '%Error%' OR segmento LIKE '%Bug%' OR segmento LIKE '%Calendario%' OR segmento LIKE '%Agenda%' OR segmento LIKE '%Ajustes%' OR segmento LIKE '%Equipo%' OR segmento LIKE '%Editor%' OR segmento LIKE '%Servicios%')");
+        $stmtNotifErr = $pdo->query("SELECT COUNT(*) FROM notificaciones_admin WHERE leida = 0 AND (segmento LIKE '%Error%' OR segmento LIKE '%Bug%') AND segmento NOT LIKE '%Nuevo Profesional%' AND segmento NOT LIKE '%Seguridad%' AND segmento NOT LIKE '%Enlace Web%'");
         $notifErrCount = (int)($stmtNotifErr ? $stmtNotifErr->fetchColumn() : 0);
         $reportesCount = max($repCount, $notifErrCount);
 

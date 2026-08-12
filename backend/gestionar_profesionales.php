@@ -144,14 +144,14 @@ if ($method === 'GET') {
             else $max_profesionales = 3;
         }
 
-        $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_negocio = :id AND rol_en_local = 'profesional'");
+        $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_negocio = :id");
         $stmtCount->execute(['id' => $id_negocio]);
-        $current_count = (int)$stmtCount->fetchColumn();
+        $total_members = (int)$stmtCount->fetchColumn(); // Incluye al Administrador/Dueño + profesionales existentes
 
-        if ($current_count >= $max_profesionales) {
+        if ($total_members >= $max_profesionales) {
             require_once __DIR__ . '/helpers/notificar_admin_helper.php';
-            notificarSuperAdminAlert($pdo, 'Solicitud Ampliación Equipo', "El negocio intentó registrar más profesionales pero alcanzó el límite de su plan ({$max_profesionales} profesionales).", $id_negocio);
-            throw new Exception("Has alcanzado el límite máximo de $max_profesionales profesionales adicionales para tu plan. Si necesitas ampliar la capacidad, contacta a soporte.");
+            notificarSuperAdminAlert($pdo, 'Solicitud Ampliación Equipo', "El negocio intentó registrar más profesionales pero alcanzó el límite de su plan ({$max_profesionales} integrantes).", $id_negocio);
+            throw new Exception("Has alcanzado el límite máximo de $max_profesionales integrantes en tu equipo para tu plan. Si necesitas ampliar la capacidad, contacta a soporte.");
         }
 
         // Verificar si el usuario ya existe en la plataforma
@@ -199,9 +199,10 @@ if ($method === 'GET') {
 
         $pdo->commit();
 
+        $total_actual = $total_members + 1;
         try {
             require_once __DIR__ . '/helpers/notificar_admin_helper.php';
-            notificarSuperAdminAlert($pdo, 'Gestión de Equipo / Nuevo Profesional', "Se registró un nuevo profesional en el equipo: {$nombre} ({$email}). Total actual: " . ($current_count + 1) . " / {$max_profesionales}.", $id_negocio);
+            notificarSuperAdminAlert($pdo, 'Gestión de Equipo / Nuevo Profesional', "Se registró un nuevo profesional en el equipo: {$nombre} ({$email}). Total actual: {$total_actual} / {$max_profesionales}.", $id_negocio);
         } catch (Exception $eNotif) {}
 
         echo json_encode(['success' => true]);
