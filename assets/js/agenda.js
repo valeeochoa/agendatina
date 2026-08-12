@@ -433,31 +433,25 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                         : `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 1)" class="text-xs font-black px-3 py-1 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcar si asistió al turno"><span class="material-symbols-outlined text-[15px]">how_to_reg</span> ¿Asistió?</button>`;
 
                     htmlDia += `
-                        <div id="turno-${t.id}" onclick="if(!event.target.closest('button')) window.openEditTurnoModal('${t.id}')" class="shadow-sm rounded-3xl p-5 flex flex-col gap-3 hover:opacity-100 hover:shadow-xl hover:-translate-y-1 cursor-pointer transition-all relative overflow-hidden ${animClass}" style="background-color: #ffffff; border: 1px solid #e2e8f0; --target-opacity: 0.85; ${customStyle}">
-                            <div class="absolute top-0 left-0 w-1.5 h-full opacity-60 bg-blue-500"></div>
-                            <div class="flex justify-between items-start">
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <span class="text-xs font-extrabold px-3 py-1.5 rounded-xl inline-flex items-center gap-1.5 uppercase tracking-wide border shadow-sm w-max" style="background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;">
-                                            <span class="material-symbols-outlined text-[15px]">schedule</span> ${t.hora} hs
-                                        </span>
-                                        ${asistBtn}
-                                    </div>
-                                    <p class="text-2xl font-black mb-3 leading-tight tracking-tight" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
-                                    <div class="space-y-2 p-3 rounded-2xl" style="background-color: #f1f5f9;">
-                                        <p class="text-sm font-semibold flex items-center gap-2.5" style="color: #334155;">
-                                            <span class="material-symbols-outlined text-[18px] opacity-70">spa</span> <span class="break-words">${t.servicio}</span>
-                                        </p>
-                                        ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<p class="text-sm font-semibold flex items-center gap-2.5" style="color: #334155;"><span class="material-symbols-outlined text-[18px] opacity-70">person</span> <span class="break-words">${t.profesional}</span></p>` : ''}
-                                    </div>
+                        <div id="turno-${t.id}" onclick="if(!event.target.closest('button')) window.openEditTurnoModal('${t.id}')" class="shadow-sm rounded-2xl p-5 hover:shadow-lg cursor-pointer transition-all relative overflow-hidden ${animClass}" style="background-color: #ffffff; border: 1px solid #e2e8f0; --target-opacity: 0.85; ${customStyle}">
+                            <div class="absolute top-0 left-0 w-1.5 h-full bg-slate-400"></div>
+                            <div class="flex justify-between items-start mb-3">
+                                <span class="text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wider" style="background-color: #f1f5f9; color: #475569;">${t.hora} hs</span>
+                                <div class="flex items-center gap-2">
+                                    ${asistBtn}
+                                    ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1" style="background-color: #f1f5f9; color: #475569;"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
                                 </div>
                             </div>
-                            <div class="flex flex-col sm:flex-row gap-3 mt-2 w-full border-t pt-4" style="border-color: #e2e8f0;">
-                                <button onclick="window.contactarWhatsApp('${t.id}')" class="w-full flex items-center justify-center gap-2 bg-[#25D366] text-white hover:bg-[#20bd5a] px-4 py-3 rounded-xl font-bold transition-all text-sm shadow-sm hover:shadow-md">
-                                    <span class="material-symbols-outlined text-[18px]">chat</span> WhatsApp
-                                </button>
-                                <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="w-full flex items-center justify-center gap-1 bg-red-50 text-red-600 hover:bg-red-100 px-4 py-3 rounded-xl font-bold transition-all text-sm border border-red-200 hover:shadow-md" title="Eliminar turno">
-                                    <span class="material-symbols-outlined text-[18px]">delete</span> Eliminar
+                            <p class="text-lg font-bold mb-1" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                            <div class="flex items-center gap-3 mb-3">
+                                <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: #475569; background-color: #f8fafc; border-color: #e2e8f0;"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular || 'Sin celular'}</p>
+                                <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
+                            </div>
+                            ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
+                            <p class="text-sm mb-4 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">spa</span> <span class="font-medium">${t.servicio}</span></p>
+                            <div class="flex items-center gap-3 pt-3 border-t" style="border-color: #e2e8f0;">
+                                <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold py-2 px-3 rounded-xl transition-colors flex items-center justify-center border border-red-100 gap-1" title="Eliminar turno">
+                                    <span class="material-symbols-outlined text-[16px]">delete</span> Eliminar
                                 </button>
                             </div>
                         </div>

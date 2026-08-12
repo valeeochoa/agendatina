@@ -25,6 +25,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Guardar la configuración para usarla en otros modales si es necesario
                 window.businessWebConfig = data;
 
+                if (data.color_primario || data.color_secundario || data.colores_extra_json) {
+                    if (typeof window.applyUserCustomColors === 'function') {
+                        window.applyUserCustomColors(data.color_primario, data.color_secundario, data.colores_extra_json);
+                    }
+                }
+
+                const isDegradeActive = (data.usar_fondo_degrade == 1 || data.usar_fondo_degrade === '1' || data.usar_fondo_degrade === true);
+                if (isDegradeActive) {
+                    document.body.setAttribute('data-degrade', '1');
+                    document.body.classList.add('calendar-degrade-active');
+                } else {
+                    document.body.removeAttribute('data-degrade');
+                    document.body.classList.remove('calendar-degrade-active');
+                }
+
                 if (data.horarios_detallados_json) {
                     const hInp = document.getElementById('horariosDetalladosJsonInput');
                     if (hInp) hInp.value = data.horarios_detallados_json;
@@ -40,6 +55,20 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         })
         .catch(err => console.error('Error al cargar la configuración inicial:', err));
+
+    // Escuchar cambios en vivo del checkbox de Fondo Degradé
+    const degradeCheckbox = document.getElementById('configFondoDegrade');
+    if (degradeCheckbox) {
+        degradeCheckbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                document.body.setAttribute('data-degrade', '1');
+                document.body.classList.add('calendar-degrade-active');
+            } else {
+                document.body.removeAttribute('data-degrade');
+                document.body.classList.remove('calendar-degrade-active');
+            }
+        });
+    }
 
     // Manejar el envío del formulario de configuración del calendario
     const form = document.getElementById('calendarConfigForm');
@@ -360,6 +389,13 @@ function handleCalendarConfigSubmit(e) {
             if (typeof showToast === 'function') showToast('Configuración del calendario guardada con éxito.', 'success');
             // Actualizar la configuración global para que otros scripts la usen
             window.businessWebConfig = { ...window.businessWebConfig, ...payload };
+            if (payload.usar_fondo_degrade) {
+                document.body.setAttribute('data-degrade', '1');
+                document.body.classList.add('calendar-degrade-active');
+            } else {
+                document.body.removeAttribute('data-degrade');
+                document.body.classList.remove('calendar-degrade-active');
+            }
         } else {
             if (typeof showToast === 'function') showToast(data.error || 'Error al guardar la configuración.', 'error');
         }

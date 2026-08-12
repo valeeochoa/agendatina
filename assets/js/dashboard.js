@@ -47,15 +47,26 @@ window.loadDashboardData = function() {
                 }
             }
 
-            // Cartel de bienvenida: NUNCA en modo Demo, SOLAMENTE por única vez en cuentas reales
-            if (!isDemo) {
-                const bizId = (window.currentBusinessData && window.currentBusinessData.id) || 'real_business';
-                if (localStorage.getItem('agendatina_welcome_shown_' + bizId) !== 'true') {
+            // Cartel de bienvenida: En modo Demo muestra aviso demo + tour virtual; en cuentas reales muestra bienvenida única vez
+            if (isDemo) {
+                setTimeout(() => {
+                    if (typeof window.openDemoWelcomeNoticeModal === 'function') {
+                        window.openDemoWelcomeNoticeModal();
+                    }
+                }, 400);
+            } else {
+                const urlParams = new URLSearchParams(window.location.search);
+                const isWelcome = urlParams.get('welcome') === '1' || sessionStorage.getItem('show_welcome_modal') === 'true';
+                const bizId = (window.currentBusinessData && window.currentBusinessData.id) ? window.currentBusinessData.id : null;
+                const key = bizId ? ('agendatina_welcome_shown_' + bizId) : 'agendatina_welcome_shown_new';
+                
+                if (isWelcome || localStorage.getItem(key) !== 'true') {
+                    sessionStorage.removeItem('show_welcome_modal');
                     setTimeout(() => {
                         if (typeof window.openWelcomeNewAccountModal === 'function') {
-                            window.openWelcomeNewAccountModal();
+                            window.openWelcomeNewAccountModal(true);
                         }
-                    }, 600);
+                    }, 200);
                 }
             }
 
@@ -268,22 +279,84 @@ window.markOnboardingStepComplete = function(stepNumber, isCompleted) {
     }
 };
 
-window.openWelcomeNewAccountModal = function() {
-    // Si la cuenta es demo, NUNCA mostrar el modal de bienvenida
-    const isDemo = (window.currentUserData && (window.currentUserData.email === 'demo@agendatina.site' || window.currentUserData.email.includes('demo'))) || (window.currentBusinessData && (window.currentBusinessData.ruta === 'demo' || window.currentBusinessData.is_demo));
-    if (isDemo) return;
+window.openDemoWelcomeNoticeModal = function() {
+    let modal = document.getElementById('demoNoticeModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'demoNoticeModal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[250] flex items-center justify-center p-4 opacity-0 transition-opacity duration-300';
+        modal.innerHTML = `
+            <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full p-6 sm:p-8 text-center relative overflow-hidden transform scale-95 transition-transform duration-300" id="demoNoticeContent">
+                <div class="absolute -top-12 -right-12 w-36 h-36 bg-gradient-to-br from-amber-400/20 to-orange-500/20 rounded-full blur-2xl pointer-events-none"></div>
+                
+                <div class="w-16 h-16 rounded-3xl bg-secondary/10 text-secondary flex items-center justify-center mx-auto mb-4 shadow-md border border-secondary/20">
+                    <span class="material-symbols-outlined text-4xl">visibility</span>
+                </div>
+
+                <span class="bg-amber-100 text-amber-800 border border-amber-300 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-2">Modo Demostración Activo</span>
+
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2 font-display">Estás en una cuenta DEMO 🚀</h2>
+                <p class="text-xs sm:text-sm text-slate-600 mb-6 leading-relaxed">
+                    Esta es una versión de prueba interactiva con todas las funciones del <strong>Plan Premium</strong> habilitadas para que explores la plataforma. A continuación iniciaremos el tour guiado por la aplicación.
+                </p>
+
+                <button onclick="window.closeDemoNoticeAndStartTour()" class="w-full bg-secondary hover:bg-secondary/90 text-white font-extrabold py-3.5 px-6 rounded-2xl shadow-lg shadow-secondary/20 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm">
+                    <span class="material-symbols-outlined text-[20px]">explore</span> Entendido, iniciar Tour Virtual
+                </button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        const content = document.getElementById('demoNoticeContent');
+        if (content) content.classList.remove('scale-95');
+    }, 10);
+};
+
+window.closeDemoNoticeAndStartTour = function() {
+    const modal = document.getElementById('demoNoticeModal');
+    if (modal) {
+        modal.classList.add('opacity-0');
+        const content = document.getElementById('demoNoticeContent');
+        if (content) content.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            if (typeof window.startTour === 'function') {
+                window.startTour();
+            }
+        }, 250);
+    } else {
+        if (typeof window.startTour === 'function') {
+            window.startTour();
+        }
+    }
+};
+
+window.openWelcomeNewAccountModal = function(force = false) {
+    // Si la cuenta es demo, NUNCA mostrar el modal de bienvenida de cuentas reales
+    const isDemo = (window.currentUserData && (window.currentUserData.email === 'demo@agendatina.site' || window.currentUserData.email.includes('demo'))) || (window.currentBusinessData && (window.currentBusinessData.ruta === 'demo' || window.currentBusinessData.is_demo)) || sessionStorage.getItem('is_demo_user') === 'true';
+    if (isDemo) {
+        window.openDemoWelcomeNoticeModal();
+        return;
+    }
 
     const modal = document.getElementById('welcomeNewAccountModal');
     const content = document.getElementById('welcomeNewAccountContent');
     if (!modal) return;
 
-    const bizId = (window.currentBusinessData && window.currentBusinessData.id) || 'real_business';
-    localStorage.setItem('agendatina_welcome_shown_' + bizId, 'true');
-
-    if (window.currentBusinessData && window.currentBusinessData.nombre_fantasia) {
-        const bNameEl = document.getElementById('welcomeBusinessName');
-        if (bNameEl) bNameEl.textContent = window.currentBusinessData.nombre_fantasia;
+    const bizId = (window.currentBusinessData && window.currentBusinessData.id) ? window.currentBusinessData.id : null;
+    if (bizId) {
+        localStorage.setItem('agendatina_welcome_shown_' + bizId, 'true');
     }
+
+    const bName = (window.currentBusinessData && window.currentBusinessData.nombre_fantasia) || (window.currentUserData && window.currentUserData.nombre_completo) || 'tu emprendimiento';
+    const bNameEl = document.getElementById('welcomeBusinessName');
+    if (bNameEl) bNameEl.textContent = bName;
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -292,13 +365,14 @@ window.openWelcomeNewAccountModal = function() {
         if (content) content.classList.remove('scale-95');
     }, 10);
 
-    // Lanzar confeti de bienvenida 🎉
-    if (typeof confetti === 'function') {
+    // Lanzar confeti de bienvenida 🎉 (Únicamente para cuentas reales)
+    if (!isDemo && typeof confetti === 'function') {
         try {
             confetti({
-                particleCount: 120,
+                particleCount: 140,
                 spread: 80,
-                origin: { y: 0.6 }
+                origin: { y: 0.55 },
+                zIndex: 9999
             });
         } catch(eConfetti) {}
     }

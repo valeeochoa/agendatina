@@ -727,14 +727,11 @@ function loadDashboardData() {
             // Animaciones de Bienvenida (Primer inicio) y Modo Demo
             if (sessionStorage.getItem('agendatina_demo_alert')) {
                 sessionStorage.removeItem('agendatina_demo_alert');
-                setTimeout(() => showWelcomeAnimation('Premium', true), 300);
-            } else if (!localStorage.getItem('welcomed_' + (business.id || 'new')) || (data.user && data.user.is_profesional && !localStorage.getItem('welcomed_prof_' + data.user.id))) {
-                if (data.user && data.user.is_profesional) {
-                    localStorage.setItem('welcomed_prof_' + data.user.id, 'true');
-                } else {
-                    localStorage.setItem('welcomed_' + (business.id || 'new'), 'true');
-                }
-                setTimeout(() => showWelcomeAnimation(business.plan, false), 300);
+                setTimeout(() => {
+                    if (typeof window.openDemoWelcomeNoticeModal === 'function') {
+                        window.openDemoWelcomeNoticeModal();
+                    }
+                }, 300);
             }
 
             // Si el profesional debe cambiar su contraseña obligatoriamente por seguridad
@@ -3291,6 +3288,8 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
     }
 
     let extraCss = '';
+    const btnColor = (extraColors && extraColors.color_botones) ? extraColors.color_botones : pColor;
+
     if (extraColors.color_terciario) {
         extraCss += `
             .bg-tertiary { background-color: ${extraColors.color_terciario} !important; }
@@ -3310,7 +3309,7 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
     }
     if (extraColors.color_botones) {
         extraCss += `
-            .btn-cta, button.bg-primary, a.bg-primary, #btnVolverPanel { background-color: ${extraColors.color_botones} !important; }
+            .btn-cta, button.bg-primary, a.bg-primary, #btnVolverPanel, .signature-glow, .btn-modal-confirm, #btnModalConfirm, #modalConfirmBtn, #btnConfirmAction, #btnCustomConfirm, #btnSaveCalendarConfig, #btnProfileSubmit, #btnTeamSubmit, #btnReportSubmit, #btnSubmitVerify, #btnAcceptConfirm { background-color: ${extraColors.color_botones} !important; border-color: ${extraColors.color_botones} !important; }
         `;
     }
     if (extraColors.color_cards) {
@@ -3331,6 +3330,7 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
             --primary: ${pColor};
             --secondary: ${sColor};
             --color-terciario: ${extraColors.color_terciario || '#8b5cf6'};
+            --color-botones: ${btnColor};
         }
 
         /* 1. Fondo del Panel con matiz armónico de ambos colores */
@@ -3396,14 +3396,40 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
             box-shadow: 0 10px 25px -5px color-mix(in srgb, ${sColor} 25%, transparent) !important;
         }
 
-        /* 3. Colores Primarios (Botones principales, enlaces, destacados) */
-        .bg-primary, button.bg-primary, .btn-primary { background-color: ${pColor} !important; }
+        /* 3. Colores Primarios y Botones de Acción/Confirmación en Modales y Dashboard */
+        .bg-primary, 
+        button.bg-primary, 
+        a.bg-primary, 
+        .btn-primary, 
+        .btn-cta,
+        #btnVolverPanel,
+        .btn-modal-confirm,
+        #btnModalConfirm,
+        #modalConfirmBtn,
+        #btnConfirmAction,
+        #btnCustomConfirm,
+        #btnSaveCalendarConfig,
+        #btnProfileSubmit,
+        #btnTeamSubmit,
+        #btnReportSubmit,
+        #btnSubmitVerify,
+        #btnAcceptConfirm,
+        div[id*="Modal"] button[type="submit"]:not(.bg-red-500):not(.bg-red-600):not(.bg-emerald-500):not(.bg-emerald-600),
+        div[id*="modal"] button[type="submit"]:not(.bg-red-500):not(.bg-red-600):not(.bg-emerald-500):not(.bg-emerald-600) { 
+            background-color: ${btnColor} !important; 
+            border-color: ${btnColor} !important;
+        }
+
         .text-primary { color: ${pColor} !important; }
         .border-primary { border-color: ${pColor} !important; }
-        .hover\\:bg-primary\\/90:hover { background-color: color-mix(in srgb, ${pColor} 90%, black) !important; }
-        .focus\\:ring-primary:focus { --tw-ring-color: ${pColor} !important; }
-        .shadow-primary\\/30 { --tw-shadow-color: color-mix(in srgb, ${pColor} 30%, transparent) !important; }
-        .shadow-primary\\/20 { --tw-shadow-color: color-mix(in srgb, ${pColor} 20%, transparent) !important; }
+        .hover\\:bg-primary\\/90:hover { background-color: color-mix(in srgb, ${btnColor} 90%, black) !important; }
+        .focus\\:ring-primary:focus { --tw-ring-color: ${btnColor} !important; }
+        .shadow-primary\\/30 { --tw-shadow-color: color-mix(in srgb, ${btnColor} 30%, transparent) !important; }
+        .shadow-primary\\/20 { --tw-shadow-color: color-mix(in srgb, ${btnColor} 20%, transparent) !important; }
+
+        .signature-glow {
+            background: linear-gradient(135deg, ${btnColor} 0%, ${sColor} 100%) !important;
+        }
 
         /* 4. Colores Secundarios (Destacados, Iconos, Badges, Botones Secundarios) */
         .bg-secondary, button.bg-secondary, .btn-secondary { background-color: ${sColor} !important; }
