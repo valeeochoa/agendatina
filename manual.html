@@ -30,16 +30,19 @@
         body { font-family: 'Inter', sans-serif; background: #f8fafc; }
         .font-brand { font-family: 'Fredoka', cursive, sans-serif !important; }
         .manual-nav-item.active {
-            background-color: #D11149 !important;
+            background-color: var(--primary, #D11149) !important;
             color: #ffffff !important;
             border-color: transparent !important;
             box-shadow: 0 10px 15px -3px rgba(209, 17, 73, 0.25) !important;
         }
-        .manual-nav-item.active .material-symbols-outlined {
+        .manual-nav-item.active > span > span,
+        .manual-nav-item.active > span > .material-symbols-outlined {
             color: #ffffff !important;
         }
-        .manual-nav-item.active span {
+        .manual-nav-item.active span[id*="badge-"] {
             color: #ffffff !important;
+            background-color: rgba(255, 255, 255, 0.25) !important;
+            border: 1px solid rgba(255, 255, 255, 0.4) !important;
         }
     </style>
 </head>
@@ -214,10 +217,11 @@
                                 <span class="text-xs font-black uppercase tracking-wider text-slate-600 bg-slate-200 px-3 py-1 rounded-lg mb-4 inline-block">Plan Simple</span>
                                 <h3 class="text-xl font-bold text-slate-900 mb-3">Para Emprendedores</h3>
                                 <ul class="text-sm text-slate-700 space-y-3 font-medium">
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> 1 Profesional (Dueño del local)</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> De 1 a 5 profesionales en tu local</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> Recepción de turnos online 24/7</li>
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> Calendario con horarios fijos</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> Agenda Virtual y Calendario de turnos</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> 2 Colores de personalización base</li>
+                                    <li class="flex items-center gap-2.5 opacity-60"><span class="material-symbols-outlined text-slate-400 text-[18px]">remove_circle_outline</span> Sin roles o permisos de acceso individuales</li>
                                 </ul>
                             </div>
                         </div>
@@ -230,6 +234,7 @@
                                 <h3 class="text-xl font-bold text-slate-900 mb-3">Gestión Avanzada</h3>
                                 <ul class="text-sm text-slate-700 space-y-3 font-medium">
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Todo lo del Plan Simple</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> De 1 a 5 profesionales con Roles & Permisos</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Duraciones en Horas y Minutos</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Intervalo dinámico por servicio</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> +1 Color de personalización extra (+1)</li>
@@ -246,10 +251,11 @@
                                 <h3 class="text-xl font-bold text-slate-900 mb-3">Equipo & Estadísticas</h3>
                                 <ul class="text-sm text-slate-700 space-y-3 font-medium">
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> Todo lo del Plan Profesional</li>
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> Múltiples profesionales con acceso</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> De 1 a 5 profesionales con Roles & Permisos</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> Página Web Integrada exclusiva</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> Métricas y Estadísticas Avanzadas</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> +3 Colores de personalización extra (+3)</li>
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> Estadísticas avanzadas e ingresos</li>
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> Mini web propia y personalizada</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> WhatsApp recordatorios y confirmaciones</li>
                                 </ul>
                             </div>
                         </div>
