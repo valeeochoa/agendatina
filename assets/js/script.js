@@ -3310,7 +3310,7 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
     }
     if (extraColors.color_botones) {
         extraCss += `
-            .btn-cta, button.bg-primary, a.bg-primary { background-color: ${extraColors.color_botones} !important; }
+            .btn-cta, button.bg-primary, a.bg-primary, #btnVolverPanel { background-color: ${extraColors.color_botones} !important; }
         `;
     }
     if (extraColors.color_cards) {
