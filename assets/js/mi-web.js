@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
         enableImagePreview(formServ.querySelector('input[name="imagen1_file"]'));
         enableImagePreview(formServ.querySelector('input[name="imagen2_file"]'));
         enableImagePreview(formServ.querySelector('input[name="imagen3_file"]'));
+    }
     if (webAlineacion) {
         webAlineacion.addEventListener('change', () => {
             const alignVal = webAlineacion.value;
