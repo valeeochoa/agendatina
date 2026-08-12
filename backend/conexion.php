@@ -74,16 +74,16 @@ if ($isAdminEndpoint || $isSuperAdminSession) {
 } else {
     // Detectar si un cliente público está visitando la URL de la Demo o interactuando con ella
     $is_demo_public = false;
-    if (isset($_GET['n']) && strtolower($_GET['n']) === 'demo') {
+    if (isset($_GET['n']) && strpos(strtolower($_GET['n']), 'demo') === 0) {
         $is_demo_public = true;
-    } elseif (isset($_POST['negocio']) && strtolower($_POST['negocio']) === 'demo') {
+    } elseif (isset($_POST['negocio']) && strpos(strtolower($_POST['negocio']), 'demo') === 0) {
         $is_demo_public = true;
-    } elseif (isset($_POST['ruta']) && strtolower($_POST['ruta']) === 'demo') {
+    } elseif (isset($_POST['ruta']) && strpos(strtolower($_POST['ruta']), 'demo') === 0) {
         $is_demo_public = true;
     }
 
     // MODO SANDBOX: Conectar a BD clonada si es el entorno Demo para usuarios corrientes
-    if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || $is_demo_public || (isset($_SESSION['ruta_negocio']) && $_SESSION['ruta_negocio'] === 'demo')) {
+    if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || $is_demo_public || (isset($_SESSION['ruta_negocio']) && strpos($_SESSION['ruta_negocio'], 'demo') === 0)) {
         $_SESSION['is_demo'] = true;
         $dbname = strpos($dbname, '_d') === false ? $dbname . '_d' : $dbname; 
 

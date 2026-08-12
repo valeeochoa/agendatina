@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         $planLower = strtolower($business['plan'] ?? 'basico');
         $isBasic = strpos($planLower, 'básico') !== false || strpos($planLower, 'basico') !== false || strpos($planLower, 'simple') !== false;
-        $isPremium = strpos($planLower, 'premium') !== false;
+        $isPremium = strpos($planLower, 'premium') !== false || strpos($planLower, 'completo') !== false;
         
         $extraProfs = max(0, $profCount - 1);
         $wppBase = $isBasic ? 0 : ($isPremium ? 100 : 50);

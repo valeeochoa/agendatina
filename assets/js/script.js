@@ -715,10 +715,11 @@ function loadDashboardData() {
             const dashGreeting = document.getElementById('dashGreeting');
             const dashSubGreeting = document.getElementById('dashSubGreeting');
             if (dashGreeting && window.currentUserData.nombre_completo) {
-                dashGreeting.textContent = `Hola, ${window.currentUserData.nombre_completo.split(' ')[0]}`;
+                const firstName = window.currentUserData.nombre_completo.split(' ')[0];
+                dashGreeting.innerHTML = `¡Hola, <span class="text-[#fc8712] font-black">${firstName}</span>!`;
             }
             if (dashSubGreeting && business.nombre_fantasia) {
-                dashSubGreeting.textContent = `Gestionemos juntos tu negocio ${business.nombre_fantasia}`;
+                dashSubGreeting.innerHTML = `Gestionemos juntos tu negocio <span class="font-extrabold text-[#fc8712] bg-[#fc8712]/10 px-2 py-0.5 rounded-lg border border-[#fc8712]/20 inline-block">${business.nombre_fantasia}</span>`;
             }
 
             window.currentCustomNotifs = data.notificaciones || [];
