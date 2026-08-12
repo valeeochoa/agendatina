@@ -378,6 +378,8 @@
                 });
         });
 
+        let canEditPermissions = true;
+
         function loadTeamAndServices() {
             Promise.all([
                 fetch('backend/gestionar_profesionales.php').then(r => r.json()),
@@ -388,7 +390,8 @@
                     teamList = teamData.data || [];
                     servicesList = Array.isArray(svcsData) ? svcsData : [];
 
-                    currentLimit = teamData.limite || 1;
+                    currentLimit = teamData.limite || 5;
+                    canEditPermissions = teamData.can_edit_permissions !== false;
                     const used = teamList.length;
                     document.getElementById('planCapacityBadge').textContent = `${used} de ${currentLimit} Cuentas Ocupadas`;
 
@@ -434,6 +437,8 @@
                 let permsBadges = '';
                 if (isAdmin) {
                     permsBadges = '<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-md text-[11px] font-extrabold inline-block">👑 Acceso Total (Administrador)</span>';
+                } else if (!canEditPermissions) {
+                    permsBadges = '<span class="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded-md text-[11px] font-medium inline-block">🔒 Acceso Estándar (Plan Simple)</span>';
                 } else {
                     const perms = p.permisos || {};
                     const badgeList = [];
@@ -512,16 +517,16 @@
                             </div>
                             
                             <h3 class="font-extrabold text-white text-lg font-display mb-1">
-                                ¿Quieres sumar más profesionales?
+                                ¿Necesitas más de 5 profesionales?
                             </h3>
                             <p class="text-xs text-purple-200/90 font-medium leading-relaxed">
-                                Has completado las <strong class="text-amber-300">${team.length} de ${limit} cuentas</strong> de tu plan actual. Puedes solicitar al Administrador ampliar tus cupos.
+                                Has alcanzado <strong class="text-amber-300">${team.length} de ${limit} cuentas</strong> de tu plan. Si necesitas más de 5 profesionales en tu equipo, puedes solicitar una ampliación directamente al SuperAdmin.
                             </p>
                         </div>
 
                         <div class="mt-6 pt-4 border-t border-white/10">
                             <button onclick="requestTeamExpansion()" id="btnRequestExpansion" class="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-slate-950 font-black py-3 rounded-2xl text-xs sm:text-sm transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2">
-                                <span class="material-symbols-outlined text-[18px]">add_circle</span> Solicitar Ampliación de Plan
+                                <span class="material-symbols-outlined text-[18px]">add_circle</span> Contactar al SuperAdmin
                             </button>
                         </div>
                     </div>
@@ -613,6 +618,14 @@
         function openPermisosModal(userId) {
             const p = teamList.find(item => item.id == userId);
             if (!p) return;
+
+            const pName = p.nombre_completo.toLowerCase().trim();
+            const isAdmin = p.rol_en_local === 'admin' || (typeof currentOwnerName !== 'undefined' && pName === currentOwnerName.toLowerCase().trim());
+
+            if (!isAdmin && !canEditPermissions) {
+                showErrorModal('La asignación personalizada de roles y permisos para los profesionales de tu equipo está disponible a partir del Plan Profesional y Plan Premium.');
+                return;
+            }
 
             document.getElementById('permisosUserId').value = p.id;
             document.getElementById('permisosModalTitle').textContent = `Editar Profesional: ${p.nombre_completo}`;

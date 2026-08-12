@@ -60,12 +60,24 @@ if ($method === 'GET') {
         }
         unset($p);
 
-        // Obtener el límite dictado por el plan (SuperAdmin)
-        $stmtLimit = $pdo->prepare("SELECT max_profesionales FROM negocios WHERE id = :id");
+        // Obtener el límite dictado por el plan y de la tienda (máximo 5 por el momento para todos)
+        $stmtLimit = $pdo->prepare("SELECT max_profesionales, plan FROM negocios WHERE id = :id");
         $stmtLimit->execute(['id' => $id_negocio]);
-        $max_profesionales = $stmtLimit->fetchColumn() ?: 1;
+        $bizRow = $stmtLimit->fetch(PDO::FETCH_ASSOC) ?: [];
+        $max_profesionales = (int)($bizRow['max_profesionales'] ?? 5);
+        if ($max_profesionales < 1) $max_profesionales = 5;
+        if ($max_profesionales > 5) $max_profesionales = 5;
 
-        echo json_encode(['success' => true, 'data' => $profesionales, 'limite' => $max_profesionales]);
+        $planStr = strtolower($bizRow['plan'] ?? 'basico');
+        $canEditPermissions = (strpos($planStr, 'profesional') !== false || strpos($planStr, 'premium') !== false || strpos($planStr, 'completo') !== false);
+
+        echo json_encode([
+            'success' => true, 
+            'data' => $profesionales, 
+            'limite' => $max_profesionales,
+            'can_edit_permissions' => $canEditPermissions,
+            'plan' => $planStr
+        ]);
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'error' => 'Error al cargar el equipo: ' . $e->getMessage()]);
     }
@@ -79,6 +91,15 @@ if ($method === 'GET') {
 
         if (!$id_usuario || !is_array($permisos)) {
             echo json_encode(['success' => false, 'error' => 'Datos incompletos para actualizar permisos.']);
+            exit;
+        }
+
+        $stmtPlan = $pdo->prepare("SELECT plan FROM negocios WHERE id = ?");
+        $stmtPlan->execute([$id_negocio]);
+        $planStr = strtolower($stmtPlan->fetchColumn() ?: 'basico');
+
+        if (strpos($planStr, 'profesional') === false && strpos($planStr, 'premium') === false && strpos($planStr, 'completo') === false) {
+            echo json_encode(['success' => false, 'error' => 'La asignación personalizada de roles y permisos a profesionales requiere Plan Profesional o Plan Premium.']);
             exit;
         }
 

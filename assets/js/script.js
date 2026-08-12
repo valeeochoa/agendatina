@@ -2604,18 +2604,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     badgePrem.textContent = `${wppPrem} WPP/mes total negocio`;
                 }
 
-                // Actualizar info para el Carrusel flotante utilizando la misma lógica unificada
+                // El Carrusel ("Visualizá tu éxito") debe mostrar SIEMPRE el precio BASE de 1 profesional con su descuento establecido
                 const planKeys = ['basic', 'inter', 'prem'];
                 const finalPrices = [b, i, p];
                 const rawPrices = [rawB, rawI, rawP];
                 
                 for(let idx = 0; idx < 3; idx++) {
-                    let k = planKeys[idx];
-                    let info = getFinalPrice(finalPrices[idx], rawPrices[idx], window.numProfessionals[k]);
-                    carouselData[idx].price = '$' + info.final.toLocaleString('es-AR', {maximumFractionDigits:0});
-                    carouselData[idx].oldPrice = '$' + info.oldPrice.toLocaleString('es-AR', {maximumFractionDigits:0});
-                    carouselData[idx].badgeText = info.badgeText;
-                    carouselData[idx].showOldPrice = info.showOldPrice;
+                    let infoBase = getFinalPrice(finalPrices[idx], rawPrices[idx], 1);
+                    carouselData[idx].price = '$' + infoBase.final.toLocaleString('es-AR', {maximumFractionDigits:0});
+                    carouselData[idx].oldPrice = '$' + infoBase.oldPrice.toLocaleString('es-AR', {maximumFractionDigits:0});
+                    carouselData[idx].badgeText = infoBase.badgeText;
+                    carouselData[idx].showOldPrice = infoBase.showOldPrice;
                 }
                 
                 setCarouselIndex(currentCarouselIndex);
