@@ -127,6 +127,9 @@ window.submitRegister = function(e) {
 // Listener global para cerrar modales con la tecla Escape (ESC)
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape' || e.key === 'Esc') {
+        // 1. Invocar funciones específicas de cierre de modales
+        if (typeof window.closeHorariosDetalladosModal === 'function') window.closeHorariosDetalladosModal();
+        if (typeof window.closeConfirm === 'function') window.closeConfirm();
         if (typeof window.closeRegisterModal === 'function') window.closeRegisterModal();
         if (typeof window.closePricesModal === 'function') window.closePricesModal();
         if (typeof window.closeClientDetailModal === 'function') window.closeClientDetailModal();
@@ -136,6 +139,16 @@ document.addEventListener('keydown', function(e) {
         if (typeof window.closeReceiptModal === 'function') window.closeReceiptModal();
         if (typeof window.closeReportErrorModal === 'function') window.closeReportErrorModal();
         if (typeof window.closeContactSuccessModal === 'function') window.closeContactSuccessModal();
+        if (typeof window.closeSupportModal === 'function') window.closeSupportModal();
+        if (typeof window.closeVerifyEmailModal === 'function') window.closeVerifyEmailModal();
+
+        // 2. Cierre genérico de cualquier contenedor modal visible en la interfaz
+        const openModals = document.querySelectorAll('div[id*="Modal"]:not(.hidden), div[id*="modal"]:not(.hidden), .modal:not(.hidden)');
+        openModals.forEach(m => {
+            if (m.id === 'suspendedAccountModal') return; // Excluir modal de cuenta suspendida
+            m.classList.add('hidden');
+            m.style.display = 'none';
+        });
     }
 });
 

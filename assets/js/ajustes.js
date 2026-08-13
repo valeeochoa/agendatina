@@ -209,7 +209,26 @@ function renderDiasHorariosContainer() {
     });
 }
 
+function syncTramoInputsFromDom() {
+    const tramoInputs = document.querySelectorAll('#diasHorariosContainer .tramo-input');
+    tramoInputs.forEach(inp => {
+        const day = inp.dataset.day;
+        const idx = parseInt(inp.dataset.idx);
+        const field = inp.dataset.field;
+        if (day && !isNaN(idx) && field) {
+            if (!currentHorariosDetallados[day]) {
+                currentHorariosDetallados[day] = { activo: true, tramos: [] };
+            }
+            if (!currentHorariosDetallados[day].tramos[idx]) {
+                currentHorariosDetallados[day].tramos[idx] = { inicio: '09:00', fin: '18:00' };
+            }
+            currentHorariosDetallados[day].tramos[idx][field] = inp.value;
+        }
+    });
+}
+
 window.toggleDiaActivo = function(dayKey, isChecked) {
+    syncTramoInputsFromDom();
     if (!currentHorariosDetallados[dayKey]) {
         const defaultApertura = document.getElementById('configHoraApertura')?.value || '09:00';
         const defaultCierre = document.getElementById('configHoraCierre')?.value || '18:00';
@@ -221,17 +240,35 @@ window.toggleDiaActivo = function(dayKey, isChecked) {
 };
 
 window.addTramoHorario = function(dayKey) {
+    syncTramoInputsFromDom();
     if (!currentHorariosDetallados[dayKey]) {
         currentHorariosDetallados[dayKey] = { activo: true, tramos: [] };
     }
     if (!currentHorariosDetallados[dayKey].tramos) {
         currentHorariosDetallados[dayKey].tramos = [];
     }
-    currentHorariosDetallados[dayKey].tramos.push({ inicio: '14:00', fin: '18:00' });
+
+    const tramosExistentes = currentHorariosDetallados[dayKey].tramos;
+    let newInicio = '14:00';
+    let newFin = '18:00';
+
+    if (tramosExistentes.length > 0) {
+        const ultimoTramo = tramosExistentes[tramosExistentes.length - 1];
+        if (ultimoTramo && ultimoTramo.fin) {
+            const [h, m] = ultimoTramo.fin.split(':').map(Number);
+            let startH = (h + 1) % 24;
+            let endH = (startH + 4) % 24;
+            newInicio = `${String(startH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`;
+            newFin = `${String(endH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`;
+        }
+    }
+
+    currentHorariosDetallados[dayKey].tramos.push({ inicio: newInicio, fin: newFin });
     renderDiasHorariosContainer();
 };
 
 window.removeTramoHorario = function(dayKey, idx) {
+    syncTramoInputsFromDom();
     if (currentHorariosDetallados[dayKey] && currentHorariosDetallados[dayKey].tramos) {
         currentHorariosDetallados[dayKey].tramos.splice(idx, 1);
         renderDiasHorariosContainer();
@@ -331,16 +368,43 @@ window.renderHorariosDetalladosResumen = function() {
 };
 
 window.saveHorariosDetalladosModal = function() {
-    // Recopilar tramos actualizados desde los inputs
-    const tramoInputs = document.querySelectorAll('.tramo-input');
-    tramoInputs.forEach(inp => {
-        const day = inp.dataset.day;
-        const idx = parseInt(inp.dataset.idx);
-        const field = inp.dataset.field;
-        if (currentHorariosDetallados[day] && currentHorariosDetallados[day].tramos && currentHorariosDetallados[day].tramos[idx]) {
-            currentHorariosDetallados[day].tramos[idx][field] = inp.value;
+    // 1. Recopilar tramos actualizados desde los inputs en el DOM
+    syncTramoInputsFromDom();
+
+    // 2. Validación estricta de rangos y superposición por día
+    for (const dia of DIAS_SEMANA_MAP) {
+        const diaData = currentHorariosDetallados[dia.key];
+        if (diaData && diaData.activo !== false && diaData.tramos && diaData.tramos.length > 0) {
+
+            // a. Validar inicio < fin
+            for (let i = 0; i < diaData.tramos.length; i++) {
+                const t = diaData.tramos[i];
+                if (!t.inicio || !t.fin) {
+                    if (typeof showToast === 'function') showToast(`Debes completar los horarios del ${dia.nombre}.`, 'error');
+                    return;
+                }
+                if (t.inicio >= t.fin) {
+                    if (typeof showToast === 'function') {
+                        showToast(`En ${dia.nombre} (Tramo ${i + 1}): La hora de inicio (${t.inicio}) debe ser anterior a la hora de fin (${t.fin}).`, 'error');
+                    }
+                    return;
+                }
+            }
+
+            // b. Ordenar tramos por hora de inicio y verificar que NO se superpongan
+            const tramosOrdenados = [...diaData.tramos].sort((a, b) => a.inicio.localeCompare(b.inicio));
+            for (let i = 0; i < tramosOrdenados.length - 1; i++) {
+                const actual = tramosOrdenados[i];
+                const siguiente = tramosOrdenados[i + 1];
+                if (actual.fin > siguiente.inicio) {
+                    if (typeof showToast === 'function') {
+                        showToast(`Superposición en ${dia.nombre}: El tramo de ${actual.inicio} a ${actual.fin} se cruza con el de ${siguiente.inicio} a ${siguiente.fin}.`, 'error');
+                    }
+                    return;
+                }
+            }
         }
-    });
+    }
 
     const jsonStr = JSON.stringify(currentHorariosDetallados);
     const hiddenInp = document.getElementById('horariosDetalladosJsonInput');
@@ -350,7 +414,7 @@ window.saveHorariosDetalladosModal = function() {
         window.renderHorariosDetalladosResumen();
     }
 
-    if (typeof showToast === 'function') showToast('Horarios personalizados listos para guardar.', 'success');
+    if (typeof showToast === 'function') showToast('Horarios personalizados validados y listos para guardar.', 'success');
     closeHorariosDetalladosModal();
 };
 
