@@ -152,7 +152,7 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-window.showToast = function(message, type = 'success') {
+window.showToast = function(message, type = 'success', customDuration = null) {
     let container = document.getElementById('toast-container');
     if (!container) {
         container = document.createElement('div');
@@ -164,11 +164,27 @@ window.showToast = function(message, type = 'success') {
     const bgColor = type === 'success' ? 'bg-green-600' : 'bg-red-600';
     const icon = type === 'success' ? 'check_circle' : 'error';
     
-    toast.className = `${bgColor} text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-3 transform transition-all duration-300 translate-y-12 opacity-0 font-medium text-sm`;
-    toast.innerHTML = `<span class="material-symbols-outlined">${icon}</span> <span>${message}</span>`;
+    // Si es error se otorga tiempo extendido de 8 segundos para lectura comoda
+    const duration = customDuration || (type === 'error' ? 8000 : 4000);
+
+    toast.className = `${bgColor} text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center justify-between gap-3 transform transition-all duration-300 translate-y-12 opacity-0 font-medium text-xs sm:text-sm max-w-md pointer-events-auto border border-white/20`;
+    toast.innerHTML = `
+        <div class="flex items-center gap-2.5">
+            <span class="material-symbols-outlined shrink-0 text-[22px]">${icon}</span> 
+            <span class="leading-snug">${message}</span>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors shrink-0" title="Cerrar aviso">
+            <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+    `;
     container.appendChild(toast);
     requestAnimationFrame(() => toast.classList.remove('translate-y-12', 'opacity-0'));
-    setTimeout(() => { toast.classList.add('translate-y-12', 'opacity-0'); setTimeout(() => toast.remove(), 300); }, 3000);
+    setTimeout(() => { 
+        if (toast && toast.parentElement) {
+            toast.classList.add('translate-y-12', 'opacity-0'); 
+            setTimeout(() => toast.remove(), 300); 
+        }
+    }, duration);
 };
 
 window.showConfirm = function(title, message, acceptText, acceptColorClass, callback, extraHtml = '') {

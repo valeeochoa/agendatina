@@ -47,21 +47,36 @@ window.loadDashboardData = function() {
                 }
             }
 
-            // Cartel de bienvenida: En modo Demo muestra aviso demo + tour virtual; en cuentas reales muestra bienvenida única vez
+            // Cartel de bienvenida: En modo Demo muestra aviso demo + tour una sola vez por sesión; en cuentas reales muestra bienvenida una sola vez tras registro
             if (isDemo) {
-                setTimeout(() => {
-                    if (typeof window.openDemoWelcomeNoticeModal === 'function') {
-                        window.openDemoWelcomeNoticeModal();
-                    }
-                }, 400);
+                const demoNoticeShown = sessionStorage.getItem('agendatina_demo_notice_shown') === 'true';
+                if (!demoNoticeShown) {
+                    setTimeout(() => {
+                        if (typeof window.openDemoWelcomeNoticeModal === 'function') {
+                            window.openDemoWelcomeNoticeModal();
+                        }
+                    }, 400);
+                }
             } else {
                 const urlParams = new URLSearchParams(window.location.search);
-                const isWelcome = urlParams.get('welcome') === '1' || sessionStorage.getItem('show_welcome_modal') === 'true';
-                const bizId = (window.currentBusinessData && window.currentBusinessData.id) ? window.currentBusinessData.id : null;
-                const key = bizId ? ('agendatina_welcome_shown_' + bizId) : 'agendatina_welcome_shown_new';
-                
-                if (isWelcome || localStorage.getItem(key) !== 'true') {
+                const hasWelcomeParam = urlParams.get('welcome') === '1' || sessionStorage.getItem('show_welcome_modal') === 'true';
+                const bizId = (window.currentBusinessData && window.currentBusinessData.id) ? window.currentBusinessData.id : 'real_account';
+                const key = 'agendatina_welcome_shown_' + bizId;
+                const sessionKey = 'agendatina_real_welcome_shown_' + bizId;
+
+                const alreadyShownInStorage = localStorage.getItem(key) === 'true';
+                const alreadyShownInSession = sessionStorage.getItem(sessionKey) === 'true';
+
+                // Limpiar el parámetro welcome=1 de la URL para que no persista al volver de otros segmentos
+                if (urlParams.get('welcome') === '1') {
+                    const cleanUrl = window.location.pathname;
+                    window.history.replaceState({}, document.title, cleanUrl);
+                }
+
+                if (hasWelcomeParam && !alreadyShownInSession && !alreadyShownInStorage) {
                     sessionStorage.removeItem('show_welcome_modal');
+                    sessionStorage.setItem(sessionKey, 'true');
+                    localStorage.setItem(key, 'true');
                     setTimeout(() => {
                         if (typeof window.openWelcomeNewAccountModal === 'function') {
                             window.openWelcomeNewAccountModal(true);
@@ -280,6 +295,7 @@ window.markOnboardingStepComplete = function(stepNumber, isCompleted) {
 };
 
 window.openDemoWelcomeNoticeModal = function() {
+    sessionStorage.setItem('agendatina_demo_notice_shown', 'true');
     let modal = document.getElementById('demoNoticeModal');
     if (!modal) {
         modal = document.createElement('div');
@@ -295,7 +311,7 @@ window.openDemoWelcomeNoticeModal = function() {
 
                 <span class="bg-amber-100 text-amber-800 border border-amber-300 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-2">Modo Demostración Activo</span>
 
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2 font-display">Estás en una cuenta DEMO 🚀</h2>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Estás en una cuenta DEMO 🚀</h2>
                 <p class="text-xs sm:text-sm text-slate-600 mb-6 leading-relaxed">
                     Esta es una versión de prueba interactiva con todas las funciones del <strong>Plan Premium</strong> habilitadas para que explores la plataforma. A continuación iniciaremos el tour guiado por la aplicación.
                 </p>
@@ -318,6 +334,7 @@ window.openDemoWelcomeNoticeModal = function() {
 };
 
 window.closeDemoNoticeAndStartTour = function() {
+    sessionStorage.setItem('agendatina_demo_notice_shown', 'true');
     const modal = document.getElementById('demoNoticeModal');
     if (modal) {
         modal.classList.add('opacity-0');
