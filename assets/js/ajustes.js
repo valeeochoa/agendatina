@@ -130,7 +130,54 @@ const DIAS_SEMANA_MAP = [
     { key: '0', nombre: 'Domingo' }
 ];
 
+function showModalHorariosErrorMsg(msg) {
+    const errorBox = document.getElementById('modalHorariosErrorMsg');
+    const errorText = document.getElementById('modalHorariosErrorMsgText');
+    if (errorBox && errorText) {
+        errorText.textContent = msg;
+        errorBox.classList.remove('hidden');
+        errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    if (typeof showToast === 'function') {
+        showToast(msg, 'error');
+    }
+}
+
+function clearModalHorariosErrorMsg() {
+    const errorBox = document.getElementById('modalHorariosErrorMsg');
+    if (errorBox) errorBox.classList.add('hidden');
+}
+
+window.validateHorariosDetalladosLive = function() {
+    syncTramoInputsFromDom();
+    for (const dia of DIAS_SEMANA_MAP) {
+        const diaData = currentHorariosDetallados[dia.key];
+        if (diaData && diaData.activo !== false && diaData.tramos && diaData.tramos.length > 0) {
+            for (let i = 0; i < diaData.tramos.length; i++) {
+                const t = diaData.tramos[i];
+                if (t.inicio && t.fin && t.inicio >= t.fin) {
+                    showModalHorariosErrorMsg(`En ${dia.nombre} (Tramo ${i + 1}): La hora de inicio (${t.inicio}) debe ser anterior a la hora de fin (${t.fin}).`);
+                    return false;
+                }
+            }
+
+            const tramosOrdenados = [...diaData.tramos].sort((a, b) => (a.inicio || '').localeCompare(b.inicio || ''));
+            for (let i = 0; i < tramosOrdenados.length - 1; i++) {
+                const actual = tramosOrdenados[i];
+                const siguiente = tramosOrdenados[i + 1];
+                if (actual.fin && siguiente.inicio && actual.fin > siguiente.inicio) {
+                    showModalHorariosErrorMsg(`Superposición en ${dia.nombre}: El tramo de ${actual.inicio} a ${actual.fin} se cruza con el de ${siguiente.inicio} a ${siguiente.fin}.`);
+                    return false;
+                }
+            }
+        }
+    }
+    clearModalHorariosErrorMsg();
+    return true;
+};
+
 window.openHorariosDetalladosModal = function() {
+    clearModalHorariosErrorMsg();
     const rawVal = document.getElementById('horariosDetalladosJsonInput')?.value || '{}';
     try {
         currentHorariosDetallados = JSON.parse(rawVal);
@@ -145,6 +192,7 @@ window.openHorariosDetalladosModal = function() {
 };
 
 window.closeHorariosDetalladosModal = function() {
+    clearModalHorariosErrorMsg();
     const modal = document.getElementById('modalHorariosDetallados');
     if (modal) modal.classList.add('hidden');
 };
@@ -167,12 +215,12 @@ function renderDiasHorariosContainer() {
         tramos.forEach((t, idx) => {
             tramosHtml += `
                 <div class="flex items-center gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-200/80">
-                    <span class="text-xs font-extrabold text-slate-500">Tramo ${idx + 1}:</span>
-                    <input type="time" value="${t.inicio || '09:00'}" data-day="${dia.key}" data-idx="${idx}" data-field="inicio" class="tramo-input w-28 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none" title="Formato 24hs: 10:00 (10 hs mañana) vs 22:00 (10 hs noche)">
+                    <span class="text-xs font-extrabold text-slate-500 shrink-0 min-w-[65px]">Tramo ${idx + 1}:</span>
+                    <input type="time" value="${t.inicio || '09:00'}" data-day="${dia.key}" data-idx="${idx}" data-field="inicio" onchange="validateHorariosDetalladosLive()" class="tramo-input w-28 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none" title="Formato 24hs: 10:00 vs 22:00">
                     <span class="text-xs font-bold text-slate-400">a</span>
-                    <input type="time" value="${t.fin || '18:00'}" data-day="${dia.key}" data-idx="${idx}" data-field="fin" class="tramo-input w-28 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none" title="Formato 24hs: 12:00 (mediodía) vs 20:00 (8 hs noche)">
+                    <input type="time" value="${t.fin || '18:00'}" data-day="${dia.key}" data-idx="${idx}" data-field="fin" onchange="validateHorariosDetalladosLive()" class="tramo-input w-28 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none" title="Formato 24hs: 12:00 vs 20:00">
                     ${tramos.length > 1 ? `
-                        <button type="button" onclick="removeTramoHorario('${dia.key}', ${idx})" class="text-red-400 hover:text-red-600 p-1 rounded-lg hover:bg-red-50 transition-colors" title="Eliminar tramo">
+                        <button type="button" onclick="removeTramoHorario('${dia.key}', ${idx})" class="text-red-400 hover:text-red-600 p-1.5 rounded-xl hover:bg-red-50 transition-colors ml-auto flex items-center justify-center" title="Eliminar tramo">
                             <span class="material-symbols-outlined text-[18px]">delete</span>
                         </button>
                     ` : ''}
@@ -237,6 +285,7 @@ window.toggleDiaActivo = function(dayKey, isChecked) {
         currentHorariosDetallados[dayKey].activo = isChecked;
     }
     renderDiasHorariosContainer();
+    validateHorariosDetalladosLive();
 };
 
 window.addTramoHorario = function(dayKey) {
@@ -265,6 +314,7 @@ window.addTramoHorario = function(dayKey) {
 
     currentHorariosDetallados[dayKey].tramos.push({ inicio: newInicio, fin: newFin });
     renderDiasHorariosContainer();
+    validateHorariosDetalladosLive();
 };
 
 window.removeTramoHorario = function(dayKey, idx) {
@@ -272,6 +322,7 @@ window.removeTramoHorario = function(dayKey, idx) {
     if (currentHorariosDetallados[dayKey] && currentHorariosDetallados[dayKey].tramos) {
         currentHorariosDetallados[dayKey].tramos.splice(idx, 1);
         renderDiasHorariosContainer();
+        validateHorariosDetalladosLive();
     }
 };
 
@@ -368,43 +419,9 @@ window.renderHorariosDetalladosResumen = function() {
 };
 
 window.saveHorariosDetalladosModal = function() {
-    // 1. Recopilar tramos actualizados desde los inputs en el DOM
-    syncTramoInputsFromDom();
-
-    // 2. Validación estricta de rangos y superposición por día
-    for (const dia of DIAS_SEMANA_MAP) {
-        const diaData = currentHorariosDetallados[dia.key];
-        if (diaData && diaData.activo !== false && diaData.tramos && diaData.tramos.length > 0) {
-
-            // a. Validar inicio < fin
-            for (let i = 0; i < diaData.tramos.length; i++) {
-                const t = diaData.tramos[i];
-                if (!t.inicio || !t.fin) {
-                    if (typeof showToast === 'function') showToast(`Debes completar los horarios del ${dia.nombre}.`, 'error');
-                    return;
-                }
-                if (t.inicio >= t.fin) {
-                    if (typeof showToast === 'function') {
-                        showToast(`En ${dia.nombre} (Tramo ${i + 1}): La hora de inicio (${t.inicio}) debe ser anterior a la hora de fin (${t.fin}).`, 'error');
-                    }
-                    return;
-                }
-            }
-
-            // b. Ordenar tramos por hora de inicio y verificar que NO se superpongan
-            const tramosOrdenados = [...diaData.tramos].sort((a, b) => a.inicio.localeCompare(b.inicio));
-            for (let i = 0; i < tramosOrdenados.length - 1; i++) {
-                const actual = tramosOrdenados[i];
-                const siguiente = tramosOrdenados[i + 1];
-                if (actual.fin > siguiente.inicio) {
-                    if (typeof showToast === 'function') {
-                        showToast(`Superposición en ${dia.nombre}: El tramo de ${actual.inicio} a ${actual.fin} se cruza con el de ${siguiente.inicio} a ${siguiente.fin}.`, 'error');
-                    }
-                    return;
-                }
-            }
-        }
-    }
+    // Validar en tiempo real antes de procesar guardado
+    const isValid = window.validateHorariosDetalladosLive();
+    if (!isValid) return;
 
     const jsonStr = JSON.stringify(currentHorariosDetallados);
     const hiddenInp = document.getElementById('horariosDetalladosJsonInput');

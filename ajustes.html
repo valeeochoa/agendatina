@@ -297,7 +297,7 @@
         </div>
     </div>
 
-    <div id="toast-container" class="fixed bottom-6 right-6 z-[60] flex flex-col gap-3 pointer-events-none"></div>
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none"></div>
 
     <!-- Modal Personalización Avanzada de Horarios por Día (Lunes a Domingo) -->
     <div id="modalHorariosDetallados" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[250] hidden flex items-center justify-center p-4">
@@ -322,7 +322,10 @@
                         <strong class="font-extrabold block text-blue-950 text-xs mb-1">⏱️ Formato de 24 Horas (Ejemplo: 10:00 vs 22:00)</strong>
                         <span>Las horas se ingresan exclusivamente en <strong>formato de 24hs</strong> (rango de 00:00 a 23:59). Ejemplo: Escribe <strong>10:00</strong> para las 10 hs de la mañana y <strong>22:00</strong> para las 10 hs de la noche (en lugar de am/pm). Puedes agregar múltiples tramos por día (ej. 10:00-12:00, 14:00-16:00, 18:00-20:00).</span>
                     </div>
-                </div>
+            <!-- Alerta de Error de Validación de Tramos -->
+            <div id="modalHorariosErrorMsg" class="hidden mb-4 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-start gap-2.5 shadow-sm">
+                <span class="material-symbols-outlined text-red-600 text-[20px] shrink-0 mt-0.5">error</span>
+                <div id="modalHorariosErrorMsgText"></div>
             </div>
 
             <!-- Contenedor de días Lunes a Domingo -->
