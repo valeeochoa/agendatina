@@ -307,6 +307,50 @@
         </div>
     </div>
 
+    <!-- MODAL EDITAR INFORMACIÓN DEL PROFESIONAL (Nombre, Email, Password) -->
+    <div id="editProfModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[250] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative border border-slate-100">
+            <button type="button" onclick="closeEditProfeshInfoModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2"><span class="material-symbols-outlined">close</span></button>
+            
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold shrink-0">
+                    <span class="material-symbols-outlined text-2xl">edit_square</span>
+                </div>
+                <div>
+                    <h3 class="text-xl font-extrabold text-slate-900">Editar Datos del Profesional</h3>
+                    <p class="text-xs text-slate-500">Actualiza el nombre, correo y contraseña de acceso.</p>
+                </div>
+            </div>
+
+            <form onsubmit="saveEditProfeshInfo(event)" class="space-y-4">
+                <input type="hidden" id="editProfId">
+                
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1">Nombre y Apellido</label>
+                    <input type="text" id="editProfName" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1">Correo Electrónico (Usuario de acceso)</label>
+                    <input type="email" id="editProfEmail" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1">Nueva Contraseña <span class="text-slate-400 font-normal">(Opcional)</span></label>
+                    <input type="password" id="editProfPassword" placeholder="Dejar en blanco si no deseas cambiarla" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none">
+                    <p class="text-[11px] text-slate-400 mt-1">Si ingresas una nueva clave, la contraseña de acceso del profesional será actualizada.</p>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                    <button type="button" onclick="closeEditProfeshInfoModal()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all">Cancelar</button>
+                    <button type="submit" id="btnSaveEditProf" class="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-extrabold text-xs shadow-md shadow-primary/20 transition-all flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">save</span> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- MODAL ALERTA DE ERROR / NOTIFICACIÓN -->
     <div id="errorModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl relative text-center">
@@ -449,10 +493,10 @@
                     permsBadges = badgeList.map(b => `<span class="bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded-md text-[11px] font-semibold inline-block mr-1 mb-1">${b}</span>`).join('');
                 }
 
-                const editBtn = `<button onclick="openPermisosModal(${p.id})" class="text-xs font-bold text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-xl border border-purple-200 transition-colors flex items-center gap-1" title="Editar profesional"><span class="material-symbols-outlined text-[15px]">edit</span> Editar</button>`;
+                const permisosBtn = `<button onclick="openPermisosModal(${p.id})" class="text-xs font-bold text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-xl border border-purple-200 transition-colors flex items-center gap-1" title="Gestionar permisos de acceso"><span class="material-symbols-outlined text-[15px]">manage_accounts</span> Permisos</button>`;
 
                 html += `
-                    <div onclick="if(!event.target.closest('button') && !event.target.closest('a')) openPermisosModal(${p.id})" class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-xl hover:border-purple-300 cursor-pointer transition-all group/card">
+                    <div onclick="if(!event.target.closest('button') && !event.target.closest('a')) openEditProfeshInfoModal(${p.id})" class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-xl hover:border-purple-300 cursor-pointer transition-all group/card">
                         <div>
                             <div class="flex items-start justify-between gap-3 mb-4">
                                 <div class="flex items-center gap-3">
@@ -462,7 +506,9 @@
                                     <div>
                                         <h3 class="font-bold text-slate-900 text-base flex items-center gap-1.5">
                                             ${p.nombre_completo}
-                                            <span class="material-symbols-outlined text-[16px] text-purple-600 opacity-70 group-hover/card:opacity-100 transition-opacity" title="Editar profesional">edit</span>
+                                            <button onclick="openEditProfeshInfoModal(${p.id})" class="p-1 rounded-lg text-purple-600 hover:bg-purple-50 transition-colors inline-flex items-center gap-1" title="Editar datos del profesional">
+                                                <span class="material-symbols-outlined text-[18px]">edit</span>
+                                            </button>
                                         </h3>
                                         <p class="text-xs text-slate-500 font-medium">${p.email}</p>
                                     </div>
@@ -488,7 +534,7 @@
                                 Asignar Servicios <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
                             </a>
                             <div class="flex items-center gap-2">
-                                ${editBtn}
+                                ${permisosBtn}
                                 ${actionBtn}
                             </div>
                         </div>
@@ -611,6 +657,77 @@
             document.getElementById('errorModal').classList.add('hidden');
         }
 
+        function openEditProfeshInfoModal(userId) {
+            const p = teamList.find(item => item.id == userId);
+            if (!p) return;
+
+            document.getElementById('editProfId').value = p.id;
+            document.getElementById('editProfName').value = p.nombre_completo || '';
+            document.getElementById('editProfEmail').value = p.email || '';
+            document.getElementById('editProfPassword').value = '';
+
+            document.getElementById('editProfModal').classList.remove('hidden');
+        }
+
+        function closeEditProfeshInfoModal() {
+            document.getElementById('editProfModal').classList.add('hidden');
+        }
+
+        function saveEditProfeshInfo(e) {
+            e.preventDefault();
+            const userId = document.getElementById('editProfId').value;
+            const name = document.getElementById('editProfName').value.trim();
+            const email = document.getElementById('editProfEmail').value.trim();
+            const password = document.getElementById('editProfPassword').value.trim();
+            const btn = document.getElementById('btnSaveEditProf');
+            const origHtml = btn.innerHTML;
+
+            if (!name || !email) {
+                if (typeof showToast === 'function') showToast('Completa el nombre y correo del profesional.', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+
+            const payload = {
+                action: 'actualizar_datos',
+                id_usuario: userId,
+                nombre_completo: name,
+                email: email,
+                password: password
+            };
+
+            const csrfToken = document.cookie.match(/csrf_token=([^;]+)/)?.[1];
+
+            fetch('backend/gestionar_profesionales.php', {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken || ''
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(d => {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+                if (d.success) {
+                    closeEditProfeshInfoModal();
+                    loadTeamAndServices();
+                    if (typeof showToast === 'function') showToast('¡Datos del profesional actualizados con éxito!', 'success');
+                    else showErrorModal('¡Datos del profesional actualizados con éxito!');
+                } else {
+                    showErrorModal(d.error || 'Ocurrió un error al guardar los datos.');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+                showErrorModal('Error de conexión al guardar los datos.');
+            });
+        }
+
         function openPermisosModal(userId) {
             const p = teamList.find(item => item.id == userId);
             if (!p) return;
@@ -624,7 +741,7 @@
             }
 
             document.getElementById('permisosUserId').value = p.id;
-            document.getElementById('permisosModalTitle').textContent = `Editar Profesional: ${p.nombre_completo}`;
+            document.getElementById('permisosModalTitle').textContent = `Permisos de Acceso: ${p.nombre_completo}`;
 
             const perms = p.permisos || {};
             document.getElementById('perm_agenda').checked = perms.agenda !== 0;

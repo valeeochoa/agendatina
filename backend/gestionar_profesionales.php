@@ -130,6 +130,44 @@ if ($method === 'GET') {
 
         echo json_encode(['success' => true, 'permisos' => json_decode($permisosJson, true)]);
         exit;
+    } elseif ($action === 'actualizar_datos') {
+        $id_usuario = (int)($data['id_usuario'] ?? 0);
+        $nombre = trim($data['nombre_completo'] ?? '');
+        $email = filter_var(trim($data['email'] ?? ''), FILTER_SANITIZE_EMAIL);
+        $password = trim($data['password'] ?? '');
+
+        if (!$id_usuario || !$nombre || !$email) {
+            echo json_encode(['success' => false, 'error' => 'Por favor completa el Nombre y Email del profesional.']);
+            exit;
+        }
+
+        $stmtRole = $pdo->prepare("SELECT rol_en_local FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ?");
+        $stmtRole->execute([$id_negocio, $id_usuario]);
+        $role = $stmtRole->fetchColumn();
+
+        if (!$role) {
+            echo json_encode(['success' => false, 'error' => 'El profesional no pertenece a este negocio.']);
+            exit;
+        }
+
+        $stmtCheck = $pdo->prepare("SELECT id FROM usuarios WHERE email = ? AND id != ? LIMIT 1");
+        $stmtCheck->execute([$email, $id_usuario]);
+        if ($stmtCheck->fetch()) {
+            echo json_encode(['success' => false, 'error' => "El correo '$email' ya pertenece a otro usuario en la plataforma."]);
+            exit;
+        }
+
+        if (!empty($password)) {
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            $stmtUpd = $pdo->prepare("UPDATE usuarios SET nombre_completo = ?, email = ?, password = ? WHERE id = ?");
+            $stmtUpd->execute([$nombre, $email, $hash, $id_usuario]);
+        } else {
+            $stmtUpd = $pdo->prepare("UPDATE usuarios SET nombre_completo = ?, email = ? WHERE id = ?");
+            $stmtUpd->execute([$nombre, $email, $id_usuario]);
+        }
+
+        echo json_encode(['success' => true]);
+        exit;
     } else {
         echo json_encode(['success' => false, 'error' => 'Acción no válida.']);
         exit;
