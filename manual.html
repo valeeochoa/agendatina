@@ -173,7 +173,7 @@
                             <span class="material-symbols-outlined text-indigo-600 text-[20px]">dvr</span>
                             <span>Página Web & Colores</span>
                         </span>
-                        <span id="badge-web" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Incluido</span>
+                        <span id="badge-web" class="text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0">Premium</span>
                     </button>
 
                     <button onclick="switchTab('estadisticas')" id="tab-estadisticas" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
@@ -506,6 +506,19 @@
                         <p class="text-slate-600 text-base">Personaliza cómo ven tus clientes tu página pública de reservas:</p>
                     </div>
 
+                    <div id="noticeWebUpgrade" class="hidden bg-purple-50 border border-purple-200 rounded-3xl p-6">
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-purple-600 text-2xl">workspace_premium</span>
+                            <div>
+                                <h3 class="font-bold text-purple-900 text-sm mb-1">Página Web Integrada Exclusiva del Plan Premium</h3>
+                                <p class="text-xs text-purple-800 leading-relaxed mb-3">La creación y edición de tu Página Web propia e independiente está reservada para cuentas con Plan Premium activo.</p>
+                                <button onclick="switchTab('planes')" class="inline-flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-xs transition-all border-none cursor-pointer">
+                                    <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Ver Alcance Plan Premium
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="border border-slate-200 rounded-3xl p-6 bg-slate-50 space-y-3">
                         <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
                             <span class="material-symbols-outlined text-indigo-600 text-[22px]">format_align_center</span>
@@ -631,8 +644,10 @@
                         const boxPrem = document.getElementById('boxPlanPremium');
 
                         const badgeEquipo = document.getElementById('badge-equipo');
+                        const badgeWeb = document.getElementById('badge-web');
                         const badgeEstadisticas = document.getElementById('badge-estadisticas');
                         const noticeEquipo = document.getElementById('noticeEquipoUpgrade');
+                        const noticeWeb = document.getElementById('noticeWebUpgrade');
                         const noticeEstadisticas = document.getElementById('noticeEstadisticasUpgrade');
 
                         if (rawPlan.includes('basico') || rawPlan.includes('simple')) {
@@ -640,12 +655,12 @@
                             if (badgeSimple) { badgeSimple.classList.remove('hidden'); badgeSimple.textContent = '🟢 TU PLAN ACTIVO'; }
                             if (boxSimple) boxSimple.className = 'border-2 border-emerald-500 rounded-3xl p-6 bg-emerald-50/20 relative shadow-md flex flex-col justify-between';
                             
-                            if (badgeEquipo) badgeEquipo.className = 'text-[10px] font-extrabold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md shrink-0';
-                            if (badgeEquipo) badgeEquipo.textContent = 'Profesional';
-                            if (badgeEstadisticas) badgeEstadisticas.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0';
-                            if (badgeEstadisticas) badgeEstadisticas.textContent = 'Premium';
+                            if (badgeEquipo) { badgeEquipo.className = 'text-[10px] font-extrabold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md shrink-0'; badgeEquipo.textContent = 'Profesional'; }
+                            if (badgeWeb) { badgeWeb.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0'; badgeWeb.textContent = 'Premium'; }
+                            if (badgeEstadisticas) { badgeEstadisticas.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0'; badgeEstadisticas.textContent = 'Premium'; }
                             
                             if (noticeEquipo) noticeEquipo.classList.remove('hidden');
+                            if (noticeWeb) noticeWeb.classList.remove('hidden');
                             if (noticeEstadisticas) noticeEstadisticas.classList.remove('hidden');
 
                         } else if (rawPlan.includes('intermedio') || rawPlan.includes('profesional')) {
@@ -653,12 +668,12 @@
                             if (badgePro) { badgePro.classList.remove('hidden'); badgePro.textContent = '🟢 TU PLAN ACTIVO'; }
                             if (boxPro) boxPro.className = 'border-2 border-emerald-500 rounded-3xl p-6 bg-emerald-50/20 relative shadow-md flex flex-col justify-between';
 
-                            if (badgeEquipo) badgeEquipo.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0';
-                            if (badgeEquipo) badgeEquipo.textContent = 'Incluido';
-                            if (badgeEstadisticas) badgeEstadisticas.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0';
-                            if (badgeEstadisticas) badgeEstadisticas.textContent = 'Premium';
+                            if (badgeEquipo) { badgeEquipo.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeEquipo.textContent = 'Incluido'; }
+                            if (badgeWeb) { badgeWeb.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0'; badgeWeb.textContent = 'Premium'; }
+                            if (badgeEstadisticas) { badgeEstadisticas.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0'; badgeEstadisticas.textContent = 'Premium'; }
                             
                             if (noticeEquipo) noticeEquipo.classList.add('hidden');
+                            if (noticeWeb) noticeWeb.classList.remove('hidden');
                             if (noticeEstadisticas) noticeEstadisticas.classList.remove('hidden');
 
                         } else if (rawPlan.includes('completo') || rawPlan.includes('premium')) {
@@ -666,12 +681,12 @@
                             if (badgePrem) { badgePrem.classList.remove('hidden'); badgePrem.textContent = '🟢 TU PLAN ACTIVO'; }
                             if (boxPrem) boxPrem.className = 'border-2 border-emerald-500 rounded-3xl p-6 bg-emerald-50/20 relative shadow-md flex flex-col justify-between';
 
-                            if (badgeEquipo) badgeEquipo.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0';
-                            if (badgeEquipo) badgeEquipo.textContent = 'Incluido';
-                            if (badgeEstadisticas) badgeEstadisticas.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0';
-                            if (badgeEstadisticas) badgeEstadisticas.textContent = 'Incluido';
+                            if (badgeEquipo) { badgeEquipo.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeEquipo.textContent = 'Incluido'; }
+                            if (badgeWeb) { badgeWeb.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeWeb.textContent = 'Incluido'; }
+                            if (badgeEstadisticas) { badgeEstadisticas.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeEstadisticas.textContent = 'Incluido'; }
 
                             if (noticeEquipo) noticeEquipo.classList.add('hidden');
+                            if (noticeWeb) noticeWeb.classList.add('hidden');
                             if (noticeEstadisticas) noticeEstadisticas.classList.add('hidden');
                         }
 

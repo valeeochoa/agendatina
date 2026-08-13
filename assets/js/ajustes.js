@@ -200,7 +200,7 @@ function renderDiasHorariosContainer() {
                 </div>
 
                 ${activo ? `
-                    <div class="flex flex-wrap gap-2.5 items-center">
+                    <div class="flex flex-col gap-2">
                         ${tramosHtml}
                     </div>
                 ` : '<p class="text-xs text-slate-400 font-medium italic">Este día permanecerá cerrado (Sin atención).</p>'}
@@ -267,20 +267,37 @@ window.renderHorariosDetalladosResumen = function() {
             const activo = diaData.activo !== false;
             if (activo) activeDaysArr.push(dia.key);
 
-            let tramosText = '';
+            let tramosItemsHtml = '';
             if (activo && diaData.tramos && diaData.tramos.length > 0) {
-                tramosText = diaData.tramos.map(t => `${t.inicio || '09:00'} - ${t.fin || '18:00'}`).join(' / ');
+                tramosItemsHtml = diaData.tramos.map((t, idx) => `
+                    <div class="flex items-center justify-between text-xs text-purple-950 font-bold bg-purple-50/70 px-2.5 py-1 rounded-lg border border-purple-100/60">
+                        <span class="text-[11px] font-extrabold text-purple-600">Tramo ${idx + 1}:</span>
+                        <span class="font-extrabold text-slate-800">${t.inicio || '09:00'} - ${t.fin || '18:00'} hs</span>
+                    </div>
+                `).join('');
+            } else if (activo) {
+                tramosItemsHtml = `<div class="text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded">Abierto (Horario general)</div>`;
             }
 
             summaryCardsHtml += `
-                <div class="flex items-center justify-between p-2.5 bg-white rounded-xl border border-purple-100 shadow-2xs">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full ${activo ? 'bg-emerald-500' : 'bg-slate-300'}"></span>
-                        <strong class="text-xs text-slate-800 font-bold">${dia.nombre}</strong>
+                <div class="p-3 bg-white rounded-2xl border border-purple-200/80 shadow-xs flex flex-col justify-between gap-2">
+                    <div class="flex items-center justify-between gap-2 border-b border-purple-100/80 pb-1.5">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full ${activo ? 'bg-emerald-500 shadow-xs' : 'bg-slate-300'}"></span>
+                            <strong class="text-xs text-slate-900 font-extrabold">${dia.nombre}</strong>
+                        </div>
+                        <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${activo ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' : 'bg-slate-100 text-slate-400 border border-slate-200'}">
+                            ${activo ? 'Abierto' : 'Cerrado'}
+                        </span>
                     </div>
-                    <span class="text-xs ${activo ? 'text-purple-900 font-bold' : 'text-slate-400 italic'}">
-                        ${activo ? (tramosText || 'Abierto') : 'Cerrado'}
-                    </span>
+                    
+                    ${activo ? `
+                        <div class="space-y-1">
+                            ${tramosItemsHtml}
+                        </div>
+                    ` : `
+                        <div class="text-xs text-slate-400 font-medium italic pt-0.5">Cerrado (Sin atención)</div>
+                    `}
                 </div>
             `;
         }
