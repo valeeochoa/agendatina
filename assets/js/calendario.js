@@ -64,6 +64,20 @@ window.isTimeInBreak = function(timeStr) {
 };
 
 window.isWorkingDay = function(date) {
+    let horariosDetallados = {};
+    if (window.businessWebConfig?.horarios_detallados_json) {
+        try {
+            horariosDetallados = typeof window.businessWebConfig.horarios_detallados_json === 'string'
+                ? JSON.parse(window.businessWebConfig.horarios_detallados_json)
+                : window.businessWebConfig.horarios_detallados_json;
+        } catch(e) {}
+    }
+    const dayKeyMap = { 1: 'lun', 2: 'mar', 3: 'mie', 4: 'jue', 5: 'vie', 6: 'sab', 0: 'dom' };
+    const dayKey = dayKeyMap[date.getDay()];
+    if (dayKey && horariosDetallados && horariosDetallados[dayKey] !== undefined) {
+        return horariosDetallados[dayKey].activo !== false;
+    }
+
     let diasTrabajo = window.businessWebConfig?.dias_trabajo;
     if (diasTrabajo === undefined) diasTrabajo = '1,2,3,4,5,6';
     if (!diasTrabajo) return false;
@@ -311,7 +325,42 @@ function cal_renderTimeSlots() {
         }
     }
     
-    generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval);
+    let horariosDetallados = {};
+    if (window.businessWebConfig?.horarios_detallados_json) {
+        try {
+            horariosDetallados = typeof window.businessWebConfig.horarios_detallados_json === 'string'
+                ? JSON.parse(window.businessWebConfig.horarios_detallados_json)
+                : window.businessWebConfig.horarios_detallados_json;
+        } catch(e) {}
+    }
+    const dayKeyMap = { 1: 'lun', 2: 'mar', 3: 'mie', 4: 'jue', 5: 'vie', 6: 'sab', 0: 'dom' };
+    const dayKey = dayKeyMap[cal_selectedDate.getDay()];
+    const diaData = dayKey ? horariosDetallados[dayKey] : null;
+
+    if (diaData && diaData.activo !== false && Array.isArray(diaData.tramos) && diaData.tramos.length > 0) {
+        cal_availableTimes.length = 0;
+        diaData.tramos.forEach(tramo => {
+            if (!tramo.inicio || !tramo.fin) return;
+            let [startH, startM] = tramo.inicio.split(':').map(Number);
+            let [endH, endM] = tramo.fin.split(':').map(Number);
+            let current = new Date();
+            current.setHours(startH, startM, 0, 0);
+            let end = new Date();
+            end.setHours(endH, endM, 0, 0);
+
+            while (current < end) {
+                let h = current.getHours().toString().padStart(2, '0');
+                let m = current.getMinutes().toString().padStart(2, '0');
+                let timeSlot = `${h}:${m}`;
+                if (!window.isTimeInBreak(timeSlot) && !cal_availableTimes.includes(timeSlot)) {
+                    cal_availableTimes.push(timeSlot);
+                }
+                current.setMinutes(current.getMinutes() + interval);
+            }
+        });
+    } else {
+        generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval);
+    }
 
     const blocksNeeded = Math.ceil(selectedDuration / interval);
     const effectiveIsAdmin = isAdmin && !isPreviewMode;

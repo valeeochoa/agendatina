@@ -141,6 +141,7 @@ document.addEventListener('keydown', function(e) {
         if (typeof window.closeContactSuccessModal === 'function') window.closeContactSuccessModal();
         if (typeof window.closeSupportModal === 'function') window.closeSupportModal();
         if (typeof window.closeVerifyEmailModal === 'function') window.closeVerifyEmailModal();
+        if (typeof window.closeEditProfeshInfoModal === 'function') window.closeEditProfeshInfoModal();
 
         // 2. Cierre genérico de cualquier contenedor modal visible en la interfaz
         const openModals = document.querySelectorAll('div[id*="Modal"]:not(.hidden), div[id*="modal"]:not(.hidden), .modal:not(.hidden)');
