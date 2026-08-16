@@ -907,14 +907,17 @@ function loadDashboardData() {
                 let hasServices = Array.isArray(services) && services.length > 0;
                 let hasTurnos = Array.isArray(turnos) && turnos.length > 0;
 
-                if (hasConfig && hasServices && hasTurnos && window.currentUserData.email !== 'demo@agendatina.site') {
+                const isDemoUser = (window.currentUserData && window.currentUserData.email && window.currentUserData.email.includes('demo')) ||
+                                   (business && (business.ruta === 'demo' || business.subdominio === 'demo' || business.is_demo === true)) ||
+                                   sessionStorage.getItem('is_demo_user') === 'true';
+
+                // En cuentas reales se oculta al completar los 3 pasos. En cuentas DEMO permanece SIEMPRE visible.
+                if (hasConfig && hasServices && hasTurnos && !isDemoUser) {
                     onboardingWidget.classList.add('hidden');
                     onboardingWidget.style.display = 'none';
                 } else {
                     onboardingWidget.classList.remove('hidden');
                     onboardingWidget.style.display = 'block';
-                    
-                    const isDemoUser = (window.currentUserData && window.currentUserData.email && window.currentUserData.email.includes('demo')) || (business && (business.ruta === 'demo' || business.is_demo));
                     
                     const step1Icon = document.getElementById('step1Icon');
                     const step1Text = document.getElementById('step1Text');
