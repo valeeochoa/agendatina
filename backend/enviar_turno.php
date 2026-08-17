@@ -326,6 +326,20 @@ try {
     error_log("Error al enviar correo de notificación: " . $mail->ErrorInfo);
 }
 
+// Envío automático de notificación por WhatsApp vía Meta Cloud API (si está configurada y activa)
+try {
+    require_once __DIR__ . '/helpers/whatsapp_meta_helper.php';
+    $stmtWpp = $pdo->prepare("SELECT whatsapp_contacto FROM configuracion_web WHERE id_negocio = ?");
+    $stmtWpp->execute([$id_negocio]);
+    $wppContact = $stmtWpp->fetchColumn();
+    
+    if (!empty($wppContact)) {
+        enviarNotificacionWhatsAppMeta($pdo, $id_negocio, $wppContact, $cliente_nombre, $fecha_display, $hora, $servicio, $profesional);
+    }
+} catch (Exception $eWpp) {
+    error_log("Error en notificación WhatsApp Meta: " . $eWpp->getMessage());
+}
+
 // Responder al cliente garantizando que el proceso de correo ya finalizó
 echo json_encode(['success' => true, 'mail_enviado' => $mailEnviado]);
 ?>
