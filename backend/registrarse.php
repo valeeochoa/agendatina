@@ -182,7 +182,8 @@ try {
         'hora_cierre' => "VARCHAR(10) DEFAULT '19:00'",
         'hora_descanso_inicio' => 'VARCHAR(10) DEFAULT NULL',
         'hora_descanso_fin' => 'VARCHAR(10) DEFAULT NULL',
-        'dias_trabajo' => "VARCHAR(50) DEFAULT '1,2,3,4,5,6'"
+        'dias_trabajo' => "VARCHAR(50) DEFAULT '1,2,3,4,5,6'",
+        'horarios_detallados_json' => 'LONGTEXT DEFAULT NULL'
     ];
 
     foreach ($configWebCols as $col => $def) {
@@ -237,8 +238,9 @@ try {
     $stmtPersonal->execute(['id_u' => $idUsuario, 'id_n' => $idNegocio]);
 
     // 7. Crear configuración inicial del negocio
+    $horarios_detallados_json = isset($_POST['horarios_detallados_json']) ? trim($_POST['horarios_detallados_json']) : null;
     try {
-        $stmtConfigWeb = $pdo->prepare("INSERT IGNORE INTO configuracion_web (id_negocio, titulo_banner, subtitulo_banner, color_primario, limite_eliminacion_dias, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo) VALUES (:id_n, :titulo, 'Bienvenido a nuestra agenda online', '#d11149', 30, :h_ap, :h_ci, :h_di, :h_df, :dias)");
+        $stmtConfigWeb = $pdo->prepare("INSERT IGNORE INTO configuracion_web (id_negocio, titulo_banner, subtitulo_banner, color_primario, limite_eliminacion_dias, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json) VALUES (:id_n, :titulo, 'Bienvenido a nuestra agenda online', '#d11149', 30, :h_ap, :h_ci, :h_di, :h_df, :dias, :h_detallados)");
         $stmtConfigWeb->execute([
             'id_n' => $idNegocio,
             'titulo' => $nombre_fantasia,
@@ -246,7 +248,8 @@ try {
             'h_ci' => $hora_cierre,
             'h_di' => $hora_descanso_inicio,
             'h_df' => $hora_descanso_fin,
-            'dias' => $dias_trabajo
+            'dias' => $dias_trabajo,
+            'h_detallados' => (!empty($horarios_detallados_json) && $horarios_detallados_json !== '{}') ? $horarios_detallados_json : null
         ]);
     } catch (Exception $eConfig) {
         error_log("Aviso config web no crítica: " . $eConfig->getMessage());
