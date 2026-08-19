@@ -504,7 +504,20 @@
             btn.innerHTML = orig;
         });
     }
-    function validateRegHorariosDetalladosLive() {
+
+    const REG_DIAS_SEMANA_MAP = [
+        { key: 'lunes', nombre: 'Lunes', num: '1' },
+        { key: 'martes', nombre: 'Martes', num: '2' },
+        { key: 'miercoles', nombre: 'Miércoles', num: '3' },
+        { key: 'jueves', nombre: 'Jueves', num: '4' },
+        { key: 'viernes', nombre: 'Viernes', num: '5' },
+        { key: 'sabado', nombre: 'Sábado', num: '6' },
+        { key: 'domingo', nombre: 'Domingo', num: '0' }
+    ];
+
+    let regCurrentHorariosDetallados = {};
+
+    window.validateRegHorariosDetalladosLive = function() {
         const errorBox = document.getElementById('regCustomScheduleErrorMsg');
         const errorText = document.getElementById('regCustomScheduleErrorText');
         const saveBtn = document.getElementById('btnSaveRegCustomSchedule');
@@ -543,9 +556,9 @@
         if (errorBox) errorBox.classList.add('hidden');
         if (saveBtn) saveBtn.disabled = false;
         return true;
-    }
+    };
 
-    function openRegCustomScheduleModal() {
+    window.openRegCustomScheduleModal = function() {
         const rawVal = document.getElementById('regHorariosDetalladosJsonInput').value || '{}';
         try {
             regCurrentHorariosDetallados = JSON.parse(rawVal);
@@ -572,18 +585,20 @@
 
         const modal = document.getElementById('regCustomScheduleModal');
         const content = document.getElementById('regCustomScheduleModalContent');
+        if (!modal || !content) return;
         modal.classList.remove('hidden'); modal.classList.add('flex');
         setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
-    }
+    };
 
-    function closeRegCustomScheduleModal() {
+    window.closeRegCustomScheduleModal = function() {
         const modal = document.getElementById('regCustomScheduleModal');
         const content = document.getElementById('regCustomScheduleModalContent');
+        if (!modal || !content) return;
         modal.classList.add('opacity-0'); content.classList.add('scale-95');
         setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
-    }
+    };
 
-    function renderRegDiasHorariosContainer() {
+    window.renderRegDiasHorariosContainer = function() {
         const container = document.getElementById('regDiasHorariosContainer');
         if (!container) return;
 
@@ -641,9 +656,9 @@
                 </div>
             `;
         });
-    }
+    };
 
-    function toggleRegDiaActivo(key, isChecked) {
+    window.toggleRegDiaActivo = function(key, isChecked) {
         if (!regCurrentHorariosDetallados[key]) {
             regCurrentHorariosDetallados[key] = { activo: isChecked, tramos: [{ inicio: '09:00', fin: '19:00' }] };
         } else {
@@ -651,9 +666,9 @@
         }
         renderRegDiasHorariosContainer();
         validateRegHorariosDetalladosLive();
-    }
+    };
 
-    function addRegTramoHorario(key) {
+    window.addRegTramoHorario = function(key) {
         if (!regCurrentHorariosDetallados[key]) {
             regCurrentHorariosDetallados[key] = { activo: true, tramos: [] };
         }
@@ -702,9 +717,9 @@
 
         renderRegDiasHorariosContainer();
         validateRegHorariosDetalladosLive();
-    }
+    };
 
-    function removeRegTramoHorario(key, idx) {
+    window.removeRegTramoHorario = function(key, idx) {
         if (regCurrentHorariosDetallados[key] && regCurrentHorariosDetallados[key].tramos) {
             regCurrentHorariosDetallados[key].tramos.splice(idx, 1);
             if (regCurrentHorariosDetallados[key].tramos.length === 0) {
@@ -713,16 +728,16 @@
             renderRegDiasHorariosContainer();
             validateRegHorariosDetalladosLive();
         }
-    }
+    };
 
-    function updateRegTramoValue(key, idx, field, val) {
+    window.updateRegTramoValue = function(key, idx, field, val) {
         if (regCurrentHorariosDetallados[key] && regCurrentHorariosDetallados[key].tramos && regCurrentHorariosDetallados[key].tramos[idx]) {
             regCurrentHorariosDetallados[key].tramos[idx][field] = val;
             validateRegHorariosDetalladosLive();
         }
-    }
+    };
 
-    function saveRegCustomSchedule() {
+    window.saveRegCustomSchedule = function() {
         if (!validateRegHorariosDetalladosLive()) return;
 
         const jsonStr = JSON.stringify(regCurrentHorariosDetallados);
@@ -750,9 +765,9 @@
         });
 
         closeRegCustomScheduleModal();
-    }
+    };
 
-    function resetRegCustomScheduleToGeneral() {
+    window.resetRegCustomScheduleToGeneral = function() {
         regCurrentHorariosDetallados = {};
         document.getElementById('regHorariosDetalladosJsonInput').value = '{}';
 
@@ -769,9 +784,9 @@
         if (customNotice) customNotice.classList.add('hidden');
 
         closeRegCustomScheduleModal();
-    }
+    };
 
-    function toggleRegGeneralScheduleBox() {
+    window.toggleRegGeneralScheduleBox = function() {
         const box = document.getElementById('regGeneralScheduleBox');
         const btnText = document.getElementById('btnToggleGeneralBoxText');
         if (!box) return;
@@ -782,7 +797,7 @@
             box.classList.add('hidden');
             if (btnText) btnText.textContent = 'Mostrar Horarios Generales';
         }
-    }
+    };
     </script>
 
 <!-- MODAL PERSONALIZAR HORARIOS POR DÍA EN REGISTRO -->
