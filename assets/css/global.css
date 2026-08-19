@@ -81,7 +81,7 @@ body.calendar-degrade-active, body[data-degrade="1"], html.calendar-degrade-acti
     background: #e07409;
 }
 
-/* Estética del Calendario */
+/* Estética Premium del Calendario (Semanal y Mensual) */
 .calendar-day, .time-slot, button, a {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
@@ -90,78 +90,90 @@ body.calendar-degrade-active, body[data-degrade="1"], html.calendar-degrade-acti
 .calendar-day {
     aspect-ratio: 1 / 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    border-radius: 12px;
-    transition: all 0.2s ease;
-    font-weight: 500;
-    font-size: 0.9rem;
+    border-radius: 1rem;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 700;
+    font-size: 0.95rem;
     border: 2px solid transparent;
+    position: relative;
 }
 
 .calendar-day:not(.disabled) {
-    background: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
     cursor: pointer;
-    border-color: var(--color-secundario, #FCB0B3);
+    border-color: #f1f5f9;
+    color: #1e293b;
 }
 
 @media (hover: hover) {
     .calendar-day:not(.disabled):hover {
-        transform: translateY(-2px);
+        transform: translateY(-3px) scale(1.03);
         border-color: var(--color-primario, #D11149);
         color: var(--color-primario, #D11149);
+        box-shadow: 0 12px 20px -5px rgba(209, 17, 73, 0.18);
     }
     .time-slot:hover:not(.booked) {
         border-color: var(--color-secundario, #FC8712);
-        background: white;
+        background: #ffffff;
         color: var(--color-primario, #D11149);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px -3px rgba(252, 135, 18, 0.2);
     }
 }
 
 .calendar-day:not(.disabled):active {
-    transform: scale(0.92);
+    transform: scale(0.95);
 }
 
 .calendar-day.selected {
-    background: var(--color-primario, #D11149) !important;
-    color: white !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, var(--color-primario, #D11149) 0%, #fc8712 100%) !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+    box-shadow: 0 12px 24px -4px rgba(209, 17, 73, 0.4) !important;
+    transform: scale(1.05) !important;
 }
 
 .calendar-day.disabled {
-    opacity: 0.5;
+    opacity: 0.45;
     cursor: not-allowed;
-    background: #fff;
-    border-color: #fff;
+    background: #f8fafc;
+    border-color: #f1f5f9;
+    color: #94a3b8;
 }
 
-/* Horarios Estilo Pastilla */
+/* Horarios Estilo Pastilla Premium */
 .time-slot {
-    padding: 12px;
-    border-radius: 14px;
+    padding: 12px 14px;
+    border-radius: 1rem;
     text-align: center;
-    font-weight: 600;
+    font-weight: 800;
     background: #f8fafc;
-    border: 2px solid #f1f5f9;
-    transition: all 0.2s;
+    border: 1.5px solid #e2e8f0;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .time-slot:not(.booked):active {
-    transform: scale(0.96);
+    transform: scale(0.95);
 }
 
 .time-slot.selected {
-    background: var(--color-primario, #D11149) !important;
-    color: white !important;
-    border-color: var(--color-primario, #D11149) !important;
+    background: linear-gradient(135deg, var(--color-primario, #D11149) 0%, #fc8712 100%) !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+    box-shadow: 0 10px 20px -3px rgba(209, 17, 73, 0.35) !important;
 }
 
 .time-slot.booked {
-    background: #e2e8f0;
+    background: #f1f5f9;
     color: #94a3b8;
     text-decoration: line-through;
     cursor: not-allowed;
+    border-color: #e2e8f0;
 }
 
 /* Animaciones y utilidades de index.html (Landing) */
