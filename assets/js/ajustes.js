@@ -298,21 +298,44 @@ window.addTramoHorario = function(dayKey) {
     }
 
     const tramosExistentes = currentHorariosDetallados[dayKey].tramos;
-    let newInicio = '14:00';
-    let newFin = '18:00';
 
-    if (tramosExistentes.length > 0) {
-        const ultimoTramo = tramosExistentes[tramosExistentes.length - 1];
-        if (ultimoTramo && ultimoTramo.fin) {
-            const [h, m] = ultimoTramo.fin.split(':').map(Number);
-            let startH = (h + 1) % 24;
-            let endH = (startH + 4) % 24;
-            newInicio = `${String(startH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`;
-            newFin = `${String(endH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`;
+    if (tramosExistentes.length === 0) {
+        tramosExistentes.push({ inicio: '09:00', fin: '18:00' });
+    } else if (tramosExistentes.length === 1) {
+        const t1 = tramosExistentes[0];
+        const [hStart] = (t1.inicio || '09:00').split(':').map(Number);
+        const [hEnd] = (t1.fin || '18:00').split(':').map(Number);
+
+        if (hEnd - hStart >= 6 && hEnd > 14) {
+            const originalEnd = t1.fin || '18:00';
+            t1.fin = '13:00';
+            const afternoonStart = '16:00';
+            const afternoonEnd = (originalEnd > afternoonStart) ? originalEnd : '20:00';
+            tramosExistentes.push({ inicio: afternoonStart, fin: afternoonEnd });
+        } else {
+            let lastFin = t1.fin || '13:00';
+            let [h, m] = lastFin.split(':').map(Number);
+            let nextStartH = Math.min(22, h + 1);
+            let nextEndH = Math.min(23, nextStartH + 4);
+            if (nextStartH >= nextEndH) nextStartH = Math.max(0, nextEndH - 1);
+            tramosExistentes.push({
+                inicio: `${String(nextStartH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`,
+                fin: `${String(nextEndH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`
+            });
         }
+    } else {
+        const lastTramo = tramosExistentes[tramosExistentes.length - 1];
+        let lastFin = lastTramo.fin || '18:00';
+        let [h, m] = lastFin.split(':').map(Number);
+        let nextStartH = Math.min(22, h + 1);
+        let nextEndH = Math.min(23, nextStartH + 4);
+        if (nextStartH >= nextEndH) nextStartH = Math.max(0, nextEndH - 1);
+        tramosExistentes.push({
+            inicio: `${String(nextStartH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`,
+            fin: `${String(nextEndH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`
+        });
     }
 
-    currentHorariosDetallados[dayKey].tramos.push({ inicio: newInicio, fin: newFin });
     renderDiasHorariosContainer();
     validateHorariosDetalladosLive();
 };

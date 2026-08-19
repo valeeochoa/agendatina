@@ -167,45 +167,60 @@
                         </div>
 
                         <div class="space-y-4">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Hora de Apertura *</label>
-                                    <input type="time" id="regHoraApertura" value="09:00" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Hora de Cierre *</label>
-                                    <input type="time" id="regHoraCierre" value="19:00" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
-                                </div>
-                            </div>
-
-                            <!-- Horarios de Descanso (Opcional) -->
-                            <div class="bg-amber-50/50 p-4 rounded-2xl border border-amber-200/60">
-                                <label class="block text-xs font-bold text-amber-800 mb-2 flex items-center gap-1.5">
-                                    <span class="material-symbols-outlined text-[18px] text-amber-600">coffee</span> Horario de Descanso (Opcional)
-                                </label>
+                            <div id="regGeneralScheduleBox" class="space-y-4 transition-all duration-300">
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Inicio Descanso</label>
-                                        <input type="time" id="regHoraDescansoInicio" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Hora de Apertura *</label>
+                                        <input type="time" id="regHoraApertura" value="09:00" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
                                     </div>
                                     <div>
-                                        <label class="block text-xs font-semibold text-slate-600 mb-1">Fin Descanso</label>
-                                        <input type="time" id="regHoraDescansoFin" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Hora de Cierre *</label>
+                                        <input type="time" id="regHoraCierre" value="19:00" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
+                                    </div>
+                                </div>
+
+                                <!-- Horarios de Descanso (Opcional) -->
+                                <div class="bg-amber-50/50 p-4 rounded-2xl border border-amber-200/60">
+                                    <label class="block text-xs font-bold text-amber-800 mb-2 flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[18px] text-amber-600">coffee</span> Horario de Descanso (Opcional)
+                                    </label>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-600 mb-1">Inicio Descanso</label>
+                                            <input type="time" id="regHoraDescansoInicio" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-600 mb-1">Fin Descanso</label>
+                                            <input type="time" id="regHoraDescansoFin" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-700 mb-2">Días que Trabaja el Negocio</label>
+                                    <div class="flex flex-wrap gap-2" id="regDiasTrabajo">
+                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="1" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Lunes</div></label>
+                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="2" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Martes</div></label>
+                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="3" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Miércoles</div></label>
+                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="4" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Jueves</div></label>
+                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="5" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Viernes</div></label>
+                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="6" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Sábado</div></label>
+                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="0" class="peer sr-only"><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Domingo</div></label>
                                     </div>
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="block text-xs font-semibold text-slate-700 mb-2">Días que Trabaja el Negocio</label>
-                                <div class="flex flex-wrap gap-2" id="regDiasTrabajo">
-                                    <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="1" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Lunes</div></label>
-                                    <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="2" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Martes</div></label>
-                                    <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="3" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Miércoles</div></label>
-                                    <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="4" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Jueves</div></label>
-                                    <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="5" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Viernes</div></label>
-                                    <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="6" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Sábado</div></label>
-                                    <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="0" class="peer sr-only"><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Domingo</div></label>
+                            <!-- Aviso de Horarios Personalizados Activos -->
+                            <div id="regCustomActiveNotice" class="hidden p-4 rounded-2xl bg-purple-50/90 border border-purple-200/80 text-xs text-purple-900 leading-relaxed font-medium transition-all">
+                                <div class="flex items-center justify-between gap-2 mb-1">
+                                    <span class="font-extrabold text-purple-950 flex items-center gap-1.5 text-xs">
+                                        <span class="material-symbols-outlined text-purple-600 text-[18px]">verified</span> Horarios Personalizados por Día Activos
+                                    </span>
+                                    <button type="button" onclick="toggleRegGeneralScheduleBox()" class="text-[11px] font-bold text-purple-700 hover:text-purple-900 underline cursor-pointer" id="btnToggleGeneralBoxText">
+                                        Mostrar Horarios Generales
+                                    </button>
                                 </div>
+                                <p class="text-slate-600">Se han minimizado los controles generales para evitar confusión. Tu agenda utilizará la grilla de días y tramos especificada por día.</p>
                             </div>
 
                             <input type="hidden" id="regHorariosDetalladosJsonInput" name="horarios_detallados_json" value="{}">
@@ -489,17 +504,46 @@
             btn.innerHTML = orig;
         });
     }
-    const REG_DIAS_SEMANA_MAP = [
-        { key: 'lunes', nombre: 'Lunes', num: '1' },
-        { key: 'martes', nombre: 'Martes', num: '2' },
-        { key: 'miercoles', nombre: 'Miércoles', num: '3' },
-        { key: 'jueves', nombre: 'Jueves', num: '4' },
-        { key: 'viernes', nombre: 'Viernes', num: '5' },
-        { key: 'sabado', nombre: 'Sábado', num: '6' },
-        { key: 'domingo', nombre: 'Domingo', num: '0' }
-    ];
+    function validateRegHorariosDetalladosLive() {
+        const errorBox = document.getElementById('regCustomScheduleErrorMsg');
+        const errorText = document.getElementById('regCustomScheduleErrorText');
+        const saveBtn = document.getElementById('btnSaveRegCustomSchedule');
 
-    let regCurrentHorariosDetallados = {};
+        for (const dia of REG_DIAS_SEMANA_MAP) {
+            const diaData = regCurrentHorariosDetallados[dia.key];
+            if (diaData && diaData.activo !== false && diaData.tramos && diaData.tramos.length > 0) {
+                for (let i = 0; i < diaData.tramos.length; i++) {
+                    const t = diaData.tramos[i];
+                    if (t.inicio && t.fin && t.inicio >= t.fin) {
+                        if (errorBox && errorText) {
+                            errorText.textContent = `En ${dia.nombre} (Tramo ${i + 1}): La hora de inicio (${t.inicio}) debe ser anterior a la de fin (${t.fin}).`;
+                            errorBox.classList.remove('hidden');
+                        }
+                        if (saveBtn) saveBtn.disabled = true;
+                        return false;
+                    }
+                }
+
+                const tramosOrdenados = [...diaData.tramos].sort((a, b) => (a.inicio || '').localeCompare(b.inicio || ''));
+                for (let i = 0; i < tramosOrdenados.length - 1; i++) {
+                    const actual = tramosOrdenados[i];
+                    const siguiente = tramosOrdenados[i + 1];
+                    if (actual.fin && siguiente.inicio && actual.fin > siguiente.inicio) {
+                        if (errorBox && errorText) {
+                            errorText.textContent = `Superposición en ${dia.nombre}: El tramo de ${actual.inicio} a ${actual.fin} se cruza con el de ${siguiente.inicio} a ${siguiente.fin}. Corregí las horas antes de guardar.`;
+                            errorBox.classList.remove('hidden');
+                        }
+                        if (saveBtn) saveBtn.disabled = true;
+                        return false;
+                    }
+                }
+            }
+        }
+
+        if (errorBox) errorBox.classList.add('hidden');
+        if (saveBtn) saveBtn.disabled = false;
+        return true;
+    }
 
     function openRegCustomScheduleModal() {
         const rawVal = document.getElementById('regHorariosDetalladosJsonInput').value || '{}';
@@ -524,6 +568,7 @@
         });
 
         renderRegDiasHorariosContainer();
+        validateRegHorariosDetalladosLive();
 
         const modal = document.getElementById('regCustomScheduleModal');
         const content = document.getElementById('regCustomScheduleModalContent');
@@ -605,6 +650,7 @@
             regCurrentHorariosDetallados[key].activo = isChecked;
         }
         renderRegDiasHorariosContainer();
+        validateRegHorariosDetalladosLive();
     }
 
     function addRegTramoHorario(key) {
@@ -614,8 +660,48 @@
         if (!regCurrentHorariosDetallados[key].tramos) {
             regCurrentHorariosDetallados[key].tramos = [];
         }
-        regCurrentHorariosDetallados[key].tramos.push({ inicio: '16:00', fin: '20:00' });
+
+        const tramos = regCurrentHorariosDetallados[key].tramos;
+
+        if (tramos.length === 0) {
+            tramos.push({ inicio: '09:00', fin: '19:00' });
+        } else if (tramos.length === 1) {
+            const t1 = tramos[0];
+            const [hStart] = (t1.inicio || '09:00').split(':').map(Number);
+            const [hEnd] = (t1.fin || '19:00').split(':').map(Number);
+
+            if (hEnd - hStart >= 6 && hEnd > 14) {
+                const originalEnd = t1.fin || '19:00';
+                t1.fin = '13:00';
+                const afternoonStart = '16:00';
+                const afternoonEnd = (originalEnd > afternoonStart) ? originalEnd : '20:00';
+                tramos.push({ inicio: afternoonStart, fin: afternoonEnd });
+            } else {
+                let lastFin = t1.fin || '13:00';
+                let [h, m] = lastFin.split(':').map(Number);
+                let nextStartH = Math.min(22, h + 1);
+                let nextEndH = Math.min(23, nextStartH + 4);
+                if (nextStartH >= nextEndH) nextStartH = Math.max(0, nextEndH - 1);
+                tramos.push({
+                    inicio: `${String(nextStartH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`,
+                    fin: `${String(nextEndH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`
+                });
+            }
+        } else {
+            const lastTramo = tramos[tramos.length - 1];
+            let lastFin = lastTramo.fin || '18:00';
+            let [h, m] = lastFin.split(':').map(Number);
+            let nextStartH = Math.min(22, h + 1);
+            let nextEndH = Math.min(23, nextStartH + 4);
+            if (nextStartH >= nextEndH) nextStartH = Math.max(0, nextEndH - 1);
+            tramos.push({
+                inicio: `${String(nextStartH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`,
+                fin: `${String(nextEndH).padStart(2, '0')}:${String(m || 0).padStart(2, '0')}`
+            });
+        }
+
         renderRegDiasHorariosContainer();
+        validateRegHorariosDetalladosLive();
     }
 
     function removeRegTramoHorario(key, idx) {
@@ -625,16 +711,20 @@
                 regCurrentHorariosDetallados[key].tramos.push({ inicio: '09:00', fin: '19:00' });
             }
             renderRegDiasHorariosContainer();
+            validateRegHorariosDetalladosLive();
         }
     }
 
     function updateRegTramoValue(key, idx, field, val) {
         if (regCurrentHorariosDetallados[key] && regCurrentHorariosDetallados[key].tramos && regCurrentHorariosDetallados[key].tramos[idx]) {
             regCurrentHorariosDetallados[key].tramos[idx][field] = val;
+            validateRegHorariosDetalladosLive();
         }
     }
 
     function saveRegCustomSchedule() {
+        if (!validateRegHorariosDetalladosLive()) return;
+
         const jsonStr = JSON.stringify(regCurrentHorariosDetallados);
         document.getElementById('regHorariosDetalladosJsonInput').value = jsonStr;
 
@@ -643,6 +733,12 @@
             badge.className = 'text-xs font-black bg-emerald-100 text-emerald-800 border border-emerald-200 px-3 py-1.5 rounded-xl shrink-0';
             badge.textContent = '✓ Personalizados';
         }
+
+        // Minimizar caja general para evitar confusión de parámetros
+        const genBox = document.getElementById('regGeneralScheduleBox');
+        const customNotice = document.getElementById('regCustomActiveNotice');
+        if (genBox) genBox.classList.add('hidden');
+        if (customNotice) customNotice.classList.remove('hidden');
 
         // Sincronizar checkboxes de días principales en el paso 3
         REG_DIAS_SEMANA_MAP.forEach(dia => {
@@ -666,7 +762,26 @@
             badge.textContent = 'General';
         }
 
+        // Des-minimizar caja general
+        const genBox = document.getElementById('regGeneralScheduleBox');
+        const customNotice = document.getElementById('regCustomActiveNotice');
+        if (genBox) genBox.classList.remove('hidden');
+        if (customNotice) customNotice.classList.add('hidden');
+
         closeRegCustomScheduleModal();
+    }
+
+    function toggleRegGeneralScheduleBox() {
+        const box = document.getElementById('regGeneralScheduleBox');
+        const btnText = document.getElementById('btnToggleGeneralBoxText');
+        if (!box) return;
+        if (box.classList.contains('hidden')) {
+            box.classList.remove('hidden');
+            if (btnText) btnText.textContent = 'Minimizar Horarios Generales';
+        } else {
+            box.classList.add('hidden');
+            if (btnText) btnText.textContent = 'Mostrar Horarios Generales';
+        }
     }
     </script>
 
@@ -686,6 +801,12 @@
             </button>
         </div>
 
+        <!-- Alerta de Error de Superposición / Formato -->
+        <div id="regCustomScheduleErrorMsg" class="hidden mb-3 p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center gap-2 shrink-0">
+            <span class="material-symbols-outlined text-red-500 text-[18px] shrink-0">error</span>
+            <span id="regCustomScheduleErrorText"></span>
+        </div>
+
         <div id="regDiasHorariosContainer" class="flex-1 overflow-y-auto pr-1 space-y-3 custom-scrollbar">
             <!-- Se renderiza dinámicamente con JS -->
         </div>
@@ -694,7 +815,7 @@
             <button type="button" onclick="resetRegCustomScheduleToGeneral()" class="text-xs font-bold text-slate-500 hover:text-slate-700 px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors flex items-center gap-1 cursor-pointer">
                 <span class="material-symbols-outlined text-[16px]">restart_alt</span> Restablecer a General
             </button>
-            <button type="button" onclick="saveRegCustomSchedule()" class="bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-md shadow-purple-600/20 transition-all flex items-center gap-1.5 cursor-pointer">
+            <button type="button" id="btnSaveRegCustomSchedule" onclick="saveRegCustomSchedule()" class="bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-md shadow-purple-600/20 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                 <span class="material-symbols-outlined text-[18px]">check</span> Guardar Horarios Personalizados
             </button>
         </div>
