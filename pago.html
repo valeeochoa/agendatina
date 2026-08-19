@@ -74,12 +74,19 @@
             }
         }
 
+        let targetPlanParam = null;
+        let targetMontoParam = null;
+
         document.addEventListener('DOMContentLoaded', () => {
             const isDemo = (sessionStorage.getItem('is_demo_user') === 'true') || (sessionStorage.getItem('agendatina_demo_alert') === 'true');
             if (isDemo) {
                 showDemoNoticeModal();
                 return;
             }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            targetPlanParam = urlParams.get('plan');
+            targetMontoParam = urlParams.get('monto');
 
             fetch('backend/obtener_precios.php').then(r=>r.json()).then(priceData => {
                 let pBasico = 8889, pIntermedio = 11111, pPremium = 16667;
@@ -97,20 +104,35 @@
                 }
                 fetch('backend/perfil.php').then(r=>r.json()).then(data => {
                     if(data.business) {
-                        const plan = (data.business.plan || 'Basico').toLowerCase();
-                        let basePrice = pBasico;
-                        if(plan.includes('intermedio') || plan.includes('profesional')) basePrice = pIntermedio;
-                        if(plan.includes('completo') || plan.includes('premium')) basePrice = pPremium;
+                        const planActual = (data.business.plan || 'Basico').toLowerCase();
+                        let planNombreDisplay = targetPlanParam ? ('Upgrade a Plan ' + targetPlanParam) : ('Plan ' + planActual.charAt(0).toUpperCase() + planActual.slice(1));
                         
-                        let fullMonthPrice = discount > 0 ? basePrice * (1 - discount/100) : basePrice;
+                        let basePrice = pBasico;
+                        const planEval = (targetPlanParam || planActual).toLowerCase();
+                        if(planEval.includes('intermedio') || planEval.includes('profesional')) basePrice = pIntermedio;
+                        if(planEval.includes('completo') || planEval.includes('premium')) basePrice = pPremium;
+                        
+                        let discountPct = discount;
+                        if (data.business.descuento_aplicado_pct && parseInt(data.business.descuento_aplicado_pct) > 0) {
+                            discountPct = Math.max(discountPct, parseInt(data.business.descuento_aplicado_pct));
+                        }
+
+                        let fullMonthPrice = discountPct > 0 ? basePrice * (1 - discountPct/100) : basePrice;
                         let finalPrice = fullMonthPrice;
                         let notaProrrateo = '';
 
-                        if (data.business.estado_pago === 'prueba') {
+                        if (data.business.codigo_descuento && parseInt(data.business.descuento_aplicado_pct) > 0) {
+                            notaProrrateo += ` (Incluye ${data.business.descuento_aplicado_pct}% OFF por código ${data.business.codigo_descuento})`;
+                        }
+
+                        if (targetMontoParam !== null && targetMontoParam !== undefined && targetMontoParam !== '') {
+                            finalPrice = Math.round(parseFloat(targetMontoParam));
+                            notaProrrateo = ' (Diferencia prorrateada por cambio de plan)';
+                        } else if (data.business.estado_pago === 'prueba') {
                             const fAlta = data.business.fecha_alta ? new Date(data.business.fecha_alta.replace(/-/g, '/')) : new Date();
                             const today = new Date();
                             const trialDaysUsed = Math.min(30, Math.max(0, Math.floor((today - fAlta) / (1000 * 60 * 60 * 24))));
-                            const trialDaysConfigured = trialDaysUsed > 0 ? trialDaysUsed : 15; // Por defecto 15 o 30 días de prueba
+                            const trialDaysConfigured = trialDaysUsed > 0 ? trialDaysUsed : 15;
                             const billableDays = Math.max(0, 30 - trialDaysConfigured);
                             const factorCobro = billableDays / 30;
                             finalPrice = Math.round(fullMonthPrice * factorCobro);
@@ -128,7 +150,7 @@
                         nextBilling.setDate(nextBilling.getDate() + 30);
                         const nextBillingStr = nextBilling.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-                        document.getElementById('pagoPlanNombre').textContent = 'Plan ' + plan.charAt(0).toUpperCase() + plan.slice(1);
+                        document.getElementById('pagoPlanNombre').textContent = planNombreDisplay;
                         document.getElementById('pagoMonto').innerHTML = `$${finalPrice.toLocaleString('es-AR', {maximumFractionDigits:0})} <span class="text-xs text-slate-500 font-normal">${notaProrrateo}</span><br><span class="text-xs font-bold text-purple-700 block mt-1">Próximo Período: ${nextBillingStr}</span>`;
                     }
                 });
@@ -140,7 +162,11 @@
                 btn.disabled = true;
                 btn.innerHTML = 'Enviando...';
                 
-                fetch('backend/subir_comprobante.php', { method: 'POST', body: new FormData(e.target) })
+                const formData = new FormData(e.target);
+                if (targetPlanParam) formData.append('plan', targetPlanParam);
+                if (targetMontoParam) formData.append('monto', targetMontoParam);
+
+                fetch('backend/subir_comprobante.php', { method: 'POST', body: formData })
                 .then(res => res.json())
                 .then(data => {
                     if(data.success) {

@@ -59,6 +59,24 @@ catch(Exception $e) {
 try { $pdo->query("SELECT ultimo_pago FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN ultimo_pago DATETIME DEFAULT NULL"); }
 
+try { $pdo->query("SELECT codigo_descuento FROM negocios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN codigo_descuento VARCHAR(50) DEFAULT NULL"); }
+
+try { $pdo->query("SELECT descuento_aplicado_pct FROM negocios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN descuento_aplicado_pct INT DEFAULT 0"); }
+
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `codigos_descuento` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `codigo` VARCHAR(50) UNIQUE NOT NULL,
+        `descuento_porcentaje` INT NOT NULL DEFAULT 10,
+        `descripcion` TEXT DEFAULT NULL,
+        `activo` TINYINT DEFAULT 1,
+        `usos_count` INT DEFAULT 0,
+        `fecha_creacion` DATETIME DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+} catch(Exception $e) {}
+
 try { $pdo->query("SELECT comprobante FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN comprobante VARCHAR(255) DEFAULT NULL"); }
 
@@ -129,7 +147,7 @@ if ($method === 'GET') {
     try {
         $stmt = $pdo->query("
             SELECT n.id, n.nombre_fantasia, n.ruta, n.plan, n.max_profesionales, n.estado_pago, n.fecha_alta, 
-                   n.ultimo_pago, n.comprobante, u.nombre_completo, u.email, u.id AS id_usuario_admin,
+                   n.ultimo_pago, n.comprobante, n.codigo_descuento, n.descuento_aplicado_pct, u.nombre_completo, u.email, u.id AS id_usuario_admin,
                    COALESCE(cw.tipo_calendario, 'clasico') AS tipo_calendario,
                    an.nota AS nota_interna
             FROM negocios n
@@ -246,9 +264,19 @@ if ($method === 'GET') {
             WHERE an.nota IS NOT NULL AND TRIM(an.nota) != ''
             ORDER BY an.fecha_actualizacion DESC LIMIT 10
         ");
-        $notas_recientes = $stmtNotas ? $stmtNotas->fetchAll(PDO::FETCH_ASSOC) : [];
-        
-        echo json_encode(['success' => true, 'data' => $negocios, 'negocios' => $negocios, 'notificaciones' => $notifs_admin, 'notas_recientes' => $notas_recientes, 'config_global' => $config_global]);
+        // Obtener la lista de códigos de descuento
+        $stmtCodigos = $pdo->query("SELECT * FROM codigos_descuento ORDER BY fecha_creacion DESC");
+        $codigos_descuento = $stmtCodigos ? $stmtCodigos->fetchAll(PDO::FETCH_ASSOC) : [];
+
+        echo json_encode([
+            'success' => true, 
+            'data' => $negocios, 
+            'negocios' => $negocios, 
+            'notificaciones' => $notifs_admin, 
+            'notas_recientes' => $notas_recientes, 
+            'config_global' => $config_global,
+            'codigos_descuento' => $codigos_descuento
+        ]);
     } catch (PDOException $e) {
         echo json_encode(['success' => false, 'error' => 'Error BD: ' . $e->getMessage()]);
     }
@@ -432,8 +460,49 @@ elseif ($method === 'POST') {
 elseif ($method === 'PUT') {
     $data = json_decode(file_get_contents('php://input'), true);
     
-    $action = $data['action'] ?? null;
-    
+    if ($action === 'create_discount_code') {
+        try {
+            $codigoRaw = trim($data['codigo'] ?? '');
+            $codigo = strtoupper(preg_replace('/[^a-zA-Z0-9_-]/', '', $codigoRaw));
+            $pct = max(1, min(100, (int)($data['descuento_porcentaje'] ?? 10)));
+            $desc = trim($data['descripcion'] ?? '');
+
+            if (empty($codigo)) {
+                echo json_encode(['success' => false, 'error' => 'Código de descuento inválido.']);
+                exit;
+            }
+
+            $stmt = $pdo->prepare("INSERT INTO codigos_descuento (codigo, descuento_porcentaje, descripcion, activo) VALUES (?, ?, ?, 1)");
+            $stmt->execute([$codigo, $pct, $desc]);
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => 'El código ya existe o ocurrió un error: ' . $e->getMessage()]);
+        }
+        exit;
+    }
+
+    if ($action === 'toggle_discount_code') {
+        try {
+            $id = (int)($data['id'] ?? 0);
+            $pdo->prepare("UPDATE codigos_descuento SET activo = IF(activo = 1, 0, 1) WHERE id = ?")->execute([$id]);
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    if ($action === 'delete_discount_code') {
+        try {
+            $id = (int)($data['id'] ?? 0);
+            $pdo->prepare("DELETE FROM codigos_descuento WHERE id = ?")->execute([$id]);
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+        }
+        exit;
+    }
+
     if ($action === 'update_prices') {
         try {
             $basico = isset($data['precio_basico']) ? (float)$data['precio_basico'] : 8889;

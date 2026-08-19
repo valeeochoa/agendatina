@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     // Reseteo mensual automático si cambió el mes (YYYY-MM)
     $currentMonthStr = date('Y-m');
-    $stmtN = $pdo->prepare("SELECT nombre_fantasia, ruta, plan, estado_pago, ultimo_pago, fecha_alta, comprobante, wpp_enviados_mes, mes_wpp_contador FROM negocios WHERE id = ?");
+    $stmtN = $pdo->prepare("SELECT nombre_fantasia, ruta, plan, estado_pago, ultimo_pago, fecha_alta, comprobante, wpp_enviados_mes, mes_wpp_contador, codigo_descuento, descuento_aplicado_pct FROM negocios WHERE id = ?");
     $stmtN->execute([$id_negocio]);
     $business = $stmtN->fetch(PDO::FETCH_ASSOC);
 

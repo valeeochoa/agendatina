@@ -217,7 +217,23 @@
                         </div>
                     </div>
 
-                    <!-- PASO 4: Términos y Confirmación -->
+                    <!-- PASO 4: Código de Descuento Promocional (Opcional) -->
+                    <div class="bg-gradient-to-r from-purple-50 to-pink-50/60 p-5 rounded-2xl border border-purple-200/80">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-purple-600 text-xl">sell</span>
+                            <h3 class="text-sm font-bold text-slate-800">¿Tenés un código de descuento? (Opcional)</h3>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-3">Si recibiste un cupón de promoción o bienvenida, ingresalo aquí para aplicarlo en tu primera facturación.</p>
+                        <div class="flex gap-2">
+                            <input type="text" id="regCodigoDescuento" placeholder="Ej: PROMO20" class="flex-1 uppercase font-extrabold tracking-wider bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-purple-500">
+                            <button type="button" onclick="validarCuponRegistro()" id="btnValidarCupon" class="bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs shadow-sm transition-all flex items-center gap-1 cursor-pointer shrink-0">
+                                <span class="material-symbols-outlined text-[16px]">check_circle</span> Validar
+                            </button>
+                        </div>
+                        <div id="regCuponFeedback" class="hidden mt-2 text-xs font-bold p-2.5 rounded-xl"></div>
+                    </div>
+
+                    <!-- PASO 5: Términos y Confirmación -->
                     <div class="pt-2">
                         <label class="flex items-start gap-3 cursor-pointer p-4 bg-slate-50 rounded-2xl border border-slate-200">
                             <input type="checkbox" id="regTerminos" required class="mt-0.5 w-4 h-4 rounded text-[#d11149] focus:ring-[#d11149] border-slate-300">
@@ -242,11 +258,69 @@
     </footer>
 
     <script>
+    let appliedCouponPct = 0;
+    let appliedCouponCode = '';
+
+    function validarCuponRegistro() {
+        const input = document.getElementById('regCodigoDescuento');
+        const btn = document.getElementById('btnValidarCupon');
+        const feedback = document.getElementById('regCuponFeedback');
+        const code = (input.value || '').trim();
+
+        if (!code) {
+            feedback.className = 'mt-2 text-xs font-bold p-2.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-200';
+            feedback.textContent = 'Por favor, ingresá un código promocional.';
+            feedback.classList.remove('hidden');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">refresh</span> Validando...';
+        feedback.classList.add('hidden');
+
+        fetch('backend/validar_cupon.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ codigo: code })
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res && res.success) {
+                appliedCouponPct = res.descuento_porcentaje || 0;
+                appliedCouponCode = res.codigo;
+                input.value = res.codigo;
+                input.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">verified</span> Aplicado';
+                btn.className = 'bg-emerald-600 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs shadow-sm flex items-center gap-1 cursor-default shrink-0';
+
+                feedback.className = 'mt-2 text-xs font-bold p-2.5 rounded-xl bg-emerald-100 text-emerald-900 border border-emerald-200';
+                feedback.textContent = res.message || `¡Código ${res.codigo} aplicado correctamente! Obtenés ${appliedCouponPct}% OFF en tu primer pago.`;
+                feedback.classList.remove('hidden');
+
+                recalcRegPrices();
+            } else {
+                feedback.className = 'mt-2 text-xs font-bold p-2.5 rounded-xl bg-red-100 text-red-900 border border-red-200';
+                feedback.textContent = res.error || 'El código no es válido.';
+                feedback.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">check_circle</span> Validar';
+            }
+        })
+        .catch(() => {
+            feedback.className = 'mt-2 text-xs font-bold p-2.5 rounded-xl bg-red-100 text-red-900 border border-red-200';
+            feedback.textContent = 'Error de conexión al validar el código.';
+            feedback.classList.remove('hidden');
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">check_circle</span> Validar';
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         // Pre-seleccionar plan y profesionales basados en la URL (?plan=...&profs=...)
         const params = new URLSearchParams(window.location.search);
         const requestedPlan = params.get('plan');
         const requestedProfs = parseInt(params.get('profs')) || 1;
+        const requestedCoupon = params.get('cupon') || params.get('codigo');
 
         if (requestedProfs >= 1 && requestedProfs <= 10) {
             document.getElementById('regProfs').value = requestedProfs;
@@ -262,6 +336,12 @@
                 }
             });
         }
+
+        if (requestedCoupon) {
+            document.getElementById('regCodigoDescuento').value = requestedCoupon;
+            validarCuponRegistro();
+        }
+
         window.regPricingData = { precio_basico: 8889, precio_intermedio: 11111, precio_premium: 16667, descuento_porcentaje: 10 };
         fetch('backend/obtener_precios.php').then(r=>r.json()).then(pData => {
             if (pData && pData.success && pData.data) {
@@ -289,7 +369,12 @@
         const rawB = parseFloat(pData.precio_basico) || 8889;
         const rawI = parseFloat(pData.precio_intermedio) || 11111;
         const rawP = parseFloat(pData.precio_premium) || 16667;
-        const discPct = parseInt(pData.descuento_porcentaje) || 10;
+        let discPct = parseInt(pData.descuento_porcentaje) || 10;
+        
+        if (appliedCouponPct > 0) {
+            discPct = Math.max(discPct, appliedCouponPct);
+        }
+
         const factor = (100 - discPct) / 100;
 
         function calc(rawBase) {
@@ -308,6 +393,7 @@
         const iRes = calc(rawI);
         const pRes = calc(rawP);
 
+        const couponNoticeTag = appliedCouponPct > 0 ? `<div class="mt-1 text-[10px] font-black text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md inline-block">🏷️ Cupón ${appliedCouponCode} (-${appliedCouponPct}%)</div>` : '';
         const bPerProf = count > 1 ? `<div class="mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md inline-block">¡Queda en $${Math.round(bRes.final / count).toLocaleString('es-AR')} p/profesional!</div>` : '';
         const iPerProf = count > 1 ? `<div class="mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md inline-block">¡Queda en $${Math.round(iRes.final / count).toLocaleString('es-AR')} p/profesional!</div>` : '';
         const pPerProf = count > 1 ? `<div class="mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md inline-block">¡Queda en $${Math.round(pRes.final / count).toLocaleString('es-AR')} p/profesional!</div>` : '';
@@ -315,19 +401,19 @@
         const oldBEl = document.getElementById('regBasicOldPrice');
         if (oldBEl) oldBEl.style.display = bRes.showOld ? 'inline' : 'none';
         document.getElementById('regBasicOldPrice').textContent = '$' + bRes.old.toLocaleString('es-AR');
-        document.getElementById('regBasicPrice').innerHTML = '$' + bRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + bPerProf;
+        document.getElementById('regBasicPrice').innerHTML = '$' + bRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + couponNoticeTag + bPerProf;
         document.getElementById('regBasicSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Calendario Online`;
 
         const oldIEl = document.getElementById('regInterOldPrice');
         if (oldIEl) oldIEl.style.display = iRes.showOld ? 'inline' : 'none';
         document.getElementById('regInterOldPrice').textContent = '$' + iRes.old.toLocaleString('es-AR');
-        document.getElementById('regInterPrice').innerHTML = '$' + iRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + iPerProf;
+        document.getElementById('regInterPrice').innerHTML = '$' + iRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + couponNoticeTag + iPerProf;
         document.getElementById('regInterSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Agenda Virtual`;
 
         const oldPEl = document.getElementById('regPremOldPrice');
         if (oldPEl) oldPEl.style.display = pRes.showOld ? 'inline' : 'none';
         document.getElementById('regPremOldPrice').textContent = '$' + pRes.old.toLocaleString('es-AR');
-        document.getElementById('regPremPrice').innerHTML = '$' + pRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + pPerProf;
+        document.getElementById('regPremPrice').innerHTML = '$' + pRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + couponNoticeTag + pPerProf;
         document.getElementById('regPremSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Mini Web Integrada`;
     }
 
@@ -363,6 +449,7 @@
             hora_descanso_inicio: document.getElementById('regHoraDescansoInicio').value,
             hora_descanso_fin: document.getElementById('regHoraDescansoFin').value,
             dias_trabajo: diasChecked || '1,2,3,4,5,6',
+            codigo_descuento: appliedCouponCode || document.getElementById('regCodigoDescuento').value,
             acepta_terminos: document.getElementById('regTerminos').checked ? '1' : '0',
             csrf_token: csrfToken
         });

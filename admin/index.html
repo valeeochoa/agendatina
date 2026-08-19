@@ -91,10 +91,16 @@
                     <span class="px-3 py-1 rounded-full bg-[#d11149]/20 text-[#fc8712] border border-[#d11149]/30 text-xs font-black uppercase tracking-wider inline-block mb-2">⭐ Planes & Tarifas Oficiales Agendatina</span>
                     <h2 class="text-xl sm:text-2xl font-extrabold font-display">Resumen Visual de Suscripción</h2>
                 </div>
-                <button onclick="openPricesModal()" class="text-xs font-bold text-white bg-[#d11149] hover:bg-[#d11149]/90 px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-md">
-                    <span class="material-symbols-outlined text-[16px]">edit_note</span>
-                    <span>Editar Precios Oficiales</span>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="openDiscountCodesModal()" class="text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-md cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px]">sell</span>
+                        <span>Códigos de Descuento (<span id="discountCodesCountBadge">0</span>)</span>
+                    </button>
+                    <button onclick="openPricesModal()" class="text-xs font-bold text-white bg-[#d11149] hover:bg-[#d11149]/90 px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-md cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px]">edit_note</span>
+                        <span>Editar Precios Oficiales</span>
+                    </button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
@@ -1057,6 +1063,7 @@ function renderTable(dataToRender) {
                                 <a href="empresa.html?id=${client.id}" class="font-bold text-slate-900 text-base hover:text-purple-600 text-left transition-colors cursor-pointer">${client.nombre_fantasia}</a>
                             </div>
                             <a href="../calendarioMensual.html?n=${urlRuta}" target="_blank" class="text-xs font-semibold text-blue-500 hover:text-blue-700 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">link</span> agendatina.site/${urlRuta}</a>
+                            ${client.codigo_descuento ? `<div class="mt-1"><span class="inline-flex items-center gap-1 text-[10px] font-extrabold text-purple-700 bg-purple-100 border border-purple-200 px-2 py-0.5 rounded-md" title="Cupón canjeado en registro">🏷️ Cupón: ${client.codigo_descuento} (-${client.descuento_aplicado_pct || 0}%)</span></div>` : ''}
                         </td>
                         <td class="p-5">
                             <p class="font-bold text-slate-800">${client.nombre_completo || 'Sin nombre'}</p>
@@ -1083,6 +1090,11 @@ function fetchClients() {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
+            if (data.codigos_descuento) {
+                window.discountCodesList = data.codigos_descuento;
+                const badgeCount = document.getElementById('discountCodesCountBadge');
+                if (badgeCount) badgeCount.textContent = data.codigos_descuento.length;
+            }
             if (data.data.length > 0) {
                 clientsData = data.data;
                 filterClients(); // Preservar filtros y búsquedas activas
@@ -1648,6 +1660,144 @@ function closeAdminNoticeModal() {
     const content = document.getElementById('adminNoticeModalContent');
     if (!modal || !content) return;
     modal.classList.add('opacity-0');
+    content.classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 300);
+}
+
+// ==========================================
+// GESTIÓN DE CÓDIGOS DE DESCUENTO
+// ==========================================
+window.discountCodesList = [];
+
+function openDiscountCodesModal() {
+    renderDiscountCodesTable();
+    const modal = document.getElementById('discountCodesModal');
+    const content = document.getElementById('discountCodesModalContent');
+    if (!modal || !content) return;
+    modal.classList.remove('hidden'); modal.classList.add('flex');
+    setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
+}
+
+function closeDiscountCodesModal() {
+    const modal = document.getElementById('discountCodesModal');
+    const content = document.getElementById('discountCodesModalContent');
+    if (!modal || !content) return;
+    modal.classList.add('opacity-0'); content.classList.add('scale-95');
+    setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 300);
+}
+
+function renderDiscountCodesTable() {
+    const tbody = document.getElementById('discountCodesTableBody');
+    const badgeCount = document.getElementById('discountCodesCountBadge');
+    
+    const list = window.discountCodesList || [];
+    if (badgeCount) badgeCount.textContent = list.length;
+
+    if (!tbody) return;
+    if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-400 font-medium">No hay códigos de descuento creados aún. Usá el formulario arriba para agregar el primero.</td></tr>';
+        return;
+    }
+
+    let html = '';
+    list.forEach(c => {
+        const isActive = parseInt(c.activo) === 1;
+        const statusBadge = isActive 
+            ? `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2.5 py-1 rounded-full border border-emerald-200">Activo</span>`
+            : `<span class="bg-slate-100 text-slate-500 text-[10px] font-black px-2.5 py-1 rounded-full border border-slate-200">Inactivo</span>`;
+        
+        html += `
+            <tr class="hover:bg-slate-50 transition-colors">
+                <td class="p-3">
+                    <span class="font-black text-purple-900 bg-purple-100 px-2.5 py-1 rounded-lg tracking-wider">${c.codigo}</span>
+                    ${c.descripcion ? `<p class="text-[11px] text-slate-400 mt-1">${c.descripcion}</p>` : ''}
+                </td>
+                <td class="p-3 font-extrabold text-slate-800 text-sm">${c.descuento_porcentaje}% OFF</td>
+                <td class="p-3">
+                    <span class="font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">${c.usos_count || 0} cuentas</span>
+                </td>
+                <td class="p-3">${statusBadge}</td>
+                <td class="p-3 text-right space-x-1 whitespace-nowrap">
+                    <button onclick="toggleDiscountCodeStatus(${c.id})" class="px-2.5 py-1 rounded-lg text-xs font-extrabold ${isActive ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'} transition-all cursor-pointer">
+                        ${isActive ? 'Desactivar' : 'Activar'}
+                    </button>
+                    <button onclick="deleteDiscountCode(${c.id})" class="p-1 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors cursor-pointer" title="Eliminar Código">
+                        <span class="material-symbols-outlined text-base">delete</span>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    tbody.innerHTML = html;
+}
+
+function submitCreateDiscountCode(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSubmitNewDiscountCode');
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">refresh</span> Guardando...';
+
+    const codigo = document.getElementById('newDiscountCodeInput').value;
+    const pct = document.getElementById('newDiscountPctInput').value;
+    const desc = document.getElementById('newDiscountDescInput').value;
+
+    fetch('../backend/admin_api.php', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create_discount_code', codigo: codigo, descuento_porcentaje: pct, descripcion: desc })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res && res.success) {
+            document.getElementById('createDiscountCodeForm').reset();
+            fetchClients();
+            showAdminNotice('¡Código Creado!', `El código promocional ${codigo.toUpperCase()} (-${pct}%) fue creado con éxito.`, 'success');
+        } else {
+            alert(res.error || 'Ocurrió un error al crear el código.');
+        }
+    })
+    .catch(() => alert('Error de conexión al crear código.'))
+    .finally(() => { btn.disabled = false; btn.innerHTML = orig; });
+}
+
+function toggleDiscountCodeStatus(id) {
+    fetch('../backend/admin_api.php', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggle_discount_code', id: id })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res && res.success) {
+            fetchClients();
+            setTimeout(renderDiscountCodesTable, 300);
+        } else {
+            alert(res.error || 'Error al cambiar estado.');
+        }
+    });
+}
+
+function deleteDiscountCode(id) {
+    if (!confirm('¿Estás seguro de eliminar este código de descuento?')) return;
+    fetch('../backend/admin_api.php', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_discount_code', id: id })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res && res.success) {
+            fetchClients();
+            setTimeout(renderDiscountCodesTable, 300);
+        } else {
+            alert(res.error || 'Error al eliminar código.');
+        }
+    });
+}
     content.classList.add('scale-95');
     setTimeout(() => {
         modal.classList.add('hidden');
@@ -2340,6 +2490,73 @@ document.addEventListener('keydown', function(e) {
         </div>
     </div>
 </div>
+<!-- MODAL GESTIÓN DE CÓDIGOS DE DESCUENTO -->
+<div id="discountCodesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div id="discountCodesModalContent" class="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl border border-slate-100 transform scale-95 transition-all duration-300 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-start mb-6 border-b border-slate-100 pb-4">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-purple-600 text-2xl">sell</span>
+                    <h3 class="text-xl font-black text-slate-800 font-display">Gestión de Códigos de Descuento</h3>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">Creá y administrá los cupones promocionales para nuevos registros.</p>
+            </div>
+            <button type="button" onclick="closeDiscountCodesModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+        </div>
+
+        <!-- Formulario Crear Código -->
+        <form id="createDiscountCodeForm" onsubmit="submitCreateDiscountCode(event)" class="bg-purple-50/70 border border-purple-200/80 rounded-2xl p-4 sm:p-5 mb-6 space-y-4">
+            <h4 class="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-purple-600 text-lg">add_circle</span> Crear Nuevo Código Promocional
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Código *</label>
+                    <input type="text" id="newDiscountCodeInput" required placeholder="Ej: PROMO20" class="w-full uppercase font-black tracking-wider bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">% Descuento *</label>
+                    <input type="number" id="newDiscountPctInput" required min="1" max="100" value="20" placeholder="Ej: 20" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Descripción / Campaña</label>
+                    <input type="text" id="newDiscountDescInput" placeholder="Ej: Lanzamiento Redes" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+            </div>
+            <div class="text-right">
+                <button type="submit" id="btnSubmitNewDiscountCode" class="bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-md shadow-purple-600/20 transition-all inline-flex items-center gap-1 cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">add</span> Crear Código
+                </button>
+            </div>
+        </form>
+
+        <!-- Tabla de Códigos Existentes -->
+        <div>
+            <h4 class="font-extrabold text-slate-900 text-sm mb-3 flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-slate-600 text-lg">list_alt</span> Códigos Registrados
+            </h4>
+            <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                <table class="w-full text-left text-xs text-slate-600">
+                    <thead class="bg-slate-50 border-b border-slate-200 font-extrabold text-slate-700 uppercase tracking-wider">
+                        <tr>
+                            <th class="p-3">Código</th>
+                            <th class="p-3">Descuento</th>
+                            <th class="p-3">Usos / Cuentas</th>
+                            <th class="p-3">Estado</th>
+                            <th class="p-3 text-right">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="discountCodesTableBody" class="divide-y divide-slate-100">
+                        <tr><td colspan="5" class="p-4 text-center text-slate-400">Cargando códigos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="admin_nav.js"></script>
 </body>
 </html>
