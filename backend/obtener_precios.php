@@ -18,7 +18,10 @@ try {
     try { $pdo->query("SELECT descuento_hasta FROM configuracion_global LIMIT 1"); } 
     catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN descuento_hasta DATETIME DEFAULT NULL"); }
 
-    $stmt = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta FROM configuracion_global WHERE id = 1");
+    try { $pdo->query("SELECT dias_prueba_defecto FROM configuracion_global LIMIT 1"); } 
+    catch(Exception $e) { try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN dias_prueba_defecto INT NOT NULL DEFAULT 30"); } catch(Exception $ex) {} }
+
+    $stmt = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(dias_prueba_defecto, 30) AS dias_prueba_defecto FROM configuracion_global WHERE id = 1");
     $precios = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$precios) {
         $precios = [
@@ -26,7 +29,8 @@ try {
             'precio_intermedio' => 11111,
             'precio_premium' => 16667,
             'descuento_porcentaje' => 10,
-            'descuento_hasta' => null
+            'descuento_hasta' => null,
+            'dias_prueba_defecto' => 30
         ];
     }
     echo json_encode(['success' => true, 'data' => $precios]);

@@ -2671,6 +2671,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     carouselData[idx].showOldPrice = infoBase.showOldPrice;
                 }
                 
+                const trialDays = (window.pricingData && window.pricingData.dias_prueba_defecto) ? window.pricingData.dias_prueba_defecto : 30;
+                document.querySelectorAll('.trial-days-display').forEach(el => el.textContent = trialDays);
+
                 setCarouselIndex(currentCarouselIndex);
             };
 
