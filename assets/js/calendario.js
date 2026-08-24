@@ -2745,6 +2745,11 @@ function checkAdminCalendarSession(config = null) {
         let isDemo = false;
         let isUserAdmin = false;
 
+        if ((!data || !data.success) && !negocioSlug) {
+            window.location.href = 'index.html';
+            return;
+        }
+
         if (data && data.success && data.business) {
             isDemo = (data.business.is_demo === true) || 
                      (data.user && data.user.email === 'demo@agendatina.site') || 

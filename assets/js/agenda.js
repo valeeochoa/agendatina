@@ -791,6 +791,10 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch('backend/perfil.php')
                 .then(r => r.json())
                 .then(d => {
+                    if (!d || !d.success || !d.business) {
+                        window.location.href = 'index.html';
+                        return;
+                    }
                     const isDemo = d.success && d.user && d.user.email === 'demo@agendatina.site';
                     if (isDemo) {
                         btnReport.style.display = 'none';
@@ -798,7 +802,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         sessionStorage.setItem('is_demo_user', 'false');
                     }
-                }).catch(() => {});
+                }).catch(() => { window.location.href = 'index.html'; });
         }
     }
 });

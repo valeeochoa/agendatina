@@ -103,6 +103,10 @@
                     }
                 }
                 fetch('backend/perfil.php').then(r=>r.json()).then(data => {
+                    if (!data || !data.success || !data.business) {
+                        window.location.href = 'index.html';
+                        return;
+                    }
                     if(data.business) {
                         const planActual = (data.business.plan || 'Basico').toLowerCase();
                         let planNombreDisplay = targetPlanParam ? ('Upgrade a Plan ' + targetPlanParam) : ('Plan ' + planActual.charAt(0).toUpperCase() + planActual.slice(1));
@@ -153,7 +157,7 @@
                         document.getElementById('pagoPlanNombre').textContent = planNombreDisplay;
                         document.getElementById('pagoMonto').innerHTML = `$${finalPrice.toLocaleString('es-AR', {maximumFractionDigits:0})} <span class="text-xs text-slate-500 font-normal">${notaProrrateo}</span><br><span class="text-xs font-bold text-purple-700 block mt-1">Próximo Período: ${nextBillingStr}</span>`;
                     }
-                });
+                }).catch(() => { window.location.href = 'index.html'; });
             });
 
             document.getElementById('formComprobante').addEventListener('submit', (e) => {

@@ -376,8 +376,8 @@
             fetch('backend/perfil.php')
                 .then(r => r.json())
                 .then(d => {
-                    if (!d.success) {
-                        window.location.href = 'login.html';
+                    if (!d || !d.success) {
+                        window.location.href = 'index.html';
                     } else {
                         const isDemo = (d.user && d.user.email && d.user.email.includes('demo')) ||
                                        (d.business && (d.business.ruta === 'demo' || d.business.is_demo === true)) ||

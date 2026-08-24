@@ -5,6 +5,15 @@ let ingresosSemanaChartInstance;
 let pagosChartInstance;
 
 document.addEventListener('DOMContentLoaded', () => {
+    fetch('backend/perfil.php')
+        .then(res => res.json())
+        .then(data => {
+            if (!data || !data.success || !data.business) {
+                window.location.href = 'index.html';
+                return;
+            }
+        })
+        .catch(() => { window.location.href = 'index.html'; });
     
     const fechaDesdeInput = document.getElementById('fechaDesde');
     const fechaHastaInput = document.getElementById('fechaHasta');

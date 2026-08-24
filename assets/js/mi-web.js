@@ -6,6 +6,10 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch('backend/perfil.php')
         .then(res => res.json())
         .then(data => {
+            if (!data || !data.success || !data.business) {
+                window.location.href = 'index.html';
+                return;
+            }
             if (data && data.success && data.business) {
                 const isDemo = (data.business.is_demo === true) || (data.user && data.user.email === 'demo@agendatina.site') || (data.business.ruta === 'demo');
                 const badge = document.getElementById('adminSessionBadge');
@@ -16,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (badgeText) badgeText.textContent = 'Modo Demo';
                 }
             }
-        }).catch(() => {});
+        }).catch(() => { window.location.href = 'index.html'; });
 
     const webTitulo = document.getElementById('webTitulo');
     if (!webTitulo) return; // Si no estamos en la página mi-web.html, no ejecutar.

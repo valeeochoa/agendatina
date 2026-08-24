@@ -722,11 +722,7 @@ function loadDashboardData() {
     ])
     .then(([data, webData, pData, services, turnos]) => {
         if (!data || !data.success) {
-            if (data && data.error && data.error.toLowerCase().includes('inicia sesión')) {
-                window.location.href = 'login.html';
-            } else {
-                showDashboardError((data && data.error) || 'No se pudieron recuperar los datos de usuario o negocio.');
-            }
+            window.location.href = 'index.html';
             return;
         }
 

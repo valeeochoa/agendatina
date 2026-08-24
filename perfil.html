@@ -295,6 +295,10 @@
         let isDemoUser = false;
         document.addEventListener('DOMContentLoaded', () => {
             fetch('backend/perfil.php').then(r=>r.json()).then(data => {
+                if (!data || !data.success || !data.user) {
+                    window.location.href = 'index.html';
+                    return;
+                }
                 if(data.user) {
                     document.getElementById('perfilNombre').value = data.user.nombre_completo || '';
                     document.getElementById('perfilEmail').value = data.user.email || '';
