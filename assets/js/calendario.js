@@ -229,12 +229,17 @@ function cal_renderCalendar() {
         const visuallyDisabled = isPast || isNotWorkingDay || isDayBlocked;
         const isClickable = effectiveIsAdmin ? true : !visuallyDisabled;
 
+        const isToday = date.getTime() === today.getTime();
         const dayDiv = document.createElement('div');
-        dayDiv.textContent = i;
-        dayDiv.className = `p-2 aspect-square flex items-center justify-center rounded-xl transition-all`;
+        dayDiv.className = `p-2 aspect-square flex flex-col items-center justify-center rounded-2xl transition-all duration-300 relative text-sm sm:text-base font-extrabold`;
+        
+        if (isToday && !visuallyDisabled) {
+            dayDiv.classList.add('is-today');
+        }
 
         if (visuallyDisabled) {
             dayDiv.classList.add('disabled');
+            dayDiv.innerHTML = `<span class="opacity-50">${i}</span>`;
             if (effectiveIsAdmin && isDayBlocked && !(isPast || isNotWorkingDay)) {
                 dayDiv.style.border = '2px solid #ef4444';
                 dayDiv.style.color = '#ef4444';
@@ -245,19 +250,21 @@ function cal_renderCalendar() {
             }
         } else {
             dayDiv.classList.add('calendar-day');
+            const todayBadge = isToday ? '<span class="glow-badge-today text-[8px] px-1.5 py-0.2 mb-0.5 scale-90">HOY</span>' : '';
+            dayDiv.innerHTML = `${todayBadge}<span>${i}</span>`;
         }
         
         // Multi-select / Single select styling
         if (isMultiSelectMode && selectedDates.includes(dateString)) {
             dayDiv.style.border = '2px solid var(--primary-color, #D11149)';
-            dayDiv.style.backgroundColor = 'rgba(209, 17, 73, 0.1)';
+            dayDiv.style.backgroundColor = 'rgba(209, 17, 73, 0.15)';
         } else if (cal_selectedDate && date.getTime() === cal_selectedDate.getTime() && !isMultiSelectMode) {
             dayDiv.classList.add('selected');
-            dayDiv.style.backgroundColor = 'var(--color-primario, #D11149)';
+            dayDiv.style.background = 'linear-gradient(135deg, var(--color-primario, #D11149) 0%, #fc8712 100%)';
             dayDiv.style.color = '#ffffff';
-            dayDiv.style.fontWeight = 'bold';
-            dayDiv.style.borderRadius = '0.75rem';
-            dayDiv.style.boxShadow = '0 4px 12px rgba(209, 17, 73, 0.35)';
+            dayDiv.style.fontWeight = '900';
+            dayDiv.style.borderRadius = '1rem';
+            dayDiv.style.boxShadow = '0 10px 22px -3px rgba(209, 17, 73, 0.45)';
         }
 
         if (isClickable) {
@@ -405,11 +412,12 @@ function cal_renderTimeSlots() {
         let spotsText = '';
         if (!isBooked && selectedCapacidad > 1) {
             const spotsLeft = selectedCapacidad - maxSpotsTaken;
-            spotsText = `<span class="block text-[10px] font-medium opacity-80 leading-none mt-1">${spotsLeft} lugares</span>`;
+            spotsText = `<span class="block text-[10px] font-semibold opacity-85 leading-none mt-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full">${spotsLeft} lugares</span>`;
         }
 
-        slot.innerHTML = isBooked ? `${time} <span class="block text-[10px] font-medium opacity-80 leading-none mt-1">(Agotado)</span>` : `${time}${spotsText}`;
-        slot.className = isBooked ? 'time-slot booked flex flex-col justify-center items-center py-1 sm:py-1.5 rounded-xl text-xs sm:text-sm font-bold opacity-50 cursor-not-allowed' : 'time-slot flex flex-col justify-center items-center bg-slate-100 dark:bg-slate-900 py-1 sm:py-1.5 rounded-xl text-xs sm:text-sm font-bold border-slate-200 dark:border-slate-700 hover:border-primary hover:text-primary cursor-pointer transition-colors';
+        const clockIcon = !isBooked ? '<span class="material-symbols-outlined text-[15px] opacity-75 inline-block mr-1 align-middle">schedule</span>' : '';
+        slot.innerHTML = isBooked ? `${time} <span class="block text-[10px] font-medium opacity-70 leading-none mt-1">(Agotado)</span>` : `<div class="flex items-center justify-center">${clockIcon}<span>${time} hs</span></div>${spotsText}`;
+        slot.className = isBooked ? 'time-slot booked flex flex-col justify-center items-center py-2 px-3 rounded-2xl text-xs sm:text-sm font-extrabold opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700' : 'time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-900 py-2.5 px-3 rounded-2xl text-xs sm:text-sm font-extrabold border-1.5 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 hover:-translate-y-0.5 hover:shadow-md cursor-pointer transition-all shadow-xs';
         
         if (!isBooked) {
             slot.addEventListener('click', () => {
@@ -1949,39 +1957,46 @@ function renderWeeklyCalendar() {
         let hasAvailableSlots = (!isPast && !isNotWorkingDay && !isDayBlocked) ? checkDayHasAvailableSlots(date) : false;
         const visuallyDisabled = isPast || isNotWorkingDay || isDayBlocked || (!hasAvailableSlots && !isPast && !isNotWorkingDay);
         
+        const isToday = date.getTime() === today.getTime();
+        const isSelected = selectedTimeValue === date.getTime();
+        
         const dayDiv = document.createElement('div');
         const dayName = dayFormatter.format(date).substring(0,3).toUpperCase();
         
-        let bgClass = '', textClass = '', borderClass = 'border-transparent';
+        let bgClass = '', textClass = '', borderClass = 'border-slate-100 dark:border-slate-800';
 
         if (visuallyDisabled) {
-            bgClass = 'bg-slate-100/70 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/60';
-            textClass = 'text-slate-400 dark:text-slate-500';
-            borderClass = 'border-slate-200/80 dark:border-slate-700/60';
+            bgClass = 'bg-slate-100/60 dark:bg-slate-800/30';
+            textClass = 'text-slate-400 dark:text-slate-600';
+            borderClass = 'border-slate-200/60 dark:border-slate-800/60';
         } else {
-            bgClass = 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700/60';
-            textClass = 'text-emerald-800 dark:text-emerald-300';
-            borderClass = 'border-emerald-300 dark:border-emerald-700/60';
+            bgClass = 'bg-white dark:bg-slate-800/90 shadow-xs hover:shadow-xl hover:-translate-y-1 hover:border-[#D11149]';
+            textClass = 'text-slate-800 dark:text-slate-100';
+            borderClass = 'border-emerald-300/80 dark:border-emerald-700/60';
         }
 
-        if (selectedTimeValue === date.getTime()) {
-            borderClass = 'border-primary ring-4 ring-primary/20 ring-offset-2';
-            bgClass = 'bg-primary';
-            textClass = 'text-white';
+        if (isSelected) {
+            bgClass = 'bg-gradient-to-tr from-[#D11149] via-[#E61B58] to-[#FC8712] shadow-xl shadow-[#D11149]/40 scale-[1.06]';
+            textClass = 'text-white font-black';
+            borderClass = 'border-transparent ring-2 ring-rose-300/40';
+        } else if (isToday && !visuallyDisabled) {
+            borderClass = 'border-rose-400 dark:border-rose-500 ring-2 ring-rose-200 dark:ring-rose-900/50';
         }
 
-        dayDiv.className = `flex flex-col items-center justify-center py-4 px-1 rounded-2xl border-2 shadow-xs ${borderClass} ${bgClass} ${textClass} min-w-[70px] sm:min-w-[85px] shrink-0 transition-all`;
+        dayDiv.className = `flex flex-col items-center justify-center py-3.5 px-2 rounded-2xl border-2 ${borderClass} ${bgClass} ${textClass} min-w-[72px] sm:min-w-[88px] shrink-0 transition-all duration-300 relative`;
         
         if (visuallyDisabled) {
-            dayDiv.classList.add('opacity-60', 'cursor-not-allowed');
+            dayDiv.classList.add('opacity-50', 'cursor-not-allowed');
         } else {
-            dayDiv.classList.add('cursor-pointer', 'hover:scale-105', 'transition-all', 'hover:border-emerald-500', 'hover:shadow-md');
+            dayDiv.classList.add('cursor-pointer', 'hover:scale-105');
             const currentIterDate = new Date(date);
             dayDiv.addEventListener('click', () => selectWeeklyDate(currentIterDate));
         }
         
-        const activeDot = (!visuallyDisabled && selectedTimeValue !== date.getTime()) ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mb-1 animate-pulse"></span>' : '<span class="w-1.5 h-1.5 rounded-full bg-transparent mb-1"></span>';
-        dayDiv.innerHTML = `${activeDot}<span class="text-[10px] font-extrabold tracking-widest mb-0.5 opacity-80">${dayName}</span><span class="text-2xl font-black">${date.getDate()}</span>`;
+        const todayBadge = isToday ? '<span class="glow-badge-today absolute -top-2.5 px-2 py-0.5 z-10">HOY</span>' : '';
+        const activeDot = (!visuallyDisabled && !isSelected) ? '<span class="w-2 h-2 rounded-full bg-emerald-500 mb-1 animate-pulse shadow-xs"></span>' : (isSelected ? '<span class="w-2 h-2 rounded-full bg-white/90 mb-1 shadow-xs"></span>' : '<span class="w-2 h-2 rounded-full bg-transparent mb-1"></span>');
+        
+        dayDiv.innerHTML = `${todayBadge}${activeDot}<span class="text-[10px] font-extrabold tracking-widest uppercase mb-0.5 ${isSelected ? 'text-white/90' : 'text-slate-400 dark:text-slate-400'}">${dayName}</span><span class="text-2xl font-black ${isSelected ? 'text-white' : 'text-slate-900 dark:text-slate-100'}">${date.getDate()}</span>`;
         fragment.appendChild(dayDiv);
     }
     calendarDays.appendChild(fragment);
@@ -2153,18 +2168,17 @@ function selectWeeklyDate(date) {
             let spotsText = '';
             if (selectedCapacidad > 1) {
                 const spotsLeft = selectedCapacidad - maxSpotsTaken;
-                spotsText = `<span class="block text-[10px] font-medium opacity-80 leading-none mt-1">${spotsLeft} lugares</span>`;
+                spotsText = `<span class="block text-[10px] font-semibold opacity-85 leading-none mt-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full">${spotsLeft} lugares</span>`;
             }
             
-            slot.innerHTML = `${time}${spotsText}`;
-            slot.className = 'time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-800/90 py-3 px-2 rounded-2xl text-sm font-extrabold border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-primary hover:text-primary hover:bg-primary/5 cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5';
+            const clockIcon = '<span class="material-symbols-outlined text-[15px] opacity-75 inline-block mr-1 align-middle">schedule</span>';
+            slot.innerHTML = `<div class="flex items-center justify-center">${clockIcon}<span>${time} hs</span></div>${spotsText}`;
+            slot.className = 'time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-800/90 py-3 px-3 rounded-2xl text-xs sm:text-sm font-extrabold border-1.5 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 shadow-xs';
             slot.addEventListener('click', () => {
                 document.querySelectorAll('#weeklyTimeSlots .time-slot').forEach(el => {
-                    el.classList.remove('selected', 'bg-primary', 'text-white', 'border-primary', 'shadow-lg', 'shadow-primary/30', 'scale-105');
-                    el.classList.add('bg-white', 'dark:bg-slate-800/90', 'border-slate-200', 'text-slate-700');
+                    el.classList.remove('selected', 'scale-105');
                 });
-                slot.classList.add('selected', 'bg-primary', 'text-white', 'border-primary', 'shadow-lg', 'shadow-primary/30', 'scale-105');
-                slot.classList.remove('bg-white', 'dark:bg-slate-800/90', 'border-slate-200', 'text-slate-700');
+                slot.classList.add('selected', 'scale-105');
                 cal2_selectedTime = time;
                 document.getElementById('weeklyHora').value = time;
             });
@@ -2746,7 +2760,8 @@ function checkAdminCalendarSession(config = null) {
         let isUserAdmin = false;
 
         if ((!data || !data.success) && !negocioSlug) {
-            window.location.href = 'index.html';
+            if (sessionStorage.getItem('is_demo_user') === 'true') window.location.href = 'demo.php';
+            else window.location.href = 'login.html';
             return;
         }
 

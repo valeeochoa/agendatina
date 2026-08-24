@@ -296,7 +296,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             fetch('backend/perfil.php').then(r=>r.json()).then(data => {
                 if (!data || !data.success || !data.user) {
-                    window.location.href = 'index.html';
+                    if (sessionStorage.getItem('is_demo_user') === 'true') window.location.href = 'demo.php';
+                    else window.location.href = 'login.html';
                     return;
                 }
                 if(data.user) {

@@ -81,7 +81,7 @@ body.calendar-degrade-active, body[data-degrade="1"], html.calendar-degrade-acti
     background: #e07409;
 }
 
-/* Estética Premium del Calendario (Semanal y Mensual) */
+/* Estética Ultra-Premium del Calendario (Semanal y Mensual) */
 .calendar-day, .time-slot, button, a {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
@@ -93,79 +93,94 @@ body.calendar-degrade-active, body[data-degrade="1"], html.calendar-degrade-acti
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    border-radius: 1rem;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    font-weight: 700;
+    border-radius: 1.25rem;
+    transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+    font-weight: 800;
     font-size: 0.95rem;
     border: 2px solid transparent;
     position: relative;
+    user-select: none;
 }
 
 .calendar-day:not(.disabled) {
     background: #ffffff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
     cursor: pointer;
     border-color: #f1f5f9;
-    color: #1e293b;
+    color: #0f172a;
 }
 
 @media (hover: hover) {
     .calendar-day:not(.disabled):hover {
-        transform: translateY(-3px) scale(1.03);
+        transform: translateY(-4px) scale(1.06);
         border-color: var(--color-primario, #D11149);
         color: var(--color-primario, #D11149);
-        box-shadow: 0 12px 20px -5px rgba(209, 17, 73, 0.18);
+        box-shadow: 0 14px 24px -6px rgba(209, 17, 73, 0.25);
+        z-index: 10;
     }
     .time-slot:hover:not(.booked) {
         border-color: var(--color-secundario, #FC8712);
         background: #ffffff;
         color: var(--color-primario, #D11149);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px -3px rgba(252, 135, 18, 0.2);
+        transform: translateY(-3px) scale(1.03);
+        box-shadow: 0 10px 20px -4px rgba(252, 135, 18, 0.25);
     }
 }
 
 .calendar-day:not(.disabled):active {
-    transform: scale(0.95);
+    transform: scale(0.94);
 }
 
 .calendar-day.selected {
     background: linear-gradient(135deg, var(--color-primario, #D11149) 0%, #fc8712 100%) !important;
     color: #ffffff !important;
     border-color: transparent !important;
-    box-shadow: 0 12px 24px -4px rgba(209, 17, 73, 0.4) !important;
-    transform: scale(1.05) !important;
+    box-shadow: 0 14px 28px -4px rgba(209, 17, 73, 0.45) !important;
+    transform: scale(1.08) !important;
+    z-index: 12;
+}
+
+.calendar-day.is-today:not(.selected) {
+    ring: 2px solid var(--color-primario, #D11149);
+    border-color: var(--color-primario, #D11149) !important;
+    background: #fff5f7 !important;
 }
 
 .calendar-day.disabled {
-    opacity: 0.45;
+    opacity: 0.4;
     cursor: not-allowed;
     background: #f8fafc;
     border-color: #f1f5f9;
     color: #94a3b8;
 }
 
-/* Horarios Estilo Pastilla Premium */
+/* Horarios Estilo Pastilla Premium Glossy */
 .time-slot {
     padding: 12px 14px;
-    border-radius: 1rem;
+    border-radius: 1.15rem;
     text-align: center;
     font-weight: 800;
-    background: #f8fafc;
+    background: #ffffff;
     border: 1.5px solid #e2e8f0;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
 }
 
 .time-slot:not(.booked):active {
-    transform: scale(0.95);
+    transform: scale(0.94);
 }
 
 .time-slot.selected {
     background: linear-gradient(135deg, var(--color-primario, #D11149) 0%, #fc8712 100%) !important;
     color: #ffffff !important;
     border-color: transparent !important;
-    box-shadow: 0 10px 20px -3px rgba(209, 17, 73, 0.35) !important;
+    box-shadow: 0 12px 24px -4px rgba(209, 17, 73, 0.4) !important;
+    transform: scale(1.05);
 }
 
 .time-slot.booked {
@@ -174,6 +189,20 @@ body.calendar-degrade-active, body[data-degrade="1"], html.calendar-degrade-acti
     text-decoration: line-through;
     cursor: not-allowed;
     border-color: #e2e8f0;
+    opacity: 0.45;
+}
+
+/* Animaciones y utilidades de index.html y Calendarios */
+.glow-badge-today {
+    background: linear-gradient(135deg, #d11149 0%, #fc8712 100%);
+    color: #ffffff;
+    font-size: 0.55rem;
+    font-weight: 900;
+    padding: 1px 6px;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    box-shadow: 0 2px 6px rgba(209, 17, 73, 0.3);
 }
 
 /* Animaciones y utilidades de index.html (Landing) */

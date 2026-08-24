@@ -792,17 +792,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(r => r.json())
                 .then(d => {
                     if (!d || !d.success || !d.business) {
-                        window.location.href = 'index.html';
+                        if (sessionStorage.getItem('is_demo_user') === 'true') window.location.href = 'demo.php';
+                        else window.location.href = 'login.html';
                         return;
                     }
-                    const isDemo = d.success && d.user && d.user.email === 'demo@agendatina.site';
+                    const isDemo = d.success && d.user && d.user.email && d.user.email.includes('demo');
                     if (isDemo) {
                         btnReport.style.display = 'none';
                         sessionStorage.setItem('is_demo_user', 'true');
                     } else {
                         sessionStorage.setItem('is_demo_user', 'false');
                     }
-                }).catch(() => { window.location.href = 'index.html'; });
+                }).catch(() => {
+                    if (sessionStorage.getItem('is_demo_user') === 'true') window.location.href = 'demo.php';
+                    else window.location.href = 'login.html';
+                });
         }
     }
 });

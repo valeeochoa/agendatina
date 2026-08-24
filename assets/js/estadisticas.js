@@ -9,11 +9,15 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json())
         .then(data => {
             if (!data || !data.success || !data.business) {
-                window.location.href = 'index.html';
+                if (sessionStorage.getItem('is_demo_user') === 'true') window.location.href = 'demo.php';
+                else window.location.href = 'login.html';
                 return;
             }
         })
-        .catch(() => { window.location.href = 'index.html'; });
+        .catch(() => {
+            if (sessionStorage.getItem('is_demo_user') === 'true') window.location.href = 'demo.php';
+            else window.location.href = 'login.html';
+        });
     
     const fechaDesdeInput = document.getElementById('fechaDesde');
     const fechaHastaInput = document.getElementById('fechaHasta');

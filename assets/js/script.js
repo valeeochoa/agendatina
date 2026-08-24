@@ -722,7 +722,11 @@ function loadDashboardData() {
     ])
     .then(([data, webData, pData, services, turnos]) => {
         if (!data || !data.success) {
-            window.location.href = 'index.html';
+            if (sessionStorage.getItem('is_demo_user') === 'true') {
+                window.location.href = 'demo.php';
+            } else {
+                window.location.href = 'login.html';
+            }
             return;
         }
 

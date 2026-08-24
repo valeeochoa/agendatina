@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json())
         .then(data => {
             if (!data || !data.success || !data.business) {
-                window.location.href = 'index.html';
+                if (sessionStorage.getItem('is_demo_user') === 'true') window.location.href = 'demo.php';
+                else window.location.href = 'login.html';
                 return;
             }
             if (data && data.success && data.business) {
@@ -20,7 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (badgeText) badgeText.textContent = 'Modo Demo';
                 }
             }
-        }).catch(() => { window.location.href = 'index.html'; });
+        }).catch(() => {
+            if (sessionStorage.getItem('is_demo_user') === 'true') window.location.href = 'demo.php';
+            else window.location.href = 'login.html';
+        });
 
     const webTitulo = document.getElementById('webTitulo');
     if (!webTitulo) return; // Si no estamos en la página mi-web.html, no ejecutar.
