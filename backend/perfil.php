@@ -7,11 +7,13 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_negocio'])) {
     $isDemoRequested = (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || 
                        (isset($_GET['n']) && strtolower($_GET['n']) === 'demo') || 
                        (isset($_GET['demo']) && $_GET['demo'] == 1) ||
-                       (isset($_SESSION['demo_negocio_id']));
+                       (isset($_SESSION['demo_negocio_id'])) ||
+                       (isset($_COOKIE['agendatina_demo'])) ||
+                       (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'demo') !== false);
 
     if ($isDemoRequested) {
         try {
-            $targetNegocioId = $_SESSION['demo_negocio_id'] ?? null;
+            $targetNegocioId = $_SESSION['demo_negocio_id'] ?? $_COOKIE['agendatina_demo'] ?? null;
             if (!$targetNegocioId) {
                 $stmtLatestDemo = $pdo->query("SELECT id FROM negocios WHERE (ruta LIKE 'demo%' OR subdominio LIKE 'demo%' OR nombre_fantasia LIKE '%Demo%' OR nombre_fantasia LIKE 'Agendatina%') ORDER BY id DESC LIMIT 1");
                 $targetNegocioId = $stmtLatestDemo ? $stmtLatestDemo->fetchColumn() : null;

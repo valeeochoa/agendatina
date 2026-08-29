@@ -6,6 +6,25 @@ $_SESSION['is_demo'] = true;
 
 require_once __DIR__ . '/backend/conexion.php';
 
+// Si ya existe una sesión Demo activa válida, reutilizarla y no volver a crear filas en la base de datos
+if (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true && !empty($_SESSION['user_id']) && !empty($_SESSION['id_negocio']) && !isset($_GET['reset'])) {
+    try {
+        $stmtCheckExist = $pdo->prepare("SELECT id FROM negocios WHERE id = ? LIMIT 1");
+        $stmtCheckExist->execute([$_SESSION['id_negocio']]);
+        if ($stmtCheckExist->fetchColumn()) {
+            session_write_close();
+            echo "<!DOCTYPE html>\n<html>\n<head>\n<title>Redirigiendo a Demo...</title>\n</head>\n<body>\n";
+            echo "<script>\n";
+            echo "  sessionStorage.setItem('agendatina_session', 'active');\n";
+            echo "  sessionStorage.setItem('is_demo_user', 'true');\n";
+            echo "  window.location.replace('dashboard.html');\n";
+            echo "</script>\n";
+            echo "</body>\n</html>";
+            exit;
+        }
+    } catch (Exception $eExist) {}
+}
+
 try {
     // 1. LIMPIEZA AUTOMÁTICA DE CUENTAS DEMO EXPIRADAS (Mayores a 30 minutos)
     try {
@@ -148,6 +167,15 @@ try {
     $_SESSION['ruta_negocio'] = $rutaDemo;
     $_SESSION['rol_en_local'] = 'admin';
     $_SESSION['is_demo'] = true;
+
+    setcookie('agendatina_demo', (string)$negocioId, [
+        'expires' => time() + 7200,
+        'path' => '/',
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
+
+    session_write_close();
 
     echo "<!DOCTYPE html>\n<html>\n<head>\n<title>Redirigiendo a Demo...</title>\n</head>\n<body>\n";
     echo "<script>\n";

@@ -6,8 +6,14 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json())
         .then(data => {
             if (!data || !data.success || !data.business) {
-                if (sessionStorage.getItem('is_demo_user') === 'true') window.location.href = 'demo.php';
-                else window.location.href = 'login.html';
+                if (sessionStorage.getItem('is_demo_user') === 'true' && !sessionStorage.getItem('demo_retry_attempted')) {
+                    sessionStorage.setItem('demo_retry_attempted', 'true');
+                    window.location.href = 'demo.php';
+                } else {
+                    sessionStorage.removeItem('is_demo_user');
+                    sessionStorage.removeItem('demo_retry_attempted');
+                    window.location.href = 'login.html';
+                }
                 return;
             }
             if (data && data.success && data.business) {
@@ -21,8 +27,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }).catch(() => {
-            if (sessionStorage.getItem('is_demo_user') === 'true') window.location.href = 'demo.php';
-            else window.location.href = 'login.html';
+            if (sessionStorage.getItem('is_demo_user') === 'true' && !sessionStorage.getItem('demo_retry_attempted')) {
+                sessionStorage.setItem('demo_retry_attempted', 'true');
+                window.location.href = 'demo.php';
+            } else {
+                sessionStorage.removeItem('is_demo_user');
+                sessionStorage.removeItem('demo_retry_attempted');
+                window.location.href = 'login.html';
+            }
         });
 
     // Cargar la configuración actual cuando la página carga

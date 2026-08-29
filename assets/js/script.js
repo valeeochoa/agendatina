@@ -722,13 +722,17 @@ function loadDashboardData() {
     ])
     .then(([data, webData, pData, services, turnos]) => {
         if (!data || !data.success) {
-            if (sessionStorage.getItem('is_demo_user') === 'true') {
+            if (sessionStorage.getItem('is_demo_user') === 'true' && !sessionStorage.getItem('demo_retry_attempted')) {
+                sessionStorage.setItem('demo_retry_attempted', 'true');
                 window.location.href = 'demo.php';
             } else {
+                sessionStorage.removeItem('is_demo_user');
+                sessionStorage.removeItem('demo_retry_attempted');
                 window.location.href = 'login.html';
             }
             return;
         }
+        sessionStorage.removeItem('demo_retry_attempted');
 
         sessionStorage.setItem('agendatina_session', 'active');
         const business = data.business || {};
