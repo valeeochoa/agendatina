@@ -9,17 +9,10 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json())
         .then(data => {
             if (!data || !data.success || !data.business) {
-                sessionStorage.removeItem('is_demo_user');
-                sessionStorage.removeItem('demo_retry_attempted');
-                window.location.href = 'login.html';
                 return;
             }
         })
-        .catch(() => {
-            sessionStorage.removeItem('is_demo_user');
-            sessionStorage.removeItem('demo_retry_attempted');
-            window.location.href = 'login.html';
-        });
+        .catch(() => {});
     
     const fechaDesdeInput = document.getElementById('fechaDesde');
     const fechaHastaInput = document.getElementById('fechaHasta');

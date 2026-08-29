@@ -376,10 +376,7 @@
             fetch('backend/perfil.php')
                 .then(r => r.json())
                 .then(d => {
-                    if (!d || !d.success) {
-                        sessionStorage.removeItem('is_demo_user');
-                        window.location.href = 'login.html';
-                    } else {
+                    if (d && d.success) {
                         const isDemo = (d.user && d.user.email && d.user.email.includes('demo')) ||
                                        (d.business && (d.business.ruta === 'demo' || d.business.is_demo === true)) ||
                                        sessionStorage.getItem('is_demo_user') === 'true';

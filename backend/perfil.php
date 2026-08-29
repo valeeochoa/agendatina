@@ -58,6 +58,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $stmtN->execute([$id_negocio]);
     $business = $stmtN->fetch(PDO::FETCH_ASSOC);
 
+    // Si es un usuario Demo pero la cuenta expiró o no se encontró en la BD clonada, reconectar al último demo activo
+    if ((!$user || !$business) && isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) {
+        try {
+            $stmtLatestDemo = $pdo->query("SELECT id FROM negocios WHERE (ruta LIKE 'demo%' OR subdominio LIKE 'demo%' OR nombre_fantasia LIKE '%Demo%' OR nombre_fantasia LIKE 'Agendatina%') ORDER BY id DESC LIMIT 1");
+            $latestId = $stmtLatestDemo ? $stmtLatestDemo->fetchColumn() : null;
+            if ($latestId) {
+                $stmtDemoUser = $pdo->prepare("SELECT id_usuario FROM personal_negocio WHERE id_negocio = ? AND rol_en_local = 'admin' ORDER BY id ASC LIMIT 1");
+                $stmtDemoUser->execute([$latestId]);
+                $dUser = $stmtDemoUser->fetchColumn();
+                if ($dUser) {
+                    $_SESSION['user_id'] = $dUser;
+                    $_SESSION['id_negocio'] = $latestId;
+                    $id_usuario = $dUser;
+                    $id_negocio = $latestId;
+
+                    $stmtU->execute([$id_usuario]);
+                    $user = $stmtU->fetch(PDO::FETCH_ASSOC);
+                    $stmtN->execute([$id_negocio]);
+                    $business = $stmtN->fetch(PDO::FETCH_ASSOC);
+                }
+            }
+        } catch(Exception $eFallback) {}
+    }
+
     if ($business) {
         if ($business['mes_wpp_contador'] !== $currentMonthStr) {
             try {

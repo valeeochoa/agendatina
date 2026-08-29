@@ -2760,9 +2760,6 @@ function checkAdminCalendarSession(config = null) {
         let isUserAdmin = false;
 
         if ((!data || !data.success) && !negocioSlug) {
-            sessionStorage.removeItem('is_demo_user');
-            sessionStorage.removeItem('demo_retry_attempted');
-            window.location.href = 'login.html';
             return;
         }
 

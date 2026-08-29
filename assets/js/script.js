@@ -722,14 +722,21 @@ function loadDashboardData() {
     ])
     .then(([data, webData, pData, services, turnos]) => {
         if (!data || !data.success) {
-            if (!window.hasRetriedDashboardAuth) {
-                window.hasRetriedDashboardAuth = true;
-                setTimeout(loadDashboardData, 350);
-                return;
+            console.warn('Dashboard Auth Warning:', data ? data.error : 'Sin respuesta');
+            const loader = document.getElementById('dashboardLoader');
+            if (loader) {
+                loader.innerHTML = `
+                    <div class="text-center py-12 px-4 max-w-md mx-auto">
+                        <span class="material-symbols-outlined text-4xl text-amber-500 mb-3">warning</span>
+                        <h3 class="text-lg font-bold text-slate-800 mb-2">No se pudo cargar la información del panel</h3>
+                        <p class="text-xs text-slate-500 mb-5">${data && data.error ? data.error : 'Ocurrió un inconveniente al conectar con tu sesión.'}</p>
+                        <div class="flex flex-col sm:flex-row justify-center gap-2">
+                            <button onclick="loadDashboardData()" class="bg-primary text-white font-bold py-2.5 px-5 rounded-xl text-xs shadow-sm hover:opacity-90">Reintentar Carga</button>
+                            <a href="demo.php" class="bg-amber-100 text-amber-800 border border-amber-200 font-bold py-2.5 px-5 rounded-xl text-xs hover:bg-amber-200">Reabrir Modo Demo</a>
+                        </div>
+                    </div>
+                `;
             }
-            sessionStorage.removeItem('is_demo_user');
-            sessionStorage.removeItem('demo_retry_attempted');
-            window.location.href = 'login.html';
             return;
         }
         window.hasRetriedDashboardAuth = false;

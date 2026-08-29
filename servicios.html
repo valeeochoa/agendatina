@@ -216,19 +216,13 @@
             fetch('backend/perfil.php')
                 .then(r => r.json())
                 .then(d => {
-                    if (!d || !d.success) {
-                        sessionStorage.removeItem('is_demo_user');
-                        window.location.href = 'login.html';
-                    } else {
+                    if (d && d.success) {
                         currentOwnerName = (d.nombre_completo && d.nombre_completo !== 'Dueño Principal') ? d.nombre_completo : (d.nombre_fantasia || '');
                         loadServices();
                         loadTeam();
                     }
                 })
-                .catch(() => {
-                    sessionStorage.removeItem('is_demo_user');
-                    window.location.href = 'login.html';
-                });
+                .catch(() => {});
         });
 
         function populateProfSelect(profs) {

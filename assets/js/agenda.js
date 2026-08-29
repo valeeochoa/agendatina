@@ -792,9 +792,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(r => r.json())
                 .then(d => {
                     if (!d || !d.success || !d.business) {
-                        sessionStorage.removeItem('is_demo_user');
-                        sessionStorage.removeItem('demo_retry_attempted');
-                        window.location.href = 'login.html';
                         return;
                     }
                     const isDemo = d.success && d.user && d.user.email && d.user.email.includes('demo');
@@ -804,11 +801,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         sessionStorage.setItem('is_demo_user', 'false');
                     }
-                }).catch(() => {
-                    sessionStorage.removeItem('is_demo_user');
-                    sessionStorage.removeItem('demo_retry_attempted');
-                    window.location.href = 'login.html';
-                });
+                }).catch(() => {});
         }
     }
 });

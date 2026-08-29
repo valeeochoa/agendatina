@@ -6,9 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json())
         .then(data => {
             if (!data || !data.success || !data.business) {
-                sessionStorage.removeItem('is_demo_user');
-                sessionStorage.removeItem('demo_retry_attempted');
-                window.location.href = 'login.html';
                 return;
             }
             if (data && data.success && data.business) {
