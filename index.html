@@ -57,32 +57,32 @@
 </head>
 
 <body class="bg-slate-50 text-slate-900 antialiased selection:bg-primary/10">
-
-    <nav id="mainNav"
-        class="fixed w-full z-50 bg-white/70 backdrop-blur-lg border-b border-slate-200/50 transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="index.html" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
-                <img src="public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
-                <span class="font-brand font-semibold text-2xl tracking-tight text-primary">Agenda<span class="text-secondary">tina</span></span>
+    <nav id="mainNav"
+        class="fixed w-full z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 shadow-sm transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 py-4 md:py-5 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-3.5 hover:opacity-90 transition-opacity">
+                <img src="public/logo.png" alt="Agendatina" class="h-10 md:h-11 w-auto drop-shadow-md">
+                <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
             </a>
-            <div class="hidden md:flex gap-8 font-medium text-sm text-slate-600">
-                <a href="#inicio" class="hover:text-primary transition-colors">Inicio</a>
-                <a href="#visualizar" class="hover:text-primary transition-colors">Demo</a>
-                <a href="#planes" class="hover:text-primary transition-colors">Planes</a>
-                <a href="#contacto" onclick="resetForm()" class="hover:text-primary transition-colors">Contacto</a>
-            </div>            <div class="flex items-center gap-3">
-                <a href="registro.html" class="bg-[#fcb0b3]/20 text-[#d11149] border border-[#fcb0b3] px-4 py-2 rounded-full font-bold text-xs hover:bg-[#fcb0b3]/30 transition-all hidden sm:flex items-center gap-1">
-                    <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Crear Cuenta Gratis
+            <div class="hidden md:flex items-center gap-8 lg:gap-10 font-semibold text-base text-slate-700">
+                <a href="#inicio" class="hover:text-primary transition-colors py-1">Inicio</a>
+                <a href="#visualizar" class="hover:text-primary transition-colors py-1">Demo</a>
+                <a href="#planes" class="hover:text-primary transition-colors py-1">Planes</a>
+                <a href="#contacto" onclick="resetForm()" class="hover:text-primary transition-colors py-1">Contacto</a>
+            </div>
+            <div class="flex items-center gap-3 md:gap-4">
+                <a href="registro.html" class="bg-[#fcb0b3]/25 text-[#d11149] border border-[#fcb0b3] px-5 py-2.5 rounded-full font-bold text-sm hover:bg-[#fcb0b3]/40 transition-all hidden sm:flex items-center gap-1.5 shadow-sm hover:scale-[1.03]">
+                    <span class="material-symbols-outlined text-lg">rocket_launch</span> Crear Cuenta Gratis
                 </a>
                 <a href="login.html"
-                    class="signature-glow text-white px-5 py-2.5 rounded-full font-semibold text-sm hover:shadow-lg transition-all">
+                    class="signature-glow text-white px-6 py-2.5 rounded-full font-bold text-sm md:text-base hover:shadow-xl transition-all hover:scale-[1.03]">
                     Iniciar Sesión
                 </a>
             </div>
         </div>
     </nav>
 
-    <section id="inicio" class="pt-32 pb-20 px-6 relative overflow-hidden flex flex-col items-center">
+    <section id="inicio" class="pt-36 md:pt-40 pb-20 px-6 relative overflow-hidden flex flex-col items-center">
         <div
             class="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]">
         </div>
