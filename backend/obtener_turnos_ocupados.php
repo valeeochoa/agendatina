@@ -51,7 +51,7 @@ try {
     $sqlTurnos = "SELECT t.fecha, t.hora, COALESCE(s.duracion_minutos, 30) as duracion 
                   FROM turnos t 
                   LEFT JOIN servicios s ON t.id_servicio = s.id 
-                  WHERE t.id_negocio = :id_negocio AND t.estado IN ('confirmado', 'bloqueado')";
+                  WHERE t.id_negocio = :id_negocio AND t.estado IN ('pendiente', 'confirmado', 'bloqueado')";
     $params = ['id_negocio' => $id_negocio];
 
     if (!empty($profesional) && $profesional !== 'Cualquiera (Sin preferencia)' && $profesional !== 'Cualquiera' && $profesional !== 'columnas') {

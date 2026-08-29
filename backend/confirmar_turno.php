@@ -1,9 +1,14 @@
 <?php
+session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-// Aquí deberías añadir una comprobación de sesión de admin
-// session_start();
-// if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') { ... }
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_negocio'])) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'error' => 'Acceso no autorizado. Inicia sesión.']);
+    exit;
+}
+
+$id_negocio = $_SESSION['id_negocio'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $_POST['id'] ?? '';
@@ -18,12 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         // Actualizamos el estado de la solicitud a 'confirmado'
-        $stmt = $pdo->prepare("UPDATE turnos SET estado = 'confirmado' WHERE id = :id");
-        $stmt->execute(['id' => $id]);
+        $stmt = $pdo->prepare("UPDATE turnos SET estado = 'confirmado' WHERE id = :id AND id_negocio = :id_negocio");
+        $stmt->execute(['id' => $id, 'id_negocio' => $id_negocio]);
 
         if ($stmt->rowCount() > 0) {
-            $stmtT = $pdo->prepare("SELECT cliente_nombre, nombre, apellido, cliente_celular, celular, fecha, hora, servicio FROM turnos WHERE id = :id");
-            $stmtT->execute(['id' => $id]);
+            $stmtT = $pdo->prepare("SELECT cliente_nombre, nombre, apellido, cliente_celular, celular, fecha, hora, servicio FROM turnos WHERE id = :id AND id_negocio = :id_negocio");
+            $stmtT->execute(['id' => $id, 'id_negocio' => $id_negocio]);
             $turno = $stmtT->fetch(PDO::FETCH_ASSOC);
             $nombreC = $turno['cliente_nombre'] ?: trim($turno['nombre'] . ' ' . $turno['apellido']);
             $celularC = $turno['cliente_celular'] ?: $turno['celular'];

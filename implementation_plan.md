@@ -39,3 +39,13 @@ Este plan de implementación propone la reestructuración del backend del proyec
 - Verificar que el login, el cambio de perfil y las reservas de turnos sigan operando correctamente con la base de datos configurada a través de las variables de entorno del `.env`.
 - Probar que un intento de POST malicioso sin token CSRF sea bloqueado por el servidor con código `403`.
 - Intentar subir un logo inválido o pesado y verificar que la subida sea rechazada ordenadamente.
+
+---
+
+## Cambios Futuros / Roadmap de Funcionalidades
+
+### Sistema de Cupos y Limite de Capacidad por Clase / Taller / Deporte (Pádel, Cerámica, etc.)
+- **Modalidad Colectiva por Servicio**: Permitir asignar el atributo de `capacidad` (límite de cupos por turno) a servicios grupales (ej. clases de pádel, talleres de cerámica, entrenamiento funcional).
+- **Control de Disponibilidad**: La franja horaria permanecerá abierta en el calendario público hasta que se alcance la capacidad máxima configurada.
+- **Validación Backend**: Garantizar que el sistema anticolisiones en `enviar_turno.php` y `mover_turno.php` permita múltiples reservas para el mismo servicio/hora hasta completar el cupo límite, rechazando solicitudes una vez alcanzado el máximo.
+

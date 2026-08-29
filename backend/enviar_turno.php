@@ -193,12 +193,55 @@ try {
     $email_profesional = $serv && !empty($serv['email_profesional']) ? $serv['email_profesional'] : null;
 
     // =========================================================================
-    // SISTEMA ANTICOLISIONES (Evitar Doble Reserva Simultánea)
+    // VALIDACIÓN DE DÍAS BLOQUEADOS Y HORARIO DE ATENCIÓN
     // =========================================================================
-    $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
+    $stmtBloq = $pdo->prepare("SELECT id FROM dias_bloqueados WHERE id_negocio = :id AND fecha = :fecha AND (profesional = '' OR profesional = :profesional OR :profesional = 'Cualquiera (Sin preferencia)') LIMIT 1");
+    $stmtBloq->execute(['id' => $id_negocio, 'fecha' => $fecha, 'profesional' => $profesional]);
+    if ($stmtBloq->fetch()) {
+        $pdo->rollBack();
+        http_response_code(400);
+        echo json_encode(['success' => false, 'error' => 'La fecha seleccionada se encuentra bloqueada para reservas.']);
+        exit;
+    }
+
+    $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
     $stmtConfig->execute(['id' => $id_negocio]);
     $configWeb = $stmtConfig->fetch(PDO::FETCH_ASSOC);
-    $simultaneos = $configWeb ? $configWeb['turnos_simultaneos'] : 'no';
+
+    if ($configWeb) {
+        // Validar día de la semana laborable
+        $diasTrabajoStr = isset($configWeb['dias_trabajo']) ? $configWeb['dias_trabajo'] : '1,2,3,4,5,6';
+        if (!empty($diasTrabajoStr)) {
+            $diasArray = array_map('intval', explode(',', $diasTrabajoStr));
+            $dayOfWeek = (int)date('w', strtotime($fecha)); // 0 = Domingo, 1 = Lunes...
+            if (!in_array($dayOfWeek, $diasArray)) {
+                $pdo->rollBack();
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'El establecimiento no realiza atenciones en el día de la semana seleccionado.']);
+                exit;
+            }
+        }
+
+        // Validar horario de descanso
+        $hDescInicio = !empty($configWeb['hora_descanso_inicio']) ? $configWeb['hora_descanso_inicio'] : '';
+        $hDescFin = !empty($configWeb['hora_descanso_fin']) ? $configWeb['hora_descanso_fin'] : '';
+        if ($hDescInicio && $hDescFin) {
+            $tHora = strtotime("$fecha $hora:00");
+            $tDescInicio = strtotime("$fecha $hDescInicio:00");
+            $tDescFin = strtotime("$fecha $hDescFin:00");
+            if ($tHora >= $tDescInicio && $tHora < $tDescFin) {
+                $pdo->rollBack();
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'El horario seleccionado coincide con el tiempo de descanso del establecimiento.']);
+                exit;
+            }
+        }
+    }
+
+    // =========================================================================
+    // SISTEMA ANTICOLISIONES (Evitar Doble Reserva Simultánea)
+    // =========================================================================
+    $simultaneos = $configWeb ? ($configWeb['turnos_simultaneos'] ?? 'no') : 'no';
 
     if ($simultaneos !== 'si') {
         // Bloqueo de fila para lectura concurrente de los turnos de ese día

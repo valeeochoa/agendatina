@@ -77,10 +77,65 @@ try {
         $cliente_nombre = trim($nombre . ' ' . $apellido);
 
         // Encontrar el ID del servicio para que se sincronice
-        $stmtServ = $pdo->prepare("SELECT id FROM servicios WHERE id_negocio = :id_negocio AND nombre_servicio = :servicio LIMIT 1");
+        $stmtServ = $pdo->prepare("SELECT id, duracion_minutos, capacidad FROM servicios WHERE id_negocio = :id_negocio AND nombre_servicio = :servicio LIMIT 1");
         $stmtServ->execute(['id_negocio' => $id_negocio, 'servicio' => $servicio]);
         $servRow = $stmtServ->fetch();
         $id_servicio = $servRow ? $servRow['id'] : null;
+        $duracion = $servRow && !empty($servRow['duracion_minutos']) ? (int)$servRow['duracion_minutos'] : 30;
+        $capacidad_nuevo = $servRow && !empty($servRow['capacidad']) ? (int)$servRow['capacidad'] : 1;
+
+        // Validar anticolisiones si los turnos simultáneos están desactivados
+        $stmtC = $pdo->prepare("SELECT turnos_simultaneos FROM configuracion_web WHERE id_negocio = ?");
+        $stmtC->execute([$id_negocio]);
+        $conf = $stmtC->fetch(PDO::FETCH_ASSOC);
+        $simultaneos = $conf ? $conf['turnos_simultaneos'] : 'no';
+
+        if ($simultaneos !== 'si') {
+            $stmtCheckOverlap = $pdo->prepare("
+                SELECT t.hora, s.duracion_minutos, t.id_servicio 
+                FROM turnos t 
+                LEFT JOIN servicios s ON t.id_servicio = s.id 
+                WHERE t.id_negocio = :id_negocio 
+                AND t.fecha = :fecha 
+                AND t.id != :id 
+                AND (t.profesional = :profesional OR t.profesional = 'Cualquiera (Sin preferencia)' OR :profesional = 'Cualquiera (Sin preferencia)') 
+                AND t.estado IN ('pendiente', 'confirmado', 'bloqueado')
+            ");
+            $stmtCheckOverlap->execute([
+                'id_negocio' => $id_negocio,
+                'fecha' => $fecha,
+                'id' => $id,
+                'profesional' => $profesional
+            ]);
+            $turnosDia = $stmtCheckOverlap->fetchAll(PDO::FETCH_ASSOC);
+
+            $nuevoInicio = strtotime("$fecha $hora:00");
+            $nuevoFin = $nuevoInicio + ($duracion * 60);
+
+            $choque = false;
+            $cuposOcupados = 0;
+
+            foreach ($turnosDia as $td) {
+                $dur_existente = !empty($td['duracion_minutos']) ? (int)$td['duracion_minutos'] : 30;
+                $tInicio = strtotime("$fecha {$td['hora']}:00");
+                $tFin = $tInicio + ($dur_existente * 60);
+
+                if ($nuevoInicio < $tFin && $nuevoFin > $tInicio) {
+                    if ($td['id_servicio'] == $id_servicio && $tInicio == $nuevoInicio && $capacidad_nuevo > 1) {
+                        $cuposOcupados++;
+                    } else {
+                        $choque = true;
+                        break;
+                    }
+                }
+            }
+
+            if ($choque || $cuposOcupados >= $capacidad_nuevo) {
+                http_response_code(409);
+                echo json_encode(['success' => false, 'error' => 'No se puede guardar el cambio. El nuevo horario se superpone con otro turno existente o los cupos están llenos.']);
+                exit;
+            }
+        }
 
         $stmtUpdate = $pdo->prepare("UPDATE turnos SET 
             cliente_nombre = :cliente_nombre, 
