@@ -349,6 +349,7 @@ try {
     $_SESSION['ruta_negocio'] = $ruta;
     $_SESSION['rol_en_local'] = 'admin';
 
+    session_write_close();
     echo json_encode(['success' => true, 'redirect' => 'dashboard.html?welcome=1', 'message' => "¡Cuenta creada exitosamente! Cuentas con {$diasPrueba} días de prueba gratuita."]);
 } catch (Throwable $e) {
     try {

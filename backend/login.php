@@ -37,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['rol_en_local'] = $validUser['rol_en_local'];
             $_SESSION['id_negocio'] = $validUser['id_negocio'];
             $_SESSION['plan'] = $validUser['plan'];
+            session_write_close();
             echo json_encode(['success' => true, 'plan' => $validUser['plan']]);
         } else {
             echo json_encode(['success' => false, 'error' => 'La cuenta demo no está inicializada. Usa el botón Pruébalo Ahora.']);
@@ -132,6 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['permisos'] = is_array($parsedPerms) ? array_merge($defaultProfPerms, $parsedPerms) : $defaultProfPerms;
         }
         
+        session_write_close();
         echo json_encode(['success' => true, 'plan' => $validUser['plan']]);
         exit;
 

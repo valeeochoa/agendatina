@@ -722,6 +722,11 @@ function loadDashboardData() {
     ])
     .then(([data, webData, pData, services, turnos]) => {
         if (!data || !data.success) {
+            if (!window.hasRetriedDashboardAuth) {
+                window.hasRetriedDashboardAuth = true;
+                setTimeout(loadDashboardData, 350);
+                return;
+            }
             if (sessionStorage.getItem('is_demo_user') === 'true' && !sessionStorage.getItem('demo_retry_attempted')) {
                 sessionStorage.setItem('demo_retry_attempted', 'true');
                 window.location.href = 'demo.php';
@@ -732,6 +737,7 @@ function loadDashboardData() {
             }
             return;
         }
+        window.hasRetriedDashboardAuth = false;
         sessionStorage.removeItem('demo_retry_attempted');
 
         sessionStorage.setItem('agendatina_session', 'active');
