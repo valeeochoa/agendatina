@@ -151,13 +151,13 @@
                 .then(r => r.json())
                 .then(d => {
                     if (!d || !d.success || !d.business) {
-                        if (sessionStorage.getItem('is_demo_user') === 'true') window.location.href = 'demo.php';
-                        else window.location.href = 'login.html';
+                        sessionStorage.removeItem('is_demo_user');
+                        window.location.href = 'login.html';
                     }
                 })
                 .catch(() => {
-                    if (sessionStorage.getItem('is_demo_user') === 'true') window.location.href = 'demo.php';
-                    else window.location.href = 'login.html';
+                    sessionStorage.removeItem('is_demo_user');
+                    window.location.href = 'login.html';
                 });
         });
     </script>

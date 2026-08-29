@@ -792,14 +792,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(r => r.json())
                 .then(d => {
                     if (!d || !d.success || !d.business) {
-                        if (sessionStorage.getItem('is_demo_user') === 'true' && !sessionStorage.getItem('demo_retry_attempted')) {
-                            sessionStorage.setItem('demo_retry_attempted', 'true');
-                            window.location.href = 'demo.php';
-                        } else {
-                            sessionStorage.removeItem('is_demo_user');
-                            sessionStorage.removeItem('demo_retry_attempted');
-                            window.location.href = 'login.html';
-                        }
+                        sessionStorage.removeItem('is_demo_user');
+                        sessionStorage.removeItem('demo_retry_attempted');
+                        window.location.href = 'login.html';
                         return;
                     }
                     const isDemo = d.success && d.user && d.user.email && d.user.email.includes('demo');
@@ -810,14 +805,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         sessionStorage.setItem('is_demo_user', 'false');
                     }
                 }).catch(() => {
-                    if (sessionStorage.getItem('is_demo_user') === 'true' && !sessionStorage.getItem('demo_retry_attempted')) {
-                        sessionStorage.setItem('demo_retry_attempted', 'true');
-                        window.location.href = 'demo.php';
-                    } else {
-                        sessionStorage.removeItem('is_demo_user');
-                        sessionStorage.removeItem('demo_retry_attempted');
-                        window.location.href = 'login.html';
-                    }
+                    sessionStorage.removeItem('is_demo_user');
+                    sessionStorage.removeItem('demo_retry_attempted');
+                    window.location.href = 'login.html';
                 });
         }
     }

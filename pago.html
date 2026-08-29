@@ -104,8 +104,8 @@
                 }
                 fetch('backend/perfil.php').then(r=>r.json()).then(data => {
                     if (!data || !data.success || !data.business) {
-                        if (sessionStorage.getItem('is_demo_user') === 'true') window.location.href = 'demo.php';
-                        else window.location.href = 'login.html';
+                        sessionStorage.removeItem('is_demo_user');
+                        window.location.href = 'login.html';
                         return;
                     }
                     if(data.business) {
@@ -159,8 +159,8 @@
                         document.getElementById('pagoMonto').innerHTML = `$${finalPrice.toLocaleString('es-AR', {maximumFractionDigits:0})} <span class="text-xs text-slate-500 font-normal">${notaProrrateo}</span><br><span class="text-xs font-bold text-purple-700 block mt-1">Próximo Período: ${nextBillingStr}</span>`;
                     }
                 }).catch(() => {
-                    if (sessionStorage.getItem('is_demo_user') === 'true') window.location.href = 'demo.php';
-                    else window.location.href = 'login.html';
+                    sessionStorage.removeItem('is_demo_user');
+                    window.location.href = 'login.html';
                 });
             });
 

@@ -217,8 +217,8 @@
                 .then(r => r.json())
                 .then(d => {
                     if (!d || !d.success) {
-                        if (sessionStorage.getItem('is_demo_user') === 'true') window.location.href = 'demo.php';
-                        else window.location.href = 'login.html';
+                        sessionStorage.removeItem('is_demo_user');
+                        window.location.href = 'login.html';
                     } else {
                         currentOwnerName = (d.nombre_completo && d.nombre_completo !== 'Dueño Principal') ? d.nombre_completo : (d.nombre_fantasia || '');
                         loadServices();
@@ -226,8 +226,8 @@
                     }
                 })
                 .catch(() => {
-                    if (sessionStorage.getItem('is_demo_user') === 'true') window.location.href = 'demo.php';
-                    else window.location.href = 'login.html';
+                    sessionStorage.removeItem('is_demo_user');
+                    window.location.href = 'login.html';
                 });
         });
 

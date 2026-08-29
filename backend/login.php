@@ -5,6 +5,7 @@ header('Content-Type: application/json; charset=utf-8');
 // Por defecto, asegurarnos de que no esté en modo demo al intentar iniciar sesión real
 unset($_SESSION['is_demo']);
 unset($_SESSION['demo_negocio_id']);
+unset($_SESSION['ruta_negocio']);
 if (isset($_COOKIE['agendatina_demo'])) {
     setcookie('agendatina_demo', '', time() - 3600, '/');
 }

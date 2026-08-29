@@ -1,6 +1,9 @@
 <?php
 session_start();
 header('Content-Type: application/json; charset=utf-8');
+unset($_SESSION['is_demo']);
+unset($_SESSION['demo_negocio_id']);
+unset($_SESSION['ruta_negocio']);
 require_once __DIR__ . '/conexion.php';
 
 if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {

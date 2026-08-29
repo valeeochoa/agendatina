@@ -4,35 +4,6 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/conexion.php';
 
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_negocio'])) {
-    $isDemoRequested = (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || 
-                       (isset($_GET['n']) && strtolower($_GET['n']) === 'demo') || 
-                       (isset($_GET['demo']) && $_GET['demo'] == 1) ||
-                       (isset($_SESSION['demo_negocio_id'])) ||
-                       (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'demo') !== false);
-
-    if ($isDemoRequested) {
-        try {
-            $targetNegocioId = $_SESSION['demo_negocio_id'] ?? null;
-            if (!$targetNegocioId) {
-                $stmtLatestDemo = $pdo->query("SELECT id FROM negocios WHERE (ruta LIKE 'demo%' OR subdominio LIKE 'demo%' OR nombre_fantasia LIKE '%Demo%' OR nombre_fantasia LIKE 'Agendatina%') ORDER BY id DESC LIMIT 1");
-                $targetNegocioId = $stmtLatestDemo ? $stmtLatestDemo->fetchColumn() : null;
-            }
-            if ($targetNegocioId) {
-                $stmtDemoUser = $pdo->prepare("SELECT id_usuario FROM personal_negocio WHERE id_negocio = ? AND rol_en_local = 'admin' ORDER BY id ASC LIMIT 1");
-                $stmtDemoUser->execute([$targetNegocioId]);
-                $dUser = $stmtDemoUser->fetchColumn();
-                if ($dUser) {
-                    $_SESSION['user_id'] = $dUser;
-                    $_SESSION['id_negocio'] = $targetNegocioId;
-                    $_SESSION['is_demo'] = true;
-                    $_SESSION['rol_en_local'] = 'admin';
-                }
-            }
-        } catch (Exception $eDemoAuto) {}
-    }
-}
-
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_negocio'])) {
     echo json_encode(['success' => false, 'error' => 'No autorizado. Inicia sesión.']);
     exit;
 }

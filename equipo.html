@@ -377,8 +377,8 @@
                 .then(r => r.json())
                 .then(d => {
                     if (!d || !d.success) {
-                        if (sessionStorage.getItem('is_demo_user') === 'true') window.location.href = 'demo.php';
-                        else window.location.href = 'login.html';
+                        sessionStorage.removeItem('is_demo_user');
+                        window.location.href = 'login.html';
                     } else {
                         const isDemo = (d.user && d.user.email && d.user.email.includes('demo')) ||
                                        (d.business && (d.business.ruta === 'demo' || d.business.is_demo === true)) ||
