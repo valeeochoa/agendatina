@@ -3,8 +3,10 @@ session_start();
 header('Content-Type: application/json; charset=utf-8');
 
 // Por defecto, asegurarnos de que no esté en modo demo al intentar iniciar sesión real
-if (isset($_SESSION['is_demo'])) {
-    unset($_SESSION['is_demo']);
+unset($_SESSION['is_demo']);
+unset($_SESSION['demo_negocio_id']);
+if (isset($_COOKIE['agendatina_demo'])) {
+    setcookie('agendatina_demo', '', time() - 3600, '/');
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

@@ -168,13 +168,6 @@ try {
     $_SESSION['rol_en_local'] = 'admin';
     $_SESSION['is_demo'] = true;
 
-    setcookie('agendatina_demo', (string)$negocioId, [
-        'expires' => time() + 7200,
-        'path' => '/',
-        'httponly' => true,
-        'samesite' => 'Lax'
-    ]);
-
     session_write_close();
 
     echo "<!DOCTYPE html>\n<html>\n<head>\n<title>Redirigiendo a Demo...</title>\n</head>\n<body>\n";

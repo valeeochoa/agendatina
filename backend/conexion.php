@@ -80,8 +80,6 @@ if ($isAdminEndpoint || $isSuperAdminSession) {
         $is_demo_public = true;
     } elseif (isset($_POST['ruta']) && strpos(strtolower($_POST['ruta']), 'demo') === 0) {
         $is_demo_public = true;
-    } elseif (isset($_COOKIE['agendatina_demo'])) {
-        $is_demo_public = true;
     }
 
     // MODO SANDBOX: Conectar a BD clonada si es el entorno Demo para usuarios corrientes
