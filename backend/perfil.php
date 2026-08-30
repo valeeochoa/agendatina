@@ -6,6 +6,31 @@ try {
     header('Content-Type: application/json; charset=utf-8');
     require_once __DIR__ . '/conexion.php';
 
+    // Verificación de sesión con auto-reconexión para el entorno Demo
+    if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_negocio'])) {
+        $isDemoContext = (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || 
+                         (isset($_GET['n']) && strpos(strtolower($_GET['n']), 'demo') === 0) ||
+                         (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'demo') !== false);
+        
+        if ($isDemoContext) {
+            try {
+                $stmtLatestDemo = $pdo->query("SELECT id FROM negocios WHERE (ruta LIKE 'demo%' OR subdominio LIKE 'demo%' OR nombre_fantasia LIKE '%Demo%' OR nombre_fantasia LIKE 'Agendatina%') ORDER BY id DESC LIMIT 1");
+                $latestId = $stmtLatestDemo ? $stmtLatestDemo->fetchColumn() : null;
+                if ($latestId) {
+                    $stmtDemoUser = $pdo->prepare("SELECT id_usuario FROM personal_negocio WHERE id_negocio = ? AND rol_en_local = 'admin' ORDER BY id ASC LIMIT 1");
+                    $stmtDemoUser->execute([$latestId]);
+                    $dUser = $stmtDemoUser->fetchColumn();
+                    if ($dUser) {
+                        $_SESSION['user_id'] = $dUser;
+                        $_SESSION['id_negocio'] = $latestId;
+                        $_SESSION['is_demo'] = true;
+                        $_SESSION['rol_en_local'] = 'admin';
+                    }
+                }
+            } catch(Throwable $eAuto) {}
+        }
+    }
+
     if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_negocio'])) {
         session_write_close();
         echo json_encode(['success' => false, 'error' => 'No autorizado. Inicia sesión.']);
@@ -66,25 +91,58 @@ try {
         $business = $stmtN->fetch(PDO::FETCH_ASSOC);
 
         // Si es un usuario Demo pero la cuenta expiró o no se encontró en la BD clonada, reconectar al último demo activo
-        if ((!$user || !$business) && isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) {
+        if ((!$user || !$business) && (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true || isset($_GET['n']) && strpos(strtolower($_GET['n']), 'demo') === 0)) {
             try {
-                $stmtLatestDemo = $pdo->query("SELECT id FROM negocios WHERE (ruta LIKE 'demo%' OR subdominio LIKE 'demo%' OR nombre_fantasia LIKE '%Demo%' OR nombre_fantasia LIKE 'Agendatina%') ORDER BY id DESC LIMIT 1");
-                $latestId = $stmtLatestDemo ? $stmtLatestDemo->fetchColumn() : null;
-                if ($latestId) {
-                    $stmtDemoUser = $pdo->prepare("SELECT id_usuario FROM personal_negocio WHERE id_negocio = ? AND rol_en_local = 'admin' ORDER BY id ASC LIMIT 1");
+                $stmtLatestDemo = $pdo->query("SELECT id, nombre_fantasia, ruta, plan, estado_pago, ultimo_pago, fecha_alta, comprobante, wpp_enviados_mes, mes_wpp_contador, codigo_descuento, descuento_aplicado_pct FROM negocios WHERE (ruta LIKE 'demo%' OR subdominio LIKE 'demo%' OR nombre_fantasia LIKE '%Demo%' OR nombre_fantasia LIKE 'Agendatina%') ORDER BY id DESC LIMIT 1");
+                $bizRow = $stmtLatestDemo ? $stmtLatestDemo->fetch(PDO::FETCH_ASSOC) : null;
+                
+                if ($bizRow) {
+                    $latestId = $bizRow['id'];
+                    $stmtDemoUser = $pdo->prepare("SELECT u.id, u.nombre_completo, u.email, u.email_verificado FROM personal_negocio pn JOIN usuarios u ON pn.id_usuario = u.id WHERE pn.id_negocio = ? AND pn.rol_en_local = 'admin' ORDER BY pn.id ASC LIMIT 1");
                     $stmtDemoUser->execute([$latestId]);
-                    $dUser = $stmtDemoUser->fetchColumn();
-                    if ($dUser) {
-                        $_SESSION['user_id'] = $dUser;
+                    $uRow = $stmtDemoUser->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($uRow) {
+                        $_SESSION['user_id'] = $uRow['id'];
                         $_SESSION['id_negocio'] = $latestId;
-                        $id_usuario = $dUser;
-                        $id_negocio = $latestId;
-
-                        $stmtU->execute([$id_usuario]);
-                        $user = $stmtU->fetch(PDO::FETCH_ASSOC);
-                        $stmtN->execute([$id_negocio]);
-                        $business = $stmtN->fetch(PDO::FETCH_ASSOC);
+                        $_SESSION['nombre_completo'] = $uRow['nombre_completo'];
+                        $_SESSION['nombre_negocio'] = $bizRow['nombre_fantasia'];
+                        $_SESSION['ruta_negocio'] = $bizRow['ruta'];
+                        $_SESSION['rol_en_local'] = 'admin';
+                        $_SESSION['is_demo'] = true;
+                        
+                        $user = $uRow;
+                        $business = $bizRow;
                     }
+                }
+
+                // Si ni siquiera existe un negocio demo en la BD, crearlo en el acto
+                if (!$user || !$business) {
+                    $token = substr(md5(session_id() . microtime() . rand(1000, 9999)), 0, 8);
+                    $emailDemo = 'demo_' . $token . '@agendatina.site';
+                    $rutaDemo = 'demo-' . $token;
+                    $hash = password_hash('demo1234', PASSWORD_DEFAULT);
+                    
+                    $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, role, fecha_creacion) VALUES ('Agendatina DEMO', ?, ?, 'admin', NOW())")->execute([$emailDemo, $hash]);
+                    $newUserId = $pdo->lastInsertId();
+                    
+                    $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago, fecha_alta) VALUES ('Agendatina', ?, 'Premium', 5, 'activo', NOW())")->execute([$rutaDemo]);
+                    $newNegocioId = $pdo->lastInsertId();
+                    
+                    $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'admin')")->execute([$newNegocioId, $newUserId]);
+                    
+                    $_SESSION['user_id'] = $newUserId;
+                    $_SESSION['id_negocio'] = $newNegocioId;
+                    $_SESSION['nombre_completo'] = 'Agendatina DEMO';
+                    $_SESSION['nombre_negocio'] = 'Agendatina';
+                    $_SESSION['ruta_negocio'] = $rutaDemo;
+                    $_SESSION['rol_en_local'] = 'admin';
+                    $_SESSION['is_demo'] = true;
+
+                    $stmtU->execute([$newUserId]);
+                    $user = $stmtU->fetch(PDO::FETCH_ASSOC);
+                    $stmtN->execute([$newNegocioId]);
+                    $business = $stmtN->fetch(PDO::FETCH_ASSOC);
                 }
             } catch(Throwable $eFallback) {}
         }
