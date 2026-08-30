@@ -6,7 +6,7 @@ try {
     header('Content-Type: application/json; charset=utf-8');
     require_once __DIR__ . '/conexion.php';
 
-    // Verificación de sesión con auto-reconexión para el entorno Demo
+    // Verificación de sesión con auto-instanciación aislada para el entorno Demo
     if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_negocio'])) {
         $isDemoContext = (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || 
                          (isset($_GET['n']) && strpos(strtolower($_GET['n']), 'demo') === 0) ||
@@ -14,20 +14,38 @@ try {
         
         if ($isDemoContext) {
             try {
-                $stmtLatestDemo = $pdo->query("SELECT id FROM negocios WHERE (ruta LIKE 'demo%' OR subdominio LIKE 'demo%' OR nombre_fantasia LIKE '%Demo%' OR nombre_fantasia LIKE 'Agendatina%') ORDER BY id DESC LIMIT 1");
-                $latestId = $stmtLatestDemo ? $stmtLatestDemo->fetchColumn() : null;
-                if ($latestId) {
-                    $stmtDemoUser = $pdo->prepare("SELECT id_usuario FROM personal_negocio WHERE id_negocio = ? AND rol_en_local = 'admin' ORDER BY id ASC LIMIT 1");
-                    $stmtDemoUser->execute([$latestId]);
-                    $dUser = $stmtDemoUser->fetchColumn();
-                    if ($dUser) {
-                        $_SESSION['user_id'] = $dUser;
-                        $_SESSION['id_negocio'] = $latestId;
-                        $_SESSION['is_demo'] = true;
-                        $_SESSION['rol_en_local'] = 'admin';
-                    }
-                }
-            } catch(Throwable $eAuto) {}
+                // Crear un entorno Demo totalmente aislado e individual para esta sesión
+                $token = substr(md5(session_id() . microtime() . rand(1000, 9999)), 0, 8);
+                $emailDemo = 'demo_' . $token . '@agendatina.site';
+                $rutaDemo = 'demo-' . $token;
+                $hash = password_hash('demo1234', PASSWORD_DEFAULT);
+                
+                $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, role, fecha_creacion) VALUES ('Agendatina DEMO', ?, ?, 'admin', NOW())")->execute([$emailDemo, $hash]);
+                $newUserId = $pdo->lastInsertId();
+                
+                $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago, fecha_alta) VALUES ('Agendatina', ?, 'Premium', 5, 'activo', NOW())")->execute([$rutaDemo]);
+                $newNegocioId = $pdo->lastInsertId();
+                
+                $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'admin')")->execute([$newNegocioId, $newUserId]);
+
+                // Servicios por defecto
+                $pdo->prepare("INSERT INTO servicios (id_negocio, nombre_servicio, duracion_minutos, precio, descripcion, profesional) VALUES 
+                    (?, 'Corte de Demostración', 30, 8000, 'Servicio de prueba para el plan Premium.', 'Valentina'),
+                    (?, 'Masaje Relajante', 60, 15000, 'Relájate con nuestros masajes de prueba.', 'Valentina'),
+                    (?, 'Limpieza Facial Profunda', 45, 12000, 'Cuidado de la piel con productos premium.', 'Camila'),
+                    (?, 'Manicura Semipermanente', 40, 9000, 'Diseños exclusivos y larga duración.', 'Sofía'),
+                    (?, 'Perfilado de Cejas', 20, 5000, 'Dale forma y estilo a tu mirada.', 'Marcos')")->execute([$newNegocioId, $newNegocioId, $newNegocioId, $newNegocioId, $newNegocioId]);
+
+                $_SESSION['user_id'] = $newUserId;
+                $_SESSION['id_negocio'] = $newNegocioId;
+                $_SESSION['nombre_completo'] = 'Agendatina DEMO';
+                $_SESSION['nombre_negocio'] = 'Agendatina';
+                $_SESSION['ruta_negocio'] = $rutaDemo;
+                $_SESSION['rol_en_local'] = 'admin';
+                $_SESSION['is_demo'] = true;
+            } catch(Throwable $eAuto) {
+                error_log("Error al auto-crear sesión demo en perfil.php: " . $eAuto->getMessage());
+            }
         }
     }
 
@@ -90,61 +108,40 @@ try {
         $stmtN->execute([$id_negocio]);
         $business = $stmtN->fetch(PDO::FETCH_ASSOC);
 
-        // Si es un usuario Demo pero la cuenta expiró o no se encontró en la BD clonada, reconectar al último demo activo
+        // Si es un usuario Demo pero la cuenta expiró o no se encontró en la BD clonada, recrear entorno aislado para esta sesión
         if ((!$user || !$business) && (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true || isset($_GET['n']) && strpos(strtolower($_GET['n']), 'demo') === 0)) {
             try {
-                $stmtLatestDemo = $pdo->query("SELECT id, nombre_fantasia, ruta, plan, estado_pago, ultimo_pago, fecha_alta, comprobante, wpp_enviados_mes, mes_wpp_contador, codigo_descuento, descuento_aplicado_pct FROM negocios WHERE (ruta LIKE 'demo%' OR subdominio LIKE 'demo%' OR nombre_fantasia LIKE '%Demo%' OR nombre_fantasia LIKE 'Agendatina%') ORDER BY id DESC LIMIT 1");
-                $bizRow = $stmtLatestDemo ? $stmtLatestDemo->fetch(PDO::FETCH_ASSOC) : null;
+                $token = substr(md5(session_id() . microtime() . rand(1000, 9999)), 0, 8);
+                $emailDemo = 'demo_' . $token . '@agendatina.site';
+                $rutaDemo = 'demo-' . $token;
+                $hash = password_hash('demo1234', PASSWORD_DEFAULT);
                 
-                if ($bizRow) {
-                    $latestId = $bizRow['id'];
-                    $stmtDemoUser = $pdo->prepare("SELECT u.id, u.nombre_completo, u.email, u.email_verificado FROM personal_negocio pn JOIN usuarios u ON pn.id_usuario = u.id WHERE pn.id_negocio = ? AND pn.rol_en_local = 'admin' ORDER BY pn.id ASC LIMIT 1");
-                    $stmtDemoUser->execute([$latestId]);
-                    $uRow = $stmtDemoUser->fetch(PDO::FETCH_ASSOC);
-                    
-                    if ($uRow) {
-                        $_SESSION['user_id'] = $uRow['id'];
-                        $_SESSION['id_negocio'] = $latestId;
-                        $_SESSION['nombre_completo'] = $uRow['nombre_completo'];
-                        $_SESSION['nombre_negocio'] = $bizRow['nombre_fantasia'];
-                        $_SESSION['ruta_negocio'] = $bizRow['ruta'];
-                        $_SESSION['rol_en_local'] = 'admin';
-                        $_SESSION['is_demo'] = true;
-                        
-                        $user = $uRow;
-                        $business = $bizRow;
-                    }
-                }
+                $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, role, fecha_creacion) VALUES ('Agendatina DEMO', ?, ?, 'admin', NOW())")->execute([$emailDemo, $hash]);
+                $newUserId = $pdo->lastInsertId();
+                
+                $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago, fecha_alta) VALUES ('Agendatina', ?, 'Premium', 5, 'activo', NOW())")->execute([$rutaDemo]);
+                $newNegocioId = $pdo->lastInsertId();
+                
+                $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'admin')")->execute([$newNegocioId, $newUserId]);
+                
+                $_SESSION['user_id'] = $newUserId;
+                $_SESSION['id_negocio'] = $newNegocioId;
+                $_SESSION['nombre_completo'] = 'Agendatina DEMO';
+                $_SESSION['nombre_negocio'] = 'Agendatina';
+                $_SESSION['ruta_negocio'] = $rutaDemo;
+                $_SESSION['rol_en_local'] = 'admin';
+                $_SESSION['is_demo'] = true;
 
-                // Si ni siquiera existe un negocio demo en la BD, crearlo en el acto
-                if (!$user || !$business) {
-                    $token = substr(md5(session_id() . microtime() . rand(1000, 9999)), 0, 8);
-                    $emailDemo = 'demo_' . $token . '@agendatina.site';
-                    $rutaDemo = 'demo-' . $token;
-                    $hash = password_hash('demo1234', PASSWORD_DEFAULT);
-                    
-                    $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, role, fecha_creacion) VALUES ('Agendatina DEMO', ?, ?, 'admin', NOW())")->execute([$emailDemo, $hash]);
-                    $newUserId = $pdo->lastInsertId();
-                    
-                    $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago, fecha_alta) VALUES ('Agendatina', ?, 'Premium', 5, 'activo', NOW())")->execute([$rutaDemo]);
-                    $newNegocioId = $pdo->lastInsertId();
-                    
-                    $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'admin')")->execute([$newNegocioId, $newUserId]);
-                    
-                    $_SESSION['user_id'] = $newUserId;
-                    $_SESSION['id_negocio'] = $newNegocioId;
-                    $_SESSION['nombre_completo'] = 'Agendatina DEMO';
-                    $_SESSION['nombre_negocio'] = 'Agendatina';
-                    $_SESSION['ruta_negocio'] = $rutaDemo;
-                    $_SESSION['rol_en_local'] = 'admin';
-                    $_SESSION['is_demo'] = true;
+                $id_usuario = $newUserId;
+                $id_negocio = $newNegocioId;
 
-                    $stmtU->execute([$newUserId]);
-                    $user = $stmtU->fetch(PDO::FETCH_ASSOC);
-                    $stmtN->execute([$newNegocioId]);
-                    $business = $stmtN->fetch(PDO::FETCH_ASSOC);
-                }
-            } catch(Throwable $eFallback) {}
+                $stmtU->execute([$newUserId]);
+                $user = $stmtU->fetch(PDO::FETCH_ASSOC);
+                $stmtN->execute([$newNegocioId]);
+                $business = $stmtN->fetch(PDO::FETCH_ASSOC);
+            } catch(Throwable $eFallback) {
+                error_log("Error en recreación demo en perfil.php: " . $eFallback->getMessage());
+            }
         }
 
         if ($business) {
@@ -174,7 +171,7 @@ try {
             $wppLimiteTotal = $wppBase + $wppBonus;
             $wppUsados = (int)($business['wpp_enviados_mes'] ?? 0);
             $wppExcedentes = max(0, $wppUsados - $wppLimiteTotal);
-            $wppCostoExtra = $wppExcedentes * 60; // $60 ARS por WhatsApp extra superada la bolsa global
+            $wppCostoExtra = $wppExcedentes * 60;
 
             $business['wpp_stats'] = [
                 'habilitado' => !$isBasic,
