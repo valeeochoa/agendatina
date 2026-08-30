@@ -46,12 +46,18 @@ try {
             $_SESSION['permisos'] = $user['permisos'];
         }
 
-        // Auto-Migración para contador mensual de WhatsApp por negocio
+        // Auto-Migración para contador mensual de WhatsApp y Descuentos por negocio
         try { $pdo->query("SELECT wpp_enviados_mes FROM negocios LIMIT 1"); } 
         catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN wpp_enviados_mes INT DEFAULT 0"); } catch(Throwable $ex) {} }
         
         try { $pdo->query("SELECT mes_wpp_contador FROM negocios LIMIT 1"); } 
         catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN mes_wpp_contador VARCHAR(7) DEFAULT NULL"); } catch(Throwable $ex) {} }
+
+        try { $pdo->query("SELECT codigo_descuento FROM negocios LIMIT 1"); } 
+        catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN codigo_descuento VARCHAR(50) DEFAULT NULL"); } catch(Throwable $ex) {} }
+        
+        try { $pdo->query("SELECT descuento_aplicado_pct FROM negocios LIMIT 1"); } 
+        catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN descuento_aplicado_pct INT DEFAULT 0"); } catch(Throwable $ex) {} }
 
         // Reseteo mensual automático si cambió el mes (YYYY-MM)
         $currentMonthStr = date('Y-m');

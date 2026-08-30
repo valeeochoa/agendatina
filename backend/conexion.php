@@ -179,6 +179,12 @@ try {
 
 // AUTO-MIGRACIÓN AUTOMÁTICA DE TABLAS Y COLUMNAS EN PRODUCCIÓN Y LOCAL
 if (isset($pdo)) {
+    // 0. Columnas en negocios
+    try { $pdo->query("SELECT codigo_descuento FROM negocios LIMIT 1"); } catch (Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN codigo_descuento VARCHAR(50) DEFAULT NULL"); } catch (Throwable $ex) {} }
+    try { $pdo->query("SELECT descuento_aplicado_pct FROM negocios LIMIT 1"); } catch (Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN descuento_aplicado_pct INT DEFAULT 0"); } catch (Throwable $ex) {} }
+    try { $pdo->query("SELECT wpp_enviados_mes FROM negocios LIMIT 1"); } catch (Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN wpp_enviados_mes INT DEFAULT 0"); } catch (Throwable $ex) {} }
+    try { $pdo->query("SELECT mes_wpp_contador FROM negocios LIMIT 1"); } catch (Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN mes_wpp_contador VARCHAR(7) DEFAULT NULL"); } catch (Throwable $ex) {} }
+
     // 1. Columnas en turnos
     try { $pdo->query("SELECT notas FROM turnos LIMIT 1"); } catch (Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN notas TEXT DEFAULT NULL"); } catch (Throwable $ex) {} }
     try { $pdo->query("SELECT fecha_eliminado FROM turnos LIMIT 1"); } catch (Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL"); } catch (Throwable $ex) {} }
