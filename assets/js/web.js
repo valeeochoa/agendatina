@@ -46,6 +46,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (document.getElementById('navReservarBtn')) document.getElementById('navReservarBtn').href = cleanLink;
                 if (document.getElementById('heroReservarBtn')) document.getElementById('heroReservarBtn').href = cleanLink;
 
+                // Configurar botón Volver si proviene del Editor Web (mi-web.html)
+                const btnVolverPanel = document.getElementById('btnVolverPanel');
+                if (btnVolverPanel) {
+                    const fromEditor = urlParams.get('from') === 'mi-web' || 
+                                       urlParams.get('from') === 'editor' || 
+                                       (document.referrer && document.referrer.includes('mi-web.html')) ||
+                                       sessionStorage.getItem('agendatina_nav_from') === 'mi-web';
+                    if (fromEditor) {
+                        btnVolverPanel.href = 'mi-web.html';
+                        btnVolverPanel.title = 'Volver al Editor Web';
+                        const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
+                        if (textSpan) textSpan.textContent = 'Volver';
+                    }
+                }
+
                 const title = data.titulo || 'Mi Negocio';
                 document.title = title;
                 

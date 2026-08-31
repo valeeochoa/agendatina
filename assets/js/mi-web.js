@@ -98,7 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data && !data.error) {
             if (data.ruta) {
                 const btnVer = document.getElementById('btnVerMiPagina');
-                if (btnVer) btnVer.href = 'web.html?n=' + encodeURIComponent(data.ruta) + '&preview=1';
+                if (btnVer) {
+                    btnVer.href = 'web.html?n=' + encodeURIComponent(data.ruta) + '&from=mi-web&preview=1';
+                    btnVer.setAttribute('onclick', "sessionStorage.setItem('agendatina_nav_from', 'mi-web')");
+                }
             }
                 window.currentWebData = data;
                 if (data.titulo) webTitulo.value = data.titulo;
