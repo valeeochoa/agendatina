@@ -3308,7 +3308,7 @@ window.isPublicAgendatinaOfficialPage = function() {
     return officialPages.some(page => path.includes(page));
 };
 
-window.applyUserCustomColors = function(pColor, sColor, extraColors) {
+window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
     let style = document.getElementById('agendatina-user-custom-colors');
 
     // Si estamos en una página oficial institucional de Agendatina o en la web pública de un negocio (web.html),
@@ -3334,6 +3334,9 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
         try { extraColors = JSON.parse(extraColors); } catch(e) { extraColors = {}; }
     }
     extraColors = (extraColors && typeof extraColors === 'object') ? extraColors : {};
+
+    const finalBg = bgColor || extraColors.color_fondo || localStorage.getItem('user_color_fondo') || '';
+    if (finalBg) localStorage.setItem('user_color_fondo', finalBg);
 
     localStorage.setItem('user_color_primario', pColor);
     localStorage.setItem('user_color_secundario', sColor);
@@ -3372,11 +3375,7 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
     }
     if (extraColors.color_cards) {
         extraCss += `
-            .card-custom,
-            #calMonthlyBox,
-            #clientBookingView,
-            #adminDayView,
-            #emptyState { background-color: ${extraColors.color_cards} !important; }
+            .card-custom { background-color: ${extraColors.color_cards} !important; }
         `;
     }
     if (extraColors.color_hover) {
@@ -3396,8 +3395,8 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
         }
 
         /* 1. Fondo del Body de la página completa */
-        body, html {
-            background-color: ${extraColors.color_fondo ? extraColors.color_fondo : `color-mix(in srgb, ${pColor} 10%, color-mix(in srgb, ${sColor} 7%, #f8fafc))` } !important;
+        body, html, main {
+            background-color: ${finalBg ? finalBg : `color-mix(in srgb, ${pColor} 10%, color-mix(in srgb, ${sColor} 7%, #f8fafc))` } !important;
         }
 
         /* 1.b. Fondo Degradé dinámico de colores de marca para el Calendario */
