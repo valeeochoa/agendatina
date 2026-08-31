@@ -147,14 +147,8 @@ try {
         $negocioId, $t_p3, $idServ1
     ]);
 
-    // Notificaciones iniciales
-    $pdo->prepare("INSERT INTO notificaciones (id_negocio, titulo, mensaje) VALUES 
-        (?, '¡Bienvenido a Agendatina!', 'Prueba todas las funciones premium desde este panel de control interactivo.'),
-        (?, 'Nuevas solicitudes', 'Tienes 1 turno pendiente por confirmar. Revisa tu Agenda Virtual.')")->execute([$negocioId, $negocioId]);
-
-    // Configuración Web por defecto (con los colores oficiales e institucionales de Agendatina: #D11149 y #FC8712)
-    $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, intervalo_turnos, tipo_calendario, titulo)
-                   VALUES (?, '#D11149', '#FC8712', 'Agendatina', '30', 'clasico', 'Agendatina')")->execute([$negocioId]);
+    require_once __DIR__ . '/backend/helpers/demo_helper.php';
+    asegurarDatosDemo($pdo, $negocioId);
 
     // Guardar referencia en sesión del navegador
     $_SESSION['demo_negocio_id'] = $negocioId;

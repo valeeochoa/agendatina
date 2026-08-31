@@ -28,13 +28,8 @@ try {
                 
                 $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'admin')")->execute([$newNegocioId, $newUserId]);
 
-                // Servicios por defecto
-                $pdo->prepare("INSERT INTO servicios (id_negocio, nombre_servicio, duracion_minutos, precio, descripcion, profesional) VALUES 
-                    (?, 'Corte de Demostración', 30, 8000, 'Servicio de prueba para el plan Premium.', 'Valentina'),
-                    (?, 'Masaje Relajante', 60, 15000, 'Relájate con nuestros masajes de prueba.', 'Valentina'),
-                    (?, 'Limpieza Facial Profunda', 45, 12000, 'Cuidado de la piel con productos premium.', 'Camila'),
-                    (?, 'Manicura Semipermanente', 40, 9000, 'Diseños exclusivos y larga duración.', 'Sofía'),
-                    (?, 'Perfilado de Cejas', 20, 5000, 'Dale forma y estilo a tu mirada.', 'Marcos')")->execute([$newNegocioId, $newNegocioId, $newNegocioId, $newNegocioId, $newNegocioId]);
+                require_once __DIR__ . '/helpers/demo_helper.php';
+                asegurarDatosDemo($pdo, $newNegocioId);
 
                 $_SESSION['user_id'] = $newUserId;
                 $_SESSION['id_negocio'] = $newNegocioId;
@@ -145,6 +140,11 @@ try {
         }
 
         if ($business) {
+            if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || (isset($business['ruta']) && strpos($business['ruta'], 'demo') === 0)) {
+                require_once __DIR__ . '/helpers/demo_helper.php';
+                asegurarDatosDemo($pdo, $id_negocio);
+            }
+
             if ($business['mes_wpp_contador'] !== $currentMonthStr) {
                 try {
                     $pdo->prepare("UPDATE negocios SET wpp_enviados_mes = 0, mes_wpp_contador = ? WHERE id = ?")->execute([$currentMonthStr, $id_negocio]);

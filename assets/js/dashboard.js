@@ -305,20 +305,25 @@ window.openDemoWelcomeNoticeModal = function() {
             <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full p-6 sm:p-8 text-center relative overflow-hidden transform scale-95 transition-transform duration-300" id="demoNoticeContent">
                 <div class="absolute -top-12 -right-12 w-36 h-36 bg-gradient-to-br from-amber-400/20 to-orange-500/20 rounded-full blur-2xl pointer-events-none"></div>
                 
-                <div class="w-16 h-16 rounded-3xl bg-secondary/10 text-secondary flex items-center justify-center mx-auto mb-4 shadow-md border border-secondary/20">
+                <div class="w-16 h-16 rounded-3xl bg-amber-50 text-[#fc8712] flex items-center justify-center mx-auto mb-4 shadow-sm border border-amber-200">
                     <span class="material-symbols-outlined text-4xl">visibility</span>
                 </div>
 
-                <span class="bg-amber-100 text-amber-800 border border-amber-300 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-2">Modo Demostración Activo</span>
+                <span class="bg-amber-100 text-amber-900 border border-amber-300 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-3">Modo Demostración Activo</span>
 
                 <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Estás en una cuenta DEMO 🚀</h2>
                 <p class="text-xs sm:text-sm text-slate-600 mb-6 leading-relaxed">
-                    Esta es una versión de prueba interactiva con todas las funciones del <strong>Plan Premium</strong> habilitadas para que explores la plataforma. A continuación iniciaremos el tour guiado por la aplicación.
+                    Esta es una versión de prueba interactiva con todas las funciones del <strong>Plan Premium</strong> habilitadas para que explores la plataforma. A continuación puedes iniciar el tour guiado por la aplicación.
                 </p>
 
-                <button onclick="window.closeDemoNoticeAndStartTour()" class="w-full bg-secondary hover:bg-secondary/90 text-white font-extrabold py-3.5 px-6 rounded-2xl shadow-lg shadow-secondary/20 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm">
-                    <span class="material-symbols-outlined text-[20px]">explore</span> Entendido, iniciar Tour Virtual
-                </button>
+                <div class="flex flex-col gap-3">
+                    <button onclick="window.closeDemoNoticeAndStartTour()" style="background-color: #fc8712 !important; color: #ffffff !important;" class="w-full hover:opacity-90 font-extrabold py-3.5 px-6 rounded-2xl shadow-lg shadow-orange-500/25 hover:scale-[1.01] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer border-0">
+                        <span class="material-symbols-outlined text-[20px]">explore</span> Entendido, iniciar Tour Virtual
+                    </button>
+                    <button onclick="window.closeDemoNoticeOnly()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-6 rounded-2xl transition-all text-sm cursor-pointer border-0">
+                        Explorar por mi cuenta
+                    </button>
+                </div>
             </div>
         `;
         document.body.appendChild(modal);
@@ -331,6 +336,20 @@ window.openDemoWelcomeNoticeModal = function() {
         const content = document.getElementById('demoNoticeContent');
         if (content) content.classList.remove('scale-95');
     }, 10);
+};
+
+window.closeDemoNoticeOnly = function() {
+    sessionStorage.setItem('agendatina_demo_notice_shown', 'true');
+    const modal = document.getElementById('demoNoticeModal');
+    if (modal) {
+        modal.classList.add('opacity-0');
+        const content = document.getElementById('demoNoticeContent');
+        if (content) content.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 250);
+    }
 };
 
 window.closeDemoNoticeAndStartTour = function() {

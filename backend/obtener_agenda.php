@@ -21,6 +21,11 @@ if (!isset($_SESSION['id_negocio'])) {
     exit;
 }
 
+if (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true && !empty($_SESSION['id_negocio'])) {
+    require_once __DIR__ . '/helpers/demo_helper.php';
+    asegurarDatosDemo($pdo, $_SESSION['id_negocio']);
+}
+
 // Liberar la sesión para no bloquear otras peticiones AJAX (Mejora drástica de velocidad)
 session_write_close();
 
