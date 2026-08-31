@@ -3395,9 +3395,14 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
         }
 
         /* 1. Fondo del Body de la página completa */
-        html, body, main {
+        html, body {
             min-height: 100vh !important;
             background-color: ${finalBg ? finalBg : `color-mix(in srgb, ${pColor} 10%, color-mix(in srgb, ${sColor} 7%, #f8fafc))` } !important;
+        }
+
+        main {
+            background-color: transparent !important;
+            background-image: none !important;
         }
 
         /* 1.b. Fondo Degradé dinámico de colores de marca para el Calendario */
