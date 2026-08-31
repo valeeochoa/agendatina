@@ -418,9 +418,9 @@ function cal_renderTimeSlots() {
             spotsText = `<span class="block text-[10px] font-semibold opacity-85 leading-none mt-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full">${spotsLeft} lugares</span>`;
         }
 
-        const clockIcon = !isBooked ? '<span class="material-symbols-outlined text-[15px] opacity-75 inline-block mr-1 align-middle">schedule</span>' : '';
-        slot.innerHTML = isBooked ? `${time} <span class="block text-[10px] font-medium opacity-70 leading-none mt-1">(Agotado)</span>` : `<div class="flex items-center justify-center">${clockIcon}<span>${time} hs</span></div>${spotsText}`;
-        slot.className = isBooked ? 'time-slot booked flex flex-col justify-center items-center py-2 px-3 rounded-2xl text-xs sm:text-sm font-extrabold opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700' : 'time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-900 py-2.5 px-3 rounded-2xl text-xs sm:text-sm font-extrabold border-1.5 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 hover:-translate-y-0.5 hover:shadow-md cursor-pointer transition-all shadow-xs';
+        const clockIcon = !isBooked ? '<span class="material-symbols-outlined text-[14px] opacity-75 inline-block mr-0.5 align-middle shrink-0">schedule</span>' : '';
+        slot.innerHTML = isBooked ? `<span class="whitespace-nowrap">${time}&nbsp;hs</span> <span class="block text-[10px] font-medium opacity-70 leading-none mt-1">(Agotado)</span>` : `<div class="flex items-center justify-center gap-1 whitespace-nowrap">${clockIcon}<span class="whitespace-nowrap">${time}&nbsp;hs</span></div>${spotsText}`;
+        slot.className = isBooked ? 'time-slot booked flex flex-col justify-center items-center py-2.5 px-2 rounded-2xl text-xs sm:text-sm font-extrabold opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700 whitespace-nowrap' : 'time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-900 py-2.5 px-2 rounded-2xl text-xs sm:text-sm font-extrabold border-1.5 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 hover:-translate-y-0.5 hover:shadow-md cursor-pointer transition-all shadow-xs whitespace-nowrap';
         
         if (!isBooked) {
             slot.addEventListener('click', () => {
@@ -2198,9 +2198,9 @@ function selectWeeklyDate(date) {
                 spotsText = `<span class="block text-[10px] font-semibold opacity-85 leading-none mt-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full">${spotsLeft} lugares</span>`;
             }
             
-            const clockIcon = '<span class="material-symbols-outlined text-[15px] opacity-75 inline-block mr-1 align-middle">schedule</span>';
-            slot.innerHTML = `<div class="flex items-center justify-center">${clockIcon}<span>${time} hs</span></div>${spotsText}`;
-            slot.className = 'time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-800/90 py-3 px-3 rounded-2xl text-xs sm:text-sm font-extrabold border-1.5 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 shadow-xs';
+            const clockIcon = '<span class="material-symbols-outlined text-[14px] opacity-75 inline-block mr-0.5 align-middle shrink-0">schedule</span>';
+            slot.innerHTML = `<div class="flex items-center justify-center gap-1 whitespace-nowrap">${clockIcon}<span class="whitespace-nowrap">${time}&nbsp;hs</span></div>${spotsText}`;
+            slot.className = 'time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-800/90 py-2.5 px-2 rounded-2xl text-xs sm:text-sm font-extrabold border-1.5 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 shadow-xs whitespace-nowrap';
             slot.addEventListener('click', () => {
                 document.querySelectorAll('#weeklyTimeSlots .time-slot').forEach(el => {
                     el.classList.remove('selected', 'scale-105');
