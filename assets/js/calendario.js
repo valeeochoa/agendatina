@@ -1093,11 +1093,6 @@ function fetchServices() {
         }
     });
 }
-                gl.classList.add('opacity-0');
-                setTimeout(() => gl.classList.add('hidden'), 150);
-            }
-        });
-}
 
 function populateCalendarViewFilter() {
     const titleContainer = document.getElementById('mainCalendarTitle')?.closest('.flex') || 
