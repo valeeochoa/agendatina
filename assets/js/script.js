@@ -3378,19 +3378,6 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
             #adminDayView,
             #emptyState { background-color: ${extraColors.color_cards} !important; }
         `;
-    } else {
-        extraCss += `
-            #calMonthlyBox,
-            #clientBookingView,
-            #adminDayView,
-            #emptyState {
-                background-color: color-mix(in srgb, ${pColor} 4%, color-mix(in srgb, ${sColor} 3%, #ffffff)) !important;
-            }
-            #calMonthInnerBox {
-                background-color: color-mix(in srgb, ${sColor} 9%, color-mix(in srgb, ${pColor} 4%, #ffffff)) !important;
-                border-color: color-mix(in srgb, ${sColor} 25%, #e2e8f0) !important;
-            }
-        `;
     }
     if (extraColors.color_hover) {
         extraCss += `
@@ -3408,9 +3395,9 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
             --color-botones: ${btnColor};
         }
 
-        /* 1. Fondo del Panel con matiz armónico de ambos colores */
+        /* 1. Fondo del Body de la página completa */
         body, html {
-            background-color: color-mix(in srgb, ${pColor} 8%, color-mix(in srgb, ${sColor} 6%, #ffffff)) !important;
+            background-color: ${extraColors.color_fondo ? extraColors.color_fondo : `color-mix(in srgb, ${pColor} 10%, color-mix(in srgb, ${sColor} 7%, #f8fafc))` } !important;
         }
 
         /* 1.b. Fondo Degradé dinámico de colores de marca para el Calendario */

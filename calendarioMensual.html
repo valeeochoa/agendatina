@@ -76,8 +76,8 @@
       <h2 class="text-2xl font-bold text-slate-800 dark:text-white font-display">Cargando calendario...</h2>
   </div>
 
-  <main class="max-w-5xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
-    <div class="lg:col-span-7">
+  <main class="max-w-5xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 transition-all duration-500" id="mainCalendarWrapper">
+    <div class="lg:col-span-7 transition-all duration-500" id="calLeftCol">
       <div id="calMonthlyBox"
         class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-6 sm:p-8 shadow-sm transition-all duration-300">
         <div class="flex justify-between items-center mb-8">
@@ -171,7 +171,7 @@
       </div>
     </div>
 
-    <div class="lg:col-span-5">
+    <div class="lg:col-span-5 transition-all duration-500" id="calRightCol">
       <div id="dayDetailsContainer" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div id="clientBookingView"
           class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-8 shadow-xl">

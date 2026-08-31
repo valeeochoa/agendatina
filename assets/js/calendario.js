@@ -521,6 +521,30 @@ function renderAdminDayView(dateString) {
         dayActionBtns.style.display = isPastDay ? 'none' : 'flex';
     }
 
+    const mainWrapper = document.getElementById('mainCalendarWrapper');
+    const calLeftCol = document.getElementById('calLeftCol');
+    const calRightCol = document.getElementById('calRightCol');
+
+    if (globalSelectedProfessional === 'columnas') {
+        if (mainWrapper) {
+            mainWrapper.classList.remove('max-w-5xl');
+            mainWrapper.classList.add('max-w-7xl');
+        }
+        if (calLeftCol && calRightCol) {
+            calLeftCol.className = 'lg:col-span-5 transition-all duration-500';
+            calRightCol.className = 'lg:col-span-7 transition-all duration-500';
+        }
+    } else {
+        if (mainWrapper) {
+            mainWrapper.classList.remove('max-w-7xl');
+            mainWrapper.classList.add('max-w-5xl');
+        }
+        if (calLeftCol && calRightCol) {
+            calLeftCol.className = 'lg:col-span-7 transition-all duration-500';
+            calRightCol.className = 'lg:col-span-5 transition-all duration-500';
+        }
+    }
+
     // ==========================================
     // MODO COLUMNAS
     // ==========================================
