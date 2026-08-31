@@ -101,9 +101,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (style) style.innerHTML = stylesHTML;
                 }
 
-                if (data.alineacion_servicios) {
-                    const alignVal = data.alineacion_servicios;
+                window.applyServiceAlignmentCSS = function(alignVal) {
+                    if (!alignVal) alignVal = 'left';
                     const flexAlign = alignVal === 'center' ? 'center' : (alignVal === 'right' ? 'flex-end' : 'flex-start');
+                    const flexJustify = alignVal === 'center' ? 'center' : (alignVal === 'right' ? 'flex-end' : 'flex-start');
+                    const textAlign = alignVal;
+                    
                     let styleAlign = document.getElementById('agendatina-service-alignment');
                     if (!styleAlign) {
                         styleAlign = document.createElement('style');
@@ -111,12 +114,24 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.head.appendChild(styleAlign);
                     }
                     styleAlign.innerHTML = `
-                        .service-card, .card-servicio { text-align: ${alignVal} !important; }
-                        .service-card .p-6, .card-servicio .p-6, .service-card .flex-col { align-items: ${flexAlign} !important; text-align: ${alignVal} !important; }
-                        .service-card h3, .card-servicio h3 { text-align: ${alignVal} !important; width: 100% !important; }
-                        .service-card .flex, .card-servicio .flex { justify-content: ${flexAlign} !important; width: 100% !important; }
-                        .service-card p, .card-servicio p, .service-card .line-clamp-3 { text-align: ${alignVal} !important; width: 100% !important; }
+                        .service-card .p-6, .card-servicio .p-6 {
+                            align-items: ${flexAlign} !important;
+                            text-align: ${textAlign} !important;
+                        }
+                        .service-card h3, .card-servicio h3,
+                        .service-card p, .card-servicio p,
+                        .service-card .line-clamp-3, .card-servicio .line-clamp-3 {
+                            text-align: ${textAlign} !important;
+                            width: 100% !important;
+                        }
+                        .service-card .service-duration-badge, .card-servicio .service-duration-badge {
+                            justify-content: ${flexJustify} !important;
+                        }
                     `;
+                };
+
+                if (data.alineacion_servicios) {
+                    window.applyServiceAlignmentCSS(data.alineacion_servicios);
                 }
 
                 // Inyectar Secciones de Información Dinámica
@@ -271,14 +286,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 return `${m} min`;
             })(service.duracion);
 
+                const alignVal = (window.currentWebData && window.currentWebData.alineacion_servicios) ? window.currentWebData.alineacion_servicios : 'left';
+                const flexAlignClass = alignVal === 'center' ? 'items-center text-center' : (alignVal === 'right' ? 'items-end text-right' : 'items-start text-left');
+                const badgeJustify = alignVal === 'center' ? 'justify-center' : (alignVal === 'right' ? 'justify-end' : 'justify-start');
+                const textAlignClass = alignVal === 'center' ? 'text-center' : (alignVal === 'right' ? 'text-right' : 'text-left');
+
                 grid.innerHTML += `
                     <div onclick="openWebModalService('${service.id}')" class="service-card cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                         ${imagesHtml}
-                        <div class="p-6 flex flex-col flex-1">
-                            <h3 class="text-xl font-bold text-slate-800 leading-tight mb-2">${service.nombre}</h3>
-                            <div class="flex items-center gap-2 text-sm font-medium text-slate-500 mb-4"><span class="material-symbols-outlined text-base">schedule</span> ${durFmt}</div>
-                        <div class="text-slate-500 text-sm mb-6 flex-1 line-clamp-3 overflow-hidden" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;" title="Clic para leer más">${plainTextDesc}</div>
-                            <div class="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
+                        <div class="p-6 flex flex-col flex-1 ${flexAlignClass}">
+                            <h3 class="text-xl font-bold text-slate-800 leading-tight mb-2 w-full ${textAlignClass}">${service.nombre}</h3>
+                            <div class="flex items-center gap-2 text-sm font-medium text-slate-500 mb-4 w-full service-duration-badge ${badgeJustify}"><span class="material-symbols-outlined text-base">schedule</span> ${durFmt}</div>
+                            <div class="text-slate-500 text-sm mb-6 flex-1 line-clamp-3 overflow-hidden w-full ${textAlignClass}" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;" title="Clic para leer más">${plainTextDesc}</div>
+                            <div class="flex items-center justify-between w-full mt-auto pt-4 border-t border-slate-100">
                                 ${precio}
                                 <span class="text-primary font-bold text-sm flex items-center gap-1">Ver detalles <span class="material-symbols-outlined text-sm">visibility</span></span>
                             </div>
