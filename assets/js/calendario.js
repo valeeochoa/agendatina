@@ -2674,7 +2674,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.body.classList.add('calendar-degrade-active');
                         const pColor = config.color_primario || '#D11149';
                         const sColor = config.color_secundario || '#FC8712';
-                        document.body.style.setProperty('background-image', `linear-gradient(135deg, color-mix(in srgb, ${pColor} 22%, #fdf9fa) 0%, color-mix(in srgb, ${pColor} 12%, color-mix(in srgb, ${sColor} 12%, #fdf9fa)) 50%, color-mix(in srgb, ${sColor} 22%, #fdf9fa) 100%)`, 'important');
+                        document.body.style.setProperty('background-color', 'transparent', 'important');
+                        document.body.style.setProperty('background-image', `linear-gradient(135deg, color-mix(in srgb, ${pColor} 40%, #ffffff) 0%, color-mix(in srgb, ${pColor} 18%, color-mix(in srgb, ${sColor} 18%, #ffffff)) 50%, color-mix(in srgb, ${sColor} 40%, #ffffff) 100%)`, 'important');
                         document.body.style.setProperty('background-attachment', 'fixed', 'important');
                     } else {
                         document.body.removeAttribute('data-degrade');

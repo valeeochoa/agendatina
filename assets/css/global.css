@@ -47,8 +47,8 @@ html, body {
 
 body.calendar-degrade-active, body[data-degrade="1"], html.calendar-degrade-active, html[data-degrade="1"] {
     min-height: 100vh !important;
-    background-color: #fcf6f8 !important;
-    background-image: linear-gradient(135deg, rgba(209, 17, 73, 0.18) 0%, rgba(244, 73, 121, 0.12) 50%, rgba(252, 135, 18, 0.18) 100%) !important;
+    background-color: transparent !important;
+    background-image: linear-gradient(135deg, rgba(209, 17, 73, 0.35) 0%, rgba(244, 73, 121, 0.15) 50%, rgba(252, 135, 18, 0.35) 100%) !important;
     background-attachment: fixed !important;
     background-size: cover !important;
 }
