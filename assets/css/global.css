@@ -34,10 +34,17 @@ h1, h2, h3, h4 {
 }
 
 /* Fondo Degradé por defecto para el Calendario y Ajustes */
+html, body {
+    min-height: 100vh !important;
+    width: 100%;
+}
+
 body.calendar-degrade-active, body[data-degrade="1"], html.calendar-degrade-active, html[data-degrade="1"] {
+    min-height: 100vh !important;
     background-color: transparent !important;
     background-image: linear-gradient(135deg, rgba(209, 17, 73, 0.12) 0%, #ffffff 40%, rgba(252, 135, 18, 0.15) 100%) !important;
     background-attachment: fixed !important;
+    background-size: cover !important;
 }
 
 /* Scrollbar global y destacada de horarios (Color Secundario) */
@@ -156,7 +163,8 @@ body.calendar-degrade-active, body[data-degrade="1"], html.calendar-degrade-acti
 
 /* Horarios Estilo Pastilla Premium Glossy */
 .time-slot {
-    padding: 12px 14px;
+    padding: 10px 14px;
+    min-height: 38px;
     border-radius: 1.15rem;
     text-align: center;
     font-weight: 800;

@@ -3395,15 +3395,18 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
         }
 
         /* 1. Fondo del Body de la página completa */
-        body, html, main {
+        html, body, main {
+            min-height: 100vh !important;
             background-color: ${finalBg ? finalBg : `color-mix(in srgb, ${pColor} 10%, color-mix(in srgb, ${sColor} 7%, #f8fafc))` } !important;
         }
 
         /* 1.b. Fondo Degradé dinámico de colores de marca para el Calendario */
         body.calendar-degrade-active, body[data-degrade="1"], html.calendar-degrade-active, html[data-degrade="1"] {
+            min-height: 100vh !important;
             background-color: transparent !important;
             background-image: linear-gradient(135deg, color-mix(in srgb, ${pColor} 25%, #ffffff) 0%, #ffffff 40%, color-mix(in srgb, ${sColor} 30%, #ffffff) 100%) !important;
             background-attachment: fixed !important;
+            background-size: cover !important;
         }
 
         /* 1.c. Barra desplazadora destacada con Color Secundario */
