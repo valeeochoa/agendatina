@@ -202,11 +202,15 @@
             <div id="sec-planes" class="tab-content space-y-8">
                 <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6">
                     <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-3">
+                            <span class="material-symbols-outlined text-[16px]">verified</span> Tu suscripción en Agendatina
+                        </div>
                         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3 flex items-center gap-3 font-display">
-                            <span class="material-symbols-outlined text-primary text-3xl">verified</span>
                             ¿Qué incluye tu Suscripción Activa?
                         </h2>
-                        <p class="text-slate-600 text-base">A continuación podés consultar las funciones habilitadas en cada plan y la que tenés activa actualmente en tu cuenta:</p>
+                        <p class="text-slate-600 text-base sm:text-lg leading-relaxed">
+                            Acá podés comparar las funciones y ventajas habilitadas en cada plan. La tarjeta resaltada muestra cuál tenés activo actualmente en tu comercio:
+                        </p>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
@@ -514,63 +518,115 @@
 
             <!-- SECCIÓN 4: HORARIOS & BLOQUEOS 24HS -->
             <div id="sec-calendario" class="tab-content space-y-8 hidden">
-                <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6">
+                <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-8">
                     <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-sky-700 text-xs font-bold uppercase tracking-wider mb-3">
+                            <span class="material-symbols-outlined text-[16px]">edit_calendar</span> Configuración de atención
+                        </div>
                         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3 flex items-center gap-3 font-display">
-                            <span class="material-symbols-outlined text-sky-600 text-3xl">edit_calendar</span>
-                            Personalización Avanzada de Horarios por Día (24hs)
+                            Organizá tus Horarios de Atención y Días Libres
                         </h2>
-                        <p class="text-slate-600 text-base">Definí los tiempos y tramos de atención de tu comercio de Lunes a Domingo:</p>
+                        <p class="text-slate-600 text-base sm:text-lg leading-relaxed">
+                            Definir cuándo atiende tu comercio es súper fácil. En Agendatina tenés flexibilidad total para configurar tus franjas horarias de Lunes a Domingo, agregar descansos al mediodía y bloquear días feriados.
+                        </p>
                     </div>
 
-                    <div class="bg-sky-50 border border-sky-200 rounded-3xl p-6 space-y-3">
-                        <h3 class="font-bold text-sky-900 text-base flex items-center gap-2">
-                            <span class="material-symbols-outlined text-sky-600 text-[22px]">schedule</span>
-                            Formato de 24 Horas y Múltiples Tramos
-                        </h3>
-                        <p class="text-sm text-sky-950 leading-relaxed">
-                            En la sección <strong>Ajustes</strong> podés pulsar la rueda de personalización para abrir el modal calendario (Lunes a Domingo):
-                        </p>
-                        <ul class="text-xs sm:text-sm text-sky-900 space-y-2 font-medium list-disc list-inside">
-                            <li>El horario se ingresa en formato 24hs (ejemplo: <code>10:00</code> para la mañana vs <code>22:00</code> para la noche).</li>
-                            <li>Podés agregar múltiples recuadros por día si hacés pausas interactivas (ejemplo: <code>10:00-12:00</code>, luego <code>14:00-16:00</code> y <code>18:00-20:00</code>).</li>
-                        </ul>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Formato 24hs y Tramos -->
+                        <div class="bg-sky-50/70 border border-sky-200 rounded-3xl p-6 space-y-3">
+                            <h3 class="font-extrabold text-sky-950 text-base flex items-center gap-2">
+                                <span class="material-symbols-outlined text-sky-600 text-[22px]">schedule</span>
+                                Formato de 24 Horas y Múltiples Tramos
+                            </h3>
+                            <p class="text-xs sm:text-sm text-sky-900 leading-relaxed">
+                                Los horarios se ingresan en formato 24 horas (por ejemplo: <code>09:00</code> para la mañana o <code>20:00</code> para la noche).
+                            </p>
+                            <ul class="text-xs sm:text-sm text-sky-950 space-y-2 font-medium list-disc list-inside">
+                                <li><strong>Pausas o Almuerzos:</strong> Podés agregar dos o más franjas en un mismo día (ej. <code>09:00 a 13:00</code> y luego <code>16:00 a 20:00</code>). El sistema bloqueará automáticamente la siesta.</li>
+                                <li><strong>Días Cerrados:</strong> Destildá los días que tu local no abre (ej. Lunes o Domingo) para que nadie pueda reservar esa fecha.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Intervalos y Anticipación -->
+                        <div class="bg-indigo-50/70 border border-indigo-200 rounded-3xl p-6 space-y-3">
+                            <h3 class="font-extrabold text-indigo-950 text-base flex items-center gap-2">
+                                <span class="material-symbols-outlined text-indigo-600 text-[22px]">tune</span>
+                                Intervalos y Anticipación Mínima
+                            </h3>
+                            <p class="text-xs sm:text-sm text-indigo-900 leading-relaxed">
+                                Controlá cada cuánto tiempo se generan las opciones de turno en tu web:
+                            </p>
+                            <ul class="text-xs sm:text-sm text-indigo-950 space-y-2 font-medium list-disc list-inside">
+                                <li><strong>Frecuencia de reserva:</strong> Podés armar bloques cada 15, 30 o 60 minutos según tu ritmo de trabajo.</li>
+                                <li><strong>Anticipación mínima:</strong> Configurá con cuántas horas de anticipación te pueden reservar (ej. exigir reserva 2 horas antes para darte tiempo a prepararte).</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- SECCIÓN 5: SERVICIOS -->
             <div id="sec-servicios" class="tab-content space-y-8 hidden">
-                <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6">
+                <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-8">
                     <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-50 border border-pink-200 text-pink-700 text-xs font-bold uppercase tracking-wider mb-3">
+                            <span class="material-symbols-outlined text-[16px]">content_cut</span> Tu menú de tratamientos
+                        </div>
                         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3 flex items-center gap-3 font-display">
-                            <span class="material-symbols-outlined text-pink-600 text-3xl">content_cut</span>
                             Catálogo de Servicios, Duración y Precios
                         </h2>
-                        <p class="text-slate-600 text-base">Administrá tus tratamientos y el catálogo para tus clientes:</p>
+                        <p class="text-slate-600 text-base sm:text-lg leading-relaxed">
+                            Acá armás el menú de servicios que verán tus clientes al reservar desde tu web. Poneles nombres claros, fotos atractivas y el tiempo exacto que demanda cada uno.
+                        </p>
                     </div>
 
-                    <div class="border border-slate-200 rounded-3xl p-6 bg-slate-50 space-y-3">
-                        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-                            <span class="material-symbols-outlined text-pink-600 text-[22px]">add_task</span>
-                            Carga de Duraciones Expresadas en Horas y Minutos
-                        </h3>
-                        <p class="text-sm text-slate-700 leading-relaxed">
-                            Al crear o modificar un servicio podés seleccionar las horas y minutos que demanda (ej. 2 horas 15 minutos). El sistema calculará la disponibilidad en el calendario sin solapamientos.
-                        </p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="border border-slate-200 rounded-3xl p-6 bg-slate-50 space-y-3">
+                            <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                                <span class="material-symbols-outlined text-pink-600 text-[22px]">timer</span>
+                                Duración en Horas y Minutos
+                            </h3>
+                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                                Podés definir el tiempo exacto en horas y minutos (ej. <code>1h 30m</code>). El sistema calcula los huecos disponibles en tu agenda sin encimar turnos.
+                            </p>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-3xl p-6 bg-slate-50 space-y-3">
+                            <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                                <span class="material-symbols-outlined text-pink-600 text-[22px]">sell</span>
+                                Precios y Fotos de Muestra
+                            </h3>
+                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                                Cargá el valor de cada trabajo y subí hasta 3 fotos demostrativas por servicio para que tus clientes vean tus resultados y reserven tentados.
+                            </p>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-3xl p-6 bg-slate-50 space-y-3">
+                            <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                                <span class="material-symbols-outlined text-pink-600 text-[22px]">person_add</span>
+                                Asignación por Profesional
+                            </h3>
+                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                                Indicá qué profesional de tu equipo realiza cada tratamiento. Cuando el cliente elija el servicio, el sistema sabrá la agenda de quién consultar.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- SECCIÓN 6: EQUIPO -->
             <div id="sec-equipo" class="tab-content space-y-8 hidden">
-                <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6">
+                <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-8">
                     <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-700 text-xs font-bold uppercase tracking-wider mb-3">
+                            <span class="material-symbols-outlined text-[16px]">group</span> Tu plantilla de profesionales
+                        </div>
                         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3 flex items-center gap-3 font-display">
-                            <span class="material-symbols-outlined text-purple-600 text-3xl">group</span>
                             Gestión de Equipo de Trabajo y Permisos
                         </h2>
-                        <p class="text-slate-600 text-base">Administra las cuentas de tu staff y sus niveles de acceso:</p>
+                        <p class="text-slate-600 text-base sm:text-lg leading-relaxed">
+                            Organizá a los miembros de tu local, dales acceso a la plataforma con su propia contraseña y definí qué información puede ver cada colaborador.
+                        </p>
                     </div>
 
                     <div id="noticeEquipoUpgrade" class="hidden bg-amber-50 border border-amber-200 rounded-3xl p-6">
@@ -586,31 +642,48 @@
                         </div>
                     </div>
 
-                    <div class="bg-purple-50 border border-purple-200 rounded-3xl p-6 space-y-3">
-                        <h3 class="font-bold text-purple-900 text-base flex items-center gap-2">
-                            <span class="material-symbols-outlined text-purple-600 text-[22px]">edit</span>
-                            Dos Formas de Editar a un Profesional
-                        </h3>
-                        <p class="text-sm text-purple-950 leading-relaxed">
-                            En la pantalla de Equipo podés abrir el modal de edición de dos formas distintas:
-                        </p>
-                        <ul class="text-xs sm:text-sm text-purple-900 space-y-2 font-semibold">
-                            <li>1. Haciendo clic directo en cualquier parte de la tarjeta del profesional.</li>
-                            <li>2. Tocando el botón con el ícono del lápiz <code>✏️ Editar</code>.</li>
-                        </ul>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div class="bg-purple-50/70 border border-purple-200 rounded-3xl p-6 space-y-3">
+                            <h3 class="font-extrabold text-purple-950 text-base flex items-center gap-2">
+                                <span class="material-symbols-outlined text-purple-600 text-[22px]">admin_panel_settings</span>
+                                Roles de Acceso (Admin vs Profesional)
+                            </h3>
+                            <ul class="text-xs sm:text-sm text-purple-900 space-y-2 font-medium">
+                                <li><strong>Administrador:</strong> Acceso total al panel, finanzas, estadísticas, edición web y configuración del comercio.</li>
+                                <li><strong>Profesional:</strong> Accede únicamente a su propia agenda diaria para atender a sus clientes de forma enfocada y privada.</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-purple-50/70 border border-purple-200 rounded-3xl p-6 space-y-3">
+                            <h3 class="font-extrabold text-purple-950 text-base flex items-center gap-2">
+                                <span class="material-symbols-outlined text-purple-600 text-[22px]">edit</span>
+                                ¿Cómo editar a un profesional?
+                            </h3>
+                            <p class="text-xs sm:text-sm text-purple-900 leading-relaxed">
+                                En la sección Equipo podés editar la clave, foto o servicios de un colaborador de dos formas súper simples:
+                            </p>
+                            <ul class="text-xs sm:text-sm text-purple-950 space-y-1.5 font-semibold list-disc list-inside">
+                                <li>Haciendo clic sobre cualquier parte de la tarjeta del profesional.</li>
+                                <li>Tocando el botón <code>✏️ Editar</code>.</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- SECCIÓN 7: WEB -->
             <div id="sec-web" class="tab-content space-y-8 hidden">
-                <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6">
+                <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-8">
                     <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold uppercase tracking-wider mb-3">
+                            <span class="material-symbols-outlined text-[16px]">dvr</span> Tu vitrina digital
+                        </div>
                         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3 flex items-center gap-3 font-display">
-                            <span class="material-symbols-outlined text-indigo-600 text-3xl">dvr</span>
                             Personalización de Mi Página Web
                         </h2>
-                        <p class="text-slate-600 text-base">Personaliza cómo ven tus clientes tu página pública de reservas:</p>
+                        <p class="text-slate-600 text-base sm:text-lg leading-relaxed">
+                            Diseñá la página pública donde tus clientes reservan turnos. Dejala con los colores de tu marca, tu logo oficial y tu estilo único en pocos pasos.
+                        </p>
                     </div>
 
                     <div id="noticeWebUpgrade" class="hidden bg-purple-50 border border-purple-200 rounded-3xl p-6">
@@ -626,27 +699,43 @@
                         </div>
                     </div>
 
-                    <div class="border border-slate-200 rounded-3xl p-6 bg-slate-50 space-y-3">
-                        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-                            <span class="material-symbols-outlined text-indigo-600 text-[22px]">format_align_center</span>
-                            Alineación de Tarjetas y Paleta de Colores
-                        </h3>
-                        <p class="text-sm text-slate-700 leading-relaxed">
-                            Desde el editor <strong>Mi Web</strong> podés ajustar la alineación de las tarjetas de servicios (Izquierda, Centro o Derecha) y personalizar los colores según el plan contratado.
-                        </p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="border border-slate-200 rounded-3xl p-6 bg-slate-50 space-y-3">
+                            <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                                <span class="material-symbols-outlined text-indigo-600 text-[22px]">format_align_center</span>
+                                Alineación de Tarjetas y Estilo
+                            </h3>
+                            <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                                Podés elegir cómo querés que se vean los textos y fotos de tus servicios en la web: <strong>Alineados a la Izquierda, Centrados o a la Derecha</strong>. Al cambiar la opción en el selector podés ver la vista previa al instante.
+                            </p>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-3xl p-6 bg-slate-50 space-y-3">
+                            <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                                <span class="material-symbols-outlined text-indigo-600 text-[22px]">palette</span>
+                                Colores Institucionales y Personalizados
+                            </h3>
+                            <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                                Elegí el color principal y secundario de tu negocio. Con tus planes con opciones extra <code>(+)</code> podés personalizar el fondo del header, títulos, botones CTA o tarjetas con el selector cromático.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- SECCIÓN 8: ESTADÍSTICAS -->
             <div id="sec-estadisticas" class="tab-content space-y-8 hidden">
-                <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6">
+                <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-8">
                     <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-700 text-xs font-bold uppercase tracking-wider mb-3">
+                            <span class="material-symbols-outlined text-[16px]">query_stats</span> El rendimiento de tu negocio
+                        </div>
                         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3 flex items-center gap-3 font-display">
-                            <span class="material-symbols-outlined text-teal-600 text-3xl">query_stats</span>
                             Estadísticas y Medición de Rendimiento
                         </h2>
-                        <p class="text-slate-600 text-base">Entiende el comportamiento de tus ingresos y concurrencia:</p>
+                        <p class="text-slate-600 text-base sm:text-lg leading-relaxed">
+                            Medí tus ingresos reales, analizá el comportamiento de tus clientes y descubrí qué servicios te generan mayores ganancias.
+                        </p>
                     </div>
 
                     <div id="noticeEstadisticasUpgrade" class="hidden bg-purple-50 border border-purple-200 rounded-3xl p-6">
@@ -662,13 +751,13 @@
                         </div>
                     </div>
 
-                    <div class="bg-teal-50 border border-teal-200 rounded-3xl p-6 space-y-3">
-                        <h3 class="font-bold text-teal-900 text-base flex items-center gap-2">
+                    <div class="bg-teal-50/70 border border-teal-200 rounded-3xl p-6 space-y-3">
+                        <h3 class="font-extrabold text-teal-950 text-base flex items-center gap-2">
                             <span class="material-symbols-outlined text-teal-600 text-[22px]">auto_graph</span>
-                            Regla Estricta de Cálculo por Asistencia
+                            Cálculo Transparente por Asistencia Confirmada
                         </h3>
-                        <p class="text-sm text-teal-950 leading-relaxed">
-                            Las métricas de facturación e ingresos no toman simplemente los turnos confirmados, sino <strong>exclusivamente los turnos pasados que fueron marcados como asistidos</strong> (<code>asistio = 1</code>). Si no hay turnos marcados, los gráficos muestran un estado neutral informativo explicativo.
+                        <p class="text-xs sm:text-sm text-teal-950 leading-relaxed">
+                            En Agendatina cuidamos la exactitud de tus números. Los gráficos de ingresos y facturación **no toman valores supuestos**, sino <strong>únicamente los turnos pasados donde marcaste que el cliente asistió (<code>✓ Asistió</code>)</strong>. ¡Así sabés exactamente cuánto dinero ingresó realmente a la caja!
                         </p>
                     </div>
                 </div>
@@ -676,23 +765,39 @@
 
             <!-- SECCIÓN 9: AJUSTES -->
             <div id="sec-ajustes" class="tab-content space-y-8 hidden">
-                <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6">
+                <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-8">
                     <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold uppercase tracking-wider mb-3">
+                            <span class="material-symbols-outlined text-[16px]">settings_suggest</span> Configuración general
+                        </div>
                         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3 flex items-center gap-3 font-display">
-                            <span class="material-symbols-outlined text-amber-600 text-3xl">settings_suggest</span>
-                            Ajustes del Sistema y Ciclo de Facturación
+                            Ajustes del Sistema y Ciclo de Servicio
                         </h2>
-                        <p class="text-slate-600 text-base">Conoce la lógica de notificaciones y periodos de pago:</p>
+                        <p class="text-slate-600 text-base sm:text-lg leading-relaxed">
+                            Acá podés actualizar los datos de tu comercio, configurar los métodos de pago aceptados (efectivo, transferencia, Mercado Pago) y administrar el tiempo de retención de la papelera.
+                        </p>
                     </div>
 
-                    <div class="border border-slate-200 rounded-3xl p-6 bg-slate-50 space-y-3">
-                        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
-                            <span class="material-symbols-outlined text-amber-600 text-[22px]">calendar_month</span>
-                            Estándar de Facturación de 30 Días
-                        </h3>
-                        <p class="text-sm text-slate-700 leading-relaxed">
-                            Agendatina considera en términos generales que 1 mes equivale a 30 días de servicio. Las renovaciones de periodo y prorrateos de prueba se aplican pasados los 30 días exactos. Cualquier aumento de plan toma efecto en el próximo ciclo de facturación.
-                        </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div class="border border-slate-200 rounded-3xl p-6 bg-slate-50 space-y-2">
+                            <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                                <span class="material-symbols-outlined text-amber-600 text-[22px]">calendar_month</span>
+                                Ciclos de Servicio de 30 Días
+                            </h3>
+                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                                Agendatina contabiliza los períodos de servicio en ciclos exactos de 30 días, garantizando transparencia en cada renovación.
+                            </p>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-3xl p-6 bg-slate-50 space-y-2">
+                            <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                                <span class="material-symbols-outlined text-amber-600 text-[22px]">chat</span>
+                                Envíos y Recordatorios WhatsApp
+                            </h3>
+                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                                Enviá avisos directos y recordatorios por WhatsApp a tus clientes para avisarles de su cita y reducir el ausentismo al mínimo.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
