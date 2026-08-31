@@ -528,15 +528,15 @@ function renderAdminDayView(dateString) {
     if (globalSelectedProfessional === 'columnas') {
         if (mainWrapper) {
             mainWrapper.classList.remove('max-w-5xl');
-            mainWrapper.classList.add('max-w-7xl');
+            mainWrapper.classList.add('max-w-[96%]');
         }
         if (calLeftCol && calRightCol) {
-            calLeftCol.className = 'lg:col-span-5 transition-all duration-500';
-            calRightCol.className = 'lg:col-span-7 transition-all duration-500';
+            calLeftCol.className = 'lg:col-span-4 transition-all duration-500';
+            calRightCol.className = 'lg:col-span-8 transition-all duration-500';
         }
     } else {
         if (mainWrapper) {
-            mainWrapper.classList.remove('max-w-7xl');
+            mainWrapper.classList.remove('max-w-[96%]');
             mainWrapper.classList.add('max-w-5xl');
         }
         if (calLeftCol && calRightCol) {
@@ -552,11 +552,11 @@ function renderAdminDayView(dateString) {
         const uniqueProfs = [...new Set(services.map(s => s.profesional).filter(p => p && p.trim() !== ''))];
         if (uniqueProfs.length === 0) uniqueProfs.push('General');
 
-        adminTimeSlots.className = 'flex gap-4 overflow-x-auto pb-4 custom-scrollbar';
+        adminTimeSlots.className = 'flex gap-4 overflow-x-auto pb-4 custom-scrollbar w-full min-h-[300px]';
 
         uniqueProfs.forEach(prof => {
             const colDiv = document.createElement('div');
-            colDiv.className = 'flex-1 min-w-[220px] max-w-[300px] border border-slate-200 dark:border-slate-700 rounded-2xl p-3 bg-slate-50 dark:bg-slate-800';
+            colDiv.className = 'flex-1 min-w-[240px] sm:min-w-[280px] max-w-[480px] border border-slate-200 dark:border-slate-700 rounded-2xl p-3.5 bg-slate-50/80 dark:bg-slate-800/80 shadow-sm';
             colDiv.innerHTML = `<h4 class="text-center font-bold text-slate-700 dark:text-slate-300 mb-3 border-b border-slate-200 dark:border-slate-700 pb-2 truncate" title="${prof}">👤 ${prof}</h4>`;
 
             const slotsDiv = document.createElement('div');
