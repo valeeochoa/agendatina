@@ -100,6 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const btnVer = document.getElementById('btnVerMiPagina');
                 if (btnVer) {
                     btnVer.href = 'web.html?n=' + encodeURIComponent(data.ruta) + '&from=mi-web&preview=1';
+                    btnVer.removeAttribute('target');
                     btnVer.setAttribute('onclick', "sessionStorage.setItem('agendatina_nav_from', 'mi-web')");
                 }
             }
