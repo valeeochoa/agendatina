@@ -294,7 +294,10 @@ window.markOnboardingStepComplete = function(stepNumber, isCompleted) {
     }
 };
 
-window.openDemoWelcomeNoticeModal = function() {
+window.openDemoWelcomeNoticeModal = function(force = false) {
+    if (!force && sessionStorage.getItem('agendatina_demo_notice_shown') === 'true') {
+        return;
+    }
     sessionStorage.setItem('agendatina_demo_notice_shown', 'true');
     let modal = document.getElementById('demoNoticeModal');
     if (!modal) {
@@ -374,10 +377,12 @@ window.closeDemoNoticeAndStartTour = function() {
 };
 
 window.openWelcomeNewAccountModal = function(force = false) {
-    // Si la cuenta es demo, NUNCA mostrar el modal de bienvenida de cuentas reales
+    // Si la cuenta es demo, NUNCA reabrir si ya se mostró en la sesión activa
     const isDemo = (window.currentUserData && (window.currentUserData.email === 'demo@agendatina.site' || window.currentUserData.email.includes('demo'))) || (window.currentBusinessData && (window.currentBusinessData.ruta === 'demo' || window.currentBusinessData.is_demo)) || sessionStorage.getItem('is_demo_user') === 'true';
     if (isDemo) {
-        window.openDemoWelcomeNoticeModal();
+        if (sessionStorage.getItem('agendatina_demo_notice_shown') !== 'true') {
+            window.openDemoWelcomeNoticeModal();
+        }
         return;
     }
 
