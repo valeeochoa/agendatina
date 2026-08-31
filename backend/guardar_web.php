@@ -98,7 +98,7 @@ try { $pdo->query("SELECT hora_descanso_fin FROM configuracion_web LIMIT 1"); }
 catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN hora_descanso_fin VARCHAR(5) DEFAULT ''"); }
 
 try { $pdo->query("SELECT usar_fondo_degrade FROM configuracion_web LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN usar_fondo_degrade TINYINT DEFAULT 0"); }
+catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN usar_fondo_degrade TINYINT DEFAULT 1"); }
 
 try { $pdo->query("SELECT dias_trabajo FROM configuracion_web LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN dias_trabajo VARCHAR(50) DEFAULT '1,2,3,4,5,6'"); }
@@ -445,7 +445,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $limite_eliminacion_dias = isset($data['limite_eliminacion_dias']) ? (int)$data['limite_eliminacion_dias'] : ($oldData['limite_eliminacion_dias'] ?? 0);
         $colores_extra_json = isset($data['colores_extra_json']) ? $data['colores_extra_json'] : ($oldData['colores_extra_json'] ?? '{}');
         $horarios_detallados_json = isset($data['horarios_detallados_json']) ? $data['horarios_detallados_json'] : ($oldData['horarios_detallados_json'] ?? '{}');
-        $usar_fondo_degrade = isset($data['usar_fondo_degrade']) ? (int)$data['usar_fondo_degrade'] : (isset($oldData['usar_fondo_degrade']) ? (int)$oldData['usar_fondo_degrade'] : 0);
+        $usar_fondo_degrade = isset($data['usar_fondo_degrade']) ? (int)$data['usar_fondo_degrade'] : (isset($oldData['usar_fondo_degrade']) ? (int)$oldData['usar_fondo_degrade'] : 1);
         
         $stmt = $pdo->prepare("INSERT INTO configuracion_web 
             (id_negocio, color_primario, color_secundario, color_primario_web, color_secundario_web, color_fondo, colores_extra_json, url_logo, fondo, mensaje_bienvenida, subtitulo, whatsapp_contacto, instagram_url, hora_apertura, hora_cierre, intervalo_turnos, turnos_simultaneos, confirmacion_automatica, anticipacion_turno_min, alineacion_servicios, tipo_calendario, texto_local, ubicacion_maps, cursos_html, cursos_json, profesionales_json, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, metodos_pago, limite_eliminacion_dias, horarios_detallados_json, usar_fondo_degrade) 
