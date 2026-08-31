@@ -17,3 +17,9 @@ Este documento registra las nuevas características, mejoras planificadas y soli
   - Profesional asignado
   - Estado del turno (Confirmado, Atendido, Pendiente, Cancelado)
 - **Acción Pendiente**: Habilitar nuevamente el botón de descarga en `agenda.html` (en la barra superior o en el encabezado del *Historial*) cuando se lance el módulo de reportes o la función comercial para cuentas Premium.
+
+## Transferencia usando mercado pago
+
+## Notificaciones via whatsapp
+
+## Implementacion de ARCA

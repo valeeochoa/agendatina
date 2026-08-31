@@ -2658,9 +2658,22 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
 
+                    // Aplicar el color de fondo o degradé directamente a la etiqueta <body>
+                    if (config.color_fondo) {
+                        document.body.style.setProperty('background-color', config.color_fondo, 'important');
+                    } else if (config.color_primario || config.color_secundario) {
+                        const pColor = config.color_primario || '#D11149';
+                        const sColor = config.color_secundario || '#FC8712';
+                        document.body.style.setProperty('background-color', `color-mix(in srgb, ${pColor} 10%, color-mix(in srgb, ${sColor} 7%, #f8fafc))`, 'important');
+                    }
+
                     if (config.usar_fondo_degrade == 1 || config.usar_fondo_degrade === '1' || config.usar_fondo_degrade === true) {
                         document.body.setAttribute('data-degrade', '1');
                         document.body.classList.add('calendar-degrade-active');
+                        const pColor = config.color_primario || '#D11149';
+                        const sColor = config.color_secundario || '#FC8712';
+                        document.body.style.setProperty('background-image', `linear-gradient(135deg, color-mix(in srgb, ${pColor} 25%, #ffffff) 0%, #ffffff 40%, color-mix(in srgb, ${sColor} 30%, #ffffff) 100%)`, 'important');
+                        document.body.style.setProperty('background-attachment', 'fixed', 'important');
                     } else {
                         document.body.removeAttribute('data-degrade');
                         document.body.classList.remove('calendar-degrade-active');
