@@ -169,6 +169,17 @@ body.calendar-degrade-active, body[data-degrade="1"], html.calendar-degrade-acti
     align-items: center;
     justify-content: center;
     gap: 2px;
+    white-space: nowrap !important;
+}
+
+.time-slot,
+.time-slot *,
+.mini-time-slot,
+.mini-time-slot *,
+#timeSlots *,
+#weeklyTimeSlots * {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
 }
 
 .time-slot:not(.booked):active {

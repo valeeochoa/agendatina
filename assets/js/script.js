@@ -3442,6 +3442,17 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
             scrollbar-color: ${sColor} color-mix(in srgb, ${sColor} 14%, #f1f5f9) !important;
         }
 
+        /* 1.e. Forzar que los textos de las franjas horarias (17:00 hs) jamás se dividan en 2 líneas */
+        .time-slot, 
+        .time-slot *, 
+        .mini-time-slot, 
+        .mini-time-slot *, 
+        #timeSlots *, 
+        #weeklyTimeSlots * {
+            white-space: nowrap !important;
+            word-break: keep-all !important;
+        }
+
         /* 2. Bordes de Cards y Resaltado Hover con Color Secundario */
         .card-custom, 
         .bg-white.rounded-3xl, 
