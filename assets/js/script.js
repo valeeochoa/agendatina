@@ -3404,7 +3404,7 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
         body.calendar-degrade-active, body[data-degrade="1"], html.calendar-degrade-active, html[data-degrade="1"] {
             min-height: 100vh !important;
             background-color: transparent !important;
-            background-image: linear-gradient(135deg, color-mix(in srgb, ${pColor} 25%, #ffffff) 0%, #ffffff 40%, color-mix(in srgb, ${sColor} 30%, #ffffff) 100%) !important;
+            background-image: linear-gradient(135deg, color-mix(in srgb, ${pColor} 22%, #fdf9fa) 0%, color-mix(in srgb, ${pColor} 12%, color-mix(in srgb, ${sColor} 12%, #fdf9fa)) 50%, color-mix(in srgb, ${sColor} 22%, #fdf9fa) 100%) !important;
             background-attachment: fixed !important;
             background-size: cover !important;
         }

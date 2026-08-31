@@ -2667,12 +2667,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.body.style.setProperty('background-color', `color-mix(in srgb, ${pColor} 10%, color-mix(in srgb, ${sColor} 7%, #f8fafc))`, 'important');
                     }
 
-                    if (config.usar_fondo_degrade == 1 || config.usar_fondo_degrade === '1' || config.usar_fondo_degrade === true) {
+                    const isDegradeActive = (config.usar_fondo_degrade === undefined || config.usar_fondo_degrade === null || config.usar_fondo_degrade == 1 || config.usar_fondo_degrade === '1' || config.usar_fondo_degrade === true) && config.usar_fondo_degrade != 0 && config.usar_fondo_degrade !== '0';
+
+                    if (isDegradeActive) {
                         document.body.setAttribute('data-degrade', '1');
                         document.body.classList.add('calendar-degrade-active');
                         const pColor = config.color_primario || '#D11149';
                         const sColor = config.color_secundario || '#FC8712';
-                        document.body.style.setProperty('background-image', `linear-gradient(135deg, color-mix(in srgb, ${pColor} 25%, #ffffff) 0%, #ffffff 40%, color-mix(in srgb, ${sColor} 30%, #ffffff) 100%)`, 'important');
+                        document.body.style.setProperty('background-image', `linear-gradient(135deg, color-mix(in srgb, ${pColor} 22%, #fdf9fa) 0%, color-mix(in srgb, ${pColor} 12%, color-mix(in srgb, ${sColor} 12%, #fdf9fa)) 50%, color-mix(in srgb, ${sColor} 22%, #fdf9fa) 100%)`, 'important');
                         document.body.style.setProperty('background-attachment', 'fixed', 'important');
                     } else {
                         document.body.removeAttribute('data-degrade');
