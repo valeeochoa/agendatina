@@ -974,7 +974,7 @@ function openManualTurnoModal(preselectedTime = null, preselectedProf = null) {
     const profToSelect = preselectedProf || globalSelectedProfessional;
     const profSelect = document.getElementById('manualProfesional');
     profSelect.innerHTML = '';
-    const uniqueProfs = [...new Set(services.map(s => s.profesional).filter(p => p && p.trim() !== '' && p !== 'Cualquiera (Sin preferencia)'))];
+    const uniqueProfs = getUniqueProfessionals();
     uniqueProfs.forEach(p => {
         const sel = profToSelect === p ? 'selected' : '';
         profSelect.innerHTML += `<option value="${p}" ${sel}>${p}</option>`;
@@ -1027,42 +1027,72 @@ function setManualModalMode(mode) {
     }
 }
 
-function fetchServices() {
+let teamProfessionals = [];
+
+function fetchTeamProfessionals() {
     const queryParam = negocioSlug ? `?n=${negocioSlug}` : '';
-    fetch('backend/gestionar_servicios.php' + queryParam)
+    return fetch('backend/gestionar_profesionales.php' + queryParam)
         .then(res => res.json())
         .then(data => {
             if (Array.isArray(data)) {
-                services = data;
-            } else {
-                services = [];
-                console.error('Error al cargar servicios:', data);
-            }
-            populateServiceSelect();
-            populateCalendarViewFilter();
-            if (isAdmin) renderServicesList();
-            
-            const profDatalist = document.getElementById('profesionalesList');
-            if (profDatalist) {
-                profDatalist.innerHTML = '';
-                const uniqueProfs = [...new Set(services.map(s => s.profesional).filter(p => p && p.trim() !== ''))];
-                uniqueProfs.forEach(p => profDatalist.innerHTML += `<option value="${p}">`);
-            }
-            
-            if (document.getElementById('weeklyCalendarView')) {
-                initWizard();
-            }
-
-            const gl = document.getElementById('globalLoader');
-            if (gl) {
-                gl.classList.add('opacity-0');
-                setTimeout(() => gl.classList.add('hidden'), 150);
+                teamProfessionals = data.map(p => p.nombre_completo || p.nombre).filter(n => n && n.trim() !== '');
+            } else if (data && data.profesionales && Array.isArray(data.profesionales)) {
+                teamProfessionals = data.profesionales.map(p => p.nombre_completo || p.nombre).filter(n => n && n.trim() !== '');
             }
         })
-        .catch(err => {
-            console.error('Error al cargar servicios:', err);
-            const gl = document.getElementById('globalLoader');
-            if (gl) {
+        .catch(() => {});
+}
+
+function getUniqueProfessionals() {
+    const serviceProfs = (services || []).map(s => s.profesional).filter(p => p && p.trim() !== '' && p !== 'Cualquiera (Sin preferencia)');
+    
+    let webProfs = [];
+    if (window.businessWebConfig && window.businessWebConfig.profesionales_json) {
+        try {
+            const parsed = typeof window.businessWebConfig.profesionales_json === 'string' ? JSON.parse(window.businessWebConfig.profesionales_json) : window.businessWebConfig.profesionales_json;
+            if (Array.isArray(parsed)) {
+                webProfs = parsed.map(p => typeof p === 'string' ? p : (p.nombre || p.nombre_completo)).filter(n => n && n.trim() !== '');
+            }
+        } catch(e) {}
+    }
+    
+    const combined = [...serviceProfs, ...teamProfessionals, ...webProfs];
+    return [...new Set(combined)];
+}
+
+function fetchServices() {
+    const queryParam = negocioSlug ? `?n=${negocioSlug}` : '';
+    Promise.all([
+        fetch('backend/gestionar_servicios.php' + queryParam).then(res => res.json()).catch(() => []),
+        fetchTeamProfessionals()
+    ]).then(([servData]) => {
+        if (Array.isArray(servData)) {
+            services = servData;
+        } else {
+            services = [];
+        }
+        populateServiceSelect();
+        populateCalendarViewFilter();
+        if (isAdmin) renderServicesList();
+        
+        const profDatalist = document.getElementById('profesionalesList');
+        if (profDatalist) {
+            profDatalist.innerHTML = '';
+            const uniqueProfs = getUniqueProfessionals();
+            uniqueProfs.forEach(p => profDatalist.innerHTML += `<option value="${p}">`);
+        }
+        
+        if (document.getElementById('weeklyCalendarView')) {
+            initWizard();
+        }
+
+        const gl = document.getElementById('globalLoader');
+        if (gl) {
+            gl.classList.add('opacity-0');
+            setTimeout(() => gl.classList.add('hidden'), 150);
+        }
+    });
+}
                 gl.classList.add('opacity-0');
                 setTimeout(() => gl.classList.add('hidden'), 150);
             }
@@ -1070,7 +1100,9 @@ function fetchServices() {
 }
 
 function populateCalendarViewFilter() {
-    const titleContainer = document.querySelector('.lg\\:col-span-7 .flex.justify-between.items-center.mb-8');
+    const titleContainer = document.getElementById('mainCalendarTitle')?.closest('.flex') || 
+                           document.querySelector('#calMonthlyBox .flex.justify-between') ||
+                           document.querySelector('.lg\\:col-span-7 .flex.justify-between');
     if (!titleContainer) return;
 
     let filterContainer = document.getElementById('calendarViewFilterContainer');
@@ -1121,7 +1153,7 @@ function populateCalendarViewFilter() {
     }
 
     const select = document.getElementById('calendarViewFilter');
-    const uniqueProfs = [...new Set(services.map(s => s.profesional).filter(p => p && p.trim() !== ''))];
+    const uniqueProfs = getUniqueProfessionals();
     
     if (uniqueProfs.length === 1 && (!isAdmin || isPreviewMode)) {
         filterContainer.style.display = 'none';
@@ -2520,11 +2552,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 profSelect.innerHTML = '';
                 if (uniqueProfessionals.length === 0) {
-                    profSelect.innerHTML = '<option value="" disabled selected>Sin profesional disponible</option>';
+                    profSelect.innerHTML = '<option value="Cualquiera" selected>Cualquiera (Sin preferencia)</option>';
                 } else if (uniqueProfessionals.length === 1) {
                     profSelect.innerHTML = `<option value="${uniqueProfessionals[0]}" selected>${uniqueProfessionals[0]}</option>`;
                 } else {
-                    profSelect.innerHTML = '<option value="" disabled selected>Elige un profesional</option>';
+                    profSelect.innerHTML = '<option value="Cualquiera" selected>Cualquiera (Sin preferencia)</option>';
                     uniqueProfessionals.forEach(prof => {
                         profSelect.innerHTML += `<option value="${prof}">${prof}</option>`;
                     });

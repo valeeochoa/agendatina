@@ -3,13 +3,22 @@ session_start();
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/conexion.php';
 
-if (!isset($_SESSION['id_negocio'])) {
+$id_negocio = $_SESSION['id_negocio'] ?? null;
+if (!$id_negocio && $_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['n']) && !empty($_GET['n'])) {
+    $slug = trim($_GET['n']);
+    $stmtSlug = $pdo->prepare("SELECT id_negocio FROM configuracion_web WHERE url_logo LIKE :s OR id_negocio = :id LIMIT 1");
+    $stmtSlug->execute(['s' => "%$slug%", 'id' => (int)$slug]);
+    $rowSlug = $stmtSlug->fetch(PDO::FETCH_ASSOC);
+    if ($rowSlug) {
+        $id_negocio = (int)$rowSlug['id_negocio'];
+    }
+}
+
+if (!$id_negocio) {
     http_response_code(403);
     echo json_encode(['success' => false, 'error' => 'Acceso denegado. Sesión no válida.']);
     exit;
 }
-
-$id_negocio = $_SESSION['id_negocio'];
 $method = $_SERVER['REQUEST_METHOD'];
 
 // Asegurar la existencia de la columna permisos en personal_negocio
