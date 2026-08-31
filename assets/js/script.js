@@ -1527,9 +1527,22 @@ function showWelcomeAnimation(plan, isDemo = false) {
     void overlay.offsetWidth; overlay.classList.remove('opacity-0'); overlay.classList.add('opacity-100'); overlay.querySelector('div').classList.remove('scale-90'); overlay.querySelector('div').classList.add('scale-100');
 }
 
+function isUserInDemoMode() {
+    if (sessionStorage.getItem('is_demo_user') === 'true') return true;
+    if (window.currentUserData) {
+        const email = (window.currentUserData.email || '').toLowerCase();
+        if (email.includes('demo')) return true;
+    }
+    if (window.currentBusinessData) {
+        const ruta = (window.currentBusinessData.ruta || '').toLowerCase();
+        if (ruta.includes('demo') || window.currentBusinessData.is_demo) return true;
+    }
+    return false;
+}
+
 function openSupportModal() {
-    if (window.currentUserData && window.currentUserData.email === 'demo@agendatina.site') {
-        showToast('Función no disponible en la versión demo.', 'error');
+    if (isUserInDemoMode()) {
+        if (typeof showToast === 'function') showToast('Esta función no está disponible desde una cuenta DEMO.', 'error');
         return;
     }
     const modal = document.getElementById('supportModal');
@@ -2105,8 +2118,8 @@ window.closeBookingSuccessModal = function() {
 // LÓGICA PARA REPORTE DE ERRORES AL SUPERADMIN
 // ==========================================
 window.openReportErrorModal = function(segment) {
-    if (window.currentUserData && window.currentUserData.email === 'demo@agendatina.site') {
-        showToast('Función no disponible en la versión demo.', 'error');
+    if (isUserInDemoMode()) {
+        if (typeof showToast === 'function') showToast('Esta función no está disponible desde una cuenta DEMO.', 'error');
         return;
     }
     const modal = document.getElementById('reportErrorModal');

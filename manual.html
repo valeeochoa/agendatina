@@ -299,12 +299,12 @@
                             <div class="flex-1">
                                 <h3 class="text-xl font-extrabold text-slate-900 mb-2">2. Mi Agenda Virtual</h3>
                                 <p class="text-slate-700 text-base leading-relaxed mb-3">
-                                    <strong>¿Qué podés hacer?</strong> Es tu centro de recepción de reservas enviadas por clientes.
+                                    <strong>¿Qué podés hacer?</strong> Es tu centro diario de recepción y control de los turnos de tus clientes.
                                 </p>
                                 <ul class="text-sm text-slate-600 space-y-2 font-medium list-disc list-inside">
-                                    <li><strong>Confirmar y Señar:</strong> Aprobar solicitudes y marcar asistencia de clientes (<code>✓ Asistió</code>).</li>
-                                    <li><strong>Buscador Inteligente:</strong> Filtrar por nombre, celular o servicio dentro de Próximos, Vencidos e Historial.</li>
-                                    <li><strong>Papelera & Historial:</strong> Restaurar turnos cancelados o exportar el registro a Excel.</li>
+                                    <li><strong>Filtros por Profesional:</strong> Los administradores pueden ver todos los turnos del negocio o filtrar por colaborador. Los profesionales ven únicamente su propia agenda.</li>
+                                    <li><strong>Segmentación de Pestañas:</strong> Controlá fácilmente tus turnos en Próximos, Pendientes, Vencidos, Historial y Papelera.</li>
+                                    <li><strong>Asistencia & Buscador:</strong> Marcar asistencia de clientes (<code>✓ Asistió</code>), buscar clientes al instante y reportar cualquier falla con el icono del escarabajo.</li>
                                 </ul>
                             </div>
                         </div>
@@ -378,29 +378,136 @@
                 </div>
             </div>
 
-            <!-- SECCIÓN 3: AGENDA VIRTUAL & ASISTENCIA -->
+            <!-- SECCIÓN 3: AGENDA VIRTUAL -->
             <div id="sec-agenda" class="tab-content space-y-8 hidden">
-                <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-6">
+                <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-8">
                     <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-3">
+                            <span class="material-symbols-outlined text-[16px]">menu_book</span> Tu centro de control diario
+                        </div>
                         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3 flex items-center gap-3 font-display">
-                            <span class="material-symbols-outlined text-emerald-600 text-3xl">menu_book</span>
-                            Agenda Virtual y Marcación de Asistencia
+                            Mi Agenda Virtual
                         </h2>
-                        <p class="text-slate-600 text-base">Aprende a recepcionar turnos y gestionar la concurrencia de tus clientes:</p>
+                        <p class="text-slate-600 text-base sm:text-lg leading-relaxed">
+                            La Agenda Virtual es el corazón de tu negocio en Agendatina. Desde acá tenés el control total de lo que pasa en el día a día: podés recepcionar solicitudes, organizar tus atenciones, controlar asistencias y filtrar por profesional de forma súper fácil y cotidiana.
+                        </p>
                     </div>
 
-                    <div class="bg-emerald-50 border border-emerald-200 rounded-3xl p-6 space-y-4">
-                        <h3 class="text-lg font-extrabold text-emerald-900 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-emerald-600 text-[24px]">check_circle</span>
-                            Control de Asistencia de Clientes
+                    <!-- 1. FILTRO DE PROFESIONALES Y PERMISOS -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-3xl p-6 space-y-4">
+                        <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary text-[24px]">badge</span>
+                            Filtro por Profesional y Permisos de Equipo
                         </h3>
-                        <p class="text-sm text-emerald-800 leading-relaxed">
-                            Cada tarjeta de turno incluye el botón interactivo de asistencia:
+                        <p class="text-sm text-slate-700 leading-relaxed">
+                            En la parte superior de la pantalla vas a ver los botones y pestañas para cambiar la vista de los turnos según la persona que atiende:
                         </p>
-                        <ul class="text-xs sm:text-sm text-emerald-950 space-y-2 font-semibold">
-                            <li class="flex items-center gap-2"><span class="bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-1 rounded-lg">✓ Asistió</span> El cliente se presentó al turno. Este valor contabiliza de inmediato en tus estadísticas.</li>
-                            <li class="flex items-center gap-2"><span class="bg-slate-100 text-slate-700 border border-slate-300 px-2.5 py-1 rounded-lg">¿Asistió?</span> Haz clic para confirmar la asistencia en 1 segundo.</li>
-                        </ul>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+                                <span class="font-bold text-slate-900 text-sm flex items-center gap-1.5 mb-2 text-primary">
+                                    <span class="material-symbols-outlined text-[20px]">admin_panel_settings</span> Si sos Administrador / Dueño
+                                </span>
+                                <p class="text-xs text-slate-600 leading-relaxed">
+                                    Tenés el botón <strong>"Todos"</strong> para ver la agenda completa del comercio o podés pulsar sobre cada profesional para ver únicamente los turnos que le corresponden a cada integrante de tu equipo.
+                                </p>
+                            </div>
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+                                <span class="font-bold text-slate-900 text-sm flex items-center gap-1.5 mb-2 text-emerald-600">
+                                    <span class="material-symbols-outlined text-[20px]">person</span> Si sos Profesional / Colaborador
+                                </span>
+                                <p class="text-xs text-slate-600 leading-relaxed">
+                                    Vas a ver <strong>únicamente tus propios turnos asignados</strong>. De esta manera resguardás la privacidad de los clientes de tus compañeros y trabajás enfocado en tu jornada sin distracciones.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. PESTAÑAS DE ORGANIZACIÓN -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-amber-500 text-[24px]">tab</span>
+                            Entendé cada pestaña de tu Agenda
+                        </h3>
+                        <p class="text-sm text-slate-600">Organizamos tus turnos en 5 segmentos bien claros para que nunca se te traspapele una cita:</p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Próximos -->
+                            <div class="p-5 rounded-2xl border border-blue-100 bg-blue-50/60 space-y-2">
+                                <div class="flex items-center gap-2 text-blue-900 font-bold text-sm">
+                                    <span class="material-symbols-outlined text-blue-600 text-[20px]">event</span>
+                                    Próximos (Confirmados)
+                                </div>
+                                <p class="text-xs text-blue-950 leading-relaxed">
+                                    Son los turnos activos agendados que están por ocurrir hoy o en los días siguientes. Podés hacer clic en cada uno para editarlos o enviar recordatorios por WhatsApp.
+                                </p>
+                            </div>
+
+                            <!-- Por Confirmar -->
+                            <div class="p-5 rounded-2xl border border-amber-100 bg-amber-50/60 space-y-2">
+                                <div class="flex items-center gap-2 text-amber-900 font-bold text-sm">
+                                    <span class="material-symbols-outlined text-amber-600 text-[20px]">pending_actions</span>
+                                    Por Confirmar (Pendientes)
+                                </div>
+                                <p class="text-xs text-amber-950 leading-relaxed">
+                                    Son las reservas solicitadas por tus clientes desde tu página web que esperan tu respuesta. Hacé clic en <strong>Confirmar</strong> para pasarlos a tu agenda oficial o rechazalos si no tenés disponibilidad.
+                                </p>
+                            </div>
+
+                            <!-- Vencidos -->
+                            <div class="p-5 rounded-2xl border border-slate-200 bg-slate-100/80 space-y-2">
+                                <div class="flex items-center gap-2 text-slate-800 font-bold text-sm">
+                                    <span class="material-symbols-outlined text-slate-600 text-[20px]">history_toggle_off</span>
+                                    Vencidos
+                                </div>
+                                <p class="text-xs text-slate-700 leading-relaxed">
+                                    Aquellas solicitudes pendientes cuya fecha u hora ya pasaron sin ser confirmadas. El sistema las mueve automáticamente aquí para no ensuciar la vista activa del día.
+                                </p>
+                            </div>
+
+                            <!-- Historial & Asistencia -->
+                            <div class="p-5 rounded-2xl border border-emerald-100 bg-emerald-50/60 space-y-2">
+                                <div class="flex items-center gap-2 text-emerald-900 font-bold text-sm">
+                                    <span class="material-symbols-outlined text-emerald-600 text-[20px]">history</span>
+                                    Historial & Control de Asistencia
+                                </div>
+                                <p class="text-xs text-emerald-950 leading-relaxed">
+                                    El archivo de todas tus atenciones pasadas. Cada tarjeta incluye el botón <strong>"¿Asistió?" / "✓ Asistió"</strong>. Marcar que el cliente concurrió suma de inmediato esa venta a tus Estadísticas.
+                                </p>
+                            </div>
+
+                            <!-- Papelera -->
+                            <div class="p-5 rounded-2xl border border-red-100 bg-red-50/40 space-y-2 md:col-span-2">
+                                <div class="flex items-center gap-2 text-red-900 font-bold text-sm">
+                                    <span class="material-symbols-outlined text-red-500 text-[20px]">delete</span>
+                                    Papelera de Reciclaje
+                                </div>
+                                <p class="text-xs text-red-950 leading-relaxed">
+                                    Si cancelás o borrás un turno por equivocación, ¡quedate tranquilo! Va a parar a la Papelera por el tiempo configurado en tus ajustes para que puedas recuperarlo en cualquier momento.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. BUSCADOR INTELIGENTE -->
+                    <div class="bg-indigo-50/60 border border-indigo-100 rounded-3xl p-6 space-y-2">
+                        <h3 class="font-bold text-indigo-900 text-base flex items-center gap-2">
+                            <span class="material-symbols-outlined text-indigo-600 text-[22px]">search</span>
+                            Buscador Rápido de Clientes
+                        </h3>
+                        <p class="text-xs sm:text-sm text-indigo-950 leading-relaxed">
+                            En la casilla de búsqueda podés escribir el <strong>nombre del cliente, su teléfono o el servicio contratado</strong>. El sistema filtra al instante todos los registros para que no pierdas tiempo buscando a mano.
+                        </p>
+                    </div>
+
+                    <!-- 4. REPORTAR ERRORES -->
+                    <div class="bg-red-50 border border-red-200 rounded-3xl p-6 space-y-3">
+                        <h3 class="font-bold text-red-900 text-base flex items-center gap-2">
+                            <span class="material-symbols-outlined text-red-500 text-[22px]">bug_report</span>
+                            ¿Encontraste un error? ¡Reportá el problema con el escarabajo!
+                        </h3>
+                        <p class="text-xs sm:text-sm text-red-950 leading-relaxed">
+                            Si notás que algo no funciona como debería o tenés algún problema usando la agenda, vas a ver un botón rojo con el icono de un escarabajo 🐛 en la barra superior <strong>(Reportar error)</strong>. Al tocarlo podés explicarnos lo que pasó para que el equipo de soporte técnico de Agendatina lo revise y lo solucione enseguida.
+                        </p>
                     </div>
                 </div>
             </div>

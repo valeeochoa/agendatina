@@ -25,6 +25,11 @@ if (isset($_GET['action']) && $_GET['action'] === 'obtener_hilo' && !empty($_GET
     exit;
 }
 
+if (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) {
+    echo json_encode(['success' => false, 'error' => 'Esta función no está disponible desde una cuenta DEMO.']);
+    exit;
+}
+
 if (empty($mensaje)) {
     echo json_encode(['success' => false, 'error' => 'El mensaje está vacío.']);
     exit;
