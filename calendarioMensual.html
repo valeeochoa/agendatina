@@ -78,8 +78,8 @@
 
   <main class="max-w-5xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
     <div class="lg:col-span-7">
-      <div
-        class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-6 sm:p-8 shadow-sm">
+      <div id="calMonthlyBox"
+        class="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2.5rem] p-6 sm:p-8 shadow-sm transition-all duration-300">
         <div class="flex justify-between items-center mb-8">
           <div class="flex-1 mr-4">
             <h1 id="mainCalendarTitle"
@@ -124,7 +124,7 @@
             Cancelar selección
           </button>
         </div>
-        <div class="mb-4 bg-slate-50/60 dark:bg-slate-900/40 p-4 sm:p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-inner">
+        <div id="calMonthInnerBox" class="mb-4 bg-slate-50/60 dark:bg-slate-900/40 p-4 sm:p-6 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-inner transition-all duration-300">
           <div class="flex items-center justify-between mb-5 px-1">
             <button id="prevMonth" type="button" onclick="window.cal_changeMonth(-1)" class="w-11 h-11 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold transition-all shadow-xs hover:shadow-md border border-slate-200/80 dark:border-slate-700 cursor-pointer" title="Mes Anterior">
               <span class="material-symbols-outlined text-[22px]">chevron_left</span>

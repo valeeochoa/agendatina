@@ -3372,7 +3372,24 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors) {
     }
     if (extraColors.color_cards) {
         extraCss += `
-            .card-custom { background-color: ${extraColors.color_cards} !important; }
+            .card-custom,
+            #calMonthlyBox,
+            #clientBookingView,
+            #adminDayView,
+            #emptyState { background-color: ${extraColors.color_cards} !important; }
+        `;
+    } else {
+        extraCss += `
+            #calMonthlyBox,
+            #clientBookingView,
+            #adminDayView,
+            #emptyState {
+                background-color: color-mix(in srgb, ${pColor} 4%, color-mix(in srgb, ${sColor} 3%, #ffffff)) !important;
+            }
+            #calMonthInnerBox {
+                background-color: color-mix(in srgb, ${sColor} 9%, color-mix(in srgb, ${pColor} 4%, #ffffff)) !important;
+                border-color: color-mix(in srgb, ${sColor} 25%, #e2e8f0) !important;
+            }
         `;
     }
     if (extraColors.color_hover) {

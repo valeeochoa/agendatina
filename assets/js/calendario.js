@@ -190,6 +190,9 @@ function cal_fetchBookedTimes() {
 }
 
 window.cal_changeMonth = function(delta) {
+    // Para evitar la omisión/salto de meses en días 29, 30 o 31 (ej. 31 de agosto + 1 mes -> 1 de octubre):
+    // Forzamos el día a 1 antes de modificar el mes.
+    cal_currentDate.setDate(1);
     cal_currentDate.setMonth(cal_currentDate.getMonth() + delta);
     cal_renderCalendar();
 };
@@ -2541,10 +2544,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const prevMonthBtn = document.getElementById('prevMonth');
-        if (prevMonthBtn) prevMonthBtn.addEventListener('click', () => { cal_currentDate.setMonth(cal_currentDate.getMonth() - 1); cal_renderCalendar(); });
+        if (prevMonthBtn) prevMonthBtn.addEventListener('click', () => { window.cal_changeMonth(-1); });
         
         const nextMonthBtn = document.getElementById('nextMonth');
-        if (nextMonthBtn) nextMonthBtn.addEventListener('click', () => { cal_currentDate.setMonth(cal_currentDate.getMonth() + 1); cal_renderCalendar(); });
+        if (nextMonthBtn) nextMonthBtn.addEventListener('click', () => { window.cal_changeMonth(1); });
 
         bookingForm.addEventListener('submit', function(e) {
             e.preventDefault();
