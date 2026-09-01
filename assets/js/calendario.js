@@ -1827,13 +1827,13 @@ function renderAdminWeeklyGrid() {
     for (let i = 0; i < 7; i++) {
         const date = new Date(weekStartDate); date.setDate(weekStartDate.getDate() + i);
         const dateString = toYYYYMMDD(date); const isPast = date < today;
-        const col = document.createElement('div'); col.className = 'flex-1 min-w-[120px] shrink-0 flex flex-col gap-2';
+        const col = document.createElement('div'); col.className = 'w-full min-w-0 flex flex-col gap-1.5';
         const dayName = new Intl.DateTimeFormat('es-ES', { weekday: 'short' }).format(date).toUpperCase();
         const isToday = date.getTime() === today.getTime();
         
         const colHeader = document.createElement('div');
-        colHeader.className = `text-center p-3 rounded-xl border mb-2 cursor-pointer transition-colors ${isMultiSelectMode && selectedDates.includes(dateString) ? 'bg-primary/10 border-primary text-primary' : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700'}`;
-        colHeader.innerHTML = `<div class="text-xs font-bold ${isToday && !(isMultiSelectMode && selectedDates.includes(dateString)) ? 'text-primary' : (isMultiSelectMode && selectedDates.includes(dateString) ? 'text-primary' : 'text-slate-400')}">${dayName}</div><div class="text-xl font-extrabold ${isToday && !(isMultiSelectMode && selectedDates.includes(dateString)) ? 'text-primary' : (isMultiSelectMode && selectedDates.includes(dateString) ? 'text-primary' : 'text-slate-800 dark:text-slate-100')}">${date.getDate()}</div>`;
+        colHeader.className = `text-center py-1.5 px-0.5 sm:py-2.5 sm:px-1 rounded-xl border mb-1 cursor-pointer transition-colors ${isMultiSelectMode && selectedDates.includes(dateString) ? 'bg-primary/10 border-primary text-primary' : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700'}`;
+        colHeader.innerHTML = `<div class="text-[9px] sm:text-xs font-bold ${isToday && !(isMultiSelectMode && selectedDates.includes(dateString)) ? 'text-primary' : (isMultiSelectMode && selectedDates.includes(dateString) ? 'text-primary' : 'text-slate-400')}">${dayName}</div><div class="text-sm sm:text-lg font-black ${isToday && !(isMultiSelectMode && selectedDates.includes(dateString)) ? 'text-primary' : (isMultiSelectMode && selectedDates.includes(dateString) ? 'text-primary' : 'text-slate-800 dark:text-slate-100')}">${date.getDate()}</div>`;
         colHeader.onclick = () => handleDayClick(new Date(date.getTime() + 12*60*60*1000));
         
         if (effectiveIsAdmin && !isPast && window.isWorkingDay(date)) {
@@ -1857,7 +1857,7 @@ function renderAdminWeeklyGrid() {
         
         col.appendChild(colHeader);
         
-        const slotsContainer = document.createElement('div'); slotsContainer.className = 'flex flex-col gap-2 max-h-[400px] overflow-y-auto pr-1 custom-scrollbar';
+        const slotsContainer = document.createElement('div'); slotsContainer.className = 'flex flex-col gap-1.5 max-h-[440px] overflow-y-auto pr-0.5 custom-scrollbar';
         
         const horasOcupadas = [...(cal_bookedSlots[dateString] || []), ...window.getBreakTimes()];
         const isGeneralBlock = horasOcupadas.includes('blocked_day');
@@ -1865,7 +1865,7 @@ function renderAdminWeeklyGrid() {
         if (!adminWeeklySelectedProf || adminWeeklySelectedProf === 'columnas' || adminWeeklySelectedProf === 'Cualquiera (Sin preferencia)') isProfBlock = false;
         
         if (isPast || !window.isWorkingDay(date) || isGeneralBlock || isProfBlock) {
-            slotsContainer.innerHTML = `<div class="text-center p-4 text-xs font-bold text-slate-400 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">No disponible</div>`;
+            slotsContainer.innerHTML = `<div class="text-center py-3 px-1 text-[10px] sm:text-xs font-bold text-slate-400 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">No disponible</div>`;
         } else {
             cal_availableTimes.forEach((time, idx) => {
                 if (window.isTimeInBreak(time)) return;
@@ -1882,7 +1882,7 @@ function renderAdminWeeklyGrid() {
                 if (!isBooked && isToday && slotDate.getTime() <= new Date().getTime()) isBooked = true;
                 
                 const slot = document.createElement('div');
-                slot.className = `p-2.5 text-center text-xs font-extrabold rounded-xl border transition-all ${isBooked ? 'bg-slate-100/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 hover:border-emerald-500 cursor-pointer shadow-xs hover:shadow-md'}`;
+                slot.className = `py-1.5 px-0.5 sm:py-2 sm:px-1 text-center text-[10px] sm:text-xs font-black rounded-lg border transition-all ${isBooked ? 'bg-slate-100/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 hover:border-emerald-500 cursor-pointer shadow-xs hover:shadow-md'}`;
                 
                 if (!isBooked) {
                     slot.textContent = time;
