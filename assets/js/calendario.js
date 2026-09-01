@@ -2037,7 +2037,7 @@ function renderWeeklyCalendar() {
             borderClass = 'border-rose-400 dark:border-rose-500 ring-2 ring-rose-200 dark:ring-rose-900/50';
         }
 
-        dayDiv.className = `flex flex-col items-center justify-center py-3 px-1 sm:py-4 sm:px-2 rounded-2xl border-2 ${borderClass} ${bgClass} ${textClass} w-full min-w-0 transition-all duration-300 relative`;
+        dayDiv.className = `flex flex-col items-center justify-center py-2 px-0.5 sm:py-3.5 sm:px-2 rounded-2xl border-2 ${borderClass} ${bgClass} ${textClass} w-full min-w-0 transition-all duration-300 relative`;
         
         if (visuallyDisabled) {
             dayDiv.classList.add('opacity-50', 'cursor-not-allowed');
@@ -2047,10 +2047,10 @@ function renderWeeklyCalendar() {
             dayDiv.addEventListener('click', () => selectWeeklyDate(currentIterDate));
         }
         
-        const todayBadge = isToday ? '<span class="glow-badge-today absolute -top-2.5 px-2 py-0.5 z-10">HOY</span>' : '';
-        const activeDot = (!visuallyDisabled && !isSelected) ? '<span class="w-2 h-2 rounded-full bg-emerald-500 mb-1 animate-pulse shadow-xs"></span>' : (isSelected ? '<span class="w-2 h-2 rounded-full bg-white/90 mb-1 shadow-xs"></span>' : '<span class="w-2 h-2 rounded-full bg-transparent mb-1"></span>');
+        const todayBadge = isToday ? '<span class="glow-badge-today absolute -top-2 px-1.5 py-0.5 text-[8px] sm:text-[9px] z-10">HOY</span>' : '';
+        const activeDot = (!visuallyDisabled && !isSelected) ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 mb-0.5 animate-pulse shadow-xs"></span>' : (isSelected ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/90 mb-0.5 shadow-xs"></span>' : '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-transparent mb-0.5"></span>');
         
-        dayDiv.innerHTML = `${todayBadge}${activeDot}<span class="text-[10px] font-extrabold tracking-widest uppercase mb-0.5 ${isSelected ? 'text-white/90' : 'text-slate-400 dark:text-slate-400'}">${dayName}</span><span class="text-2xl font-black ${isSelected ? 'text-white' : 'text-slate-900 dark:text-slate-100'}">${date.getDate()}</span>`;
+        dayDiv.innerHTML = `${todayBadge}${activeDot}<span class="text-[9px] sm:text-[11px] font-black tracking-wider uppercase mb-0.5 ${isSelected ? 'text-white/90' : 'text-slate-400 dark:text-slate-400'}">${dayName}</span><span class="text-lg sm:text-2xl font-black ${isSelected ? 'text-white' : 'text-slate-900 dark:text-slate-100'}">${date.getDate()}</span>`;
         fragment.appendChild(dayDiv);
     }
     calendarDays.appendChild(fragment);
@@ -2095,16 +2095,10 @@ function setupWeeklyScrollArrows() {
 }
 
 function updateWeeklyScrollArrows() {
-    const calendarDays = document.getElementById('weeklyCalendarDays');
     const btnLeft = document.getElementById('scrollWeeklyLeft');
     const btnRight = document.getElementById('scrollWeeklyRight');
-    if (!calendarDays || !btnLeft || !btnRight) return;
-
-    // Mostrar flecha izquierda si hemos scrolleado más de 5px
-    btnLeft.style.display = calendarDays.scrollLeft > 5 ? 'flex' : 'none';
-    
-    // Mostrar flecha derecha si no hemos llegado al límite derecho (con 5px de tolerancia)
-    btnRight.style.display = calendarDays.scrollLeft < (calendarDays.scrollWidth - calendarDays.clientWidth - 5) ? 'flex' : 'none';
+    if (btnLeft) btnLeft.style.display = 'none';
+    if (btnRight) btnRight.style.display = 'none';
 }
 
 function checkDayHasAvailableSlots(date) {
