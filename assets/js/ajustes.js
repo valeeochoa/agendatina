@@ -155,6 +155,11 @@ window.applyCalendarConfigToForm = function(data) {
         if (chkDegrade) chkDegrade.checked = (data.usar_fondo_degrade == 1 || data.usar_fondo_degrade === '1' || data.usar_fondo_degrade === true);
     }
 
+    if (data.primer_dia_semana !== undefined) {
+        const selectPrimerDia = form.querySelector('#configPrimerDiaSemana');
+        if (selectPrimerDia) selectPrimerDia.value = String(data.primer_dia_semana);
+    }
+
     if (data.hora_apertura) form.querySelector('#configHoraApertura').value = data.hora_apertura;
     if (data.hora_cierre) form.querySelector('#configHoraCierre').value = data.hora_cierre;
     if (data.hora_descanso_inicio !== undefined) form.querySelector('#configHoraDescansoInicio').value = data.hora_descanso_inicio || '';
@@ -602,7 +607,8 @@ function handleCalendarConfigSubmit(e) {
         usar_fondo_degrade: form.querySelector('#configFondoDegrade')?.checked ? 1 : 0,
         limite_eliminacion_dias: form.querySelector('#configLimiteEliminacion')?.value || 0,
         horarios_detallados_json: form.querySelector('#horariosDetalladosJsonInput')?.value || '{}',
-        metodos_pago: metodosStr
+        metodos_pago: metodosStr,
+        primer_dia_semana: form.querySelector('#configPrimerDiaSemana')?.value ?? 1
     };
 
     fetch('backend/guardar_web.php', {

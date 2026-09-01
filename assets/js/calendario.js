@@ -24,9 +24,28 @@ let cal_selectedTime = null;
 let cal_availableTimes = [];
 let cal_bookedSlots = {};
 
+window.getStartOfWeek = function(d, startDay) {
+    if (startDay === undefined || startDay === null) {
+        const confVal = window.businessWebConfig?.primer_dia_semana;
+        startDay = (confVal !== undefined && confVal !== null) ? parseInt(confVal) : 1;
+    } else {
+        startDay = parseInt(startDay);
+    }
+    const date = new Date(d);
+    date.setHours(0, 0, 0, 0);
+    const day = date.getDay();
+    let diff;
+    if (startDay === 0) {
+        diff = -day;
+    } else {
+        diff = (day === 0 ? -6 : 1 - day);
+    }
+    date.setDate(date.getDate() + diff);
+    return date;
+};
+
 // Variables exclusivas calendario semanal
-let weekStartDate = new Date();
-weekStartDate.setHours(0,0,0,0);
+let weekStartDate = window.getStartOfWeek(new Date());
 let weeklySelectedService = null;
 let weeklySelectedProf = null;
 let cal2_selectedDate = null;
@@ -1777,6 +1796,8 @@ function renderAdminWeeklyGrid() {
     if (!grid) return;
     grid.innerHTML = '';
     
+    weekStartDate = window.getStartOfWeek(weekStartDate);
+    
     const effectiveIsAdmin = isAdmin && !isPreviewMode;
     const monthYearEl = document.getElementById('adminWeekMonthYear');
     if (monthYearEl) monthYearEl.textContent = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(weekStartDate);
@@ -1942,6 +1963,7 @@ function resetWizard() {
     weeklySelectedProf = null;
     cal2_selectedDate = null;
     cal2_selectedTime = null;
+    weekStartDate = window.getStartOfWeek(new Date());
     
     const mainContent = document.getElementById('mainContent');
     if (mainContent) mainContent.classList.add('hidden');
@@ -1983,6 +2005,8 @@ function cal_fetchBookedTimesWeekly() {
 function renderWeeklyCalendar() {
     const monthYearEl = document.getElementById('weekMonthYear');
     if (!monthYearEl) return;
+
+    weekStartDate = window.getStartOfWeek(weekStartDate);
 
     monthYearEl.textContent = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(weekStartDate);
     
@@ -2288,6 +2312,13 @@ function toggleMultiSelectMode() {
     if (btnMultiSelect) {
         btnMultiSelect.classList.toggle('bg-primary', isMultiSelectMode);
         btnMultiSelect.classList.toggle('text-white', isMultiSelectMode);
+        if (isMultiSelectMode) {
+            btnMultiSelect.innerHTML = '<span class="material-symbols-outlined text-[18px]">close</span> <span class="hidden sm:inline">Cancelar Bloqueo</span>';
+            btnMultiSelect.title = "Haz clic para salir del modo de bloqueo de varios días";
+        } else {
+            btnMultiSelect.innerHTML = '<span class="material-symbols-outlined text-[18px]">block</span> <span class="hidden sm:inline">Bloquear Varios Días</span>';
+            btnMultiSelect.title = "Activa el modo para seleccionar y bloquear varios días enteros de tu agenda a la vez";
+        }
     }
     
     if (typeof updateMultiSelectUI === 'function') {

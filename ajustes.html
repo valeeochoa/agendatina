@@ -87,6 +87,18 @@
                     </label>
                 </div>
 
+                <!-- Primer día de la semana -->
+                <div class="mt-5 pt-5 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                    <div>
+                        <label class="block text-sm font-extrabold text-slate-800">Primer día de la semana</label>
+                        <span class="block text-xs text-slate-500">Define con qué día inicia la vista del calendario semanal.</span>
+                    </div>
+                    <select id="configPrimerDiaSemana" name="primer_dia_semana" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all font-bold text-slate-800">
+                        <option value="1" selected>📅 Lunes (Predeterminado)</option>
+                        <option value="0">🗓️ Domingo</option>
+                    </select>
+                </div>
+
                 <!-- Fondo Degradé Opcional -->
                 <div class="mt-5 pt-5 border-t border-slate-100">
                     <label class="flex items-center justify-between p-4 bg-slate-50 hover:bg-purple-50/50 border border-slate-200 hover:border-purple-300 rounded-2xl cursor-pointer transition-all">
