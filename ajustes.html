@@ -203,30 +203,82 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4" id="metodosPagoContainer">
+                <div class="space-y-4" id="metodosPagoContainer">
+                    <!-- 1. Efectivo -->
                     <label class="flex items-center gap-3 p-4 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-2xl cursor-pointer transition-all">
-                        <input type="checkbox" name="metodos_pago_arr" value="efectivo" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-500 border-slate-300 shrink-0" checked>
+                        <input type="checkbox" name="metodos_pago_arr" value="efectivo" onchange="toggleMetodosPagoDetails()" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-500 border-slate-300 shrink-0" checked>
                         <div>
                             <span class="block text-sm font-extrabold text-slate-800">💵 Efectivo en Local</span>
-                            <span class="block text-xs text-slate-500">El cliente abonará en persona.</span>
+                            <span class="block text-xs text-slate-500">Cobro presencial al finalizar la atención.</span>
                         </div>
                     </label>
 
-                    <label class="flex items-center gap-3 p-4 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-2xl cursor-pointer transition-all">
-                        <input type="checkbox" name="metodos_pago_arr" value="transferencia" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-500 border-slate-300 shrink-0" checked>
-                        <div>
-                            <span class="block text-sm font-extrabold text-slate-800">🏦 Transferencia Bancaria</span>
-                            <span class="block text-xs text-slate-500">Alias / CBU para transferir.</span>
+                    <!-- 2. Transferencia Bancaria -->
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl transition-all">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" id="chkTransferencia" name="metodos_pago_arr" value="transferencia" onchange="toggleMetodosPagoDetails()" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-500 border-slate-300 shrink-0">
+                            <div>
+                                <span class="block text-sm font-extrabold text-slate-800">🏦 Transferencia Bancaria</span>
+                                <span class="block text-xs text-slate-500">Permite a tus clientes transferirte mediante CBU / CVU / Alias.</span>
+                            </div>
+                        </label>
+                        
+                        <!-- Detalles de Transferencia -->
+                        <div id="divDetallesTransferencia" class="hidden mt-3 pt-3 border-t border-slate-200/80">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Alias, CBU o Datos Bancarios para recibir transferencias:</label>
+                            <input type="text" id="configDatosTransferencia" name="datos_transferencia" placeholder="Ej: MI.NEGOCIO.MP / CBU 000000000000" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
+                            
+                            <!-- Advertencia Modo Demo -->
+                            <p id="demoAliasWarning" class="hidden text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200/80 rounded-xl p-2.5 mt-2.5 items-center gap-2">
+                                <span class="material-symbols-outlined text-[18px] text-amber-600">lock</span>
+                                <span>🔒 En el <strong>Modo Demo</strong> no está permitido modificar ni ingresar datos de transferencia reales.</span>
+                            </p>
                         </div>
-                    </label>
+                    </div>
 
-                    <label class="flex items-center gap-3 p-4 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-2xl cursor-pointer transition-all">
-                        <input type="checkbox" name="metodos_pago_arr" value="mercadopago" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-500 border-slate-300 shrink-0">
-                        <div>
-                            <span class="block text-sm font-extrabold text-slate-800">💳 Mercado Pago / Seña</span>
-                            <span class="block text-xs text-slate-500">Pago online de seña o total.</span>
+                    <!-- 3. Mercado Pago / Seña -->
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl transition-all">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" id="chkMercadoPago" name="metodos_pago_arr" value="mercadopago" onchange="toggleMetodosPagoDetails()" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-500 border-slate-300 shrink-0">
+                            <div>
+                                <span class="block text-sm font-extrabold text-slate-800">💳 Mercado Pago / Seña</span>
+                                <span class="block text-xs text-slate-500">Solicita un pago o seña al reservar.</span>
+                            </div>
+                        </label>
+                        
+                        <!-- Detalles de Seña -->
+                        <div id="divDetallesMercadoPago" class="hidden mt-3 pt-3 border-t border-slate-200/80 space-y-3">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700">Porcentaje de Seña Requerido (%):</label>
+                                    <span class="block text-[11px] text-slate-500">Indica el % sobre el total del servicio que el cliente debe pagar para reservar.</span>
+                                </div>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <input type="number" id="configPorcentajeSena" name="porcentaje_sena" min="1" max="100" value="100" oninput="updateSenaHelpText()" onchange="updateSenaHelpText()" class="w-24 bg-white border border-slate-200 rounded-xl px-3 py-2 text-center text-sm font-black text-slate-900 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
+                                    <span class="font-extrabold text-slate-700 text-sm">%</span>
+                                </div>
+                            </div>
+                            
+                            <div id="senaHelpBadge" class="text-xs p-3 rounded-xl border leading-relaxed font-bold transition-all bg-emerald-50 text-emerald-800 border-emerald-200 flex items-start gap-2">
+                                <span class="material-symbols-outlined text-[18px] shrink-0 mt-0.5">info</span>
+                                <span id="senaHelpText">Si colocas el 100%, significa que no pide seña parcial sino que abonen el total del producto/servicio vía Mercado Pago.</span>
+                            </div>
                         </div>
-                    </label>
+                    </div>
+
+                    <!-- 4. Integración Directa con Mercado Pago (PRÓXIMAMENTE) -->
+                    <div class="group relative p-4 bg-slate-100/70 border border-slate-200/80 rounded-2xl opacity-75 cursor-not-allowed transition-all hover:bg-slate-100 hover:border-slate-300" title="PRÓXIMAMENTE: Integración directa con Checkout API de Mercado Pago">
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <input type="checkbox" disabled class="w-5 h-5 text-slate-400 rounded border-slate-300 cursor-not-allowed shrink-0">
+                                <div>
+                                    <span class="block text-sm font-bold text-slate-600 group-hover:text-slate-800 transition-colors">⚡ Integración Automática Mercado Pago (Checkout API)</span>
+                                    <span class="block text-xs text-slate-400">Cobro automático integrado directamente con tu cuenta de MP.</span>
+                                </div>
+                            </div>
+                            <span class="bg-slate-200/90 text-slate-700 font-black text-[10px] tracking-wider uppercase px-2.5 py-1 rounded-full border border-slate-300/80 shadow-2xs group-hover:bg-purple-600 group-hover:text-white group-hover:border-purple-600 transition-all shrink-0">PRÓXIMAMENTE</span>
+                        </div>
+                    </div>
                 </div>
                 <input type="hidden" id="configMetodosPago" name="metodos_pago" value="efectivo,transferencia">
             </div>
@@ -402,7 +454,7 @@
         </div>
     </div>
 
-    <script src="assets/js/script.js?v=1.4.0" defer></script>
-    <script src="assets/js/ajustes.js?v=1.4.0" defer></script>
+    <script src="assets/js/script.js?v=1.4.5" defer></script>
+    <script src="assets/js/ajustes.js?v=1.4.5" defer></script>
 </body>
 </html>

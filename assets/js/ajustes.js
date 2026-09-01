@@ -10,12 +10,26 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (data && data.success && data.business) {
                 const isDemo = (data.business.is_demo === true) || (data.user && data.user.email === 'demo@agendatina.site') || (data.business.ruta === 'demo');
+                window.isDemoAccount = isDemo;
                 const badge = document.getElementById('adminSessionBadge');
                 const badgeText = document.getElementById('adminSessionBadgeText');
                 if (badge && isDemo) {
                     badge.classList.remove('hidden');
                     badge.classList.add('flex');
                     if (badgeText) badgeText.textContent = 'Modo Demo';
+                }
+                if (isDemo) {
+                    const inpTrans = document.getElementById('configDatosTransferencia');
+                    const demoWarn = document.getElementById('demoAliasWarning');
+                    if (inpTrans) {
+                        inpTrans.disabled = true;
+                        inpTrans.title = "🔒 En Modo Demo no se permite modificar ni ingresar datos de transferencia bancaria.";
+                        inpTrans.classList.add('bg-slate-100', 'cursor-not-allowed', 'opacity-70');
+                    }
+                    if (demoWarn) {
+                        demoWarn.classList.remove('hidden');
+                        demoWarn.classList.add('flex');
+                    }
                 }
             }
         }).catch(() => {
@@ -212,11 +226,59 @@ window.applyCalendarConfigToForm = function(data) {
         if (selectElim) selectElim.value = String(data.limite_eliminacion_dias);
     }
 
+    if (data.datos_transferencia !== undefined) {
+        const inpDatos = form.querySelector('#configDatosTransferencia');
+        if (inpDatos) inpDatos.value = data.datos_transferencia || '';
+    }
+
+    if (data.porcentaje_sena !== undefined) {
+        const inpSena = form.querySelector('#configPorcentajeSena');
+        if (inpSena) {
+            inpSena.value = data.porcentaje_sena || 100;
+            window.updateSenaHelpText();
+        }
+    }
+
     if (data.metodos_pago !== undefined) {
         const metodosArr = (typeof data.metodos_pago === 'string') ? data.metodos_pago.split(',') : (data.metodos_pago || []);
         form.querySelectorAll('input[name="metodos_pago_arr"]').forEach(cb => {
             cb.checked = metodosArr.includes(cb.value);
         });
+        window.toggleMetodosPagoDetails();
+    }
+};
+
+window.toggleMetodosPagoDetails = function() {
+    const chkTrans = document.getElementById('chkTransferencia');
+    const divTrans = document.getElementById('divDetallesTransferencia');
+    if (chkTrans && divTrans) {
+        divTrans.classList.toggle('hidden', !chkTrans.checked);
+    }
+
+    const chkMp = document.getElementById('chkMercadoPago');
+    const divMp = document.getElementById('divDetallesMercadoPago');
+    if (chkMp && divMp) {
+        divMp.classList.toggle('hidden', !chkMp.checked);
+    }
+};
+
+window.updateSenaHelpText = function() {
+    const inpSena = document.getElementById('configPorcentajeSena');
+    const helpText = document.getElementById('senaHelpText');
+    const helpBadge = document.getElementById('senaHelpBadge');
+    if (!inpSena || !helpText) return;
+
+    let val = parseInt(inpSena.value) || 100;
+    if (val < 1) val = 1;
+    if (val > 100) val = 100;
+    inpSena.value = val;
+
+    if (val === 100) {
+        if (helpBadge) helpBadge.className = 'text-xs p-3 rounded-xl border leading-relaxed font-bold transition-all bg-emerald-50 text-emerald-800 border-emerald-200/80 flex items-start gap-2';
+        helpText.innerHTML = '⚡ <strong>Seña del 100%:</strong> Significa que no se exige sólo una reserva parcial, sino que abonen el total del producto o servicio vía Mercado Pago para confirmar el turno.';
+    } else {
+        if (helpBadge) helpBadge.className = 'text-xs p-3 rounded-xl border leading-relaxed font-bold transition-all bg-purple-50 text-purple-900 border-purple-200/80 flex items-start gap-2';
+        helpText.innerHTML = `⌛ <strong>Seña del ${val}%:</strong> El cliente abonará un <strong>${val}%</strong> vía Mercado Pago como seña para reservar el turno, y el saldo restante lo abonará en el local.`;
     }
 };
 
@@ -591,6 +653,11 @@ function handleCalendarConfigSubmit(e) {
     const metodosStr = metodosArr.join(',');
     if (form.querySelector('#configMetodosPago')) form.querySelector('#configMetodosPago').value = metodosStr;
 
+    let datosTrans = form.querySelector('#configDatosTransferencia')?.value || '';
+    if (window.isDemoAccount) {
+        datosTrans = window.businessWebConfig?.datos_transferencia || '';
+    }
+
     const payload = {
         color_primario: form.querySelector('#configColorPrimario')?.value,
         color_secundario: form.querySelector('#configColorSecundario')?.value,
@@ -608,6 +675,8 @@ function handleCalendarConfigSubmit(e) {
         limite_eliminacion_dias: form.querySelector('#configLimiteEliminacion')?.value || 0,
         horarios_detallados_json: form.querySelector('#horariosDetalladosJsonInput')?.value || '{}',
         metodos_pago: metodosStr,
+        datos_transferencia: datosTrans,
+        porcentaje_sena: form.querySelector('#configPorcentajeSena')?.value || 100,
         primer_dia_semana: form.querySelector('#configPrimerDiaSemana')?.value ?? 1
     };
 

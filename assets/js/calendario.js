@@ -1114,9 +1114,9 @@ function fetchServices() {
 }
 
 function populateCalendarViewFilter() {
-    const titleContainer = document.getElementById('mainCalendarTitle')?.closest('.flex') || 
-                           document.querySelector('#calMonthlyBox .flex.justify-between') ||
-                           document.querySelector('.lg\\:col-span-7 .flex.justify-between');
+    const titleContainer = document.getElementById('mainCalendarHeader') || 
+                           document.getElementById('mainCalendarTitle')?.closest('.flex') || 
+                           document.querySelector('#calMonthlyBox');
     if (!titleContainer) return;
 
     let filterContainer = document.getElementById('calendarViewFilterContainer');
