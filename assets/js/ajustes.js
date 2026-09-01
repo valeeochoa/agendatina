@@ -127,6 +127,94 @@ window.updateIntervalHelpText = function() {
     }
 };
 
+window.updateConfirmacionHelpText = function() {
+    const select = document.getElementById('configConfirmacionAutomatica');
+    const helpText = document.getElementById('confirmacionAutomaticaHelpText');
+    if (!select || !helpText) return;
+
+    const val = String(select.value);
+    if (val === 'si' || val === '1' || val === 'true') {
+        helpText.innerHTML = `<strong>⚡ Aprobación Automática:</strong> Cuando el cliente solicita la reserva desde tu web pública, el turno queda <span class="text-emerald-700 font-bold">Confirmado inmediatamente</span> en tu agenda sin requerir aprobación manual.`;
+    } else {
+        helpText.innerHTML = `<strong>⌛ Aprobación Manual desde la Web:</strong> La solicitud del cliente ingresa en estado <span class="text-amber-700 font-bold">Pendiente</span>. Recibirás la notificación en tu panel para que hagas clic en <strong>Aprobar</strong> o <strong>Rechazar</strong>.`;
+    }
+};
+
+window.applyCalendarConfigToForm = function(data) {
+    if (!data) return;
+    const form = document.getElementById('calendarConfigForm');
+    if (!form) return;
+
+    if (data.tipo_calendario) {
+        const rad = form.querySelector(`input[name="tipo_calendario"][value="${data.tipo_calendario}"]`);
+        if (rad) rad.checked = true;
+    }
+
+    if (data.usar_fondo_degrade !== undefined) {
+        const chkDegrade = form.querySelector('#configFondoDegrade');
+        if (chkDegrade) chkDegrade.checked = (data.usar_fondo_degrade == 1 || data.usar_fondo_degrade === '1' || data.usar_fondo_degrade === true);
+    }
+
+    if (data.hora_apertura) form.querySelector('#configHoraApertura').value = data.hora_apertura;
+    if (data.hora_cierre) form.querySelector('#configHoraCierre').value = data.hora_cierre;
+    if (data.hora_descanso_inicio !== undefined) form.querySelector('#configHoraDescansoInicio').value = data.hora_descanso_inicio || '';
+    if (data.hora_descanso_fin !== undefined) form.querySelector('#configHoraDescansoFin').value = data.hora_descanso_fin || '';
+
+    if (data.dias_trabajo !== undefined) {
+        const diasArr = (typeof data.dias_trabajo === 'string') ? data.dias_trabajo.split(',') : (data.dias_trabajo || []);
+        form.querySelectorAll('input[name="dias_trabajo"]').forEach(cb => {
+            cb.checked = diasArr.includes(cb.value);
+        });
+    }
+
+    if (data.turnos_simultaneos) form.querySelector('#configSimultaneos').value = data.turnos_simultaneos;
+    
+    if (data.confirmacion_automatica !== undefined) {
+        const confVal = (data.confirmacion_automatica == 1 || data.confirmacion_automatica === '1' || data.confirmacion_automatica === 'si') ? 'si' : 'no';
+        const selectConf = form.querySelector('#configConfirmacionAutomatica');
+        if (selectConf) {
+            selectConf.value = confVal;
+            window.updateConfirmacionHelpText();
+        }
+    }
+
+    if (data.anticipacion_turno_min !== undefined) {
+        const totalMin = parseInt(data.anticipacion_turno_min) || 0;
+        const h = Math.floor(totalMin / 60);
+        const m = totalMin % 60;
+        if (form.querySelector('#configAnticipacionH')) form.querySelector('#configAnticipacionH').value = h || '';
+        if (form.querySelector('#configAnticipacionM')) form.querySelector('#configAnticipacionM').value = m || '';
+        if (form.querySelector('#configAnticipacionMin')) form.querySelector('#configAnticipacionMin').value = totalMin;
+    }
+
+    if (data.intervalo_turnos) {
+        const selectInter = form.querySelector('#configIntervalo');
+        if (selectInter) {
+            const knownVals = ['servicio', '15', '30', '45', '60', '90', '120'];
+            if (knownVals.includes(String(data.intervalo_turnos))) {
+                selectInter.value = String(data.intervalo_turnos);
+            } else {
+                selectInter.value = 'custom';
+                const customInp = form.querySelector('#inputIntervaloCustom');
+                if (customInp) customInp.value = data.intervalo_turnos;
+            }
+            window.updateIntervalHelpText();
+        }
+    }
+
+    if (data.limite_eliminacion_dias !== undefined) {
+        const selectElim = form.querySelector('#configLimiteEliminacion');
+        if (selectElim) selectElim.value = String(data.limite_eliminacion_dias);
+    }
+
+    if (data.metodos_pago !== undefined) {
+        const metodosArr = (typeof data.metodos_pago === 'string') ? data.metodos_pago.split(',') : (data.metodos_pago || []);
+        form.querySelectorAll('input[name="metodos_pago_arr"]').forEach(cb => {
+            cb.checked = metodosArr.includes(cb.value);
+        });
+    }
+};
+
 /* =========================================================================
    LÓGICA DE HORARIOS PERSONALIZADOS POR DÍA (LUNES A DOMINGO - FORMATO 24HS)
    ========================================================================= */
@@ -487,11 +575,10 @@ function handleCalendarConfigSubmit(e) {
     const tipoCalendarioRadio = form.querySelector('input[name="tipo_calendario"]:checked');
     const tipoCalendario = tipoCalendarioRadio ? tipoCalendarioRadio.value : 'clasico';
 
-    // Recolectar intervalo, manejando el caso "custom"
-    let intervalo = form.querySelector('#configIntervalo')?.value;
-    if (intervalo === 'custom') {
-        intervalo = form.querySelector('#inputIntervaloCustom')?.value || 30;
-    }
+    // Recolectar métodos de pago
+    const metodosArr = Array.from(form.querySelectorAll('input[name="metodos_pago_arr"]:checked')).map(cb => cb.value);
+    const metodosStr = metodosArr.join(',');
+    if (form.querySelector('#configMetodosPago')) form.querySelector('#configMetodosPago').value = metodosStr;
 
     const payload = {
         color_primario: form.querySelector('#configColorPrimario')?.value,
@@ -508,7 +595,8 @@ function handleCalendarConfigSubmit(e) {
         tipo_calendario: tipoCalendario,
         usar_fondo_degrade: form.querySelector('#configFondoDegrade')?.checked ? 1 : 0,
         limite_eliminacion_dias: form.querySelector('#configLimiteEliminacion')?.value || 0,
-        horarios_detallados_json: form.querySelector('#horariosDetalladosJsonInput')?.value || '{}'
+        horarios_detallados_json: form.querySelector('#horariosDetalladosJsonInput')?.value || '{}',
+        metodos_pago: metodosStr
     };
 
     fetch('backend/guardar_web.php', {
