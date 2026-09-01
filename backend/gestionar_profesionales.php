@@ -36,6 +36,14 @@ $defaultAdminPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 1, 'servi
 
 if ($method === 'GET') {
     try {
+        // Verificar si es sesión o negocio Demo para asegurar integrantes del equipo
+        $isDemoContext = (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || 
+                         (isset($_SESSION['email']) && strpos($_SESSION['email'], 'demo') !== false);
+        if ($isDemoContext) {
+            require_once __DIR__ . '/helpers/demo_helper.php';
+            asegurarDatosDemo($pdo, $id_negocio);
+        }
+
         // Obtener la lista de profesionales e integrantes del equipo (deduplicando usuarios)
         $stmt = $pdo->prepare("
             SELECT u.id, u.nombre_completo, u.email, MIN(pn.rol_en_local) AS rol_en_local, MAX(pn.permisos) AS permisos
@@ -47,6 +55,14 @@ if ($method === 'GET') {
         ");
         $stmt->execute(['id_negocio' => $id_negocio]);
         $profesionales = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Auto-reparación: Si sólo hay 1 o 0 integrantes en sesión Demo, asegurar equipo demo
+        if (count($profesionales) <= 1 && $isDemoContext) {
+            require_once __DIR__ . '/helpers/demo_helper.php';
+            asegurarDatosDemo($pdo, $id_negocio);
+            $stmt->execute(['id_negocio' => $id_negocio]);
+            $profesionales = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 
         // Auto-reparación: Si no se encuentran integrantes, vincular al dueño de la sesión activa
         if (empty($profesionales) && isset($_SESSION['user_id'])) {

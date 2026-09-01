@@ -77,6 +77,34 @@ if (!function_exists('asegurarDatosDemo')) {
                 $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, intervalo_turnos, tipo_calendario, titulo)
                                VALUES (?, '#D11149', '#FC8712', 'Agendatina', '30', 'clasico', 'Agendatina')")->execute([$negocioId]);
             }
+
+            // 5. Asegurar usuarios y personal del equipo Demo (Valentina, Camila, Sofía, Marcos)
+            $stmtPnCount = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_negocio = ?");
+            $stmtPnCount->execute([$negocioId]);
+            if ((int)$stmtPnCount->fetchColumn() <= 1) {
+                $demoTeam = [
+                    ['nombre' => 'Valentina Ochoa', 'email' => 'valentina.demo@agendatina.site', 'rol' => 'admin'],
+                    ['nombre' => 'Camila Benítez', 'email' => 'camila.demo@agendatina.site', 'rol' => 'profesional'],
+                    ['nombre' => 'Sofía Ramírez', 'email' => 'sofia.demo@agendatina.site', 'rol' => 'profesional'],
+                    ['nombre' => 'Marcos Gómez', 'email' => 'marcos.demo@agendatina.site', 'rol' => 'profesional']
+                ];
+                $stmtCheckU = $pdo->prepare("SELECT id FROM usuarios WHERE email = ? LIMIT 1");
+                $stmtInsU = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, role) VALUES (?, ?, ?, 'profesional')");
+                $stmtInsPn = $pdo->prepare("INSERT IGNORE INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, ?)");
+                
+                $hash = password_hash('demo1234', PASSWORD_DEFAULT);
+                foreach ($demoTeam as $member) {
+                    $stmtCheckU->execute([$member['email']]);
+                    $uId = $stmtCheckU->fetchColumn();
+                    if (!$uId) {
+                        $stmtInsU->execute([$member['nombre'], $member['email'], $hash]);
+                        $uId = $pdo->lastInsertId();
+                    }
+                    if ($uId) {
+                        $stmtInsPn->execute([$negocioId, $uId, $member['rol']]);
+                    }
+                }
+            }
         } catch(Throwable $eDemoData) {
             error_log("Error al asegurar datos demo: " . $eDemoData->getMessage());
         }

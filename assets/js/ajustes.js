@@ -260,6 +260,16 @@ window.toggleMetodosPagoDetails = function() {
     if (chkMp && divMp) {
         divMp.classList.toggle('hidden', !chkMp.checked);
     }
+
+    const checkedCount = document.querySelectorAll('input[name="metodos_pago_arr"]:checked').length;
+    const noInfoBox = document.getElementById('noPaymentMethodsInfo');
+    if (noInfoBox) {
+        if (checkedCount === 0) {
+            noInfoBox.className = 'mt-4 text-xs p-3.5 rounded-2xl border leading-relaxed font-bold bg-amber-50 text-amber-900 border-amber-300 flex items-start gap-2.5 shadow-sm transition-all animate-pulse';
+        } else {
+            noInfoBox.className = 'mt-4 text-xs p-3.5 rounded-2xl border leading-relaxed font-bold bg-slate-50 text-slate-600 border-slate-200/80 flex items-start gap-2.5 transition-all';
+        }
+    }
 };
 
 window.updateSenaHelpText = function() {
@@ -650,6 +660,9 @@ function handleCalendarConfigSubmit(e) {
 
     // Recolectar métodos de pago
     const metodosArr = Array.from(form.querySelectorAll('input[name="metodos_pago_arr"]:checked')).map(cb => cb.value);
+    if (metodosArr.length === 0) {
+        metodosArr.push('efectivo'); // Si no selecciona nada, por defecto se entiende pago presencial en el local
+    }
     const metodosStr = metodosArr.join(',');
     if (form.querySelector('#configMetodosPago')) form.querySelector('#configMetodosPago').value = metodosStr;
 
