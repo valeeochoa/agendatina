@@ -44,6 +44,25 @@ window.getStartOfWeek = function(d, startDay) {
     return date;
 };
 
+window.getWeekMajorityMonthDate = function(startDate) {
+    if (!startDate) return new Date();
+    const monthCounts = {};
+    let maxCount = 0;
+    let majorityDate = startDate;
+
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(startDate);
+        d.setDate(startDate.getDate() + i);
+        const key = `${d.getFullYear()}-${d.getMonth()}`;
+        monthCounts[key] = (monthCounts[key] || 0) + 1;
+        if (monthCounts[key] > maxCount) {
+            maxCount = monthCounts[key];
+            majorityDate = d;
+        }
+    }
+    return majorityDate;
+};
+
 // Variables exclusivas calendario semanal
 let weekStartDate = window.getStartOfWeek(new Date());
 let weeklySelectedService = null;
@@ -1800,7 +1819,10 @@ function renderAdminWeeklyGrid() {
     
     const effectiveIsAdmin = isAdmin && !isPreviewMode;
     const monthYearEl = document.getElementById('adminWeekMonthYear');
-    if (monthYearEl) monthYearEl.textContent = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(weekStartDate);
+    if (monthYearEl) {
+        const majorityDate = window.getWeekMajorityMonthDate(weekStartDate);
+        monthYearEl.textContent = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(majorityDate);
+    }
     const today = new Date(); today.setHours(0,0,0,0);
     
     if (!adminWeeklySelectedProf) {
@@ -1831,9 +1853,25 @@ function renderAdminWeeklyGrid() {
         const dayName = new Intl.DateTimeFormat('es-ES', { weekday: 'short' }).format(date).toUpperCase();
         const isToday = date.getTime() === today.getTime();
         
+        const isMultiSelected = isMultiSelectMode && selectedDates.includes(dateString);
+        let headerBgClass = 'bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-[#D11149] hover:shadow-md';
+        let dayNameClass = 'text-slate-400 dark:text-slate-500';
+        let dateNumClass = 'text-slate-800 dark:text-slate-100';
+
+        if (isMultiSelected) {
+            headerBgClass = 'bg-gradient-to-tr from-[#D11149] to-[#FC8712] border-transparent text-white shadow-lg shadow-rose-500/25';
+            dayNameClass = 'text-white/80';
+            dateNumClass = 'text-white';
+        } else if (isToday) {
+            headerBgClass = 'bg-rose-50/90 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 shadow-sm';
+            dayNameClass = 'text-[#D11149] dark:text-rose-400 font-extrabold';
+            dateNumClass = 'text-[#D11149] dark:text-rose-300';
+        }
+
         const colHeader = document.createElement('div');
-        colHeader.className = `text-center py-1.5 px-0.5 sm:py-2.5 sm:px-1 rounded-xl border mb-1 cursor-pointer transition-colors ${isMultiSelectMode && selectedDates.includes(dateString) ? 'bg-primary/10 border-primary text-primary' : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700'}`;
-        colHeader.innerHTML = `<div class="text-[9px] sm:text-xs font-bold ${isToday && !(isMultiSelectMode && selectedDates.includes(dateString)) ? 'text-primary' : (isMultiSelectMode && selectedDates.includes(dateString) ? 'text-primary' : 'text-slate-400')}">${dayName}</div><div class="text-sm sm:text-lg font-black ${isToday && !(isMultiSelectMode && selectedDates.includes(dateString)) ? 'text-primary' : (isMultiSelectMode && selectedDates.includes(dateString) ? 'text-primary' : 'text-slate-800 dark:text-slate-100')}">${date.getDate()}</div>`;
+        colHeader.className = `text-center py-2 px-1 rounded-2xl border transition-all duration-300 cursor-pointer ${headerBgClass}`;
+        const todayTag = isToday && !isMultiSelected ? '<span class="inline-block text-[8px] font-black tracking-widest px-1.5 py-0.2 rounded-full bg-rose-100 dark:bg-rose-900/60 text-[#D11149] dark:text-rose-300 mb-0.5">HOY</span>' : '';
+        colHeader.innerHTML = `${todayTag}<div class="text-[9px] sm:text-[10px] font-black tracking-wider ${dayNameClass}">${dayName}</div><div class="text-base sm:text-lg font-black ${dateNumClass}">${date.getDate()}</div>`;
         colHeader.onclick = () => handleDayClick(new Date(date.getTime() + 12*60*60*1000));
         
         if (effectiveIsAdmin && !isPast && window.isWorkingDay(date)) {
@@ -1882,7 +1920,7 @@ function renderAdminWeeklyGrid() {
                 if (!isBooked && isToday && slotDate.getTime() <= new Date().getTime()) isBooked = true;
                 
                 const slot = document.createElement('div');
-                slot.className = `py-1.5 px-0.5 sm:py-2 sm:px-1 text-center text-[10px] sm:text-xs font-black rounded-lg border transition-all ${isBooked ? 'bg-slate-100/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 cursor-not-allowed' : 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 hover:border-emerald-500 cursor-pointer shadow-xs hover:shadow-md'}`;
+                slot.className = `py-2 px-1 text-center text-[10px] sm:text-xs font-black rounded-xl border transition-all duration-200 ${isBooked ? 'bg-slate-100/70 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800/80 text-slate-400 dark:text-slate-600 cursor-not-allowed' : 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300/80 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 hover:scale-[1.03] hover:shadow-md hover:border-emerald-500 cursor-pointer shadow-2xs'}`;
                 
                 if (!isBooked) {
                     slot.textContent = time;
@@ -2008,7 +2046,8 @@ function renderWeeklyCalendar() {
 
     weekStartDate = window.getStartOfWeek(weekStartDate);
 
-    monthYearEl.textContent = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(weekStartDate);
+    const majorityDate = window.getWeekMajorityMonthDate(weekStartDate);
+    monthYearEl.textContent = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(majorityDate);
     
     const calendarDays = document.getElementById('weeklyCalendarDays');
     calendarDays.innerHTML = '';
@@ -2041,40 +2080,40 @@ function renderWeeklyCalendar() {
         const dayDiv = document.createElement('div');
         const dayName = dayFormatter.format(date).substring(0,3).toUpperCase();
         
-        let bgClass = '', textClass = '', borderClass = 'border-slate-100 dark:border-slate-800';
+        let bgClass = '', textClass = '', borderClass = 'border-slate-200/80 dark:border-slate-800/80';
 
         if (visuallyDisabled) {
-            bgClass = 'bg-slate-100/60 dark:bg-slate-800/30';
+            bgClass = 'bg-slate-100/60 dark:bg-slate-900/40';
             textClass = 'text-slate-400 dark:text-slate-600';
             borderClass = 'border-slate-200/60 dark:border-slate-800/60';
         } else {
-            bgClass = 'bg-white dark:bg-slate-800/90 shadow-xs hover:shadow-xl hover:-translate-y-1 hover:border-[#D11149]';
+            bgClass = 'bg-white dark:bg-slate-900/90 shadow-2xs hover:shadow-xl hover:-translate-y-1 hover:border-[#D11149]';
             textClass = 'text-slate-800 dark:text-slate-100';
             borderClass = 'border-emerald-300/80 dark:border-emerald-700/60';
         }
 
         if (isSelected) {
-            bgClass = 'bg-gradient-to-tr from-[#D11149] via-[#E61B58] to-[#FC8712] shadow-xl shadow-[#D11149]/40 scale-[1.06]';
+            bgClass = 'bg-gradient-to-tr from-[#D11149] via-[#E61B58] to-[#FC8712] shadow-xl shadow-[#D11149]/35 scale-[1.05]';
             textClass = 'text-white font-black';
             borderClass = 'border-transparent ring-2 ring-rose-300/40';
         } else if (isToday && !visuallyDisabled) {
-            borderClass = 'border-rose-400 dark:border-rose-500 ring-2 ring-rose-200 dark:ring-rose-900/50';
+            borderClass = 'border-rose-400 dark:border-rose-500 ring-2 ring-rose-200/80 dark:ring-rose-900/50';
         }
 
-        dayDiv.className = `flex flex-col items-center justify-center py-2 px-0.5 sm:py-3.5 sm:px-2 rounded-2xl border-2 ${borderClass} ${bgClass} ${textClass} w-full min-w-0 transition-all duration-300 relative`;
+        dayDiv.className = `flex flex-col items-center justify-center py-2.5 px-1 sm:py-3.5 sm:px-2 rounded-2xl border-2 ${borderClass} ${bgClass} ${textClass} w-full min-w-0 transition-all duration-300 relative`;
         
         if (visuallyDisabled) {
             dayDiv.classList.add('opacity-50', 'cursor-not-allowed');
         } else {
-            dayDiv.classList.add('cursor-pointer', 'hover:scale-105');
+            dayDiv.classList.add('cursor-pointer');
             const currentIterDate = new Date(date);
             dayDiv.addEventListener('click', () => selectWeeklyDate(currentIterDate));
         }
         
-        const todayBadge = isToday ? '<span class="glow-badge-today absolute -top-2 px-1.5 py-0.5 text-[8px] sm:text-[9px] z-10">HOY</span>' : '';
-        const activeDot = (!visuallyDisabled && !isSelected) ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 mb-0.5 animate-pulse shadow-xs"></span>' : (isSelected ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/90 mb-0.5 shadow-xs"></span>' : '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-transparent mb-0.5"></span>');
+        const todayBadge = isToday ? '<span class="glow-badge-today absolute -top-2 px-2 py-0.5 text-[8px] sm:text-[9px] z-10 font-black">HOY</span>' : '';
+        const activeDot = (!visuallyDisabled && !isSelected) ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 mb-0.5 animate-pulse shadow-2xs"></span>' : (isSelected ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/90 mb-0.5 shadow-2xs"></span>' : '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-transparent mb-0.5"></span>');
         
-        dayDiv.innerHTML = `${todayBadge}${activeDot}<span class="text-[9px] sm:text-[11px] font-black tracking-wider uppercase mb-0.5 ${isSelected ? 'text-white/90' : 'text-slate-400 dark:text-slate-400'}">${dayName}</span><span class="text-lg sm:text-2xl font-black ${isSelected ? 'text-white' : 'text-slate-900 dark:text-slate-100'}">${date.getDate()}</span>`;
+        dayDiv.innerHTML = `${todayBadge}${activeDot}<span class="text-[9px] sm:text-[11px] font-black tracking-wider uppercase mb-0.5 ${isSelected ? 'text-white/90' : 'text-slate-400 dark:text-slate-400'}">${dayName}</span><span class="text-base sm:text-2xl font-black ${isSelected ? 'text-white' : 'text-slate-900 dark:text-slate-100'}">${date.getDate()}</span>`;
         fragment.appendChild(dayDiv);
     }
     calendarDays.appendChild(fragment);
