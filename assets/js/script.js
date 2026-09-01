@@ -3437,6 +3437,9 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
         }
 
         /* 1.c. Barra desplazadora destacada con Color Secundario */
+        html::-webkit-scrollbar,
+        body::-webkit-scrollbar,
+        ::-webkit-scrollbar,
         .custom-scrollbar::-webkit-scrollbar, 
         .time-slots-scrollbar::-webkit-scrollbar,
         #gridHorarios::-webkit-scrollbar,
@@ -3444,6 +3447,9 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
             width: 9px !important;
             height: 9px !important;
         }
+        html::-webkit-scrollbar-track,
+        body::-webkit-scrollbar-track,
+        ::-webkit-scrollbar-track,
         .custom-scrollbar::-webkit-scrollbar-track,
         .time-slots-scrollbar::-webkit-scrollbar-track,
         #gridHorarios::-webkit-scrollbar-track,
@@ -3451,6 +3457,9 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
             background: color-mix(in srgb, ${sColor} 14%, #f1f5f9) !important;
             border-radius: 9999px !important;
         }
+        html::-webkit-scrollbar-thumb,
+        body::-webkit-scrollbar-thumb,
+        ::-webkit-scrollbar-thumb,
         .custom-scrollbar::-webkit-scrollbar-thumb,
         .time-slots-scrollbar::-webkit-scrollbar-thumb,
         #gridHorarios::-webkit-scrollbar-thumb,
@@ -3460,13 +3469,16 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
             border: 2px solid #ffffff !important;
             box-shadow: 0 2px 6px color-mix(in srgb, ${sColor} 40%, transparent) !important;
         }
+        html::-webkit-scrollbar-thumb:hover,
+        body::-webkit-scrollbar-thumb:hover,
+        ::-webkit-scrollbar-thumb:hover,
         .custom-scrollbar::-webkit-scrollbar-thumb:hover,
         .time-slots-scrollbar::-webkit-scrollbar-thumb:hover,
         #gridHorarios::-webkit-scrollbar-thumb:hover,
         [id*="slots"]::-webkit-scrollbar-thumb:hover {
             background: color-mix(in srgb, ${sColor} 85%, black) !important;
         }
-        .custom-scrollbar, .time-slots-scrollbar, #gridHorarios, [id*="slots"] {
+        html, body, .custom-scrollbar, .time-slots-scrollbar, #gridHorarios, [id*="slots"] {
             scrollbar-width: thin !important;
             scrollbar-color: ${sColor} color-mix(in srgb, ${sColor} 14%, #f1f5f9) !important;
         }

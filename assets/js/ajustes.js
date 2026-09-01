@@ -561,12 +561,12 @@ window.saveHorariosDetalladosModal = function() {
 function handleCalendarConfigSubmit(e) {
     e.preventDefault();
     const form = e.target;
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalText = submitBtn ? submitBtn.innerHTML : 'Guardar Cambios';
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = 'Guardando...';
-    }
+    const submitBtns = document.querySelectorAll('button[type="submit"][form="calendarConfigForm"], #calendarConfigForm button[type="submit"]');
+    submitBtns.forEach(btn => {
+        btn.disabled = true;
+        btn.dataset.origText = btn.innerHTML;
+        btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">refresh</span> Guardando...';
+    });
 
     // Recolectar días de trabajo (checkboxes)
     const diasTrabajo = Array.from(form.querySelectorAll('input[name="dias_trabajo"]:checked')).map(cb => cb.value).join(',');
@@ -574,6 +574,12 @@ function handleCalendarConfigSubmit(e) {
     // Recolectar tipo de calendario (radio)
     const tipoCalendarioRadio = form.querySelector('input[name="tipo_calendario"]:checked');
     const tipoCalendario = tipoCalendarioRadio ? tipoCalendarioRadio.value : 'clasico';
+
+    // Recolectar intervalo, manejando el caso "custom"
+    let intervalo = form.querySelector('#configIntervalo')?.value;
+    if (intervalo === 'custom') {
+        intervalo = form.querySelector('#inputIntervaloCustom')?.value || 30;
+    }
 
     // Recolectar métodos de pago
     const metodosArr = Array.from(form.querySelectorAll('input[name="metodos_pago_arr"]:checked')).map(cb => cb.value);
@@ -626,9 +632,9 @@ function handleCalendarConfigSubmit(e) {
         if (typeof showToast === 'function') showToast('Error de conexión al guardar.', 'error');
     })
     .finally(() => {
-        if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = originalText;
-        }
+        submitBtns.forEach(btn => {
+            btn.disabled = false;
+            if (btn.dataset.origText) btn.innerHTML = btn.dataset.origText;
+        });
     });
 }
