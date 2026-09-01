@@ -2037,7 +2037,7 @@ function renderWeeklyCalendar() {
             borderClass = 'border-rose-400 dark:border-rose-500 ring-2 ring-rose-200 dark:ring-rose-900/50';
         }
 
-        dayDiv.className = `flex flex-col items-center justify-center py-3.5 px-2 rounded-2xl border-2 ${borderClass} ${bgClass} ${textClass} min-w-[72px] sm:min-w-[88px] shrink-0 transition-all duration-300 relative`;
+        dayDiv.className = `flex flex-col items-center justify-center py-3 px-1 sm:py-4 sm:px-2 rounded-2xl border-2 ${borderClass} ${bgClass} ${textClass} w-full min-w-0 transition-all duration-300 relative`;
         
         if (visuallyDisabled) {
             dayDiv.classList.add('opacity-50', 'cursor-not-allowed');
