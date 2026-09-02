@@ -1708,26 +1708,23 @@ function initAdminWeeklyServices() {
     
     const uniqueServices = [...new Set(services.map(s => s.nombre))];
     if (uniqueServices.length === 0) {
-        container.innerHTML = '<p class="text-sm text-slate-500 py-4 text-center">No hay servicios configurados.</p>';
+        container.innerHTML = '<p class="text-xs font-bold text-slate-400 py-2">No hay servicios configurados.</p>';
         return;
     }
 
     uniqueServices.forEach(sName => {
         const btn = document.createElement('button');
-        btn.className = `w-full text-left p-3 rounded-xl border transition-all flex items-center justify-between group bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-primary`;
-        btn.innerHTML = `<span class="font-bold text-sm">${sName}</span> <span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors text-sm">chevron_right</span>`;
+        const defaultStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-2xs bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200/90 dark:border-slate-700/80 hover:border-[#D11149]';
+        const activeStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-md bg-[#D11149] text-white border-[#D11149] scale-[1.02]';
+        
+        btn.className = defaultStyle;
+        btn.innerHTML = `<span>✂️ ${sName}</span>`;
         
         btn.onclick = () => {
             document.querySelectorAll('#adminWeeklyServices button').forEach(b => {
-                b.classList.remove('border-primary', 'bg-primary/10', 'text-primary', 'dark:bg-primary/20');
-                b.classList.add('bg-slate-50', 'dark:bg-slate-900', 'text-slate-700', 'dark:text-slate-300', 'border-slate-200', 'dark:border-slate-700');
-                b.querySelector('span.material-symbols-outlined').classList.remove('text-primary');
-                b.querySelector('span.material-symbols-outlined').classList.add('text-slate-300');
+                b.className = defaultStyle;
             });
-            btn.classList.remove('bg-slate-50', 'dark:bg-slate-900', 'text-slate-700', 'dark:text-slate-300', 'border-slate-200', 'dark:border-slate-700');
-            btn.classList.add('border-primary', 'bg-primary/10', 'dark:bg-primary/20', 'text-primary');
-            btn.querySelector('span.material-symbols-outlined').classList.remove('text-slate-300');
-            btn.querySelector('span.material-symbols-outlined').classList.add('text-primary');
+            btn.className = activeStyle;
             
             adminWeeklySelectedService = sName;
             adminWeeklySelectedProf = null; 
@@ -1758,19 +1755,22 @@ function renderAdminWeeklyProfs() {
     
     const createProfBtn = (pName, isHighlighted) => {
         const btn = document.createElement('button');
-        const baseClasses = isHighlighted 
-            ? 'border-primary bg-primary/10 dark:bg-primary/20 text-primary' 
-            : 'border-slate-200 dark:border-slate-700 hover:border-primary/50 bg-slate-50 dark:bg-slate-900 text-slate-500';
+        const defaultStyle = isHighlighted 
+            ? 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-2xs bg-amber-50 dark:bg-amber-950/50 text-[#FC8712] border-amber-300 dark:border-amber-700' 
+            : 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-2xs bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-[#FC8712]';
+        const activeStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-md bg-[#FC8712] text-white border-[#FC8712] scale-[1.02]';
         
-        btn.className = `w-full text-left p-3 rounded-xl border transition-all flex items-center gap-3 ${baseClasses}`;
-        btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">${isHighlighted ? 'check_circle' : 'person'}</span> <span class="font-bold text-sm">${pName}</span>`;
+        btn.className = defaultStyle;
+        btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">${isHighlighted ? 'check_circle' : 'person'}</span> <span>${pName}</span>`;
         
         btn.onclick = () => {
             adminWeeklySelectedProf = pName;
             globalSelectedProfessional = pName;
             
-            document.querySelectorAll('#adminWeeklyProfs button').forEach(b => b.classList.remove('ring-2', 'ring-primary', 'ring-offset-2', 'dark:ring-offset-slate-800'));
-            btn.classList.add('ring-2', 'ring-primary', 'ring-offset-2', 'dark:ring-offset-slate-800');
+            document.querySelectorAll('#adminWeeklyProfs button').forEach(b => {
+                b.className = defaultStyle;
+            });
+            btn.className = activeStyle;
             
             cal_fetchBookedTimesWeeklyAdmin();
         };
