@@ -1849,29 +1849,29 @@ function renderAdminWeeklyGrid() {
     for (let i = 0; i < 7; i++) {
         const date = new Date(weekStartDate); date.setDate(weekStartDate.getDate() + i);
         const dateString = toYYYYMMDD(date); const isPast = date < today;
-        const col = document.createElement('div'); col.className = 'w-full min-w-0 flex flex-col gap-1.5';
+        const col = document.createElement('div'); col.className = 'w-full min-w-0 flex flex-col gap-2 p-1.5 sm:p-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs transition-all duration-300 hover:shadow-md';
         const dayName = new Intl.DateTimeFormat('es-ES', { weekday: 'short' }).format(date).toUpperCase();
         const isToday = date.getTime() === today.getTime();
         
         const isMultiSelected = isMultiSelectMode && selectedDates.includes(dateString);
-        let headerBgClass = 'bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-[#D11149] hover:shadow-md';
-        let dayNameClass = 'text-slate-400 dark:text-slate-500';
-        let dateNumClass = 'text-slate-800 dark:text-slate-100';
+        let headerBgClass = 'bg-slate-100/80 dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 hover:bg-slate-200/80';
+        let dayNameClass = 'text-slate-400 dark:text-slate-400 font-bold';
+        let dateNumClass = 'text-slate-900 dark:text-slate-100 font-black';
 
         if (isMultiSelected) {
-            headerBgClass = 'bg-gradient-to-tr from-[#D11149] to-[#FC8712] border-transparent text-white shadow-lg shadow-rose-500/25';
-            dayNameClass = 'text-white/80';
-            dateNumClass = 'text-white';
+            headerBgClass = 'bg-gradient-to-tr from-[#D11149] to-[#FC8712] border-transparent text-white shadow-md shadow-rose-500/25';
+            dayNameClass = 'text-white/80 font-bold';
+            dateNumClass = 'text-white font-black';
         } else if (isToday) {
-            headerBgClass = 'bg-rose-50/90 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 shadow-sm';
-            dayNameClass = 'text-[#D11149] dark:text-rose-400 font-extrabold';
-            dateNumClass = 'text-[#D11149] dark:text-rose-300';
+            headerBgClass = 'bg-gradient-to-br from-[#D11149] to-[#E61B58] text-white border-transparent shadow-md shadow-rose-500/25';
+            dayNameClass = 'text-rose-100 font-extrabold';
+            dateNumClass = 'text-white font-black';
         }
 
         const colHeader = document.createElement('div');
-        colHeader.className = `text-center py-2 px-1 rounded-2xl border transition-all duration-300 cursor-pointer ${headerBgClass}`;
-        const todayTag = isToday && !isMultiSelected ? '<span class="inline-block text-[8px] font-black tracking-widest px-1.5 py-0.2 rounded-full bg-rose-100 dark:bg-rose-900/60 text-[#D11149] dark:text-rose-300 mb-0.5">HOY</span>' : '';
-        colHeader.innerHTML = `${todayTag}<div class="text-[9px] sm:text-[10px] font-black tracking-wider ${dayNameClass}">${dayName}</div><div class="text-base sm:text-lg font-black ${dateNumClass}">${date.getDate()}</div>`;
+        colHeader.className = `text-center py-2 px-1 rounded-xl border transition-all duration-300 cursor-pointer w-full shrink-0 ${headerBgClass}`;
+        const todayTag = isToday && !isMultiSelected ? '<span class="inline-block text-[8px] font-black tracking-widest px-1.5 py-0.2 rounded-full bg-white/20 text-white mb-0.5">HOY</span>' : '';
+        colHeader.innerHTML = `${todayTag}<div class="text-[9px] sm:text-[10px] font-black tracking-wider uppercase ${dayNameClass}">${dayName}</div><div class="text-base sm:text-lg ${dateNumClass}">${date.getDate()}</div>`;
         colHeader.onclick = () => handleDayClick(new Date(date.getTime() + 12*60*60*1000));
         
         if (effectiveIsAdmin && !isPast && window.isWorkingDay(date)) {
@@ -1895,7 +1895,7 @@ function renderAdminWeeklyGrid() {
         
         col.appendChild(colHeader);
         
-        const slotsContainer = document.createElement('div'); slotsContainer.className = 'flex flex-col gap-1.5 max-h-[440px] overflow-y-auto pr-0.5 custom-scrollbar';
+        const slotsContainer = document.createElement('div'); slotsContainer.className = 'flex flex-col gap-1.5 max-h-[440px] overflow-y-auto pr-0.5 custom-scrollbar w-full flex-1';
         
         const horasOcupadas = [...(cal_bookedSlots[dateString] || []), ...window.getBreakTimes()];
         const isGeneralBlock = horasOcupadas.includes('blocked_day');
@@ -1903,7 +1903,12 @@ function renderAdminWeeklyGrid() {
         if (!adminWeeklySelectedProf || adminWeeklySelectedProf === 'columnas' || adminWeeklySelectedProf === 'Cualquiera (Sin preferencia)') isProfBlock = false;
         
         if (isPast || !window.isWorkingDay(date) || isGeneralBlock || isProfBlock) {
-            slotsContainer.innerHTML = `<div class="text-center py-3 px-1 text-[10px] sm:text-xs font-bold text-slate-400 bg-slate-50 dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700">No disponible</div>`;
+            slotsContainer.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-8 px-1 text-center h-full min-h-[220px] rounded-xl bg-slate-50/80 dark:bg-slate-800/30 border border-dashed border-slate-200/80 dark:border-slate-700/80 text-slate-400">
+                    <span class="material-symbols-outlined text-[20px] text-slate-300 dark:text-slate-600 mb-1">event_busy</span>
+                    <span class="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">No disponible</span>
+                </div>
+            `;
         } else {
             cal_availableTimes.forEach((time, idx) => {
                 if (window.isTimeInBreak(time)) return;
