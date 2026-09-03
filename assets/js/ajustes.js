@@ -193,6 +193,14 @@ window.applyCalendarConfigToForm = function(data) {
         }
     }
 
+    if (data.modo_reservas !== undefined) {
+        const modoVal = data.modo_reservas || 'libre';
+        const radioLibre = form.querySelector('#modoReservaLibre');
+        const radioCupos = form.querySelector('#modoReservaCupos');
+        if (modoVal === 'cupos_alumnos' && radioCupos) radioCupos.checked = true;
+        else if (radioLibre) radioLibre.checked = true;
+    }
+
     if (data.primer_dia_semana !== undefined) {
         const selectPrimerDia = form.querySelector('#configPrimerDiaSemana');
         if (selectPrimerDia) selectPrimerDia.value = String(data.primer_dia_semana);
@@ -710,6 +718,7 @@ function handleCalendarConfigSubmit(e) {
         tipo_calendario: tipoCalendario,
         usar_fondo_degrade: form.querySelector('#configFondoDegrade')?.checked ? 1 : 0,
         notificaciones_email: form.querySelector('#notificacionesEmail')?.checked ? 1 : 0,
+        modo_reservas: form.querySelector('input[name="modo_reservas"]:checked')?.value || 'libre',
         limite_eliminacion_dias: form.querySelector('#configLimiteEliminacion')?.value || 0,
         horarios_detallados_json: form.querySelector('#horariosDetalladosJsonInput')?.value || '{}',
         metodos_pago: metodosStr,

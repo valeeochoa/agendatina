@@ -362,6 +362,39 @@
                 </div>
             </div>
 
+            <!-- Modalidad de Reserva y Control de Clientes -->
+            <div class="bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 p-5 rounded-2xl mb-6 shadow-xs hover:border-slate-300 transition-all">
+                <div class="flex items-center gap-3.5 mb-4">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
+                        <span class="material-symbols-outlined text-xl">groups</span>
+                    </div>
+                    <div>
+                        <h3 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-slate-100">Modalidad de Reserva y Registro de Clientes</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Define cómo interactúan tus clientes al solicitar un turno o clase.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <label class="cursor-pointer relative p-4 rounded-2xl border-2 border-slate-200 peer-checked:border-[#D11149] has-[:checked]:border-[#D11149] has-[:checked]:bg-[#fcb0b3]/10 transition-all">
+                        <input type="radio" name="modo_reservas" value="libre" id="modoReservaLibre" class="sr-only" checked>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="material-symbols-outlined text-[#D11149] text-[20px]">public</span>
+                            <strong class="text-sm font-extrabold text-slate-900 dark:text-slate-100">Reserva Libre (Sin Registro)</strong>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Cualquier cliente puede reservar directamente eligiendo servicio y horario sin necesidad de iniciar sesión.</p>
+                    </label>
+
+                    <label class="cursor-pointer relative p-4 rounded-2xl border-2 border-slate-200 peer-checked:border-orange-500 has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50/50 dark:has-[:checked]:bg-orange-950/20 transition-all">
+                        <input type="radio" name="modo_reservas" value="cupos_alumnos" id="modoReservaCupos" class="sr-only">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="material-symbols-outlined text-orange-600 text-[20px]">school</span>
+                            <strong class="text-sm font-extrabold text-slate-900 dark:text-slate-100">Módulo de Cupos y Alumnos</strong>
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Los alumnos deben ingresar con su email o estar registrados para reservar sus clases y gestionar pases en <a href="mi-cuenta.html" target="_blank" class="text-orange-600 font-bold underline">mi-cuenta.html</a>.</p>
+                    </label>
+                </div>
+            </div>
+
             <!-- Notificaciones por Email -->
             <div class="bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 shadow-xs hover:border-slate-300 transition-all">
                 <div class="flex items-center gap-3.5">
@@ -474,7 +507,7 @@
         </div>
     </div>
 
-    <script src="assets/js/script.js?v=1.5.9" defer></script>
-    <script src="assets/js/ajustes.js?v=1.5.9" defer></script>
+    <script src="assets/js/script.js?v=1.6.0" defer></script>
+    <script src="assets/js/ajustes.js?v=1.6.0" defer></script>
 </body>
 </html>
