@@ -161,8 +161,8 @@
                 </button>
             </div>
             
-            <div class="p-2 sm:p-3 bg-slate-50/80 dark:bg-slate-950/40 rounded-2xl border border-slate-200/60 dark:border-slate-800/60">
-                <div id="weeklyCalendarDays" class="grid grid-cols-7 gap-1 sm:gap-2 md:gap-2.5 w-full max-w-full overflow-hidden">
+            <div class="pt-5 pb-3 px-2 sm:px-3 bg-slate-50/80 dark:bg-slate-950/40 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 relative overflow-visible">
+                <div id="weeklyCalendarDays" class="grid grid-cols-7 gap-1 sm:gap-2 md:gap-2.5 w-full max-w-full overflow-visible relative">
                     <!-- Insertado vía JS -->
                 </div>
             </div>
@@ -241,26 +241,26 @@
         </div>
 
         <!-- Grilla Semanal Full-Width Ampliada -->
-        <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-4 sm:p-7 rounded-3xl shadow-xl border border-slate-200/90 dark:border-slate-800/90 w-full overflow-hidden">
-            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 w-full relative gap-4">
-                <button id="btnMultiSelect" onclick="toggleMultiSelectMode()" class="flex items-center gap-2 px-4 py-2.5 bg-slate-100/90 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-xs" title="Activa el modo para seleccionar y bloquear varios días enteros de tu agenda a la vez">
+        <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-4 sm:p-5 rounded-3xl shadow-xl border border-slate-200/90 dark:border-slate-800/90 w-full overflow-hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 w-full relative gap-3">
+                <button id="btnMultiSelect" onclick="toggleMultiSelectMode()" class="flex items-center gap-2 px-3.5 py-2 bg-slate-100/90 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-bold text-xs transition-all shadow-xs" title="Activa el modo para seleccionar y bloquear varios días enteros de tu agenda a la vez">
                     <span class="material-symbols-outlined text-[18px]">block</span>
                     <span>Bloquear Varios Días</span>
                 </button>
                 
-                <div class="flex items-center justify-center bg-slate-100/80 dark:bg-slate-800/70 p-2 rounded-2xl border border-slate-200/60 dark:border-slate-700/60">
-                    <button id="adminPrevWeekBtn" class="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-xl hover:bg-[#D11149] hover:text-white transition-colors cursor-pointer" title="Semana Anterior">
-                        <span class="material-symbols-outlined text-slate-700 dark:text-slate-200 text-lg">chevron_left</span>
+                <div class="flex items-center justify-center bg-slate-100/80 dark:bg-slate-800/70 p-1.5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60">
+                    <button id="adminPrevWeekBtn" class="w-8 h-8 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-xl hover:bg-[#D11149] hover:text-white transition-colors cursor-pointer" title="Semana Anterior">
+                        <span class="material-symbols-outlined text-slate-700 dark:text-slate-200 text-base">chevron_left</span>
                     </button>
-                    <h2 id="adminWeekMonthYear" class="font-extrabold text-base sm:text-lg uppercase tracking-wider text-slate-900 dark:text-slate-100 text-center mx-4 capitalize">Mes Año</h2>
-                    <button id="adminNextWeekBtn" class="w-10 h-10 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-xl hover:bg-[#D11149] hover:text-white transition-colors cursor-pointer" title="Semana Siguiente">
-                        <span class="material-symbols-outlined text-slate-700 dark:text-slate-200 text-lg">chevron_right</span>
+                    <h2 id="adminWeekMonthYear" class="font-extrabold text-sm sm:text-base uppercase tracking-wider text-slate-900 dark:text-slate-100 text-center mx-3 capitalize">Mes Año</h2>
+                    <button id="adminNextWeekBtn" class="w-8 h-8 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-xl hover:bg-[#D11149] hover:text-white transition-colors cursor-pointer" title="Semana Siguiente">
+                        <span class="material-symbols-outlined text-slate-700 dark:text-slate-200 text-base">chevron_right</span>
                     </button>
                 </div>
             </div>
             
-            <div class="p-3 sm:p-5 bg-slate-50/80 dark:bg-slate-950/40 rounded-2xl border border-slate-200/60 dark:border-slate-800/60">
-                <div id="adminWeeklyGrid" class="grid grid-cols-7 gap-2 sm:gap-3.5 w-full max-w-full overflow-hidden">
+            <div class="p-2 sm:p-3.5 bg-slate-50/80 dark:bg-slate-950/40 rounded-2xl border border-slate-200/60 dark:border-slate-800/60">
+                <div id="adminWeeklyGrid" class="grid grid-cols-7 gap-1.5 sm:gap-2.5 w-full max-w-full overflow-hidden">
                     <!-- Se inyectan las 7 columnas desde JS -->
                 </div>
             </div>
@@ -298,8 +298,8 @@
   </div>
 
   <!-- Modal para Gestionar Servicios -->
-  <div id="servicesModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-    <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl max-w-2xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="servicesModalContent">
+  <div id="servicesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] hidden flex items-center justify-center p-4 pt-16 sm:pt-20 opacity-0 transition-opacity duration-300 overflow-y-auto">
+    <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl max-w-2xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[85vh] overflow-y-auto custom-scrollbar my-auto" id="servicesModalContent">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold font-display text-slate-800 dark:text-slate-100">Gestionar Servicios</h2>
             <button id="closeServicesModalBtn" class="text-slate-400 hover:text-red-500 transition-colors">
@@ -446,7 +446,7 @@
     </div>
 </footer>
 
-  <script src="assets/js/script.js?v=1.5.2" defer></script>
-  <script src="assets/js/calendario.js?v=1.5.2" defer></script>
+  <script src="assets/js/script.js?v=1.5.4" defer></script>
+  <script src="assets/js/calendario.js?v=1.5.4" defer></script>
   </body>
 </html>

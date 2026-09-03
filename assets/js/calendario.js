@@ -1406,8 +1406,17 @@ function handleServiceFormSubmit(e) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            showToast('Servicio guardado exitosamente', 'success');
-            fetchServices();
+            showToast('Servicio guardado y profesional verificado en el equipo', 'success');
+            if (typeof fetchServices === 'function') {
+                const resFetch = fetchServices();
+                if (resFetch && typeof resFetch.then === 'function') {
+                    resFetch.then(() => {
+                        if (typeof initAdminWeeklyServices === 'function') initAdminWeeklyServices();
+                    });
+                } else {
+                    if (typeof initAdminWeeklyServices === 'function') initAdminWeeklyServices();
+                }
+            }
             resetServiceForm();
         } else {
             showToast(data.error || 'Error al guardar el servicio', 'error');
@@ -1956,30 +1965,38 @@ function renderAdminWeeklyGrid() {
                     
                     if (apts.length > 0) {
                         const isPend = apts.some(a => a.estado === 'pendiente');
-                        const bgClass = isPend ? 'bg-amber-50 dark:bg-amber-900/40 border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-300' : 'bg-indigo-50 dark:bg-indigo-900/40 border-indigo-200 dark:border-indigo-700 text-indigo-800 dark:text-indigo-300';
+                        const isBlock = apts.some(a => a.estado === 'bloqueado');
                         
-                        slot.className = `p-2 text-left text-xs rounded-lg border transition-colors shadow-sm ${bgClass}`;
-                        slot.innerHTML = `<div class="font-bold mb-0.5">${time}</div>`;
+                        let bgClass = 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200';
+                        if (isPend) bgClass = 'bg-amber-50 dark:bg-amber-950/50 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200';
+                        else if (isBlock) bgClass = 'bg-rose-50 dark:bg-rose-950/50 border-rose-300 dark:border-rose-700 text-rose-900 dark:text-rose-200';
+
+                        slot.className = `p-1.5 text-left text-xs rounded-xl border transition-all shadow-xs cursor-pointer hover:shadow-md hover:scale-[1.02] ${bgClass}`;
+                        slot.innerHTML = `<div class="font-extrabold text-[11px] mb-0.5 flex justify-between items-center"><span>${time}</span></div>`;
                         
                         apts.forEach(apt => {
                             const clientName = apt.cliente_nombre || (apt.nombre + ' ' + (apt.apellido || '')) || 'Sin Nombre';
-                            const badgeClass = apt.estado === 'pendiente' ? 'bg-amber-200 text-amber-800' : 'bg-indigo-200 text-indigo-800';
+                            const isP = apt.estado === 'pendiente';
+                            const isB = apt.estado === 'bloqueado';
+                            const badgePill = isP ? '<span class="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-amber-200 text-amber-900 ml-1">⏳ Pendiente</span>' : (isB ? '<span class="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-rose-200 text-rose-900 ml-1">🚫 Bloqueado</span>' : '<span class="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-emerald-200 text-emerald-900 ml-1">✅ Confirmado</span>');
                             
                             const divApt = document.createElement('div');
-                            divApt.className = "mt-1 pt-1 border-t border-black/10 dark:border-white/10 cursor-pointer";
+                            divApt.className = "mt-1 pt-1 border-t border-black/10 dark:border-white/10 cursor-pointer hover:opacity-90 transition-opacity";
                             
-                            if (effectiveIsAdmin && apt.estado !== 'bloqueado') {
+                            if (effectiveIsAdmin && !isB) {
                                 divApt.draggable = true;
-                                divApt.title = "Arrastra para mover a otro día";
+                                divApt.title = "Haz clic para ver detalles o arrastra para mover turno";
                                 divApt.addEventListener('dragstart', (e) => {
                                     e.stopPropagation();
                                     e.dataTransfer.setData('text/plain', apt.id);
                                     setTimeout(() => divApt.classList.add('opacity-50'), 0);
                                 });
                                 divApt.addEventListener('dragend', () => { divApt.classList.remove('opacity-50'); });
+                            } else {
+                                divApt.title = "Haz clic para ver detalles del turno";
                             }
                             
-                            divApt.innerHTML = `<div class="truncate text-[10px] leading-tight" title="${clientName}">${clientName}</div><div class="truncate text-[9px] opacity-80">${apt.servicio || ''}</div>`;
+                            divApt.innerHTML = `<div class="font-bold text-[10px] leading-tight flex items-center justify-between" title="${clientName}"><span class="truncate">${clientName}</span> ${badgePill}</div><div class="truncate text-[9px] opacity-80 mt-0.5">${apt.servicio || ''}</div>`;
                             
                             divApt.onclick = (e) => {
                                 e.stopPropagation();
@@ -1990,7 +2007,7 @@ function renderAdminWeeklyGrid() {
                             slot.appendChild(divApt);
                         });
                     } else {
-                        slot.innerHTML = `${time} <span class="block text-[9px] font-normal mt-0.5 opacity-80">Bloqueado</span>`; 
+                        slot.innerHTML = `${time} <span class="block text-[8px] font-bold mt-0.5 opacity-80">Bloqueado</span>`; 
                     }
                 }
                 slotsContainer.appendChild(slot);
@@ -2105,7 +2122,7 @@ function renderWeeklyCalendar() {
             borderClass = 'border-rose-400 dark:border-rose-500 ring-2 ring-rose-200/80 dark:ring-rose-900/50';
         }
 
-        dayDiv.className = `flex flex-col items-center justify-center py-2.5 px-1 sm:py-3.5 sm:px-2 rounded-2xl border-2 ${borderClass} ${bgClass} ${textClass} w-full min-w-0 transition-all duration-300 relative`;
+        dayDiv.className = `flex flex-col items-center justify-center py-2 px-1 sm:py-3 sm:px-2 rounded-2xl border-2 ${borderClass} ${bgClass} ${textClass} w-full min-w-0 transition-all duration-300 relative overflow-visible shadow-2xs hover:shadow-lg`;
         
         if (visuallyDisabled) {
             dayDiv.classList.add('opacity-50', 'cursor-not-allowed');
@@ -2115,7 +2132,7 @@ function renderWeeklyCalendar() {
             dayDiv.addEventListener('click', () => selectWeeklyDate(currentIterDate));
         }
         
-        const todayBadge = isToday ? '<span class="glow-badge-today absolute -top-2 px-2 py-0.5 text-[8px] sm:text-[9px] z-10 font-black">HOY</span>' : '';
+        const todayBadge = isToday ? '<span class="glow-badge-today absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 text-[8px] sm:text-[9px] z-20 font-black shadow-md uppercase tracking-wider rounded-full bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white">HOY</span>' : '';
         const activeDot = (!visuallyDisabled && !isSelected) ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 mb-0.5 animate-pulse shadow-2xs"></span>' : (isSelected ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/90 mb-0.5 shadow-2xs"></span>' : '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-transparent mb-0.5"></span>');
         
         dayDiv.innerHTML = `${todayBadge}${activeDot}<span class="text-[9px] sm:text-[11px] font-black tracking-wider uppercase mb-0.5 ${isSelected ? 'text-white/90' : 'text-slate-400 dark:text-slate-400'}">${dayName}</span><span class="text-base sm:text-2xl font-black ${isSelected ? 'text-white' : 'text-slate-900 dark:text-slate-100'}">${date.getDate()}</span>`;

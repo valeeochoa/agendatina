@@ -261,8 +261,44 @@ if ($method === 'POST') {
             $stmt->execute(['id_negocio' => $id_negocio, 'nombre' => $nombre, 'duracion' => $duracion, 'precio' => $precio, 'precio_sena' => $precio_sena, 'capacidad' => $capacidad, 'descripcion' => $descripcion, 'profesional' => $profesional, 'email_profesional' => $email_profesional, 'foto_profesional' => $foto_profesional, 'imagen1' => $imagen1, 'imagen2' => $imagen2, 'imagen3' => $imagen3]);
         }
 
-        // Auto-sincronizar el profesional a la página web (Mi Equipo)
-        if (!empty($profesional)) {
+        // Auto-sincronizar el profesional a la tabla personal_negocio y usuarios (Mi Equipo)
+        if (!empty($profesional) && $profesional !== 'Cualquiera (Sin preferencia)' && $profesional !== 'Cualquiera') {
+            $profTrim = trim($profesional);
+            
+            // 1. Verificar si ya existe el profesional en personal_negocio / usuarios para este negocio
+            $stmtCheckProf = $pdo->prepare("
+                SELECT u.id 
+                FROM usuarios u
+                JOIN personal_negocio pn ON u.id = pn.id_usuario
+                WHERE pn.id_negocio = :id_negocio AND LOWER(TRIM(u.nombre_completo)) = LOWER(:nombre)
+                LIMIT 1
+            ");
+            $stmtCheckProf->execute(['id_negocio' => $id_negocio, 'nombre' => $profTrim]);
+            $existingProfId = $stmtCheckProf->fetchColumn();
+
+            if (!$existingProfId) {
+                // Si el profesional no existe aún en el equipo, crearlo automáticamente
+                $cleanEmail = !empty($email_profesional) ? trim($email_profesional) : strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $profTrim)) . '_' . $id_negocio . '@agendatina.site';
+                
+                $stmtCheckEmail = $pdo->prepare("SELECT id FROM usuarios WHERE email = :email LIMIT 1");
+                $stmtCheckEmail->execute(['email' => $cleanEmail]);
+                $uId = $stmtCheckEmail->fetchColumn();
+
+                if (!$uId) {
+                    $hash = password_hash('profesional123', PASSWORD_DEFAULT);
+                    $stmtInsU = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, role, fecha_creacion) VALUES (:nombre, :email, :pass, 'profesional', NOW())");
+                    $stmtInsU->execute(['nombre' => $profTrim, 'email' => $cleanEmail, 'pass' => $hash]);
+                    $uId = $pdo->lastInsertId();
+                }
+
+                if ($uId) {
+                    $defaultPerms = json_encode(['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 0, 'servicios' => 0, 'estadisticas' => 0, 'equipo' => 0]);
+                    $stmtInsPn = $pdo->prepare("INSERT IGNORE INTO personal_negocio (id_negocio, id_usuario, rol_en_local, permisos) VALUES (:id_negocio, :id_usuario, 'profesional', :permisos)");
+                    $stmtInsPn->execute(['id_negocio' => $id_negocio, 'id_usuario' => $uId, 'permisos' => $defaultPerms]);
+                }
+            }
+
+            // 2. Auto-sincronizar a configuracion_web.profesionales_json (Mi Web)
             $stmtCw = $pdo->prepare("SELECT profesionales_json FROM configuracion_web WHERE id_negocio = :id_negocio");
             $stmtCw->execute(['id_negocio' => $id_negocio]);
             $cw = $stmtCw->fetch();
@@ -273,7 +309,7 @@ if ($method === 'POST') {
             }
             $found = false;
             foreach ($profs as &$p) {
-                if ($p['nombre'] === $profesional) {
+                if ($p['nombre'] === $profTrim) {
                     $found = true;
                     if (!empty($foto_profesional) && empty($p['foto'])) {
                         $p['foto'] = $foto_profesional;
@@ -282,7 +318,7 @@ if ($method === 'POST') {
                 }
             }
             if (!$found) {
-                $profs[] = ['nombre' => $profesional, 'descripcion' => '', 'foto' => $foto_profesional];
+                $profs[] = ['nombre' => $profTrim, 'descripcion' => '', 'foto' => $foto_profesional];
             }
             $pdo->prepare("UPDATE configuracion_web SET profesionales_json = :json WHERE id_negocio = :id_negocio")
                 ->execute(['json' => json_encode($profs), 'id_negocio' => $id_negocio]);
