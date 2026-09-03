@@ -352,25 +352,25 @@ window.openEditTurnoModal = function(id) {
     if (!modal) {
         modal = document.createElement('div');
         modal.id = 'editTurnoModal';
-        modal.className = 'fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300';
+        modal.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[250] hidden flex items-center justify-center p-4 pt-16 sm:pt-20 opacity-0 transition-opacity duration-300 overflow-y-auto';
         modal.innerHTML = `
-            <div class="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 max-w-md w-full p-8 transform scale-95 transition-transform duration-300 flex flex-col max-h-[90vh]" id="editTurnoModalContent">
+            <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 flex flex-col max-h-[85vh] my-auto" id="editTurnoModalContent">
                 <div class="flex justify-between items-center mb-4 shrink-0">
-                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2" id="editModalTitleText">
+                    <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2" id="editModalTitleText">
                         <span class="material-symbols-outlined text-primary">edit_calendar</span> Modificar Turno
                     </h2>
-                    <button type="button" onclick="window.closeEditTurnoModal()" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined">close</span></button>
+                    <button type="button" onclick="window.closeEditTurnoModal()" class="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"><span class="material-symbols-outlined text-2xl">close</span></button>
                 </div>
                 
-                <div id="pastTurnoAlert" class="p-3 mb-3 text-slate-600 rounded-xl border border-slate-200 flex items-start gap-2 text-xs hidden shrink-0" style="background-color: #f8fafc;">
+                <div id="pastTurnoAlert" class="p-3 mb-3 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 flex items-start gap-2 text-xs hidden shrink-0" style="background-color: #f8fafc;">
                     <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 mt-0.5">info</span>
                     <div>
-                        <p class="font-bold text-slate-700">Turno en el Historial</p>
-                        <p class="text-slate-500">Este turno ya transcurrió. Solo puedes agregar o modificar las notas internas de control.</p>
+                        <p class="font-bold text-slate-700 dark:text-slate-200">Turno en el Historial</p>
+                        <p class="text-slate-500 dark:text-slate-400">Este turno ya transcurrió. Puedes gestionar la asistencia, notas o enviarlo a la papelera.</p>
                     </div>
                 </div>
 
-                <form id="editTurnoForm" class="space-y-4 overflow-y-auto pr-1 flex-1 custom-scrollbar">
+                <form id="editTurnoForm" class="space-y-4 overflow-y-auto pr-2 flex-1 custom-scrollbar max-h-[70vh]">
                     <input type="hidden" id="editTurnoId" name="id">
                     
                     <div>
