@@ -259,4 +259,22 @@ if (isset($pdo)) {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
     } catch (Throwable $ex) {}
 }
+
+// Auto-verificación de reinicio de turnos en Modo Demo (cada 15 minutos)
+if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || (isset($_SESSION['ruta_negocio']) && $_SESSION['ruta_negocio'] === 'demo') || (isset($_GET['n']) && strpos(strtolower($_GET['n']), 'demo') === 0) || (isset($dbname) && strpos($dbname, '_d') !== false)) {
+    try {
+        require_once __DIR__ . '/helpers/demo_helper.php';
+        $demoId = $_SESSION['id_negocio'] ?? null;
+        if (!$demoId) {
+            $stmtDemoN = $pdo->query("SELECT id FROM negocios WHERE ruta = 'demo' OR subdominio = 'demo' LIMIT 1");
+            if ($stmtDemoN) {
+                $demoId = $stmtDemoN->fetchColumn();
+                if ($demoId) $_SESSION['id_negocio'] = $demoId;
+            }
+        }
+        if ($demoId) {
+            asegurarDatosDemo($pdo, $demoId);
+        }
+    } catch (Throwable $eDemoAuto) {}
+}
 ?>

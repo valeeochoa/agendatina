@@ -28,19 +28,27 @@ if (!function_exists('asegurarDatosDemo')) {
             $idServ5 = $servs[4]['id'] ?? null;
 
             // 2. Verificar reinicio de turnos demo (cada 15 minutos o cuando no haya turnos vigentes)
+            try { $pdo->query("SELECT ultimo_reinicio_demo FROM configuracion_web LIMIT 1"); } 
+            catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN ultimo_reinicio_demo INT DEFAULT 0"); }
+
+            $stmtLastReset = $pdo->prepare("SELECT ultimo_reinicio_demo FROM configuracion_web WHERE id_negocio = ? LIMIT 1");
+            $stmtLastReset->execute([$negocioId]);
+            $dbLastReset = (int)$stmtLastReset->fetchColumn();
+
             $stmtMaxFecha = $pdo->prepare("SELECT MAX(fecha), COUNT(*) FROM turnos WHERE id_negocio = ? AND (estado != 'eliminado' OR estado IS NULL)");
             $stmtMaxFecha->execute([$negocioId]);
             $rowTurnos = $stmtMaxFecha->fetch(PDO::FETCH_NUM);
             $maxFecha = $rowTurnos[0] ?? null;
             $turnosCount = (int)($rowTurnos[1] ?? 0);
 
-            $lastReset = $_SESSION['last_demo_reset'] ?? 0;
+            $sessLastReset = (int)($_SESSION['last_demo_reset'] ?? 0);
+            $lastReset = max($dbLastReset, $sessLastReset);
             $currentTime = time();
             $needsReset = false;
 
             if ($turnosCount === 0) {
                 $needsReset = true;
-            } elseif (($currentTime - $lastReset) >= 900) { // 900 segundos = 15 minutos
+            } elseif ($lastReset === 0 || ($currentTime - $lastReset) >= 900) { // 900 segundos = 15 minutos
                 $needsReset = true;
             } elseif ($maxFecha && $maxFecha < date('Y-m-d')) { // Si los turnos pasaron al historial
                 $needsReset = true;
@@ -77,6 +85,9 @@ if (!function_exists('asegurarDatosDemo')) {
                 ]);
 
                 $_SESSION['last_demo_reset'] = $currentTime;
+                try {
+                    $pdo->prepare("UPDATE configuracion_web SET ultimo_reinicio_demo = ? WHERE id_negocio = ?")->execute([$currentTime, $negocioId]);
+                } catch(Throwable $eUp) {}
             }
 
             // 3. Asegurar notificaciones iniciales

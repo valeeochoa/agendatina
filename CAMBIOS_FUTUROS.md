@@ -42,7 +42,7 @@ Este documento registra las nuevas características, mejoras planificadas y soli
     - **Recordatorio Automático previo**: Ejecutar un script programado (Cron Job PHP) que envíe un mensaje de recordatorio 24 horas y/o 2 horas antes de la cita.
     - **Aviso al Profesional**: Enviar notificación al celular del profesional cuando le agenden o modifiquen un turno.
   - **Plantillas Personalizables con Variables**: Permitir editar el texto del mensaje usando etiquetas dinámicas (`{cliente}`, `{servicio}`, `{fecha}`, `{hora}`, `{profesional}`, `{direccion}`).
-  - **Notificaciones por Email con Casilla de Tilde**: Opción activable mediante un interruptor (*Checkbox / Caja de tilde*) en `ajustes.html` para habilitar o pausar el envío automático de emails de confirmación y cancelación.
+  - **Notificaciones por Email con Casilla de Tilde**: Opción activable mediante un interruptor (*Checkbox / Caja de tilde*) en `ajustes.html` para habilitar o pausar el envío automático de emails de confirmación y cancelación. Ademas se le deberia avisar al profesional cuando antes de que sea hora del cupo aprox 10min con los alumnos que va a revisar, el tiempo antes que se le avisa lo agrega el profesional, a su vez tambien si el cliente marco el turno cuanto tiempo antes tiene para avisar del turno, etc
   - **Control por Comercio**: Interruptor de activación/desactivación de notificaciones por canal (Email / WhatsApp) en el panel del negocio para evitar envíos no deseados.
 
 ---
@@ -98,6 +98,7 @@ Este documento registra las nuevas características, mejoras planificadas y soli
   - **Creación de Servicios Grupales por Cupo**: Definir la capacidad máxima de personas admitidas por bloque de horario (ej: 6 alumnos por clase de Pilates).
   - **Gestión de Créditos y Renovación de Pases**: Botón para sumar créditos manualmente, renovar la cuota mensual o pausar la membresía de un cliente.
   - **Toma de Asistencia en 1 Clic**: Grilla rápida para marcar el presente o ausente de los alumnos anotados en cada clase.
+  - Se le deberia notificar al profesional antes de la clase y el listado de los alumnos que va a tener
 
   ### 5. Estrategia Comercial e Integración en `index.html` (Planes y Ofertas)
 
