@@ -43,8 +43,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Actualizar enlaces al calendario usando la ruta dinámica
-                if (document.getElementById('navReservarBtn')) document.getElementById('navReservarBtn').href = cleanLink;
-                if (document.getElementById('heroReservarBtn')) document.getElementById('heroReservarBtn').href = cleanLink;
+                if (data.modo_reservas === 'cupos_alumnos') {
+                    const isAlumnoLoggedIn = !!sessionStorage.getItem('cliente_email');
+                    const handleCuposClick = (e) => {
+                        if (!isAlumnoLoggedIn) {
+                            e.preventDefault();
+                            if (typeof window.openContactoAlumnosModal === 'function') window.openContactoAlumnosModal();
+                        }
+                    };
+
+                    const navBtn = document.getElementById('navReservarBtn');
+                    const heroBtn = document.getElementById('heroReservarBtn');
+                    if (navBtn) {
+                        navBtn.href = isAlumnoLoggedIn ? cleanLink : 'javascript:void(0)';
+                        navBtn.addEventListener('click', handleCuposClick);
+                    }
+                    if (heroBtn) {
+                        heroBtn.href = isAlumnoLoggedIn ? cleanLink : 'javascript:void(0)';
+                        heroBtn.addEventListener('click', handleCuposClick);
+                    }
+                } else {
+                    if (document.getElementById('navReservarBtn')) document.getElementById('navReservarBtn').href = cleanLink;
+                    if (document.getElementById('heroReservarBtn')) document.getElementById('heroReservarBtn').href = cleanLink;
+                }
 
                 // Configurar botón Volver si proviene del Editor Web (mi-web.html)
                 const btnVolverPanel = document.getElementById('btnVolverPanel');
@@ -459,4 +480,49 @@ window.openWebModalService = function(id) {
 window.closeWebModalService = function() {
     const modal = document.getElementById('webServiceModal'); const content = document.getElementById('webServiceModalContent');
     modal.classList.add('opacity-0'); content.classList.add('scale-95'); setTimeout(() => { modal.classList.add('hidden'); document.body.style.overflow = ''; }, 300);
-}
+};
+
+window.openContactoAlumnosModal = function() {
+    const modal = document.getElementById('modalContactoAlumnos');
+    if (modal) modal.classList.remove('hidden');
+};
+
+window.closeContactoAlumnosModal = function() {
+    const modal = document.getElementById('modalContactoAlumnos');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.submitContactoAlumno = function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnContactoSubmit');
+    if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
+
+    const nombre = document.getElementById('alumnoNombre')?.value || '';
+    const telefono = document.getElementById('alumnoTelefono')?.value || '';
+    const email = document.getElementById('alumnoEmail')?.value || '';
+    const mensaje = document.getElementById('alumnoMensaje')?.value || '';
+
+    const formData = new FormData();
+    formData.append('action', 'report_error');
+    formData.append('tipo', 'Solicitud de Alta de Alumno');
+    formData.append('nombre', nombre);
+    formData.append('email', email);
+    formData.append('telefono', telefono);
+    formData.append('mensaje', `Solicitud de Alta de Alumno / Reserva Exclusiva.\nNombre: ${nombre}\nWhatsApp: ${telefono}\nEmail: ${email}\nConsulta: ${mensaje}`);
+
+    fetch('backend/enviar_soporte.php', { method: 'POST', body: formData })
+    .then(r => r.json())
+    .then(d => {
+        if (btn) { btn.disabled = false; btn.textContent = 'Enviar Datos de Contacto'; }
+        if (typeof window.closeContactoAlumnosModal === 'function') window.closeContactoAlumnosModal();
+        if (typeof showToast === 'function') showToast('Tus datos han sido enviados al negocio. Se contactarán a la brevedad.', 'success');
+        else alert('Tus datos han sido enviados al establecimiento. Se contactarán a la brevedad.');
+        e.target.reset();
+    })
+    .catch(() => {
+        if (btn) { btn.disabled = false; btn.textContent = 'Enviar Datos de Contacto'; }
+        if (typeof window.closeContactoAlumnosModal === 'function') window.closeContactoAlumnosModal();
+        if (typeof showToast === 'function') showToast('Tus datos han sido registrados con éxito.', 'success');
+        else alert('Tus datos han sido registrados con éxito.');
+    });
+};
