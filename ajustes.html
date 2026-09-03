@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Ajustes del Sistema | Agendatina</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23D11149'><path d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-2.5 5.43l-4.57 4.57-2.43-2.43 1.41-1.41 1.02 1.02 3.16-3.16 1.41 1.41z'/></svg>">
+    <link rel="icon" href="public/logo.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
@@ -362,36 +362,21 @@
                 </div>
             </div>
 
-            <!-- Modalidad de Reserva y Control de Clientes -->
-            <div class="bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700 p-5 rounded-2xl mb-6 shadow-xs hover:border-slate-300 transition-all">
-                <div class="flex items-center gap-3.5 mb-4">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
-                        <span class="material-symbols-outlined text-xl">groups</span>
-                    </div>
-                    <div>
-                        <h3 class="text-sm sm:text-base font-extrabold text-slate-900 dark:text-slate-100">Modalidad de Reserva y Registro de Clientes</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Define cómo interactúan tus clientes al solicitar un turno o clase.</p>
-                    </div>
-                </div>
+            <!-- Modalidad de Reserva y Registro de Clientes -->
+            <div class="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-slate-200 mb-6">
+                <h2 class="text-xl font-bold mb-1 text-slate-900">Modalidad de Reserva y Registro de Clientes</h2>
+                <p class="text-sm text-slate-500 mb-6">Define cómo interactúan tus clientes al solicitar un turno o clase en tu negocio.</p>
+                
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Acceso de Clientes a tu Turnero</label>
+                    <select id="selectModoReservas" name="modo_reservas" onchange="updateModoReservasFromSelect(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none transition-all font-medium text-slate-800">
+                        <option value="libre" selected>🌐 Reserva Libre (Sin Registro) — Cualquier cliente puede reservar directamente</option>
+                        <option value="cupos_alumnos">🎓 Módulo de Cupos y Alumnos — Exclusivo para alumnos registrados en mi-cuenta.html</option>
+                    </select>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                    <label class="cursor-pointer relative p-4 rounded-2xl border-2 border-slate-200 peer-checked:border-[#D11149] has-[:checked]:border-[#D11149] has-[:checked]:bg-[#fcb0b3]/10 transition-all">
-                        <input type="radio" name="modo_reservas" value="libre" id="modoReservaLibre" class="sr-only" checked>
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="material-symbols-outlined text-[#D11149] text-[20px]">public</span>
-                            <strong class="text-sm font-extrabold text-slate-900 dark:text-slate-100">Reserva Libre (Sin Registro)</strong>
-                        </div>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Cualquier cliente puede reservar directamente eligiendo servicio y horario sin necesidad de iniciar sesión.</p>
-                    </label>
-
-                    <label class="cursor-pointer relative p-4 rounded-2xl border-2 border-slate-200 peer-checked:border-orange-500 has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50/50 dark:has-[:checked]:bg-orange-950/20 transition-all">
-                        <input type="radio" name="modo_reservas" value="cupos_alumnos" id="modoReservaCupos" class="sr-only">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="material-symbols-outlined text-orange-600 text-[20px]">school</span>
-                            <strong class="text-sm font-extrabold text-slate-900 dark:text-slate-100">Módulo de Cupos y Alumnos</strong>
-                        </div>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Los alumnos deben ingresar con su email o estar registrados para reservar sus clases y gestionar pases en <a href="mi-cuenta.html" target="_blank" class="text-orange-600 font-bold underline">mi-cuenta.html</a>.</p>
-                    </label>
+                    <div id="modoReservasHelpText" class="mt-3 text-xs text-slate-600 bg-slate-100/70 border border-slate-200/80 rounded-xl p-3.5 leading-relaxed font-medium">
+                        💡 <strong>Reserva Libre (Estándar):</strong> Cualquier cliente puede ingresar a tu web, elegir servicio y horario directamente sin necesidad de iniciar sesión previa ni crear cuenta.
+                    </div>
                 </div>
             </div>
 

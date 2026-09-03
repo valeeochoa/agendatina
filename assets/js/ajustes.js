@@ -195,10 +195,11 @@ window.applyCalendarConfigToForm = function(data) {
 
     if (data.modo_reservas !== undefined) {
         const modoVal = data.modo_reservas || 'libre';
-        const radioLibre = form.querySelector('#modoReservaLibre');
-        const radioCupos = form.querySelector('#modoReservaCupos');
-        if (modoVal === 'cupos_alumnos' && radioCupos) radioCupos.checked = true;
-        else if (radioLibre) radioLibre.checked = true;
+        const selectModo = form.querySelector('#selectModoReservas');
+        if (selectModo) {
+            selectModo.value = modoVal;
+            if (typeof window.updateModoReservasFromSelect === 'function') window.updateModoReservasFromSelect(modoVal);
+        }
     }
 
     if (data.primer_dia_semana !== undefined) {
@@ -320,7 +321,16 @@ window.updateSenaHelpText = function() {
         helpText.innerHTML = '⚡ <strong>Seña del 100%:</strong> Significa que no se exige sólo una reserva parcial, sino que abonen el total del producto o servicio vía Mercado Pago para confirmar el turno.';
     } else {
         if (helpBadge) helpBadge.className = 'text-xs p-3 rounded-xl border leading-relaxed font-bold transition-all bg-purple-50 text-purple-900 border-purple-200/80 flex items-start gap-2';
-        helpText.innerHTML = `⌛ <strong>Seña del ${val}%:</strong> El cliente abonará un <strong>${val}%</strong> vía Mercado Pago como seña para reservar el turno, y el saldo restante lo abonará en el local.`;
+    }
+};
+
+window.updateModoReservasFromSelect = function(val) {
+    const helpText = document.getElementById('modoReservasHelpText');
+    if (!helpText) return;
+    if (val === 'cupos_alumnos') {
+        helpText.innerHTML = `🎓 <strong>Módulo de Cupos y Alumnos:</strong> Tus alumnos deben ingresar con su email o estar pre-registrados para reservar clases y gestionar sus pases en <a href="mi-cuenta.html" target="_blank" class="text-orange-600 font-bold underline">mi-cuenta.html</a>. Los visitantes no registrados completarán un formulario de solicitud de contacto.`;
+    } else {
+        helpText.innerHTML = `💡 <strong>Reserva Libre (Estándar):</strong> Cualquier cliente puede ingresar a tu web, elegir servicio y horario directamente sin necesidad de iniciar sesión previa ni crear cuenta.`;
     }
 };
 
@@ -718,7 +728,7 @@ function handleCalendarConfigSubmit(e) {
         tipo_calendario: tipoCalendario,
         usar_fondo_degrade: form.querySelector('#configFondoDegrade')?.checked ? 1 : 0,
         notificaciones_email: form.querySelector('#notificacionesEmail')?.checked ? 1 : 0,
-        modo_reservas: form.querySelector('input[name="modo_reservas"]:checked')?.value || 'libre',
+        modo_reservas: form.querySelector('#selectModoReservas')?.value || 'libre',
         limite_eliminacion_dias: form.querySelector('#configLimiteEliminacion')?.value || 0,
         horarios_detallados_json: form.querySelector('#horariosDetalladosJsonInput')?.value || '{}',
         metodos_pago: metodosStr,

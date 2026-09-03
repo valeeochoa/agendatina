@@ -103,8 +103,8 @@ if (!function_exists('asegurarDatosDemo')) {
             $stmtCfgCount = $pdo->prepare("SELECT COUNT(*) FROM configuracion_web WHERE id_negocio = ?");
             $stmtCfgCount->execute([$negocioId]);
             if ((int)$stmtCfgCount->fetchColumn() === 0) {
-                $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, intervalo_turnos, tipo_calendario, titulo)
-                               VALUES (?, '#D11149', '#FC8712', 'Agendatina', '30', 'clasico', 'Agendatina')")->execute([$negocioId]);
+                $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, intervalo_turnos, tipo_calendario, titulo, usar_fondo_degrade, primer_dia_semana)
+                               VALUES (?, '#D11149', '#FC8712', 'Agendatina', '30', 'clasico', 'Agendatina', 1, 1)")->execute([$negocioId]);
             }
 
             // 5. Asegurar usuarios y personal del equipo Demo (Valentina, Camila, Sofía, Marcos)
