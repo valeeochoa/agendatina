@@ -242,8 +242,8 @@
 
         <!-- Grilla Semanal Full-Width Ampliada -->
         <div class="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-4 sm:p-5 rounded-3xl shadow-xl border border-slate-200/90 dark:border-slate-800/90 w-full overflow-hidden">
-            <div class="flex flex-col sm:flex-row justify-between items-center mb-4 w-full relative gap-3">
-                <div class="flex items-center gap-2 flex-wrap">
+            <div class="grid grid-cols-1 md:grid-cols-3 items-center mb-4 w-full gap-3">
+                <div class="flex items-center gap-2 flex-wrap justify-center md:justify-start">
                     <button id="btnMultiSelect" onclick="toggleMultiSelectMode()" class="flex items-center gap-1.5 px-3.5 py-2 bg-slate-100/90 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-bold text-xs transition-all shadow-xs cursor-pointer" title="Activa el modo para seleccionar y bloquear varios días enteros de tu agenda a la vez">
                         <span class="material-symbols-outlined text-[18px]">block</span>
                         <span class="hidden sm:inline">Bloquear Varios Días</span>
@@ -254,15 +254,19 @@
                     </button>
                 </div>
                 
-                <div class="flex items-center justify-center bg-slate-100/80 dark:bg-slate-800/70 p-1.5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60">
-                    <button id="adminPrevWeekBtn" class="w-8 h-8 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-xl hover:bg-[#D11149] hover:text-white transition-colors cursor-pointer" title="Semana Anterior">
-                        <span class="material-symbols-outlined text-slate-700 dark:text-slate-200 text-base">chevron_left</span>
-                    </button>
-                    <h2 id="adminWeekMonthYear" class="font-extrabold text-sm sm:text-base uppercase tracking-wider text-slate-900 dark:text-slate-100 text-center mx-3 capitalize">Mes Año</h2>
-                    <button id="adminNextWeekBtn" class="w-8 h-8 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-xl hover:bg-[#D11149] hover:text-white transition-colors cursor-pointer" title="Semana Siguiente">
-                        <span class="material-symbols-outlined text-slate-700 dark:text-slate-200 text-base">chevron_right</span>
-                    </button>
+                <div class="flex justify-center items-center">
+                    <div class="inline-flex items-center justify-center bg-slate-100/80 dark:bg-slate-800/70 p-1.5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-2xs">
+                        <button id="adminPrevWeekBtn" class="w-8 h-8 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-xl hover:bg-[#D11149] hover:text-white transition-colors cursor-pointer" title="Semana Anterior">
+                            <span class="material-symbols-outlined text-slate-700 dark:text-slate-200 text-base">chevron_left</span>
+                        </button>
+                        <h2 id="adminWeekMonthYear" class="font-extrabold text-sm sm:text-base uppercase tracking-wider text-slate-900 dark:text-slate-100 text-center mx-3 min-w-[140px] capitalize">Mes Año</h2>
+                        <button id="adminNextWeekBtn" class="w-8 h-8 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-xl hover:bg-[#D11149] hover:text-white transition-colors cursor-pointer" title="Semana Siguiente">
+                            <span class="material-symbols-outlined text-slate-700 dark:text-slate-200 text-base">chevron_right</span>
+                        </button>
+                    </div>
                 </div>
+
+                <div class="hidden md:flex justify-end items-center"></div>
             </div>
             
             <div class="p-2 sm:p-3.5 bg-slate-50/80 dark:bg-slate-950/40 rounded-2xl border border-slate-200/60 dark:border-slate-800/60">
@@ -452,7 +456,7 @@
     </div>
 </footer>
 
-  <script src="assets/js/script.js?v=1.5.8" defer></script>
-  <script src="assets/js/calendario.js?v=1.5.8" defer></script>
+  <script src="assets/js/script.js?v=1.5.9" defer></script>
+  <script src="assets/js/calendario.js?v=1.5.9" defer></script>
   </body>
 </html>
