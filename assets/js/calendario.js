@@ -1858,11 +1858,12 @@ function renderAdminWeeklyGrid() {
     for (let i = 0; i < 7; i++) {
         const date = new Date(weekStartDate); date.setDate(weekStartDate.getDate() + i);
         const dateString = toYYYYMMDD(date); const isPast = date < today;
-        const col = document.createElement('div'); col.className = 'w-full min-w-0 flex flex-col gap-2 p-1.5 sm:p-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-xs transition-all duration-300 hover:shadow-md';
         const dayName = new Intl.DateTimeFormat('es-ES', { weekday: 'short' }).format(date).toUpperCase();
         const isToday = date.getTime() === today.getTime();
         
         const isMultiSelected = isMultiSelectMode && selectedDates.includes(dateString);
+
+        let colCardClass = 'bg-white/90 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-800/80 shadow-2xs hover:shadow-xs';
         let headerBgClass = 'bg-slate-100/80 dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 hover:bg-slate-200/80';
         let dayNameClass = 'text-slate-400 dark:text-slate-400 font-bold';
         let dateNumClass = 'text-slate-900 dark:text-slate-100 font-black';
@@ -1875,15 +1876,30 @@ function renderAdminWeeklyGrid() {
             headerBgClass = 'bg-gradient-to-br from-[#D11149] to-[#E61B58] text-white border-transparent shadow-md shadow-rose-500/25';
             dayNameClass = 'text-rose-100 font-extrabold';
             dateNumClass = 'text-white font-black';
+        } else if (isPast) {
+            colCardClass = 'bg-slate-100/60 dark:bg-slate-900/50 border-slate-200/60 dark:border-slate-800/60 shadow-2xs opacity-85';
+            headerBgClass = 'bg-slate-200/60 dark:bg-slate-800/60 border-slate-300/60 dark:border-slate-700/60 text-slate-500 dark:text-slate-400 hover:bg-slate-300/60';
+            dayNameClass = 'text-slate-400 dark:text-slate-500 font-bold';
+            dateNumClass = 'text-slate-600 dark:text-slate-300 font-black';
         }
 
+        const col = document.createElement('div');
+        col.className = `w-full min-w-0 flex flex-col gap-1.5 p-1.5 sm:p-2 backdrop-blur-md rounded-2xl border transition-all duration-300 ${colCardClass}`;
+
         const colHeader = document.createElement('div');
-        colHeader.className = `text-center py-2 px-1 rounded-xl border transition-all duration-300 cursor-pointer w-full shrink-0 ${headerBgClass}`;
-        const todayTag = isToday && !isMultiSelected ? '<span class="inline-block text-[8px] font-black tracking-widest px-1.5 py-0.2 rounded-full bg-white/20 text-white mb-0.5">HOY</span>' : '';
-        colHeader.innerHTML = `${todayTag}<div class="text-[9px] sm:text-[10px] font-black tracking-wider uppercase ${dayNameClass}">${dayName}</div><div class="text-base sm:text-lg ${dateNumClass}">${date.getDate()}</div>`;
+        colHeader.className = `text-center py-1.5 px-1 rounded-xl border transition-all duration-300 cursor-pointer w-full shrink-0 ${headerBgClass}`;
+        
+        let todayTag = '';
+        if (isToday && !isMultiSelected) {
+            todayTag = '<span class="inline-block text-[8px] font-black tracking-widest px-1.5 py-0.2 rounded-full bg-white/20 text-white mb-0.5">HOY</span>';
+        } else if (isPast && !isMultiSelected) {
+            todayTag = '<span class="inline-block text-[8px] font-bold tracking-widest px-1.5 py-0.2 rounded-full bg-slate-300/60 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 mb-0.5 uppercase">Pasado</span>';
+        }
+
+        colHeader.innerHTML = `${todayTag}<div class="text-[9px] sm:text-[10px] font-black tracking-wider uppercase ${dayNameClass}">${dayName}</div><div class="text-sm sm:text-base ${dateNumClass}">${date.getDate()}</div>`;
         colHeader.onclick = () => handleDayClick(new Date(date.getTime() + 12*60*60*1000));
         
-        if (effectiveIsAdmin && !isPast && window.isWorkingDay(date)) {
+        if (effectiveIsAdmin && window.isWorkingDay(date)) {
             colHeader.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 colHeader.style.transform = 'scale(1.05)';
@@ -1904,18 +1920,19 @@ function renderAdminWeeklyGrid() {
         
         col.appendChild(colHeader);
         
-        const slotsContainer = document.createElement('div'); slotsContainer.className = 'flex flex-col gap-1.5 max-h-[440px] overflow-y-auto pr-0.5 custom-scrollbar w-full flex-1';
+        const slotsContainer = document.createElement('div'); slotsContainer.className = 'flex flex-col gap-1.5 max-h-[460px] overflow-y-auto pr-0.5 custom-scrollbar w-full flex-1';
         
         const horasOcupadas = [...(cal_bookedSlots[dateString] || []), ...window.getBreakTimes()];
         const isGeneralBlock = horasOcupadas.includes('blocked_day');
         let isProfBlock = horasOcupadas.includes('blocked_day_prof');
         if (!adminWeeklySelectedProf || adminWeeklySelectedProf === 'columnas' || adminWeeklySelectedProf === 'Cualquiera (Sin preferencia)') isProfBlock = false;
         
-        if (isPast || !window.isWorkingDay(date) || isGeneralBlock || isProfBlock) {
+        // En vista administrador, NO bloquear la columna por ser un día pasado
+        if (!window.isWorkingDay(date) || isGeneralBlock || isProfBlock) {
             slotsContainer.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-8 px-1 text-center h-full min-h-[220px] rounded-xl bg-slate-50/80 dark:bg-slate-800/30 border border-dashed border-slate-200/80 dark:border-slate-700/80 text-slate-400">
-                    <span class="material-symbols-outlined text-[20px] text-slate-300 dark:text-slate-600 mb-1">event_busy</span>
-                    <span class="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">No disponible</span>
+                <div class="flex flex-col items-center justify-center py-6 px-1 text-center h-full min-h-[160px] rounded-xl bg-slate-50/80 dark:bg-slate-800/30 border border-dashed border-slate-200/80 dark:border-slate-700/80 text-slate-400">
+                    <span class="material-symbols-outlined text-[18px] text-slate-300 dark:text-slate-600 mb-0.5">event_busy</span>
+                    <span class="text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">No disponible</span>
                 </div>
             `;
         } else {
@@ -1934,7 +1951,14 @@ function renderAdminWeeklyGrid() {
                 if (!isBooked && isToday && slotDate.getTime() <= new Date().getTime()) isBooked = true;
                 
                 const slot = document.createElement('div');
-                slot.className = `py-2 px-1 text-center text-[10px] sm:text-xs font-black rounded-xl border transition-all duration-200 ${isBooked ? 'bg-slate-100/70 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800/80 text-slate-400 dark:text-slate-600 cursor-not-allowed' : 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300/80 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 hover:scale-[1.03] hover:shadow-md hover:border-emerald-500 cursor-pointer shadow-2xs'}`;
+                
+                let slotStyleClass = isBooked 
+                    ? 'bg-slate-100/70 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800/80 text-slate-400 dark:text-slate-600 cursor-not-allowed' 
+                    : (isPast 
+                        ? 'bg-slate-200/60 dark:bg-slate-800/60 border-slate-300/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-400 hover:bg-slate-300/80 hover:text-slate-900 hover:scale-[1.02] cursor-pointer shadow-2xs' 
+                        : 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300/80 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 hover:scale-[1.03] hover:shadow-md hover:border-emerald-500 cursor-pointer shadow-2xs');
+
+                slot.className = `py-1.5 px-1 text-center text-[10px] sm:text-xs font-black rounded-xl border transition-all duration-200 ${slotStyleClass}`;
                 
                 if (!isBooked) {
                     slot.textContent = time;
@@ -1967,9 +1991,9 @@ function renderAdminWeeklyGrid() {
                         const isPend = apts.some(a => a.estado === 'pendiente');
                         const isBlock = apts.some(a => a.estado === 'bloqueado');
                         
-                        let bgClass = 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200';
-                        if (isPend) bgClass = 'bg-amber-50 dark:bg-amber-950/50 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200';
-                        else if (isBlock) bgClass = 'bg-rose-50 dark:bg-rose-950/50 border-rose-300 dark:border-rose-700 text-rose-900 dark:text-rose-200';
+                        let bgClass = isPast 
+                            ? 'bg-slate-200/80 dark:bg-slate-800/80 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300' 
+                            : (isPend ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200' : (isBlock ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-300 dark:border-rose-700 text-rose-900 dark:text-rose-200' : 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200'));
 
                         slot.className = `p-1.5 text-left text-xs rounded-xl border transition-all shadow-xs cursor-pointer hover:shadow-md hover:scale-[1.02] ${bgClass}`;
                         slot.innerHTML = `<div class="font-extrabold text-[11px] mb-0.5 flex justify-between items-center"><span>${time}</span></div>`;
@@ -1978,14 +2002,18 @@ function renderAdminWeeklyGrid() {
                             const clientName = apt.cliente_nombre || (apt.nombre + ' ' + (apt.apellido || '')) || 'Sin Nombre';
                             const isP = apt.estado === 'pendiente';
                             const isB = apt.estado === 'bloqueado';
-                            const badgePill = isP ? '<span class="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-amber-200 text-amber-900 ml-1">⏳ Pendiente</span>' : (isB ? '<span class="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-rose-200 text-rose-900 ml-1">🚫 Bloqueado</span>' : '<span class="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-emerald-200 text-emerald-900 ml-1">✅ Confirmado</span>');
+                            const isAttended = (parseInt(apt.asistio) === 1 || apt.asistio === 'si' || apt.asistio === true || apt.estado === 'atendido');
+
+                            let badgePill = isAttended 
+                                ? '<span class="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-emerald-200 text-emerald-900 ml-1">✓ Asistió</span>' 
+                                : (isP ? '<span class="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-amber-200 text-amber-900 ml-1">⏳ Pendiente</span>' : (isB ? '<span class="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-rose-200 text-rose-900 ml-1">🚫 Bloqueado</span>' : '<span class="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-blue-200 text-blue-900 ml-1">✅ Reservado</span>'));
                             
                             const divApt = document.createElement('div');
                             divApt.className = "mt-1 pt-1 border-t border-black/10 dark:border-white/10 cursor-pointer hover:opacity-90 transition-opacity";
                             
                             if (effectiveIsAdmin && !isB) {
                                 divApt.draggable = true;
-                                divApt.title = "Haz clic para ver detalles o arrastra para mover turno";
+                                divApt.title = "Haz clic para ver detalles, marcar asistencia o borrar turno";
                                 divApt.addEventListener('dragstart', (e) => {
                                     e.stopPropagation();
                                     e.dataTransfer.setData('text/plain', apt.id);

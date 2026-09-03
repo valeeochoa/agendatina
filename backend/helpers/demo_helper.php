@@ -27,18 +27,34 @@ if (!function_exists('asegurarDatosDemo')) {
             $idServ4 = $servs[3]['id'] ?? null;
             $idServ5 = $servs[4]['id'] ?? null;
 
-            // 2. Verificar si el negocio ya tiene turnos registrados
-            $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM turnos WHERE id_negocio = ?");
-            $stmtCount->execute([$negocioId]);
-            $turnosCount = (int)$stmtCount->fetchColumn();
+            // 2. Verificar reinicio de turnos demo (cada 15 minutos o cuando no haya turnos vigentes)
+            $stmtMaxFecha = $pdo->prepare("SELECT MAX(fecha), COUNT(*) FROM turnos WHERE id_negocio = ? AND (estado != 'eliminado' OR estado IS NULL)");
+            $stmtMaxFecha->execute([$negocioId]);
+            $rowTurnos = $stmtMaxFecha->fetch(PDO::FETCH_NUM);
+            $maxFecha = $rowTurnos[0] ?? null;
+            $turnosCount = (int)($rowTurnos[1] ?? 0);
+
+            $lastReset = $_SESSION['last_demo_reset'] ?? 0;
+            $currentTime = time();
+            $needsReset = false;
 
             if ($turnosCount === 0) {
+                $needsReset = true;
+            } elseif (($currentTime - $lastReset) >= 900) { // 900 segundos = 15 minutos
+                $needsReset = true;
+            } elseif ($maxFecha && $maxFecha < date('Y-m-d')) { // Si los turnos pasaron al historial
+                $needsReset = true;
+            }
+
+            if ($needsReset) {
+                // Eliminar turnos previa cuenta demo y volver a generar turnos vigentes y variados
+                $pdo->prepare("DELETE FROM turnos WHERE id_negocio = ?")->execute([$negocioId]);
+
                 $t_hoy = date('Y-m-d');
                 $t_m1 = date('Y-m-d', strtotime('+1 day'));
                 $t_m2 = date('Y-m-d', strtotime('+2 days'));
                 $t_m3 = date('Y-m-d', strtotime('+3 days'));
                 $t_p1 = date('Y-m-d', strtotime('-1 day'));
-                $t_p2 = date('Y-m-d', strtotime('-2 days'));
 
                 $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, estado, asistio, precio) VALUES 
                     (?, 'María Gómez', '1123456789', ?, '10:00', 'Corte de Demostración', 'Valentina', ?, 'confirmado', 0, 8000),
@@ -56,9 +72,11 @@ if (!function_exists('asegurarDatosDemo')) {
                     $negocioId, $t_m1, $idServ3,
                     $negocioId, $t_m2, $idServ5,
                     $negocioId, $t_p1, $idServ2,
-                    $negocioId, $t_p2, $idServ1,
+                    $negocioId, $t_p1, $idServ1,
                     $negocioId, $t_m3, $idServ4
                 ]);
+
+                $_SESSION['last_demo_reset'] = $currentTime;
             }
 
             // 3. Asegurar notificaciones iniciales

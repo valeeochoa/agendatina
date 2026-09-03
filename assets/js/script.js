@@ -586,6 +586,122 @@ window.closeEditTurnoModal = function() {
     }
 };
 
+// --- Modal Global de Papelera de Reciclaje ---
+window.openPapeleraModal = function() {
+    let modal = document.getElementById('papeleraModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'papeleraModal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 pt-16 sm:pt-20 opacity-0 transition-opacity duration-300 overflow-y-auto hidden';
+        modal.innerHTML = `
+            <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl max-w-2xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[85vh] flex flex-col my-auto border border-slate-100 dark:border-slate-700" id="papeleraModalContent">
+                <div class="flex justify-between items-center mb-4 shrink-0">
+                    <h2 class="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-red-500 text-2xl">delete_sweep</span> Papelera de Reciclaje
+                    </h2>
+                    <button type="button" onclick="window.closePapeleraModal()" class="text-slate-400 hover:text-red-500 transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="p-3 mb-4 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 flex items-start gap-2.5 text-xs bg-slate-50 dark:bg-slate-900/60 shrink-0">
+                    <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 mt-0.5">info</span>
+                    <div>
+                        <p class="font-bold text-slate-700 dark:text-slate-200">Turnos Cancelados y Borrados</p>
+                        <p class="text-slate-500 dark:text-slate-400">Puedes restaurar cualquier turno si se eliminó por error o borrarlo definitivamente.</p>
+                    </div>
+                </div>
+                <div id="papeleraList" class="space-y-3 overflow-y-auto pr-1 flex-1 custom-scrollbar min-h-[150px]">
+                    <p class="text-center text-slate-400 py-8 text-sm">Cargando papelera...</p>
+                </div>
+                <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center shrink-0">
+                    <button onclick="window.vaciarPapeleraCompletamente()" class="text-xs font-bold text-red-600 hover:text-red-700 dark:text-red-400 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[16px]">delete_forever</span> Vaciar Papelera
+                    </button>
+                    <button onclick="window.closePapeleraModal()" class="px-4 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-xs transition-colors">
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        const content = document.getElementById('papeleraModalContent');
+        if (content) content.classList.remove('scale-95');
+    }, 10);
+
+    const container = document.getElementById('papeleraList');
+    if (container) container.innerHTML = '<p class="text-center text-slate-400 py-8 text-sm">Cargando papelera...</p>';
+
+    fetch('backend/gestionar_papelera.php')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && Array.isArray(data.data)) {
+                window.renderPapeleraModalList(data.data);
+            } else {
+                if (container) container.innerHTML = '<p class="text-center text-red-500 py-8 text-sm">Error al cargar la papelera.</p>';
+            }
+        })
+        .catch(() => {
+            if (container) container.innerHTML = '<p class="text-center text-red-500 py-8 text-sm">Error de conexión al cargar la papelera.</p>';
+        });
+};
+
+window.closePapeleraModal = function() {
+    const modal = document.getElementById('papeleraModal');
+    const content = document.getElementById('papeleraModalContent');
+    if (modal) {
+        modal.classList.add('opacity-0');
+        if (content) content.classList.add('scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+};
+
+window.renderPapeleraModalList = function(list) {
+    const container = document.getElementById('papeleraList');
+    if (!container) return;
+    if (!Array.isArray(list) || list.length === 0) {
+        container.innerHTML = '<div class="p-8 text-center text-sm font-medium text-slate-400 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">No hay turnos en la papelera.</div>';
+        return;
+    }
+
+    let html = '';
+    list.forEach(t => {
+        const clienteName = t.cliente_nombre || (t.nombre + ' ' + (t.apellido || '')) || 'Cliente';
+        const celular = t.cliente_celular || t.celular || '';
+        const fElim = t.fecha_eliminado ? new Date(t.fecha_eliminado).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }) : 'Reciente';
+
+        html += `
+            <div class="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-slate-300 dark:hover:border-slate-600 transition-all">
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 text-[10px] font-bold px-2 py-0.5 rounded uppercase border border-red-200 dark:border-red-800">${t.estado || 'eliminado'}</span>
+                        <span class="text-[11px] text-slate-400 font-medium">Movido: ${fElim}</span>
+                    </div>
+                    <h4 class="font-bold text-slate-900 dark:text-slate-100 text-sm sm:text-base line-through opacity-80">${clienteName}</h4>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5 flex flex-wrap items-center gap-2">
+                        <span>📅 ${t.fecha} • ${t.hora} hs</span>
+                        <span>✂️ ${t.servicio}</span>
+                        ${celular ? `<span>📱 ${celular}</span>` : ''}
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button onclick="window.restaurarTurnoAdmin(${t.id})" class="flex-1 sm:flex-none px-3 py-1.5 bg-green-50 hover:bg-green-100 dark:bg-green-950/40 dark:hover:bg-green-900/60 text-green-700 dark:text-green-300 font-bold rounded-lg text-xs border border-green-200 dark:border-green-800 transition-all flex items-center justify-center gap-1">
+                        <span class="material-symbols-outlined text-[15px]">restore</span> Restaurar
+                    </button>
+                    <button onclick="window.eliminarTurnoPermanente(${t.id})" class="flex-1 sm:flex-none px-3 py-1.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/60 text-red-600 dark:text-red-300 font-bold rounded-lg text-xs border border-red-200 dark:border-red-800 transition-all flex items-center justify-center gap-1" title="Eliminar permanentemente">
+                        <span class="material-symbols-outlined text-[15px]">delete_forever</span> Borrar
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+};
+
 window.toggleAsistenciaTurno = function(idTurno, nuevoEstado) {
     fetch('backend/marcar_asistencia.php', {
         method: 'POST',

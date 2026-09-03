@@ -528,25 +528,25 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                 const fParts = t.fecha.split('-');
                 const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}` : t.fecha;
                 listElim.innerHTML += `
-                        <div class="rounded-3xl p-5 flex flex-col gap-3 ${opacityClass} hover:opacity-100 hover:shadow-xl hover:-translate-y-1 transition-all mb-4 relative overflow-hidden ${animClass}" style="--target-opacity: 0.7; background-color: #ffffff; border: 1px solid #e2e8f0;">
+                        <div class="rounded-2xl p-3.5 flex flex-col gap-2.5 ${opacityClass} hover:opacity-100 hover:shadow-md hover:-translate-y-0.5 transition-all mb-3 relative overflow-hidden ${animClass}" style="--target-opacity: 0.7; background-color: #ffffff; border: 1px solid #e2e8f0;">
                             <div class="absolute top-0 left-0 w-1.5 h-full bg-slate-400 opacity-60"></div>
                             <div class="flex justify-between items-start">
                                 <div class="flex-1 min-w-0">
-                                    <span class="text-xs font-extrabold px-3 py-1.5 rounded-xl inline-flex mb-4 uppercase tracking-wide border items-center gap-1.5 w-max shadow-sm" style="background-color: #f1f5f9; color: #475569; border-color: #e2e8f0;">
-                                        <span class="material-symbols-outlined text-[15px]">schedule</span> ${fDisplay} • ${t.hora} hs
+                                    <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg inline-flex mb-2 uppercase tracking-wide border items-center gap-1 shadow-2xs" style="background-color: #f1f5f9; color: #475569; border-color: #e2e8f0;">
+                                        <span class="material-symbols-outlined text-[14px]">schedule</span> ${fDisplay} • ${t.hora} hs
                                     </span>
-                                    <p class="text-2xl font-black mb-3 leading-tight tracking-tight line-through opacity-70" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
-                                    <div class="p-3 rounded-2xl" style="background-color: #f1f5f9;">
-                                        <p class="text-sm font-semibold flex items-center gap-2.5" style="color: #475569;"><span class="material-symbols-outlined text-[18px] opacity-70">spa</span> <span class="break-words">${t.servicio}</span></p>
+                                    <p class="text-base sm:text-lg font-extrabold mb-1.5 leading-tight tracking-tight line-through opacity-70" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                                    <div class="p-2 rounded-xl" style="background-color: #f8fafc;">
+                                        <p class="text-xs font-semibold flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[16px] opacity-70">spa</span> <span class="break-words">${t.servicio}</span></p>
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex flex-col sm:flex-row gap-3 mt-2 w-full border-t pt-4" style="border-color: #e2e8f0;">
-                                <button onclick="window.restaurarTurnoAdmin('${t.id}')" class="w-full sm:flex-1 bg-green-50 hover:bg-green-100 text-green-700 text-sm font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 border border-green-200 hover:shadow-md">
-                                    <span class="material-symbols-outlined text-[18px]">restore_from_trash</span> Restaurar
+                            <div class="flex flex-col sm:flex-row gap-2 mt-1 w-full border-t pt-2.5" style="border-color: #f1f5f9;">
+                                <button onclick="window.restaurarTurnoAdmin('${t.id}')" class="w-full sm:flex-1 bg-green-50 hover:bg-green-100 text-green-700 text-xs font-bold py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1 border border-green-200 shadow-2xs">
+                                    <span class="material-symbols-outlined text-[16px]">restore_from_trash</span> Restaurar
                                 </button>
-                                <button onclick="window.eliminarTurnoPermanente('${t.id}')" class="w-full sm:flex-none bg-red-50 hover:bg-red-100 text-red-600 text-sm font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2 border border-red-200 hover:shadow-md" title="Eliminar definitivamente">
-                                    <span class="material-symbols-outlined text-[18px]">delete_forever</span> <span class="sm:hidden">Eliminar definitivo</span>
+                                <button onclick="window.eliminarTurnoPermanente('${t.id}')" class="w-full sm:flex-none bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-1 border border-red-200 shadow-2xs" title="Eliminar definitivamente">
+                                    <span class="material-symbols-outlined text-[16px]">delete_forever</span> <span class="sm:hidden">Eliminar definitivo</span>
                                 </button>
                             </div>
                         </div>
@@ -578,38 +578,34 @@ window.setAgendaProfFilter = function(profName) {
     window.renderAgendaTurnos(window.agendaData, document.getElementById('agendaSearchInput')?.value || '', profName);
 };
 
+// Delegación centralizada a script.js para evitar toasts duplicados
 window.cancelarTurnoAdmin = function(id) {
-    if (typeof showConfirm === 'function') {
-        showConfirm('Enviar a Papelera', '¿Seguro que deseas eliminar o cancelar este turno? Se enviará a la Papelera de Reciclaje.', 'Enviar a Papelera', 'bg-red-600 hover:bg-red-700', () => {
-            return fetch('backend/gestionar_papelera.php', {
+    if (typeof window.cancelarTurnoAdminGlobal === 'function') {
+        window.cancelarTurnoAdminGlobal(id);
+    } else {
+        const doCancel = () => {
+            return fetch('backend/cancelar_turno.php', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'move_to_trash', id: id })
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({ id: id })
             })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
                     if (typeof showToast === 'function') showToast('Turno movido a la Papelera', 'success');
-                    window.cargarAgenda(true);
+                    if (typeof window.cargarAgenda === 'function') window.cargarAgenda(true);
+                    if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
                 } else {
                     if (typeof showToast === 'function') showToast(data.error || 'Error al mover a papelera.', 'error');
                 }
             })
             .catch(() => { if (typeof showToast === 'function') showToast('Error de conexión', 'error'); });
-        });
-    } else if (confirm('¿Seguro que deseas mover este turno a la Papelera?')) {
-        fetch('backend/gestionar_papelera.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'move_to_trash', id: id })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                if (typeof showToast === 'function') showToast('Turno movido a la Papelera', 'success');
-                window.cargarAgenda(true);
-            }
-        });
+        };
+        if (typeof showConfirm === 'function') {
+            showConfirm('Cancelar Turno', '¿Seguro que deseas cancelar y enviar este turno a la papelera?', 'Sí, Cancelar', 'bg-red-600 hover:bg-red-700', doCancel);
+        } else if (confirm('¿Seguro que deseas mover este turno a la Papelera?')) {
+            doCancel();
+        }
     }
 };
 
@@ -663,7 +659,9 @@ window.restaurarTurnoAdmin = function(id) {
             .then(data => {
                 if(data.success) {
                     if(typeof showToast === 'function') showToast('Turno restaurado exitosamente', 'success');
-                    window.cargarAgenda(true);
+                    if (typeof window.cargarAgenda === 'function') window.cargarAgenda(true);
+                    if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
+                    if (typeof window.openPapeleraModal === 'function') window.openPapeleraModal();
                 } else {
                     if(typeof showToast === 'function') showToast(data.error || 'Error al restaurar.', 'error');
                 }
@@ -684,7 +682,9 @@ window.eliminarTurnoPermanente = function(id) {
             .then(data => {
                 if(data.success) {
                     if(typeof showToast === 'function') showToast('Turno eliminado permanentemente', 'success');
-                    window.cargarAgenda(true);
+                    if (typeof window.cargarAgenda === 'function') window.cargarAgenda(true);
+                    if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
+                    if (typeof window.openPapeleraModal === 'function') window.openPapeleraModal();
                 } else {
                     if(typeof showToast === 'function') showToast(data.error || 'Error al eliminar.', 'error');
                 }
@@ -705,7 +705,8 @@ window.vaciarPapeleraCompletamente = function() {
             if (data.success) {
                 if (typeof showToast === 'function') showToast('Papelera vaciada por completo', 'success');
                 window.closePapeleraModal();
-                window.cargarAgenda(true);
+                if (typeof window.cargarAgenda === 'function') window.cargarAgenda(true);
+                if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
             }
         });
     }
@@ -749,25 +750,25 @@ function renderPapeleraModalList(list) {
         const fElim = t.fecha_eliminado ? new Date(t.fecha_eliminado).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' }) : 'Reciente';
 
         html += `
-            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-slate-300 transition-all">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:border-slate-300 transition-all">
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 mb-1">
-                        <span class="bg-red-100 text-red-700 text-[11px] font-bold px-2.5 py-0.5 rounded-lg border border-red-200 uppercase">${t.estado}</span>
-                        <span class="text-xs text-slate-400 font-medium">Movido a papelera: ${fElim}</span>
+                        <span class="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase">${t.estado}</span>
+                        <span class="text-[11px] text-slate-400 font-medium">Movido: ${fElim}</span>
                     </div>
-                    <h4 class="font-bold text-slate-900 text-base line-through opacity-80">${clienteName}</h4>
-                    <p class="text-xs text-slate-500 font-medium mt-0.5 flex flex-wrap items-center gap-2">
+                    <h4 class="font-bold text-slate-900 text-sm sm:text-base line-through opacity-80">${clienteName}</h4>
+                    <p class="text-[11px] text-slate-500 font-medium mt-0.5 flex flex-wrap items-center gap-2">
                         <span>📅 ${t.fecha} • ${t.hora} hs</span>
                         <span>✂️ ${t.servicio}</span>
                         ${celular ? `<span>📱 ${celular}</span>` : ''}
                     </p>
                 </div>
                 <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <button onclick="window.restaurarTurnoAdmin(${t.id})" class="flex-1 sm:flex-none px-3.5 py-2 bg-green-50 hover:bg-green-100 text-green-700 font-bold rounded-xl text-xs border border-green-200 transition-all flex items-center justify-center gap-1">
-                        <span class="material-symbols-outlined text-[16px]">restore</span> Restaurar
+                    <button onclick="window.restaurarTurnoAdmin(${t.id})" class="flex-1 sm:flex-none px-3 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 font-bold rounded-lg text-xs border border-green-200 transition-all flex items-center justify-center gap-1">
+                        <span class="material-symbols-outlined text-[15px]">restore</span> Restaurar
                     </button>
-                    <button onclick="window.eliminarTurnoPermanente(${t.id})" class="flex-1 sm:flex-none px-3.5 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl text-xs border border-red-200 transition-all flex items-center justify-center gap-1" title="Eliminar permanentemente">
-                        <span class="material-symbols-outlined text-[16px]">delete_forever</span> Borrar
+                    <button onclick="window.eliminarTurnoPermanente(${t.id})" class="flex-1 sm:flex-none px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-lg text-xs border border-red-200 transition-all flex items-center justify-center gap-1" title="Eliminar permanentemente">
+                        <span class="material-symbols-outlined text-[15px]">delete_forever</span> Borrar
                     </button>
                 </div>
             </div>
