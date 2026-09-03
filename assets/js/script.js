@@ -799,8 +799,8 @@ window.clearUserCustomColors = function() {
 function logout(redirect = 'login.html') {
     showConfirm('Cerrar sesión', '¿Estás seguro que deseas salir de tu cuenta?', 'Cerrar sesión', 'bg-red-600 hover:bg-red-700', () => {
         if (typeof window.clearUserCustomColors === 'function') window.clearUserCustomColors();
-        Object.keys(localStorage).forEach(k => { if (k.startsWith('agendatina_notifs_state_')) localStorage.removeItem(k); });
-        sessionStorage.removeItem('agendatina_session');
+        sessionStorage.clear();
+        localStorage.clear();
         return fetch('backend/logout.php').then(() => window.location.href = redirect);
     });
 }

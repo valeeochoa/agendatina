@@ -47,8 +47,8 @@ try {
         else if ($b['profesional'] === $profesional) { $ocupados[$f][] = 'blocked_day_prof'; }
     }
 
-    // 2. Turnos Ocupados (Calculando su duración en múltiples bloques)
-    $sqlTurnos = "SELECT t.fecha, t.hora, COALESCE(s.duracion_minutos, 30) as duracion 
+    // 2. Turnos Ocupados (Calculando su duración y cupos por servicio)
+    $sqlTurnos = "SELECT t.fecha, t.hora, COALESCE(s.duracion_minutos, 30) as duracion, t.id_servicio, COALESCE(s.cupo_maximo, s.capacidad, 1) as cupo_maximo 
                   FROM turnos t 
                   LEFT JOIN servicios s ON t.id_servicio = s.id 
                   WHERE t.id_negocio = :id_negocio AND t.estado IN ('pendiente', 'confirmado', 'bloqueado')";
@@ -62,15 +62,33 @@ try {
     $stmtTurnos = $pdo->prepare($sqlTurnos);
     $stmtTurnos->execute($params);
 
+    $conteoTurnosPorSlot = [];
+    $maxCupoPorSlot = [];
+
     foreach ($stmtTurnos->fetchAll() as $t) {
         $f = $t['fecha'];
         if (!isset($ocupados[$f])) $ocupados[$f] = [];
         
         $horaInicio = strtotime($t['hora']);
-        $bloques = ceil(max((int)$t['duracion'], $intervalo) / $intervalo);
+        $duracion = max((int)$t['duracion'], $intervalo);
+        $bloques = ceil($duracion / $intervalo);
+        $cupo = max(1, (int)$t['cupo_maximo']);
         
         for ($i = 0; $i < $bloques; $i++) {
-            $ocupados[$f][] = date('H:i', $horaInicio + ($i * $intervalo * 60));
+            $slotHora = date('H:i', $horaInicio + ($i * $intervalo * 60));
+            $keySlot = $f . '_' . $slotHora;
+            
+            if ($cupo > 1) {
+                if (!isset($conteoTurnosPorSlot[$keySlot])) $conteoTurnosPorSlot[$keySlot] = 0;
+                $conteoTurnosPorSlot[$keySlot]++;
+                $maxCupoPorSlot[$keySlot] = $cupo;
+                
+                if ($conteoTurnosPorSlot[$keySlot] >= $maxCupoPorSlot[$keySlot]) {
+                    $ocupados[$f][] = $slotHora;
+                }
+            } else {
+                $ocupados[$f][] = $slotHora;
+            }
         }
     }
     

@@ -184,12 +184,12 @@ try {
     $cliente_nombre = $nombre . ' ' . $apellido;
 
     // Buscar el ID del servicio en base al nombre para insertarlo como Clave Foránea
-    $stmtServ = $pdo->prepare("SELECT id, duracion_minutos, email_profesional, capacidad FROM servicios WHERE id_negocio = :id_negocio AND nombre_servicio = :servicio LIMIT 1");
+    $stmtServ = $pdo->prepare("SELECT id, duracion_minutos, email_profesional, capacidad, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo FROM servicios WHERE id_negocio = :id_negocio AND nombre_servicio = :servicio LIMIT 1");
     $stmtServ->execute(['id_negocio' => $id_negocio, 'servicio' => $servicio]);
     $serv = $stmtServ->fetch();
     $id_servicio = $serv ? $serv['id'] : null;
     $duracion_nuevo = $serv && !empty($serv['duracion_minutos']) ? (int)$serv['duracion_minutos'] : 30;
-    $capacidad_nuevo = $serv && !empty($serv['capacidad']) ? (int)$serv['capacidad'] : 1;
+    $capacidad_nuevo = $serv && !empty($serv['cupo_maximo']) ? (int)$serv['cupo_maximo'] : ($serv && !empty($serv['capacidad']) ? (int)$serv['capacidad'] : 1);
     $email_profesional = $serv && !empty($serv['email_profesional']) ? $serv['email_profesional'] : null;
 
     // =========================================================================

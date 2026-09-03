@@ -158,10 +158,20 @@
                         <input type="number" name="precio" id="svcPrecio" min="0" step="100" placeholder="5000" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none font-medium">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Profesional Asignado</label>
-                    <select name="profesional" id="svcProfesional" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none font-medium">
-                    </select>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Capacidad / Cupo Máximo</label>
+                        <div class="relative flex items-center">
+                            <input type="number" name="capacidad" id="svcCapacidad" min="1" max="100" value="1" placeholder="1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none font-medium pr-14">
+                            <span class="absolute right-3 text-xs font-bold text-slate-400">cupos</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">Coloca <strong>1</strong> para turnos individuales o más para clases grupales.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Profesional Asignado</label>
+                        <select name="profesional" id="svcProfesional" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none font-medium">
+                        </select>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Descripción corta (Opcional)</label>
@@ -306,14 +316,22 @@
             list.forEach(s => {
                 const precioFmt = parseFloat(s.precio || 0).toLocaleString('es-AR');
                 const duracionFmt = formatDuracionText(s.duracion || 45);
+                const cuposCount = parseInt(s.cupo_maximo || s.capacidad || 1);
+                const cuposBadge = cuposCount > 1 
+                    ? `<span class="bg-orange-100 text-orange-800 text-[11px] font-extrabold px-2 py-0.5 rounded-md border border-orange-200 inline-flex items-center gap-1">👥 Clase (${cuposCount} cupos)</span>`
+                    : `<span class="text-slate-500 text-xs font-medium">👤 Individual (1 cupo)</span>`;
+
                 html += `
                     <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-300 transition-all">
                         <div>
-                            <h4 class="font-bold text-slate-900 text-base">${s.nombre}</h4>
+                            <div class="flex items-center gap-2 mb-1">
+                                <h4 class="font-bold text-slate-900 text-base">${s.nombre}</h4>
+                                ${cuposBadge}
+                            </div>
                             <p class="text-xs text-slate-500 font-medium mt-0.5 flex flex-wrap items-center gap-2">
                                 <span>⏱️ ${duracionFmt}</span>
                                 <span class="font-bold text-emerald-700">💲 $${precioFmt}</span>
-                                <span>👤 ${s.profesional || 'Cualquiera'}</span>
+                                <span>👨‍⚕️ ${s.profesional || 'Cualquiera'}</span>
                             </p>
                         </div>
                         <div class="flex items-center gap-2">
@@ -371,6 +389,7 @@
             document.getElementById('svcHoras').value = 0;
             document.getElementById('svcMinutos').value = 45;
             document.getElementById('svcDuracion').value = 45;
+            document.getElementById('svcCapacidad').value = 1;
             populateProfSelect(professionalsData);
             document.getElementById('serviceModalTitle').innerHTML = '<span class="material-symbols-outlined text-primary">add_task</span> Nuevo Servicio';
             document.getElementById('serviceModal').classList.remove('hidden');
@@ -394,6 +413,7 @@
             document.getElementById('svcMinutos').value = m;
             document.getElementById('svcDuracion').value = totalMin;
 
+            document.getElementById('svcCapacidad').value = s.cupo_maximo || s.capacidad || 1;
             document.getElementById('svcPrecio').value = s.precio;
             if (s.profesional) {
                 document.getElementById('svcProfesional').value = s.profesional;
@@ -404,7 +424,7 @@
         }
 
         function deleteService(id) {
-            if (confirm('¿Seguro que deseas eliminar este servicio del catálogo?')) {
+            const executeDelete = () => {
                 fetch('backend/gestionar_servicios.php', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -412,9 +432,20 @@
                 })
                 .then(r => r.json())
                 .then(d => {
-                    if (d.success) loadServices();
-                    else alert(d.error || 'Error al eliminar');
+                    if (d.success) {
+                        loadServices();
+                        if (typeof showToast === 'function') showToast('Servicio eliminado con éxito.', 'success');
+                    } else {
+                        if (typeof showToast === 'function') showToast(d.error || 'Error al eliminar servicio.', 'error');
+                        else alert(d.error || 'Error al eliminar');
+                    }
                 });
+            };
+
+            if (typeof showConfirm === 'function') {
+                showConfirm('Eliminar Servicio', '¿Seguro que deseas eliminar este servicio del catálogo?', 'Eliminar', 'bg-red-600 hover:bg-red-700', executeDelete);
+            } else if (confirm('¿Seguro que deseas eliminar este servicio del catálogo?')) {
+                executeDelete();
             }
         }
 
@@ -433,7 +464,11 @@
                     if (d.success) {
                         closeServiceModal();
                         loadServices();
-                    } else alert(d.error || 'Error al guardar');
+                        if (typeof showToast === 'function') showToast('Servicio guardado con éxito.', 'success');
+                    } else {
+                        if (typeof showToast === 'function') showToast(d.error || 'Error al guardar el servicio.', 'error');
+                        else alert(d.error || 'Error al guardar');
+                    }
                 });
         });
 

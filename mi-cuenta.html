@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal del Cliente | Agendatina</title>
+    <link rel="icon" href="public/logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/global.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-brand { font-family: 'Fredoka', cursive, sans-serif !important; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
+                <img src="public/logo.png" alt="Agendatina" class="h-9 w-auto drop-shadow-sm">
+                <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
+            </a>
+            <div id="userHeaderBox" class="hidden flex items-center gap-3">
+                <span id="userNameDisplay" class="text-xs sm:text-sm font-bold text-slate-700"></span>
+                <button onclick="logoutCliente()" class="p-2 text-slate-400 hover:text-red-600 rounded-xl hover:bg-red-50 transition-colors" title="Cerrar Sesión">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 py-8 sm:py-12 px-4">
+        <div class="max-w-3xl mx-auto">
+            
+            <!-- VISTA 1: INICIO DE SESIÓN / DETECCIÓN DE EMAIL -->
+            <div id="authBox" class="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-10 max-w-md mx-auto">
+                <div class="text-center mb-6">
+                    <div class="w-12 h-12 rounded-2xl bg-[#fcb0b3]/30 text-[#d11149] flex items-center justify-center mx-auto mb-3">
+                        <span class="material-symbols-outlined text-[28px]">person</span>
+                    </div>
+                    <h1 class="text-2xl font-black text-slate-900">Portal del Alumno</h1>
+                    <p class="text-xs text-slate-500 mt-1">Ingresá con tu correo electrónico para gestionar tus clases y pases.</p>
+                </div>
+
+                <form id="clientLoginForm" onsubmit="handleClientAuth(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Tu Email *</label>
+                        <input type="email" id="clientEmailInput" required placeholder="alumno@ejemplo.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#d11149] outline-none font-medium">
+                    </div>
+
+                    <div id="passwordGroup" class="hidden">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Contraseña *</label>
+                        <input type="password" id="clientPasswordInput" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#d11149] outline-none font-medium">
+                    </div>
+
+                    <div id="authNotice" class="hidden text-xs p-3 rounded-xl"></div>
+
+                    <button type="submit" id="btnAuthSubmit" class="w-full bg-[#d11149] hover:bg-[#b00e3d] text-white font-bold py-3.5 rounded-xl shadow-lg shadow-[#d11149]/20 text-sm transition-all flex items-center justify-center gap-2">
+                        Continuar <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- VISTA 2: PANEL DE CONTROL DEL CLIENTE / MIS CLASES -->
+            <div id="dashboardBox" class="hidden space-y-6">
+                <!-- Tarjeta de Bienvenida y Pases -->
+                <div class="bg-gradient-to-r from-orange-50 to-pink-50 rounded-3xl p-6 border border-orange-200/80 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-bold text-orange-600 uppercase tracking-wider">¡Hola de nuevo!</span>
+                        <h2 class="text-2xl font-black text-slate-900" id="dashClientName">Mi Panel</h2>
+                        <p class="text-xs text-slate-600 mt-0.5">Consultá tus clases agendadas y créditos de asistencia.</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-orange-200 text-center shrink-0 shadow-sm">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Pases / Créditos</span>
+                        <span class="text-3xl font-black text-orange-600" id="dashPasesCount">0</span>
+                        <span class="text-[11px] font-bold text-slate-500 block">clases disponibles</span>
+                    </div>
+                </div>
+
+                <!-- Historial de Clases y Reservas -->
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-8">
+                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-orange-600">event_available</span> Mis Clases y Reservas
+                    </h3>
+
+                    <div id="clasesList" class="space-y-3">
+                        <div class="p-8 text-center text-slate-400 text-sm border border-dashed border-slate-200 rounded-2xl">
+                            Cargando tus clases agendadas...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MODAL DE PRIMER REGISTRO / CONFIGURAR CONTRASEÑA -->
+    <div id="firstPasswordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative">
+            <div class="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center mb-3">
+                <span class="material-symbols-outlined text-[28px]">lock_reset</span>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 mb-1">Configurar Contraseña</h3>
+            <p class="text-xs text-slate-500 mb-6">Tu cuenta ha sido pre-registrada por el establecimiento. Crea tu clave personal para acceder a tu panel.</p>
+
+            <form id="setPassForm" onsubmit="submitSetPassword(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Define tu Contraseña (mínimo 6 caracteres) *</label>
+                    <input type="password" id="newPassInput" minlength="6" required placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-orange-500 outline-none">
+                </div>
+
+                <div id="setPassError" class="hidden text-xs text-red-600 p-2.5 rounded-xl bg-red-50"></div>
+
+                <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-orange-600/20 text-sm transition-all">
+                    Guardar Contraseña y Acceder
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentClientEmail = '';
+        let clientIsDetected = false;
+
+        function handleClientAuth(e) {
+            e.preventDefault();
+            const email = document.getElementById('clientEmailInput').value.trim();
+            const password = document.getElementById('clientPasswordInput').value.trim();
+            const notice = document.getElementById('authNotice');
+
+            if (!clientIsDetected) {
+                // Paso 1: Verificar Email
+                fetch('backend/cliente_auth.php?action=check_email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'email=' + encodeURIComponent(email)
+                })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) {
+                        currentClientEmail = email;
+                        if (d.exists) {
+                            if (!d.has_password) {
+                                // Mostrar Modal de Primer Registro
+                                document.getElementById('firstPasswordModal').classList.remove('hidden');
+                            } else {
+                                // Pedir contraseña
+                                clientIsDetected = true;
+                                document.getElementById('passwordGroup').classList.remove('hidden');
+                                notice.className = 'text-xs p-3 rounded-xl bg-blue-50 text-blue-700 border border-blue-200';
+                                notice.textContent = 'Ingresá tu contraseña para iniciar sesión.';
+                                notice.classList.remove('hidden');
+                            }
+                        } else {
+                            notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
+                            notice.textContent = 'No encontramos clases ni pre-registros asociados a este correo electrónico.';
+                            notice.classList.remove('hidden');
+                        }
+                    }
+                });
+            } else {
+                // Paso 2: Iniciar Sesión con contraseña
+                fetch('backend/cliente_auth.php?action=login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password)
+                })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) {
+                        renderDashboard(d.cliente);
+                    } else {
+                        notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
+                        notice.textContent = d.error || 'Error al iniciar sesión.';
+                        notice.classList.remove('hidden');
+                    }
+                });
+            }
+        }
+
+        function submitSetPassword(e) {
+            e.preventDefault();
+            const pass = document.getElementById('newPassInput').value.trim();
+            fetch('backend/cliente_auth.php?action=set_password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'email=' + encodeURIComponent(currentClientEmail) + '&password=' + encodeURIComponent(pass)
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    document.getElementById('firstPasswordModal').classList.add('hidden');
+                    renderDashboard({ nombre: 'Alumno', email: currentClientEmail, pases: 0 });
+                } else {
+                    document.getElementById('setPassError').textContent = d.error || 'Error al guardar.';
+                    document.getElementById('setPassError').classList.remove('hidden');
+                }
+            });
+        }
+
+        function renderDashboard(cliente) {
+            document.getElementById('authBox').classList.add('hidden');
+            document.getElementById('dashboardBox').classList.remove('hidden');
+            document.getElementById('userHeaderBox').classList.remove('hidden');
+            document.getElementById('userNameDisplay').textContent = cliente.nombre || cliente.email;
+            document.getElementById('dashClientName').textContent = cliente.nombre || 'Alumno';
+            document.getElementById('dashPasesCount').textContent = cliente.pases || 0;
+
+            loadMisClases(cliente.email);
+        }
+
+        function loadMisClases(email) {
+            fetch('backend/cliente_auth.php?action=mis_clases&email=' + encodeURIComponent(email))
+                .then(r => r.json())
+                .then(d => {
+                    const list = document.getElementById('clasesList');
+                    if (d.success && Array.isArray(d.data) && d.data.length > 0) {
+                        let html = '';
+                        d.data.forEach(c => {
+                            const fechaFmt = c.fecha ? c.fecha.split('-').reverse().join('/') : '';
+                            html += `
+                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div>
+                                        <h4 class="font-bold text-slate-900 text-sm">${c.servicio}</h4>
+                                        <p class="text-xs text-slate-500 mt-0.5">📍 ${c.negocio || 'Establecimiento'} • 👨‍⚕️ ${c.profesional || 'Profesional'}</p>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-xs font-black text-slate-700 bg-white px-3 py-1.5 rounded-xl border border-slate-200">${fechaFmt} a las ${c.hora}hs</span>
+                                        <span class="text-[11px] font-extrabold uppercase px-2.5 py-1 rounded-lg ${c.estado === 'confirmado' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${c.estado}</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        list.innerHTML = html;
+                    } else {
+                        list.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm border border-dashed border-slate-200 rounded-2xl">No tenés reservas registradas hasta el momento.</div>';
+                    }
+                });
+        }
+
+        function logoutCliente() {
+            sessionStorage.clear();
+            location.reload();
+        }
+    </script>
+</body>
+</html>

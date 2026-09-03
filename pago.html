@@ -104,6 +104,11 @@
                 }
                 fetch('backend/perfil.php').then(r=>r.json()).then(data => {
                     if (!data || !data.success || !data.business) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    if (data.business.is_demo === true) {
+                        showDemoNoticeModal();
                         return;
                     }
                     if(data.business) {

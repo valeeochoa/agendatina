@@ -9,8 +9,7 @@ try {
     // Verificación de sesión con auto-instanciación aislada para el entorno Demo
     if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_negocio'])) {
         $isDemoContext = (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || 
-                         (isset($_GET['n']) && strpos(strtolower($_GET['n']), 'demo') === 0) ||
-                         (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'demo') !== false);
+                         (isset($_GET['n']) && strpos(strtolower($_GET['n']), 'demo') === 0);
         
         if ($isDemoContext) {
             try {
