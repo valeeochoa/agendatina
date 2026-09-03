@@ -125,6 +125,47 @@
             </div>
         </div>
 
+        <!-- Sección de Estadísticas de Alumnos (Módulo de Cupos) -->
+        <div id="secEstadisticasAlumnos" class="bg-gradient-to-br from-orange-50/60 to-amber-50/30 rounded-3xl p-6 sm:p-8 border border-orange-200/80 shadow-sm mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center font-bold shadow-md shadow-orange-500/20 shrink-0">
+                        <span class="material-symbols-outlined text-2xl">groups</span>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-extrabold text-slate-900">Módulo de Alumnos y Créditos de Cupos</h2>
+                        <p class="text-xs text-slate-500">Métricas de alumnos registrados, pases vigentes y consumo de clases.</p>
+                    </div>
+                </div>
+                <a href="clientes.html" class="inline-flex items-center gap-1 text-xs font-extrabold text-orange-600 hover:text-orange-700 bg-white px-4 py-2 rounded-xl border border-orange-200 shadow-xs hover:shadow-sm transition-all shrink-0">
+                    Gestionar Alumnos <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-2xl border border-orange-100 shadow-xs">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Alumnos Registrados</span>
+                    <div class="text-3xl font-extrabold text-slate-900" id="statAlumnosTotal">0</div>
+                    <span class="text-[10px] text-slate-400 mt-1 block">Base total de alumnos</span>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-orange-100 shadow-xs">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Pases Activos</span>
+                    <div class="text-3xl font-extrabold text-emerald-600" id="statAlumnosActivos">0</div>
+                    <span class="text-[10px] text-emerald-600 font-bold mt-1 block">Con créditos vigentes</span>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-orange-100 shadow-xs">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Sin Créditos</span>
+                    <div class="text-3xl font-extrabold text-amber-600" id="statAlumnosSinPases">0</div>
+                    <span class="text-[10px] text-amber-600 font-bold mt-1 block">Requieren recarga de pases</span>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-orange-100 shadow-xs">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Pases Vencidos</span>
+                    <div class="text-3xl font-extrabold text-rose-600" id="statAlumnosVencidos">0</div>
+                    <span class="text-[10px] text-rose-600 font-bold mt-1 block">Excedieron fecha límite</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Gráficos interactivos -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <!-- Gráfico 1: Evolución de Turnos -->

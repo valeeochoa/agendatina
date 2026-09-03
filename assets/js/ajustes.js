@@ -195,11 +195,7 @@ window.applyCalendarConfigToForm = function(data) {
 
     if (data.modo_reservas !== undefined) {
         const modoVal = data.modo_reservas || 'libre';
-        const selectModo = form.querySelector('#selectModoReservas');
-        if (selectModo) {
-            selectModo.value = modoVal;
-            if (typeof window.updateModoReservasFromSelect === 'function') window.updateModoReservasFromSelect(modoVal);
-        }
+        if (typeof window.setModoReserva === 'function') window.setModoReserva(modoVal);
     }
 
     if (data.primer_dia_semana !== undefined) {
@@ -324,13 +320,45 @@ window.updateSenaHelpText = function() {
     }
 };
 
-window.updateModoReservasFromSelect = function(val) {
-    const helpText = document.getElementById('modoReservasHelpText');
-    if (!helpText) return;
+window.setModoReserva = function(val) {
+    const hiddenInput = document.getElementById('selectModoReservas');
+    if (hiddenInput) hiddenInput.value = val;
+
+    const cardLibre = document.getElementById('cardModoLibre');
+    const cardCupos = document.getElementById('cardModoCupos');
+    const checkLibre = document.getElementById('checkModoLibre');
+    const checkCupos = document.getElementById('checkModoCupos');
+
     if (val === 'cupos_alumnos') {
-        helpText.innerHTML = `🎓 <strong>Módulo de Cupos y Alumnos:</strong> Tus alumnos deben ingresar con su email o estar pre-registrados para reservar clases y gestionar sus pases en <a href="mi-cuenta.html" target="_blank" class="text-orange-600 font-bold underline">mi-cuenta.html</a>. Los visitantes no registrados completarán un formulario de solicitud de contacto.`;
+        if (cardCupos) {
+            cardCupos.className = 'cursor-pointer relative p-5 rounded-2xl border-2 border-orange-500 bg-orange-50/40 transition-all flex flex-col justify-between shadow-sm group';
+        }
+        if (cardLibre) {
+            cardLibre.className = 'cursor-pointer relative p-5 rounded-2xl border-2 border-slate-200 hover:border-rose-300 bg-slate-50/50 hover:bg-rose-50/20 transition-all flex flex-col justify-between shadow-sm group';
+        }
+        if (checkCupos) {
+            checkCupos.className = 'mt-4 flex items-center gap-1.5 text-xs font-black text-orange-600';
+            checkCupos.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> Seleccionado';
+        }
+        if (checkLibre) {
+            checkLibre.className = 'mt-4 flex items-center gap-1.5 text-xs font-bold text-slate-400';
+            checkLibre.innerHTML = '<span class="material-symbols-outlined text-[18px]">radio_button_unchecked</span> Hacer clic para seleccionar';
+        }
     } else {
-        helpText.innerHTML = `💡 <strong>Reserva Libre (Estándar):</strong> Cualquier cliente puede ingresar a tu web, elegir servicio y horario directamente sin necesidad de iniciar sesión previa ni crear cuenta.`;
+        if (cardLibre) {
+            cardLibre.className = 'cursor-pointer relative p-5 rounded-2xl border-2 border-[#D11149] bg-rose-50/40 transition-all flex flex-col justify-between shadow-sm group';
+        }
+        if (cardCupos) {
+            cardCupos.className = 'cursor-pointer relative p-5 rounded-2xl border-2 border-slate-200 hover:border-orange-400 bg-slate-50/50 hover:bg-orange-50/30 transition-all flex flex-col justify-between shadow-sm group';
+        }
+        if (checkLibre) {
+            checkLibre.className = 'mt-4 flex items-center gap-1.5 text-xs font-black text-[#D11149]';
+            checkLibre.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> Seleccionado';
+        }
+        if (checkCupos) {
+            checkCupos.className = 'mt-4 flex items-center gap-1.5 text-xs font-bold text-slate-400';
+            checkCupos.innerHTML = '<span class="material-symbols-outlined text-[18px]">radio_button_unchecked</span> Hacer clic para seleccionar';
+        }
     }
 };
 

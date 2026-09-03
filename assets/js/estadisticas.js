@@ -34,7 +34,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     loadStatistics();
+    cargarEstadisticasAlumnos();
 });
+
+function cargarEstadisticasAlumnos() {
+    fetch('backend/gestionar_clientes.php')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && Array.isArray(data.data)) {
+                const clientes = data.data;
+                const total = clientes.length;
+                const activos = clientes.filter(c => c.estado_calculado === 'activo').length;
+                const sinPases = clientes.filter(c => c.estado_calculado === 'sin_pases').length;
+                const vencidos = clientes.filter(c => c.estado_calculado === 'vencido').length;
+
+                if (document.getElementById('statAlumnosTotal')) document.getElementById('statAlumnosTotal').textContent = total;
+                if (document.getElementById('statAlumnosActivos')) document.getElementById('statAlumnosActivos').textContent = activos;
+                if (document.getElementById('statAlumnosSinPases')) document.getElementById('statAlumnosSinPases').textContent = sinPases;
+                if (document.getElementById('statAlumnosVencidos')) document.getElementById('statAlumnosVencidos').textContent = vencidos;
+            }
+        })
+        .catch(() => {});
+}
 
 function loadStatistics() {
     const fechaDesde = document.getElementById('fechaDesde').value;
