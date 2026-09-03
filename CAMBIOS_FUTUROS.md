@@ -42,7 +42,8 @@ Este documento registra las nuevas características, mejoras planificadas y soli
     - **Recordatorio Automático previo**: Ejecutar un script programado (Cron Job PHP) que envíe un mensaje de recordatorio 24 horas y/o 2 horas antes de la cita.
     - **Aviso al Profesional**: Enviar notificación al celular del profesional cuando le agenden o modifiquen un turno.
   - **Plantillas Personalizables con Variables**: Permitir editar el texto del mensaje usando etiquetas dinámicas (`{cliente}`, `{servicio}`, `{fecha}`, `{hora}`, `{profesional}`, `{direccion}`).
-  - **Control por Comercio**: Interruptor de activación/desactivación del módulo en el panel del negocio para evitar envíos no deseados.
+  - **Notificaciones por Email con Casilla de Tilde**: Opción activable mediante un interruptor (*Checkbox / Caja de tilde*) en `ajustes.html` para habilitar o pausar el envío automático de emails de confirmación y cancelación.
+  - **Control por Comercio**: Interruptor de activación/desactivación de notificaciones por canal (Email / WhatsApp) en el panel del negocio para evitar envíos no deseados.
 
 ---
 

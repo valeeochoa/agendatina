@@ -96,6 +96,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const notifEmailCheckbox = document.getElementById('notificacionesEmail');
+    if (notifEmailCheckbox) {
+        notifEmailCheckbox.addEventListener('change', (e) => {
+            const lblEmail = document.getElementById('lblNotifEmailStatus');
+            if (lblEmail) {
+                lblEmail.textContent = e.target.checked ? 'Activado' : 'Desactivado';
+                lblEmail.className = e.target.checked ? 'ml-3 text-xs font-bold text-[#D11149]' : 'ml-3 text-xs font-bold text-slate-500 dark:text-slate-400';
+            }
+        });
+    }
+
     // Manejar el envío del formulario de configuración del calendario
     const form = document.getElementById('calendarConfigForm');
     if (form) {
@@ -167,6 +178,19 @@ window.applyCalendarConfigToForm = function(data) {
     if (data.usar_fondo_degrade !== undefined) {
         const chkDegrade = form.querySelector('#configFondoDegrade');
         if (chkDegrade) chkDegrade.checked = (data.usar_fondo_degrade == 1 || data.usar_fondo_degrade === '1' || data.usar_fondo_degrade === true);
+    }
+
+    if (data.notificaciones_email !== undefined) {
+        const chkEmail = form.querySelector('#notificacionesEmail');
+        const lblEmail = form.querySelector('#lblNotifEmailStatus');
+        if (chkEmail) {
+            const isEmailActive = (data.notificaciones_email == 1 || data.notificaciones_email === '1' || data.notificaciones_email === true);
+            chkEmail.checked = isEmailActive;
+            if (lblEmail) {
+                lblEmail.textContent = isEmailActive ? 'Activado' : 'Desactivado';
+                lblEmail.className = isEmailActive ? 'ml-3 text-xs font-bold text-[#D11149]' : 'ml-3 text-xs font-bold text-slate-500 dark:text-slate-400';
+            }
+        }
     }
 
     if (data.primer_dia_semana !== undefined) {
@@ -685,6 +709,7 @@ function handleCalendarConfigSubmit(e) {
         intervalo_turnos: intervalo,
         tipo_calendario: tipoCalendario,
         usar_fondo_degrade: form.querySelector('#configFondoDegrade')?.checked ? 1 : 0,
+        notificaciones_email: form.querySelector('#notificacionesEmail')?.checked ? 1 : 0,
         limite_eliminacion_dias: form.querySelector('#configLimiteEliminacion')?.value || 0,
         horarios_detallados_json: form.querySelector('#horariosDetalladosJsonInput')?.value || '{}',
         metodos_pago: metodosStr,
