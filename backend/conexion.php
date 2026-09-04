@@ -26,15 +26,9 @@ CSRF::init();
 $requestMethod = $_SERVER['REQUEST_METHOD'] ?? '';
 if ($requestMethod !== 'GET' && $requestMethod !== 'HEAD' && $requestMethod !== 'OPTIONS' && $requestMethod !== '') {
     if (isset($_SESSION['user_id'])) {
-        $requestUri = $_SERVER['SCRIPT_NAME'] ?? '';
-        $isPublic = false;
-        $publicFiles = ['/login.php', '/registrarse.php', '/admin_auth.php', '/crear_usuario.php', '/enviar_turno.php', '/enviar_contacto.php', '/restablecer_password.php', '/recuperar_password.php', '/cliente_auth.php'];
-        foreach ($publicFiles as $pf) {
-            if (strpos($requestUri, $pf) !== false) {
-                $isPublic = true;
-                break;
-            }
-        }
+        $scriptName = strtolower(basename($_SERVER['SCRIPT_NAME'] ?? $_SERVER['PHP_SELF'] ?? ''));
+        $publicFiles = ['login.php', 'registrarse.php', 'admin_auth.php', 'crear_usuario.php', 'enviar_turno.php', 'enviar_contacto.php', 'restablecer_password.php', 'recuperar_password.php', 'cliente_auth.php'];
+        $isPublic = in_array($scriptName, $publicFiles);
 
         if (!$isPublic) {
             $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_POST['csrf_token'] ?? '';
