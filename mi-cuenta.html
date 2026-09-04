@@ -14,18 +14,18 @@
         .font-brand { font-family: 'Fredoka', cursive, sans-serif !important; }
     </style>
 </head>
-<body class="bg-gradient-to-b from-[#fdfafb] via-rose-50/60 to-orange-50/50 bg-fixed text-slate-800 min-h-screen flex flex-col selection:bg-[#D11149]/10">
+<body class="bg-gradient-to-br from-[#FC8712] via-[#FF8A65] to-[#FF6B6B] min-h-screen flex flex-col selection:bg-[#FC8712]/20 bg-fixed">
 
     <!-- Header / Navbar -->
-    <header class="bg-white/95 backdrop-blur-md border-b border-rose-100/70 sticky top-0 z-40 shadow-xs">
+    <header class="bg-white/95 backdrop-blur-xl border-b border-orange-200/80 sticky top-0 z-40 shadow-sm">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             <a href="index.html" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
                 <img src="public/logo.png" alt="Agendatina" class="h-9 w-auto drop-shadow-sm">
                 <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
             </a>
             <div id="userHeaderBox" class="hidden flex items-center gap-3">
-                <span id="userNameDisplay" class="text-xs sm:text-sm font-bold text-slate-700"></span>
-                <button onclick="logoutCliente()" class="p-2 text-slate-400 hover:text-red-600 rounded-xl hover:bg-red-50 transition-colors" title="Cerrar Sesión">
+                <span id="userNameDisplay" class="text-xs sm:text-sm font-bold text-slate-800 bg-orange-100/80 px-3 py-1 rounded-full border border-orange-200"></span>
+                <button onclick="logoutCliente()" class="p-2 text-slate-500 hover:text-red-600 rounded-xl hover:bg-red-50 transition-colors" title="Cerrar Sesión">
                     <span class="material-symbols-outlined text-[20px]">logout</span>
                 </button>
             </div>
@@ -37,29 +37,29 @@
         <div class="max-w-3xl mx-auto">
             
             <!-- VISTA 1: INICIO DE SESIÓN / DETECCIÓN DE EMAIL -->
-            <div id="authBox" class="bg-white rounded-3xl border border-rose-100/90 shadow-xl p-6 sm:p-10 max-w-md mx-auto">
+            <div id="authBox" class="bg-white/95 backdrop-blur-xl rounded-3xl border-2 border-orange-200/90 shadow-2xl p-6 sm:p-10 max-w-md mx-auto">
                 <div class="text-center mb-6">
-                    <div class="w-12 h-12 rounded-2xl bg-[#fcb0b3]/30 text-[#d11149] flex items-center justify-center mx-auto mb-3">
-                        <span class="material-symbols-outlined text-[28px]">person</span>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FC8712] to-[#FF8A65] text-white flex items-center justify-center mx-auto mb-3 shadow-lg shadow-orange-500/20">
+                        <span class="material-symbols-outlined text-[30px]">person</span>
                     </div>
                     <h1 class="text-2xl font-black text-slate-900">Portal del Alumno</h1>
-                    <p class="text-xs text-slate-500 mt-1">Ingresá con tu correo electrónico para gestionar tus clases y pases.</p>
+                    <p class="text-xs text-slate-600 mt-1 font-medium">Ingresá con tu correo electrónico para gestionar tus clases y pases.</p>
                 </div>
 
                 <form id="clientLoginForm" onsubmit="handleClientAuth(event)" class="space-y-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Tu Email *</label>
-                        <input type="email" id="clientEmailInput" required placeholder="alumno@ejemplo.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#d11149] outline-none font-medium">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Tu Email *</label>
+                        <input type="email" id="clientEmailInput" required placeholder="alumno@ejemplo.com" class="w-full bg-slate-50 border border-orange-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#FC8712] outline-none font-medium text-slate-800">
                     </div>
 
                     <div id="passwordGroup" class="hidden">
-                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Contraseña *</label>
-                        <input type="password" id="clientPasswordInput" placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#d11149] outline-none font-medium">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Contraseña *</label>
+                        <input type="password" id="clientPasswordInput" placeholder="••••••••" class="w-full bg-slate-50 border border-orange-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#FC8712] outline-none font-medium text-slate-800">
                     </div>
 
-                    <div id="authNotice" class="hidden text-xs p-3 rounded-xl"></div>
+                    <div id="authNotice" class="hidden text-xs p-3 rounded-xl font-medium"></div>
 
-                    <button type="submit" id="btnAuthSubmit" class="w-full bg-[#d11149] hover:bg-[#b00e3d] text-white font-bold py-3.5 rounded-xl shadow-lg shadow-[#d11149]/20 text-sm transition-all flex items-center justify-center gap-2">
+                    <button type="submit" id="btnAuthSubmit" class="w-full bg-gradient-to-r from-[#FC8712] via-[#FF8A65] to-[#FF7E67] hover:opacity-95 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-orange-500/30 text-sm transition-all flex items-center justify-center gap-2">
                         Continuar <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
                     </button>
                 </form>
@@ -67,44 +67,49 @@
 
             <!-- VISTA 2: PANEL DE CONTROL DEL CLIENTE / MIS CLASES -->
             <div id="dashboardBox" class="hidden space-y-6">
-                <!-- Tarjeta de Bienvenida y Resumen por Negocio -->
-                <div class="bg-gradient-to-r from-orange-500/10 via-pink-500/10 to-rose-500/10 rounded-3xl p-6 border border-orange-200 shadow-md">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                <!-- Tarjeta de Bienvenida y Resumen por Negocio (Degradé Vibrante Naranja y Salmón) -->
+                <div class="bg-gradient-to-r from-[#FC8712] via-[#FF8A65] to-[#FF7E67] text-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-orange-300/40 relative overflow-hidden">
+                    <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 relative z-10">
                         <div>
-                            <span class="text-xs font-bold text-orange-600 uppercase tracking-wider">¡Hola de nuevo!</span>
-                            <h2 class="text-2xl font-black text-slate-900" id="dashClientName">Mi Panel de Alumno</h2>
-                            <p class="text-xs text-slate-600 mt-0.5">Consultá tus pases y clases agendadas en tus establecimientos.</p>
+                            <span class="text-xs font-black uppercase tracking-wider text-orange-100 bg-white/20 px-3 py-1 rounded-full border border-white/30 inline-block mb-2">¡Hola de nuevo!</span>
+                            <h2 class="text-2xl sm:text-3xl font-black text-white" id="dashClientName">Mi Panel de Alumno</h2>
+                            <p class="text-xs text-orange-50 mt-1 font-medium">Consultá tus pases y clases agendadas en tus establecimientos.</p>
                         </div>
                     </div>
                     
                     <!-- Resumen de Pases por Negocio -->
-                    <div id="negociosCardsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
-                        <div class="bg-white p-4 rounded-2xl border border-orange-200 text-center shadow-sm">
+                    <div id="negociosCardsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6 relative z-10">
+                        <div class="bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-orange-200 text-center shadow-lg">
                             <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Pases / Créditos</span>
-                            <span class="text-3xl font-black text-orange-600" id="dashPasesCount">0</span>
+                            <span class="text-3xl font-black text-[#FC8712]" id="dashPasesCount">0</span>
                             <span class="text-[11px] font-bold text-slate-500 block">clases disponibles</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Historial de Clases y Reservas -->
-                <div class="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-8">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
-                        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-                            <span class="material-symbols-outlined text-orange-600">event_available</span> Mis Clases e Inscripciones
+                <div class="bg-white/95 backdrop-blur-xl rounded-3xl border-2 border-orange-200/90 shadow-2xl p-6 sm:p-8">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-orange-100">
+                        <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-xl bg-orange-100 text-[#FC8712] flex items-center justify-center">
+                                <span class="material-symbols-outlined text-[20px]">event_available</span>
+                            </span>
+                            Mis Clases e Inscripciones
                         </h3>
                         
                         <!-- Filtro por Negocio -->
                         <div id="filterNegocioContainer" class="hidden items-center gap-2">
-                            <label class="text-xs font-bold text-slate-500">Filtrar por negocio:</label>
-                            <select id="negocioFilterSelect" onchange="filterClasesByNegocio()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-500 text-slate-700">
+                            <label class="text-xs font-bold text-slate-600">Filtrar por negocio:</label>
+                            <select id="negocioFilterSelect" onchange="filterClasesByNegocio()" class="bg-orange-50/80 border border-orange-200 rounded-xl px-3 py-1.5 text-xs font-extrabold outline-none focus:ring-2 focus:ring-[#FC8712] text-slate-800">
                                 <option value="all">Todos los negocios</option>
                             </select>
                         </div>
                     </div>
 
                     <div id="clasesList" class="space-y-3">
-                        <div class="p-8 text-center text-slate-400 text-sm border border-dashed border-slate-200 rounded-2xl">
+                        <div class="p-8 text-center text-slate-400 text-sm border border-dashed border-orange-200 rounded-2xl">
                             Cargando tus clases agendadas...
                         </div>
                     </div>
@@ -250,9 +255,9 @@
             const container = document.getElementById('negociosCardsContainer');
             if (!negocios || negocios.length === 0) {
                 container.innerHTML = `
-                    <div class="bg-white p-4 rounded-2xl border border-orange-200 text-center shadow-sm col-span-2">
+                    <div class="bg-white/95 p-4 rounded-2xl border border-orange-200 text-center shadow-md col-span-2">
                         <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Pases / Créditos</span>
-                        <span class="text-3xl font-black text-orange-600">0</span>
+                        <span class="text-3xl font-black text-[#FC8712]">0</span>
                         <span class="text-[11px] font-bold text-slate-500 block">clases disponibles</span>
                     </div>
                 `;
@@ -263,14 +268,14 @@
             negocios.forEach(n => {
                 const venc = n.fecha_vencimiento ? n.fecha_vencimiento.split('-').reverse().join('/') : 'Sin vencimiento';
                 html += `
-                    <div class="bg-white p-4 rounded-2xl border border-orange-200 shadow-sm flex items-center justify-between gap-3">
+                    <div class="bg-white/95 p-4.5 rounded-2xl border-2 border-orange-200/90 shadow-md flex items-center justify-between gap-3 hover:border-[#FC8712] transition-colors">
                         <div>
-                            <span class="text-xs font-bold text-slate-800 block truncate">📍 ${n.negocio_nombre}</span>
-                            <span class="text-[10px] font-medium text-slate-500 block">Vence: ${venc}</span>
+                            <span class="text-xs font-extrabold text-slate-900 block truncate">📍 ${n.negocio_nombre}</span>
+                            <span class="text-[10px] font-bold text-orange-600/90 block mt-0.5">Vence: ${venc}</span>
                         </div>
-                        <div class="text-right shrink-0">
-                            <span class="text-2xl font-black text-orange-600">${n.pases_disponibles || 0}</span>
-                            <span class="text-[10px] font-bold text-slate-400 block">pases disponibles</span>
+                        <div class="text-right shrink-0 bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-200">
+                            <span class="text-2xl font-black text-[#FC8712]">${n.pases_disponibles || 0}</span>
+                            <span class="text-[10px] font-bold text-slate-500 block">pases</span>
                         </div>
                     </div>
                 `;
@@ -313,21 +318,21 @@
                 clases.forEach(c => {
                     const fechaFmt = c.fecha ? c.fecha.split('-').reverse().join('/') : '';
                     html += `
-                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-orange-200 transition-colors">
+                        <div class="p-4 bg-gradient-to-r from-orange-50/90 via-amber-50/40 to-rose-50/50 border border-orange-200/90 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-[#FC8712] hover:shadow-md transition-all">
                             <div>
-                                <h4 class="font-bold text-slate-900 text-sm">${c.servicio}</h4>
-                                <p class="text-xs text-slate-500 mt-0.5"><span class="font-bold text-slate-700">📍 ${c.negocio || 'Establecimiento'}</span> • 👨‍⚕️ ${c.profesional || 'Profesional'}</p>
+                                <h4 class="font-extrabold text-slate-900 text-sm">${c.servicio}</h4>
+                                <p class="text-xs text-slate-600 mt-0.5"><span class="font-black text-[#FC8712]">📍 ${c.negocio || 'Establecimiento'}</span> • 👨‍⚕️ ${c.profesional || 'Profesional'}</p>
                             </div>
                             <div class="flex items-center gap-3">
-                                <span class="text-xs font-black text-slate-700 bg-white px-3 py-1.5 rounded-xl border border-slate-200">${fechaFmt} a las ${c.hora}hs</span>
-                                <span class="text-[11px] font-extrabold uppercase px-2.5 py-1 rounded-lg ${c.estado === 'confirmado' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${c.estado}</span>
+                                <span class="text-xs font-black text-slate-800 bg-white px-3 py-1.5 rounded-xl border border-orange-200 shadow-xs">${fechaFmt} a las ${c.hora}hs</span>
+                                <span class="text-[11px] font-extrabold uppercase px-3 py-1 rounded-xl ${c.estado === 'confirmado' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-orange-100 text-orange-800 border border-orange-300'}">${c.estado}</span>
                             </div>
                         </div>
                     `;
                 });
                 list.innerHTML = html;
             } else {
-                list.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm border border-dashed border-slate-200 rounded-2xl">No tenés reservas registradas hasta el momento.</div>';
+                list.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm border border-dashed border-orange-200 rounded-2xl bg-orange-50/30">No tenés reservas registradas hasta el momento.</div>';
             }
         }
 
