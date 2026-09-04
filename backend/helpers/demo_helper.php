@@ -133,6 +133,8 @@ if (!function_exists('asegurarDatosDemo')) {
                         $stmtInsPn->execute([$negocioId, $uId, $member['rol']]);
                     }
                 }
+            }
+
             // 6. Asegurar alumnos demo iniciales si no existen
             try {
                 $stmtCliCount = $pdo->prepare("SELECT COUNT(*) FROM clientes_negocio WHERE id_negocio = ?");

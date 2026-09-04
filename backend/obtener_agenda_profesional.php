@@ -38,6 +38,8 @@ try {
         $fechaAlta = new DateTime($fechaAltaStr);
         $fechaAlta->modify('+30 days');
         if ($today > $fechaAlta) { $isSuspended = true; }
+    }
+
     if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || (isset($negocio['ruta']) && strpos($negocio['ruta'], 'demo') === 0)) {
         $isSuspended = false;
     } elseif ($dbStatus === 'activo' || $dbStatus === 'pagado') {
