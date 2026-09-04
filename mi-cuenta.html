@@ -14,10 +14,17 @@
         .font-brand { font-family: 'Fredoka', cursive, sans-serif !important; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<body class="bg-[#fdfafb] text-slate-800 min-h-screen flex flex-col relative overflow-x-hidden selection:bg-[#D11149]/10">
+
+    <!-- Canvas para Burbujas Interactivas Flotantes -->
+    <canvas id="bubblesCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+    <!-- Destellos Ambientales con Paleta de Marca (#D11149 y #FC8712) -->
+    <div class="fixed top-0 left-1/4 w-[500px] h-[500px] bg-gradient-to-tr from-[#D11149]/12 to-[#FC8712]/12 rounded-full blur-[140px] pointer-events-none z-0"></div>
+    <div class="fixed bottom-0 right-1/4 w-[450px] h-[450px] bg-gradient-to-br from-[#FC8712]/10 to-[#F44979]/10 rounded-full blur-[140px] pointer-events-none z-0"></div>
 
     <!-- Header / Navbar -->
-    <header class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
+    <header class="bg-white/80 backdrop-blur-xl border-b border-rose-100/80 sticky top-0 z-40 shadow-xs">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             <a href="index.html" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
                 <img src="public/logo.png" alt="Agendatina" class="h-9 w-auto drop-shadow-sm">
@@ -33,11 +40,11 @@
     </header>
 
     <!-- Main Container -->
-    <main class="flex-1 py-8 sm:py-12 px-4">
+    <main class="flex-1 py-8 sm:py-12 px-4 relative z-10">
         <div class="max-w-3xl mx-auto">
             
             <!-- VISTA 1: INICIO DE SESIÓN / DETECCIÓN DE EMAIL -->
-            <div id="authBox" class="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-10 max-w-md mx-auto">
+            <div id="authBox" class="bg-white/90 backdrop-blur-xl rounded-3xl border border-rose-100 shadow-2xl p-6 sm:p-10 max-w-md mx-auto">
                 <div class="text-center mb-6">
                     <div class="w-12 h-12 rounded-2xl bg-[#fcb0b3]/30 text-[#d11149] flex items-center justify-center mx-auto mb-3">
                         <span class="material-symbols-outlined text-[28px]">person</span>
@@ -335,6 +342,132 @@
             sessionStorage.clear();
             location.reload();
         }
+
+        // =====================================================
+        // ANIMACIÓN INTERACTIVA DE BURBUJAS EN CANVAS (PALETA AGENDATINA)
+        // =====================================================
+        (function initInteractiveBubbles() {
+            const canvas = document.getElementById('bubblesCanvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let particles = [];
+            let mouse = { x: null, y: null, radius: 150 };
+
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            window.addEventListener('mousemove', (e) => {
+                mouse.x = e.clientX;
+                mouse.y = e.clientY;
+            });
+
+            window.addEventListener('mouseleave', () => {
+                mouse.x = null;
+                mouse.y = null;
+            });
+
+            // Colores oficiales de la marca Agendatina (#D11149, #FC8712, #F44979, #FCB0B3, #FF9D73)
+            const colors = [
+                'rgba(209, 17, 73, ',   // #D11149 Frambuesa
+                'rgba(252, 135, 18, ',   // #FC8712 Naranja
+                'rgba(244, 73, 121, ',   // #F44979 Rosa Acento
+                'rgba(252, 176, 179, ',  // #FCB0B3 Rosa Pastel
+                'rgba(255, 157, 115, '   // #FF9D73 Melocotón
+            ];
+
+            class Bubble {
+                constructor() {
+                    this.reset();
+                }
+
+                reset() {
+                    this.x = Math.random() * width;
+                    this.y = height + Math.random() * 80;
+                    this.radius = Math.random() * 22 + 8;
+                    this.baseRadius = this.radius;
+                    this.vx = (Math.random() - 0.5) * 0.7;
+                    this.vy = -(Math.random() * 0.8 + 0.3);
+                    this.colorBase = colors[Math.floor(Math.random() * colors.length)];
+                    this.opacity = Math.random() * 0.22 + 0.15;
+                    this.pulse = Math.random() * 0.02 + 0.005;
+                    this.pulseStep = Math.random() * Math.PI * 2;
+                }
+
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.pulseStep += this.pulse;
+
+                    // Reacción interactiva al movimiento del puntero
+                    if (mouse.x !== null && mouse.y !== null) {
+                        const dx = mouse.x - this.x;
+                        const dy = mouse.y - this.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < mouse.radius) {
+                            const force = (mouse.radius - dist) / mouse.radius;
+                            const angle = Math.atan2(dy, dx);
+                            this.x -= Math.cos(angle) * force * 3.5;
+                            this.y -= Math.sin(angle) * force * 3.5;
+                            this.radius = Math.min(this.baseRadius * 1.6, this.radius + 1.2);
+                        } else if (this.radius > this.baseRadius) {
+                            this.radius -= 0.4;
+                        }
+                    } else if (this.radius > this.baseRadius) {
+                        this.radius -= 0.4;
+                    }
+
+                    if (this.y < -this.radius * 2 || this.x < -this.radius * 2 || this.x > width + this.radius * 2) {
+                        this.reset();
+                    }
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    const grad = ctx.createRadialGradient(
+                        this.x - this.radius * 0.3, 
+                        this.y - this.radius * 0.3, 
+                        this.radius * 0.1, 
+                        this.x, 
+                        this.y, 
+                        this.radius
+                    );
+                    grad.addColorStop(0, 'rgba(255, 255, 255, 0.85)');
+                    grad.addColorStop(0.35, this.colorBase + (this.opacity + Math.sin(this.pulseStep) * 0.05) + ')');
+                    grad.addColorStop(1, this.colorBase + '0.05)');
+
+                    ctx.fillStyle = grad;
+                    ctx.shadowColor = this.colorBase + '0.25)';
+                    ctx.shadowBlur = 12;
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+
+            const bubbleCount = Math.min(45, Math.floor(window.innerWidth / 30));
+            for (let i = 0; i < bubbleCount; i++) {
+                const b = new Bubble();
+                b.y = Math.random() * height;
+                particles.push(b);
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        })();
     </script>
 </body>
 </html>
