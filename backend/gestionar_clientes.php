@@ -46,6 +46,13 @@ if (!isset($_SESSION['id_negocio'])) {
 $id_negocio = $_SESSION['id_negocio'];
 $method = $_SERVER['REQUEST_METHOD'];
 
+if (isset($_SESSION['is_demo']) && $_SESSION['is_demo']) {
+    require_once __DIR__ . '/helpers/demo_helper.php';
+    if (function_exists('asegurarDatosDemo')) {
+        asegurarDatosDemo($pdo, $id_negocio);
+    }
+}
+
 try {
     // ---------------------------------------------------------
     // OBTENER LISTADO DE ALUMNOS (GET)
@@ -53,15 +60,47 @@ try {
     if ($method === 'GET') {
         session_write_close();
 
-        $stmt = $pdo->prepare("
-            SELECT c.id, c.nombre_completo, c.email, c.telefono, c.pases_disponibles, c.pases_totales, c.fecha_vencimiento, c.notas, c.estado, c.fecha_alta,
-                   (SELECT COUNT(*) FROM turnos t WHERE t.id_negocio = c.id_negocio AND (t.cliente_celular = c.email OR t.cliente_nombre = c.nombre_completo) AND t.estado IN ('pendiente', 'confirmado')) AS clases_reservadas
-            FROM clientes_negocio c
-            WHERE c.id_negocio = :id_negocio
-            ORDER BY c.id DESC
-        ");
-        $stmt->execute(['id_negocio' => $id_negocio]);
-        $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $stmt = $pdo->prepare("
+                SELECT c.id, c.nombre_completo, c.email, c.telefono, c.pases_disponibles, c.pases_totales, c.fecha_vencimiento, c.notas, c.estado, c.fecha_alta,
+                       (SELECT COUNT(*) FROM turnos t WHERE t.id_negocio = c.id_negocio AND (t.cliente_celular COLLATE utf8mb4_general_ci = c.email COLLATE utf8mb4_general_ci OR t.cliente_nombre COLLATE utf8mb4_general_ci = c.nombre_completo COLLATE utf8mb4_general_ci) AND t.estado IN ('pendiente', 'confirmado')) AS clases_reservadas
+                FROM clientes_negocio c
+                WHERE c.id_negocio = :id_negocio
+                ORDER BY c.id DESC
+            ");
+            $stmt->execute(['id_negocio' => $id_negocio]);
+            $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $eCollation) {
+            // Fallback 100% seguro si hay conflicto de collation entre tablas
+            $stmt = $pdo->prepare("
+                SELECT c.id, c.nombre_completo, c.email, c.telefono, c.pases_disponibles, c.pases_totales, c.fecha_vencimiento, c.notas, c.estado, c.fecha_alta,
+                       0 AS clases_reservadas
+                FROM clientes_negocio c
+                WHERE c.id_negocio = :id_negocio
+                ORDER BY c.id DESC
+            ");
+            $stmt->execute(['id_negocio' => $id_negocio]);
+            $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Calcular conteo en PHP
+            $stmtTurnos = $pdo->prepare("SELECT cliente_celular, cliente_nombre FROM turnos WHERE id_negocio = :id_negocio AND estado IN ('pendiente', 'confirmado')");
+            $stmtTurnos->execute(['id_negocio' => $id_negocio]);
+            $allTurnos = $stmtTurnos->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($clientes as &$c) {
+                $cEmail = strtolower(trim($c['email']));
+                $cNombre = strtolower(trim($c['nombre_completo']));
+                $count = 0;
+                foreach ($allTurnos as $t) {
+                    $tCell = strtolower(trim($t['cliente_celular']));
+                    $tNom = strtolower(trim($t['cliente_nombre']));
+                    if (($cEmail && $tCell === $cEmail) || ($cNombre && $tNom === $cNombre)) {
+                        $count++;
+                    }
+                }
+                $c['clases_reservadas'] = $count;
+            }
+        }
 
         // Calcular estado automático según vencimiento o pases
         $today = date('Y-m-d');
