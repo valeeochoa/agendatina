@@ -56,7 +56,7 @@
     </style>
 </head>
 
-<body class="bg-slate-50 text-slate-900 antialiased selection:bg-primary/10">
+<body class="bg-[#fdfafb] text-slate-900 antialiased selection:bg-[#D11149]/10">
     <nav id="mainNav"
         class="fixed w-full z-50 bg-white/70 backdrop-blur-lg border-b border-slate-200/50 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -127,87 +127,88 @@
         </div>
     </section>
     <!-- Características Destacadas / Pilares de Agendatina -->
-    <section class="py-20 bg-slate-900/40 backdrop-blur-md border-y border-slate-800/80 relative overflow-hidden text-slate-100">
-        <div class="absolute -top-32 -left-32 w-96 h-96 bg-[#D11149]/15 rounded-full blur-[140px] pointer-events-none"></div>
-        <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-[#FC8712]/15 rounded-full blur-[140px] pointer-events-none"></div>
+    <section class="py-20 bg-gradient-to-b from-[#fdfafb] via-rose-50/40 to-slate-50 border-y border-rose-100/60 relative overflow-hidden">
+        <!-- Destellos radiales de luz con la paleta de marca (#D11149 y #FC8712) -->
+        <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#D11149]/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-[#FC8712]/10 rounded-full blur-[120px] pointer-events-none"></div>
 
         <div class="max-w-7xl mx-auto px-6 reveal-on-scroll relative z-10">
             <div class="text-center max-w-3xl mx-auto mb-16">
-                <span class="bg-[#D11149]/20 text-[#FF6B8B] border border-[#D11149]/40 text-xs font-black uppercase px-4 py-1.5 rounded-full tracking-wider shadow-sm">
+                <span class="bg-[#FCB0B3]/25 text-[#D11149] border border-[#FCB0B3]/60 text-xs font-black uppercase px-4 py-1.5 rounded-full tracking-wider shadow-xs inline-block mb-3">
                     ¿Por qué elegir Agendatina?
                 </span>
-                <h2 class="font-headline text-3xl sm:text-4xl font-extrabold text-white mt-4 mb-4">
+                <h2 class="font-headline text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
                     Todo lo que tu negocio necesita para crecer
                 </h2>
-                <p class="text-slate-400 text-sm sm:text-base font-medium">
+                <p class="text-slate-600 text-sm sm:text-base font-medium">
                     Diseñado para ser intuitivo, rápido y elegante. Sin instalaciones complejas ni comisiones ocultas.
                 </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Card 1 -->
-                <div class="bg-slate-800/60 backdrop-blur-md p-7 rounded-3xl border border-slate-700/80 shadow-lg hover:shadow-2xl hover:border-[#D11149]/50 hover:-translate-y-1.5 transition-all group flex flex-col justify-between">
+                <!-- Card 1: Automatización 24/7 -->
+                <div class="bg-white/90 backdrop-blur-md p-7 rounded-3xl border border-rose-100 shadow-md hover:shadow-xl hover:border-[#D11149]/40 hover:-translate-y-1.5 transition-all group flex flex-col justify-between">
                     <div>
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#D11149] to-[#FC8712] text-white flex items-center justify-center mb-6 shadow-lg shadow-[#D11149]/30 group-hover:scale-110 transition-transform">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#D11149] to-[#FC8712] text-white flex items-center justify-center mb-6 shadow-md shadow-[#D11149]/20 group-hover:scale-110 transition-transform">
                             <span class="material-symbols-outlined text-3xl">event_available</span>
                         </div>
-                        <h3 class="text-xl font-extrabold text-white mb-2 font-display">Automatización 24/7</h3>
-                        <p class="text-xs text-slate-300 leading-relaxed font-medium">
+                        <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display">Automatización 24/7</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed font-medium">
                             Tus clientes agendan sus turnos solos desde su celular en cualquier horario, sin esperas ni mensajes repetitivos.
                         </p>
                     </div>
-                    <div class="mt-6 pt-4 border-t border-slate-700/60 flex items-center gap-1.5 text-xs font-bold text-[#FF6B8B]">
+                    <div class="mt-6 pt-4 border-t border-rose-100/60 flex items-center gap-1.5 text-xs font-bold text-[#D11149]">
                         <span>Turnero siempre activo</span> <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
                     </div>
                 </div>
 
-                <!-- Card 2: Cupos y Alumnos (Redirección al Portal de Alumnos mi-cuenta.html) -->
-                <div onclick="window.location.href='mi-cuenta.html'" class="bg-gradient-to-br from-orange-950/40 via-slate-800/80 to-slate-800/60 backdrop-blur-md p-7 rounded-3xl border border-orange-500/30 hover:border-[#FC8712] shadow-lg hover:shadow-2xl hover:shadow-orange-500/20 hover:-translate-y-1.5 transition-all group flex flex-col justify-between cursor-pointer">
+                <!-- Card 2: Cupos y Alumnos (Redirección directa a mi-cuenta.html) -->
+                <div onclick="window.location.href='mi-cuenta.html'" class="bg-gradient-to-br from-orange-50/90 via-white to-rose-50/40 backdrop-blur-md p-7 rounded-3xl border border-orange-200/90 hover:border-[#FC8712] shadow-md hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-1.5 transition-all group flex flex-col justify-between cursor-pointer">
                     <div>
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FC8712] to-amber-500 text-white flex items-center justify-center mb-6 shadow-lg shadow-[#FC8712]/30 group-hover:scale-110 transition-transform">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FC8712] to-amber-500 text-white flex items-center justify-center mb-6 shadow-md shadow-[#FC8712]/20 group-hover:scale-110 transition-transform">
                             <span class="material-symbols-outlined text-3xl">groups</span>
                         </div>
-                        <h3 class="text-xl font-extrabold text-white mb-2 font-display flex items-center gap-2">
+                        <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display flex items-center gap-2">
                             Cupos y Alumnos
-                            <span class="text-[10px] uppercase font-black px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-400 border border-orange-500/40">Portal</span>
+                            <span class="text-[10px] uppercase font-black px-2 py-0.5 rounded-md bg-orange-100 text-orange-700 border border-orange-200">Portal</span>
                         </h3>
-                        <p class="text-xs text-slate-300 leading-relaxed font-medium">
+                        <p class="text-xs text-slate-600 leading-relaxed font-medium">
                             Administrá academias, pilates y clases grupales con control automático de pases, créditos y vencimientos de alumnos.
                         </p>
                     </div>
-                    <div class="mt-6 pt-4 border-t border-orange-500/30 flex items-center justify-between text-xs font-bold text-[#FC8712]">
+                    <div class="mt-6 pt-4 border-t border-orange-100 flex items-center justify-between text-xs font-bold text-[#FC8712]">
                         <span>Ingresar al Portal de Alumnos</span> <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
                     </div>
                 </div>
 
-                <!-- Card 3 -->
-                <div class="bg-slate-800/60 backdrop-blur-md p-7 rounded-3xl border border-slate-700/80 shadow-lg hover:shadow-2xl hover:border-purple-500/50 hover:-translate-y-1.5 transition-all group flex flex-col justify-between">
+                <!-- Card 3: Métricas y Reportes -->
+                <div class="bg-white/90 backdrop-blur-md p-7 rounded-3xl border border-purple-100/90 shadow-md hover:shadow-xl hover:border-purple-300/60 hover:-translate-y-1.5 transition-all group flex flex-col justify-between">
                     <div>
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white flex items-center justify-center mb-6 shadow-lg shadow-purple-600/30 group-hover:scale-110 transition-transform">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white flex items-center justify-center mb-6 shadow-md shadow-purple-600/20 group-hover:scale-110 transition-transform">
                             <span class="material-symbols-outlined text-3xl">insights</span>
                         </div>
-                        <h3 class="text-xl font-extrabold text-white mb-2 font-display">Métricas y Reportes</h3>
-                        <p class="text-xs text-slate-300 leading-relaxed font-medium">
+                        <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display">Métricas y Reportes</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed font-medium">
                             Conocé en tiempo real tus servicios más solicitados, ingresos estimados y la evolución de demanda mensual.
                         </p>
                     </div>
-                    <div class="mt-6 pt-4 border-t border-slate-700/60 flex items-center gap-1.5 text-xs font-bold text-purple-400">
+                    <div class="mt-6 pt-4 border-t border-purple-100/60 flex items-center gap-1.5 text-xs font-bold text-purple-600">
                         <span>Estadísticas claras</span> <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
                     </div>
                 </div>
 
-                <!-- Card 4 -->
-                <div class="bg-slate-800/60 backdrop-blur-md p-7 rounded-3xl border border-slate-700/80 shadow-lg hover:shadow-2xl hover:border-emerald-500/50 hover:-translate-y-1.5 transition-all group flex flex-col justify-between">
+                <!-- Card 4: Página Web Propia -->
+                <div class="bg-white/90 backdrop-blur-md p-7 rounded-3xl border border-emerald-100/90 shadow-md hover:shadow-xl hover:border-emerald-300/60 hover:-translate-y-1.5 transition-all group flex flex-col justify-between">
                     <div>
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center mb-6 shadow-md shadow-emerald-500/20 group-hover:scale-110 transition-transform">
                             <span class="material-symbols-outlined text-3xl">language</span>
                         </div>
-                        <h3 class="text-xl font-extrabold text-white mb-2 font-display">Página Web Propia</h3>
-                        <p class="text-xs text-slate-300 leading-relaxed font-medium">
+                        <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display">Página Web Propia</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed font-medium">
                             Tu propia presencia digital personalizada (`mi-web.html`) adaptada con los colores corporativos de tu marca.
                         </p>
                     </div>
-                    <div class="mt-6 pt-4 border-t border-slate-700/60 flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+                    <div class="mt-6 pt-4 border-t border-emerald-100/60 flex items-center gap-1.5 text-xs font-bold text-emerald-600">
                         <span>Link personalizado</span> <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
                     </div>
                 </div>
