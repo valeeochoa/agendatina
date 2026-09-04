@@ -12,36 +12,12 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .font-brand { font-family: 'Fredoka', cursive, sans-serif !important; }
-
-        @keyframes auroraPulseOne {
-            0% { transform: translate(0px, 0px) scale(1); opacity: 0.14; }
-            50% { transform: translate(70px, 50px) scale(1.18); opacity: 0.22; }
-            100% { transform: translate(-40px, 30px) scale(0.92); opacity: 0.14; }
-        }
-
-        @keyframes auroraPulseTwo {
-            0% { transform: translate(0px, 0px) scale(1); opacity: 0.12; }
-            50% { transform: translate(-60px, -40px) scale(1.22); opacity: 0.20; }
-            100% { transform: translate(40px, -30px) scale(0.88); opacity: 0.12; }
-        }
-
-        .aurora-orb-1 {
-            animation: auroraPulseOne 14s ease-in-out infinite alternate;
-        }
-
-        .aurora-orb-2 {
-            animation: auroraPulseTwo 18s ease-in-out infinite alternate;
-        }
     </style>
 </head>
-<body class="bg-[#fdfafb] text-slate-800 min-h-screen flex flex-col relative overflow-x-hidden selection:bg-[#D11149]/10">
-
-    <!-- Estilo Aurora Cristal Minimalista (Esferas Ambientales Animadas en Paleta de Marca #D11149 y #FC8712) -->
-    <div class="fixed top-[-100px] left-[-100px] w-[650px] h-[650px] bg-gradient-to-tr from-[#D11149] to-[#FC8712] rounded-full blur-[160px] pointer-events-none z-0 aurora-orb-1"></div>
-    <div class="fixed bottom-[-120px] right-[-120px] w-[600px] h-[600px] bg-gradient-to-br from-[#FC8712] to-[#F44979] rounded-full blur-[160px] pointer-events-none z-0 aurora-orb-2"></div>
+<body class="bg-white text-slate-800 min-h-screen flex flex-col selection:bg-[#D11149]/10">
 
     <!-- Header / Navbar -->
-    <header class="bg-white/80 backdrop-blur-xl border-b border-rose-100/80 sticky top-0 z-40 shadow-xs">
+    <header class="bg-white/95 backdrop-blur-md border-b border-rose-100/70 sticky top-0 z-40 shadow-xs">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             <a href="index.html" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
                 <img src="public/logo.png" alt="Agendatina" class="h-9 w-auto drop-shadow-sm">
@@ -61,7 +37,7 @@
         <div class="max-w-3xl mx-auto">
             
             <!-- VISTA 1: INICIO DE SESIÓN / DETECCIÓN DE EMAIL -->
-            <div id="authBox" class="bg-white/90 backdrop-blur-xl rounded-3xl border border-rose-100 shadow-2xl p-6 sm:p-10 max-w-md mx-auto">
+            <div id="authBox" class="bg-white rounded-3xl border border-rose-100/90 shadow-xl p-6 sm:p-10 max-w-md mx-auto">
                 <div class="text-center mb-6">
                     <div class="w-12 h-12 rounded-2xl bg-[#fcb0b3]/30 text-[#d11149] flex items-center justify-center mx-auto mb-3">
                         <span class="material-symbols-outlined text-[28px]">person</span>
