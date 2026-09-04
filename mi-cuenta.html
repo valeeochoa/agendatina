@@ -67,25 +67,41 @@
 
             <!-- VISTA 2: PANEL DE CONTROL DEL CLIENTE / MIS CLASES -->
             <div id="dashboardBox" class="hidden space-y-6">
-                <!-- Tarjeta de Bienvenida y Pases -->
-                <div class="bg-gradient-to-r from-orange-50 to-pink-50 rounded-3xl p-6 border border-orange-200/80 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <span class="text-xs font-bold text-orange-600 uppercase tracking-wider">¡Hola de nuevo!</span>
-                        <h2 class="text-2xl font-black text-slate-900" id="dashClientName">Mi Panel</h2>
-                        <p class="text-xs text-slate-600 mt-0.5">Consultá tus clases agendadas y créditos de asistencia.</p>
+                <!-- Tarjeta de Bienvenida y Resumen por Negocio -->
+                <div class="bg-gradient-to-r from-orange-500/10 via-pink-500/10 to-rose-500/10 rounded-3xl p-6 border border-orange-200 shadow-md">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                        <div>
+                            <span class="text-xs font-bold text-orange-600 uppercase tracking-wider">¡Hola de nuevo!</span>
+                            <h2 class="text-2xl font-black text-slate-900" id="dashClientName">Mi Panel de Alumno</h2>
+                            <p class="text-xs text-slate-600 mt-0.5">Consultá tus pases y clases agendadas en tus establecimientos.</p>
+                        </div>
                     </div>
-                    <div class="bg-white p-4 rounded-2xl border border-orange-200 text-center shrink-0 shadow-sm">
-                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Pases / Créditos</span>
-                        <span class="text-3xl font-black text-orange-600" id="dashPasesCount">0</span>
-                        <span class="text-[11px] font-bold text-slate-500 block">clases disponibles</span>
+                    
+                    <!-- Resumen de Pases por Negocio -->
+                    <div id="negociosCardsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                        <div class="bg-white p-4 rounded-2xl border border-orange-200 text-center shadow-sm">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Pases / Créditos</span>
+                            <span class="text-3xl font-black text-orange-600" id="dashPasesCount">0</span>
+                            <span class="text-[11px] font-bold text-slate-500 block">clases disponibles</span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Historial de Clases y Reservas -->
                 <div class="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-8">
-                    <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-orange-600">event_available</span> Mis Clases y Reservas
-                    </h3>
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
+                        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-orange-600">event_available</span> Mis Clases e Inscripciones
+                        </h3>
+                        
+                        <!-- Filtro por Negocio -->
+                        <div id="filterNegocioContainer" class="hidden items-center gap-2">
+                            <label class="text-xs font-bold text-slate-500">Filtrar por negocio:</label>
+                            <select id="negocioFilterSelect" onchange="filterClasesByNegocio()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-orange-500 text-slate-700">
+                                <option value="all">Todos los negocios</option>
+                            </select>
+                        </div>
+                    </div>
 
                     <div id="clasesList" class="space-y-3">
                         <div class="p-8 text-center text-slate-400 text-sm border border-dashed border-slate-200 rounded-2xl">
@@ -202,13 +218,15 @@
             });
         }
 
+        let allStudentClases = [];
+        let studentNegocios = [];
+
         function renderDashboard(cliente) {
             document.getElementById('authBox').classList.add('hidden');
             document.getElementById('dashboardBox').classList.remove('hidden');
             document.getElementById('userHeaderBox').classList.remove('hidden');
             document.getElementById('userNameDisplay').textContent = cliente.nombre || cliente.email;
             document.getElementById('dashClientName').textContent = cliente.nombre || 'Alumno';
-            document.getElementById('dashPasesCount').textContent = cliente.pases || 0;
 
             loadMisClases(cliente.email);
         }
@@ -217,29 +235,100 @@
             fetch('backend/cliente_auth.php?action=mis_clases&email=' + encodeURIComponent(email))
                 .then(r => r.json())
                 .then(d => {
-                    const list = document.getElementById('clasesList');
-                    if (d.success && Array.isArray(d.data) && d.data.length > 0) {
-                        let html = '';
-                        d.data.forEach(c => {
-                            const fechaFmt = c.fecha ? c.fecha.split('-').reverse().join('/') : '';
-                            html += `
-                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                    <div>
-                                        <h4 class="font-bold text-slate-900 text-sm">${c.servicio}</h4>
-                                        <p class="text-xs text-slate-500 mt-0.5">📍 ${c.negocio || 'Establecimiento'} • 👨‍⚕️ ${c.profesional || 'Profesional'}</p>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <span class="text-xs font-black text-slate-700 bg-white px-3 py-1.5 rounded-xl border border-slate-200">${fechaFmt} a las ${c.hora}hs</span>
-                                        <span class="text-[11px] font-extrabold uppercase px-2.5 py-1 rounded-lg ${c.estado === 'confirmado' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${c.estado}</span>
-                                    </div>
-                                </div>
-                            `;
-                        });
-                        list.innerHTML = html;
-                    } else {
-                        list.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm border border-dashed border-slate-200 rounded-2xl">No tenés reservas registradas hasta el momento.</div>';
+                    if (d.success) {
+                        allStudentClases = d.data || [];
+                        studentNegocios = d.negocios || [];
+
+                        renderNegociosPases(studentNegocios);
+                        populateNegocioFilter(studentNegocios);
+                        renderClasesList(allStudentClases);
                     }
                 });
+        }
+
+        function renderNegociosPases(negocios) {
+            const container = document.getElementById('negociosCardsContainer');
+            if (!negocios || negocios.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white p-4 rounded-2xl border border-orange-200 text-center shadow-sm col-span-2">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Pases / Créditos</span>
+                        <span class="text-3xl font-black text-orange-600">0</span>
+                        <span class="text-[11px] font-bold text-slate-500 block">clases disponibles</span>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            negocios.forEach(n => {
+                const venc = n.fecha_vencimiento ? n.fecha_vencimiento.split('-').reverse().join('/') : 'Sin vencimiento';
+                html += `
+                    <div class="bg-white p-4 rounded-2xl border border-orange-200 shadow-sm flex items-center justify-between gap-3">
+                        <div>
+                            <span class="text-xs font-bold text-slate-800 block truncate">📍 ${n.negocio_nombre}</span>
+                            <span class="text-[10px] font-medium text-slate-500 block">Vence: ${venc}</span>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span class="text-2xl font-black text-orange-600">${n.pases_disponibles || 0}</span>
+                            <span class="text-[10px] font-bold text-slate-400 block">pases disponibles</span>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function populateNegocioFilter(negocios) {
+            const container = document.getElementById('filterNegocioContainer');
+            const select = document.getElementById('negocioFilterSelect');
+            
+            if (negocios && negocios.length > 1) {
+                container.classList.remove('hidden');
+                container.classList.add('flex');
+
+                let html = '<option value="all">Todos los negocios (' + negocios.length + ')</option>';
+                negocios.forEach(n => {
+                    html += `<option value="${n.id_negocio}">${n.negocio_nombre}</option>`;
+                });
+                select.innerHTML = html;
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        function filterClasesByNegocio() {
+            const selectVal = document.getElementById('negocioFilterSelect').value;
+            if (selectVal === 'all') {
+                renderClasesList(allStudentClases);
+            } else {
+                const filtered = allStudentClases.filter(c => String(c.id_negocio) === String(selectVal));
+                renderClasesList(filtered);
+            }
+        }
+
+        function renderClasesList(clases) {
+            const list = document.getElementById('clasesList');
+            if (Array.isArray(clases) && clases.length > 0) {
+                let html = '';
+                clases.forEach(c => {
+                    const fechaFmt = c.fecha ? c.fecha.split('-').reverse().join('/') : '';
+                    html += `
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-orange-200 transition-colors">
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-sm">${c.servicio}</h4>
+                                <p class="text-xs text-slate-500 mt-0.5"><span class="font-bold text-slate-700">📍 ${c.negocio || 'Establecimiento'}</span> • 👨‍⚕️ ${c.profesional || 'Profesional'}</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs font-black text-slate-700 bg-white px-3 py-1.5 rounded-xl border border-slate-200">${fechaFmt} a las ${c.hora}hs</span>
+                                <span class="text-[11px] font-extrabold uppercase px-2.5 py-1 rounded-lg ${c.estado === 'confirmado' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}">${c.estado}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                list.innerHTML = html;
+            } else {
+                list.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm border border-dashed border-slate-200 rounded-2xl">No tenés reservas registradas hasta el momento.</div>';
+            }
         }
 
         function logoutCliente() {

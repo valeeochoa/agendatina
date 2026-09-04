@@ -2397,8 +2397,8 @@ var carouselData = [
             'Calendario de reservas online 24/7',
             'Notificaciones automáticas por email',
             'Personalización de 2 colores base de marca',
-            'Bloqueo manual de días feriados y vacaciones',
-            'Cobros en el local o Mercado Pago'
+            'Clientes y alumnos ilimitados (por el momento)',
+            'Bloqueo manual de días feriados y vacaciones'
         ]
     },
     { 
@@ -2413,13 +2413,13 @@ var carouselData = [
             'Todo lo incluido en el Plan Simple',
             'Agenda Virtual interactiva con listado de reservas',
             'Página web pública de reservas personalizada (mi-web)',
-            'Notificaciones automáticas por email',
-            '1 opción adicional de color personalizado (+1)'
+            'Personalización de 3 colores (2 base + 1 adicional)',
+            'Clientes y alumnos ilimitados (por el momento)'
         ]
     },
     { 
         title: 'Plan Premium', 
-        desc: 'Plataforma completa con módulo de cupos y clases, portal del alumno, estadísticas y máximo nivel de personalización.', 
+        desc: 'Plataforma completa con Agenda Virtual, página web, módulo de cupos y clases, portal del alumno y máximo nivel de personalización.', 
         oldPrice: '$16.667',
         price: '$15.000', 
         tag: 'Presencia & Cupos',
@@ -2428,9 +2428,9 @@ var carouselData = [
         features: [
             'Todo lo incluido en el Plan Profesional',
             '🔥 Módulo de Cupos y Portal de Alumnos (mi-cuenta)',
-            'Gestión de Créditos, Pases y Vencimientos (clientes)',
-            'Módulo de Estadísticas y Métricas de Facturación',
-            'Hasta 3 opciones adicionales de colores personalizados (+3)'
+            'Gestión de Créditos, Pases y Vencimientos',
+            'Personalización de 5 colores (2 base + 3 adicionales)',
+            'Clientes y alumnos ilimitados (por el momento)'
         ]
     }
 ];

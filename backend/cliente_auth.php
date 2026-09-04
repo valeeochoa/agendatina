@@ -146,7 +146,20 @@ try {
     }
 
     // ---------------------------------------------------------
-    // 4. Mis Clases y Reservas
+    // Rutina de Depuración Mensual (Cuentas inactivas por > 6 meses)
+    // ---------------------------------------------------------
+    try {
+        $pdo->exec("
+            DELETE FROM clientes_negocio 
+            WHERE fecha_alta < DATE_SUB(NOW(), INTERVAL 6 MONTH)
+              AND email NOT IN (
+                  SELECT DISTINCT cliente_celular FROM turnos WHERE cliente_celular IS NOT NULL AND fecha >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+              )
+        ");
+    } catch(Exception $exPurge) {}
+
+    // ---------------------------------------------------------
+    // 4. Mis Clases y Reservas (Discriminadas por Negocio)
     // ---------------------------------------------------------
     if ($action === 'mis_clases') {
         $email = $_SESSION['cliente_email'] ?? $_GET['email'] ?? '';
@@ -156,8 +169,19 @@ try {
             exit;
         }
 
+        // Obtener la información de los negocios donde el alumno está registrado
+        $stmtNegocios = $pdo->prepare("
+            SELECT cn.id_negocio, n.nombre_fantasia AS negocio_nombre, cn.pases_disponibles, cn.pases_totales, cn.fecha_vencimiento
+            FROM clientes_negocio cn
+            JOIN negocios n ON cn.id_negocio = n.id
+            WHERE cn.email = :email
+        ");
+        $stmtNegocios->execute(['email' => $email]);
+        $negociosAsociados = $stmtNegocios->fetchAll(PDO::FETCH_ASSOC);
+
+        // Obtener el historial completo de clases y turnos
         $stmt = $pdo->prepare("
-            SELECT t.id, t.fecha, t.hora, t.servicio, t.profesional, t.estado, n.nombre_fantasia AS negocio
+            SELECT t.id, t.id_negocio, COALESCE(n.nombre_fantasia, 'Establecimiento') AS negocio, t.servicio, t.profesional, t.fecha, t.hora, t.estado
             FROM turnos t
             LEFT JOIN negocios n ON t.id_negocio = n.id
             WHERE t.cliente_celular = :email OR t.cliente_nombre LIKE :emailLike
@@ -166,7 +190,11 @@ try {
         $stmt->execute(['email' => $email, 'emailLike' => '%' . $email . '%']);
         $clases = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        echo json_encode(['success' => true, 'data' => $clases]);
+        echo json_encode([
+            'success' => true, 
+            'data' => $clases,
+            'negocios' => $negociosAsociados
+        ]);
         exit;
     }
 

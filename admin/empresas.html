@@ -120,13 +120,14 @@
                             <th class="p-4">Empresa</th>
                             <th class="p-4">Contacto Admin</th>
                             <th class="p-4">Plan Actual</th>
+                            <th class="p-4">Alumnos (Portal)</th>
                             <th class="p-4">Estado de Pago</th>
                             <th class="p-4">Días Restantes</th>
                             <th class="p-4 text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="clientsList">
-                        <tr><td colspan="6" class="p-8 text-center text-slate-400 text-sm">Cargando catálogo...</td></tr>
+                        <tr><td colspan="7" class="p-8 text-center text-slate-400 text-sm">Cargando catálogo...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -242,6 +243,12 @@
                     diasText = rest > 0 ? `${rest} días` : '<span class="text-red-500 font-bold">Vencido</span>';
                 }
 
+                // Alumnos (Portal Premium)
+                const isPremium = planStr.toLowerCase().includes('premium') || planStr.toLowerCase().includes('completo');
+                const alumnosBadge = isPremium 
+                    ? `<span class="bg-orange-100 text-orange-800 font-extrabold border border-orange-200 px-2.5 py-1 rounded-xl text-xs inline-flex items-center gap-1">🎓 ${c.alumnos_count || 0} alumnos</span>`
+                    : `<span class="text-slate-400 text-xs font-medium">- (Sin portal)</span>`;
+
                 html += `
                     <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                         <td class="p-4">
@@ -253,6 +260,7 @@
                             <div class="text-xs text-slate-400">${c.email || ''}</div>
                         </td>
                         <td class="p-4 text-xs font-bold text-slate-700">${planStr}</td>
+                        <td class="p-4">${alumnosBadge}</td>
                         <td class="p-4">${statusBadge}</td>
                         <td class="p-4 text-xs font-semibold text-slate-600">${diasText}</td>
                         <td class="p-4 text-center">

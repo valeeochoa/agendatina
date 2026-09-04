@@ -177,6 +177,13 @@ if ($method === 'GET') {
         $stmtTurnosCount = $pdo->query("SELECT id_negocio, COUNT(*) as total_turnos FROM turnos GROUP BY id_negocio");
         $counts_turnos = $stmtTurnosCount ? $stmtTurnosCount->fetchAll(PDO::FETCH_KEY_PAIR) : [];
 
+        // Obtener la cantidad de alumnos por negocio (para negocios con Portal de Alumnos)
+        $counts_alumnos = [];
+        try {
+            $stmtAlumnosCount = $pdo->query("SELECT id_negocio, COUNT(*) as total_alumnos FROM clientes_negocio GROUP BY id_negocio");
+            $counts_alumnos = $stmtAlumnosCount ? $stmtAlumnosCount->fetchAll(PDO::FETCH_KEY_PAIR) : [];
+        } catch(Throwable $exAlumnos) {}
+
         // Auto-crear tabla de comprobantes de pago si aún no existe
         try {
             $pdo->exec("CREATE TABLE IF NOT EXISTS `comprobantes_pago` (
@@ -210,6 +217,7 @@ if ($method === 'GET') {
             $realCount = isset($counts_profesionales[$negocio['id']]) ? (int)$counts_profesionales[$negocio['id']] : max(1, count($profsList));
             $negocio['profesionales_count'] = max(1, $realCount);
             $negocio['turnos_count'] = isset($counts_turnos[$negocio['id']]) ? (int)$counts_turnos[$negocio['id']] : 0;
+            $negocio['alumnos_count'] = isset($counts_alumnos[$negocio['id']]) ? (int)$counts_alumnos[$negocio['id']] : 0;
             $compList = array_values(array_filter($todos_comprobantes, function($c) use ($negocio) {
                 return $c['id_negocio'] == $negocio['id'];
             }));
