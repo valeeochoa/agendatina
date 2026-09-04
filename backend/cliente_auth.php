@@ -15,6 +15,9 @@ try {
             telefono VARCHAR(50) DEFAULT '',
             password VARCHAR(255) DEFAULT NULL,
             pases_disponibles INT DEFAULT 0,
+            pases_totales INT DEFAULT 0,
+            fecha_vencimiento DATE DEFAULT NULL,
+            notas TEXT DEFAULT NULL,
             estado ENUM('activo', 'pendiente_activacion', 'inactivo') DEFAULT 'pendiente_activacion',
             fecha_alta DATETIME DEFAULT CURRENT_TIMESTAMP,
             KEY (id_negocio),
@@ -23,6 +26,16 @@ try {
     ");
 } catch(Exception $e) {}
 
+// Asegurar existencia de columnas por si la tabla fue creada previamente con esquema reducido
+try { $pdo->query("SELECT pases_totales FROM clientes_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN pases_totales INT DEFAULT 0"); }
+
+try { $pdo->query("SELECT fecha_vencimiento FROM clientes_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN fecha_vencimiento DATE DEFAULT NULL"); }
+
+try { $pdo->query("SELECT notas FROM clientes_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN notas TEXT DEFAULT NULL"); }
+
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
 try {
@@ -30,23 +43,23 @@ try {
     // 1. Verificar Email de Cliente (Detección de Pre-Registro)
     // ---------------------------------------------------------
     if ($action === 'check_email') {
-        $email = trim($_POST['email'] ?? $_GET['email'] ?? '');
-        $rutaNegocio = trim($_POST['ruta'] ?? $_GET['ruta'] ?? '');
+        $email = strtolower(trim($_POST['email'] ?? $_GET['email'] ?? ''));
 
         if (empty($email)) {
-            echo json_encode(['success' => false, 'error' => 'Email requerido.']);
+            echo json_encode(['success' => false, 'error' => 'Ingresá un correo electrónico válido.']);
             exit;
         }
 
-        $stmt = $pdo->prepare("SELECT id, nombre_completo, password, pases_disponibles, estado FROM clientes_negocio WHERE email = :email LIMIT 1");
+        // Buscar en clientes_negocio (alumnos asignados por establecimientos)
+        $stmt = $pdo->prepare("SELECT id, nombre_completo, password, pases_disponibles, estado FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email LIMIT 1");
         $stmt->execute(['email' => $email]);
         $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$cliente) {
-            // Verificar si tiene turnos registrados con ese email
-            $stmtTurno = $pdo->prepare("SELECT cliente_nombre FROM turnos WHERE cliente_celular = :email OR cliente_nombre LIKE :email LIMIT 1");
-            $stmtTurno->execute(['email' => '%' . $email . '%']);
-            $turno = $stmtTurno->fetch();
+            // Verificar si tiene turnos registrados con ese email en la tabla turnos
+            $stmtTurno = $pdo->prepare("SELECT cliente_nombre FROM turnos WHERE LOWER(TRIM(cliente_celular)) = :email OR LOWER(cliente_nombre) LIKE :emailLike LIMIT 1");
+            $stmtTurno->execute(['email' => $email, 'emailLike' => '%' . $email . '%']);
+            $turno = $stmtTurno->fetch(PDO::FETCH_ASSOC);
             
             if ($turno) {
                 echo json_encode([
@@ -58,7 +71,11 @@ try {
                 exit;
             }
 
-            echo json_encode(['success' => true, 'exists' => false]);
+            echo json_encode([
+                'success' => true, 
+                'exists' => false,
+                'message' => 'No encontramos tu correo electrónico en nuestra lista de alumnos. Por favor solicitale a tu profesor o establecimiento que te agregue a sus clases para habilitar tu acceso.'
+            ]);
             exit;
         }
 
@@ -76,24 +93,26 @@ try {
     // 2. Establecer Contraseña por Primera Vez (Onboarding Cliente)
     // ---------------------------------------------------------
     if ($action === 'set_password') {
-        $email = trim($_POST['email'] ?? '');
+        $email = strtolower(trim($_POST['email'] ?? ''));
         $password = trim($_POST['password'] ?? '');
         $nombre = trim($_POST['nombre'] ?? '');
 
         if (empty($email) || strlen($password) < 6) {
-            echo json_encode(['success' => false, 'error' => 'Ingresa una contraseña válida de al menos 6 caracteres.']);
+            echo json_encode(['success' => false, 'error' => 'Ingresá una contraseña válida de al menos 6 caracteres.']);
             exit;
         }
 
         $hash = password_hash($password, PASSWORD_DEFAULT);
 
-        $stmtCheck = $pdo->prepare("SELECT id FROM clientes_negocio WHERE email = :email LIMIT 1");
+        $stmtCheck = $pdo->prepare("SELECT id, nombre_completo FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email LIMIT 1");
         $stmtCheck->execute(['email' => $email]);
-        $cId = $stmtCheck->fetchColumn();
+        $c = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
-        if ($cId) {
+        if ($c) {
             $stmtUp = $pdo->prepare("UPDATE clientes_negocio SET password = :hash, estado = 'activo' WHERE id = :id");
-            $stmtUp->execute(['hash' => $hash, 'id' => $cId]);
+            $stmtUp->execute(['hash' => $hash, 'id' => $c['id']]);
+            $cId = $c['id'];
+            if (empty($nombre)) $nombre = $c['nombre_completo'];
         } else {
             $stmtIns = $pdo->prepare("INSERT INTO clientes_negocio (id_negocio, nombre_completo, email, password, estado) VALUES (1, :nombre, :email, :hash, 'activo')");
             $stmtIns->execute(['nombre' => !empty($nombre) ? $nombre : 'Alumno Registrado', 'email' => $email, 'hash' => $hash]);
@@ -104,7 +123,15 @@ try {
         $_SESSION['cliente_email'] = $email;
         $_SESSION['cliente_nombre'] = $nombre;
 
-        echo json_encode(['success' => true, 'message' => 'Contraseña configurada con éxito.']);
+        echo json_encode([
+            'success' => true, 
+            'message' => 'Contraseña configurada con éxito.',
+            'cliente' => [
+                'id' => $cId,
+                'nombre' => $nombre,
+                'email' => $email
+            ]
+        ]);
         exit;
     }
 
@@ -112,20 +139,20 @@ try {
     // 3. Login de Cliente
     // ---------------------------------------------------------
     if ($action === 'login') {
-        $email = trim($_POST['email'] ?? '');
+        $email = strtolower(trim($_POST['email'] ?? ''));
         $password = trim($_POST['password'] ?? '');
 
         if (empty($email) || empty($password)) {
-            echo json_encode(['success' => false, 'error' => 'Ingresa email y contraseña.']);
+            echo json_encode(['success' => false, 'error' => 'Ingresá email y contraseña.']);
             exit;
         }
 
-        $stmt = $pdo->prepare("SELECT id, nombre_completo, email, password, pases_disponibles FROM clientes_negocio WHERE email = :email LIMIT 1");
+        $stmt = $pdo->prepare("SELECT id, nombre_completo, email, password, pases_disponibles FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email LIMIT 1");
         $stmt->execute(['email' => $email]);
         $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$cliente || empty($cliente['password']) || !password_verify($password, $cliente['password'])) {
-            echo json_encode(['success' => false, 'error' => 'Email o contraseña incorrectos.']);
+            echo json_encode(['success' => false, 'error' => 'Contraseña incorrecta o correo no registrado.']);
             exit;
         }
 
@@ -162,7 +189,7 @@ try {
     // 4. Mis Clases y Reservas (Discriminadas por Negocio)
     // ---------------------------------------------------------
     if ($action === 'mis_clases') {
-        $email = $_SESSION['cliente_email'] ?? $_GET['email'] ?? '';
+        $email = strtolower(trim($_SESSION['cliente_email'] ?? $_GET['email'] ?? ''));
 
         if (empty($email)) {
             echo json_encode(['success' => false, 'error' => 'No autorizado.']);
@@ -171,10 +198,10 @@ try {
 
         // Obtener la información de los negocios donde el alumno está registrado
         $stmtNegocios = $pdo->prepare("
-            SELECT cn.id_negocio, n.nombre_fantasia AS negocio_nombre, cn.pases_disponibles, cn.pases_totales, cn.fecha_vencimiento
+            SELECT cn.id_negocio, n.nombre_fantasia AS negocio_nombre, cn.pases_disponibles, COALESCE(cn.pases_totales, cn.pases_disponibles) AS pases_totales, cn.fecha_vencimiento
             FROM clientes_negocio cn
             JOIN negocios n ON cn.id_negocio = n.id
-            WHERE cn.email = :email
+            WHERE LOWER(TRIM(cn.email)) = :email
         ");
         $stmtNegocios->execute(['email' => $email]);
         $negociosAsociados = $stmtNegocios->fetchAll(PDO::FETCH_ASSOC);
@@ -184,7 +211,7 @@ try {
             SELECT t.id, t.id_negocio, COALESCE(n.nombre_fantasia, 'Establecimiento') AS negocio, t.servicio, t.profesional, t.fecha, t.hora, t.estado
             FROM turnos t
             LEFT JOIN negocios n ON t.id_negocio = n.id
-            WHERE t.cliente_celular = :email OR t.cliente_nombre LIKE :emailLike
+            WHERE LOWER(TRIM(t.cliente_celular)) = :email OR LOWER(t.cliente_nombre) LIKE :emailLike
             ORDER BY t.fecha DESC, t.hora DESC
         ");
         $stmt->execute(['email' => $email, 'emailLike' => '%' . $email . '%']);

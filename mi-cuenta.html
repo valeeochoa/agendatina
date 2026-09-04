@@ -49,7 +49,7 @@
                 <form id="clientLoginForm" onsubmit="handleClientAuth(event)" class="space-y-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1.5">Tu Email *</label>
-                        <input type="email" id="clientEmailInput" required placeholder="alumno@ejemplo.com" class="w-full bg-slate-50 border border-orange-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#FC8712] outline-none font-medium text-slate-800">
+                        <input type="email" id="clientEmailInput" required oninput="resetAuthStep()" placeholder="alumno@ejemplo.com" class="w-full bg-slate-50 border border-orange-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#FC8712] outline-none font-medium text-slate-800">
                     </div>
 
                     <div id="passwordGroup" class="hidden">
@@ -147,14 +147,36 @@
         let currentClientEmail = '';
         let clientIsDetected = false;
 
+        function resetAuthStep() {
+            if (clientIsDetected) {
+                clientIsDetected = false;
+                document.getElementById('passwordGroup').classList.add('hidden');
+                document.getElementById('clientPasswordInput').value = '';
+                const notice = document.getElementById('authNotice');
+                notice.classList.add('hidden');
+                notice.innerHTML = '';
+                const btn = document.getElementById('btnAuthSubmit');
+                btn.innerHTML = 'Continuar <span class="material-symbols-outlined text-[18px]">arrow_forward</span>';
+            }
+        }
+
         function handleClientAuth(e) {
             e.preventDefault();
-            const email = document.getElementById('clientEmailInput').value.trim();
-            const password = document.getElementById('clientPasswordInput').value.trim();
+            const emailInput = document.getElementById('clientEmailInput');
+            const email = emailInput.value.trim();
+            const passwordInput = document.getElementById('clientPasswordInput');
+            const password = passwordInput.value.trim();
             const notice = document.getElementById('authNotice');
+            const btn = document.getElementById('btnAuthSubmit');
+
+            if (!email) return;
 
             if (!clientIsDetected) {
-                // Paso 1: Verificar Email
+                // Paso 1: Verificar Email en Base de Datos
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Verificando en base de datos...';
+                notice.classList.add('hidden');
+
                 fetch('backend/cliente_auth.php?action=check_email', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -162,6 +184,9 @@
                 })
                 .then(r => r.json())
                 .then(d => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Continuar <span class="material-symbols-outlined text-[18px]">arrow_forward</span>';
+
                     if (d.success) {
                         currentClientEmail = email;
                         if (d.exists) {
@@ -169,22 +194,52 @@
                                 // Mostrar Modal de Primer Registro
                                 document.getElementById('firstPasswordModal').classList.remove('hidden');
                             } else {
-                                // Pedir contraseña
+                                // Alumno detectado con contraseña creada
                                 clientIsDetected = true;
                                 document.getElementById('passwordGroup').classList.remove('hidden');
-                                notice.className = 'text-xs p-3 rounded-xl bg-blue-50 text-blue-700 border border-blue-200';
-                                notice.textContent = 'Ingresá tu contraseña para iniciar sesión.';
+                                passwordInput.focus();
+                                notice.className = 'text-xs p-3.5 rounded-2xl bg-amber-50 text-amber-900 border border-amber-200/90 shadow-sm leading-relaxed';
+                                notice.innerHTML = '<div class="flex items-center gap-2.5"><span class="material-symbols-outlined text-[20px] text-[#FC8712] shrink-0">lock</span><div><strong class="font-extrabold block text-slate-900 text-xs mb-0.5">¡Alumno encontrado!</strong>Ingresá tu contraseña para acceder a tu panel.</div></div>';
                                 notice.classList.remove('hidden');
+                                btn.innerHTML = 'Iniciar Sesión <span class="material-symbols-outlined text-[18px]">login</span>';
                             }
                         } else {
-                            notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
-                            notice.textContent = 'No encontramos clases ni pre-registros asociados a este correo electrónico.';
+                            // Alumno NO encontrado en la BD
+                            notice.className = 'text-xs p-3.5 rounded-2xl bg-red-50 text-red-700 border border-red-200/90 shadow-sm leading-relaxed';
+                            notice.innerHTML = `<div class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-[20px] text-red-500 shrink-0 mt-0.5">error</span>
+                                <div>
+                                    <strong class="font-extrabold block text-slate-900 text-xs mb-0.5">No estás registrado como alumno</strong>
+                                    ${d.message || 'No encontramos tu correo electrónico en nuestra lista de alumnos. Por favor solicitale a tu profesor o establecimiento que te agregue a sus clases para habilitar tu acceso.'}
+                                </div>
+                            </div>`;
                             notice.classList.remove('hidden');
                         }
+                    } else {
+                        notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
+                        notice.textContent = d.error || 'Error al verificar el correo.';
+                        notice.classList.remove('hidden');
                     }
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Continuar <span class="material-symbols-outlined text-[18px]">arrow_forward</span>';
+                    notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
+                    notice.textContent = 'Ocurrió un error de conexión al consultar la base de datos. Por favor reintentá.';
+                    notice.classList.remove('hidden');
                 });
             } else {
                 // Paso 2: Iniciar Sesión con contraseña
+                if (!password) {
+                    notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
+                    notice.textContent = 'Por favor ingresá tu contraseña.';
+                    notice.classList.remove('hidden');
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Iniciando sesión...';
+
                 fetch('backend/cliente_auth.php?action=login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -192,13 +247,24 @@
                 })
                 .then(r => r.json())
                 .then(d => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Iniciar Sesión <span class="material-symbols-outlined text-[18px]">login</span>';
+
                     if (d.success) {
+                        sessionStorage.setItem('agendatina_alumno_email', email);
                         renderDashboard(d.cliente);
                     } else {
                         notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
-                        notice.textContent = d.error || 'Error al iniciar sesión.';
+                        notice.textContent = d.error || 'Contraseña incorrecta o correo no registrado.';
                         notice.classList.remove('hidden');
                     }
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Iniciar Sesión <span class="material-symbols-outlined text-[18px]">login</span>';
+                    notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
+                    notice.textContent = 'Error de conexión. Intentá nuevamente.';
+                    notice.classList.remove('hidden');
                 });
             }
         }
@@ -206,6 +272,18 @@
         function submitSetPassword(e) {
             e.preventDefault();
             const pass = document.getElementById('newPassInput').value.trim();
+            const errDiv = document.getElementById('setPassError');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+
+            if (!pass || pass.length < 6) {
+                errDiv.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+                errDiv.classList.remove('hidden');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Guardando...';
+
             fetch('backend/cliente_auth.php?action=set_password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -213,15 +291,32 @@
             })
             .then(r => r.json())
             .then(d => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Guardar Contraseña y Acceder';
+
                 if (d.success) {
                     document.getElementById('firstPasswordModal').classList.add('hidden');
-                    renderDashboard({ nombre: 'Alumno', email: currentClientEmail, pases: 0 });
+                    sessionStorage.setItem('agendatina_alumno_email', currentClientEmail);
+                    renderDashboard(d.cliente || { nombre: 'Alumno', email: currentClientEmail, pases: 0 });
                 } else {
-                    document.getElementById('setPassError').textContent = d.error || 'Error al guardar.';
-                    document.getElementById('setPassError').classList.remove('hidden');
+                    errDiv.textContent = d.error || 'Error al guardar la contraseña.';
+                    errDiv.classList.remove('hidden');
                 }
+            })
+            .catch(err => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Guardar Contraseña y Acceder';
+                errDiv.textContent = 'Error de conexión con el servidor.';
+                errDiv.classList.remove('hidden');
             });
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedEmail = sessionStorage.getItem('agendatina_alumno_email');
+            if (savedEmail) {
+                renderDashboard({ email: savedEmail, nombre: 'Alumno' });
+            }
+        });
 
         let allStudentClases = [];
         let studentNegocios = [];
