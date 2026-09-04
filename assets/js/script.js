@@ -2391,43 +2391,46 @@ var carouselData = [
         oldPrice: '$8.889',
         price: '$8.000', 
         tag: 'Ideal para comenzar',
-        mockupDesktop: 'public/mockup_calendar_computer.png',
-        mockupMobile: 'public/mockup_calendar_phone.png',
+        showOldPrice: true,
+        badgeText: '-10% OFF',
         features: [
             'Calendario de reservas online 24/7',
             'Notificaciones automáticas por email',
             'Personalización de 2 colores base de marca',
-            'Bloqueo manual de días feriados y vacaciones'
+            'Bloqueo manual de días feriados y vacaciones',
+            'Cobros en el local o Mercado Pago'
         ]
     },
     { 
         title: 'Plan Profesional', 
-        desc: 'Sistema de turnos con Agenda Virtual interactiva y notificaciones por WhatsApp para gestionar tu negocio.', 
+        desc: 'Sistema de turnos con Agenda Virtual interactiva y página web pública de reservas personalizada.', 
         oldPrice: '$11.111',
         price: '$10.000', 
         tag: 'Más Elegido',
-        mockupDesktop: 'public/mockup_miagenda_computer.png',
-        mockupMobile: 'public/mockup_miagenda_phone.png',
+        showOldPrice: true,
+        badgeText: '-10% OFF',
         features: [
             'Todo lo incluido en el Plan Simple',
             'Agenda Virtual interactiva con listado de reservas',
-            '50 notificaciones por WhatsApp/mes (bolsa base)',
+            'Página web pública de reservas personalizada (mi-web)',
+            'Notificaciones automáticas por email',
             '1 opción adicional de color personalizado (+1)'
         ]
     },
     { 
         title: 'Plan Premium', 
-        desc: 'Plataforma completa con mini página web de reservas y módulo exclusivo de estadísticas de facturación.', 
+        desc: 'Plataforma completa con módulo de cupos y clases, portal del alumno, estadísticas y máximo nivel de personalización.', 
         oldPrice: '$16.667',
         price: '$15.000', 
-        tag: 'Presencia Online',
-        mockupDesktop: 'public/mockup_miagenda_computer.png',
-        mockupMobile: 'public/mockup_miagenda_phone.png',
+        tag: 'Presencia & Cupos',
+        showOldPrice: true,
+        badgeText: '-10% OFF',
         features: [
             'Todo lo incluido en el Plan Profesional',
-            'Página web pública de reservas (mi-web)',
-            '100 notificaciones por WhatsApp/mes (bolsa base)',
-            'Módulo de Estadísticas y Métricas de Facturación'
+            '🔥 Módulo de Cupos y Portal de Alumnos (mi-cuenta)',
+            'Gestión de Créditos, Pases y Vencimientos (clientes)',
+            'Módulo de Estadísticas y Métricas de Facturación',
+            'Hasta 3 opciones adicionales de colores personalizados (+3)'
         ]
     }
 ];
