@@ -34,7 +34,9 @@ $reportesCols = [
     'nombre_usuario' => 'VARCHAR(255) DEFAULT NULL',
     'email_usuario' => 'VARCHAR(255) DEFAULT NULL',
     'rol_usuario' => "VARCHAR(50) DEFAULT 'admin'",
-    'tipo' => "VARCHAR(50) DEFAULT 'Reporte de Error'"
+    'tipo' => "VARCHAR(50) DEFAULT 'Reporte de Error'",
+    'fecha_resuelto' => "DATETIME DEFAULT NULL",
+    'fecha_eliminado' => "DATETIME DEFAULT NULL"
 ];
 foreach ($reportesCols as $col => $tipo) {
     try { $pdo->query("SELECT $col FROM reportes_error LIMIT 1"); } 
@@ -73,6 +75,12 @@ if ($method === 'GET') {
     }
 
     try {
+        // Limpieza automática: Eliminar de la base de datos reportes resueltos o descartados con más de 30 días
+        try {
+            $pdo->exec("DELETE FROM reportes_error WHERE estado = 'resuelto' AND (fecha_resuelto < NOW() - INTERVAL 30 DAY OR (fecha_resuelto IS NULL AND fecha < NOW() - INTERVAL 30 DAY))");
+            $pdo->exec("DELETE FROM reportes_error WHERE estado = 'eliminado' AND (fecha_eliminado < NOW() - INTERVAL 30 DAY OR (fecha_eliminado IS NULL AND fecha < NOW() - INTERVAL 30 DAY))");
+        } catch(Exception $eClean) {}
+
         // Auto-reparación: Corregir tipo para reportes cuyos módulos no son sugerencias/mejoras
         try {
             $pdo->exec("UPDATE reportes_error SET tipo = 'Reporte de Error' WHERE modulo NOT LIKE '%Sugerencia%' AND modulo NOT LIKE '%Mejora%' AND (tipo IS NULL OR tipo = '' OR tipo = 'Sugerencia / Mejora')");
@@ -157,7 +165,8 @@ if ($method === 'GET') {
                 $idNegocio = $rep['id_negocio'];
                 
                 // Actualizar estado del reporte
-                $pdo->prepare("UPDATE reportes_error SET estado = ? WHERE id = ?")->execute([$nuevo_estado, $id]);
+                $fechaResueltoVal = ($nuevo_estado === 'resuelto') ? date('Y-m-d H:i:s') : null;
+                $pdo->prepare("UPDATE reportes_error SET estado = ?, fecha_resuelto = ? WHERE id = ?")->execute([$nuevo_estado, $fechaResueltoVal, $id]);
 
                 // Marcar leída notificación de admin
                 try {
@@ -185,7 +194,7 @@ if ($method === 'GET') {
 
         } elseif ($action === 'resolver' && $id > 0) {
             $descInput = trim($input['mensaje'] ?? $input['descripcion'] ?? '');
-            $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'resuelto' WHERE id = ?");
+            $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'resuelto', fecha_resuelto = NOW() WHERE id = ?");
             $stmt->execute([$id]);
 
             try {
@@ -198,7 +207,7 @@ if ($method === 'GET') {
                     $desc = $stmtGet->fetchColumn() ?: '';
                 }
                 if ($desc !== '') {
-                    $pdo->prepare("UPDATE reportes_error SET estado = 'resuelto' WHERE descripcion = ?")->execute([$desc]);
+                    $pdo->prepare("UPDATE reportes_error SET estado = 'resuelto', fecha_resuelto = NOW() WHERE descripcion = ?")->execute([$desc]);
                     $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE mensaje = ? OR id = ?")->execute([$desc, $id]);
                 } else {
                     $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE id = ?")->execute([$id]);
@@ -207,7 +216,7 @@ if ($method === 'GET') {
             echo json_encode(['success' => true, 'message' => 'Reporte marcado como resuelto.']);
 
         } elseif ($action === 'marcar_pendiente' && $id > 0) {
-            $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'pendiente' WHERE id = ?");
+            $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'pendiente', fecha_resuelto = NULL WHERE id = ?");
             $stmt->execute([$id]);
             try {
                 $stmtGet = $pdo->prepare("SELECT descripcion FROM reportes_error WHERE id = ?");

@@ -91,13 +91,22 @@
         </div>
 
         <!-- Buscador y Filtros -->
-        <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-200 mb-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="relative">
+        <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-200 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="relative w-full sm:w-1/2">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
                 <input type="text" id="searchInput" oninput="filterReportes()" placeholder="Buscar por negocio o mensaje..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d11149]">
             </div>
-            <div>
-                <select id="statusFilter" onchange="filterReportes()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d11149] font-medium">
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <div class="flex bg-slate-100 p-1 rounded-2xl border border-slate-200 w-full sm:w-auto">
+                    <button id="btnFilterAll" onclick="setStatusFilter('')" class="px-3.5 py-2 rounded-xl font-bold text-xs transition-all bg-white text-slate-800 shadow-xs">Todos</button>
+                    <button id="btnFilterPend" onclick="setStatusFilter('pendiente')" class="px-3.5 py-2 rounded-xl font-bold text-xs transition-all text-slate-500 hover:text-slate-800 flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-amber-500"></span> Pendientes
+                    </button>
+                    <button id="btnFilterRes" onclick="setStatusFilter('resuelto')" class="px-3.5 py-2 rounded-xl font-bold text-xs transition-all text-slate-500 hover:text-slate-800 flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Resueltos
+                    </button>
+                </div>
+                <select id="statusFilter" onchange="filterReportes()" class="hidden bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm outline-none font-medium">
                     <option value="">Todos los Estados</option>
                     <option value="pendiente">Pendientes</option>
                     <option value="resuelto">Resueltos</option>
@@ -170,6 +179,25 @@
                     document.getElementById('totalReportesBadge').textContent = '0 Pendientes';
                     document.getElementById('reportesList').innerHTML = '<tr><td colspan="4" class="p-8 text-center text-red-500 font-medium">Error de conexión al cargar reportes.</td></tr>';
                 });
+        }
+
+        function setStatusFilter(val) {
+            const selectEl = document.getElementById('statusFilter');
+            if (selectEl) selectEl.value = val;
+            const btnAll = document.getElementById('btnFilterAll');
+            const btnPend = document.getElementById('btnFilterPend');
+            const btnRes = document.getElementById('btnFilterRes');
+            [btnAll, btnPend, btnRes].forEach(b => {
+                if (b) b.className = 'px-3.5 py-2 rounded-xl font-bold text-xs transition-all text-slate-500 hover:text-slate-800 flex items-center gap-1';
+            });
+            if (val === '') {
+                if (btnAll) btnAll.className = 'px-3.5 py-2 rounded-xl font-bold text-xs transition-all bg-white text-slate-800 shadow-xs';
+            } else if (val === 'pendiente') {
+                if (btnPend) btnPend.className = 'px-3.5 py-2 rounded-xl font-bold text-xs transition-all bg-white text-slate-800 shadow-xs flex items-center gap-1';
+            } else if (val === 'resuelto') {
+                if (btnRes) btnRes.className = 'px-3.5 py-2 rounded-xl font-bold text-xs transition-all bg-white text-slate-800 shadow-xs flex items-center gap-1';
+            }
+            filterReportes();
         }
 
         function filterReportes() {

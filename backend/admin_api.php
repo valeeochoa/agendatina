@@ -255,21 +255,27 @@ if ($method === 'GET') {
             $config_global = ['precio_basico' => 8889, 'precio_intermedio' => 11111, 'precio_premium' => 16667, 'descuento_porcentaje' => 10, 'descuento_hasta' => null, 'dias_prueba_defecto' => 30];
         }
         
-        // Obtener reportes de error pendientes para el SuperAdmin
+        // Auto-limpieza: Purga automática de reportes resueltos o eliminados hace más de 30 días
+        try {
+            $pdo->exec("DELETE FROM reportes_error WHERE estado = 'resuelto' AND (fecha_resuelto < NOW() - INTERVAL 30 DAY OR (fecha_resuelto IS NULL AND fecha < NOW() - INTERVAL 30 DAY))");
+            $pdo->exec("DELETE FROM reportes_error WHERE estado = 'eliminado' AND (fecha_eliminado < NOW() - INTERVAL 30 DAY OR (fecha_eliminado IS NULL AND fecha < NOW() - INTERVAL 30 DAY))");
+        } catch (Exception $eClean) {}
+
+        // Obtener reportes de error para el SuperAdmin (Pendientes y Resueltos recientes)
         $notifs_admin = [];
         try {
             $stmtNotifs = $pdo->query("
                 SELECT r.id, r.id_negocio, COALESCE(r.nombre_negocio, n.nombre_fantasia) AS nombre_negocio, n.nombre_fantasia,
                        r.id_usuario, r.nombre_usuario, r.email_usuario, r.rol_usuario, r.tipo, COALESCE(r.modulo, 'General') AS segmento,
-                       r.descripcion AS mensaje, COALESCE(r.estado, 'pendiente') AS estado, r.fecha
+                       r.descripcion AS mensaje, COALESCE(r.estado, 'pendiente') AS estado, r.fecha, r.fecha_resuelto
                 FROM reportes_error r
                 LEFT JOIN negocios n ON r.id_negocio = n.id
-                WHERE r.estado = 'pendiente' OR r.estado IS NULL
-                ORDER BY r.fecha DESC LIMIT 50
+                WHERE r.estado != 'eliminado'
+                ORDER BY r.fecha DESC LIMIT 100
             ");
             $notifs_admin = $stmtNotifs ? $stmtNotifs->fetchAll(PDO::FETCH_ASSOC) : [];
 
-            // Notificaciones adicionales de notificaciones_admin que aún estén sin leer
+            // Notificaciones adicionales de notificaciones_admin
             $stmtExtra = $pdo->query("
                 SELECT na.id, na.id_negocio, COALESCE(na.nombre_negocio, n.nombre_fantasia) AS nombre_negocio, n.nombre_fantasia,
                        na.id_usuario, na.nombre_usuario, na.email_usuario, na.rol_usuario,
