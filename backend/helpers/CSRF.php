@@ -9,16 +9,14 @@ class CSRF {
         }
         
         // Exponer el token en una cookie accesible por JS para peticiones fetch
-        if (isset($_SESSION['user_id'])) {
-            setcookie('csrf_token', $_SESSION['csrf_token'], [
-                'expires' => 0,
-                'path' => '/',
-                'domain' => '',
-                'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
-                'httponly' => false, // Permitimos lectura desde JS para enviarlo como header
-                'samesite' => 'Lax'
-            ]);
-        }
+        setcookie('csrf_token', $_SESSION['csrf_token'], [
+            'expires' => 0,
+            'path' => '/',
+            'domain' => '',
+            'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
+            'httponly' => false, // Permitimos lectura desde JS para enviarlo como header
+            'samesite' => 'Lax'
+        ]);
     }
 
     public static function getToken() {

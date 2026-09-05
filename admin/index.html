@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Admin | Agendatina</title>
-    <link rel="icon" href="../public/logo.png">
+    <link rel="icon" href="../public/logo.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = { theme: { extend: { fontFamily: { brand: ['Fredoka', 'sans-serif'] } } } };
@@ -18,7 +18,7 @@
         .font-brand { font-family: 'Fredoka', cursive, sans-serif !important; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col md:flex-row" style="display: none;">
+<body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col md:flex-row">
 
     <!-- Sidebar Menú Izquierdo (Fijo) -->
     <aside class="w-full md:w-64 bg-slate-900 text-white shrink-0 md:h-screen md:sticky md:top-0 flex flex-col justify-between p-4 sm:p-6 shadow-xl overflow-y-auto z-40">
@@ -1797,12 +1797,6 @@ function deleteDiscountCode(id) {
             alert(res.error || 'Error al eliminar código.');
         }
     });
-}
-    content.classList.add('scale-95');
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }, 300);
 }
 
 let adminConfirmCallback = null;

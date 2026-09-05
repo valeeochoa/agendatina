@@ -27,11 +27,11 @@ $requestMethod = $_SERVER['REQUEST_METHOD'] ?? '';
 if ($requestMethod !== 'GET' && $requestMethod !== 'HEAD' && $requestMethod !== 'OPTIONS' && $requestMethod !== '') {
     if (isset($_SESSION['user_id'])) {
         $scriptName = strtolower(basename($_SERVER['SCRIPT_NAME'] ?? $_SERVER['PHP_SELF'] ?? ''));
-        $publicFiles = ['login.php', 'registrarse.php', 'admin_auth.php', 'crear_usuario.php', 'enviar_turno.php', 'enviar_contacto.php', 'restablecer_password.php', 'recuperar_password.php', 'cliente_auth.php'];
+        $publicFiles = ['login.php', 'registrarse.php', 'admin_auth.php', 'crear_usuario.php', 'enviar_turno.php', 'enviar_contacto.php', 'restablecer_password.php', 'recuperar_password.php', 'cliente_auth.php', 'subir_comprobante.php', 'validar_cupon.php'];
         $isPublic = in_array($scriptName, $publicFiles);
 
         if (!$isPublic) {
-            $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_POST['csrf_token'] ?? '';
+            $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_POST['csrf_token'] ?? $_SERVER['HTTP_CSRF_TOKEN'] ?? '';
             if (!CSRF::verify($csrfToken)) {
                 http_response_code(403);
                 die(json_encode(['success' => false, 'error' => 'Petición no autorizada (CSRF Token inválido o ausente).']));
