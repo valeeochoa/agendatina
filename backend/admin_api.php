@@ -255,14 +255,45 @@ if ($method === 'GET') {
             $config_global = ['precio_basico' => 8889, 'precio_intermedio' => 11111, 'precio_premium' => 16667, 'descuento_porcentaje' => 10, 'descuento_hasta' => null, 'dias_prueba_defecto' => 30];
         }
         
-        // Obtener notificaciones de errores recientes para el SuperAdmin
-        $stmtNotifs = $pdo->query("
-            SELECT na.*, n.nombre_fantasia 
-            FROM notificaciones_admin na 
-            LEFT JOIN negocios n ON na.id_negocio = n.id 
-            ORDER BY na.fecha DESC LIMIT 50
-        ");
-        $notifs_admin = $stmtNotifs ? $stmtNotifs->fetchAll(PDO::FETCH_ASSOC) : [];
+        // Obtener reportes de error pendientes para el SuperAdmin
+        $notifs_admin = [];
+        try {
+            $stmtNotifs = $pdo->query("
+                SELECT r.id, r.id_negocio, COALESCE(r.nombre_negocio, n.nombre_fantasia) AS nombre_negocio, n.nombre_fantasia,
+                       r.id_usuario, r.nombre_usuario, r.email_usuario, r.rol_usuario, r.tipo, COALESCE(r.modulo, 'General') AS segmento,
+                       r.descripcion AS mensaje, COALESCE(r.estado, 'pendiente') AS estado, r.fecha
+                FROM reportes_error r
+                LEFT JOIN negocios n ON r.id_negocio = n.id
+                WHERE r.estado = 'pendiente' OR r.estado IS NULL
+                ORDER BY r.fecha DESC LIMIT 50
+            ");
+            $notifs_admin = $stmtNotifs ? $stmtNotifs->fetchAll(PDO::FETCH_ASSOC) : [];
+
+            // Notificaciones adicionales de notificaciones_admin que aún estén sin leer
+            $stmtExtra = $pdo->query("
+                SELECT na.id, na.id_negocio, COALESCE(na.nombre_negocio, n.nombre_fantasia) AS nombre_negocio, n.nombre_fantasia,
+                       na.id_usuario, na.nombre_usuario, na.email_usuario, na.rol_usuario,
+                       'Reporte de Error' AS tipo, na.segmento, na.mensaje, 'pendiente' AS estado, na.fecha
+                FROM notificaciones_admin na
+                LEFT JOIN negocios n ON na.id_negocio = n.id
+                WHERE (na.leida = 0 OR na.leida IS NULL)
+                  AND (na.segmento LIKE '%Error%' OR na.segmento LIKE '%Bug%')
+                ORDER BY na.fecha DESC LIMIT 50
+            ");
+            $extras = $stmtExtra ? $stmtExtra->fetchAll(PDO::FETCH_ASSOC) : [];
+            foreach ($extras as $ex) {
+                $exists = false;
+                foreach ($notifs_admin as $r) {
+                    if (trim($r['mensaje']) === trim($ex['mensaje'])) {
+                        $exists = true;
+                        break;
+                    }
+                }
+                if (!$exists) {
+                    $notifs_admin[] = $ex;
+                }
+            }
+        } catch (Exception $eN) {}
         
         // Obtener las notas internas más recientes
         $stmtNotas = $pdo->query("

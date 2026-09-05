@@ -184,13 +184,21 @@ if ($method === 'GET') {
             exit;
 
         } elseif ($action === 'resolver' && $id > 0) {
+            $descInput = trim($input['mensaje'] ?? $input['descripcion'] ?? '');
             $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'resuelto' WHERE id = ?");
             $stmt->execute([$id]);
+
             try {
-                $stmtGet = $pdo->prepare("SELECT descripcion FROM reportes_error WHERE id = ?");
-                $stmtGet->execute([$id]);
-                $desc = $stmtGet->fetchColumn();
-                if ($desc) {
+                $desc = '';
+                if ($descInput !== '') {
+                    $desc = $descInput;
+                } else {
+                    $stmtGet = $pdo->prepare("SELECT descripcion FROM reportes_error WHERE id = ?");
+                    $stmtGet->execute([$id]);
+                    $desc = $stmtGet->fetchColumn() ?: '';
+                }
+                if ($desc !== '') {
+                    $pdo->prepare("UPDATE reportes_error SET estado = 'resuelto' WHERE descripcion = ?")->execute([$desc]);
                     $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE mensaje = ? OR id = ?")->execute([$desc, $id]);
                 } else {
                     $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE id = ?")->execute([$id]);
@@ -217,13 +225,25 @@ if ($method === 'GET') {
             echo json_encode(['success' => true, 'message' => 'Estado actualizado a ' . $nuevo_estado]);
 
         } elseif ($action === 'eliminar' && $id > 0) {
-            $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'eliminado' WHERE id = ?");
-            $stmt->execute([$id]);
+            $descInput = trim($input['mensaje'] ?? $input['descripcion'] ?? '');
             try {
-                $stmtGet = $pdo->prepare("SELECT descripcion FROM reportes_error WHERE id = ?");
-                $stmtGet->execute([$id]);
-                $desc = $stmtGet->fetchColumn();
-                if ($desc) {
+                $pdo->exec("ALTER TABLE reportes_error ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL");
+            } catch(Exception $eCol) {}
+
+            $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'eliminado', fecha_eliminado = NOW() WHERE id = ?");
+            $stmt->execute([$id]);
+
+            try {
+                $desc = '';
+                if ($descInput !== '') {
+                    $desc = $descInput;
+                } else {
+                    $stmtGet = $pdo->prepare("SELECT descripcion FROM reportes_error WHERE id = ?");
+                    $stmtGet->execute([$id]);
+                    $desc = $stmtGet->fetchColumn() ?: '';
+                }
+                if ($desc !== '') {
+                    $pdo->prepare("UPDATE reportes_error SET estado = 'eliminado', fecha_eliminado = NOW() WHERE descripcion = ?")->execute([$desc]);
                     $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE mensaje = ? OR id = ?")->execute([$desc, $id]);
                 } else {
                     $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE id = ?")->execute([$id]);

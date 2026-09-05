@@ -2238,7 +2238,10 @@ function renderAdminReports(notificaciones) {
                     <span class="text-[10px] font-bold text-red-700 bg-red-100 px-2.5 py-1 rounded-md uppercase tracking-wider inline-block">📍 Segmento: ${notif.segmento}</span>
                     <div class="flex items-center justify-end gap-2 self-end sm:self-auto mt-1 sm:mt-0 w-full sm:w-auto">
                         <span class="text-[11px] sm:text-xs font-semibold text-slate-500 bg-white px-2 py-1 rounded-md border border-slate-200 whitespace-nowrap">${fechaFormat} - ${horaFormat}</span>
-                        <button onclick="deleteAdminReport(${notif.id})" class="text-slate-400 hover:text-red-500 bg-white p-1 rounded-md border border-slate-200 transition-colors" title="Eliminar reporte (Ya solucionado)"><span class="material-symbols-outlined text-[16px] block">delete</span></button>
+                        <button onclick="resolveAdminReport(${notif.id})" class="text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-md border border-emerald-200 text-xs font-bold transition-colors flex items-center gap-1 shadow-xs" title="Marcar como resuelto">
+                            <span class="material-symbols-outlined text-[16px]">check_circle</span> Resuelto
+                        </button>
+                        <button onclick="deleteAdminReport(${notif.id})" class="text-slate-400 hover:text-red-500 bg-white p-1 rounded-md border border-slate-200 transition-colors" title="Descartar / Eliminar reporte"><span class="material-symbols-outlined text-[16px] block">delete</span></button>
                     </div>
                 </div>
                 <div class="mb-1.5 flex items-start gap-2"><span class="material-symbols-outlined text-[16px] text-slate-400 shrink-0 mt-0.5">storefront</span><span class="text-sm font-bold text-slate-700 break-words">Emprendimiento: <span class="text-primary">#${notif.id_negocio || '?'} - ${bizInfo}</span></span></div>
@@ -2298,6 +2301,25 @@ function clearPaymentsNotification() {
 
 let reportToDeleteId = null;
 
+function resolveAdminReport(id) {
+    if (!id) return;
+    fetch('../backend/admin_reportes_api.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'resolver', id: id })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            fetchClients();
+            if (window.loadAdminNavNotifsCount) window.loadAdminNavNotifsCount();
+        } else {
+            alert(data.error || 'Error al marcar el reporte como resuelto.');
+        }
+    })
+    .catch(() => alert('Error de conexión al resolver el reporte.'));
+}
+
 function deleteAdminReport(id) {
     reportToDeleteId = id;
     const modal = document.getElementById('confirmDeleteReportModal');
@@ -2322,12 +2344,17 @@ function executeDeleteReport() {
     const btn = document.getElementById('btnConfirmDeleteReport');
     btn.disabled = true;
     btn.textContent = 'Eliminando...';
-    fetch('../backend/admin_api.php?id_reporte=' + reportToDeleteId, { method: 'DELETE' })
+    fetch('../backend/admin_reportes_api.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'eliminar', id: reportToDeleteId })
+    })
     .then(res => res.json())
     .then(data => {
         if (data.success) {
             closeConfirmDeleteReport();
             fetchClients();
+            if (window.loadAdminNavNotifsCount) window.loadAdminNavNotifsCount();
         } else {
             alert(data.error || 'Error al eliminar el reporte.');
         }
