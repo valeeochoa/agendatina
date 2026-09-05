@@ -95,7 +95,7 @@ if ($method === 'GET') {
         ");
         $reportes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // También incluir notificaciones de notificaciones_admin (solo reportes de error o sugerencias enviadas)
+        // También incluir notificaciones de notificaciones_admin (solo reportes de error o sugerencias no leídas)
         try {
             $stmtNotif = $pdo->query("
                 SELECT id, id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario, 
@@ -105,7 +105,8 @@ if ($method === 'GET') {
                        END AS tipo, 
                        segmento AS modulo, mensaje AS descripcion, 'pendiente' AS estado, fecha
                 FROM notificaciones_admin
-                WHERE (segmento LIKE '%Error%' OR segmento LIKE '%Bug%' OR segmento LIKE '%Sugerencia%' OR segmento LIKE '%Mejora%' OR segmento LIKE '%Soporte%')
+                WHERE (leida = 0 OR leida IS NULL)
+                  AND (segmento LIKE '%Error%' OR segmento LIKE '%Bug%' OR segmento LIKE '%Sugerencia%' OR segmento LIKE '%Mejora%' OR segmento LIKE '%Soporte%')
                   AND segmento NOT LIKE '%Nuevo Profesional%'
                   AND segmento NOT LIKE '%Seguridad%'
                   AND segmento NOT LIKE '%Enlace Web%'
@@ -194,37 +195,59 @@ if ($method === 'GET') {
 
         } elseif ($action === 'resolver' && $id > 0) {
             $descInput = trim($input['mensaje'] ?? $input['descripcion'] ?? '');
-            $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'resuelto', fecha_resuelto = NOW() WHERE id = ?");
-            $stmt->execute([$id]);
+            
+            $desc = $descInput;
+            if (empty($desc)) {
+                try {
+                    $st1 = $pdo->prepare("SELECT descripcion FROM reportes_error WHERE id = ?");
+                    $st1->execute([$id]);
+                    $desc = $st1->fetchColumn() ?: '';
+                } catch (Exception $e1) {}
+            }
+            if (empty($desc)) {
+                try {
+                    $st2 = $pdo->prepare("SELECT mensaje FROM notificaciones_admin WHERE id = ?");
+                    $st2->execute([$id]);
+                    $desc = $st2->fetchColumn() ?: '';
+                } catch (Exception $e2) {}
+            }
+
+            $stmt1 = $pdo->prepare("UPDATE reportes_error SET estado = 'resuelto', fecha_resuelto = NOW() WHERE id = ? OR (descripcion IS NOT NULL AND descripcion = ?)");
+            $stmt1->execute([$id, $desc]);
+
+            if ($stmt1->rowCount() === 0 && !empty($desc)) {
+                try {
+                    $stN = $pdo->prepare("SELECT id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario, segmento FROM notificaciones_admin WHERE id = ? OR mensaje = ? LIMIT 1");
+                    $stN->execute([$id, $desc]);
+                    $nRow = $stN->fetch(PDO::FETCH_ASSOC);
+                    if ($nRow) {
+                        $pdo->prepare("INSERT INTO reportes_error (id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario, tipo, modulo, descripcion, estado, fecha_resuelto) VALUES (?, ?, ?, ?, ?, ?, 'Reporte de Error', ?, ?, 'resuelto', NOW())")
+                            ->execute([$nRow['id_negocio'], $nRow['nombre_negocio'], $nRow['id_usuario'], $nRow['nombre_usuario'], $nRow['email_usuario'], $nRow['rol_usuario'], $nRow['segmento'], $desc]);
+                    }
+                } catch(Exception $eIns) {}
+            }
 
             try {
-                $desc = '';
-                if ($descInput !== '') {
-                    $desc = $descInput;
-                } else {
-                    $stmtGet = $pdo->prepare("SELECT descripcion FROM reportes_error WHERE id = ?");
-                    $stmtGet->execute([$id]);
-                    $desc = $stmtGet->fetchColumn() ?: '';
-                }
-                if ($desc !== '') {
-                    $pdo->prepare("UPDATE reportes_error SET estado = 'resuelto', fecha_resuelto = NOW() WHERE descripcion = ?")->execute([$desc]);
-                    $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE mensaje = ? OR id = ?")->execute([$desc, $id]);
-                } else {
-                    $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE id = ?")->execute([$id]);
-                }
+                $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE id = ? OR (mensaje IS NOT NULL AND mensaje = ?)")->execute([$id, $desc]);
             } catch(Exception $eS) {}
+
             echo json_encode(['success' => true, 'message' => 'Reporte marcado como resuelto.']);
 
         } elseif ($action === 'marcar_pendiente' && $id > 0) {
-            $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'pendiente', fecha_resuelto = NULL WHERE id = ?");
-            $stmt->execute([$id]);
+            $descInput = trim($input['mensaje'] ?? $input['descripcion'] ?? '');
+            $desc = $descInput;
+            if (empty($desc)) {
+                try {
+                    $st1 = $pdo->prepare("SELECT descripcion FROM reportes_error WHERE id = ?");
+                    $st1->execute([$id]);
+                    $desc = $st1->fetchColumn() ?: '';
+                } catch (Exception $e1) {}
+            }
+
+            $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'pendiente', fecha_resuelto = NULL WHERE id = ? OR (descripcion IS NOT NULL AND descripcion = ?)");
+            $stmt->execute([$id, $desc]);
             try {
-                $stmtGet = $pdo->prepare("SELECT descripcion FROM reportes_error WHERE id = ?");
-                $stmtGet->execute([$id]);
-                $desc = $stmtGet->fetchColumn();
-                if ($desc) {
-                    $pdo->prepare("UPDATE notificaciones_admin SET leida = 0 WHERE mensaje = ? OR id = ?")->execute([$desc, $id]);
-                }
+                $pdo->prepare("UPDATE notificaciones_admin SET leida = 0 WHERE id = ? OR (mensaje IS NOT NULL AND mensaje = ?)")->execute([$id, $desc]);
             } catch(Exception $eS) {}
             echo json_encode(['success' => true, 'message' => 'Reporte marcado como pendiente.']);
 
@@ -239,25 +262,41 @@ if ($method === 'GET') {
                 $pdo->exec("ALTER TABLE reportes_error ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL");
             } catch(Exception $eCol) {}
 
-            $stmt = $pdo->prepare("UPDATE reportes_error SET estado = 'eliminado', fecha_eliminado = NOW() WHERE id = ?");
-            $stmt->execute([$id]);
+            $desc = $descInput;
+            if (empty($desc)) {
+                try {
+                    $st1 = $pdo->prepare("SELECT descripcion FROM reportes_error WHERE id = ?");
+                    $st1->execute([$id]);
+                    $desc = $st1->fetchColumn() ?: '';
+                } catch (Exception $e1) {}
+            }
+            if (empty($desc)) {
+                try {
+                    $st2 = $pdo->prepare("SELECT mensaje FROM notificaciones_admin WHERE id = ?");
+                    $st2->execute([$id]);
+                    $desc = $st2->fetchColumn() ?: '';
+                } catch (Exception $e2) {}
+            }
+
+            $stmt1 = $pdo->prepare("UPDATE reportes_error SET estado = 'eliminado', fecha_eliminado = NOW() WHERE id = ? OR (descripcion IS NOT NULL AND descripcion = ?)");
+            $stmt1->execute([$id, $desc]);
+
+            if ($stmt1->rowCount() === 0 && !empty($desc)) {
+                try {
+                    $stN = $pdo->prepare("SELECT id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario, segmento FROM notificaciones_admin WHERE id = ? OR mensaje = ? LIMIT 1");
+                    $stN->execute([$id, $desc]);
+                    $nRow = $stN->fetch(PDO::FETCH_ASSOC);
+                    if ($nRow) {
+                        $pdo->prepare("INSERT INTO reportes_error (id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario, tipo, modulo, descripcion, estado, fecha_eliminado) VALUES (?, ?, ?, ?, ?, ?, 'Reporte de Error', ?, ?, 'eliminado', NOW())")
+                            ->execute([$nRow['id_negocio'], $nRow['nombre_negocio'], $nRow['id_usuario'], $nRow['nombre_usuario'], $nRow['email_usuario'], $nRow['rol_usuario'], $nRow['segmento'], $desc]);
+                    }
+                } catch(Exception $eIns) {}
+            }
 
             try {
-                $desc = '';
-                if ($descInput !== '') {
-                    $desc = $descInput;
-                } else {
-                    $stmtGet = $pdo->prepare("SELECT descripcion FROM reportes_error WHERE id = ?");
-                    $stmtGet->execute([$id]);
-                    $desc = $stmtGet->fetchColumn() ?: '';
-                }
-                if ($desc !== '') {
-                    $pdo->prepare("UPDATE reportes_error SET estado = 'eliminado', fecha_eliminado = NOW() WHERE descripcion = ?")->execute([$desc]);
-                    $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE mensaje = ? OR id = ?")->execute([$desc, $id]);
-                } else {
-                    $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE id = ?")->execute([$id]);
-                }
+                $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE id = ? OR (mensaje IS NOT NULL AND mensaje = ?)")->execute([$id, $desc]);
             } catch(Exception $eS) {}
+
             echo json_encode(['success' => true, 'message' => 'Reporte descartado.']);
 
         } else {
