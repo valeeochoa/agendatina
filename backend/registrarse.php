@@ -292,8 +292,8 @@ try {
 
     // Guardar notificación para el SuperAdmin
     try {
-        $stmtNotifAdmin = $pdo->prepare("INSERT INTO notificaciones_admin (segmento, mensaje, id_negocio) VALUES ('Nuevo Registro', ?, ?)");
-        $stmtNotifAdmin->execute(["Nuevo emprendedor registrado: {$nombre_completo} ({$email}) - Negocio: {$nombre_fantasia} (Plan: {$plan})", $idNegocio]);
+        $stmtNotifAdmin = $pdo->prepare("INSERT INTO notificaciones_admin (segmento, mensaje, id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario) VALUES ('Nuevo Registro', ?, ?, ?, ?, ?, ?, 'dueño')");
+        $stmtNotifAdmin->execute(["Nuevo emprendedor registrado: {$nombre_completo} ({$email}) - Negocio: {$nombre_fantasia} (Plan: {$plan})", $idNegocio, $nombre_fantasia, $userId, $nombre_completo, $email]);
     } catch (Exception $eNotifAdmin) {}
 
     $pdo->commit();

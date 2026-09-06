@@ -247,6 +247,23 @@
 
                 const typeBadge = '<span class="bg-red-100 text-red-700 border border-red-200 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider inline-flex items-center gap-1 mb-1">🐛 Reporte de Error</span>';
 
+                let senderName = (r.nombre_usuario || '').trim();
+                let senderEmail = (r.email_usuario || '').trim();
+
+                if (!senderName || !senderEmail || senderName === 'Usuario Desconocido' || senderEmail === 'Sin email') {
+                    const msg = r.descripcion || '';
+                    const match = msg.match(/(?:registrado:\s*|de\s*|por\s*|^)([A-ZÁÉÍÓÚÑa-záéíóúñ\s]+)\s*\(([^@\s]+@[^@\s]+\.[^@\s\)]+)\)/i);
+                    if (match) {
+                        if (!senderName || senderName === 'Usuario Desconocido') senderName = match[1].trim();
+                        if (!senderEmail || senderEmail === 'Sin email') senderEmail = match[2].trim();
+                    } else {
+                        const emailMatch = msg.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+                        if (emailMatch && (!senderEmail || senderEmail === 'Sin email')) {
+                            senderEmail = emailMatch[1];
+                        }
+                    }
+                }
+
                 const isOwnerAdmin = !r.rol_usuario || r.rol_usuario === 'admin' || r.rol_usuario === 'dueño';
                 const roleTag = isOwnerAdmin ?
                     '<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-amber-200 inline-block mt-1">👑 Admin del Negocio</span>' :
@@ -276,8 +293,8 @@
                                 <span class="bg-slate-100 text-slate-600 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border border-slate-200">ID: #${r.id_negocio || '?'}</span>
                             </div>
                             <div class="text-xs text-slate-600 font-medium">
-                                <span class="font-bold text-slate-700">${r.nombre_usuario || 'Usuario Desconocido'}</span> 
-                                <span class="text-slate-400">(${r.email_usuario || 'Sin email'})</span>
+                                <span class="font-bold text-slate-700">${senderName || 'Usuario Desconocido'}</span> 
+                                <span class="text-slate-400">(${senderEmail || 'Sin email'})</span>
                             </div>
                             <div>${roleTag}</div>
                         </td>

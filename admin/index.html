@@ -2276,7 +2276,25 @@ function renderAdminReports(notificaciones) {
             const fechaFormat = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
             const horaFormat = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
-            const senderInfo = notif.nombre_usuario || notif.email_usuario ? `${notif.nombre_usuario || 'Usuario'} (${notif.rol_usuario === 'profesional' ? 'Profesional' : 'Dueño'}) - ${notif.email_usuario || ''}` : 'Usuario Desconocido';
+            let senderName = (notif.nombre_usuario || '').trim();
+            let senderEmail = (notif.email_usuario || '').trim();
+
+            if (!senderName || !senderEmail || senderName === 'Usuario Desconocido' || senderEmail === 'Sin email') {
+                const msg = notif.mensaje || notif.descripcion || '';
+                const match = msg.match(/(?:registrado:\s*|de\s*|por\s*|^)([A-ZÁÉÍÓÚÑa-záéíóúñ\s]+)\s*\(([^@\s]+@[^@\s]+\.[^@\s\)]+)\)/i);
+                if (match) {
+                    if (!senderName || senderName === 'Usuario Desconocido') senderName = match[1].trim();
+                    if (!senderEmail || senderEmail === 'Sin email') senderEmail = match[2].trim();
+                } else {
+                    const emailMatch = msg.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+                    if (emailMatch && (!senderEmail || senderEmail === 'Sin email')) {
+                        senderEmail = emailMatch[1];
+                    }
+                }
+            }
+
+            const roleStr = notif.rol_usuario === 'profesional' ? 'Profesional' : 'Dueño';
+            const senderInfo = (senderName || senderEmail) ? `${senderName || 'Usuario'} (${roleStr}) - ${senderEmail || 'Sin email'}` : 'Usuario Desconocido';
             const bizInfo = notif.nombre_negocio || notif.nombre_fantasia || 'Emprendimiento';
 
             const isResolved = notif.estado === 'resuelto';

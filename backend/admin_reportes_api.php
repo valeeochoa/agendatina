@@ -87,9 +87,14 @@ if ($method === 'GET') {
         } catch(Exception $eFix) {}
 
         $stmt = $pdo->query("
-            SELECT r.id, r.id_negocio, r.nombre_negocio, r.id_usuario, r.nombre_usuario, r.email_usuario, r.rol_usuario, r.tipo, r.modulo, r.descripcion, COALESCE(r.estado, 'pendiente') AS estado, r.fecha, n.ruta
+            SELECT r.id, r.id_negocio, COALESCE(r.nombre_negocio, n.nombre_fantasia) AS nombre_negocio, r.id_usuario,
+                   COALESCE(NULLIF(TRIM(r.nombre_usuario), ''), u.nombre_completo, u.nombre) AS nombre_usuario,
+                   COALESCE(NULLIF(TRIM(r.email_usuario), ''), u.email) AS email_usuario,
+                   COALESCE(r.rol_usuario, 'dueño') AS rol_usuario, r.tipo, r.modulo, r.descripcion, COALESCE(r.estado, 'pendiente') AS estado, r.fecha, n.ruta
             FROM reportes_error r
             LEFT JOIN negocios n ON r.id_negocio = n.id
+            LEFT JOIN personal_negocio pn ON (n.id = pn.id_negocio AND pn.rol_en_local = 'admin')
+            LEFT JOIN usuarios u ON (r.id_usuario = u.id OR pn.id_usuario = u.id)
             WHERE r.estado != 'eliminado'
             ORDER BY r.fecha DESC
         ");
@@ -98,19 +103,25 @@ if ($method === 'GET') {
         // También incluir notificaciones de notificaciones_admin (solo reportes de error o sugerencias no leídas)
         try {
             $stmtNotif = $pdo->query("
-                SELECT id, id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario, 
+                SELECT na.id, na.id_negocio, COALESCE(na.nombre_negocio, n.nombre_fantasia) AS nombre_negocio, na.id_usuario,
+                       COALESCE(NULLIF(TRIM(na.nombre_usuario), ''), u.nombre_completo, u.nombre) AS nombre_usuario,
+                       COALESCE(NULLIF(TRIM(na.email_usuario), ''), u.email) AS email_usuario,
+                       COALESCE(na.rol_usuario, 'dueño') AS rol_usuario,
                        CASE 
-                           WHEN segmento LIKE '%Error%' OR segmento LIKE '%Bug%' THEN 'Reporte de Error'
+                           WHEN na.segmento LIKE '%Error%' OR na.segmento LIKE '%Bug%' THEN 'Reporte de Error'
                            ELSE 'Sugerencia / Mejora'
                        END AS tipo, 
-                       segmento AS modulo, mensaje AS descripcion, 'pendiente' AS estado, fecha
-                FROM notificaciones_admin
-                WHERE (leida = 0 OR leida IS NULL)
-                  AND (segmento LIKE '%Error%' OR segmento LIKE '%Bug%' OR segmento LIKE '%Sugerencia%' OR segmento LIKE '%Mejora%' OR segmento LIKE '%Soporte%')
-                  AND segmento NOT LIKE '%Nuevo Profesional%'
-                  AND segmento NOT LIKE '%Seguridad%'
-                  AND segmento NOT LIKE '%Enlace Web%'
-                ORDER BY fecha DESC
+                       na.segmento AS modulo, na.mensaje AS descripcion, 'pendiente' AS estado, na.fecha
+                FROM notificaciones_admin na
+                LEFT JOIN negocios n ON na.id_negocio = n.id
+                LEFT JOIN personal_negocio pn ON (n.id = pn.id_negocio AND pn.rol_en_local = 'admin')
+                LEFT JOIN usuarios u ON (na.id_usuario = u.id OR pn.id_usuario = u.id)
+                WHERE (na.leida = 0 OR na.leida IS NULL)
+                  AND (na.segmento LIKE '%Error%' OR na.segmento LIKE '%Bug%' OR na.segmento LIKE '%Sugerencia%' OR na.segmento LIKE '%Mejora%' OR na.segmento LIKE '%Soporte%')
+                  AND na.segmento NOT LIKE '%Nuevo Profesional%'
+                  AND na.segmento NOT LIKE '%Seguridad%'
+                  AND na.segmento NOT LIKE '%Enlace Web%'
+                ORDER BY na.fecha DESC
             ");
             $notifItems = $stmtNotif->fetchAll(PDO::FETCH_ASSOC);
             foreach ($notifItems as $ni) {

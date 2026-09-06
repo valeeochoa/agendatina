@@ -266,10 +266,15 @@ if ($method === 'GET') {
         try {
             $stmtNotifs = $pdo->query("
                 SELECT r.id, r.id_negocio, COALESCE(r.nombre_negocio, n.nombre_fantasia) AS nombre_negocio, n.nombre_fantasia,
-                       r.id_usuario, r.nombre_usuario, r.email_usuario, r.rol_usuario, r.tipo, COALESCE(r.modulo, 'General') AS segmento,
+                       r.id_usuario,
+                       COALESCE(NULLIF(TRIM(r.nombre_usuario), ''), u.nombre_completo, u.nombre) AS nombre_usuario,
+                       COALESCE(NULLIF(TRIM(r.email_usuario), ''), u.email) AS email_usuario,
+                       COALESCE(r.rol_usuario, 'dueño') AS rol_usuario, r.tipo, COALESCE(r.modulo, 'General') AS segmento,
                        r.descripcion AS mensaje, COALESCE(r.estado, 'pendiente') AS estado, r.fecha, r.fecha_resuelto
                 FROM reportes_error r
                 LEFT JOIN negocios n ON r.id_negocio = n.id
+                LEFT JOIN personal_negocio pn ON (n.id = pn.id_negocio AND pn.rol_en_local = 'admin')
+                LEFT JOIN usuarios u ON (r.id_usuario = u.id OR pn.id_usuario = u.id)
                 WHERE r.estado != 'eliminado'
                 ORDER BY r.fecha DESC LIMIT 100
             ");
@@ -278,10 +283,15 @@ if ($method === 'GET') {
             // Notificaciones adicionales de notificaciones_admin
             $stmtExtra = $pdo->query("
                 SELECT na.id, na.id_negocio, COALESCE(na.nombre_negocio, n.nombre_fantasia) AS nombre_negocio, n.nombre_fantasia,
-                       na.id_usuario, na.nombre_usuario, na.email_usuario, na.rol_usuario,
+                       na.id_usuario,
+                       COALESCE(NULLIF(TRIM(na.nombre_usuario), ''), u.nombre_completo, u.nombre) AS nombre_usuario,
+                       COALESCE(NULLIF(TRIM(na.email_usuario), ''), u.email) AS email_usuario,
+                       COALESCE(na.rol_usuario, 'dueño') AS rol_usuario,
                        'Reporte de Error' AS tipo, na.segmento, na.mensaje, 'pendiente' AS estado, na.fecha
                 FROM notificaciones_admin na
                 LEFT JOIN negocios n ON na.id_negocio = n.id
+                LEFT JOIN personal_negocio pn ON (n.id = pn.id_negocio AND pn.rol_en_local = 'admin')
+                LEFT JOIN usuarios u ON (na.id_usuario = u.id OR pn.id_usuario = u.id)
                 WHERE (na.leida = 0 OR na.leida IS NULL)
                   AND (na.segmento LIKE '%Error%' OR na.segmento LIKE '%Bug%')
                 ORDER BY na.fecha DESC LIMIT 50
