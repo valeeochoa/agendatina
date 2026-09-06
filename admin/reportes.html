@@ -252,23 +252,20 @@
                     '<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-amber-200 inline-block mt-1">👑 Admin del Negocio</span>' :
                     '<span class="bg-purple-100 text-purple-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-purple-200 inline-block mt-1">👤 Profesional del Equipo</span>';
 
-                const safeNombre = (r.nombre_negocio || 'Negocio').replace(/'/g, "\\'");
-                const safeDesc = (r.descripcion || '').replace(/'/g, "\\'").replace(/\r?\n|\r/g, ' ');
-
-                const replyBtn = `<button onclick="abrirModalResponder(${r.id}, '${safeNombre}', '${r.estado || 'pendiente'}', '${safeDesc}', '${f}')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs" title="Ver mensajes y responder al negocio">
+                const replyBtn = `<button onclick="abrirModalResponder(${r.id})" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs" title="Ver mensajes y responder al negocio">
                     <span class="material-symbols-outlined text-[16px]">forum</span> Ver Hilo / Responder
                 </button>`;
 
                 const statusBtn = isResolved ?
-                    `<button onclick="abrirModalResponder(${r.id}, '${safeNombre}', 'pendiente', '${safeDesc}', '${f}')" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs" title="Volver a marcar como pendiente">
+                    `<button onclick="abrirModalResponder(${r.id}, 'pendiente')" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs" title="Volver a marcar como pendiente">
                         <span class="material-symbols-outlined text-[16px]">undo</span> Reabrir
                     </button>` :
-                    `<button onclick="abrirModalResponder(${r.id}, '${safeNombre}', 'resuelto', '${safeDesc}', '${f}')" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs" title="Marcar como atendido y responder">
+                    `<button onclick="abrirModalResponder(${r.id}, 'resuelto')" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs" title="Marcar como atendido y responder">
                         <span class="material-symbols-outlined text-[16px]">check_circle</span> Resolver & Notificar
                     </button>`;
 
                 html += `
-                    <tr class="hover:bg-slate-50 border-b border-slate-100 transition-colors cursor-pointer" onclick="if(!event.target.closest('button')) abrirModalResponder(${r.id}, '${safeNombre}', '${r.estado || 'pendiente'}', '${safeDesc}', '${f}')">
+                    <tr class="hover:bg-slate-50 border-b border-slate-100 transition-colors cursor-pointer" onclick="if(!event.target.closest('button')) abrirModalResponder(${r.id})">
                         <td class="p-4 text-xs font-semibold text-slate-500 whitespace-nowrap">
                             ${f}
                             <div class="mt-1">${statusBadge}</div>
@@ -314,12 +311,20 @@
 
         let currentActiveReportId = null;
 
-        function abrirModalResponder(id, nombreNegocio, estadoDeseado = 'resuelto', descOriginal = '', fechaOriginal = '') {
+        function abrirModalResponder(id, estadoDeseado = null) {
+            const r = (reportesData || []).find(item => String(item.id) === String(id));
+            if (!r) return;
+
+            const nombreNegocio = r.nombre_negocio || 'Negocio';
+            const estado = estadoDeseado || r.estado || 'resuelto';
+            const descOriginal = r.descripcion || '';
+            const fechaOriginal = new Date(r.fecha).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+
             currentActiveReportId = id;
             document.getElementById('adminReporteId').value = id;
             document.getElementById('modalResponderTitulo').textContent = `Conversación con ${nombreNegocio} (Reporte #${id})`;
             const selectEstado = document.getElementById('adminSelectEstado');
-            selectEstado.value = estadoDeseado;
+            selectEstado.value = estado;
             
             cargarPlantillaGenerica();
             cargarHistorialMensajes(id, descOriginal, nombreNegocio, fechaOriginal);
@@ -460,13 +465,18 @@
             });
         }
 
+        let reportToDeleteMsg = '';
+
         function confirmDeleteReport(id) {
+            const r = (reportesData || []).find(item => String(item.id) === String(id));
             reportIdToDelete = id;
+            reportToDeleteMsg = r ? (r.descripcion || '') : '';
             document.getElementById('deleteModal').classList.remove('hidden');
         }
 
         function closeDeleteModal() {
             reportIdToDelete = null;
+            reportToDeleteMsg = '';
             document.getElementById('deleteModal').classList.add('hidden');
             loadReportes();
             if (window.loadAdminNavNotifsCount) window.loadAdminNavNotifsCount();
@@ -477,7 +487,7 @@
             fetch('../backend/admin_reportes_api.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'eliminar', id: reportIdToDelete })
+                body: JSON.stringify({ action: 'eliminar', id: reportIdToDelete, mensaje: reportToDeleteMsg || '' })
             })
             .then(res => res.json())
             .then(d => {

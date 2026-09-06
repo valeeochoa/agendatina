@@ -2279,20 +2279,19 @@ function renderAdminReports(notificaciones) {
             const senderInfo = notif.nombre_usuario || notif.email_usuario ? `${notif.nombre_usuario || 'Usuario'} (${notif.rol_usuario === 'profesional' ? 'Profesional' : 'Dueño'}) - ${notif.email_usuario || ''}` : 'Usuario Desconocido';
             const bizInfo = notif.nombre_negocio || notif.nombre_fantasia || 'Emprendimiento';
 
-            const safeMensaje = (notif.mensaje || notif.descripcion || '').replace(/'/g, "\\'").replace(/\r?\n|\r/g, ' ');
             const isResolved = notif.estado === 'resuelto';
             const borderColor = isResolved ? 'border-emerald-500' : 'border-red-500';
 
             const actionButtons = isResolved ? `
-                <button onclick="reopenAdminReport(${notif.id}, '${safeMensaje}')" class="text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-md border border-amber-200 text-xs font-bold transition-colors flex items-center gap-1 shadow-xs" title="Volver a marcar como pendiente">
+                <button onclick="reopenAdminReport(${notif.id})" class="text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100 px-2.5 py-1 rounded-md border border-amber-200 text-xs font-bold transition-colors flex items-center gap-1 shadow-xs" title="Volver a marcar como pendiente">
                     <span class="material-symbols-outlined text-[16px]">undo</span> Reabrir
                 </button>
-                <button onclick="deleteAdminReport(${notif.id}, '${safeMensaje}')" class="text-slate-400 hover:text-red-500 bg-white p-1 rounded-md border border-slate-200 transition-colors" title="Descartar / Eliminar"><span class="material-symbols-outlined text-[16px] block">delete</span></button>
+                <button onclick="deleteAdminReport(${notif.id})" class="text-slate-400 hover:text-red-500 bg-white p-1 rounded-md border border-slate-200 transition-colors" title="Descartar / Eliminar"><span class="material-symbols-outlined text-[16px] block">delete</span></button>
             ` : `
-                <button onclick="resolveAdminReport(${notif.id}, '${safeMensaje}')" class="text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-md border border-emerald-200 text-xs font-bold transition-colors flex items-center gap-1 shadow-xs" title="Marcar como resuelto">
+                <button onclick="resolveAdminReport(${notif.id})" class="text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-md border border-emerald-200 text-xs font-bold transition-colors flex items-center gap-1 shadow-xs" title="Marcar como resuelto">
                     <span class="material-symbols-outlined text-[16px]">check_circle</span> Resuelto
                 </button>
-                <button onclick="deleteAdminReport(${notif.id}, '${safeMensaje}')" class="text-slate-400 hover:text-red-500 bg-white p-1 rounded-md border border-slate-200 transition-colors" title="Descartar / Eliminar"><span class="material-symbols-outlined text-[16px] block">delete</span></button>
+                <button onclick="deleteAdminReport(${notif.id})" class="text-slate-400 hover:text-red-500 bg-white p-1 rounded-md border border-slate-200 transition-colors" title="Descartar / Eliminar"><span class="material-symbols-outlined text-[16px] block">delete</span></button>
             `;
 
             reportsHtml += `
@@ -2316,12 +2315,15 @@ function renderAdminReports(notificaciones) {
     listContainer.innerHTML = reportsHtml;
 }
 
-function reopenAdminReport(id, mensaje) {
+function reopenAdminReport(id) {
     if (!id) return;
+    const notif = (window.allAdminReports || []).find(r => String(r.id) === String(id));
+    const mensaje = notif ? (notif.mensaje || notif.descripcion || '') : '';
+
     fetch('../backend/admin_reportes_api.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'marcar_pendiente', id: id, mensaje: mensaje || '' })
+        body: JSON.stringify({ action: 'marcar_pendiente', id: id, mensaje: mensaje })
     })
     .then(res => res.json())
     .then(data => {
@@ -2384,12 +2386,15 @@ function clearPaymentsNotification() {
 let reportToDeleteId = null;
 let reportToDeleteMsg = null;
 
-function resolveAdminReport(id, mensaje) {
+function resolveAdminReport(id) {
     if (!id) return;
+    const notif = (window.allAdminReports || []).find(r => String(r.id) === String(id));
+    const mensaje = notif ? (notif.mensaje || notif.descripcion || '') : '';
+
     fetch('../backend/admin_reportes_api.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'resolver', id: id, mensaje: mensaje || '' })
+        body: JSON.stringify({ action: 'resolver', id: id, mensaje: mensaje })
     })
     .then(res => res.json())
     .then(data => {
@@ -2403,9 +2408,11 @@ function resolveAdminReport(id, mensaje) {
     .catch(() => alert('Error de conexión al resolver el reporte.'));
 }
 
-function deleteAdminReport(id, mensaje) {
+function deleteAdminReport(id) {
+    const notif = (window.allAdminReports || []).find(r => String(r.id) === String(id));
     reportToDeleteId = id;
-    reportToDeleteMsg = mensaje || '';
+    reportToDeleteMsg = notif ? (notif.mensaje || notif.descripcion || '') : '';
+
     const modal = document.getElementById('confirmDeleteReportModal');
     const content = document.getElementById('confirmDeleteReportModalContent');
     if (!modal || !content) return;
