@@ -1,3 +1,34 @@
+// Interceptor global de Fetch para enviar automáticamente el CSRF Token en peticiones POST/PUT/DELETE del SuperAdmin
+(function() {
+    const originalFetch = window.fetch;
+    window.fetch = function(url, options = {}) {
+        options = options || {};
+        const method = (options.method || 'GET').toUpperCase();
+        if (method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS') {
+            const token = document.cookie.match(/csrf_token=([^;]+)/)?.[1];
+            if (token) {
+                if (!options.headers) {
+                    options.headers = {};
+                }
+                if (options.headers instanceof Headers) {
+                    if (!options.headers.has('X-CSRF-Token')) {
+                        options.headers.append('X-CSRF-Token', token);
+                    }
+                } else if (Array.isArray(options.headers)) {
+                    if (!options.headers.some(([k]) => k.toLowerCase() === 'x-csrf-token')) {
+                        options.headers.push(['X-CSRF-Token', token]);
+                    }
+                } else {
+                    if (!options.headers['X-CSRF-Token'] && !options.headers['x-csrf-token']) {
+                        options.headers['X-CSRF-Token'] = token;
+                    }
+                }
+            }
+        }
+        return originalFetch.call(this, url, options);
+    };
+})();
+
 function loadAdminNavNotifsCount() {
     fetch('../backend/admin_notificaciones_api.php?t=' + Date.now())
         .then(r => r.json())
@@ -43,3 +74,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.loadAdminNavNotifsCount = loadAdminNavNotifsCount;
+

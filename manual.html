@@ -181,7 +181,15 @@
                             <span class="material-symbols-outlined text-teal-600 text-[20px]">query_stats</span>
                             <span>Estadísticas & Métricas</span>
                         </span>
-                        <span id="badge-estadisticas" class="text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0">Premium</span>
+                        <span id="badge-estadisticas" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Incluido</span>
+                    </button>
+
+                    <button onclick="switchTab('alumnos')" id="tab-alumnos" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
+                        <span class="flex items-center gap-2.5">
+                            <span class="material-symbols-outlined text-orange-600 text-[20px]">school</span>
+                            <span>Portal del Alumno</span>
+                        </span>
+                        <span id="badge-alumnos" class="text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0">Premium</span>
                     </button>
 
                     <button onclick="switchTab('ajustes')" id="tab-ajustes" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
@@ -224,6 +232,7 @@
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> De 1 a 5 profesionales en tu local</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> Recepción de turnos online 24/7</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> Agenda Virtual y Calendario de turnos</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> Módulo de Estadísticas y Métricas</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> 2 Colores de personalización base</li>
                                     <li class="flex items-center gap-2.5 opacity-60"><span class="material-symbols-outlined text-slate-400 text-[18px]">remove_circle_outline</span> Sin roles o permisos de acceso individuales</li>
                                 </ul>
@@ -241,6 +250,7 @@
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> De 1 a 5 profesionales con Roles & Permisos</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Duraciones en Horas y Minutos</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Intervalo dinámico por servicio</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Módulo de Estadísticas y Métricas</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> +1 Color de personalización extra (+1)</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Notificaciones por correo electrónico</li>
                                 </ul>
@@ -738,15 +748,12 @@
                         </p>
                     </div>
 
-                    <div id="noticeEstadisticasUpgrade" class="hidden bg-purple-50 border border-purple-200 rounded-3xl p-6">
-                        <div class="flex items-start gap-3">
-                            <span class="material-symbols-outlined text-purple-600 text-2xl">workspace_premium</span>
+                    <div id="noticeEstadisticasUpgrade" class="hidden bg-teal-50 border border-teal-200 rounded-3xl p-5">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-teal-600 text-2xl">verified</span>
                             <div>
-                                <h3 class="font-bold text-purple-900 text-sm mb-1">Módulo Exclusivo del Plan Premium</h3>
-                                <p class="text-xs text-purple-800 leading-relaxed mb-3">El análisis avanzado de métricas e ingresos está reservado para cuentas con Plan Premium activo.</p>
-                                <button onclick="switchTab('planes')" class="inline-flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-xs transition-all border-none cursor-pointer">
-                                    <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Ver Alcance Plan Premium
-                                </button>
+                                <h3 class="font-bold text-teal-950 text-sm mb-0.5">Módulo Habilitado en Tu Plan</h3>
+                                <p class="text-xs text-teal-900 leading-relaxed">El análisis de estadísticas y métricas está disponible para todos los emprendimientos de la plataforma.</p>
                             </div>
                         </div>
                     </div>
@@ -759,6 +766,78 @@
                         <p class="text-xs sm:text-sm text-teal-950 leading-relaxed">
                             En Agendatina cuidamos la exactitud de tus números. Los gráficos de ingresos y facturación **no toman valores supuestos**, sino <strong>únicamente los turnos pasados donde marcaste que el cliente asistió (<code>✓ Asistió</code>)</strong>. ¡Así sabés exactamente cuánto dinero ingresó realmente a la caja!
                         </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN: PORTAL DEL ALUMNO / CLIENTE -->
+            <div id="sec-alumnos" class="tab-content space-y-8 hidden">
+                <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-8">
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-xs font-bold uppercase tracking-wider mb-3">
+                            <span class="material-symbols-outlined text-[16px]">school</span> Experiencia de Alumnos & Clientes
+                        </div>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3 flex items-center gap-3 font-display">
+                            Portal del Alumno / Cliente (<code class="text-xs bg-slate-100 px-2 py-1 rounded text-orange-600 font-mono">mi-cuenta.html</code>)
+                        </h2>
+                        <p class="text-slate-600 text-base sm:text-lg leading-relaxed">
+                            Un espacio exclusivo y autoservicio para que tus alumnos y clientes gestionen sus inscripciones, consulten clases disponibles, revisen su historial de asistencia y administren su perfil.
+                        </p>
+                    </div>
+
+                    <div id="noticeAlumnosUpgrade" class="hidden bg-purple-50 border border-purple-200 rounded-3xl p-6">
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-purple-600 text-2xl">workspace_premium</span>
+                            <div>
+                                <h3 class="font-bold text-purple-900 text-sm mb-1">Función Incluida en Plan Premium</h3>
+                                <p class="text-xs text-purple-800 leading-relaxed mb-3">El Portal del Alumno y la gestión avanzada por cupos está habilitada para comercios con Plan Premium activo.</p>
+                                <button onclick="switchTab('planes')" class="inline-flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-xs transition-all border-none cursor-pointer">
+                                    <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Ver Alcance Plan Premium
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="border border-slate-200 rounded-3xl p-6 bg-slate-50/70 space-y-3">
+                            <div class="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
+                                <span class="material-symbols-outlined text-xl">lock_reset</span>
+                            </div>
+                            <h3 class="font-extrabold text-slate-900 text-base">Autenticación & Recuperación Segura de Clave</h3>
+                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                                Los alumnos pueden acceder a su cuenta registrada con su correo y contraseña. Si no recuerdan su clave, cuentan con el botón <strong>"¿Olvidaste tu contraseña?"</strong>, el cual les envía un correo electrónico seguro con un enlace de restablecimiento único de <strong>duración estricta de 10 minutos</strong>.
+                            </p>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-3xl p-6 bg-slate-50/70 space-y-3">
+                            <div class="w-10 h-10 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                                <span class="material-symbols-outlined text-xl">account_circle</span>
+                            </div>
+                            <h3 class="font-extrabold text-slate-900 text-base">Navegación Directa a Mi Perfil</h3>
+                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                                Al hacer clic sobre el nombre del alumno ubicado en la barra superior del portal, este es dirigido inmediatamente al apartado <strong>"Mi Perfil"</strong>, donde puede actualizar su información personal y solicitar el cambio seguro de clave personal.
+                            </p>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-3xl p-6 bg-slate-50/70 space-y-3">
+                            <div class="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
+                                <span class="material-symbols-outlined text-xl">calendar_month</span>
+                            </div>
+                            <h3 class="font-extrabold text-slate-900 text-base">Visualización Integrada del Calendario del Negocio</h3>
+                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                                Dentro de la pestaña <strong>"Reservar"</strong>, al hacer clic en un comercio donde asiste, el portal despliega un <strong>recuadro embebido en la misma pantalla</strong> con el calendario y servicios ofrecidos por el establecimiento, permitiendo reservar clases o turnos sin salir de la plataforma.
+                            </p>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-3xl p-6 bg-slate-50/70 space-y-3">
+                            <div class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center font-bold">
+                                <span class="material-symbols-outlined text-xl">history</span>
+                            </div>
+                            <h3 class="font-extrabold text-slate-900 text-base">Historial de Asistencia y Pagos</h3>
+                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                                Los alumnos cuentan con secciones dedicadas a revisar su <strong>Historial de Asistencia</strong> a clases anteriores y su registro de <strong>Mis Pagos</strong> con posibilidad de adjuntar comprobantes digitales.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -903,9 +982,11 @@
                         const badgeEquipo = document.getElementById('badge-equipo');
                         const badgeWeb = document.getElementById('badge-web');
                         const badgeEstadisticas = document.getElementById('badge-estadisticas');
+                        const badgeAlumnos = document.getElementById('badge-alumnos');
                         const noticeEquipo = document.getElementById('noticeEquipoUpgrade');
                         const noticeWeb = document.getElementById('noticeWebUpgrade');
                         const noticeEstadisticas = document.getElementById('noticeEstadisticasUpgrade');
+                        const noticeAlumnos = document.getElementById('noticeAlumnosUpgrade');
 
                         if (rawPlan.includes('basico') || rawPlan.includes('simple')) {
                             displayPlan = 'Plan Simple';
@@ -914,11 +995,13 @@
                             
                             if (badgeEquipo) { badgeEquipo.className = 'text-[10px] font-extrabold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md shrink-0'; badgeEquipo.textContent = 'Profesional'; }
                             if (badgeWeb) { badgeWeb.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0'; badgeWeb.textContent = 'Premium'; }
-                            if (badgeEstadisticas) { badgeEstadisticas.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0'; badgeEstadisticas.textContent = 'Premium'; }
+                            if (badgeEstadisticas) { badgeEstadisticas.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeEstadisticas.textContent = 'Incluido'; }
+                            if (badgeAlumnos) { badgeAlumnos.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0'; badgeAlumnos.textContent = 'Premium'; }
                             
                             if (noticeEquipo) noticeEquipo.classList.remove('hidden');
                             if (noticeWeb) noticeWeb.classList.remove('hidden');
-                            if (noticeEstadisticas) noticeEstadisticas.classList.remove('hidden');
+                            if (noticeEstadisticas) noticeEstadisticas.classList.add('hidden');
+                            if (noticeAlumnos) noticeAlumnos.classList.remove('hidden');
 
                         } else if (rawPlan.includes('intermedio') || rawPlan.includes('profesional')) {
                             displayPlan = 'Plan Profesional';
@@ -927,11 +1010,13 @@
 
                             if (badgeEquipo) { badgeEquipo.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeEquipo.textContent = 'Incluido'; }
                             if (badgeWeb) { badgeWeb.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0'; badgeWeb.textContent = 'Premium'; }
-                            if (badgeEstadisticas) { badgeEstadisticas.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0'; badgeEstadisticas.textContent = 'Premium'; }
+                            if (badgeEstadisticas) { badgeEstadisticas.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeEstadisticas.textContent = 'Incluido'; }
+                            if (badgeAlumnos) { badgeAlumnos.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0'; badgeAlumnos.textContent = 'Premium'; }
                             
                             if (noticeEquipo) noticeEquipo.classList.add('hidden');
                             if (noticeWeb) noticeWeb.classList.remove('hidden');
-                            if (noticeEstadisticas) noticeEstadisticas.classList.remove('hidden');
+                            if (noticeEstadisticas) noticeEstadisticas.classList.add('hidden');
+                            if (noticeAlumnos) noticeAlumnos.classList.remove('hidden');
 
                         } else if (rawPlan.includes('completo') || rawPlan.includes('premium')) {
                             displayPlan = 'Plan Premium';
@@ -941,10 +1026,12 @@
                             if (badgeEquipo) { badgeEquipo.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeEquipo.textContent = 'Incluido'; }
                             if (badgeWeb) { badgeWeb.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeWeb.textContent = 'Incluido'; }
                             if (badgeEstadisticas) { badgeEstadisticas.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeEstadisticas.textContent = 'Incluido'; }
+                            if (badgeAlumnos) { badgeAlumnos.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeAlumnos.textContent = 'Incluido'; }
 
                             if (noticeEquipo) noticeEquipo.classList.add('hidden');
                             if (noticeWeb) noticeWeb.classList.add('hidden');
                             if (noticeEstadisticas) noticeEstadisticas.classList.add('hidden');
+                            if (noticeAlumnos) noticeAlumnos.classList.add('hidden');
                         }
 
                         const planTextEl = document.getElementById('manualActivePlanText');

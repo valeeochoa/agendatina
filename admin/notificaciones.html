@@ -479,7 +479,6 @@
         }
 
         function marcarLeida(id) {
-            // Actualización optimista local
             const target = notificacionesRaw.find(n => Number(n.id) === Number(id));
             if (target) target.leida = 1;
             filterNotificaciones();
@@ -488,14 +487,16 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'mark_read', id: id })
-            }).then(() => {
+            })
+            .then(r => r.json())
+            .then(d => {
                 if (window.loadAdminNavNotifsCount) window.loadAdminNavNotifsCount();
-                loadNotificaciones();
-            });
+                if (!d.success) loadNotificaciones();
+            })
+            .catch(() => loadNotificaciones());
         }
 
         function marcarNoLeida(id) {
-            // Actualización optimista local
             const target = notificacionesRaw.find(n => Number(n.id) === Number(id));
             if (target) target.leida = 0;
             filterNotificaciones();
@@ -504,13 +505,18 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'mark_unread', id: id })
-            }).then(() => {
+            })
+            .then(r => r.json())
+            .then(d => {
                 if (window.loadAdminNavNotifsCount) window.loadAdminNavNotifsCount();
-                loadNotificaciones();
-            });
+                if (!d.success) loadNotificaciones();
+            })
+            .catch(() => loadNotificaciones());
         }
 
         function marcarTodasLeidas() {
+            if (!notificacionesRaw || notificacionesRaw.length === 0) return;
+            
             notificacionesRaw.forEach(n => n.leida = 1);
             filterNotificaciones();
 
@@ -518,10 +524,13 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'mark_all_read' })
-            }).then(() => {
+            })
+            .then(r => r.json())
+            .then(d => {
                 if (window.loadAdminNavNotifsCount) window.loadAdminNavNotifsCount();
-                loadNotificaciones();
-            });
+                if (!d.success) loadNotificaciones();
+            })
+            .catch(() => loadNotificaciones());
         }
 
         function eliminarNotificacion(id) {
@@ -532,10 +541,13 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'delete', id: id })
-            }).then(() => {
+            })
+            .then(r => r.json())
+            .then(d => {
                 if (window.loadAdminNavNotifsCount) window.loadAdminNavNotifsCount();
-                loadNotificaciones();
-            });
+                if (!d.success) loadNotificaciones();
+            })
+            .catch(() => loadNotificaciones());
         }
 
         function logoutAdmin() {

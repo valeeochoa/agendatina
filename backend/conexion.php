@@ -27,8 +27,24 @@ $requestMethod = $_SERVER['REQUEST_METHOD'] ?? '';
 if ($requestMethod !== 'GET' && $requestMethod !== 'HEAD' && $requestMethod !== 'OPTIONS' && $requestMethod !== '') {
     if (isset($_SESSION['user_id'])) {
         $scriptName = strtolower(basename($_SERVER['SCRIPT_NAME'] ?? $_SERVER['PHP_SELF'] ?? ''));
-        $publicFiles = ['login.php', 'registrarse.php', 'admin_auth.php', 'crear_usuario.php', 'enviar_turno.php', 'enviar_contacto.php', 'restablecer_password.php', 'recuperar_password.php', 'cliente_recuperar_password.php', 'cliente_auth.php', 'subir_comprobante.php', 'validar_cupon.php', 'reportar_error.php', 'enviar_soporte.php', 'comprobantes_api.php'];
-        $isPublic = in_array($scriptName, $publicFiles) || (strpos($scriptName, 'admin_') === 0);
+        $requestUri = strtolower($_SERVER['REQUEST_URI'] ?? '');
+        $isSuperAdminSession = (!empty($_SESSION['is_superadmin']) || !empty($_SESSION['admin_logged_in']));
+
+        $publicFiles = [
+            'login.php', 'registrarse.php', 'admin_auth.php', 'crear_usuario.php', 
+            'enviar_turno.php', 'enviar_contacto.php', 'restablecer_password.php', 
+            'recuperar_password.php', 'cliente_recuperar_password.php', 'cliente_auth.php', 
+            'subir_comprobante.php', 'validar_cupon.php', 'reportar_error.php', 
+            'enviar_soporte.php', 'admin_reportes_api.php', 'admin_api.php', 
+            'admin_notificaciones_api.php', 'admin_notas_api.php', 'tareas_admin_api.php', 
+            'admin_papelera.php', 'comprobantes_api.php'
+        ];
+
+        $isPublic = in_array($scriptName, $publicFiles) 
+            || (strpos($scriptName, 'admin_') !== false) 
+            || (strpos($requestUri, 'admin_') !== false) 
+            || (strpos($requestUri, '/admin/') !== false) 
+            || $isSuperAdminSession;
 
         if (!$isPublic) {
             $csrfToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $_POST['csrf_token'] ?? $_SERVER['HTTP_CSRF_TOKEN'] ?? '';
