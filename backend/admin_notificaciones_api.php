@@ -181,25 +181,8 @@ if ($method === 'GET') {
 
     try {
         if ($action === 'mark_read' && $id > 0) {
-            $stmtN = $pdo->prepare("SELECT id_reporte, mensaje FROM notificaciones_admin WHERE id = ?");
-            $stmtN->execute([$id]);
-            $notifData = $stmtN->fetch(PDO::FETCH_ASSOC);
-
             $stmt = $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE id = ?");
             $stmt->execute([$id]);
-
-            if ($notifData) {
-                $idRep = (int)($notifData['id_reporte'] ?? 0);
-                $msg = trim($notifData['mensaje'] ?? '');
-                try {
-                    if ($idRep > 0) {
-                        $pdo->prepare("UPDATE reportes_error SET estado = 'resuelto', fecha_resuelto = NOW() WHERE id = ? AND estado = 'pendiente'")->execute([$idRep]);
-                    } elseif (!empty($msg)) {
-                        $pdo->prepare("UPDATE reportes_error SET estado = 'resuelto', fecha_resuelto = NOW() WHERE descripcion = ? AND estado = 'pendiente'")->execute([$msg]);
-                    }
-                } catch (\Throwable $eSyncRep) {}
-            }
-
             echo json_encode(['success' => true]);
 
         } elseif ($action === 'mark_unread' && $id > 0) {
@@ -218,43 +201,12 @@ if ($method === 'GET') {
             echo json_encode(['success' => true, 'leida' => $newVal]);
 
         } elseif ($action === 'mark_all_read') {
-            // 1. Marcar absolutamente TODAS las notificaciones como leídas
+            // Marcar todas las notificaciones de alerta como leídas sin alterar el estado de los reportes
             $pdo->exec("UPDATE notificaciones_admin SET leida = 1");
-
-            // 2. Intentar actualizar reportes de error de forma segura en bloque try-catch aislado
-            try {
-                $pdo->exec("UPDATE reportes_error SET estado = 'resuelto', fecha_resuelto = NOW() WHERE estado = 'pendiente'");
-            } catch (\Throwable $eS) {
-                try {
-                    $pdo->exec("UPDATE reportes_error SET estado = 'resuelto' WHERE estado = 'pendiente'");
-                } catch (\Throwable $eS2) {}
-            }
-
             echo json_encode(['success' => true, 'message' => 'Todas las notificaciones fueron marcadas como leídas.']);
 
         } elseif ($action === 'delete' && $id > 0) {
-            $stmtN = $pdo->prepare("SELECT id_reporte, mensaje FROM notificaciones_admin WHERE id = ?");
-            $stmtN->execute([$id]);
-            $notifData = $stmtN->fetch(PDO::FETCH_ASSOC);
-
-            if ($notifData) {
-                $idRep = (int)($notifData['id_reporte'] ?? 0);
-                $msg = trim($notifData['mensaje'] ?? '');
-
-                try {
-                    $pdo->exec("ALTER TABLE reportes_error ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL");
-                } catch(\Throwable $eCol) {}
-
-                try {
-                    if ($idRep > 0) {
-                        $pdo->prepare("UPDATE reportes_error SET estado = 'eliminado', fecha_eliminado = NOW() WHERE id = ?")->execute([$idRep]);
-                    }
-                    if (!empty($msg)) {
-                        $pdo->prepare("UPDATE reportes_error SET estado = 'eliminado', fecha_eliminado = NOW() WHERE descripcion = ?")->execute([$msg]);
-                    }
-                } catch (\Throwable $eDelSync) {}
-            }
-
+            // Eliminar la alerta de la lista de notificaciones sin eliminar el reporte subyacente
             $stmt = $pdo->prepare("DELETE FROM notificaciones_admin WHERE id = ?");
             $stmt->execute([$id]);
             echo json_encode(['success' => true]);

@@ -83,7 +83,7 @@
                     </span>
                     Centro de Notificaciones
                 </h1>
-                <p class="text-xs sm:text-sm text-slate-500 mt-1">Registros de avisos, nuevos emprendimientos, miembros de equipo y alertas del sistema.</p>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">Visualización de avisos, nuevos emprendimientos y alertas recibidas. <strong>Nota:</strong> Marcar como leída únicamente actualiza el estado de la notificación visual. La resolución y respuesta de reportes se realiza en el módulo de <a href="reportes.html" class="text-blue-600 underline font-bold">Reportes</a> o <a href="mejoras.html" class="text-blue-600 underline font-bold">Mejoras</a>.</p>
             </div>
             <div class="flex items-center gap-3">
                 <span id="totalUnreadBadge" class="bg-red-50 text-[#d11149] border border-red-200 px-4 py-2.5 rounded-2xl text-xs font-bold">
@@ -300,9 +300,12 @@
                     '<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-amber-200">👑 Admin</span>' :
                     '<span class="bg-purple-100 text-purple-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-purple-200">👤 Profesional</span>';
 
-                const safeBiz = (bizName || 'Negocio').replace(/'/g, "\\'");
-                const safeMsg = (n.mensaje || '').replace(/'/g, "\\'").replace(/\r?\n|\r/g, ' ');
-                const reportId = n.id_reporte || n.id;
+                let targetModuleBtn = '<a href="empresas.html" onclick="event.stopPropagation()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">storefront</span> Ver Empresa <span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>';
+                if (n.segmento.includes('Error') || n.segmento.includes('Reporte') || n.segmento.includes('Bug')) {
+                    targetModuleBtn = '<a href="reportes.html" onclick="event.stopPropagation()" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">bug_report</span> Ir a Reportes <span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>';
+                } else if (n.segmento.includes('Sugerencia') || n.segmento.includes('Mejora')) {
+                    targetModuleBtn = '<a href="mejoras.html" onclick="event.stopPropagation()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">lightbulb</span> Ir a Mejoras <span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>';
+                }
 
                 const readToggleBtn = isUnread ? `
                     <button onclick="marcarLeida(${n.id})" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1" title="Marcar esta notificación como leída">
@@ -315,7 +318,7 @@
                 `;
 
                 html += `
-                    <div class="${cardStyle} rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all cursor-pointer hover:border-blue-300" onclick="if(!event.target.closest('button')) abrirModalResponderNotif(${reportId}, '${safeBiz}', '${safeMsg}', '${fDate}')">
+                    <div class="${cardStyle} rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all cursor-pointer hover:border-blue-300" onclick="if(!event.target.closest('button') && !event.target.closest('a')) ${isUnread ? `marcarLeida(${n.id})` : `marcarNoLeida(${n.id})`}">
                         <div class="flex-1 min-w-0">
                             <div class="flex flex-wrap items-center gap-2 mb-1.5">
                                 ${statusPill}
@@ -330,9 +333,7 @@
                             <p class="text-sm font-semibold ${isUnread ? 'text-slate-900' : 'text-slate-700'} leading-relaxed bg-white/80 p-3 rounded-xl border border-slate-200/60 hover:text-blue-600 transition-colors">${n.mensaje}</p>
                         </div>
                         <div class="flex items-center gap-2 shrink-0 self-end sm:self-center" onclick="event.stopPropagation()">
-                            <button onclick="abrirModalResponderNotif(${reportId}, '${safeBiz}', '${safeMsg}', '${fDate}')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1">
-                                <span class="material-symbols-outlined text-[16px]">forum</span> Ver Hilo / Responder
-                            </button>
+                            ${targetModuleBtn}
                             ${readToggleBtn}
                             <button onclick="eliminarNotificacion(${n.id})" class="p-2 text-slate-400 hover:text-red-600 rounded-xl hover:bg-red-50 transition-colors" title="Eliminar Notificación">
                                 <span class="material-symbols-outlined text-[18px]">delete</span>
