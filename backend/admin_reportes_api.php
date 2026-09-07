@@ -96,7 +96,7 @@ if ($method === 'GET') {
 
         $stmt = $pdo->query("
             SELECT r.id, r.id_negocio, COALESCE(r.nombre_negocio, n.nombre_fantasia) AS nombre_negocio, r.id_usuario,
-                   COALESCE(NULLIF(TRIM(r.nombre_usuario), ''), u.nombre_completo, u.nombre) AS nombre_usuario,
+                   COALESCE(NULLIF(TRIM(r.nombre_usuario), ''), u.nombre_completo) AS nombre_usuario,
                    COALESCE(NULLIF(TRIM(r.email_usuario), ''), u.email) AS email_usuario,
                    COALESCE(r.rol_usuario, 'dueño') AS rol_usuario, r.tipo, r.modulo, r.descripcion, COALESCE(r.estado, 'pendiente') AS estado, r.fecha, n.ruta
             FROM reportes_error r
@@ -112,7 +112,7 @@ if ($method === 'GET') {
         try {
             $stmtNotif = $pdo->query("
                 SELECT na.id, na.id_negocio, COALESCE(na.nombre_negocio, n.nombre_fantasia) AS nombre_negocio, na.id_usuario,
-                       COALESCE(NULLIF(TRIM(na.nombre_usuario), ''), u.nombre_completo, u.nombre) AS nombre_usuario,
+                       COALESCE(NULLIF(TRIM(na.nombre_usuario), ''), u.nombre_completo) AS nombre_usuario,
                        COALESCE(NULLIF(TRIM(na.email_usuario), ''), u.email) AS email_usuario,
                        COALESCE(na.rol_usuario, 'dueño') AS rol_usuario,
                        CASE 

@@ -275,7 +275,7 @@ if ($method === 'GET') {
             $stmtNotifs = $pdo->query("
                 SELECT r.id, r.id_negocio, COALESCE(r.nombre_negocio, n.nombre_fantasia) AS nombre_negocio, n.nombre_fantasia,
                        r.id_usuario,
-                       COALESCE(NULLIF(TRIM(r.nombre_usuario), ''), u.nombre_completo, u.nombre) AS nombre_usuario,
+                       COALESCE(NULLIF(TRIM(r.nombre_usuario), ''), u.nombre_completo) AS nombre_usuario,
                        COALESCE(NULLIF(TRIM(r.email_usuario), ''), u.email) AS email_usuario,
                        COALESCE(r.rol_usuario, 'dueño') AS rol_usuario, r.tipo, COALESCE(r.modulo, 'General') AS segmento,
                        r.descripcion AS mensaje, COALESCE(r.estado, 'pendiente') AS estado, r.fecha, r.fecha_resuelto
@@ -292,7 +292,7 @@ if ($method === 'GET') {
             $stmtExtra = $pdo->query("
                 SELECT na.id, na.id_negocio, COALESCE(na.nombre_negocio, n.nombre_fantasia) AS nombre_negocio, n.nombre_fantasia,
                        na.id_usuario,
-                       COALESCE(NULLIF(TRIM(na.nombre_usuario), ''), u.nombre_completo, u.nombre) AS nombre_usuario,
+                       COALESCE(NULLIF(TRIM(na.nombre_usuario), ''), u.nombre_completo) AS nombre_usuario,
                        COALESCE(NULLIF(TRIM(na.email_usuario), ''), u.email) AS email_usuario,
                        COALESCE(na.rol_usuario, 'dueño') AS rol_usuario,
                        'Reporte de Error' AS tipo, na.segmento, na.mensaje, 'pendiente' AS estado, na.fecha

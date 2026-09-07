@@ -123,10 +123,10 @@
         document.addEventListener('DOMContentLoaded', loadMejoras);
 
         function loadMejoras() {
-            fetch('../backend/admin_reportes_api.php')
+            fetch('../backend/admin_reportes_api.php?t=' + Date.now())
                 .then(r => r.json())
                 .then(d => {
-                    if (d.success) {
+                    if (d.success && Array.isArray(d.data)) {
                         const mejorasOnly = (d.data || []).filter(r => {
                             const isError = (r.tipo && (r.tipo.includes('Error') || r.tipo.includes('Bug')));
                             if (isError) return false;
@@ -136,7 +136,12 @@
                                    (r.descripcion && (r.descripcion.toLowerCase().includes('sugerencia') || r.descripcion.toLowerCase().includes('mejora')));
                         });
                         renderMejorasTable(mejorasOnly);
+                    } else {
+                        renderMejorasTable([]);
                     }
+                })
+                .catch(() => {
+                    renderMejorasTable([]);
                 });
         }
 
