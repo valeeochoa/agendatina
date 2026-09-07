@@ -132,20 +132,6 @@
                         if (targetMontoParam !== null && targetMontoParam !== undefined && targetMontoParam !== '') {
                             finalPrice = Math.round(parseFloat(targetMontoParam));
                             notaProrrateo = ' (Diferencia prorrateada por cambio de plan)';
-                        } else if (data.business.estado_pago === 'prueba') {
-                            const fAlta = data.business.fecha_alta ? new Date(data.business.fecha_alta.replace(/-/g, '/')) : new Date();
-                            const today = new Date();
-                            const trialDaysUsed = Math.min(30, Math.max(0, Math.floor((today - fAlta) / (1000 * 60 * 60 * 24))));
-                            const trialDaysConfigured = trialDaysUsed > 0 ? trialDaysUsed : 15;
-                            const billableDays = Math.max(0, 30 - trialDaysConfigured);
-                            const factorCobro = billableDays / 30;
-                            finalPrice = Math.round(fullMonthPrice * factorCobro);
-                            
-                            if (billableDays === 0) {
-                                notaProrrateo += ' (Período de prueba de 30 días completo: $0)';
-                            } else {
-                                notaProrrateo += ` (Prorrateado por ${billableDays} días cobrables de 30)`;
-                            }
                         }
 
                         const fAltaObj = data.business.fecha_alta ? new Date(data.business.fecha_alta.replace(/-/g, '/')) : new Date();
