@@ -358,8 +358,20 @@
         const requestedProfs = parseInt(params.get('profs')) || 1;
         const requestedCoupon = params.get('cupon') || params.get('codigo');
 
+        const requestedRuta = params.get('ruta');
+
         if (requestedProfs >= 1 && requestedProfs <= 10) {
             document.getElementById('regProfs').value = requestedProfs;
+        }
+
+        if (requestedRuta) {
+            const cleanRuta = slugifyText(requestedRuta);
+            const regRutaEl = document.getElementById('regRuta');
+            if (regRutaEl && cleanRuta) {
+                regRutaEl.value = cleanRuta;
+                regRutaManuallyEdited = true;
+                triggerCheckRegRuta(cleanRuta);
+            }
         }
 
         if (requestedPlan) {

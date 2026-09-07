@@ -24,7 +24,7 @@ try {
 
     if (!$negocio) {
         http_response_code(404);
-        echo "<h1 style='text-align:center; margin-top:50px; font-family:sans-serif; color: #333;'>El negocio no existe o el enlace es incorrecto.</h1>";
+        include __DIR__ . '/url_disponible.php';
         exit;
     }
 
