@@ -1,6 +1,6 @@
 <?php
 use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\Exception as MailException;
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -19,7 +19,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $email = strtolower(trim($_POST['email'] ?? $_SESSION['cliente_email'] ?? ''));
 
 if (empty($email)) {
@@ -30,9 +33,12 @@ if (empty($email)) {
 require_once __DIR__ . '/conexion.php';
 
 try {
-    // Asegurar existencia de columnas reset_token y reset_token_expire en clientes_negocio
+    // Asegurar existencia de columnas reset_token, reset_token_expire y password en clientes_negocio
     try { $pdo->query("SELECT reset_token FROM clientes_negocio LIMIT 1"); } 
-    catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN reset_token VARCHAR(255) DEFAULT NULL, ADD COLUMN reset_token_expire DATETIME DEFAULT NULL"); }
+    catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN reset_token VARCHAR(255) DEFAULT NULL, ADD COLUMN reset_token_expire DATETIME DEFAULT NULL"); } catch(\Throwable $ex) {} }
+
+    try { $pdo->query("SELECT password FROM clientes_negocio LIMIT 1"); } 
+    catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN password VARCHAR(255) DEFAULT NULL"); } catch(\Throwable $ex) {} }
 
     // Buscar si el correo pertenece a algún cliente/alumno
     $stmt = $pdo->prepare("SELECT id, nombre_completo FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email LIMIT 1");
@@ -41,8 +47,8 @@ try {
 
     if (!$cliente) {
         // Verificar en la tabla de turnos si tiene historial
-        $stmtTurno = $pdo->prepare("SELECT id, cliente_nombre FROM turnos WHERE LOWER(TRIM(cliente_celular)) = :email LIMIT 1");
-        $stmtTurno->execute(['email' => $email]);
+        $stmtTurno = $pdo->prepare("SELECT id, cliente_nombre FROM turnos WHERE LOWER(TRIM(cliente_celular)) = :email OR LOWER(TRIM(notas)) LIKE :email_like LIMIT 1");
+        $stmtTurno->execute(['email' => $email, 'email_like' => '%' . $email . '%']);
         $turno = $stmtTurno->fetch(PDO::FETCH_ASSOC);
         
         if ($turno) {
@@ -117,7 +123,6 @@ try {
         echo json_encode(['success' => false, 'error' => 'No encontramos tu correo electrónico en nuestro sistema de alumnos.']);
     }
 
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => 'Error al enviar el correo de recuperación. Intentá nuevamente más tarde.']);
+} catch (\Throwable $e) {
+    echo json_encode(['success' => false, 'error' => 'Error al procesar la solicitud: ' . $e->getMessage()]);
 }
-?>

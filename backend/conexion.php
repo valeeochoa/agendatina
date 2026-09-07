@@ -27,7 +27,7 @@ $requestMethod = $_SERVER['REQUEST_METHOD'] ?? '';
 if ($requestMethod !== 'GET' && $requestMethod !== 'HEAD' && $requestMethod !== 'OPTIONS' && $requestMethod !== '') {
     if (isset($_SESSION['user_id'])) {
         $scriptName = strtolower(basename($_SERVER['SCRIPT_NAME'] ?? $_SERVER['PHP_SELF'] ?? ''));
-        $publicFiles = ['login.php', 'registrarse.php', 'admin_auth.php', 'crear_usuario.php', 'enviar_turno.php', 'enviar_contacto.php', 'restablecer_password.php', 'recuperar_password.php', 'cliente_auth.php', 'subir_comprobante.php', 'validar_cupon.php'];
+        $publicFiles = ['login.php', 'registrarse.php', 'admin_auth.php', 'crear_usuario.php', 'enviar_turno.php', 'enviar_contacto.php', 'restablecer_password.php', 'recuperar_password.php', 'cliente_recuperar_password.php', 'cliente_auth.php', 'subir_comprobante.php', 'validar_cupon.php'];
         $isPublic = in_array($scriptName, $publicFiles);
 
         if (!$isPublic) {

@@ -43,7 +43,7 @@ try {
             ]);
             exit;
         }
-    } catch (Exception $eClient) {}
+    } catch (\Throwable $eClient) {}
 
     // 2. Si no es un cliente, verificar si pertenece a un usuario/comercio (en usuarios)
     $stmtUser = $pdo->prepare("SELECT id, email FROM usuarios WHERE reset_token = :token AND reset_token_expire > NOW() LIMIT 1");
@@ -51,7 +51,7 @@ try {
     $user = $stmtUser->fetch();
 
     if ($user) {
-        try { $pdo->exec("ALTER TABLE usuarios MODIFY password VARCHAR(255)"); } catch(Exception $e) {}
+        try { $pdo->exec("ALTER TABLE usuarios MODIFY password VARCHAR(255)"); } catch(\Throwable $e) {}
 
         $updateUser = $pdo->prepare("UPDATE usuarios SET password = :pass, reset_token = NULL, reset_token_expire = NULL WHERE LOWER(TRIM(email)) = :email");
         $updateUser->execute(['pass' => $hash, 'email' => strtolower(trim($user['email']))]);
@@ -68,7 +68,6 @@ try {
     echo json_encode(['success' => false, 'error' => 'El enlace ha expirado (validez de 10 minutos) o no es válido. Por favor solicita uno nuevo.']);
     exit;
 
-} catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => 'Error del servidor al restablecer contraseña.']);
+} catch (\Throwable $e) {
+    echo json_encode(['success' => false, 'error' => 'Error del servidor al restablecer contraseña: ' . $e->getMessage()]);
 }
-?>
