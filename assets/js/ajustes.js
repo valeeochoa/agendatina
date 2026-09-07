@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             if (data && data.success && data.business) {
+                window.currentBusinessPlan = data.business.plan || 'Simple';
                 const isDemo = (data.business.is_demo === true) || (data.user && data.user.email === 'demo@agendatina.site') || (data.business.ruta === 'demo');
                 window.isDemoAccount = isDemo;
                 const badge = document.getElementById('adminSessionBadge');
@@ -321,6 +322,19 @@ window.updateSenaHelpText = function() {
 };
 
 window.setModoReserva = function(val) {
+    if (val === 'cupos_alumnos') {
+        const plan = (window.currentBusinessPlan || '').toLowerCase();
+        const isPremium = plan.includes('premium') || plan.includes('completo');
+        if (!isPremium) {
+            if (typeof showToast === 'function') {
+                showToast('🔒 El Módulo de Cupos y Portal de Alumnos es exclusivo del Plan Premium. Podés mejorar tu plan en la sección Perfil.', 'warning');
+            } else {
+                alert('🔒 El Módulo de Cupos y Portal de Alumnos es exclusivo del Plan Premium. Podés mejorar tu plan en cualquier momento desde la sección Perfil.');
+            }
+            return;
+        }
+    }
+
     const hiddenInput = document.getElementById('selectModoReservas');
     if (hiddenInput) hiddenInput.value = val;
 

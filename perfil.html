@@ -464,12 +464,13 @@
                     const expBanner = document.getElementById('planExpiredAlertBanner');
                     const expText = document.getElementById('planExpiredAlertText');
                     
-                    if(data.business.estado_pago === 'activo' || data.business.estado_pago === 'pagado') {
+                    const stPago = (data.business.estado_pago || '').toLowerCase();
+                    if(stPago === 'activo' || stPago === 'pagado') {
                         compEl.textContent = 'Aprobado (Al día)';
                         compEl.className = 'text-sm font-bold text-emerald-600';
                         if (btnPago) btnPago.classList.add('hidden');
                         if (expBanner) expBanner.classList.add('hidden');
-                    } else if (data.business.estado_pago === 'pendiente_revision') {
+                    } else if (stPago === 'pendiente_revision') {
                         compEl.textContent = 'En revisión';
                         compEl.className = 'text-sm font-bold text-amber-600';
                         if (expBanner) expBanner.classList.add('hidden');
@@ -485,28 +486,29 @@
                                 btnPago.classList.add('hidden');
                             }
                         }
-                    } else if (data.business.estado_pago === 'suspendido' || data.business.estado_pago === 'unpaid') {
-                        compEl.textContent = 'Rechazado o Impago';
+                    } else if (stPago === 'suspendido' || stPago === 'unpaid' || stPago.includes('vencid') || stPago === 'impago' || stPago === 'inactivo') {
+                        compEl.textContent = 'Vencido o Impago';
                         compEl.className = 'text-sm font-bold text-red-600';
                         if (expBanner) {
                             if (expText) expText.textContent = `Tu suscripción venció el ${formattedVenc}. Renová tu plan para reactivar el servicio.`;
                             expBanner.classList.remove('hidden');
                         }
                         if (btnPago) {
-                            btnPago.innerHTML = '<span class="material-symbols-outlined text-[18px]">payments</span> Pagar o Subir Comprobante';
+                            btnPago.innerHTML = '<span class="material-symbols-outlined text-[18px]">payments</span> Renovar o Pagar Plan';
                             btnPago.href = 'pago.html';
                             btnPago.removeAttribute('target');
-                            btnPago.className = 'text-center w-full bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-extrabold py-3.5 rounded-xl transition-all text-sm mt-6 shadow-sm flex items-center justify-center gap-2';
+                            btnPago.className = 'text-center w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-xl transition-all text-sm mt-6 shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer';
                             btnPago.classList.remove('hidden');
                         }
                     } else {
-                        compEl.textContent = 'No requerido aún';
+                        compEl.textContent = 'Período de Prueba';
                         compEl.className = 'text-sm font-bold text-blue-600';
+                        if (expBanner) expBanner.classList.add('hidden');
                         if (btnPago) {
                             btnPago.innerHTML = '<span class="material-symbols-outlined text-[18px]">payments</span> Pagar o Subir Comprobante';
                             btnPago.href = 'pago.html';
                             btnPago.removeAttribute('target');
-                            btnPago.className = 'text-center w-full bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-extrabold py-3.5 rounded-xl transition-all text-sm mt-6 shadow-sm flex items-center justify-center gap-2';
+                            btnPago.className = 'text-center w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3.5 rounded-xl transition-all text-sm mt-6 shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2 cursor-pointer';
                             btnPago.classList.remove('hidden');
                         }
                     }
@@ -1558,7 +1560,7 @@
 
     <!-- Modal Reportar Error -->
     <div id="reportErrorModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[99999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl border border-slate-100 max-w-md w-full p-4 sm:p-6 md:p-8 transform scale-95 transition-transform duration-300 my-auto max-h-[90vh] overflow-y-auto" id="reportErrorModalContent">
+        <div class="bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl border border-slate-100 max-w-md lg:max-w-2xl xl:max-w-3xl w-full p-4 sm:p-6 md:p-8 transform scale-95 transition-transform duration-300 my-auto max-h-[90vh] overflow-y-auto" id="reportErrorModalContent">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-bold font-display text-slate-800 flex items-center gap-2">
                     <span class="material-symbols-outlined text-red-500">bug_report</span> Reportar Error
