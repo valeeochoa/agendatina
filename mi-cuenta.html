@@ -133,27 +133,68 @@
             </div>
 
             <!-- Navegación por Pestañas (Tabs Bar) -->
-            <div class="bg-orange-100/60 p-1.5 rounded-2xl border border-orange-200/80 grid grid-cols-2 md:grid-cols-4 gap-1.5 shadow-2xs">
-                <button onclick="switchTab('clases')" id="tabBtnClases" class="tab-btn active px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer">
+            <div class="bg-orange-100/60 p-1.5 rounded-2xl border border-orange-200/80 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1.5 shadow-2xs">
+                <button onclick="switchTab('clases')" id="tabBtnClases" class="tab-btn active px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer">
                     <span class="material-symbols-outlined text-[18px]">event_upcoming</span>
                     <span>Mis Clases</span>
                     <span id="tabBadgeClases" class="bg-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full hidden">0</span>
                 </button>
 
-                <button onclick="switchTab('historial')" id="tabBtnHistorial" class="tab-btn px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer">
+                <button onclick="switchTab('reservar')" id="tabBtnReservar" class="tab-btn px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                    <span>Reservar Clase</span>
+                </button>
+
+                <button onclick="switchTab('pagos')" id="tabBtnPagos" class="tab-btn px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">confirmation_number</span>
+                    <span>Mis Pases</span>
+                </button>
+
+                <button onclick="switchTab('historial')" id="tabBtnHistorial" class="tab-btn px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer">
                     <span class="material-symbols-outlined text-[18px]">history</span>
                     <span>Historial</span>
                 </button>
 
-                <button onclick="switchTab('pagos')" id="tabBtnPagos" class="tab-btn px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer">
-                    <span class="material-symbols-outlined text-[18px]">card_membership</span>
-                    <span>Mis Pases</span>
-                </button>
-
-                <button onclick="switchTab('perfil')" id="tabBtnPerfil" class="tab-btn px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer">
+                <button onclick="switchTab('perfil')" id="tabBtnPerfil" class="tab-btn px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer">
                     <span class="material-symbols-outlined text-[18px]">person</span>
                     <span>Mi Perfil</span>
                 </button>
+            </div>
+
+            <!-- CONTENIDO PESTAÑA: RESERVAR CLASE (RECUADRO CALENDARIO DEL NEGOCIO) -->
+            <div id="tabContentReservar" class="hidden bg-white/95 backdrop-blur-xl rounded-3xl border-2 border-orange-200/90 shadow-xl p-4 sm:p-8 space-y-5">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-orange-100">
+                    <div>
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 border border-orange-200 text-orange-800 text-[11px] font-black uppercase tracking-wider mb-1.5">
+                            <span class="material-symbols-outlined text-[14px]">event_available</span> Turnos y Clases
+                        </div>
+                        <h3 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2" id="inlineBookingTitle">
+                            <span class="w-8 h-8 rounded-xl bg-orange-100 text-[#FC8712] flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[20px]">calendar_month</span></span> Reservar en tu Establecimiento
+                        </h3>
+                        <p class="text-xs sm:text-sm text-slate-600 mt-1 font-medium">Seleccioná tu servicio y horario directamente en el calendario de tu negocio.</p>
+                    </div>
+
+                    <!-- Selector de Negocio si el alumno pertenece a más de 1 -->
+                    <div id="inlineNegocioSelectorContainer" class="hidden flex-col sm:flex-row items-start sm:items-center gap-2 bg-orange-50/90 p-2.5 rounded-2xl border border-orange-200/90">
+                        <span class="text-xs font-extrabold text-orange-900 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[16px]">storefront</span> Cambiar Negocio:
+                        </span>
+                        <select id="inlineNegocioSelect" onchange="changeInlineBookingBusiness(this.value)" class="bg-white text-slate-800 text-xs font-bold rounded-xl px-3 py-2 border border-orange-200 outline-none focus:ring-2 focus:ring-[#FC8712] cursor-pointer w-full sm:w-auto">
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Recuadro contenedor del Calendario del Negocio -->
+                <div class="relative w-full rounded-2xl border-2 border-orange-200/80 bg-slate-50 overflow-hidden shadow-inner min-h-[640px] sm:min-h-[740px] flex flex-col" id="recuadroCalendarioNegocio">
+                    <!-- Loader -->
+                    <div id="inlineBookingLoader" class="absolute inset-0 bg-white/95 backdrop-blur-sm flex flex-col items-center justify-center gap-3 z-10">
+                        <span class="material-symbols-outlined text-4xl text-[#FC8712] animate-spin">refresh</span>
+                        <span class="text-xs font-extrabold text-slate-700">Cargando calendario del negocio...</span>
+                    </div>
+
+                    <!-- Iframe inline del Calendario (sin modal popup) -->
+                    <iframe id="inlineBookingIframe" class="w-full flex-1 border-0 min-h-[640px] sm:min-h-[740px] rounded-2xl" onload="document.getElementById('inlineBookingLoader').classList.add('hidden')"></iframe>
+                </div>
             </div>
 
             <!-- CONTENIDO PESTAÑA 1: MIS CLASES (PRÓXIMAS) -->
@@ -266,43 +307,7 @@
         </div>
     </main>
 
-    <!-- MODAL DE RESERVA INTEGRADA DE CLASES EN EL PANEL -->
-    <div id="bookingEmbedModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-[99999] hidden flex items-center justify-center p-2 sm:p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-5xl h-[92vh] max-h-[92vh] flex flex-col overflow-hidden transform scale-95 transition-transform duration-300" id="bookingEmbedModalContent">
-            <!-- Modal Header -->
-            <div class="px-5 py-3.5 bg-gradient-to-r from-[#FC8712] via-[#FF8A65] to-[#FF7E67] text-white flex items-center justify-between gap-3 shrink-0 shadow-xs">
-                <div class="flex items-center gap-2 overflow-hidden">
-                    <span class="material-symbols-outlined text-2xl text-white">calendar_month</span>
-                    <div class="truncate">
-                        <h3 id="bookingModalStudioTitle" class="font-extrabold text-sm sm:text-base text-white leading-tight truncate">Reservar Clase</h3>
-                        <p class="text-[11px] text-orange-100 font-medium hidden sm:block">Seleccioná tu servicio y horario de preferencia</p>
-                    </div>
-                </div>
 
-                <div class="flex items-center gap-2 shrink-0">
-                    <!-- Selector de Negocio si el alumno pertenece a varios -->
-                    <div id="bookingModalStudioSelectorContainer" class="hidden items-center gap-1.5 bg-white/20 px-3 py-1.5 rounded-xl border border-white/30 text-xs">
-                        <label class="text-[11px] font-extrabold text-white hidden sm:inline">Establecimiento:</label>
-                        <select id="bookingModalStudioSelect" onchange="switchBookingStudio(this.value)" class="bg-white text-slate-800 text-xs font-bold rounded-lg px-2 py-1 outline-none cursor-pointer">
-                        </select>
-                    </div>
-
-                    <button onclick="closeBookingModal()" class="w-9 h-9 rounded-xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-colors cursor-pointer" title="Cerrar modal de reserva">
-                        <span class="material-symbols-outlined text-xl">close</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Modal Iframe Body -->
-            <div class="flex-1 bg-slate-50 relative overflow-hidden flex flex-col">
-                <div id="bookingIframeLoader" class="absolute inset-0 bg-white flex flex-col items-center justify-center gap-3 z-10">
-                    <span class="material-symbols-outlined text-4xl text-[#FC8712] animate-spin">sync</span>
-                    <span class="text-xs font-extrabold text-slate-600">Cargando calendario del establecimiento...</span>
-                </div>
-                <iframe id="bookingIframe" class="w-full h-full border-0 flex-1" onload="document.getElementById('bookingIframeLoader').classList.add('hidden')"></iframe>
-            </div>
-        </div>
-    </div>
 
     <!-- MODAL DE CONFIRMACIÓN DE CANCELACIÓN DE RESERVA -->
     <div id="cancelModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4">
@@ -373,8 +378,8 @@
             }, 3500);
         }
 
-        function switchTab(tabName) {
-            const tabs = ['clases', 'historial', 'pagos', 'perfil'];
+        function switchTab(tabName, targetRuta = '') {
+            const tabs = ['clases', 'reservar', 'historial', 'pagos', 'perfil'];
             tabs.forEach(t => {
                 const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
                 const content = document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
@@ -388,6 +393,10 @@
                     }
                 }
             });
+
+            if (tabName === 'reservar') {
+                cargarInlineCalendarioNegocio(targetRuta);
+            }
         }
 
         function resetAuthStep() {
@@ -610,19 +619,24 @@
         }
 
         // =========================================================================
-        // GESTIÓN DEL MODAL DE RESERVA INTEGRADA DE CLASES (IFRAME)
+        // GESTIÓN DEL CALENDARIO INTEGRADO EN EL PANEL (SIN MODAL POPUP)
         // =========================================================================
         function openBookingModal(targetRuta = '') {
-            const modal = document.getElementById('bookingEmbedModal');
-            const content = document.getElementById('bookingEmbedModalContent');
-            const iframe = document.getElementById('bookingIframe');
-            const loader = document.getElementById('bookingIframeLoader');
-            const title = document.getElementById('bookingModalStudioTitle');
-            const selectContainer = document.getElementById('bookingModalStudioSelectorContainer');
-            const select = document.getElementById('bookingModalStudioSelect');
+            switchTab('reservar', targetRuta);
+        }
 
+        function cargarInlineCalendarioNegocio(targetRuta = '') {
+            const recuadro = document.getElementById('recuadroCalendarioNegocio');
             if (!studentNegocios || studentNegocios.length === 0) {
-                showStudentToast('No tenés ningún establecimiento asociado actualmente.', 'error');
+                if (recuadro) {
+                    recuadro.innerHTML = `
+                        <div class="p-8 text-center text-slate-500 text-sm flex flex-col items-center justify-center my-auto min-h-[300px]">
+                            <span class="material-symbols-outlined text-4xl text-orange-300 mb-2">storefront</span>
+                            <p class="font-bold text-slate-700">No tenés establecimientos asociados actualmente.</p>
+                            <p class="text-xs text-slate-500 mt-1">Contactá a tu negocio para ingresar tu correo electrónico.</p>
+                        </div>
+                    `;
+                }
                 return;
             }
 
@@ -634,54 +648,59 @@
                 selectedNegocio = studentNegocios[0];
             }
 
+            const selectContainer = document.getElementById('inlineNegocioSelectorContainer');
+            const select = document.getElementById('inlineNegocioSelect');
+            const title = document.getElementById('inlineBookingTitle');
+
             if (studentNegocios.length > 1) {
-                selectContainer.classList.remove('hidden');
-                selectContainer.classList.add('flex');
-                let html = '';
-                studentNegocios.forEach(n => {
-                    const isSel = n.negocio_ruta === selectedNegocio.negocio_ruta ? 'selected' : '';
-                    html += `<option value="${n.negocio_ruta}" ${isSel}>${n.negocio_nombre}</option>`;
-                });
-                select.innerHTML = html;
+                if (selectContainer) {
+                    selectContainer.classList.remove('hidden');
+                    selectContainer.classList.add('flex');
+                }
+                if (select) {
+                    let html = '';
+                    studentNegocios.forEach(n => {
+                        const isSel = n.negocio_ruta === selectedNegocio.negocio_ruta ? 'selected' : '';
+                        html += `<option value="${n.negocio_ruta}" ${isSel}>${n.negocio_nombre}</option>`;
+                    });
+                    select.innerHTML = html;
+                }
             } else {
-                selectContainer.classList.add('hidden');
+                if (selectContainer) selectContainer.classList.add('hidden');
             }
 
-            title.textContent = `Reservar Clase • ${selectedNegocio.negocio_nombre}`;
-            
+            if (title) {
+                title.innerHTML = `<span class="w-8 h-8 rounded-xl bg-orange-100 text-[#FC8712] flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-[20px]">calendar_month</span></span> Reservar en <span class="text-[#FC8712] font-black underline decoration-orange-300 underline-offset-4">${selectedNegocio.negocio_nombre}</span>`;
+            }
+
             const studentEmail = sessionStorage.getItem('agendatina_alumno_email') || '';
             const studentName = (document.getElementById('profileNombre') ? document.getElementById('profileNombre').value : '') || '';
-            
-            loader.classList.remove('hidden');
-            // Cargar página web o calendario público del negocio
-            iframe.src = `index.php?n=${selectedNegocio.negocio_ruta}&email=${encodeURIComponent(studentEmail)}&nombre=${encodeURIComponent(studentName)}`;
 
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                content.classList.remove('scale-95');
-            }, 10);
+            const loader = document.getElementById('inlineBookingLoader');
+            const iframe = document.getElementById('inlineBookingIframe');
+
+            if (loader) loader.classList.remove('hidden');
+
+            // Cargar directamente el calendario que eligió el negocio (v=calendario) sin la web landing page
+            const iframeUrl = `index.php?n=${selectedNegocio.negocio_ruta}&v=calendario&email=${encodeURIComponent(studentEmail)}&nombre=${encodeURIComponent(studentName)}`;
+
+            if (iframe) {
+                if (iframe.src !== iframeUrl) {
+                    iframe.src = iframeUrl;
+                } else if (loader) {
+                    loader.classList.add('hidden');
+                }
+            }
+
+            const tabContent = document.getElementById('tabContentReservar');
+            if (tabContent) {
+                tabContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
 
-        function switchBookingStudio(newRuta) {
+        function changeInlineBookingBusiness(newRuta) {
             if (!newRuta) return;
-            openBookingModal(newRuta);
-        }
-
-        function closeBookingModal() {
-            const modal = document.getElementById('bookingEmbedModal');
-            const content = document.getElementById('bookingEmbedModalContent');
-            const iframe = document.getElementById('bookingIframe');
-            
-            modal.classList.add('opacity-0');
-            content.classList.add('scale-95');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                iframe.src = 'about:blank';
-                // Recargar datos del alumno en tiempo real por si reservó una clase
-                loadMisClases(sessionStorage.getItem('agendatina_alumno_email'));
-            }, 300);
+            cargarInlineCalendarioNegocio(newRuta);
         }
 
         function renderStatsSummary(negocios, clases) {
