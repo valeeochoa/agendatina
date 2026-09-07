@@ -78,25 +78,104 @@
         <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
                 <h1 class="text-2xl sm:text-3xl font-black text-slate-900 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[#d11149] text-3xl">notifications</span>
+                    <span class="p-2 bg-red-100 text-[#d11149] rounded-2xl flex items-center justify-center">
+                        <span class="material-symbols-outlined text-3xl">notifications</span>
+                    </span>
                     Centro de Notificaciones
                 </h1>
-                <p class="text-xs sm:text-sm text-slate-500 mt-1">Registros de nuevos usuarios, profesionales agregados y solicitudes de ampliación de plan.</p>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">Registros de avisos, nuevos emprendimientos, miembros de equipo y alertas del sistema.</p>
             </div>
-            <button onclick="marcarTodasLeidas()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-2xl text-xs shadow-md flex items-center gap-2 self-start sm:self-auto transition-all">
-                <span class="material-symbols-outlined text-[18px]">done_all</span> Marcar todas como leídas
-            </button>
+            <div class="flex items-center gap-3">
+                <span id="totalUnreadBadge" class="bg-red-50 text-[#d11149] border border-red-200 px-4 py-2.5 rounded-2xl text-xs font-bold">
+                    Cargando...
+                </span>
+                <button onclick="marcarTodasLeidas()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-2xl text-xs shadow-md flex items-center gap-2 transition-all">
+                    <span class="material-symbols-outlined text-[18px]">done_all</span> Marcar todas como leídas
+                </button>
+            </div>
+        </div>
+
+        <!-- Buscador y Filtros -->
+        <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-200 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="relative w-full sm:w-1/2">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
+                <input type="text" id="searchInput" oninput="filterNotificaciones()" placeholder="Buscar por negocio, emisor o mensaje..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d11149]">
+            </div>
+            <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-2xl border border-slate-200 w-full sm:w-auto">
+                <button id="btnFilterAll" onclick="setTabFilter('all')" class="px-4 py-2 rounded-xl font-bold text-xs transition-all bg-white text-slate-800 shadow-xs">
+                    Todas (<span id="countAll">0</span>)
+                </button>
+                <button id="btnFilterUnread" onclick="setTabFilter('unread')" class="px-4 py-2 rounded-xl font-bold text-xs transition-all text-slate-500 hover:text-slate-800 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-[#d11149]"></span> No Leídas (<span id="countUnread">0</span>)
+                </button>
+                <button id="btnFilterRead" onclick="setTabFilter('read')" class="px-4 py-2 rounded-xl font-bold text-xs transition-all text-slate-500 hover:text-slate-800 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span> Leídas (<span id="countRead">0</span>)
+                </button>
+            </div>
         </div>
 
         <!-- Lista de Notificaciones -->
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-            <div id="notifList" class="space-y-4">
-                <p class="text-center text-slate-400 py-8 text-sm">Cargando notificaciones...</p>
-            </div>
+        <div id="notifList" class="space-y-4">
+            <div class="p-8 text-center text-slate-400 text-sm bg-white rounded-3xl border border-slate-200">Cargando notificaciones...</div>
         </div>
     </main>
 
+    <!-- Modal Responder SuperAdmin -->
+    <div id="modalResponderSuperAdmin" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="modalResponderSuperAdminContent" class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative transform scale-95 transition-transform duration-300">
+            <button type="button" onclick="cerrarModalResponder()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+
+            <div class="mb-4">
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    <span class="material-symbols-outlined text-blue-600 text-lg">support_agent</span>
+                    <span>Atención de Soporte</span>
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-900" id="modalResponderTitulo">Responder Notificación</h3>
+                <p class="text-xs text-slate-500 mt-1" id="modalResponderSubtitulo">Envía una respuesta directamente al negocio emisor.</p>
+            </div>
+
+            <!-- Conversación Previa / Hilo -->
+            <div id="hiloMensajesContainer" class="bg-slate-50 rounded-2xl p-4 border border-slate-200 mb-4 max-h-48 overflow-y-auto space-y-3 text-xs">
+                <div class="text-center text-slate-400 font-medium">Cargando conversación...</div>
+            </div>
+
+            <form id="formResponderSuperAdmin" onsubmit="enviarRespuestaSuperAdmin(event)" class="space-y-4">
+                <input type="hidden" id="adminReporteId" value="">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Estado del Reporte / Solicitud</label>
+                    <select id="adminSelectEstado" onchange="cargarPlantillaGenerica()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="resuelto" selected>✓ Marcar como Resuelto / Atendido</option>
+                        <option value="en_revision">⏳ En Revisión / En Proceso</option>
+                        <option value="pendiente">⚠️ Pendiente (Requiere más información)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Mensaje para el Negocio</label>
+                        <button type="button" onclick="cargarPlantillaGenerica()" class="text-[11px] font-bold text-blue-600 hover:text-blue-800 underline">Restablecer Texto Genérico</button>
+                    </div>
+                    <textarea id="adminTextMensaje" rows="4" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium leading-relaxed" placeholder="Escribe tu respuesta aquí..."></textarea>
+                    <p class="text-[11px] text-slate-400 mt-1">El negocio recibirá una notificación inmediata en su panel con este mensaje.</p>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="cerrarModalResponder()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-2xl text-xs transition-all">Cancelar</button>
+                    <button type="submit" id="btnEnviarRespuestaAdmin" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3 rounded-2xl text-xs transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-1.5">
+                        <span class="material-symbols-outlined text-[18px]">send</span> Enviar y Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
+        let notificacionesRaw = [];
+        let currentTabFilter = 'all';
+
         document.addEventListener('DOMContentLoaded', () => {
             fetch('../backend/admin_auth.php')
                 .then(r => r.json())
@@ -107,36 +186,98 @@
         });
 
         function loadNotificaciones() {
-            fetch('../backend/admin_notificaciones_api.php')
+            fetch('../backend/admin_notificaciones_api.php?t=' + Date.now())
                 .then(r => r.json())
                 .then(data => {
-                    if (data.success) {
-                        const unread = data.unread_count || 0;
-                        const badge = document.getElementById('navNotifBadge');
-                        if (badge) {
-                            if (unread > 0) {
-                                badge.textContent = unread;
-                                badge.classList.remove('hidden');
-                            } else {
-                                badge.classList.add('hidden');
-                            }
-                        }
-                        renderNotificacionesList(data.data || []);
+                    if (data.success && Array.isArray(data.data)) {
+                        notificacionesRaw = data.data;
+                        filterNotificaciones();
+                    } else {
+                        notificacionesRaw = [];
+                        renderNotificacionesList([]);
                     }
+                })
+                .catch(() => {
+                    document.getElementById('notifList').innerHTML = '<div class="p-8 text-center text-red-500 font-medium bg-white rounded-3xl border border-slate-200">Error de conexión al cargar notificaciones.</div>';
                 });
+        }
+
+        function setTabFilter(tab) {
+            currentTabFilter = tab;
+            const btnAll = document.getElementById('btnFilterAll');
+            const btnUnread = document.getElementById('btnFilterUnread');
+            const btnRead = document.getElementById('btnFilterRead');
+
+            [btnAll, btnUnread, btnRead].forEach(b => {
+                if (b) b.className = 'px-4 py-2 rounded-xl font-bold text-xs transition-all text-slate-500 hover:text-slate-800 flex items-center gap-1.5';
+            });
+
+            if (tab === 'all') {
+                if (btnAll) btnAll.className = 'px-4 py-2 rounded-xl font-bold text-xs transition-all bg-white text-slate-800 shadow-xs';
+            } else if (tab === 'unread') {
+                if (btnUnread) btnUnread.className = 'px-4 py-2 rounded-xl font-bold text-xs transition-all bg-white text-slate-800 shadow-xs flex items-center gap-1.5';
+            } else if (tab === 'read') {
+                if (btnRead) btnRead.className = 'px-4 py-2 rounded-xl font-bold text-xs transition-all bg-white text-slate-800 shadow-xs flex items-center gap-1.5';
+            }
+
+            filterNotificaciones();
+        }
+
+        function filterNotificaciones() {
+            const search = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            const unreadCount = notificacionesRaw.filter(n => Number(n.leida) === 0).length;
+            const readCount = notificacionesRaw.filter(n => Number(n.leida) === 1).length;
+            const totalCount = notificacionesRaw.length;
+
+            document.getElementById('countAll').textContent = totalCount;
+            document.getElementById('countUnread').textContent = unreadCount;
+            document.getElementById('countRead').textContent = readCount;
+
+            const badge = document.getElementById('totalUnreadBadge');
+            if (badge) {
+                badge.textContent = `${unreadCount} No Leídas (${totalCount} Total)`;
+            }
+
+            const filtered = notificacionesRaw.filter(n => {
+                const isUnread = Number(n.leida) === 0;
+                
+                // Tab filter
+                if (currentTabFilter === 'unread' && !isUnread) return false;
+                if (currentTabFilter === 'read' && isUnread) return false;
+
+                // Search filter
+                if (search) {
+                    const matchName = (n.nombre_fantasia || n.nombre_negocio || '').toLowerCase().includes(search);
+                    const matchUser = (n.nombre_usuario || '').toLowerCase().includes(search);
+                    const matchEmail = (n.email_usuario || '').toLowerCase().includes(search);
+                    const matchMsg = (n.mensaje || '').toLowerCase().includes(search);
+                    const matchSeg = (n.segmento || '').toLowerCase().includes(search);
+                    return matchName || matchUser || matchEmail || matchMsg || matchSeg;
+                }
+
+                return true;
+            });
+
+            renderNotificacionesList(filtered);
         }
 
         function renderNotificacionesList(list) {
             const container = document.getElementById('notifList');
-            if (list.length === 0) {
-                container.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm border border-dashed border-slate-200 rounded-2xl">No hay notificaciones registradas.</div>';
+            if (!list || list.length === 0) {
+                container.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm bg-white rounded-3xl border border-dashed border-slate-200">No hay notificaciones en este filtro.</div>';
                 return;
             }
 
             let html = '';
             list.forEach(n => {
-                const isUnread = !n.leida;
-                const bgClass = isUnread ? 'bg-amber-50/60 border-amber-200' : 'bg-slate-50 border-slate-200';
+                const isUnread = Number(n.leida) === 0;
+                
+                // Diferenciación visual marcada
+                const cardStyle = isUnread 
+                    ? 'bg-white border-l-4 border-l-[#d11149] border-slate-200 shadow-sm' 
+                    : 'bg-slate-50/70 border-slate-200/80 opacity-75 hover:opacity-100 transition-opacity';
+
                 const fDate = new Date(n.fecha).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
                 const bizName = n.nombre_fantasia || n.nombre_negocio || 'Sin Negocio';
                 const bizId = n.id_negocio ? `#${n.id_negocio}` : '?';
@@ -149,6 +290,11 @@
                 else if (n.segmento.includes('Equipo') || n.segmento.includes('Profesional')) segBadge = '<span class="bg-purple-100 text-purple-800 border border-purple-200 text-[11px] font-bold px-2.5 py-0.5 rounded-lg uppercase">👥 Profesional</span>';
                 else if (n.segmento.includes('Ampliación') || n.segmento.includes('Límite')) segBadge = '<span class="bg-amber-100 text-amber-800 border border-amber-200 text-[11px] font-bold px-2.5 py-0.5 rounded-lg uppercase">⚠️ Límite / Ampliación</span>';
 
+                // Status badge
+                const statusPill = isUnread ? 
+                    '<span class="bg-[#d11149] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span> NO LEÍDA</span>' : 
+                    '<span class="bg-slate-200 text-slate-600 text-[10px] font-bold px-2.5 py-0.5 rounded-md flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-slate-400">done_all</span> Leída</span>';
+
                 const isOwnerAdmin = !n.rol_usuario || n.rol_usuario === 'admin' || n.rol_usuario === 'dueño';
                 const roleTag = isOwnerAdmin ?
                     '<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-amber-200">👑 Admin</span>' :
@@ -158,31 +304,37 @@
                 const safeMsg = (n.mensaje || '').replace(/'/g, "\\'").replace(/\r?\n|\r/g, ' ');
                 const reportId = n.id_reporte || n.id;
 
+                const readToggleBtn = isUnread ? `
+                    <button onclick="marcarLeida(${n.id})" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1" title="Marcar esta notificación como leída">
+                        <span class="material-symbols-outlined text-[16px]">check_circle</span> Marcar leída
+                    </button>
+                ` : `
+                    <button onclick="marcarNoLeida(${n.id})" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1" title="Marcar esta notificación como no leída">
+                        <span class="material-symbols-outlined text-[16px]">undo</span> Marcar no leída
+                    </button>
+                `;
+
                 html += `
-                    <div class="${bgClass} border rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all cursor-pointer hover:border-blue-300" onclick="if(!event.target.closest('button')) abrirModalResponderNotif(${reportId}, '${safeBiz}', '${safeMsg}', '${fDate}')">
+                    <div class="${cardStyle} rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all cursor-pointer hover:border-blue-300" onclick="if(!event.target.closest('button')) abrirModalResponderNotif(${reportId}, '${safeBiz}', '${safeMsg}', '${fDate}')">
                         <div class="flex-1 min-w-0">
                             <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                                ${statusPill}
                                 ${segBadge}
                                 <span class="font-extrabold text-slate-900 text-sm flex items-center gap-1">${bizName} <span class="bg-slate-200 text-slate-700 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border border-slate-300">ID: ${bizId}</span></span>
-                                ${isUnread ? '<span class="w-2 h-2 rounded-full bg-[#d11149]"></span>' : ''}
                                 <span class="text-xs text-slate-400 font-medium ml-auto">${fDate}</span>
                             </div>
                             <div class="text-xs text-slate-600 font-medium mb-2 flex items-center gap-2">
                                 <span>Emisor: <strong class="text-slate-800">${n.nombre_usuario || 'Desconocido'}</strong> (${n.email_usuario || 'Sin email'})</span>
                                 ${roleTag}
                             </div>
-                            <p class="text-sm font-semibold text-slate-800 leading-relaxed bg-white/70 p-3 rounded-xl border border-slate-200/60 hover:text-blue-600 transition-colors">${n.mensaje}</p>
+                            <p class="text-sm font-semibold ${isUnread ? 'text-slate-900' : 'text-slate-700'} leading-relaxed bg-white/80 p-3 rounded-xl border border-slate-200/60 hover:text-blue-600 transition-colors">${n.mensaje}</p>
                         </div>
                         <div class="flex items-center gap-2 shrink-0 self-end sm:self-center" onclick="event.stopPropagation()">
                             <button onclick="abrirModalResponderNotif(${reportId}, '${safeBiz}', '${safeMsg}', '${fDate}')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1">
                                 <span class="material-symbols-outlined text-[16px]">forum</span> Ver Hilo / Responder
                             </button>
-                            ${isUnread ? `
-                                <button onclick="marcarLeida(${n.id})" class="px-3 py-1.5 bg-white text-slate-700 hover:text-slate-900 border border-slate-200 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-[14px]">done</span> Leída
-                                </button>
-                            ` : ''}
-                            <button onclick="eliminarNotificacion(${n.id})" class="p-2 text-slate-400 hover:text-red-600 rounded-xl hover:bg-red-50 transition-colors" title="Eliminar">
+                            ${readToggleBtn}
+                            <button onclick="eliminarNotificacion(${n.id})" class="p-2 text-slate-400 hover:text-red-600 rounded-xl hover:bg-red-50 transition-colors" title="Eliminar Notificación">
                                 <span class="material-symbols-outlined text-[18px]">delete</span>
                             </button>
                         </div>
@@ -230,7 +382,6 @@
                 .then(d => {
                     let html = '';
 
-                    // 1. Mostrar siempre el mensaje inicial enviado por el negocio si está disponible
                     if (descOriginal) {
                         html += `
                             <div class="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-slate-800 mb-3 shadow-xs">
@@ -246,7 +397,6 @@
                         `;
                     }
 
-                    // 2. Renderizar los mensajes e hilos de respuesta intercambiados
                     if (d.success && d.data && d.data.length > 0) {
                         d.data.forEach(m => {
                             const isSuper = m.emisor === 'admin';
@@ -329,35 +479,62 @@
         }
 
         function marcarLeida(id) {
+            // Actualización optimista local
+            const target = notificacionesRaw.find(n => Number(n.id) === Number(id));
+            if (target) target.leida = 1;
+            filterNotificaciones();
+
             fetch('../backend/admin_notificaciones_api.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'mark_read', id: id })
             }).then(() => {
-                loadNotificaciones();
                 if (window.loadAdminNavNotifsCount) window.loadAdminNavNotifsCount();
+                loadNotificaciones();
+            });
+        }
+
+        function marcarNoLeida(id) {
+            // Actualización optimista local
+            const target = notificacionesRaw.find(n => Number(n.id) === Number(id));
+            if (target) target.leida = 0;
+            filterNotificaciones();
+
+            fetch('../backend/admin_notificaciones_api.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'mark_unread', id: id })
+            }).then(() => {
+                if (window.loadAdminNavNotifsCount) window.loadAdminNavNotifsCount();
+                loadNotificaciones();
             });
         }
 
         function marcarTodasLeidas() {
+            notificacionesRaw.forEach(n => n.leida = 1);
+            filterNotificaciones();
+
             fetch('../backend/admin_notificaciones_api.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'mark_all_read' })
             }).then(() => {
-                loadNotificaciones();
                 if (window.loadAdminNavNotifsCount) window.loadAdminNavNotifsCount();
+                loadNotificaciones();
             });
         }
 
         function eliminarNotificacion(id) {
+            notificacionesRaw = notificacionesRaw.filter(n => Number(n.id) !== Number(id));
+            filterNotificaciones();
+
             fetch('../backend/admin_notificaciones_api.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'delete', id: id })
             }).then(() => {
-                loadNotificaciones();
                 if (window.loadAdminNavNotifsCount) window.loadAdminNavNotifsCount();
+                loadNotificaciones();
             });
         }
 
@@ -367,57 +544,5 @@
         }
     </script>
     <script src="admin_nav.js?v=2"></script>
-
-    <!-- MODAL RESPONDER NOTIFICACIONES / REPORTES / MEJORAS (SuperAdmin) -->
-    <div id="modalResponderSuperAdmin" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div id="modalResponderSuperAdminContent" class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative transform scale-95 transition-transform duration-300">
-            <button type="button" onclick="cerrarModalResponder()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
-                <span class="material-symbols-outlined">close</span>
-            </button>
-
-            <div class="mb-4">
-                <div class="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                    <span class="material-symbols-outlined text-blue-600 text-lg">support_agent</span>
-                    <span>Atención de Soporte</span>
-                </div>
-                <h3 class="text-xl font-extrabold text-slate-900" id="modalResponderTitulo">Responder Notificación</h3>
-                <p class="text-xs text-slate-500 mt-1" id="modalResponderSubtitulo">Envia una respuesta o solución directamente al negocio emisor.</p>
-            </div>
-
-            <!-- Conversación Previa / Hilo -->
-            <div id="hiloMensajesContainer" class="bg-slate-50 rounded-2xl p-4 border border-slate-200 mb-4 max-h-48 overflow-y-auto space-y-3 text-xs">
-                <div class="text-center text-slate-400 font-medium">Cargando conversación...</div>
-            </div>
-
-            <form id="formResponderSuperAdmin" onsubmit="enviarRespuestaSuperAdmin(event)" class="space-y-4">
-                <input type="hidden" id="adminReporteId" value="">
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Estado del Reporte / Solicitud</label>
-                    <select id="adminSelectEstado" onchange="cargarPlantillaGenerica()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="resuelto" selected>✓ Marcar como Resuelto / Atendido</option>
-                        <option value="en_revision">⏳ En Revisión / En Proceso</option>
-                        <option value="pendiente">⚠️ Pendiente (Requiere más información)</option>
-                    </select>
-                </div>
-
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Mensaje para el Negocio</label>
-                        <button type="button" onclick="cargarPlantillaGenerica()" class="text-[11px] font-bold text-blue-600 hover:text-blue-800 underline">Restablecer Texto Genérico</button>
-                    </div>
-                    <textarea id="adminTextMensaje" rows="4" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-blue-500 font-medium leading-relaxed" placeholder="Escribe tu respuesta aquí..."></textarea>
-                    <p class="text-[11px] text-slate-400 mt-1">El negocio recibirá una notificación inmediata en su panel con este mensaje.</p>
-                </div>
-
-                <div class="flex gap-3 pt-2">
-                    <button type="button" onclick="cerrarModalResponder()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-2xl text-xs transition-all">Cancelar</button>
-                    <button type="submit" id="btnEnviarRespuestaAdmin" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3 rounded-2xl text-xs transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-1.5">
-                        <span class="material-symbols-outlined text-[18px]">send</span> Enviar y Guardar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 </body>
 </html>

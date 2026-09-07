@@ -71,6 +71,7 @@ if ($method === 'GET') {
         $notifs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($notifs as &$nItem) {
+            $nItem['leida'] = (int)($nItem['leida'] ?? 0);
             if (empty($nItem['id_reporte']) && !empty($nItem['id_negocio'])) {
                 $stmtFind = $pdo->prepare("SELECT id FROM reportes_error WHERE id_negocio = ? ORDER BY id DESC LIMIT 1");
                 $stmtFind->execute([$nItem['id_negocio']]);
@@ -80,11 +81,12 @@ if ($method === 'GET') {
                 }
             }
         }
+        unset($nItem);
 
         // 1. Notificaciones no leídas totales
         $unreadTotal = 0;
         foreach ($notifs as $n) {
-            if (empty($n['leida'])) $unreadTotal++;
+            if (empty($n['leida']) || $n['leida'] == 0) $unreadTotal++;
         }
 
         // 2. Reportes de Error pendientes reales en reportes_error
@@ -180,6 +182,21 @@ if ($method === 'GET') {
             }
 
             echo json_encode(['success' => true]);
+
+        } elseif ($action === 'mark_unread' && $id > 0) {
+            $stmt = $pdo->prepare("UPDATE notificaciones_admin SET leida = 0 WHERE id = ?");
+            $stmt->execute([$id]);
+            echo json_encode(['success' => true]);
+
+        } elseif ($action === 'toggle_read' && $id > 0) {
+            $stmtN = $pdo->prepare("SELECT leida FROM notificaciones_admin WHERE id = ?");
+            $stmtN->execute([$id]);
+            $curr = (int)($stmtN->fetchColumn() ?: 0);
+            $newVal = ($curr === 1) ? 0 : 1;
+
+            $stmt = $pdo->prepare("UPDATE notificaciones_admin SET leida = ? WHERE id = ?");
+            $stmt->execute([$newVal, $id]);
+            echo json_encode(['success' => true, 'leida' => $newVal]);
 
         } elseif ($action === 'mark_all_read') {
             $pdo->exec("UPDATE notificaciones_admin SET leida = 1");
