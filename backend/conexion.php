@@ -1,10 +1,18 @@
 <?php
-// Configurar políticas de seguridad de cookies de sesión
+// Configurar políticas de seguridad y duración extendida (30 días) de cookies de sesión
 if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.cookie_httponly', 1);
     ini_set('session.use_only_cookies', 1);
+    ini_set('session.gc_maxlifetime', 2592000); // 30 días (2.592.000 segundos) de permanencia en servidor
     $isSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
-    ini_set('session.cookie_secure', $isSecure ? 1 : 0);
+    
+    session_set_cookie_params([
+        'lifetime' => 2592000, // 30 días en el navegador
+        'path' => '/',
+        'secure' => $isSecure,
+        'httponly' => true,
+        'samesite' => 'Lax'
+    ]);
     session_start();
 }
 
