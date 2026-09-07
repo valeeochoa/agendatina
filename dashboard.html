@@ -51,7 +51,7 @@
                     <span id="notifBadge" class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full hidden"></span>
                     
                     <!-- Dropdown de notificaciones -->
-                    <div id="notifDropdown" class="absolute right-0 top-10 mt-2 w-80 bg-white rounded-3xl shadow-2xl border border-slate-100 hidden flex-col z-50 overflow-hidden cursor-default text-left" onclick="event.stopPropagation()">
+                    <div id="notifDropdown" class="fixed left-3 right-3 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-10 sm:mt-2 w-auto sm:w-80 bg-white rounded-3xl shadow-2xl border border-slate-100 hidden flex-col z-50 overflow-hidden cursor-default text-left" onclick="event.stopPropagation()">
                         <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
                             <h4 class="font-bold text-slate-800 text-sm">Notificaciones</h4>
                             <div class="flex items-center gap-3">
@@ -61,7 +61,7 @@
                                 </button>
                             </div>
                         </div>
-                        <div id="notifList" class="max-h-72 overflow-y-auto p-2 space-y-1">
+                        <div id="notifList" class="max-h-[60vh] sm:max-h-80 overflow-y-auto p-2 space-y-1">
                             <div class="p-4 text-center text-sm text-slate-400">No hay notificaciones nuevas</div>
                         </div>
                     </div>
