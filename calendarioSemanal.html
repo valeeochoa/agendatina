@@ -35,7 +35,7 @@
     <div class="h-1 bg-gradient-to-r from-[#D11149] via-[#f44979] to-[#FC8712]"></div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
       <div class="flex items-center gap-2 sm:gap-3">
-        <a href="dashboard.html" id="btnVolverPanel" class="hidden bg-primary hover:bg-primary/90 text-white font-extrabold py-2 px-3 sm:px-4 rounded-xl transition-all flex items-center gap-1.5 text-xs sm:text-sm shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-95" title="Volver al Panel">
+        <a href="dashboard.html" id="btnVolverPanel" class="bg-primary hover:bg-primary/90 text-white font-extrabold py-2 px-3 sm:px-4 rounded-xl transition-all flex items-center gap-1.5 text-xs sm:text-sm shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-95 cursor-pointer" title="Volver al Panel" onclick="if(window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)){ event.preventDefault(); window.history.back(); }">
           <span class="material-symbols-outlined text-[18px]">arrow_back</span>
           <span class="hidden sm:inline">Volver al panel</span>
         </a>
@@ -333,7 +333,6 @@
                   <span class="text-sm font-bold text-slate-500">m</span>
                   <input type="hidden" id="serviceDuration" name="duracion" required>
               </div>
-              <input type="email" id="serviceProfessionalEmail" name="email_profesional" placeholder="Email del Profesional (Opcional)" class="w-full md:col-span-2 px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary text-sm">
               <div class="col-span-1 md:col-span-2 bg-slate-50 dark:bg-white/5 p-3 rounded-2xl border border-slate-200 dark:border-white/10">
                   <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Foto del Profesional</label>
                   <input type="file" id="serviceProfessionalFile" name="foto_profesional_file" accept="image/png, image/jpeg, image/webp" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer mb-2">
@@ -346,8 +345,9 @@
               </div>
               <div>
                   <label class="block text-xs font-bold text-slate-500 mb-1 uppercase tracking-wider">Profesional a cargo</label>
-                  <input type="text" id="serviceProfessional" name="profesional" list="profesionalesList" placeholder="Ej: Juan (o deja vacío para ti)" class="w-full px-4 py-3.5 rounded-2xl border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 focus:ring-primary text-sm">
-                  <datalist id="profesionalesList"></datalist>
+                  <select id="serviceProfessional" name="profesional" class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-slate-900 focus:ring-2 focus:ring-primary text-sm font-semibold text-slate-700 dark:text-slate-200 outline-none">
+                      <option value="">Todos / Sin Asignar</option>
+                  </select>
               </div>
             </div>
             <div class="flex items-center gap-4 mt-6">

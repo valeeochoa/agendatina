@@ -53,6 +53,19 @@ try {
     $id_negocio = $_SESSION['id_negocio'];
 
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        if (isset($_GET['action']) && $_GET['action'] === 'check_ruta') {
+            $rutaCheck = preg_replace('/[^a-zA-Z0-9-]/', '', strtolower(trim($_GET['ruta'] ?? '')));
+            if (empty($rutaCheck)) {
+                echo json_encode(['success' => true, 'available' => false, 'reason' => 'Vacio']);
+                exit;
+            }
+            $stmtCheck = $pdo->prepare("SELECT id FROM negocios WHERE (ruta = ? OR subdominio = ?) AND id != ?");
+            $stmtCheck->execute([$rutaCheck, $rutaCheck, $id_negocio]);
+            $exists = $stmtCheck->fetch();
+            echo json_encode(['success' => true, 'available' => !$exists]);
+            exit;
+        }
+
         // Obtener datos de usuario
         try { $pdo->query("SELECT email_verificado FROM usuarios LIMIT 1"); } 
         catch(Throwable $e) { try { $pdo->exec("ALTER TABLE usuarios ADD COLUMN email_verificado TINYINT DEFAULT 0"); } catch(Throwable $ex) {} }

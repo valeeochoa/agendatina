@@ -1288,11 +1288,32 @@ function updateProfServicesDisplay() {
     }
 }
 
+function populateProfessionalSelect() {
+    const sel = document.getElementById('serviceProfessional');
+    if (!sel) return;
+    fetch('backend/gestionar_profesionales.php')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success && Array.isArray(data.profesionales)) {
+                const currentVal = sel.value;
+                let html = '<option value="">Todos / Sin Asignar</option>';
+                data.profesionales.forEach(p => {
+                    const name = p.nombre_completo || p.email || 'Profesional';
+                    html += `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`;
+                });
+                sel.innerHTML = html;
+                if (currentVal) sel.value = currentVal;
+            }
+        })
+        .catch(() => {});
+}
+
 function openServicesModal() {
     const modal = document.getElementById('servicesModal');
     const content = document.getElementById('servicesModalContent');
     modal.classList.remove('hidden', 'opacity-0');
     setTimeout(() => { content.classList.remove('scale-95'); }, 10);
+    populateProfessionalSelect();
     renderServicesList();
 }
 

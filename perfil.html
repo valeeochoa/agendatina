@@ -72,6 +72,15 @@
             <p class="text-sm text-slate-500 mt-1">Gestiona tu información personal, personaliza tus colores y administra tu contraseña.</p>
         </div>
         
+        <!-- Banner WhatsApp Light -->
+        <div class="mb-6 bg-emerald-50/60 border border-emerald-200/60 px-4 py-3 rounded-2xl flex items-center justify-between gap-3 text-xs sm:text-sm font-semibold text-emerald-900 shadow-2xs">
+            <div class="flex items-center gap-2">
+                <span class="text-base">💬</span>
+                <span>Próximamente notificaciones a los profesionales por WhatsApp</span>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full bg-emerald-100/80 text-emerald-800 text-[11px] font-extrabold border border-emerald-200/80 shrink-0">Próximamente</span>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <!-- Ajustes del Perfil (7 Columnas) -->
             <div class="lg:col-span-7 space-y-6">
@@ -90,6 +99,17 @@
                             <div>
                                 <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Nombre del Administrador / Usuario</label>
                                 <input type="text" id="perfilNombre" name="nombre" class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-primary outline-none transition-all font-medium" placeholder="Tu nombre" required>
+                            </div>
+                            
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Enlace Web Personalizado (Página Web / Reservas)</label>
+                                <div class="relative flex items-center">
+                                    <span class="absolute left-4 text-slate-400 font-semibold text-xs sm:text-sm select-none pointer-events-none">agendatina.site/</span>
+                                    <input type="text" id="perfilRuta" name="ruta" class="w-full pl-[115px] sm:pl-[130px] pr-10 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-primary outline-none transition-all font-medium" placeholder="tu-negocio">
+                                    <span id="rutaCheckSpinner" class="hidden absolute right-3 material-symbols-outlined animate-spin text-slate-400 text-lg">sync</span>
+                                    <span id="rutaCheckIcon" class="hidden absolute right-3 material-symbols-outlined text-lg"></span>
+                                </div>
+                                <span id="rutaFeedback" class="text-[11px] font-semibold mt-1 block"></span>
                             </div>
                             
                             <div class="sm:col-span-2">
@@ -383,6 +403,16 @@
                     const negocioInput = document.getElementById('perfilNombreNegocio');
                     if (negocioInput) negocioInput.value = data.business.nombre_fantasia || '';
                     
+                    const rutaInput = document.getElementById('perfilRuta');
+                    if (rutaInput) {
+                        rutaInput.value = data.business.ruta || '';
+                        if (isStaff) {
+                            rutaInput.disabled = true;
+                            rutaInput.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
+                            rutaInput.title = 'Solo el administrador del local puede modificar la dirección de la página web.';
+                        }
+                    }
+
                     const navBizText = document.getElementById('navBusinessNameText');
                     if (navBizText) navBizText.textContent = data.business.nombre_fantasia || 'Mi Negocio';
                     
@@ -500,6 +530,66 @@
                     reader.readAsDataURL(file);
                 }
             });
+
+            // Listener para validación en tiempo real de Ruta/Subdominio
+            const rInput = document.getElementById('perfilRuta');
+            const rSpinner = document.getElementById('rutaCheckSpinner');
+            const rIcon = document.getElementById('rutaCheckIcon');
+            const rFb = document.getElementById('rutaFeedback');
+            let checkRutaTimer = null;
+
+            if (rInput) {
+                rInput.addEventListener('input', (e) => {
+                    let val = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                    e.target.value = val;
+                    
+                    if (checkRutaTimer) clearTimeout(checkRutaTimer);
+                    if (val.length < 3) {
+                        if (rIcon) rIcon.classList.add('hidden');
+                        if (rSpinner) rSpinner.classList.add('hidden');
+                        if (rFb) {
+                            rFb.className = 'text-[11px] font-semibold mt-1 block text-amber-600';
+                            rFb.textContent = 'Mínimo 3 caracteres (solo letras, números y guiones)';
+                        }
+                        return;
+                    }
+
+                    if (rSpinner) rSpinner.classList.remove('hidden');
+                    if (rIcon) rIcon.classList.add('hidden');
+                    if (rFb) rFb.textContent = '';
+
+                    checkRutaTimer = setTimeout(() => {
+                        fetch(`backend/perfil.php?action=check_ruta&ruta=${encodeURIComponent(val)}`)
+                            .then(r => r.json())
+                            .then(res => {
+                                if (rSpinner) rSpinner.classList.add('hidden');
+                                if (rIcon) rIcon.classList.remove('hidden');
+                                if (res.available) {
+                                    if (rIcon) {
+                                        rIcon.textContent = 'check_circle';
+                                        rIcon.className = 'absolute right-3 material-symbols-outlined text-lg text-emerald-500';
+                                    }
+                                    if (rFb) {
+                                        rFb.className = 'text-[11px] font-semibold mt-1 block text-emerald-600';
+                                        rFb.textContent = '✓ Enlace web disponible';
+                                    }
+                                } else {
+                                    if (rIcon) {
+                                        rIcon.textContent = 'cancel';
+                                        rIcon.className = 'absolute right-3 material-symbols-outlined text-lg text-red-500';
+                                    }
+                                    if (rFb) {
+                                        rFb.className = 'text-[11px] font-semibold mt-1 block text-red-600';
+                                        rFb.textContent = '✕ Esta URL ya está en uso por otro negocio';
+                                    }
+                                }
+                            })
+                            .catch(() => {
+                                if (rSpinner) rSpinner.classList.add('hidden');
+                            });
+                    }, 400);
+                });
+            }
             
             // 1. Manejo del Formulario de Datos del Perfil (#perfilForm)
             document.getElementById('perfilForm').addEventListener('submit', (e) => {

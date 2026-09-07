@@ -16,12 +16,12 @@ window.loadDashboardData = function() {
     
     // 2. Asegurar que el enlace del calendario se actualice con la vista correcta
     setTimeout(() => {
-        if (window.currentBusinessData && window.currentBusinessData.ruta) {
-            const cardCalendario = document.getElementById('cardCalendario');
-            const isWeekly = window.currentWebData?.tipo_calendario === 'semanal';
-                const calPage = isWeekly ? 'calendarioSemanal.html' : 'calendarioMensual.html';
-                if (cardCalendario) cardCalendario.href = calPage;
-        }
+        const cardCalendario = document.getElementById('cardCalendario');
+        const step2Link = document.getElementById('step2Link');
+        const isWeekly = window.currentWebData?.tipo_calendario === 'semanal';
+        const calPage = isWeekly ? 'calendarioSemanal.html' : 'calendarioMensual.html';
+        if (cardCalendario) cardCalendario.href = calPage;
+        if (step2Link) step2Link.href = calPage;
         
         // 3. Gestionar permisos según el rol y verificación de correo (Modo DEMO oculta banners de verificación y pago)
         if (window.currentUserData) {
