@@ -959,6 +959,7 @@ function loadDashboardData() {
             const cardAgenda = document.getElementById('cardAgenda');
             const cardWeb = document.getElementById('cardWeb');
             const cardCalendario = document.getElementById('cardCalendario');
+            const cardClientes = document.getElementById('cardClientes');
             
             // Actualizar el enlace al calendario detectando si es mensual o semanal
             if (cardCalendario) {
@@ -969,12 +970,22 @@ function loadDashboardData() {
             if (cardAgenda && cardWeb) {
                 cardAgenda.style.display = 'flex';
                 cardWeb.style.display = 'flex';
+                if (cardClientes) cardClientes.style.display = 'flex';
+                
+                const isDemoAcc = business.ruta === 'demo' || business.subdominio === 'demo' || business.is_demo === true;
+                const isPremAcc = isDemoAcc || planStr.includes('premium') || planStr.includes('completo');
                 
                 if (planStr.includes('básico') || planStr.includes('basico') || planStr.includes('simple')) {
-                    cardAgenda.style.display = 'none'; // Plan simple: Oculta Agenda y Web
+                    cardAgenda.style.display = 'none'; // Plan simple: Oculta Agenda, Web y Clientes
                     cardWeb.style.display = 'none';
+                    if (cardClientes) cardClientes.style.display = 'none';
                 } else if (planStr.includes('intermedio') || planStr.includes('profesional')) {
-                    cardWeb.style.display = 'none';    // Plan Profesional/Intermedio: Oculta la Web Pública
+                    cardWeb.style.display = 'none';    // Plan Profesional/Intermedio: Oculta la Web Pública y Clientes
+                    if (cardClientes) cardClientes.style.display = 'none';
+                }
+
+                if (cardClientes && !isPremAcc) {
+                    cardClientes.style.display = 'none';
                 }
                 
                 // Respaldo de seguridad por si el plan falló en cargar antes
@@ -2234,10 +2245,6 @@ window.closeBookingSuccessModal = function() {
 // LÓGICA PARA REPORTE DE ERRORES AL SUPERADMIN
 // ==========================================
 window.openReportErrorModal = function(segment) {
-    if (isUserInDemoMode()) {
-        if (typeof showToast === 'function') showToast('Esta función no está disponible desde una cuenta DEMO.', 'error');
-        return;
-    }
     let modal = document.getElementById('reportErrorModal');
     if (!modal) {
         const div = document.createElement('div');
@@ -2284,8 +2291,8 @@ window.openReportErrorModal = function(segment) {
     const content = document.getElementById('reportErrorModalContent');
     const segInput = document.getElementById('reportSegment');
     const segDisp = document.getElementById('reportSegmentDisplay');
-    if (segInput) segInput.value = segment;
-    if (segDisp) segDisp.value = segment;
+    if (segInput) segInput.value = segment || 'General';
+    if (segDisp) segDisp.value = segment || 'General';
     modal.classList.remove('hidden');
     setTimeout(() => { 
         modal.classList.remove('opacity-0'); 
@@ -2295,6 +2302,59 @@ window.openReportErrorModal = function(segment) {
             content.classList.add('animate-modal-pop');
         }
     }, 10);
+};
+
+window.submitReportError = function(e) {
+    if (e) e.preventDefault();
+    const form = document.getElementById('reportErrorForm');
+    if (!form) return;
+    const btn = document.getElementById('btnReportSubmit') || document.getElementById('btnReportErrorSubmit');
+    const origText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span> Enviando...';
+    }
+
+    const formData = new FormData(form);
+    if (!formData.has('action')) formData.append('action', 'report_error');
+
+    // Mapear campos en caso de que existan IDs alternativos en clientes.html u otras vistas
+    const msgUser = document.getElementById('reportUserMensaje');
+    if (msgUser && msgUser.value && !formData.has('mensaje')) {
+        formData.append('mensaje', msgUser.value);
+    }
+    const ctxUser = document.getElementById('reportContextView');
+    if (ctxUser && ctxUser.value && (!formData.has('segmento') || !formData.get('segmento'))) {
+        formData.append('segmento', ctxUser.value);
+    }
+
+    fetch('backend/enviar_soporte.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (typeof showToast === 'function') showToast('Reporte de error enviado con éxito.', 'success');
+            else alert('Reporte de error enviado con éxito.');
+            if (typeof closeReportErrorModal === 'function') closeReportErrorModal();
+            form.reset();
+        } else {
+            if (typeof showToast === 'function') showToast(data.error || 'Error al enviar el reporte.', 'error');
+            else alert(data.error || 'Error al enviar el reporte.');
+        }
+    })
+    .catch(err => {
+        console.error('Error al enviar reporte:', err);
+        if (typeof showToast === 'function') showToast('Error de conexión al enviar el reporte.', 'error');
+        else alert('Error de conexión.');
+    })
+    .finally(() => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = origText;
+        }
+    });
 };
 
 window.closeReportErrorModal = function() {

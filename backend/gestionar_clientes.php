@@ -53,6 +53,21 @@ if (isset($_SESSION['is_demo']) && $_SESSION['is_demo']) {
     }
 }
 
+// Verificar plan del negocio
+$is_demo = isset($_SESSION['is_demo']) && $_SESSION['is_demo'];
+$plan_negocio = 'Simple';
+try {
+    $stmtPlan = $pdo->prepare("SELECT plan FROM negocios WHERE id = :id LIMIT 1");
+    $stmtPlan->execute(['id' => $id_negocio]);
+    $negocioData = $stmtPlan->fetch(PDO::FETCH_ASSOC);
+    if ($negocioData && !empty($negocioData['plan'])) {
+        $plan_negocio = $negocioData['plan'];
+    }
+} catch (Exception $ePlan) {}
+
+$planLower = strtolower($plan_negocio);
+$is_premium = $is_demo || (strpos($planLower, 'premium') !== false) || (strpos($planLower, 'completo') !== false);
+
 try {
     // ---------------------------------------------------------
     // OBTENER LISTADO DE ALUMNOS (GET)
@@ -118,7 +133,21 @@ try {
             }
         }
 
-        echo json_encode(['success' => true, 'data' => $clientes]);
+        echo json_encode([
+            'success' => true, 
+            'data' => $clientes,
+            'is_premium' => $is_premium,
+            'plan' => $plan_negocio
+        ]);
+        exit;
+    }
+
+    // Bloquear acciones de modificación si la cuenta no es Plan Premium ni Demo
+    if (!$is_premium) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'El registro y gestión de alumnos es una función exclusiva del Plan Premium. Actualiza tu plan en la sección Perfil.'
+        ]);
         exit;
     }
 

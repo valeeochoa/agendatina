@@ -1,5 +1,7 @@
 let allClientes = [];
 let filtroActual = 'todos';
+let isPremiumAccount = true;
+let currentPlanName = 'Simple';
 
 document.addEventListener('DOMContentLoaded', () => {
     cargarClientes();
@@ -11,6 +13,10 @@ function cargarClientes() {
         .then(data => {
             if (data.success) {
                 allClientes = data.data || [];
+                isPremiumAccount = data.is_premium !== undefined ? data.is_premium : true;
+                currentPlanName = data.plan || 'Simple';
+                
+                verificarRestriccionPremium();
                 actualizarMetricas();
                 renderTablaAlumnos();
             } else {
@@ -18,6 +24,53 @@ function cargarClientes() {
             }
         })
         .catch(err => console.error('Error al obtener clientes:', err));
+}
+
+function verificarRestriccionPremium() {
+    let banner = document.getElementById('bannerPremiumLock');
+    if (!isPremiumAccount) {
+        if (!banner) {
+            banner = document.createElement('div');
+            banner.id = 'bannerPremiumLock';
+            banner.className = 'mb-8 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-red-500/10 border-2 border-orange-400/60 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm';
+            banner.innerHTML = `
+                <div class="flex items-center gap-5 text-left">
+                    <div class="w-16 h-16 rounded-2xl bg-orange-500 text-white flex items-center justify-center font-bold shrink-0 shadow-lg shadow-orange-500/30">
+                        <span class="material-symbols-outlined text-3xl">lock</span>
+                    </div>
+                    <div>
+                        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 border border-orange-200 text-orange-800 text-[11px] font-black uppercase tracking-wider mb-2">
+                            <span>🔒 Módulo Exclusivo Plan Premium</span>
+                        </div>
+                        <h3 class="text-xl md:text-2xl font-extrabold text-slate-900">La gestión de alumnos y cupos requiere Plan Premium</h3>
+                        <p class="text-xs md:text-sm text-slate-600 mt-1 max-w-xl">Tu cuenta posee actualmente el <strong>Plan ${currentPlanName}</strong>. Para registrar alumnos, administrar créditos, controlar vencimientos de pases y habilitar el Portal de Alumnos, actualiza tu suscripción.</p>
+                    </div>
+                </div>
+                <a href="perfil.html" class="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white font-extrabold px-6 py-3.5 rounded-2xl shadow-lg shadow-orange-500/25 hover:scale-[1.02] active:scale-95 transition-all text-xs md:text-sm flex items-center gap-2 shrink-0">
+                    <span class="material-symbols-outlined text-[20px]">workspace_premium</span> Mejorar a Plan Premium
+                </a>
+            `;
+            const mainContainer = document.querySelector('main');
+            if (mainContainer) mainContainer.insertBefore(banner, mainContainer.firstElementChild);
+        }
+    } else if (banner) {
+        banner.remove();
+    }
+}
+
+function showPremiumModalNotice() {
+    if (typeof showConfirm === 'function') {
+        showConfirm({
+            title: '🔒 Función Exclusiva Plan Premium',
+            message: `El registro y administración de alumnos y créditos de clases está disponible exclusivamente para cuentas con <strong>Plan Premium</strong>.<br><br>¿Deseas conocer los detalles del Plan Premium e impulsar tu negocio?`,
+            confirmText: 'Ver Plan Premium',
+            confirmColor: 'orange',
+            onConfirm: () => { window.location.href = 'perfil.html'; }
+        });
+    } else {
+        alert('Esta función es exclusiva del Plan Premium. Actualiza tu plan en la sección Perfil.');
+        window.location.href = 'perfil.html';
+    }
 }
 
 function actualizarMetricas() {
@@ -144,6 +197,10 @@ function filtrarEstado(estado) {
 }
 
 function openModalCliente(cliente = null) {
+    if (!isPremiumAccount) {
+        showPremiumModalNotice();
+        return;
+    }
     const form = document.getElementById('formCliente');
     if (form) form.reset();
 
@@ -178,6 +235,10 @@ function closeModalCliente() {
 
 function guardarCliente(e) {
     e.preventDefault();
+    if (!isPremiumAccount) {
+        showPremiumModalNotice();
+        return;
+    }
     const btn = document.getElementById('btnGuardarCliente');
     if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
 
@@ -219,6 +280,10 @@ function editarCliente(id) {
 }
 
 function eliminarCliente(id, nombre) {
+    if (!isPremiumAccount) {
+        showPremiumModalNotice();
+        return;
+    }
     const doDelete = () => {
         fetch('backend/gestionar_clientes.php', {
             method: 'DELETE',
@@ -251,6 +316,10 @@ function eliminarCliente(id, nombre) {
 
 // Modal Cargar Más Pases Rápidos
 function openModalAddPases(id, nombre) {
+    if (!isPremiumAccount) {
+        showPremiumModalNotice();
+        return;
+    }
     document.getElementById('addPasesClienteId').value = id;
     document.getElementById('addPasesNombreAlumno').textContent = `Alumno: ${nombre}`;
     const modal = document.getElementById('modalAddPases');
