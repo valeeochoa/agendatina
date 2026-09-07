@@ -804,6 +804,9 @@ function logout(redirect = 'login.html') {
         return fetch('backend/logout.php').then(() => window.location.href = redirect);
     });
 }
+window.logout = logout;
+window.logoutAdminSession = logout;
+window.logoutDashboard = logout;
 
 // ==========================================
 // LÓGICA PARA DASHBOARD.HTML
@@ -3501,7 +3504,18 @@ function checkAdminGlobalSession(config = null) {
             // Usuario es cliente / visitante sin sesión de admin en este local: OCULTAR TODOS LOS BOTONES DE ADMIN
             if (adminMenu) { adminMenu.classList.add('hidden'); adminMenu.style.display = 'none'; }
             if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
-            if (btnVolverPanel) { btnVolverPanel.classList.add('hidden'); btnVolverPanel.style.display = 'none'; }
+            if (btnVolverPanel) {
+                if (window.isPublicAgendatinaOfficialPage && window.isPublicAgendatinaOfficialPage()) {
+                    btnVolverPanel.classList.remove('hidden');
+                    btnVolverPanel.style.display = 'inline-flex';
+                    btnVolverPanel.href = 'login.html';
+                    btnVolverPanel.title = 'Iniciar Sesión';
+                    const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
+                    if (textSpan) textSpan.textContent = 'Iniciar Sesión';
+                } else {
+                    btnVolverPanel.classList.add('hidden'); btnVolverPanel.style.display = 'none';
+                }
+            }
             if (navLogoutBtn) { navLogoutBtn.classList.add('hidden'); navLogoutBtn.style.display = 'none'; }
         }
 
@@ -3518,9 +3532,18 @@ function checkAdminGlobalSession(config = null) {
     })
     .catch(() => {
         // En caso de error de red o sin sesión, asegurar que la vista cliente esté limpia de botones admin
-        document.querySelectorAll('#navReportBugBtn, #btnReportarErrorAgenda, #navLogoutBtn, #btnVolverPanel, #adminSessionBadge, #adminProfileMenu').forEach(el => {
+        document.querySelectorAll('#navReportBugBtn, #btnReportarErrorAgenda, #navLogoutBtn, #adminSessionBadge, #adminProfileMenu').forEach(el => {
             if (el) { el.classList.add('hidden'); el.style.display = 'none'; }
         });
+        const btnVolverPanel = document.getElementById('btnVolverPanel');
+        if (btnVolverPanel && window.isPublicAgendatinaOfficialPage && window.isPublicAgendatinaOfficialPage()) {
+            btnVolverPanel.classList.remove('hidden');
+            btnVolverPanel.style.display = 'inline-flex';
+            btnVolverPanel.href = 'login.html';
+            btnVolverPanel.title = 'Iniciar Sesión';
+            const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
+            if (textSpan) textSpan.textContent = 'Iniciar Sesión';
+        }
     });
 }
 

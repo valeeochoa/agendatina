@@ -37,7 +37,7 @@
                 <div id="navBusinessNameHeader" class="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-2xl shadow-xs">
                     <img id="navBusinessLogoImg" src="" alt="Logo Negocio" class="hidden h-6 w-6 object-cover rounded-full border border-slate-300">
                     <span id="navBusinessIcon" class="material-symbols-outlined text-[18px] text-[#d11149]">storefront</span>
-                    <span id="navBusinessNameText" class="text-xs sm:text-sm font-extrabold text-slate-800">Consultas Frecuentes</span>
+                    <span id="navBusinessNameText" class="text-xs sm:text-sm font-extrabold text-slate-800 truncate max-w-[110px] sm:max-w-xs">Mi Negocio</span>
                 </div>
             </div>
 
@@ -50,6 +50,10 @@
                 <button id="navReportBugBtn" onclick="openReportErrorModal('Consultas Frecuentes')" class="text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl flex items-center gap-1 transition-colors" title="Reportar Error">
                     <span class="material-symbols-outlined text-[16px]">bug_report</span>
                     <span class="hidden md:inline">Reportar Error</span>
+                </button>
+                <button type="button" id="navLogoutBtn" onclick="logoutAdminSession()" class="text-xs font-bold text-slate-600 hover:text-red-600 bg-slate-100 hover:bg-red-50 px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-xs" title="Cerrar Sesión">
+                    <span class="material-symbols-outlined text-[18px]">logout</span>
+                    <span class="hidden md:inline">Cerrar sesión</span>
                 </button>
             </div>
         </div>
