@@ -1173,7 +1173,12 @@ function checkSubscription(subscriptionData) {
     let isDashboardBannerHidden = true;
     let dashBannerClass = '';
     let dashIcon = '';
-    let dashMs    const isProf = (window.currentUserRole === 'profesional') || 
+    let dashMsg = '';
+    let dashBtnText = '';
+    let dashBtnClass = '';
+    let showActionBtn = false;
+
+    const isProf = (window.currentUserRole === 'profesional') || 
                    (window.currentUserData && (window.currentUserData.rol === 'profesional' || window.currentUserData.rol_en_local === 'profesional'));
 
     let priceStr = (!isProf && subscriptionData.priceFormatted) ? ` <strong>$${subscriptionData.priceFormatted}</strong>` : '';
@@ -1260,10 +1265,6 @@ function checkSubscription(subscriptionData) {
         dashBtnText = 'Pagar Plan';
         dashBtnClass = 'bg-red-600 hover:bg-red-700 text-white';
         showActionBtn = !isProf;
-    }an';
-            dashBtnClass = 'bg-red-600 hover:bg-red-700 text-white';
-            showActionBtn = true;
-        }
     }
 
     const isDemo = (window.currentUserData && window.currentUserData.email && window.currentUserData.email.includes('demo')) || 
