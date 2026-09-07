@@ -4075,3 +4075,490 @@ window.enviarRespuestaClienteSoporte = function(e) {
             alert('Error de conexión con el servidor.');
         });
 };
+
+// ==========================================
+// MÓDULO GLOBAL DE MEJORAR PLAN (UPGRADE PLAN)
+// ==========================================
+
+window.globalPricesData = null;
+window.selectedUpgradeTarget = 'Premium';
+window.isTrialUpgrade = false;
+window.calculatedUpgradeAmount = 0;
+window.upgradeBusinessData = null;
+window.upgradeProfCount = 1;
+
+window.fetchGlobalPrices = function(callback) {
+    if (window.globalPricesData) {
+        if (typeof callback === 'function') callback(window.globalPricesData);
+        return;
+    }
+    fetch('backend/obtener_precios.php')
+        .then(r => r.json())
+        .then(res => {
+            if (res && res.success && res.data) {
+                window.globalPricesData = res.data;
+            } else {
+                window.globalPricesData = {
+                    precio_basico: 8889,
+                    precio_intermedio: 11111,
+                    precio_premium: 16667,
+                    descuento_porcentaje: 10,
+                    dias_prueba_defecto: 30
+                };
+            }
+            if (typeof callback === 'function') callback(window.globalPricesData);
+        })
+        .catch(() => {
+            window.globalPricesData = {
+                precio_basico: 8889,
+                precio_intermedio: 11111,
+                precio_premium: 16667,
+                descuento_porcentaje: 10,
+                dias_prueba_defecto: 30
+            };
+            if (typeof callback === 'function') callback(window.globalPricesData);
+        });
+};
+
+window.getEffectivePrice = function(planName, profCount = 1) {
+    const prices = window.globalPricesData || {
+        precio_basico: 8889,
+        precio_intermedio: 11111,
+        precio_premium: 16667,
+        descuento_porcentaje: 10
+    };
+
+    const p = (planName || '').toLowerCase();
+    let rawBase = parseFloat(prices.precio_basico) || 8889;
+    if (p.includes('profesional') || p.includes('intermedio')) rawBase = parseFloat(prices.precio_intermedio) || 11111;
+    if (p.includes('premium') || p.includes('completo')) rawBase = parseFloat(prices.precio_premium) || 16667;
+
+    let discPct = parseInt(prices.descuento_porcentaje);
+    if (isNaN(discPct) || discPct < 0) discPct = 10;
+
+    // Precio para 1 profesional con descuento base (10% OFF base)
+    const finalOne = Math.round(rawBase * (100 - discPct) / 100);
+
+    const count = Math.max(1, parseInt(profCount || 1));
+    if (count === 1) {
+        return finalOne;
+    }
+
+    // Descuento por equipo según cantidad de integrantes (10% adicional por profesional, máx 50%)
+    let volumeDiscount = Math.min(50, count * 10);
+    let totalBeforeVol = finalOne * count;
+    let finalTotal = Math.round(totalBeforeVol * (1 - volumeDiscount / 100));
+
+    return finalTotal;
+};
+
+window.ensureUpgradePlanModalExists = function() {
+    if (document.getElementById('upgradePlanModal')) return;
+
+    const modalHtml = `
+    <div id="upgradePlanModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto opacity-0 transition-opacity duration-300">
+        <div id="upgradePlanModalContent" class="bg-white rounded-3xl p-4 sm:p-6 md:p-8 max-w-2xl w-full shadow-2xl border border-slate-100 transform scale-95 transition-all duration-300 max-h-[90vh] my-auto overflow-y-auto">
+            <!-- Header -->
+            <div class="flex justify-between items-start mb-5 border-b border-slate-100 pb-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-purple-600 text-2xl">workspace_premium</span>
+                        <h3 class="text-xl font-black text-slate-800">Mejorar o Cambiar de Plan</h3>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-1">Elegí el plan que mejor se adapte a tu negocio y conocé los beneficios y el desglose de facturación.</p>
+                </div>
+                <button type="button" onclick="closeUpgradePlanModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+                    <span class="material-symbols-outlined text-xl">close</span>
+                </button>
+            </div>
+
+            <!-- Plan Actual Badge & Cantidad de Profesionales -->
+            <div class="bg-purple-50/70 border border-purple-200/80 p-3.5 rounded-2xl mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <div class="flex flex-wrap items-center gap-2 text-xs">
+                    <span class="font-extrabold text-purple-900 uppercase tracking-wider">Plan Actual:</span>
+                    <span id="upgradeCurrentPlanBadge" class="font-black text-purple-700 bg-white px-2.5 py-1 rounded-xl shadow-xs">Básico</span>
+                    <span id="upgradeProfCountBadge" class="hidden font-extrabold text-xs text-amber-900 bg-amber-100 border border-amber-300 px-2.5 py-1 rounded-xl shadow-2xs">--</span>
+                </div>
+                <span id="upgradeTrialOrCycleInfo" class="text-xs font-bold text-purple-600">--</span>
+            </div>
+
+            <!-- Comparación de Planes Seleccionables -->
+            <div id="upgradeOptionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <!-- Tarjeta Plan Profesional -->
+                <div id="cardPlanProfesional" onclick="selectUpgradePlan('Profesional')" class="cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-slate-200">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <span class="text-xs font-bold text-purple-600 uppercase tracking-wider">Plan Intermedio</span>
+                            <h4 class="text-lg font-black text-slate-800">Profesional</h4>
+                        </div>
+                        <div class="text-right">
+                            <span id="priceBadgeProfesional" class="text-sm font-black text-slate-900 bg-slate-100 px-2.5 py-1 rounded-xl">$10.000<span class="text-[10px] font-normal text-slate-500">/mes</span></span>
+                            <div id="priceProfTeamNote" class="hidden text-[10px] font-extrabold text-emerald-600 mt-1"></div>
+                        </div>
+                    </div>
+                    <ul class="text-xs text-slate-600 space-y-1.5 my-3">
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>3 colores de marca</strong> (2 base + 1 extra)</li>
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Agenda multi-profesional</li>
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>50 WhatsApps</strong> incluidos/mes</li>
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Recordatorios automáticos</li>
+                    </ul>
+                    <div class="mt-2 text-right">
+                        <span id="radioLabelProfesional" class="text-xs font-extrabold text-purple-600 flex items-center justify-end gap-1"><span class="material-symbols-outlined text-base">radio_button_unchecked</span> Seleccionar</span>
+                    </div>
+                </div>
+
+                <!-- Tarjeta Plan Premium -->
+                <div id="cardPlanPremium" onclick="selectUpgradePlan('Premium')" class="cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-purple-500 ring-2 ring-purple-500/20">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <span class="text-xs font-bold text-amber-600 uppercase tracking-wider">El más Completo</span>
+                            <h4 class="text-lg font-black text-slate-800">Premium</h4>
+                        </div>
+                        <div class="text-right">
+                            <span id="priceBadgePremium" class="text-sm font-black text-purple-700 bg-purple-100 px-2.5 py-1 rounded-xl">$15.000<span class="text-[10px] font-normal text-slate-500">/mes</span></span>
+                            <div id="pricePremTeamNote" class="hidden text-[10px] font-extrabold text-emerald-600 mt-1"></div>
+                        </div>
+                    </div>
+                    <ul class="text-xs text-slate-600 space-y-1.5 my-3">
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>5 colores de marca</strong> (2 base + 3 extras)</li>
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>Pases, Créditos y Portal de Alumnos</strong></li>
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>100 WhatsApps</strong> incluidos/mes</li>
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Soporte prioritario 24/7</li>
+                    </ul>
+                    <div class="mt-2 text-right">
+                        <span id="radioLabelPremium" class="text-xs font-extrabold text-purple-600 flex items-center justify-end gap-1"><span class="material-symbols-outlined text-base">radio_button_checked</span> Seleccionado</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desglose de Facturación y Prorrateo -->
+            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 mb-6 text-xs text-slate-700 space-y-3">
+                <h5 class="font-extrabold text-slate-900 text-sm flex items-center gap-1.5 border-b border-slate-200 pb-2">
+                    <span class="material-symbols-outlined text-purple-600 text-lg">receipt</span>
+                    Desglose Económico de Facturación
+                </h5>
+                
+                <div id="upgradeBreakdownDetails" class="space-y-2"></div>
+
+                <div class="border-t border-slate-200 pt-3 flex items-center justify-between text-sm font-extrabold">
+                    <span class="text-slate-800">Total a abonar HOY:</span>
+                    <span id="upgradeTotalToday" class="text-lg text-emerald-600">$0</span>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex flex-col sm:flex-row items-center justify-end gap-3">
+                <button type="button" onclick="closeUpgradePlanModal()" class="w-full sm:w-auto px-5 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 text-xs transition-colors">
+                    Cancelar
+                </button>
+                <button type="button" id="btnConfirmUpgradePlan" onclick="confirmPlanUpgradeAction()" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    <span class="material-symbols-outlined text-base">rocket_launch</span> Confirmar Cambio de Plan
+                </button>
+            </div>
+        </div>
+    </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+};
+
+window.openUpgradePlanModal = function(defaultTarget) {
+    window.ensureUpgradePlanModalExists();
+
+    window.fetchGlobalPrices(() => {
+        fetch('backend/perfil.php').then(r => r.json()).then(data => {
+            if (!data || !data.business) return;
+            window.upgradeBusinessData = data.business;
+
+            const b = data.business;
+            const profCount = Math.max(1, parseInt(b.max_profesionales || b.cant_profesionales || 1));
+            window.upgradeProfCount = profCount;
+
+            const curPlanRaw = b.plan || 'Basico';
+            const curPlanNorm = (curPlanRaw.toLowerCase().includes('profesional') || curPlanRaw.toLowerCase().includes('intermedio')) ? 'Profesional' : 
+                                ((curPlanRaw.toLowerCase().includes('premium') || curPlanRaw.toLowerCase().includes('completo')) ? 'Premium' : 'Basico');
+
+            const badge = document.getElementById('upgradeCurrentPlanBadge');
+            if (badge) badge.textContent = (curPlanNorm === 'Basico') ? 'Básico' : curPlanNorm;
+
+            const profBadge = document.getElementById('upgradeProfCountBadge');
+            if (profBadge) {
+                if (profCount > 1) {
+                    const volDisc = Math.min(50, profCount * 10);
+                    profBadge.textContent = `${profCount} Profesionales (-${volDisc}% OFF equipo)`;
+                    profBadge.classList.remove('hidden');
+                } else {
+                    profBadge.classList.add('hidden');
+                }
+            }
+
+            const cardProf = document.getElementById('cardPlanProfesional');
+            const cardPrem = document.getElementById('cardPlanPremium');
+
+            if (curPlanNorm === 'Profesional') {
+                if (cardProf) cardProf.classList.add('hidden');
+                window.selectedUpgradeTarget = 'Premium';
+            } else if (curPlanNorm === 'Premium') {
+                if (cardProf) cardProf.classList.add('hidden');
+                window.selectedUpgradeTarget = 'Premium';
+            } else {
+                if (cardProf) cardProf.classList.remove('hidden');
+                window.selectedUpgradeTarget = (defaultTarget === 'Premium') ? 'Premium' : 'Profesional';
+            }
+
+            const pProf = window.getEffectivePrice('Profesional', profCount);
+            const pPrem = window.getEffectivePrice('Premium', profCount);
+
+            const bProf = document.getElementById('priceBadgeProfesional');
+            const bPrem = document.getElementById('priceBadgePremium');
+            if (bProf) bProf.innerHTML = `$${pProf.toLocaleString('es-AR')}<span class="text-[10px] font-normal text-slate-500">/mes</span>`;
+            if (bPrem) bPrem.innerHTML = `$${pPrem.toLocaleString('es-AR')}<span class="text-[10px] font-normal text-slate-500">/mes</span>`;
+
+            const noteProf = document.getElementById('priceProfTeamNote');
+            const notePrem = document.getElementById('pricePremTeamNote');
+            if (profCount > 1) {
+                const perPersonProf = Math.round(pProf / profCount);
+                const perPersonPrem = Math.round(pPrem / profCount);
+                if (noteProf) { noteProf.textContent = `($${perPersonProf.toLocaleString('es-AR')} c/u)`; noteProf.classList.remove('hidden'); }
+                if (notePrem) { notePrem.textContent = `($${perPersonPrem.toLocaleString('es-AR')} c/u)`; notePrem.classList.remove('hidden'); }
+            } else {
+                if (noteProf) noteProf.classList.add('hidden');
+                if (notePrem) notePrem.classList.add('hidden');
+            }
+
+            window.selectUpgradePlan(window.selectedUpgradeTarget);
+
+            const modal = document.getElementById('upgradePlanModal');
+            const content = document.getElementById('upgradePlanModalContent');
+            if (modal && content) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('scale-95');
+                }, 10);
+            }
+        }).catch(err => {
+            console.error('Error al abrir modal de plan:', err);
+        });
+    });
+};
+
+window.closeUpgradePlanModal = function() {
+    const modal = document.getElementById('upgradePlanModal');
+    const content = document.getElementById('upgradePlanModalContent');
+    if (!modal) return;
+    modal.classList.add('opacity-0');
+    if (content) content.classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 300);
+};
+
+window.selectUpgradePlan = function(planTarget) {
+    window.selectedUpgradeTarget = planTarget;
+
+    const cardProf = document.getElementById('cardPlanProfesional');
+    const cardPrem = document.getElementById('cardPlanPremium');
+    const radioProf = document.getElementById('radioLabelProfesional');
+    const radioPrem = document.getElementById('radioLabelPremium');
+
+    if (cardProf) {
+        if (planTarget === 'Profesional') {
+            cardProf.className = 'cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-purple-500 ring-2 ring-purple-500/20';
+            if (radioProf) radioProf.innerHTML = '<span class="material-symbols-outlined text-base">radio_button_checked</span> Seleccionado';
+        } else {
+            cardProf.className = 'cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-slate-200';
+            if (radioProf) radioProf.innerHTML = '<span class="material-symbols-outlined text-base">radio_button_unchecked</span> Seleccionar';
+        }
+    }
+
+    if (cardPrem) {
+        if (planTarget === 'Premium') {
+            cardPrem.className = 'cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-purple-500 ring-2 ring-purple-500/20';
+            if (radioPrem) radioPrem.innerHTML = '<span class="material-symbols-outlined text-base">radio_button_checked</span> Seleccionado';
+        } else {
+            cardPrem.className = 'cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-slate-200';
+            if (radioPrem) radioPrem.innerHTML = '<span class="material-symbols-outlined text-base">radio_button_unchecked</span> Seleccionar';
+        }
+    }
+
+    window.renderUpgradeBreakdown();
+};
+
+window.renderUpgradeBreakdown = function() {
+    if (!window.upgradeBusinessData) return;
+
+    const b = window.upgradeBusinessData;
+    const profCount = window.upgradeProfCount || 1;
+    const estado = b.estado_pago || 'prueba';
+    const curPlanRaw = b.plan || 'Basico';
+    const curPlanNorm = (curPlanRaw.toLowerCase().includes('profesional') || curPlanRaw.toLowerCase().includes('intermedio')) ? 'Profesional' : 
+                        ((curPlanRaw.toLowerCase().includes('premium') || curPlanRaw.toLowerCase().includes('completo')) ? 'Premium' : 'Basico');
+
+    const container = document.getElementById('upgradeBreakdownDetails');
+    const totalEl = document.getElementById('upgradeTotalToday');
+    const btnConfirm = document.getElementById('btnConfirmUpgradePlan');
+    const cycleInfoEl = document.getElementById('upgradeTrialOrCycleInfo');
+
+    const priceCurrent = window.getEffectivePrice(curPlanNorm, profCount);
+    const priceTarget = window.getEffectivePrice(window.selectedUpgradeTarget, profCount);
+
+    if (curPlanNorm === window.selectedUpgradeTarget && curPlanNorm === 'Premium') {
+        if (container) container.innerHTML = '<p class="text-emerald-700 font-bold text-xs">¡Tu negocio ya posee el Plan Premium (nivel máximo)!</p>';
+        if (totalEl) totalEl.textContent = '$0';
+        if (btnConfirm) btnConfirm.classList.add('hidden');
+        return;
+    }
+
+    if (btnConfirm) btnConfirm.classList.remove('hidden');
+
+    const prices = window.globalPricesData || {};
+
+    if (estado === 'prueba') {
+        window.isTrialUpgrade = true;
+        window.calculatedUpgradeAmount = 0;
+
+        const fAlta = b.fecha_alta ? new Date(b.fecha_alta.replace(/-/g, '/')) : new Date();
+        const today = new Date();
+        const trialDaysUsed = Math.max(0, Math.floor((today - fAlta) / (1000 * 60 * 60 * 24)));
+        const totalTrialConfigured = prices.dias_prueba_defecto || 30;
+        const trialDaysRemaining = Math.max(0, totalTrialConfigured - trialDaysUsed);
+
+        const nextBillingDate = new Date(fAlta);
+        nextBillingDate.setDate(nextBillingDate.getDate() + totalTrialConfigured);
+        const nextBillingStr = nextBillingDate.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+        if (cycleInfoEl) cycleInfoEl.textContent = `En prueba (${trialDaysRemaining} días restantes)`;
+
+        const teamNote = profCount > 1 ? ` (${profCount} integrantes)` : '';
+
+        if (container) {
+            container.innerHTML = `
+                <div class="flex justify-between items-center py-1">
+                    <span class="text-slate-500 font-semibold">Estado Actual:</span>
+                    <span class="font-extrabold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-lg">Período de Prueba Activo</span>
+                </div>
+                <div class="flex justify-between items-center py-1">
+                    <span class="text-slate-500 font-semibold">Días de prueba restantes:</span>
+                    <span class="font-extrabold text-slate-800">${trialDaysRemaining} días (de ${totalTrialConfigured} días totales)</span>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 text-emerald-900 p-2.5 rounded-xl text-[11px] font-semibold my-1">
+                    ✨ ¡Buenas noticias! Conservás tus <strong>${trialDaysRemaining} días restantes</strong> de prueba con las funciones completas del <strong>Plan ${window.selectedUpgradeTarget}</strong>${teamNote}.
+                </div>
+                <div class="flex justify-between items-center py-1 border-t border-slate-200 pt-2">
+                    <span class="text-slate-500 font-semibold">Próximo cobro (${nextBillingStr}):</span>
+                    <span class="font-bold text-purple-700">$${priceTarget.toLocaleString('es-AR')}/mes</span>
+                </div>
+            `;
+        }
+
+        if (totalEl) totalEl.textContent = '$0';
+        if (btnConfirm) {
+            btnConfirm.className = 'w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer';
+            btnConfirm.innerHTML = `<span class="material-symbols-outlined text-base">check_circle</span> Activar Upgrade a ${window.selectedUpgradeTarget} ($0 hoy)`;
+        }
+
+    } else {
+        window.isTrialUpgrade = false;
+
+        const fAltaObj = b.fecha_alta ? new Date(b.fecha_alta.replace(/-/g, '/')) : new Date();
+        const cycleStart = b.ultimo_pago ? new Date(b.ultimo_pago.replace(/-/g, '/')) : fAltaObj;
+        const today = new Date();
+        const daysUsed = Math.min(30, Math.max(0, Math.floor((today - cycleStart) / (1000 * 60 * 60 * 24))));
+        const daysRemaining = Math.max(0, 30 - daysUsed);
+
+        const nextBillingDate = new Date(cycleStart);
+        nextBillingDate.setDate(nextBillingDate.getDate() + 30);
+        const nextBillingStr = nextBillingDate.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+        if (cycleInfoEl) cycleInfoEl.textContent = `Ciclo en curso: ${daysUsed}d usados / ${daysRemaining}d restantes`;
+
+        let diffToPay = 0;
+        let creditUnused = 0;
+        let costNewRemaining = 0;
+
+        if (daysRemaining > 0) {
+            creditUnused = Math.round((daysRemaining / 30) * priceCurrent);
+            costNewRemaining = Math.round((daysRemaining / 30) * priceTarget);
+            diffToPay = Math.max(0, costNewRemaining - creditUnused);
+        } else {
+            diffToPay = priceTarget;
+        }
+
+        window.calculatedUpgradeAmount = diffToPay;
+
+        if (container) {
+            container.innerHTML = `
+                <div class="flex justify-between items-center py-1">
+                    <span class="text-slate-500 font-semibold">Ciclo de facturación (30 días):</span>
+                    <span class="font-bold text-slate-800">${daysUsed} días consumidos / ${daysRemaining} días restantes</span>
+                </div>
+                <div class="flex justify-between items-center py-1 text-red-600 font-semibold">
+                    <span>Crédito a favor Plan ${curPlanNorm} (${daysRemaining}d restantes):</span>
+                    <span class="font-bold">-$${creditUnused.toLocaleString('es-AR')}</span>
+                </div>
+                <div class="flex justify-between items-center py-1 text-purple-700 font-semibold">
+                    <span>Costo Plan ${window.selectedUpgradeTarget} (${daysRemaining}d restantes):</span>
+                    <span class="font-bold">+$${costNewRemaining.toLocaleString('es-AR')}</span>
+                </div>
+                <div class="flex justify-between items-center py-1 border-t border-slate-200 pt-2">
+                    <span class="text-slate-500 font-semibold">Próximo vencimiento (${nextBillingStr}):</span>
+                    <span class="font-bold text-slate-800">$${priceTarget.toLocaleString('es-AR')}/mes</span>
+                </div>
+            `;
+        }
+
+        if (totalEl) totalEl.textContent = `$${diffToPay.toLocaleString('es-AR')}`;
+        if (btnConfirm) {
+            btnConfirm.className = 'w-full sm:w-auto px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer';
+            btnConfirm.innerHTML = `<span class="material-symbols-outlined text-base">payments</span> Proceder al Pago ($${diffToPay.toLocaleString('es-AR')})`;
+        }
+    }
+};
+
+window.confirmPlanUpgradeAction = function() {
+    if (window.isTrialUpgrade || window.calculatedUpgradeAmount === 0) {
+        const btn = document.getElementById('btnConfirmUpgradePlan');
+        if (btn) { btn.disabled = true; btn.textContent = 'Procesando cambio...'; }
+
+        fetch('backend/actualizar_plan.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ plan: window.selectedUpgradeTarget })
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res && res.success) {
+                window.closeUpgradePlanModal();
+                
+                const pModal = document.getElementById('profileNoticeModal');
+                const pContent = document.getElementById('profileNoticeModalContent');
+                const modalTitle = document.getElementById('profileNoticeTitle');
+                const modalMsg = document.getElementById('profileNoticeMessage');
+                
+                if (pModal && pContent) {
+                    if (modalTitle) modalTitle.textContent = '¡Plan Actualizado!';
+                    if (modalMsg) modalMsg.textContent = `Tu cuenta ha sido actualizada exitosamente al Plan ${res.plan || window.selectedUpgradeTarget}. Ya podés disfrutar de los nuevos beneficios.`;
+                    pModal.classList.remove('hidden');
+                    setTimeout(() => { pModal.classList.remove('opacity-0'); pContent.classList.remove('scale-95'); }, 10);
+                } else if (typeof window.showToast === 'function') {
+                    window.showToast(`¡Plan actualizado exitosamente al Plan ${res.plan || window.selectedUpgradeTarget}!`, 'success');
+                } else {
+                    alert(`¡Plan actualizado exitosamente al Plan ${res.plan || window.selectedUpgradeTarget}!`);
+                }
+
+                setTimeout(() => { location.reload(); }, 1800);
+            } else {
+                alert(res.error || 'Ocurrió un error al actualizar el plan.');
+                if (btn) { btn.disabled = false; window.renderUpgradeBreakdown(); }
+            }
+        }).catch(() => {
+            alert('Error de conexión al procesar la actualización del plan.');
+            if (btn) { btn.disabled = false; window.renderUpgradeBreakdown(); }
+        });
+    } else {
+        window.location.href = 'pago.html?plan=' + encodeURIComponent(window.selectedUpgradeTarget) + '&monto=' + window.calculatedUpgradeAmount;
+    }
+};
