@@ -139,3 +139,8 @@ Este documento registra las nuevas características, mejoras planificadas y soli
 - **Puntos Clave**:
   - Habilitar modos de presentación condensados y filtros específicos de clases para los alumnos dentro de `mi-cuenta.html`.
   - Sincronización automática de preferencias visuales definidas por el administrador del establecimiento.
+
+
+## Agregar DISPONIBILIDAD DE URL 
+- Si este ingresa a agendatina.site/negocio-prueba y este no existe mostrarle "URL DISPONIBLE" para que negocios nuevos puedan verificar cuando nadie este usando una URL asi despues la pueden solicitar si desean. Al igual se deberia avisar que luego de pasar 30 dias sin pagar luego de la cobro se eliminara la url y se pondra disponible para otros usuarios
+
