@@ -336,13 +336,17 @@ if ($method === 'GET') {
         } catch (Exception $eN) {}
         
         // Obtener las notas internas más recientes
-        $stmtNotas = $pdo->query("
-            SELECT an.nota, an.fecha_actualizacion, n.nombre_fantasia, n.id AS id_negocio
-            FROM admin_notas an
-            LEFT JOIN negocios n ON an.id_negocio = n.id
-            WHERE an.nota IS NOT NULL AND TRIM(an.nota) != ''
-            ORDER BY an.fecha_actualizacion DESC LIMIT 10
-        ");
+        $notas_recientes = [];
+        try {
+            $stmtNotas = $pdo->query("
+                SELECT an.id, an.nota, COALESCE(an.fecha, an.fecha_actualizacion) AS fecha_actualizacion, n.nombre_fantasia, n.id AS id_negocio
+                FROM admin_notas an
+                LEFT JOIN negocios n ON an.id_negocio = n.id
+                WHERE an.nota IS NOT NULL AND TRIM(an.nota) != '' AND (an.estado IS NULL OR an.estado != 'eliminado')
+                ORDER BY COALESCE(an.fecha, an.fecha_actualizacion) DESC LIMIT 10
+            ");
+            $notas_recientes = $stmtNotas ? $stmtNotas->fetchAll(PDO::FETCH_ASSOC) : [];
+        } catch (Exception $eNotas) {}
         // Obtener la lista de códigos de descuento
         $stmtCodigos = $pdo->query("SELECT * FROM codigos_descuento ORDER BY fecha_creacion DESC");
         $codigos_descuento = $stmtCodigos ? $stmtCodigos->fetchAll(PDO::FETCH_ASSOC) : [];

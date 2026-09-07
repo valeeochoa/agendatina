@@ -288,6 +288,8 @@
             const text = document.getElementById('noteText').value;
             const btn = document.getElementById('btnSubmitNote');
             btn.disabled = true;
+            const origHtml = btn.innerHTML;
+            btn.innerHTML = 'Guardando...';
 
             fetch('../backend/admin_notas_api.php', {
                 method: 'POST',
@@ -303,7 +305,13 @@
                     alert(res.error || 'Error al guardar nota.');
                 }
             })
-            .finally(() => btn.disabled = false);
+            .catch(err => {
+                alert('Error de conexión al guardar la nota.');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            });
         }
 
         function confirmDeleteNote(id) {
