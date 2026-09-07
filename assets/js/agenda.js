@@ -800,7 +800,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         btnReport.style.display = 'none';
                         sessionStorage.setItem('is_demo_user', 'true');
                     } else {
-                        sessionStorage.setItem('is_demo_user', 'false');
+                        sessionStorage.removeItem('is_demo_user');
                     }
                 }).catch(() => {});
         }

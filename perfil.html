@@ -336,7 +336,7 @@
                     
                     isDemoUser = (data.user.email && data.user.email === 'demo@agendatina.site') || 
                                  (data.business && (data.business.ruta === 'demo' || data.business.is_demo == 1 || data.business.is_demo === true));
-                    sessionStorage.setItem('is_demo_user', isDemoUser ? 'true' : 'false');
+                    if (isDemoUser) sessionStorage.setItem('is_demo_user', 'true'); else sessionStorage.removeItem('is_demo_user');
                     window.isDemoUser = isDemoUser;
                     
                     // Actualizar UI de Verificación de Cuenta en Perfil

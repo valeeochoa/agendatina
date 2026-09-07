@@ -3371,7 +3371,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 sessionStorage.removeItem('is_demo_user');
                 sessionStorage.removeItem('agendatina_demo_alert');
-                sessionStorage.setItem('is_demo_user', 'false');
             }
             applyDemoButtonVisibility(isDemoUser);
         })
@@ -3412,7 +3411,6 @@ function checkAdminGlobalSession(config = null) {
                 isDemo = false;
                 sessionStorage.removeItem('is_demo_user');
                 sessionStorage.removeItem('agendatina_demo_alert');
-                sessionStorage.setItem('is_demo_user', 'false');
             }
 
             const loggedRuta = (data.business.ruta || '').toLowerCase().trim();

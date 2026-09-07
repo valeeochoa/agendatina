@@ -92,6 +92,11 @@ if ($isAdminEndpoint || $isSuperAdminSession) {
         $is_demo_public = true;
     }
 
+    // Si el usuario en sesión tiene una ruta de negocio real (no 'demo'), limpiar la bandera demo de sesión
+    if (isset($_SESSION['user_id']) && isset($_SESSION['ruta_negocio']) && strpos(strtolower($_SESSION['ruta_negocio']), 'demo') === false) {
+        unset($_SESSION['is_demo']);
+    }
+
     // MODO SANDBOX: Conectar a BD clonada si es el entorno Demo para usuarios corrientes
     if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || $is_demo_public || (isset($_SESSION['ruta_negocio']) && strpos($_SESSION['ruta_negocio'], 'demo') === 0)) {
         $_SESSION['is_demo'] = true;
