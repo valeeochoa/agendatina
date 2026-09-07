@@ -310,7 +310,10 @@ html, body, .custom-scrollbar, .time-slots-scrollbar {
 
 /* Prevención de desbordamiento en controles de fecha y hora para iOS y navegadores móviles */
 input[type="time"], input[type="date"] {
+    display: block !important;
+    width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
+    -webkit-box-sizing: border-box !important;
     min-width: 0 !important;
 }

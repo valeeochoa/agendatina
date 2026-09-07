@@ -177,46 +177,46 @@
                             </div>
                         </div>
 
-                        <div class="space-y-4">
-                            <div id="regGeneralScheduleBox" class="space-y-4 transition-all duration-300">
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                                    <div class="min-w-0">
+                        <div class="space-y-4 max-w-full min-w-0 box-border">
+                            <div id="regGeneralScheduleBox" class="space-y-4 transition-all duration-300 max-w-full min-w-0 box-border">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full min-w-0 box-border">
+                                    <div class="min-w-0 max-w-full box-border">
                                         <label class="block text-xs font-semibold text-slate-700 mb-1.5">Hora de Apertura *</label>
                                         <input type="time" id="regHoraApertura" value="09:00" required class="w-full max-w-full box-border min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
                                     </div>
-                                    <div class="min-w-0">
+                                    <div class="min-w-0 max-w-full box-border">
                                         <label class="block text-xs font-semibold text-slate-700 mb-1.5">Hora de Cierre *</label>
                                         <input type="time" id="regHoraCierre" value="19:00" required class="w-full max-w-full box-border min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
                                     </div>
                                 </div>
 
                                 <!-- Horarios de Descanso (Opcional) -->
-                                <div class="bg-amber-50/50 p-3.5 sm:p-4 rounded-2xl border border-amber-200/60 min-w-0">
+                                <div class="bg-amber-50/50 p-3.5 sm:p-4 rounded-2xl border border-amber-200/60 min-w-0 max-w-full box-border overflow-hidden">
                                     <label class="block text-xs font-bold text-amber-800 mb-2 flex items-center gap-1.5">
                                         <span class="material-symbols-outlined text-[18px] text-amber-600">coffee</span> Horario de Descanso (Opcional)
                                     </label>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                                        <div class="min-w-0">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-full min-w-0 box-border">
+                                        <div class="min-w-0 max-w-full box-border">
                                             <label class="block text-xs font-semibold text-slate-600 mb-1">Inicio Descanso</label>
                                             <input type="time" id="regHoraDescansoInicio" class="w-full max-w-full box-border min-w-0 bg-white border border-slate-200 rounded-xl px-3 sm:px-4 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500 outline-none">
                                         </div>
-                                        <div class="min-w-0">
+                                        <div class="min-w-0 max-w-full box-border">
                                             <label class="block text-xs font-semibold text-slate-600 mb-1">Fin Descanso</label>
                                             <input type="time" id="regHoraDescansoFin" class="w-full max-w-full box-border min-w-0 bg-white border border-slate-200 rounded-xl px-3 sm:px-4 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500 outline-none">
                                         </div>
                                     </div>
                                 </div>
 
-                                <div>
+                                <div class="max-w-full min-w-0 box-border">
                                     <label class="block text-xs font-semibold text-slate-700 mb-2">Días que Trabaja el Negocio</label>
-                                    <div class="flex flex-wrap gap-2" id="regDiasTrabajo">
-                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="1" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Lunes</div></label>
-                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="2" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Martes</div></label>
-                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="3" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Miércoles</div></label>
-                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="4" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Jueves</div></label>
-                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="5" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Viernes</div></label>
-                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="6" class="peer sr-only" checked><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Sábado</div></label>
-                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="0" class="peer sr-only"><div class="px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Domingo</div></label>
+                                    <div class="flex flex-wrap gap-2 max-w-full min-w-0 box-border" id="regDiasTrabajo">
+                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="1" class="peer sr-only" checked><div class="px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Lunes</div></label>
+                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="2" class="peer sr-only" checked><div class="px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Martes</div></label>
+                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="3" class="peer sr-only" checked><div class="px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Miércoles</div></label>
+                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="4" class="peer sr-only" checked><div class="px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Jueves</div></label>
+                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="5" class="peer sr-only" checked><div class="px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Viernes</div></label>
+                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="6" class="peer sr-only" checked><div class="px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Sábado</div></label>
+                                        <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="0" class="peer sr-only"><div class="px-3.5 sm:px-4 py-2 rounded-xl border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Domingo</div></label>
                                     </div>
                                 </div>
                             </div>

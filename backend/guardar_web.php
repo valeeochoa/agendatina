@@ -464,8 +464,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $primer_dia_semana = isset($data['primer_dia_semana']) ? (int)$data['primer_dia_semana'] : (isset($oldData['primer_dia_semana']) ? (int)$oldData['primer_dia_semana'] : 1);
         $datos_transferencia = isset($data['datos_transferencia']) ? trim($data['datos_transferencia']) : ($oldData['datos_transferencia'] ?? '');
         $porcentaje_sena = isset($data['porcentaje_sena']) ? max(1, min(100, (int)$data['porcentaje_sena'])) : (isset($oldData['porcentaje_sena']) ? (int)$oldData['porcentaje_sena'] : 100);
-        $notificaciones_email = isset($data['notificaciones_email']) ? (int)$data['notificaciones_email'] : (isset($oldData['notificaciones_email']) ? (int)$oldData['notificaciones_email'] : 1);
         $modo_reservas = isset($data['modo_reservas']) ? trim($data['modo_reservas']) : ($oldData['modo_reservas'] ?? 'libre');
+        
+        $stmtPlanCheck = $pdo->prepare("SELECT plan FROM negocios WHERE id = ?");
+        $stmtPlanCheck->execute([$id_negocio]);
+        $planActualNegocio = strtolower($stmtPlanCheck->fetchColumn() ?: 'basico');
+        $isPlanPremium = (strpos($planActualNegocio, 'premium') !== false || strpos($planActualNegocio, 'completo') !== false);
+        if (!$isPlanPremium) {
+            $modo_reservas = 'libre';
+        }
         
         $stmt = $pdo->prepare("INSERT INTO configuracion_web 
             (id_negocio, color_primario, color_secundario, color_primario_web, color_secundario_web, color_fondo, colores_extra_json, url_logo, fondo, mensaje_bienvenida, subtitulo, whatsapp_contacto, instagram_url, hora_apertura, hora_cierre, intervalo_turnos, turnos_simultaneos, confirmacion_automatica, anticipacion_turno_min, alineacion_servicios, tipo_calendario, texto_local, ubicacion_maps, cursos_html, cursos_json, profesionales_json, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, metodos_pago, limite_eliminacion_dias, horarios_detallados_json, usar_fondo_degrade, primer_dia_semana, datos_transferencia, porcentaje_sena, notificaciones_email, modo_reservas) 

@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (data && data.success && data.business) {
                 window.currentBusinessPlan = data.business.plan || 'Simple';
+                if (typeof window.updateModoReservasVisibility === 'function') window.updateModoReservasVisibility(data.business.plan);
                 const isDemo = (data.business.is_demo === true) || (data.user && data.user.email === 'demo@agendatina.site') || (data.business.ruta === 'demo');
                 window.isDemoAccount = isDemo;
                 const badge = document.getElementById('adminSessionBadge');
@@ -325,18 +326,37 @@ window.updateSenaHelpText = function() {
     }
 };
 
+window.updateModoReservasVisibility = function(planName) {
+    const plan = (planName || window.currentBusinessPlan || 'Simple').toLowerCase();
+    const isPremium = plan.includes('premium') || plan.includes('completo');
+
+    const cardCupos = document.getElementById('cardModoCupos');
+    const noticeNonPremium = document.getElementById('noticeNonPremiumModoReserva');
+    const containerGrid = document.getElementById('containerModoReservasGrid');
+
+    if (!isPremium) {
+        if (cardCupos) { cardCupos.classList.add('hidden'); cardCupos.style.display = 'none'; }
+        if (noticeNonPremium) { noticeNonPremium.classList.remove('hidden'); noticeNonPremium.style.display = 'flex'; }
+        if (containerGrid) containerGrid.className = 'grid grid-cols-1 gap-4';
+        window.setModoReserva('libre');
+    } else {
+        if (cardCupos) { cardCupos.classList.remove('hidden'); cardCupos.style.display = 'flex'; }
+        if (noticeNonPremium) { noticeNonPremium.classList.add('hidden'); noticeNonPremium.style.display = 'none'; }
+        if (containerGrid) containerGrid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+    }
+};
+
 window.setModoReserva = function(val) {
-    if (val === 'cupos_alumnos') {
-        const plan = (window.currentBusinessPlan || '').toLowerCase();
-        const isPremium = plan.includes('premium') || plan.includes('completo');
-        if (!isPremium) {
-            if (typeof showToast === 'function') {
-                showToast('🔒 El Módulo de Cupos y Portal de Alumnos es exclusivo del Plan Premium. Podés mejorar tu plan en la sección Perfil.', 'warning');
-            } else {
-                alert('🔒 El Módulo de Cupos y Portal de Alumnos es exclusivo del Plan Premium. Podés mejorar tu plan en cualquier momento desde la sección Perfil.');
-            }
-            return;
+    const plan = (window.currentBusinessPlan || '').toLowerCase();
+    const isPremium = plan.includes('premium') || plan.includes('completo');
+
+    if (val === 'cupos_alumnos' && !isPremium) {
+        if (typeof showToast === 'function') {
+            showToast('🔒 El Módulo de Cupos y Portal de Alumnos es exclusivo del Plan Premium. Podés mejorar tu plan en la sección Perfil.', 'warning');
+        } else {
+            alert('🔒 El Módulo de Cupos y Portal de Alumnos es exclusivo del Plan Premium. Podés mejorar tu plan en cualquier momento desde la sección Perfil.');
         }
+        val = 'libre';
     }
 
     const hiddenInput = document.getElementById('selectModoReservas');
@@ -347,7 +367,7 @@ window.setModoReserva = function(val) {
     const checkLibre = document.getElementById('checkModoLibre');
     const checkCupos = document.getElementById('checkModoCupos');
 
-    if (val === 'cupos_alumnos') {
+    if (val === 'cupos_alumnos' && isPremium) {
         if (cardCupos) {
             cardCupos.className = 'cursor-pointer relative p-5 rounded-2xl border-2 border-orange-500 bg-orange-50/40 transition-all flex flex-col justify-between shadow-sm group';
         }
