@@ -4126,14 +4126,21 @@ window.getEffectivePrice = function(planName, profCount = 1) {
     };
 
     const p = (planName || '').toLowerCase();
-    let rawBase = parseFloat(prices.precio_basico) || 8889;
-    if (p.includes('profesional') || p.includes('intermedio')) rawBase = parseFloat(prices.precio_intermedio) || 11111;
-    if (p.includes('premium') || p.includes('completo')) rawBase = parseFloat(prices.precio_premium) || 16667;
+    let rawBase = parseFloat(prices.precio_basico);
+    if (isNaN(rawBase) || rawBase <= 0) rawBase = 8889;
+
+    if (p.includes('profesional') || p.includes('intermedio')) {
+        rawBase = parseFloat(prices.precio_intermedio);
+        if (isNaN(rawBase) || rawBase <= 0) rawBase = 11111;
+    } else if (p.includes('premium') || p.includes('completo')) {
+        rawBase = parseFloat(prices.precio_premium);
+        if (isNaN(rawBase) || rawBase <= 0) rawBase = 16667;
+    }
 
     let discPct = parseInt(prices.descuento_porcentaje);
-    if (isNaN(discPct) || discPct < 0) discPct = 10;
+    if (isNaN(discPct) || discPct < 0) discPct = 0;
 
-    // Precio para 1 profesional con descuento base (10% OFF base)
+    // Precio para 1 profesional con descuento base
     const finalOne = Math.round(rawBase * (100 - discPct) / 100);
 
     const count = Math.max(1, parseInt(profCount || 1));
