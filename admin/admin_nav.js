@@ -1,5 +1,5 @@
 function loadAdminNavNotifsCount() {
-    fetch('../backend/admin_notificaciones_api.php')
+    fetch('../backend/admin_notificaciones_api.php?t=' + Date.now())
         .then(r => r.json())
         .then(data => {
             if (data.success && data.counts) {

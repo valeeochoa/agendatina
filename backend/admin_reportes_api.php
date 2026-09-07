@@ -127,10 +127,18 @@ if ($method === 'GET') {
                 LEFT JOIN reportes_error r ON (na.id_reporte = r.id OR (na.mensaje IS NOT NULL AND na.mensaje != '' AND na.mensaje = r.descripcion))
                 WHERE (na.leida = 0 OR na.leida IS NULL)
                   AND (r.estado IS NULL OR r.estado = 'pendiente')
-                  AND (na.segmento LIKE '%Error%' OR na.segmento LIKE '%Bug%' OR na.segmento LIKE '%Sugerencia%' OR na.segmento LIKE '%Mejora%' OR na.segmento LIKE '%Soporte%' OR na.segmento LIKE '%Incidencia%')
-                  AND na.segmento NOT LIKE '%Nuevo Profesional%'
-                  AND na.segmento NOT LIKE '%Seguridad%'
-                  AND na.segmento NOT LIKE '%Enlace Web%'
+                  AND (na.segmento IS NULL OR (
+                      na.segmento NOT LIKE '%Nuevo Registro%'
+                      AND na.segmento NOT LIKE '%Nuevo Profesional%'
+                      AND na.segmento NOT LIKE '%Registro%'
+                      AND na.segmento NOT LIKE '%Comprobante%'
+                      AND na.segmento NOT LIKE '%Seguridad%'
+                      AND na.segmento NOT LIKE '%Enlace Web%'
+                  ))
+                  AND (na.mensaje IS NULL OR (
+                      na.mensaje NOT LIKE '%Nuevo emprendedor registrado%'
+                      AND na.mensaje NOT LIKE '%Nuevo profesional registrado%'
+                  ))
                 ORDER BY na.fecha DESC
             ");
             $notifItems = $stmtNotif->fetchAll(PDO::FETCH_ASSOC);

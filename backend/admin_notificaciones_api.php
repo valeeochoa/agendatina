@@ -91,16 +91,26 @@ if ($method === 'GET') {
         $stmtRep = $pdo->query("SELECT COUNT(*) FROM reportes_error WHERE estado = 'pendiente' AND (tipo IS NULL OR tipo = '' OR tipo = 'Reporte de Error')");
         $repCount = (int)($stmtRep ? $stmtRep->fetchColumn() : 0);
         
-        // Contar notificaciones de error no leídas sólo si el reporte subyacente no está resuelto ni eliminado
+        // Contar notificaciones de error sólo si el reporte subyacente no está resuelto ni eliminado
         $stmtNotifErr = $pdo->query("
             SELECT COUNT(*) 
             FROM notificaciones_admin na
             LEFT JOIN reportes_error r ON (na.id_reporte = r.id OR (na.mensaje IS NOT NULL AND na.mensaje != '' AND na.mensaje = r.descripcion))
             WHERE (na.leida = 0 OR na.leida IS NULL) 
-              AND (na.segmento LIKE '%Error%' OR na.segmento LIKE '%Bug%' OR na.segmento LIKE '%Incidencia%') 
-              AND na.segmento NOT LIKE '%Nuevo Profesional%' 
-              AND na.segmento NOT LIKE '%Seguridad%' 
-              AND na.segmento NOT LIKE '%Enlace Web%'
+              AND (na.segmento IS NULL OR (
+                  na.segmento NOT LIKE '%Sugerencia%'
+                  AND na.segmento NOT LIKE '%Mejora%'
+                  AND na.segmento NOT LIKE '%Nuevo Registro%'
+                  AND na.segmento NOT LIKE '%Nuevo Profesional%'
+                  AND na.segmento NOT LIKE '%Registro%'
+                  AND na.segmento NOT LIKE '%Comprobante%'
+                  AND na.segmento NOT LIKE '%Seguridad%'
+                  AND na.segmento NOT LIKE '%Enlace Web%'
+              ))
+              AND (na.mensaje IS NULL OR (
+                  na.mensaje NOT LIKE '%Nuevo emprendedor registrado%'
+                  AND na.mensaje NOT LIKE '%Nuevo profesional registrado%'
+              ))
               AND (r.estado IS NULL OR r.estado = 'pendiente')
         ");
         $notifErrCount = (int)($stmtNotifErr ? $stmtNotifErr->fetchColumn() : 0);

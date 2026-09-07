@@ -163,7 +163,7 @@
         });
 
         function loadReportes() {
-            fetch('../backend/admin_reportes_api.php')
+            fetch('../backend/admin_reportes_api.php?t=' + Date.now())
                 .then(res => res.json())
                 .then(data => {
                     if (data.success && Array.isArray(data.data)) {
@@ -521,7 +521,7 @@
                 .then(() => window.location.href = 'login.html');
         }
     </script>
-    <script src="admin_nav.js"></script>
+    <script src="admin_nav.js?v=2"></script>
     <!-- MODAL RESPONDER REPORTES / MEJORAS (SuperAdmin) -->
     <div id="modalResponderSuperAdmin" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div id="modalResponderSuperAdminContent" class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative transform scale-95 transition-transform duration-300">

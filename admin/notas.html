@@ -197,7 +197,7 @@
         }
 
         function loadNotes() {
-            fetch('../backend/admin_notas_api.php')
+            fetch('../backend/admin_notas_api.php?t=' + Date.now())
                 .then(res => res.json())
                 .then(res => {
                     if (res.success) {
@@ -334,6 +334,6 @@
                 .finally(() => btn.disabled = false);
         }
     </script>
-    <script src="admin_nav.js"></script>
+    <script src="admin_nav.js?v=2"></script>
 </body>
 </html>
