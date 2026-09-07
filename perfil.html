@@ -586,14 +586,38 @@
                             .then(res => {
                                 if (rSpinner) rSpinner.classList.add('hidden');
                                 if (rIcon) rIcon.classList.remove('hidden');
-                                if (res.available || res.is_own || (window.initialUserRuta && val === window.initialUserRuta.toLowerCase())) {
+
+                                if (!res || !res.success) {
+                                    if (rIcon) {
+                                        rIcon.textContent = 'warning';
+                                        rIcon.className = 'absolute right-3 material-symbols-outlined text-lg text-amber-500';
+                                    }
+                                    if (rFb) {
+                                        rFb.className = 'text-[11px] font-semibold mt-1 block text-amber-600';
+                                        rFb.textContent = res.reason || res.error || 'Error al comprobar disponibilidad.';
+                                    }
+                                    return;
+                                }
+
+                                const isOwn = res.is_own || (window.initialUserRuta && val === window.initialUserRuta.toLowerCase());
+
+                                if (isOwn) {
                                     if (rIcon) {
                                         rIcon.textContent = 'check_circle';
                                         rIcon.className = 'absolute right-3 material-symbols-outlined text-lg text-emerald-500';
                                     }
                                     if (rFb) {
                                         rFb.className = 'text-[11px] font-semibold mt-1 block text-emerald-600';
-                                        rFb.textContent = (res.is_own || (window.initialUserRuta && val === window.initialUserRuta.toLowerCase())) ? '✓ Tu dirección web actual' : '✓ Enlace web disponible';
+                                        rFb.textContent = '✓ Tu dirección web actual';
+                                    }
+                                } else if (res.available) {
+                                    if (rIcon) {
+                                        rIcon.textContent = 'check_circle';
+                                        rIcon.className = 'absolute right-3 material-symbols-outlined text-lg text-emerald-500';
+                                    }
+                                    if (rFb) {
+                                        rFb.className = 'text-[11px] font-semibold mt-1 block text-emerald-600';
+                                        rFb.textContent = '✓ Dirección web disponible';
                                     }
                                 } else {
                                     if (rIcon) {
@@ -602,7 +626,7 @@
                                     }
                                     if (rFb) {
                                         rFb.className = 'text-[11px] font-semibold mt-1 block text-red-600';
-                                        rFb.textContent = '✕ Esta URL ya está en uso por otro negocio';
+                                        rFb.textContent = '✕ Esta dirección web ya está en uso por otro negocio. Elige otra.';
                                     }
                                 }
                             })

@@ -68,19 +68,27 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         if (isset($_GET['action']) && $_GET['action'] === 'check_ruta') {
             $rutaCheck = preg_replace('/[^a-zA-Z0-9-]/', '', strtolower(trim($_GET['ruta'] ?? '')));
-            if (empty($rutaCheck)) {
-                echo json_encode(['success' => true, 'available' => false, 'reason' => 'Vacio']);
+            if (empty($rutaCheck) || strlen($rutaCheck) < 3) {
+                echo json_encode(['success' => true, 'available' => false, 'reason' => 'Mínimo 3 caracteres']);
                 exit;
             }
-            $stmtCheck = $pdo->prepare("SELECT id FROM negocios WHERE (ruta = ? OR subdominio = ?) AND id != ?");
-            $stmtCheck->execute([$rutaCheck, $rutaCheck, $id_negocio]);
-            $exists = $stmtCheck->fetch();
 
-            $stmtOwn = $pdo->prepare("SELECT id FROM negocios WHERE id = ? AND (ruta = ? OR subdominio = ?)");
+            // Verificar si es la propia dirección actual del negocio
+            $stmtOwn = $pdo->prepare("SELECT id FROM negocios WHERE id = ? AND (LOWER(TRIM(ruta)) = ? OR LOWER(TRIM(subdominio)) = ?)");
             $stmtOwn->execute([$id_negocio, $rutaCheck, $rutaCheck]);
             $isOwn = (bool)$stmtOwn->fetch();
 
-            echo json_encode(['success' => true, 'available' => !$exists, 'is_own' => $isOwn]);
+            if ($isOwn) {
+                echo json_encode(['success' => true, 'available' => true, 'is_own' => true]);
+                exit;
+            }
+
+            // Verificar si esta dirección exacta está siendo ocupada por OTRO negocio
+            $stmtCheck = $pdo->prepare("SELECT id FROM negocios WHERE (LOWER(TRIM(ruta)) = ? OR (subdominio IS NOT NULL AND subdominio != '' AND LOWER(TRIM(subdominio)) = ?)) AND id != ?");
+            $stmtCheck->execute([$rutaCheck, $rutaCheck, $id_negocio]);
+            $exists = (bool)$stmtCheck->fetch();
+
+            echo json_encode(['success' => true, 'available' => !$exists, 'is_own' => false]);
             exit;
         }
 
@@ -308,21 +316,28 @@ try {
             notificarSuperAdminAlert($pdo, 'Seguridad / Contraseña', "El usuario '{$nombre}' modificó su contraseña de acceso.", $id_negocio);
         }
 
-        // 4. Actualizar Ruta (verificando que sea única)
+        // 4. Actualizar Ruta (verificando que sea única si se cambia)
         if (!empty($ruta)) {
             $userRole = $_SESSION['rol_en_local'] ?? 'admin';
             if ($userRole !== 'admin' && (!isset($_SESSION['is_demo']) || $_SESSION['is_demo'] !== true)) {
                 throw new Exception("Solo el administrador del local puede modificar la dirección de la página web.");
             }
 
-            $stmtCheck = $pdo->prepare("SELECT id FROM negocios WHERE (ruta = ? OR subdominio = ?) AND id != ?");
-            $stmtCheck->execute([$ruta, $ruta, $id_negocio]);
-            if ($stmtCheck->fetch()) {
-                throw new Exception("La URL o subdominio '$ruta' ya está en uso por otro negocio. Elige otra.");
-            }
+            // Comprobar si ya es su propia ruta registrada
+            $stmtOwn = $pdo->prepare("SELECT id FROM negocios WHERE id = ? AND (LOWER(TRIM(ruta)) = ? OR LOWER(TRIM(subdominio)) = ?)");
+            $stmtOwn->execute([$id_negocio, $ruta, $ruta]);
+            $isOwn = (bool)$stmtOwn->fetch();
 
-            $pdo->prepare("UPDATE negocios SET ruta = ?, subdominio = ? WHERE id = ?")->execute([$ruta, $ruta, $id_negocio]);
-            $_SESSION['ruta_negocio'] = $ruta;
+            if (!$isOwn) {
+                $stmtCheck = $pdo->prepare("SELECT id FROM negocios WHERE (LOWER(TRIM(ruta)) = ? OR (subdominio IS NOT NULL AND subdominio != '' AND LOWER(TRIM(subdominio)) = ?)) AND id != ?");
+                $stmtCheck->execute([$ruta, $ruta, $id_negocio]);
+                if ($stmtCheck->fetch()) {
+                    throw new Exception("La dirección web '$ruta' ya está en uso por otro negocio. Por favor elige otra.");
+                }
+
+                $pdo->prepare("UPDATE negocios SET ruta = ?, subdominio = ? WHERE id = ?")->execute([$ruta, $ruta, $id_negocio]);
+                $_SESSION['ruta_negocio'] = $ruta;
+            }
         }
 
         // 5. Actualizar Colores de la Web
