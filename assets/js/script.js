@@ -3345,9 +3345,8 @@ window.closeReusableReceiptModal = function() {
 
 // Ocultar reportes de error y contacto para cuentas de demostración (Demo)
 document.addEventListener('DOMContentLoaded', () => {
-    const applyDemoButtonVisibility = () => {
+    const applyDemoButtonVisibility = (isDemo) => {
         const cardSupport = document.getElementById('cardSupport');
-        const isDemo = (sessionStorage.getItem('is_demo_user') === 'true' || sessionStorage.getItem('agendatina_demo_alert') === 'true');
 
         if (cardSupport) cardSupport.style.display = isDemo ? 'none' : '';
 
@@ -3360,20 +3359,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    const isDemoCached = sessionStorage.getItem('is_demo_user');
-    if (isDemoCached === 'true' || sessionStorage.getItem('agendatina_demo_alert') === 'true') {
-        sessionStorage.setItem('is_demo_user', 'true');
-        applyDemoButtonVisibility();
-    } else {
-        fetch('backend/perfil.php')
-            .then(res => res.json())
-            .then(data => {
-                const isDemoUser = (data.success && ((data.user && data.user.email && data.user.email.includes('demo')) || (data.business && (data.business.ruta === 'demo' || data.business.is_demo === true))));
-                sessionStorage.setItem('is_demo_user', isDemoUser ? 'true' : 'false');
-                applyDemoButtonVisibility();
-            })
-            .catch(() => applyDemoButtonVisibility());
-    }
+    fetch('backend/perfil.php')
+        .then(res => res.json())
+        .then(data => {
+            const isDemoUser = !!(data.success && data.business && (
+                data.business.is_demo === true || data.business.is_demo === 1 || data.business.is_demo === '1' ||
+                data.business.ruta === 'demo' || (data.user && data.user.email && data.user.email.includes('demo'))
+            ));
+            if (isDemoUser) {
+                sessionStorage.setItem('is_demo_user', 'true');
+            } else {
+                sessionStorage.removeItem('is_demo_user');
+                sessionStorage.removeItem('agendatina_demo_alert');
+                sessionStorage.setItem('is_demo_user', 'false');
+            }
+            applyDemoButtonVisibility(isDemoUser);
+        })
+        .catch(() => {
+            const isDemo = (sessionStorage.getItem('is_demo_user') === 'true' || sessionStorage.getItem('agendatina_demo_alert') === 'true');
+            applyDemoButtonVisibility(isDemo);
+        });
 
     checkAdminGlobalSession();
 });
@@ -3393,12 +3398,22 @@ function checkAdminGlobalSession(config = null) {
         let isUserAdmin = false;
 
         if (data && data.success && data.business) {
-            isDemo = (data.business.is_demo === true) || 
-                     (data.user && data.user.email && data.user.email.includes('demo')) || 
-                     (data.business.ruta === 'demo') || 
-                     (sessionStorage.getItem('is_demo_user') === 'true') ||
-                     (sessionStorage.getItem('agendatina_demo_alert') === 'true') ||
-                     (config && config.is_demo === true);
+            const isRealDemoBackend = !!(
+                data.business.is_demo === true || data.business.is_demo === 1 || data.business.is_demo === '1' ||
+                data.business.ruta === 'demo' ||
+                (data.user && data.user.email && data.user.email.includes('demo')) ||
+                (config && config.is_demo === true)
+            );
+
+            if (isRealDemoBackend) {
+                isDemo = true;
+                sessionStorage.setItem('is_demo_user', 'true');
+            } else {
+                isDemo = false;
+                sessionStorage.removeItem('is_demo_user');
+                sessionStorage.removeItem('agendatina_demo_alert');
+                sessionStorage.setItem('is_demo_user', 'false');
+            }
 
             const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
             const urlParams = new URLSearchParams(window.location.search);

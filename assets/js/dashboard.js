@@ -378,7 +378,12 @@ window.closeDemoNoticeAndStartTour = function() {
 
 window.openWelcomeNewAccountModal = function(force = false) {
     // Si la cuenta es demo, NUNCA reabrir si ya se mostró en la sesión activa
-    const isDemo = (window.currentUserData && (window.currentUserData.email === 'demo@agendatina.site' || window.currentUserData.email.includes('demo'))) || (window.currentBusinessData && (window.currentBusinessData.ruta === 'demo' || window.currentBusinessData.is_demo)) || sessionStorage.getItem('is_demo_user') === 'true';
+    let isDemo = false;
+    if (window.currentBusinessData) {
+        isDemo = !!(window.currentBusinessData.is_demo === true || window.currentBusinessData.is_demo === 1 || window.currentBusinessData.is_demo === '1' || window.currentBusinessData.ruta === 'demo' || (window.currentUserData && window.currentUserData.email && window.currentUserData.email.includes('demo')));
+    } else {
+        isDemo = sessionStorage.getItem('is_demo_user') === 'true';
+    }
     if (isDemo) {
         if (sessionStorage.getItem('agendatina_demo_notice_shown') !== 'true') {
             window.openDemoWelcomeNoticeModal();
