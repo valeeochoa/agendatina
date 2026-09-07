@@ -198,7 +198,7 @@ try {
 
         // Obtener la información de los negocios donde el alumno está registrado
         $stmtNegocios = $pdo->prepare("
-            SELECT cn.id_negocio, n.nombre_fantasia AS negocio_nombre, cn.pases_disponibles, COALESCE(cn.pases_totales, cn.pases_disponibles) AS pases_totales, cn.fecha_vencimiento
+            SELECT cn.id_negocio, n.nombre_fantasia AS negocio_nombre, n.ruta AS negocio_ruta, cn.pases_disponibles, COALESCE(cn.pases_totales, cn.pases_disponibles) AS pases_totales, cn.fecha_vencimiento, cn.telefono, cn.nombre_completo
             FROM clientes_negocio cn
             JOIN negocios n ON cn.id_negocio = n.id
             WHERE LOWER(TRIM(cn.email)) = :email
@@ -206,9 +206,14 @@ try {
         $stmtNegocios->execute(['email' => $email]);
         $negociosAsociados = $stmtNegocios->fetchAll(PDO::FETCH_ASSOC);
 
+        // Obtener perfil del cliente
+        $stmtPerfil = $pdo->prepare("SELECT nombre_completo, email, telefono FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email LIMIT 1");
+        $stmtPerfil->execute(['email' => $email]);
+        $perfil = $stmtPerfil->fetch(PDO::FETCH_ASSOC);
+
         // Obtener el historial completo de clases y turnos
         $stmt = $pdo->prepare("
-            SELECT t.id, t.id_negocio, COALESCE(n.nombre_fantasia, 'Establecimiento') AS negocio, t.servicio, t.profesional, t.fecha, t.hora, t.estado
+            SELECT t.id, t.id_negocio, COALESCE(n.nombre_fantasia, 'Establecimiento') AS negocio, n.ruta AS negocio_ruta, t.servicio, t.profesional, t.fecha, t.hora, t.estado
             FROM turnos t
             LEFT JOIN negocios n ON t.id_negocio = n.id
             WHERE LOWER(TRIM(t.cliente_celular)) = :email OR LOWER(t.cliente_nombre) LIKE :emailLike
@@ -220,8 +225,76 @@ try {
         echo json_encode([
             'success' => true, 
             'data' => $clases,
-            'negocios' => $negociosAsociados
+            'negocios' => $negociosAsociados,
+            'perfil' => $perfil ?: ['nombre_completo' => 'Alumno', 'email' => $email, 'telefono' => '']
         ]);
+        exit;
+    }
+
+    // ---------------------------------------------------------
+    // 5. Actualizar Perfil del Alumno
+    // ---------------------------------------------------------
+    if ($action === 'update_profile') {
+        $email = strtolower(trim($_SESSION['cliente_email'] ?? $_POST['email'] ?? ''));
+        $nombre = trim($_POST['nombre'] ?? '');
+        $telefono = trim($_POST['telefono'] ?? '');
+        $password = trim($_POST['password'] ?? '');
+
+        if (empty($email)) {
+            echo json_encode(['success' => false, 'error' => 'Sesión expirada. Por favor iniciá sesión nuevamente.']);
+            exit;
+        }
+
+        if (!empty($nombre)) {
+            $stmtUp = $pdo->prepare("UPDATE clientes_negocio SET nombre_completo = :nombre, telefono = :telefono WHERE LOWER(TRIM(email)) = :email");
+            $stmtUp->execute(['nombre' => $nombre, 'telefono' => $telefono, 'email' => $email]);
+            $_SESSION['cliente_nombre'] = $nombre;
+        }
+
+        if (!empty($password)) {
+            if (strlen($password) < 6) {
+                echo json_encode(['success' => false, 'error' => 'La contraseña debe tener al menos 6 caracteres.']);
+                exit;
+            }
+            $hash = password_hash($password, PASSWORD_DEFAULT);
+            $stmtPass = $pdo->prepare("UPDATE clientes_negocio SET password = :hash WHERE LOWER(TRIM(email)) = :email");
+            $stmtPass->execute(['hash' => $hash, 'email' => $email]);
+        }
+
+        echo json_encode(['success' => true, 'message' => 'Perfil actualizado correctamente.']);
+        exit;
+    }
+
+    // ---------------------------------------------------------
+    // 6. Cancelar Reserva de Clase (Devolviendo pase si corresponde)
+    // ---------------------------------------------------------
+    if ($action === 'cancelar_turno') {
+        $email = strtolower(trim($_SESSION['cliente_email'] ?? $_POST['email'] ?? $_GET['email'] ?? ''));
+        $turnoId = (int)($_POST['id'] ?? $_GET['id'] ?? 0);
+
+        if (empty($email) || !$turnoId) {
+            echo json_encode(['success' => false, 'error' => 'Datos insuficientes para cancelar la reserva.']);
+            exit;
+        }
+
+        $stmtCheck = $pdo->prepare("SELECT id, id_negocio, estado FROM turnos WHERE id = :id AND (LOWER(TRIM(cliente_celular)) = :email OR LOWER(cliente_nombre) LIKE :emailLike)");
+        $stmtCheck->execute(['id' => $turnoId, 'email' => $email, 'emailLike' => '%' . $email . '%']);
+        $turno = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+        if (!$turno) {
+            echo json_encode(['success' => false, 'error' => 'Reserva no encontrada o no pertenece a tu cuenta.']);
+            exit;
+        }
+
+        if ($turno['estado'] === 'cancelado') {
+            echo json_encode(['success' => false, 'error' => 'Esta clase ya se encuentra cancelada.']);
+            exit;
+        }
+
+        $pdo->prepare("UPDATE turnos SET estado = 'cancelado' WHERE id = ?")->execute([$turnoId]);
+        $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + 1 WHERE id_negocio = ? AND LOWER(TRIM(email)) = ?")->execute([$turno['id_negocio'], $email]);
+
+        echo json_encode(['success' => true, 'message' => 'Reserva cancelada correctamente. Se ha devuelto tu pase a tu cuenta.']);
         exit;
     }
 

@@ -3,126 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal del Cliente | Agendatina</title>
-    <link rel="icon" href="public/logo.png">
+    <title>Portal del Alumno | Agendatina</title>
+    <link rel="icon" href="public/logo.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/global.css">
     <script src="assets/js/csrf.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
         .font-brand { font-family: 'Fredoka', cursive, sans-serif !important; }
+        
+        .tab-btn.active {
+            background-color: #FFFFFF;
+            color: #FC8712;
+            box-shadow: 0 4px 15px -1px rgba(252, 135, 18, 0.15);
+            border-color: #FED7AA;
+            font-weight: 800;
+        }
+
+        .tab-btn {
+            color: #64748B;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: #1E293B;
+            background-color: rgba(254, 243, 199, 0.4);
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-[#FC8712] via-[#FF8A65] to-[#FF6B6B] min-h-screen flex flex-col selection:bg-[#FC8712]/20 bg-fixed">
+<body class="bg-gradient-to-br from-[#FC8712]/10 via-[#FF8A65]/10 to-[#FFF7ED] min-h-screen flex flex-col selection:bg-[#FC8712]/20">
 
-    <!-- Header / Navbar -->
-    <header class="bg-white/95 backdrop-blur-xl border-b border-orange-200/80 sticky top-0 z-40 shadow-sm">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-            <a href="index.html" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
-                <img src="public/logo.png" alt="Agendatina" class="h-9 w-auto drop-shadow-sm">
+    <!-- Header Navbar -->
+    <header class="bg-white/95 backdrop-blur-xl border-b border-orange-200/80 sticky top-0 z-40 shadow-xs">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
+                <img src="public/logo.png" alt="Agendatina" class="h-9 w-auto drop-shadow-xs">
                 <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
             </a>
+            
             <div id="userHeaderBox" class="hidden flex items-center gap-3">
-                <span id="userNameDisplay" class="text-xs sm:text-sm font-bold text-slate-800 bg-orange-100/80 px-3 py-1 rounded-full border border-orange-200"></span>
-                <button onclick="logoutCliente()" class="p-2 text-slate-500 hover:text-red-600 rounded-xl hover:bg-red-50 transition-colors" title="Cerrar Sesión">
+                <div class="flex items-center gap-2 bg-orange-50 border border-orange-200/80 px-3 py-1.5 rounded-full shadow-2xs">
+                    <div id="userAvatarPill" class="w-6 h-6 rounded-full bg-gradient-to-tr from-[#FC8712] to-[#FF8A65] text-white flex items-center justify-center text-xs font-black">A</div>
+                    <span id="userNameDisplay" class="text-xs sm:text-sm font-extrabold text-slate-800 max-w-[140px] truncate">Alumno</span>
+                </div>
+                <button onclick="logoutCliente()" class="p-2 text-slate-500 hover:text-red-600 rounded-xl hover:bg-red-50 transition-colors flex items-center gap-1 text-xs font-bold" title="Cerrar Sesión">
                     <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span class="hidden sm:inline">Salir</span>
                 </button>
             </div>
         </div>
     </header>
 
     <!-- Main Container -->
-    <main class="flex-1 py-8 sm:py-12 px-4 relative z-10">
-        <div class="max-w-3xl mx-auto">
-            
-            <!-- VISTA 1: INICIO DE SESIÓN / DETECCIÓN DE EMAIL -->
-            <div id="authBox" class="bg-white/95 backdrop-blur-xl rounded-3xl border-2 border-orange-200/90 shadow-2xl p-6 sm:p-10 max-w-md mx-auto">
-                <div class="text-center mb-6">
-                    <div class="flex items-center justify-center mx-auto mb-2">
-                        <span class="material-symbols-outlined text-[56px] bg-clip-text text-transparent bg-gradient-to-br from-[#FC8712] via-[#FF8A65] to-[#FF7E67] filter drop-shadow-xs">person</span>
-                    </div>
-                    <h1 class="text-2xl font-black text-slate-900">Portal del Alumno</h1>
-                    <p class="text-xs text-slate-600 mt-1 font-medium">Ingresá con tu correo electrónico para gestionar tus clases y pases.</p>
+    <main class="flex-1 py-6 sm:py-10 px-4 max-w-5xl mx-auto w-full">
+        
+        <!-- VISTA 1: INICIO DE SESIÓN / DETECCIÓN DE EMAIL -->
+        <div id="authBox" class="bg-white/95 backdrop-blur-xl rounded-3xl border-2 border-orange-200/90 shadow-2xl p-6 sm:p-10 max-w-md mx-auto my-auto">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-gradient-to-tr from-[#FC8712] to-[#FF8A65] text-white rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-orange-500/20">
+                    <span class="material-symbols-outlined text-3xl">school</span>
                 </div>
-
-                <form id="clientLoginForm" onsubmit="handleClientAuth(event)" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Tu Email *</label>
-                        <input type="email" id="clientEmailInput" required oninput="resetAuthStep()" placeholder="alumno@ejemplo.com" class="w-full bg-slate-50 border border-orange-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#FC8712] outline-none font-medium text-slate-800">
-                    </div>
-
-                    <div id="passwordGroup" class="hidden">
-                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Contraseña *</label>
-                        <input type="password" id="clientPasswordInput" placeholder="••••••••" class="w-full bg-slate-50 border border-orange-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#FC8712] outline-none font-medium text-slate-800">
-                    </div>
-
-                    <div id="authNotice" class="hidden text-xs p-3 rounded-xl font-medium"></div>
-
-                    <button type="submit" id="btnAuthSubmit" class="w-full bg-gradient-to-r from-[#FC8712] via-[#FF8A65] to-[#FF7E67] hover:opacity-95 text-white font-extrabold py-3.5 rounded-xl shadow-lg shadow-orange-500/30 text-sm transition-all flex items-center justify-center gap-2">
-                        Continuar <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
-                    </button>
-                </form>
+                <h1 class="text-2xl font-black text-slate-900">Portal del Alumno</h1>
+                <p class="text-xs text-slate-600 mt-1.5 font-medium leading-relaxed">Ingresá tu correo electrónico para consultar tus pases, reservas y asistencias.</p>
             </div>
 
-            <!-- VISTA 2: PANEL DE CONTROL DEL CLIENTE / MIS CLASES -->
-            <div id="dashboardBox" class="hidden space-y-6">
-                <!-- Tarjeta de Bienvenida y Resumen por Negocio (Degradé Vibrante Naranja y Salmón) -->
-                <div class="bg-gradient-to-r from-[#FC8712] via-[#FF8A65] to-[#FF7E67] text-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-orange-300/40 relative overflow-hidden">
-                    <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+            <form id="clientLoginForm" onsubmit="handleClientAuth(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Tu Correo Electrónico *</label>
+                    <input type="email" id="clientEmailInput" required oninput="resetAuthStep()" placeholder="alumno@ejemplo.com" class="w-full bg-slate-50 border border-orange-200/90 rounded-2xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-[#FC8712] outline-none font-medium text-slate-800 transition-all">
+                </div>
 
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 relative z-10">
-                        <div>
-                            <span class="text-xs font-black uppercase tracking-wider text-orange-100 bg-white/20 px-3 py-1 rounded-full border border-white/30 inline-block mb-2">¡Hola de nuevo!</span>
-                            <h2 class="text-2xl sm:text-3xl font-black text-white" id="dashClientName">Mi Panel de Alumno</h2>
-                            <p class="text-xs text-orange-50 mt-1 font-medium">Consultá tus pases y clases agendadas en tus establecimientos.</p>
-                        </div>
+                <div id="passwordGroup" class="hidden">
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Contraseña *</label>
+                    <input type="password" id="clientPasswordInput" placeholder="••••••••" class="w-full bg-slate-50 border border-orange-200/90 rounded-2xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-[#FC8712] outline-none font-medium text-slate-800 transition-all">
+                </div>
+
+                <div id="authNotice" class="hidden text-xs p-4 rounded-2xl font-medium"></div>
+
+                <button type="submit" id="btnAuthSubmit" class="w-full bg-gradient-to-r from-[#FC8712] via-[#FF8A65] to-[#FF7E67] hover:opacity-95 text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-orange-500/25 text-sm transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">
+                    Continuar <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- VISTA 2: PANEL DE CONTROL DEL ALUMNO -->
+        <div id="dashboardBox" class="hidden space-y-6">
+            
+            <!-- Hero Banner de Bienvenida -->
+            <div class="bg-gradient-to-r from-[#FC8712] via-[#FF8A65] to-[#FF7E67] text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-orange-300/30 relative overflow-hidden">
+                <div class="absolute -right-12 -bottom-12 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+                    <div>
+                        <span class="text-[11px] font-black uppercase tracking-wider text-orange-100 bg-white/20 px-3 py-1 rounded-full border border-white/30 inline-block mb-2.5">Portal del Alumno</span>
+                        <h2 class="text-2xl sm:text-3xl font-black text-white" id="dashClientName">¡Hola de nuevo!</h2>
+                        <p class="text-xs sm:text-sm text-orange-50 mt-1 font-medium">Gestioná tus inscripciones, controlá tus pases vigentes y consultá tu historial de clases.</p>
                     </div>
-                    
-                    <!-- Resumen de Pases por Negocio -->
-                    <div id="negociosCardsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6 relative z-10">
-                        <div class="bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-orange-200 text-center shadow-lg">
-                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Pases / Créditos</span>
-                            <span class="text-3xl font-black text-[#FC8712]" id="dashPasesCount">0</span>
-                            <span class="text-[11px] font-bold text-slate-500 block">clases disponibles</span>
-                        </div>
+
+                    <div id="bookNewClassHeaderBtnContainer" class="shrink-0">
+                        <a id="btnReservarClaseHeader" href="#" target="_blank" class="hidden bg-white hover:bg-orange-50 text-[#FC8712] font-black px-5 py-3 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2 w-fit">
+                            <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                            <span>Reservar Clase</span>
+                        </a>
                     </div>
                 </div>
 
-                <!-- Historial de Clases y Reservas -->
-                <div class="bg-white/95 backdrop-blur-xl rounded-3xl border-2 border-orange-200/90 shadow-2xl p-6 sm:p-8">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-orange-100">
+                <!-- Resumen Rápido -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-white/20 relative z-10">
+                    <div class="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/20">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-orange-100 block">Pases Disponibles</span>
+                        <span class="text-2xl font-black text-white" id="statPasesCount">0</span>
+                        <span class="text-[10px] font-semibold text-orange-100 block">en tus negocios</span>
+                    </div>
+
+                    <div class="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/20">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-orange-100 block">Próximas Clases</span>
+                        <span class="text-2xl font-black text-white" id="statProximasCount">0</span>
+                        <span class="text-[10px] font-semibold text-orange-100 block">agendadas</span>
+                    </div>
+
+                    <div class="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 col-span-2 sm:col-span-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-orange-100 block">Establecimientos</span>
+                        <span class="text-2xl font-black text-white" id="statNegociosCount">0</span>
+                        <span class="text-[10px] font-semibold text-orange-100 block">asociados</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navegación por Pestañas (Tabs Bar) -->
+            <div class="bg-orange-100/60 p-1.5 rounded-2xl border border-orange-200/80 grid grid-cols-2 md:grid-cols-4 gap-1.5 shadow-2xs">
+                <button onclick="switchTab('clases')" id="tabBtnClases" class="tab-btn active px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">event_upcoming</span>
+                    <span>Mis Clases</span>
+                    <span id="tabBadgeClases" class="bg-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full hidden">0</span>
+                </button>
+
+                <button onclick="switchTab('historial')" id="tabBtnHistorial" class="tab-btn px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">history</span>
+                    <span>Historial</span>
+                </button>
+
+                <button onclick="switchTab('pagos')" id="tabBtnPagos" class="tab-btn px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">card_membership</span>
+                    <span>Mis Pases</span>
+                </button>
+
+                <button onclick="switchTab('perfil')" id="tabBtnPerfil" class="tab-btn px-4 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">person</span>
+                    <span>Mi Perfil</span>
+                </button>
+            </div>
+
+            <!-- CONTENIDO PESTAÑA 1: MIS CLASES (PRÓXIMAS) -->
+            <div id="tabContentClases" class="bg-white/95 backdrop-blur-xl rounded-3xl border border-orange-200/80 shadow-xl p-6 sm:p-8 space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                    <div>
                         <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
                             <span class="w-8 h-8 rounded-xl bg-orange-100 text-[#FC8712] flex items-center justify-center">
-                                <span class="material-symbols-outlined text-[20px]">event_available</span>
+                                <span class="material-symbols-outlined text-[20px]">calendar_clock</span>
                             </span>
-                            Mis Clases e Inscripciones
+                            Próximas Clases Agendadas
                         </h3>
-                        
-                        <!-- Filtro por Negocio -->
-                        <div id="filterNegocioContainer" class="hidden items-center gap-2">
-                            <label class="text-xs font-bold text-slate-600">Filtrar por negocio:</label>
-                            <select id="negocioFilterSelect" onchange="filterClasesByNegocio()" class="bg-orange-50/80 border border-orange-200 rounded-xl px-3 py-1.5 text-xs font-extrabold outline-none focus:ring-2 focus:ring-[#FC8712] text-slate-800">
-                                <option value="all">Todos los negocios</option>
-                            </select>
-                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Acá figuran las clases a las que confirmaste tu asistencia.</p>
                     </div>
 
-                    <div id="clasesList" class="space-y-3">
-                        <div class="p-8 text-center text-slate-400 text-sm border border-dashed border-orange-200 rounded-2xl">
-                            Cargando tus clases agendadas...
-                        </div>
+                    <div id="filterNegocioContainer" class="hidden items-center gap-2">
+                        <select id="negocioFilterSelect" onchange="filterClasesByNegocio()" class="bg-orange-50/80 border border-orange-200 rounded-xl px-3 py-2 text-xs font-extrabold outline-none focus:ring-2 focus:ring-[#FC8712] text-slate-800">
+                            <option value="all">Todos los negocios</option>
+                        </select>
                     </div>
                 </div>
+
+                <div id="clasesProximasList" class="space-y-3">
+                    <div class="p-8 text-center text-slate-400 text-sm border border-dashed border-orange-200 rounded-2xl">
+                        Cargando tus clases agendadas...
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENIDO PESTAÑA 2: HISTORIAL DE ASISTENCIAS -->
+            <div id="tabContentHistorial" class="hidden bg-white/95 backdrop-blur-xl rounded-3xl border border-orange-200/80 shadow-xl p-6 sm:p-8 space-y-5">
+                <div class="pb-4 border-b border-slate-100">
+                    <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[20px]">history_edu</span>
+                        </span>
+                        Historial de Clases Pasadas
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-1">Registro histórico de tus asistencias y turnos anteriores.</p>
+                </div>
+
+                <div id="clasesHistorialList" class="space-y-3">
+                    <div class="p-8 text-center text-slate-400 text-sm border border-dashed border-slate-200 rounded-2xl">
+                        No tenés clases pasadas registradas.
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENIDO PESTAÑA 3: MIS PAGOS Y PASES -->
+            <div id="tabContentPagos" class="hidden bg-white/95 backdrop-blur-xl rounded-3xl border border-orange-200/80 shadow-xl p-6 sm:p-8 space-y-6">
+                <div class="pb-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-[20px]">confirmation_number</span>
+                            </span>
+                            Mis Pases y Paquetes de Clases
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-1">Consultá tus créditos disponibles y vencimientos por establecimiento.</p>
+                    </div>
+                </div>
+
+                <div id="negociosPasesDetailedContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Se renderiza desde JS -->
+                </div>
+            </div>
+
+            <!-- CONTENIDO PESTAÑA 4: MI PERFIL -->
+            <div id="tabContentPerfil" class="hidden bg-white/95 backdrop-blur-xl rounded-3xl border border-orange-200/80 shadow-xl p-6 sm:p-8 space-y-6">
+                <div class="pb-4 border-b border-slate-100">
+                    <h3 class="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
+                        </span>
+                        Mi Perfil de Alumno
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-1">Actualizá tus datos de contacto y contraseña personal de acceso.</p>
+                </div>
+
+                <form id="studentProfileForm" onsubmit="handleUpdateProfile(event)" class="space-y-4 max-w-lg">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wider">Nombre Completo *</label>
+                        <input type="text" id="profileNombre" required class="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50 text-sm font-semibold focus:ring-2 focus:ring-[#FC8712] outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wider">Correo Electrónico</label>
+                        <input type="email" id="profileEmail" disabled class="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-100 text-slate-400 text-sm font-medium cursor-not-allowed">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wider">WhatsApp / Teléfono de Contacto</label>
+                        <input type="tel" id="profileTelefono" placeholder="Ej: 1123456789" class="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50 text-sm font-semibold focus:ring-2 focus:ring-[#FC8712] outline-none">
+                    </div>
+
+                    <div class="border-t border-slate-100 pt-4 mt-2">
+                        <label class="block text-xs font-bold text-slate-600 mb-1 uppercase tracking-wider">Cambiar Contraseña (Opcional)</label>
+                        <input type="password" id="profilePassword" placeholder="•••••••• (dejar vacío si no deseas cambiarla)" minlength="6" class="w-full px-4 py-3 rounded-2xl border border-slate-200 bg-slate-50 text-sm font-medium focus:ring-2 focus:ring-[#FC8712] outline-none">
+                    </div>
+
+                    <div id="profileNotice" class="hidden text-xs p-3 rounded-xl font-bold"></div>
+
+                    <button type="submit" id="btnSaveProfile" class="bg-[#FC8712] hover:bg-[#FC8712]/90 text-white font-extrabold py-3.5 px-6 rounded-2xl text-xs uppercase tracking-wider shadow-md shadow-orange-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">
+                        <span class="material-symbols-outlined text-[18px]">save</span>
+                        <span>Guardar Cambios</span>
+                    </button>
+                </form>
             </div>
 
         </div>
     </main>
 
+    <!-- MODAL DE CONFIRMACIÓN DE CANCELACIÓN DE RESERVA -->
+    <div id="cancelModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl border border-slate-100 text-center">
+            <div class="w-14 h-14 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-3xl">event_busy</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-900 mb-1">¿Cancelar esta reserva?</h3>
+            <p id="cancelModalDetails" class="text-xs text-slate-500 mb-6 leading-relaxed">¿Seguro que deseas cancelar tu asistencia a esta clase?</p>
+
+            <div class="flex gap-3">
+                <button type="button" onclick="closeCancelModal()" class="flex-1 py-3 px-4 rounded-xl text-xs font-extrabold uppercase text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">Volver</button>
+                <button type="button" id="btnConfirmCancel" onclick="executeCancelTurno()" class="flex-1 py-3 px-4 rounded-xl text-xs font-extrabold uppercase text-white bg-red-600 hover:bg-red-700 shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-1">
+                    Sí, Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL DE PRIMER REGISTRO / CONFIGURAR CONTRASEÑA -->
     <div id="firstPasswordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative border border-orange-100">
             <div class="flex items-center justify-start mb-2">
                 <span class="material-symbols-outlined text-[44px] bg-clip-text text-transparent bg-gradient-to-r from-[#FC8712] to-[#FF8A65]">lock_reset</span>
             </div>
@@ -137,16 +301,56 @@
 
                 <div id="setPassError" class="hidden text-xs text-red-600 p-2.5 rounded-xl bg-red-50"></div>
 
-                <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-orange-600/20 text-sm transition-all">
+                <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-orange-600/20 text-sm transition-all cursor-pointer">
                     Guardar Contraseña y Acceder
                 </button>
             </form>
         </div>
     </div>
 
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-[99999] flex flex-col gap-2 pointer-events-none"></div>
+
     <script>
         let currentClientEmail = '';
         let clientIsDetected = false;
+        let allStudentClases = [];
+        let studentNegocios = [];
+        let pendingCancelTurnoId = null;
+
+        function showStudentToast(msg, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `px-4 py-3 rounded-2xl shadow-xl text-xs font-extrabold flex items-center gap-2 text-white transition-all transform translate-y-4 opacity-0 pointer-events-auto ${type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`;
+            toast.innerHTML = `<span class="material-symbols-outlined text-[18px]">${type === 'success' ? 'check_circle' : 'error'}</span><span>${msg}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function switchTab(tabName) {
+            const tabs = ['clases', 'historial', 'pagos', 'perfil'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                const content = document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if (btn && content) {
+                    if (t === tabName) {
+                        btn.classList.add('active');
+                        content.classList.remove('hidden');
+                    } else {
+                        btn.classList.remove('active');
+                        content.classList.add('hidden');
+                    }
+                }
+            });
+        }
 
         function resetAuthStep() {
             if (clientIsDetected) {
@@ -173,7 +377,6 @@
             if (!email) return;
 
             if (!clientIsDetected) {
-                // Paso 1: Verificar Email en Base de Datos
                 btn.disabled = true;
                 btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Verificando en base de datos...';
                 notice.classList.add('hidden');
@@ -192,10 +395,8 @@
                         currentClientEmail = email;
                         if (d.exists) {
                             if (!d.has_password) {
-                                // Mostrar Modal de Primer Registro
                                 document.getElementById('firstPasswordModal').classList.remove('hidden');
                             } else {
-                                // Alumno detectado con contraseña creada
                                 clientIsDetected = true;
                                 document.getElementById('passwordGroup').classList.remove('hidden');
                                 passwordInput.focus();
@@ -205,13 +406,12 @@
                                 btn.innerHTML = 'Iniciar Sesión <span class="material-symbols-outlined text-[18px]">login</span>';
                             }
                         } else {
-                            // Alumno NO encontrado en la BD
                             notice.className = 'text-xs p-3.5 rounded-2xl bg-red-50 text-red-700 border border-red-200/90 shadow-sm leading-relaxed';
                             notice.innerHTML = `<div class="flex items-start gap-2.5">
                                 <span class="material-symbols-outlined text-[20px] text-red-500 shrink-0 mt-0.5">error</span>
                                 <div>
                                     <strong class="font-extrabold block text-slate-900 text-xs mb-0.5">No estás registrado como alumno</strong>
-                                    ${d.message || 'No encontramos tu correo electrónico en nuestra lista de alumnos. Por favor solicitale a tu profesor o establecimiento que te agregue a sus clases para habilitar tu acceso.'}
+                                    ${d.message || 'No encontramos tu correo electrónico en nuestra lista de alumnos. Por favor solicitale a tu profesor o establecimiento que te agregue a sus clases.'}
                                 </div>
                             </div>`;
                             notice.classList.remove('hidden');
@@ -222,15 +422,14 @@
                         notice.classList.remove('hidden');
                     }
                 })
-                .catch(err => {
+                .catch(() => {
                     btn.disabled = false;
                     btn.innerHTML = 'Continuar <span class="material-symbols-outlined text-[18px]">arrow_forward</span>';
                     notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
-                    notice.textContent = 'Ocurrió un error de conexión al consultar la base de datos. Por favor reintentá.';
+                    notice.textContent = 'Error de conexión. Intentá nuevamente.';
                     notice.classList.remove('hidden');
                 });
             } else {
-                // Paso 2: Iniciar Sesión con contraseña
                 if (!password) {
                     notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
                     notice.textContent = 'Por favor ingresá tu contraseña.';
@@ -256,11 +455,11 @@
                         renderDashboard(d.cliente);
                     } else {
                         notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
-                        notice.textContent = d.error || 'Contraseña incorrecta o correo no registrado.';
+                        notice.textContent = d.error || 'Contraseña incorrecta.';
                         notice.classList.remove('hidden');
                     }
                 })
-                .catch(err => {
+                .catch(() => {
                     btn.disabled = false;
                     btn.innerHTML = 'Iniciar Sesión <span class="material-symbols-outlined text-[18px]">login</span>';
                     notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
@@ -304,7 +503,7 @@
                     errDiv.classList.remove('hidden');
                 }
             })
-            .catch(err => {
+            .catch(() => {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Guardar Contraseña y Acceder';
                 errDiv.textContent = 'Error de conexión con el servidor.';
@@ -319,17 +518,22 @@
             }
         });
 
-        let allStudentClases = [];
-        let studentNegocios = [];
-
         function renderDashboard(cliente) {
             document.getElementById('authBox').classList.add('hidden');
             document.getElementById('dashboardBox').classList.remove('hidden');
             document.getElementById('userHeaderBox').classList.remove('hidden');
-            document.getElementById('userNameDisplay').textContent = cliente.nombre || cliente.email;
-            document.getElementById('dashClientName').textContent = cliente.nombre || 'Alumno';
+            
+            const name = cliente.nombre || cliente.email || 'Alumno';
+            document.getElementById('userNameDisplay').textContent = name;
+            document.getElementById('dashClientName').textContent = `¡Hola de nuevo, ${name.split(' ')[0]}!`;
+            
+            const avatar = document.getElementById('userAvatarPill');
+            if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
 
-            loadMisClases(cliente.email);
+            document.getElementById('profileEmail').value = cliente.email || sessionStorage.getItem('agendatina_alumno_email') || '';
+            document.getElementById('profileNombre').value = cliente.nombre || '';
+
+            loadMisClases(cliente.email || sessionStorage.getItem('agendatina_alumno_email'));
         }
 
         function loadMisClases(email) {
@@ -339,44 +543,54 @@
                     if (d.success) {
                         allStudentClases = d.data || [];
                         studentNegocios = d.negocios || [];
+                        
+                        if (d.perfil) {
+                            if (d.perfil.nombre_completo) {
+                                document.getElementById('profileNombre').value = d.perfil.nombre_completo;
+                                document.getElementById('userNameDisplay').textContent = d.perfil.nombre_completo;
+                            }
+                            if (d.perfil.telefono) document.getElementById('profileTelefono').value = d.perfil.telefono;
+                        }
 
-                        renderNegociosPases(studentNegocios);
+                        updateHeaderBookingButton(studentNegocios);
+                        renderStatsSummary(studentNegocios, allStudentClases);
                         populateNegocioFilter(studentNegocios);
-                        renderClasesList(allStudentClases);
+                        renderClasesLists(allStudentClases);
+                        renderPasesDetailed(studentNegocios);
                     }
                 });
         }
 
-        function renderNegociosPases(negocios) {
-            const container = document.getElementById('negociosCardsContainer');
-            if (!negocios || negocios.length === 0) {
-                container.innerHTML = `
-                    <div class="bg-white/95 p-4 rounded-2xl border border-orange-200 text-center shadow-md col-span-2">
-                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block">Pases / Créditos</span>
-                        <span class="text-3xl font-black text-[#FC8712]">0</span>
-                        <span class="text-[11px] font-bold text-slate-500 block">clases disponibles</span>
-                    </div>
-                `;
-                return;
+        function updateHeaderBookingButton(negocios) {
+            const btn = document.getElementById('btnReservarClaseHeader');
+            if (negocios && negocios.length > 0 && negocios[0].negocio_ruta) {
+                btn.href = negocios[0].negocio_ruta;
+                btn.classList.remove('hidden');
+                btn.classList.add('flex');
+            } else {
+                btn.classList.add('hidden');
             }
+        }
 
-            let html = '';
-            negocios.forEach(n => {
-                const venc = n.fecha_vencimiento ? n.fecha_vencimiento.split('-').reverse().join('/') : 'Sin vencimiento';
-                html += `
-                    <div class="bg-white/95 p-4.5 rounded-2xl border-2 border-orange-200/90 shadow-md flex items-center justify-between gap-3 hover:border-[#FC8712] transition-colors">
-                        <div>
-                            <span class="text-xs font-extrabold text-slate-900 block truncate">📍 ${n.negocio_nombre}</span>
-                            <span class="text-[10px] font-bold text-orange-600/90 block mt-0.5">Vence: ${venc}</span>
-                        </div>
-                        <div class="text-right shrink-0 bg-orange-50 px-3 py-1.5 rounded-xl border border-orange-200">
-                            <span class="text-2xl font-black text-[#FC8712]">${n.pases_disponibles || 0}</span>
-                            <span class="text-[10px] font-bold text-slate-500 block">pases</span>
-                        </div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
+        function renderStatsSummary(negocios, clases) {
+            let totalPases = 0;
+            (negocios || []).forEach(n => totalPases += (parseInt(n.pases_disponibles) || 0));
+            document.getElementById('statPasesCount').textContent = totalPases;
+
+            const nowStr = new Date().toISOString().split('T')[0];
+            const proximas = (clases || []).filter(c => c.estado !== 'cancelado' && (c.fecha >= nowStr));
+            document.getElementById('statProximasCount').textContent = proximas.length;
+            document.getElementById('statNegociosCount').textContent = (negocios || []).length;
+
+            const badge = document.getElementById('tabBadgeClases');
+            if (badge) {
+                if (proximas.length > 0) {
+                    badge.textContent = proximas.length;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
         }
 
         function populateNegocioFilter(negocios) {
@@ -400,36 +614,225 @@
         function filterClasesByNegocio() {
             const selectVal = document.getElementById('negocioFilterSelect').value;
             if (selectVal === 'all') {
-                renderClasesList(allStudentClases);
+                renderClasesLists(allStudentClases);
             } else {
                 const filtered = allStudentClases.filter(c => String(c.id_negocio) === String(selectVal));
-                renderClasesList(filtered);
+                renderClasesLists(filtered);
             }
         }
 
-        function renderClasesList(clases) {
-            const list = document.getElementById('clasesList');
-            if (Array.isArray(clases) && clases.length > 0) {
+        function renderClasesLists(clases) {
+            const listProximas = document.getElementById('clasesProximasList');
+            const listHistorial = document.getElementById('clasesHistorialList');
+
+            const nowStr = new Date().toISOString().split('T')[0];
+            const proximas = [];
+            const pasadas = [];
+
+            (clases || []).forEach(c => {
+                if (c.fecha >= nowStr && c.estado !== 'cancelado') {
+                    proximas.push(c);
+                } else {
+                    pasadas.push(c);
+                }
+            });
+
+            // Render Próximas
+            if (proximas.length > 0) {
                 let html = '';
-                clases.forEach(c => {
+                proximas.forEach(c => {
                     const fechaFmt = c.fecha ? c.fecha.split('-').reverse().join('/') : '';
+                    const linkWeb = c.negocio_ruta ? `<a href="${c.negocio_ruta}" target="_blank" class="hover:underline font-black text-[#FC8712]">📍 ${c.negocio}</a>` : `<span class="font-black text-[#FC8712]">📍 ${c.negocio}</span>`;
+
                     html += `
                         <div class="p-4 bg-gradient-to-r from-orange-50/90 via-amber-50/40 to-rose-50/50 border border-orange-200/90 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-[#FC8712] hover:shadow-md transition-all">
                             <div>
-                                <h4 class="font-extrabold text-slate-900 text-sm">${c.servicio}</h4>
-                                <p class="text-xs text-slate-600 mt-0.5"><span class="font-black text-[#FC8712]">📍 ${c.negocio || 'Establecimiento'}</span> • 👨‍⚕️ ${c.profesional || 'Profesional'}</p>
+                                <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">${c.servicio}</h4>
+                                <p class="text-xs text-slate-600 mt-1">${linkWeb} • 👨‍⚕️ ${c.profesional || 'Profesor'}</p>
                             </div>
-                            <div class="flex items-center gap-3">
-                                <span class="text-xs font-black text-slate-800 bg-white px-3 py-1.5 rounded-xl border border-orange-200 shadow-xs">${fechaFmt} a las ${c.hora}hs</span>
-                                <span class="text-[11px] font-extrabold uppercase px-3 py-1 rounded-xl ${c.estado === 'confirmado' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-orange-100 text-orange-800 border border-orange-300'}">${c.estado}</span>
+                            <div class="flex items-center gap-3 self-end sm:self-auto">
+                                <div class="text-right">
+                                    <span class="text-xs font-black text-slate-800 bg-white px-3 py-1.5 rounded-xl border border-orange-200 shadow-2xs block">${fechaFmt} - ${c.hora}hs</span>
+                                </div>
+                                <button onclick="openCancelModal(${c.id}, '${c.servicio}', '${fechaFmt}', '${c.hora}')" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer" title="Cancelar Asistencia">
+                                    <span class="material-symbols-outlined text-[16px]">cancel</span>
+                                    <span>Cancelar</span>
+                                </button>
                             </div>
                         </div>
                     `;
                 });
-                list.innerHTML = html;
+                listProximas.innerHTML = html;
             } else {
-                list.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm border border-dashed border-orange-200 rounded-2xl bg-orange-50/30">No tenés reservas registradas hasta el momento.</div>';
+                let ctaBtn = studentNegocios.length > 0 && studentNegocios[0].negocio_ruta 
+                    ? `<a href="${studentNegocios[0].negocio_ruta}" target="_blank" class="mt-4 inline-flex items-center gap-1.5 bg-[#FC8712] text-white px-5 py-2.5 rounded-2xl text-xs font-extrabold uppercase tracking-wider shadow-md hover:bg-[#FC8712]/90 transition-all"><span class="material-symbols-outlined text-[18px]">add_circle</span> Anotarme a una Clase</a>`
+                    : '';
+                listProximas.innerHTML = `
+                    <div class="p-8 text-center text-slate-500 text-sm border border-dashed border-orange-200 rounded-2xl bg-orange-50/30 flex flex-col items-center">
+                        <span class="material-symbols-outlined text-4xl text-orange-300 mb-2">event_available</span>
+                        <p class="font-bold text-slate-700">No tenés reservas próximas confirmadas.</p>
+                        <p class="text-xs text-slate-500 mt-1">Elegí tu horario y anotate en las clases de tu establecimiento.</p>
+                        ${ctaBtn}
+                    </div>
+                `;
             }
+
+            // Render Historial
+            if (pasadas.length > 0) {
+                let html = '';
+                pasadas.forEach(c => {
+                    const fechaFmt = c.fecha ? c.fecha.split('-').reverse().join('/') : '';
+                    let stClass = 'bg-slate-100 text-slate-700 border-slate-200';
+                    if (c.estado === 'confirmado' || c.estado === 'asistido') stClass = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+                    if (c.estado === 'cancelado') stClass = 'bg-red-100 text-red-700 border-red-200';
+
+                    html += `
+                        <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">${c.servicio}</h4>
+                                <p class="text-xs text-slate-500 mt-0.5">📍 ${c.negocio} • 👨‍⚕️ ${c.profesional || 'Profesor'}</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs font-semibold text-slate-600 bg-white px-3 py-1 rounded-xl border border-slate-200">${fechaFmt} - ${c.hora}hs</span>
+                                <span class="text-[11px] font-extrabold uppercase px-3 py-1 rounded-xl border ${stClass}">${c.estado}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                listHistorial.innerHTML = html;
+            } else {
+                listHistorial.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm border border-dashed border-slate-200 rounded-2xl">No hay historial de clases anteriores.</div>';
+            }
+        }
+
+        function renderPasesDetailed(negocios) {
+            const container = document.getElementById('negociosPasesDetailedContainer');
+            if (!negocios || negocios.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-2 p-8 text-center text-slate-400 text-sm border border-dashed border-orange-200 rounded-2xl bg-orange-50/20">
+                        No tenés paquetes ni pases asignados en este momento.
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            negocios.forEach(n => {
+                const disp = parseInt(n.pases_disponibles) || 0;
+                const tot = parseInt(n.pases_totales) || disp || 1;
+                const pct = Math.min(100, Math.max(0, Math.round((disp / (tot || 1)) * 100)));
+                const venc = n.fecha_vencimiento ? n.fecha_vencimiento.split('-').reverse().join('/') : 'Sin límite';
+
+                const linkWeb = n.negocio_ruta ? `<a href="${n.negocio_ruta}" target="_blank" class="mt-3 text-xs font-extrabold text-[#FC8712] hover:underline flex items-center justify-center gap-1">Reservar en este negocio <span class="material-symbols-outlined text-[14px]">arrow_forward</span></a>` : '';
+
+                html += `
+                    <div class="bg-gradient-to-br from-orange-50/90 to-amber-50/40 p-5 rounded-2xl border-2 border-orange-200/90 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base truncate">📍 ${n.negocio_nombre}</h4>
+                            <span class="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-orange-100 text-orange-800 border border-orange-200">Vence: ${venc}</span>
+                        </div>
+
+                        <div class="flex items-end justify-between">
+                            <div>
+                                <span class="text-3xl font-black text-[#FC8712]">${disp}</span>
+                                <span class="text-xs font-extrabold text-slate-500">/ ${tot} pases</span>
+                            </div>
+                            <span class="text-xs font-bold text-slate-600">${pct}% disponible</span>
+                        </div>
+
+                        <!-- Barra de progreso -->
+                        <div class="w-full bg-orange-200/60 rounded-full h-2.5 overflow-hidden">
+                            <div class="bg-gradient-to-r from-[#FC8712] to-[#FF8A65] h-2.5 rounded-full transition-all" style="width: ${pct}%"></div>
+                        </div>
+
+                        ${linkWeb}
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function openCancelModal(id, servicio, fecha, hora) {
+            pendingCancelTurnoId = id;
+            document.getElementById('cancelModalDetails').innerHTML = `Vas a cancelar tu reserva para <strong>${servicio}</strong> el <strong>${fecha} a las ${hora}hs</strong>.<br>Tu pase de clase será devuelto a tu cuenta.`;
+            document.getElementById('cancelModal').classList.remove('hidden');
+        }
+
+        function closeCancelModal() {
+            pendingCancelTurnoId = null;
+            document.getElementById('cancelModal').classList.add('hidden');
+        }
+
+        function executeCancelTurno() {
+            if (!pendingCancelTurnoId) return;
+            const btn = document.getElementById('btnConfirmCancel');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">sync</span> Cancelando...';
+
+            fetch('backend/cliente_auth.php?action=cancelar_turno', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'id=' + pendingCancelTurnoId + '&email=' + encodeURIComponent(sessionStorage.getItem('agendatina_alumno_email') || '')
+            })
+            .then(r => r.json())
+            .then(d => {
+                btn.disabled = false;
+                btn.innerHTML = 'Sí, Cancelar';
+                closeCancelModal();
+
+                if (d.success) {
+                    showStudentToast(d.message || 'Reserva cancelada exitosamente.', 'success');
+                    loadMisClases(sessionStorage.getItem('agendatina_alumno_email'));
+                } else {
+                    showStudentToast(d.error || 'Error al cancelar la reserva.', 'error');
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerHTML = 'Sí, Cancelar';
+                closeCancelModal();
+                showStudentToast('Error de conexión.', 'error');
+            });
+        }
+
+        function handleUpdateProfile(e) {
+            e.preventDefault();
+            const nombre = document.getElementById('profileNombre').value.trim();
+            const telefono = document.getElementById('profileTelefono').value.trim();
+            const password = document.getElementById('profilePassword').value.trim();
+            const btn = document.getElementById('btnSaveProfile');
+            const origHTML = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Guardando...';
+
+            fetch('backend/cliente_auth.php?action=update_profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'email=' + encodeURIComponent(sessionStorage.getItem('agendatina_alumno_email') || '') + 
+                      '&nombre=' + encodeURIComponent(nombre) + 
+                      '&telefono=' + encodeURIComponent(telefono) + 
+                      '&password=' + encodeURIComponent(password)
+            })
+            .then(r => r.json())
+            .then(d => {
+                btn.disabled = false;
+                btn.innerHTML = origHTML;
+
+                if (d.success) {
+                    showStudentToast('¡Perfil actualizado correctamente!', 'success');
+                    document.getElementById('userNameDisplay').textContent = nombre;
+                    document.getElementById('dashClientName').textContent = `¡Hola de nuevo, ${nombre.split(' ')[0]}!`;
+                    document.getElementById('profilePassword').value = '';
+                } else {
+                    showStudentToast(d.error || 'Error al actualizar el perfil.', 'error');
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerHTML = origHTML;
+                showStudentToast('Error de conexión.', 'error');
+            });
         }
 
         function logoutCliente() {
