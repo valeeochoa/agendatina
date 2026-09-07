@@ -90,18 +90,8 @@
             targetMontoParam = urlParams.get('monto');
 
             fetch('backend/obtener_precios.php').then(r=>r.json()).then(priceData => {
-                let pBasico = 8889, pIntermedio = 11111, pPremium = 16667;
-                let discount = 10;
-                
-                if(priceData && priceData.success) {
-                    pBasico = parseFloat(priceData.data.precio_basico);
-                    pIntermedio = parseFloat(priceData.data.precio_intermedio);
-                    pPremium = parseFloat(priceData.data.precio_premium);
-                    discount = parseInt(priceData.data.descuento_porcentaje) || 0;
-                    if (priceData.data.descuento_hasta) {
-                        const expiry = new Date(priceData.data.descuento_hasta.replace(/-/g, '/'));
-                        if (new Date() > expiry) discount = 0;
-                    }
+                if (priceData && priceData.success) {
+                    window.globalPricesData = priceData.data;
                 }
                 fetch('backend/perfil.php').then(r=>r.json()).then(data => {
                     if (!data || !data.success || !data.business) {
@@ -118,19 +108,22 @@
                         const planActual = (data.business.plan || 'Basico').toLowerCase();
                         let planNombreDisplay = targetPlanParam ? ('Upgrade a Plan ' + targetPlanParam) : ('Plan ' + planActual.charAt(0).toUpperCase() + planActual.slice(1));
                         
-                        let basePrice = pBasico;
+                        const profCount = Math.max(1, parseInt(data.business.max_profesionales || 1));
                         const planEval = (targetPlanParam || planActual).toLowerCase();
-                        if(planEval.includes('intermedio') || planEval.includes('profesional')) basePrice = pIntermedio;
-                        if(planEval.includes('completo') || planEval.includes('premium')) basePrice = pPremium;
                         
-                        let discountPct = discount;
+                        let fullMonthPrice = (typeof window.getEffectivePrice === 'function') ? window.getEffectivePrice(planEval, profCount) : 8889;
+                        
                         if (data.business.descuento_aplicado_pct && parseInt(data.business.descuento_aplicado_pct) > 0) {
-                            discountPct = Math.max(discountPct, parseInt(data.business.descuento_aplicado_pct));
+                            const customDisc = parseInt(data.business.descuento_aplicado_pct);
+                            fullMonthPrice = Math.round(fullMonthPrice * (100 - customDisc) / 100);
                         }
 
-                        let fullMonthPrice = discountPct > 0 ? basePrice * (1 - discountPct/100) : basePrice;
                         let finalPrice = fullMonthPrice;
                         let notaProrrateo = '';
+
+                        if (profCount > 1) {
+                            notaProrrateo += ` (${profCount} profesionales - ${Math.min(50, profCount * 10)}% OFF equipo)`;
+                        }
 
                         if (data.business.codigo_descuento && parseInt(data.business.descuento_aplicado_pct) > 0) {
                             notaProrrateo += ` (Incluye ${data.business.descuento_aplicado_pct}% OFF por código ${data.business.codigo_descuento})`;
@@ -149,9 +142,9 @@
                             finalPrice = Math.round(fullMonthPrice * factorCobro);
                             
                             if (billableDays === 0) {
-                                notaProrrateo = ' (Período de prueba de 30 días completo: $0)';
+                                notaProrrateo += ' (Período de prueba de 30 días completo: $0)';
                             } else {
-                                notaProrrateo = ` (Prorrateado por ${billableDays} días cobrables de 30)`;
+                                notaProrrateo += ` (Prorrateado por ${billableDays} días cobrables de 30)`;
                             }
                         }
 

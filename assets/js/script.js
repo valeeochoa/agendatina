@@ -1014,28 +1014,25 @@ function loadDashboardData() {
             };
 
             // Integrar la carga de precios al Banner de Suscripción y al Modal de Pago
-            let basePrice = 8889;
-            let discount = 10;
-            
-            if(pData && pData.success) {
-                basePrice = parseFloat(pData.data.precio_basico);
-                if (planStr.includes('intermedio') || planStr.includes('profesional')) basePrice = parseFloat(pData.data.precio_intermedio);
-                if (planStr.includes('completo') || planStr.includes('premium')) basePrice = parseFloat(pData.data.precio_premium);
-                
-                discount = parseInt(pData.data.descuento_porcentaje) || 0;
-                if (pData.data.descuento_hasta) {
-                    const expiry = new Date(pData.data.descuento_hasta.replace(/-/g, '/'));
-                    if (new Date() > expiry) discount = 0;
-                }
+            const profCount = Math.max(1, parseInt(business.max_profesionales || 1));
+
+            if (pData && pData.success) {
+                window.globalPricesData = pData.data;
             }
-            
-            const hasDiscount = discount > 0;
-            let finalPrice = hasDiscount ? basePrice * (1 - discount/100) : basePrice;
+
+            let finalPrice = window.getEffectivePrice(planStr, profCount);
             let formattedPrice = finalPrice.toLocaleString('es-AR', {maximumFractionDigits:0});
             
             if (paymentPrice) {
                 let discountBadge = '';
-                if (hasDiscount) discountBadge = `<div class="flex flex-wrap items-center justify-center gap-2 mb-1"><span class="text-sm text-slate-400 line-through font-medium">$${basePrice.toLocaleString('es-AR', {maximumFractionDigits:0})}</span><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-${discount}% OFF</span></div>`;
+                if (profCount > 1) {
+                    const volDisc = Math.min(50, profCount * 10);
+                    discountBadge = `<div class="flex flex-wrap items-center justify-center gap-2 mb-1"><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-${volDisc}% OFF EQUIPO (${profCount} prof.)</span></div>`;
+                } else if (pData && pData.success && parseInt(pData.data.descuento_porcentaje) > 0) {
+                    const discount = parseInt(pData.data.descuento_porcentaje);
+                    const basePrice = (planStr.includes('intermedio') || planStr.includes('profesional')) ? parseFloat(pData.data.precio_intermedio) : ((planStr.includes('completo') || planStr.includes('premium')) ? parseFloat(pData.data.precio_premium) : parseFloat(pData.data.precio_basico));
+                    discountBadge = `<div class="flex flex-wrap items-center justify-center gap-2 mb-1"><span class="text-sm text-slate-400 line-through font-medium">$${basePrice.toLocaleString('es-AR', {maximumFractionDigits:0})}</span><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-${discount}% OFF</span></div>`;
+                }
                 paymentPrice.innerHTML = `${discountBadge}$${formattedPrice} <span class="text-base font-normal text-slate-400">/mes</span>`;
             }
             
