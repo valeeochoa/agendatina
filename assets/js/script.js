@@ -2238,21 +2238,62 @@ window.openReportErrorModal = function(segment) {
         if (typeof showToast === 'function') showToast('Esta función no está disponible desde una cuenta DEMO.', 'error');
         return;
     }
-    const modal = document.getElementById('reportErrorModal');
-    const content = document.getElementById('reportErrorModalContent');
+    let modal = document.getElementById('reportErrorModal');
     if (!modal) {
-        showToast('El modal de reportes no está en el HTML', 'error');
-        return;
+        const div = document.createElement('div');
+        div.innerHTML = `
+        <div id="reportErrorModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[99999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto opacity-0 transition-opacity duration-300">
+            <div class="bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl border border-slate-100 max-w-md w-full p-4 sm:p-6 md:p-8 transform scale-95 transition-transform duration-300 my-auto max-h-[90vh] overflow-y-auto" id="reportErrorModalContent">
+                <div class="flex justify-between items-center mb-5 border-b border-slate-100 pb-4">
+                    <div class="flex items-center gap-2 text-red-600">
+                        <span class="material-symbols-outlined text-2xl">bug_report</span>
+                        <h3 class="font-extrabold text-lg text-slate-800">Reportar Error o Incidencia</h3>
+                    </div>
+                    <button onclick="closeReportErrorModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center transition-colors">
+                        <span class="material-symbols-outlined text-lg">close</span>
+                    </button>
+                </div>
+                
+                <form id="reportErrorForm" onsubmit="submitReportError(event)">
+                    <input type="hidden" id="reportSegment" name="segmento" value="General">
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Segmento / Módulo Afectado</label>
+                            <input type="text" id="reportSegmentDisplay" class="w-full px-4 py-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 font-semibold text-sm cursor-not-allowed" disabled>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Descripción de la Incidencia / Error *</label>
+                            <textarea id="reportMensaje" name="mensaje" rows="4" required class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium focus:ring-2 focus:ring-red-500 outline-none transition-all resize-none" placeholder="Explica detalladamente qué problema tuviste para que el equipo técnico pueda solucionarlo rápidamente..."></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-3 mt-6">
+                        <button type="button" onclick="closeReportErrorModal()" class="flex-1 py-3 px-4 rounded-xl text-xs font-extrabold uppercase tracking-wider text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">Cancelar</button>
+                        <button type="submit" id="btnReportSubmit" class="flex-1 py-3 px-4 rounded-xl text-xs font-extrabold uppercase tracking-wider text-white bg-red-600 hover:bg-red-700 shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-1">
+                            <span class="material-symbols-outlined text-[18px]">send</span> Enviar Reporte
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>`;
+        document.body.appendChild(div.firstElementChild);
+        modal = document.getElementById('reportErrorModal');
     }
-    document.getElementById('reportSegment').value = segment;
-    document.getElementById('reportSegmentDisplay').value = segment;
+    const content = document.getElementById('reportErrorModalContent');
+    const segInput = document.getElementById('reportSegment');
+    const segDisp = document.getElementById('reportSegmentDisplay');
+    if (segInput) segInput.value = segment;
+    if (segDisp) segDisp.value = segment;
     modal.classList.remove('hidden');
-    setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
     setTimeout(() => { 
         modal.classList.remove('opacity-0'); 
-        content.classList.remove('scale-95', 'animate-modal-pop');
-        void content.offsetWidth;
-        content.classList.add('animate-modal-pop');
+        if (content) {
+            content.classList.remove('scale-95', 'animate-modal-pop');
+            void content.offsetWidth;
+            content.classList.add('animate-modal-pop');
+        }
     }, 10);
 };
 
@@ -3301,7 +3342,7 @@ function checkAdminGlobalSession(config = null) {
             const negocioSlug = urlParams.get('n') || window.location.pathname.split('/')[1] || '';
             const currentRuta = (negocioSlug || (config ? config.ruta || config.subdominio : '') || '').toLowerCase().trim();
             
-            const adminPages = ['dashboard', 'ajustes', 'estadisticas', 'servicios', 'equipo', 'mi-web', 'agenda', 'manual', 'consultas', 'perfil', 'pago'];
+            const adminPages = ['dashboard', 'ajustes', 'estadisticas', 'servicios', 'equipo', 'mi-web', 'agenda', 'manual', 'consultas', 'perfil', 'pago', 'clientes', 'calendario', 'mi-cuenta'];
             const currentPath = window.location.pathname.toLowerCase();
             const isAdminPage = adminPages.some(page => currentPath.includes(page)) || !currentRuta;
 
