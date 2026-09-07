@@ -75,10 +75,11 @@
             </nav>
         </div>
 
-        <div class="pt-6 border-t border-slate-800">
-            <a href="logout.php" class="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-2xl font-bold text-sm transition-all">
-                <span class="material-symbols-outlined text-[22px]">logout</span> Cerrar Sesión
-            </a>
+        <!-- Footer Logout -->
+        <div class="pt-6 border-t border-slate-800 mt-6">
+            <button onclick="logoutAdmin()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-red-600/20 text-slate-300 hover:text-red-400 rounded-xl text-xs font-bold transition-all">
+                <span class="material-symbols-outlined text-[18px]">logout</span> Cerrar Sesión
+            </button>
         </div>
     </aside>
 
@@ -127,12 +128,11 @@
                 .then(d => {
                     if (d.success) {
                         const mejorasOnly = (d.data || []).filter(r => {
-                            const isError = (r.tipo && (r.tipo.includes('Error') || r.tipo.includes('Bug'))) ||
-                                            (r.modulo && (r.modulo.includes('Error') || r.modulo.includes('Bug')));
+                            const isError = (r.tipo && (r.tipo.includes('Error') || r.tipo.includes('Bug')));
                             if (isError) return false;
 
                             return (r.tipo && (r.tipo.includes('Mejora') || r.tipo.includes('Sugerencia'))) || 
-                                   (r.modulo && (r.modulo.includes('Sugerencia') || r.modulo.includes('Mejora') || r.modulo.includes('Soporte'))) || 
+                                   (r.modulo && (r.modulo.startsWith('Sugerencia') || r.modulo.startsWith('Mejora') || r.modulo.startsWith('Soporte'))) || 
                                    (r.descripcion && (r.descripcion.toLowerCase().includes('sugerencia') || r.descripcion.toLowerCase().includes('mejora')));
                         });
                         renderMejorasTable(mejorasOnly);
@@ -343,6 +343,11 @@
                 btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">send</span> Enviar y Guardar';
                 alert('Error de conexión con el servidor.');
             });
+        }
+
+        function logoutAdmin() {
+            fetch('../backend/admin_auth.php', { method: 'DELETE' })
+                .then(() => window.location.href = 'login.html');
         }
     </script>
     <script src="admin_nav.js"></script>

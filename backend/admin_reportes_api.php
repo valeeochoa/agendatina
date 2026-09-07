@@ -81,6 +81,14 @@ if ($method === 'GET') {
             $pdo->exec("DELETE FROM reportes_error WHERE estado = 'eliminado' AND (fecha_eliminado < NOW() - INTERVAL 30 DAY OR (fecha_eliminado IS NULL AND fecha < NOW() - INTERVAL 30 DAY))");
         } catch(Exception $eClean) {}
 
+        // Auto-sincronización: Marcar leídas las notificaciones correspondientes a reportes ya resueltos o eliminados
+        try {
+            $pdo->exec("UPDATE notificaciones_admin na 
+                        INNER JOIN reportes_error r ON (na.id_reporte = r.id OR (na.mensaje IS NOT NULL AND na.mensaje != '' AND na.mensaje = r.descripcion)) 
+                        SET na.leida = 1 
+                        WHERE r.estado IN ('resuelto', 'eliminado') AND (na.leida = 0 OR na.leida IS NULL)");
+        } catch(Exception $eSync) {}
+
         // Auto-reparación: Corregir tipo para reportes cuyos módulos no son sugerencias/mejoras
         try {
             $pdo->exec("UPDATE reportes_error SET tipo = 'Reporte de Error' WHERE modulo NOT LIKE '%Sugerencia%' AND modulo NOT LIKE '%Mejora%' AND (tipo IS NULL OR tipo = '' OR tipo = 'Sugerencia / Mejora')");
@@ -100,7 +108,7 @@ if ($method === 'GET') {
         ");
         $reportes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // También incluir notificaciones de notificaciones_admin (solo reportes de error o sugerencias no leídas)
+        // También incluir notificaciones de notificaciones_admin no leídas y que no pertenezcan a reportes eliminados/resueltos
         try {
             $stmtNotif = $pdo->query("
                 SELECT na.id, na.id_negocio, COALESCE(na.nombre_negocio, n.nombre_fantasia) AS nombre_negocio, na.id_usuario,
@@ -108,16 +116,18 @@ if ($method === 'GET') {
                        COALESCE(NULLIF(TRIM(na.email_usuario), ''), u.email) AS email_usuario,
                        COALESCE(na.rol_usuario, 'dueño') AS rol_usuario,
                        CASE 
-                           WHEN na.segmento LIKE '%Error%' OR na.segmento LIKE '%Bug%' THEN 'Reporte de Error'
-                           ELSE 'Sugerencia / Mejora'
+                           WHEN na.segmento LIKE 'Sugerencia / Mejora%' OR (na.segmento LIKE '%Sugerencia%' AND na.segmento NOT LIKE 'Reporte de Error%') OR (na.segmento LIKE '%Mejora%' AND na.segmento NOT LIKE 'Reporte de Error%') THEN 'Sugerencia / Mejora'
+                           ELSE 'Reporte de Error'
                        END AS tipo, 
                        na.segmento AS modulo, na.mensaje AS descripcion, 'pendiente' AS estado, na.fecha
                 FROM notificaciones_admin na
                 LEFT JOIN negocios n ON na.id_negocio = n.id
                 LEFT JOIN personal_negocio pn ON (n.id = pn.id_negocio AND pn.rol_en_local = 'admin')
                 LEFT JOIN usuarios u ON (na.id_usuario = u.id OR pn.id_usuario = u.id)
+                LEFT JOIN reportes_error r ON (na.id_reporte = r.id OR (na.mensaje IS NOT NULL AND na.mensaje != '' AND na.mensaje = r.descripcion))
                 WHERE (na.leida = 0 OR na.leida IS NULL)
-                  AND (na.segmento LIKE '%Error%' OR na.segmento LIKE '%Bug%' OR na.segmento LIKE '%Sugerencia%' OR na.segmento LIKE '%Mejora%' OR na.segmento LIKE '%Soporte%')
+                  AND (r.estado IS NULL OR r.estado = 'pendiente')
+                  AND (na.segmento LIKE '%Error%' OR na.segmento LIKE '%Bug%' OR na.segmento LIKE '%Sugerencia%' OR na.segmento LIKE '%Mejora%' OR na.segmento LIKE '%Soporte%' OR na.segmento LIKE '%Incidencia%')
                   AND na.segmento NOT LIKE '%Nuevo Profesional%'
                   AND na.segmento NOT LIKE '%Seguridad%'
                   AND na.segmento NOT LIKE '%Enlace Web%'
@@ -125,6 +135,10 @@ if ($method === 'GET') {
             ");
             $notifItems = $stmtNotif->fetchAll(PDO::FETCH_ASSOC);
             foreach ($notifItems as $ni) {
+                // Limpiar prefijo en el módulo de visualización
+                $ni['modulo'] = trim(preg_replace('/^(Reporte de Error:|Sugerencia \/ Mejora:)\s*/i', '', $ni['modulo']));
+                if (empty($ni['modulo'])) $ni['modulo'] = 'General';
+
                 $exists = false;
                 foreach ($reportes as $r) {
                     if (trim($r['descripcion']) === trim($ni['descripcion'])) {
@@ -138,10 +152,18 @@ if ($method === 'GET') {
             }
         } catch (Exception $eN) {}
 
+        // Limpiar prefijo de módulos en reportes que venían con prefijo guardado
+        foreach ($reportes as &$rClean) {
+            if (!empty($rClean['modulo'])) {
+                $rClean['modulo'] = trim(preg_replace('/^(Reporte de Error:|Sugerencia \/ Mejora:)\s*/i', '', $rClean['modulo']));
+                if (empty($rClean['modulo'])) $rClean['modulo'] = 'General';
+            }
+        }
+        unset($rClean);
+
         $pendientes = 0;
         foreach ($reportes as $rep) {
-            $isMejora = ($rep['tipo'] && (strpos($rep['tipo'], 'Mejora') !== false || strpos($rep['tipo'], 'Sugerencia') !== false)) ||
-                        ($rep['modulo'] && (strpos($rep['modulo'], 'Mejora') !== false || strpos($rep['modulo'], 'Sugerencia') !== false));
+            $isMejora = ($rep['tipo'] && (strpos($rep['tipo'], 'Mejora') !== false || strpos($rep['tipo'], 'Sugerencia') !== false));
             if (!$isMejora && ($rep['estado'] ?? 'pendiente') === 'pendiente') {
                 $pendientes++;
             }

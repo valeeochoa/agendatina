@@ -261,6 +261,14 @@ if ($method === 'GET') {
             $pdo->exec("DELETE FROM reportes_error WHERE estado = 'eliminado' AND (fecha_eliminado < NOW() - INTERVAL 30 DAY OR (fecha_eliminado IS NULL AND fecha < NOW() - INTERVAL 30 DAY))");
         } catch (Exception $eClean) {}
 
+        // Auto-sincronización: Marcar leídas las notificaciones correspondientes a reportes ya resueltos o eliminados
+        try {
+            $pdo->exec("UPDATE notificaciones_admin na 
+                        INNER JOIN reportes_error r ON (na.id_reporte = r.id OR (na.mensaje IS NOT NULL AND na.mensaje != '' AND na.mensaje = r.descripcion)) 
+                        SET na.leida = 1 
+                        WHERE r.estado IN ('resuelto', 'eliminado') AND (na.leida = 0 OR na.leida IS NULL)");
+        } catch (Exception $eSync) {}
+
         // Obtener reportes de error para el SuperAdmin (Pendientes y Resueltos recientes)
         $notifs_admin = [];
         try {
@@ -292,12 +300,20 @@ if ($method === 'GET') {
                 LEFT JOIN negocios n ON na.id_negocio = n.id
                 LEFT JOIN personal_negocio pn ON (n.id = pn.id_negocio AND pn.rol_en_local = 'admin')
                 LEFT JOIN usuarios u ON (na.id_usuario = u.id OR pn.id_usuario = u.id)
+                LEFT JOIN reportes_error r ON (na.id_reporte = r.id OR (na.mensaje IS NOT NULL AND na.mensaje != '' AND na.mensaje = r.descripcion))
                 WHERE (na.leida = 0 OR na.leida IS NULL)
-                  AND (na.segmento LIKE '%Error%' OR na.segmento LIKE '%Bug%')
+                  AND (r.estado IS NULL OR r.estado = 'pendiente')
+                  AND (na.segmento LIKE '%Error%' OR na.segmento LIKE '%Bug%' OR na.segmento LIKE '%Incidencia%')
+                  AND na.segmento NOT LIKE '%Nuevo Profesional%'
+                  AND na.segmento NOT LIKE '%Seguridad%'
+                  AND na.segmento NOT LIKE '%Enlace Web%'
                 ORDER BY na.fecha DESC LIMIT 50
             ");
             $extras = $stmtExtra ? $stmtExtra->fetchAll(PDO::FETCH_ASSOC) : [];
             foreach ($extras as $ex) {
+                $ex['segmento'] = trim(preg_replace('/^(Reporte de Error:|Sugerencia \/ Mejora:)\s*/i', '', $ex['segmento']));
+                if (empty($ex['segmento'])) $ex['segmento'] = 'General';
+
                 $exists = false;
                 foreach ($notifs_admin as $r) {
                     if (trim($r['mensaje']) === trim($ex['mensaje'])) {
@@ -309,6 +325,14 @@ if ($method === 'GET') {
                     $notifs_admin[] = $ex;
                 }
             }
+
+            foreach ($notifs_admin as &$rClean) {
+                if (!empty($rClean['segmento'])) {
+                    $rClean['segmento'] = trim(preg_replace('/^(Reporte de Error:|Sugerencia \/ Mejora:)\s*/i', '', $rClean['segmento']));
+                    if (empty($rClean['segmento'])) $rClean['segmento'] = 'General';
+                }
+            }
+            unset($rClean);
         } catch (Exception $eN) {}
         
         // Obtener las notas internas más recientes

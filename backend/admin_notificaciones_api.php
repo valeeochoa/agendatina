@@ -53,6 +53,14 @@ if ($method === 'GET') {
                         AND (segmento LIKE '%Calendario%' OR segmento LIKE '%Agenda%' OR segmento LIKE '%Ajustes%' OR segmento LIKE '%Equipo%' OR segmento LIKE '%Editor%' OR segmento LIKE '%Servicios%')");
         } catch(Exception $eFixN) {}
 
+        // Auto-sincronización: Marcar leídas las notificaciones correspondientes a reportes ya resueltos o eliminados
+        try {
+            $pdo->exec("UPDATE notificaciones_admin na 
+                        INNER JOIN reportes_error r ON (na.id_reporte = r.id OR (na.mensaje IS NOT NULL AND na.mensaje != '' AND na.mensaje = r.descripcion)) 
+                        SET na.leida = 1 
+                        WHERE r.estado IN ('resuelto', 'eliminado') AND (na.leida = 0 OR na.leida IS NULL)");
+        } catch(Exception $eSync) {}
+
         $stmt = $pdo->query("
             SELECT n.id, n.id_reporte, n.segmento, n.mensaje, n.id_negocio, n.nombre_negocio, n.id_usuario, n.nombre_usuario, n.email_usuario, n.rol_usuario, n.fecha, n.leida, neg.nombre_fantasia, neg.ruta 
             FROM notificaciones_admin n
@@ -79,16 +87,34 @@ if ($method === 'GET') {
             if (empty($n['leida'])) $unreadTotal++;
         }
 
-        // 2. Reportes de Error pendientes
+        // 2. Reportes de Error pendientes reales en reportes_error
         $stmtRep = $pdo->query("SELECT COUNT(*) FROM reportes_error WHERE estado = 'pendiente' AND (tipo IS NULL OR tipo = '' OR tipo = 'Reporte de Error')");
         $repCount = (int)($stmtRep ? $stmtRep->fetchColumn() : 0);
         
-        $stmtNotifErr = $pdo->query("SELECT COUNT(*) FROM notificaciones_admin WHERE leida = 0 AND (segmento LIKE '%Error%' OR segmento LIKE '%Bug%') AND segmento NOT LIKE '%Nuevo Profesional%' AND segmento NOT LIKE '%Seguridad%' AND segmento NOT LIKE '%Enlace Web%'");
+        // Contar notificaciones de error no leídas sólo si el reporte subyacente no está resuelto ni eliminado
+        $stmtNotifErr = $pdo->query("
+            SELECT COUNT(*) 
+            FROM notificaciones_admin na
+            LEFT JOIN reportes_error r ON (na.id_reporte = r.id OR (na.mensaje IS NOT NULL AND na.mensaje != '' AND na.mensaje = r.descripcion))
+            WHERE (na.leida = 0 OR na.leida IS NULL) 
+              AND (na.segmento LIKE '%Error%' OR na.segmento LIKE '%Bug%' OR na.segmento LIKE '%Incidencia%') 
+              AND na.segmento NOT LIKE '%Nuevo Profesional%' 
+              AND na.segmento NOT LIKE '%Seguridad%' 
+              AND na.segmento NOT LIKE '%Enlace Web%'
+              AND (r.estado IS NULL OR r.estado = 'pendiente')
+        ");
         $notifErrCount = (int)($stmtNotifErr ? $stmtNotifErr->fetchColumn() : 0);
         $reportesCount = max($repCount, $notifErrCount);
 
         // 3. Sugerencias / Mejoras
-        $stmtMej = $pdo->query("SELECT COUNT(*) FROM notificaciones_admin WHERE leida = 0 AND (segmento LIKE '%Sugerencia%' OR segmento LIKE '%Mejora%')");
+        $stmtMej = $pdo->query("
+            SELECT COUNT(*) 
+            FROM notificaciones_admin na
+            LEFT JOIN reportes_error r ON (na.id_reporte = r.id OR (na.mensaje IS NOT NULL AND na.mensaje != '' AND na.mensaje = r.descripcion))
+            WHERE (na.leida = 0 OR na.leida IS NULL) 
+              AND (na.segmento LIKE '%Sugerencia%' OR na.segmento LIKE '%Mejora%')
+              AND (r.estado IS NULL OR r.estado = 'pendiente')
+        ");
         $mejorasCount = (int)($stmtMej ? $stmtMej->fetchColumn() : 0);
 
         // 4. Comprobantes de pago pendientes de revisión
@@ -125,15 +151,55 @@ if ($method === 'GET') {
 
     try {
         if ($action === 'mark_read' && $id > 0) {
+            // Obtener notificación para sincronizar reporte de error si corresponde
+            $stmtN = $pdo->prepare("SELECT id_reporte, mensaje FROM notificaciones_admin WHERE id = ?");
+            $stmtN->execute([$id]);
+            $notifData = $stmtN->fetch(PDO::FETCH_ASSOC);
+
             $stmt = $pdo->prepare("UPDATE notificaciones_admin SET leida = 1 WHERE id = ?");
             $stmt->execute([$id]);
+
+            if ($notifData) {
+                $idRep = (int)($notifData['id_reporte'] ?? 0);
+                $msg = trim($notifData['mensaje'] ?? '');
+                if ($idRep > 0) {
+                    $pdo->prepare("UPDATE reportes_error SET estado = 'resuelto', fecha_resuelto = NOW() WHERE id = ? AND estado = 'pendiente'")->execute([$idRep]);
+                } elseif (!empty($msg)) {
+                    $pdo->prepare("UPDATE reportes_error SET estado = 'resuelto', fecha_resuelto = NOW() WHERE descripcion = ? AND estado = 'pendiente'")->execute([$msg]);
+                }
+            }
+
             echo json_encode(['success' => true]);
 
         } elseif ($action === 'mark_all_read') {
             $pdo->exec("UPDATE notificaciones_admin SET leida = 1");
+            try {
+                $pdo->exec("UPDATE reportes_error SET estado = 'resuelto', fecha_resuelto = NOW() WHERE estado = 'pendiente'");
+            } catch(Exception $eS) {}
             echo json_encode(['success' => true]);
 
         } elseif ($action === 'delete' && $id > 0) {
+            // Sincronización: Al eliminar la notificación, también marcar como eliminado el reporte en reportes_error
+            $stmtN = $pdo->prepare("SELECT id_reporte, mensaje FROM notificaciones_admin WHERE id = ?");
+            $stmtN->execute([$id]);
+            $notifData = $stmtN->fetch(PDO::FETCH_ASSOC);
+
+            if ($notifData) {
+                $idRep = (int)($notifData['id_reporte'] ?? 0);
+                $msg = trim($notifData['mensaje'] ?? '');
+
+                try {
+                    $pdo->exec("ALTER TABLE reportes_error ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL");
+                } catch(Exception $eCol) {}
+
+                if ($idRep > 0) {
+                    $pdo->prepare("UPDATE reportes_error SET estado = 'eliminado', fecha_eliminado = NOW() WHERE id = ?")->execute([$idRep]);
+                }
+                if (!empty($msg)) {
+                    $pdo->prepare("UPDATE reportes_error SET estado = 'eliminado', fecha_eliminado = NOW() WHERE descripcion = ?")->execute([$msg]);
+                }
+            }
+
             $stmt = $pdo->prepare("DELETE FROM notificaciones_admin WHERE id = ?");
             $stmt->execute([$id]);
             echo json_encode(['success' => true]);
