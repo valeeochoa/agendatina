@@ -153,8 +153,16 @@ if ($method === 'GET') {
             FROM negocios n
             LEFT JOIN personal_negocio pn ON n.id = pn.id_negocio AND pn.rol_en_local = 'admin'
             LEFT JOIN usuarios u ON pn.id_usuario = u.id
-            LEFT JOIN configuracion_web cw ON n.id = cw.id_negocio
-            LEFT JOIN admin_notas an ON n.id = an.id_negocio
+            LEFT JOIN (
+                SELECT an1.id_negocio, an1.nota
+                FROM admin_notas an1
+                INNER JOIN (
+                    SELECT id_negocio, MAX(id) AS max_id
+                    FROM admin_notas
+                    WHERE (estado IS NULL OR estado != 'eliminado') AND nota IS NOT NULL AND TRIM(nota) != ''
+                    GROUP BY id_negocio
+                ) latest ON an1.id = latest.max_id
+            ) an ON n.id = an.id_negocio
             WHERE (n.ruta IS NULL OR n.ruta NOT LIKE 'demo%') 
               AND (u.email IS NULL OR u.email NOT LIKE 'demo%') 
               AND (n.nombre_fantasia IS NULL OR n.nombre_fantasia NOT LIKE '%Demo%')
@@ -647,12 +655,20 @@ elseif ($method === 'PUT') {
         $pdo->beginTransaction();
 
         if ($action === 'save_note') {
-            if ($nota_interna !== null) {
+            $notaText = trim($nota_interna ?? '');
+            if ($notaText !== '') {
+                // Insertar nueva nota en admin_notas garantizando soporte multi-nota
+                try {
+                    $pdo->exec("ALTER TABLE admin_notas ADD COLUMN estado VARCHAR(20) DEFAULT 'activo'");
+                } catch(Exception $exCol) {}
+                try {
+                    $pdo->exec("ALTER TABLE admin_notas ADD COLUMN fecha DATETIME DEFAULT CURRENT_TIMESTAMP");
+                } catch(Exception $exCol) {}
+
                 $stmt = $pdo->prepare(
-                    "INSERT INTO admin_notas (id_negocio, nota) VALUES (:id_negocio, :nota)
-                     ON DUPLICATE KEY UPDATE nota = :nota"
+                    "INSERT INTO admin_notas (id_negocio, nota, fecha, estado) VALUES (:id_negocio, :nota, NOW(), 'activo')"
                 );
-                $stmt->execute(['id_negocio' => $id_negocio, 'nota' => $nota_interna]);
+                $stmt->execute(['id_negocio' => $id_negocio, 'nota' => $notaText]);
             }
         } elseif ($action === 'edit_client') {
             $nombre_completo = trim($data['nombre_completo'] ?? '');

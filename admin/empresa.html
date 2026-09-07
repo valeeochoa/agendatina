@@ -670,6 +670,7 @@ function saveNotaInterna() {
     .then(data => {
         if (data.success) {
             alert('Nota guardada correctamente');
+            fetchEmpresaData();
         } else {
             alert(data.error || 'Error al guardar la nota');
         }

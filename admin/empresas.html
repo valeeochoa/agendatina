@@ -268,6 +268,9 @@
                                 <a href="empresa.html?id=${c.id}" class="px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm">
                                     <span class="material-symbols-outlined text-[14px]">visibility</span> Ficha
                                 </a>
+                                <button onclick="openNoteModal(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}', '${(c.nota_interna || '').replace(/'/g, "\\'").replace(/\r?\n/g, "\\n")}')" class="px-2.5 py-1.5 ${c.nota_interna ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-slate-100 text-slate-600 border border-slate-200'} hover:bg-purple-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-xs" title="Anotaciones privadas">
+                                    <span class="material-symbols-outlined text-[14px]">notes</span> ${c.nota_interna ? 'Nota' : '+ Nota'}
+                                </button>
                                 ${c.estado_pago === 'suspendido' ? `
                                     <button onclick="reactivarEmpresa(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm" title="Dar de alta / Reactivar cuenta">
                                         <span class="material-symbols-outlined text-[14px]">check_circle</span> Dar de Alta
@@ -406,11 +409,76 @@
             });
         }
 
+        function openNoteModal(id, name, noteText) {
+            document.getElementById('noteIdNegocio').value = id;
+            document.getElementById('noteModalBizName').textContent = 'Negocio: ' + name;
+            document.getElementById('noteText').value = noteText || '';
+            document.getElementById('noteModal').classList.remove('hidden');
+        }
+
+        function closeNoteModal() {
+            document.getElementById('noteModal').classList.add('hidden');
+        }
+
+        document.getElementById('noteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnNoteSubmit');
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+
+            const id_negocio = document.getElementById('noteIdNegocio').value;
+            const nota = document.getElementById('noteText').value;
+
+            fetch('../backend/admin_api.php', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'save_note', id_negocio: id_negocio, nota_interna: nota })
+            })
+            .then(r => r.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = orig;
+                if (data.success) {
+                    closeNoteModal();
+                    loadEmpresas();
+                } else {
+                    alert(data.error || 'Error al guardar la nota.');
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerHTML = orig;
+                alert('Error de conexión al guardar la nota.');
+            });
+        });
+
         function logoutAdmin() {
             fetch('../backend/admin_auth.php', { method: 'DELETE' })
                 .then(() => window.location.href = 'login.html');
         }
     </script>
+
+    <!-- MODAL NOTAS INTERNAS DEL SUPERADMIN -->
+    <div id="noteModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative">
+            <button onclick="closeNoteModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"><span class="material-symbols-outlined">close</span></button>
+            <h3 class="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[#d11149]">notes</span> Anotación Interna
+            </h3>
+            <p id="noteModalBizName" class="text-xs text-slate-500 mb-4 font-semibold"></p>
+            <form id="noteForm" class="space-y-4">
+                <input type="hidden" id="noteIdNegocio">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Observaciones / Detalles Privados</label>
+                    <textarea id="noteText" rows="5" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-sm outline-none focus:ring-2 focus:ring-[#d11149]" placeholder="Escribe aquí acuerdos, observaciones o detalles del cliente..."></textarea>
+                </div>
+                <button type="submit" id="btnNoteSubmit" class="w-full bg-[#d11149] hover:bg-[#f44979] text-white font-bold py-3.5 rounded-xl shadow-md transition-all text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">save</span> Guardar Nota Interna
+                </button>
+            </form>
+        </div>
+    </div>
     <script src="admin_nav.js?v=2"></script>
 </body>
 </html>
