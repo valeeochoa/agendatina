@@ -70,6 +70,17 @@
                                 <input type="text" id="regNegocio" required placeholder="Ej: Studio Barbería" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#d11149] outline-none transition-all">
                             </div>
 
+                            <div class="col-span-1 sm:col-span-2">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Enlace de tu Página Web / Agenda (URL) *</label>
+                                <div class="relative flex items-center">
+                                    <span class="absolute left-3 text-xs font-bold text-slate-400 select-none">agendatina.site/</span>
+                                    <input type="text" id="regRuta" name="ruta" required placeholder="tu-negocio" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-[115px] sm:pl-[125px] pr-10 py-3 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-[#d11149] outline-none transition-all">
+                                    <span id="regRutaCheckSpinner" class="hidden absolute right-3 material-symbols-outlined text-lg text-slate-400 animate-spin">refresh</span>
+                                    <span id="regRutaCheckIcon" class="hidden absolute right-3 material-symbols-outlined text-lg"></span>
+                                </div>
+                                <span id="regRutaFeedback" class="text-[11px] font-semibold mt-1 block text-slate-500">Esta será la dirección única donde tus clientes reservarán sus turnos.</span>
+                            </div>
+
                             <div>
                                 <label class="block text-xs font-semibold text-slate-700 mb-1.5">Correo Electrónico *</label>
                                 <input type="email" id="regEmail" required placeholder="tu@email.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#d11149] outline-none transition-all">
@@ -465,6 +476,7 @@
         const formData = new URLSearchParams({
             nombre_completo: document.getElementById('regNombre').value,
             nombre_fantasia: document.getElementById('regNegocio').value,
+            ruta: document.getElementById('regRuta').value,
             email: document.getElementById('regEmail').value,
             password: document.getElementById('regPassword').value,
             plan: selectedPlan,
@@ -798,6 +810,90 @@
             if (btnText) btnText.textContent = 'Mostrar Horarios Generales';
         }
     };
+
+    // Validación y autogeneración de URL / Ruta en tiempo real durante el registro
+    let regRutaManuallyEdited = false;
+    let regRutaTimer = null;
+
+    function slugifyText(text) {
+        return (text || '').toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const regNegocioInput = document.getElementById('regNegocio');
+        const regRutaInput = document.getElementById('regRuta');
+
+        if (regNegocioInput && regRutaInput) {
+            regNegocioInput.addEventListener('input', (e) => {
+                if (!regRutaManuallyEdited) {
+                    const slug = slugifyText(e.target.value);
+                    regRutaInput.value = slug;
+                    triggerCheckRegRuta(slug);
+                }
+            });
+
+            regRutaInput.addEventListener('input', (e) => {
+                regRutaManuallyEdited = true;
+                let val = slugifyText(e.target.value);
+                e.target.value = val;
+                triggerCheckRegRuta(val);
+            });
+        }
+    });
+
+    function triggerCheckRegRuta(val) {
+        const regRutaSpinner = document.getElementById('regRutaCheckSpinner');
+        const regRutaIcon = document.getElementById('regRutaCheckIcon');
+        const regRutaFb = document.getElementById('regRutaFeedback');
+
+        if (regRutaTimer) clearTimeout(regRutaTimer);
+        if (!val || val.length < 3) {
+            if (regRutaIcon) regRutaIcon.classList.add('hidden');
+            if (regRutaSpinner) regRutaSpinner.classList.add('hidden');
+            if (regRutaFb) {
+                regRutaFb.className = 'text-[11px] font-semibold mt-1 block text-amber-600';
+                regRutaFb.textContent = 'Mínimo 3 caracteres (solo letras, números y guiones)';
+            }
+            return;
+        }
+
+        if (regRutaSpinner) regRutaSpinner.classList.remove('hidden');
+        if (regRutaIcon) regRutaIcon.classList.add('hidden');
+
+        regRutaTimer = setTimeout(() => {
+            fetch(`backend/perfil.php?action=check_ruta_public&ruta=${encodeURIComponent(val)}`)
+                .then(r => r.json())
+                .then(res => {
+                    if (regRutaSpinner) regRutaSpinner.classList.add('hidden');
+                    if (regRutaIcon) regRutaIcon.classList.remove('hidden');
+                    if (res.available) {
+                        if (regRutaIcon) {
+                            regRutaIcon.textContent = 'check_circle';
+                            regRutaIcon.className = 'absolute right-3 material-symbols-outlined text-lg text-emerald-500';
+                        }
+                        if (regRutaFb) {
+                            regRutaFb.className = 'text-[11px] font-semibold mt-1 block text-emerald-600';
+                            regRutaFb.textContent = '✓ Dirección web disponible (agendatina.site/' + val + ')';
+                        }
+                    } else {
+                        if (regRutaIcon) {
+                            regRutaIcon.textContent = 'cancel';
+                            regRutaIcon.className = 'absolute right-3 material-symbols-outlined text-lg text-red-500';
+                        }
+                        if (regRutaFb) {
+                            regRutaFb.className = 'text-[11px] font-semibold mt-1 block text-red-600';
+                            regRutaFb.textContent = '✕ Esta dirección web ya está en uso por otro negocio';
+                        }
+                    }
+                })
+                .catch(() => {
+                    if (regRutaSpinner) regRutaSpinner.classList.add('hidden');
+                });
+        }, 350);
+    }
     </script>
 
 <!-- MODAL PERSONALIZAR HORARIOS POR DÍA EN REGISTRO -->

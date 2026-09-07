@@ -39,13 +39,13 @@
                 <span id="navBrandSeparator" class="text-slate-300 font-light text-lg hidden sm:inline">|</span>
                 <a href="dashboard.html" id="navAgendatinaBrand" class="flex items-center gap-2 tracking-tighter hover:opacity-90 transition-opacity">
                     <img src="public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
-                    <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
+                    <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149] hidden sm:inline">Agenda<span class="text-[#fc8712]">tina</span></span>
                 </a>
                 <span class="text-slate-300 font-light text-lg hidden sm:inline">|</span>
                 <div id="navBusinessNameHeader" class="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-2xl shadow-xs">
                     <img id="navBusinessLogoImg" src="" alt="Logo Negocio" class="hidden h-6 w-6 object-cover rounded-full border border-slate-300">
                     <span id="navBusinessIcon" class="material-symbols-outlined text-[18px] text-[#d11149]">storefront</span>
-                    <span id="navBusinessNameText" class="text-xs sm:text-sm font-extrabold text-slate-800">Mi Negocio</span>
+                    <span id="navBusinessNameText" class="text-xs sm:text-sm font-extrabold text-slate-800 truncate max-w-[110px] sm:max-w-xs">Mi Negocio</span>
                 </div>
             </div>
 
@@ -250,6 +250,18 @@
             
             <!-- Lateral: Suscripción y Estado de Pago (5 Columnas anchas) -->
             <div class="lg:col-span-5 space-y-6">
+                <!-- Banner de Alerta cuando el Plan está Vencido / Suspendido -->
+                <div id="planExpiredAlertBanner" class="hidden p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-2xl text-red-600 shrink-0">warning</span>
+                        <div>
+                            <h4 class="font-extrabold text-sm text-red-900">Plan Vencido / Impago</h4>
+                            <p class="text-xs text-red-700 mt-0.5" id="planExpiredAlertText">Tu suscripción ha finalizado. Renová tu plan para mantener activos todos tus servicios.</p>
+                        </div>
+                    </div>
+                    <a href="pago.html" class="bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm shrink-0">Renovar / Pagar</a>
+                </div>
+
                 <!-- Estado de Suscripción -->
                 <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-6 sm:p-8">
                     <h2 class="font-extrabold text-xl mb-6 border-b border-slate-100 pb-4 flex items-center gap-2.5 text-slate-800">
@@ -403,6 +415,7 @@
                     const negocioInput = document.getElementById('perfilNombreNegocio');
                     if (negocioInput) negocioInput.value = data.business.nombre_fantasia || '';
                     
+                    window.initialUserRuta = data.business.ruta || '';
                     const rutaInput = document.getElementById('perfilRuta');
                     if (rutaInput) {
                         rutaInput.value = data.business.ruta || '';
@@ -443,18 +456,23 @@
                     let cycleStart = data.business.ultimo_pago ? new Date(data.business.ultimo_pago.replace(/-/g, '/')) : fAlta;
                     let nextBilling = new Date(cycleStart);
                     nextBilling.setDate(nextBilling.getDate() + 30);
-                    document.getElementById('suscripcionVencimiento').textContent = nextBilling.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    const formattedVenc = nextBilling.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    document.getElementById('suscripcionVencimiento').textContent = formattedVenc;
                     
                     const compEl = document.getElementById('suscripcionComprobante');
                     const btnPago = document.getElementById('btnPagarSuscripcion');
+                    const expBanner = document.getElementById('planExpiredAlertBanner');
+                    const expText = document.getElementById('planExpiredAlertText');
                     
                     if(data.business.estado_pago === 'activo' || data.business.estado_pago === 'pagado') {
                         compEl.textContent = 'Aprobado (Al día)';
                         compEl.className = 'text-sm font-bold text-emerald-600';
                         if (btnPago) btnPago.classList.add('hidden');
+                        if (expBanner) expBanner.classList.add('hidden');
                     } else if (data.business.estado_pago === 'pendiente_revision') {
                         compEl.textContent = 'En revisión';
                         compEl.className = 'text-sm font-bold text-amber-600';
+                        if (expBanner) expBanner.classList.add('hidden');
                         if (btnPago) {
                             if (data.business.comprobante) {
                                 btnPago.innerHTML = '<span class="material-symbols-outlined text-[18px]">receipt_long</span> Ver Comprobante Enviado';
@@ -470,6 +488,10 @@
                     } else if (data.business.estado_pago === 'suspendido' || data.business.estado_pago === 'unpaid') {
                         compEl.textContent = 'Rechazado o Impago';
                         compEl.className = 'text-sm font-bold text-red-600';
+                        if (expBanner) {
+                            if (expText) expText.textContent = `Tu suscripción venció el ${formattedVenc}. Renová tu plan para reactivar el servicio.`;
+                            expBanner.classList.remove('hidden');
+                        }
                         if (btnPago) {
                             btnPago.innerHTML = '<span class="material-symbols-outlined text-[18px]">payments</span> Pagar o Subir Comprobante';
                             btnPago.href = 'pago.html';
@@ -564,14 +586,14 @@
                             .then(res => {
                                 if (rSpinner) rSpinner.classList.add('hidden');
                                 if (rIcon) rIcon.classList.remove('hidden');
-                                if (res.available) {
+                                if (res.available || res.is_own || (window.initialUserRuta && val === window.initialUserRuta.toLowerCase())) {
                                     if (rIcon) {
                                         rIcon.textContent = 'check_circle';
                                         rIcon.className = 'absolute right-3 material-symbols-outlined text-lg text-emerald-500';
                                     }
                                     if (rFb) {
                                         rFb.className = 'text-[11px] font-semibold mt-1 block text-emerald-600';
-                                        rFb.textContent = '✓ Enlace web disponible';
+                                        rFb.textContent = (res.is_own || (window.initialUserRuta && val === window.initialUserRuta.toLowerCase())) ? '✓ Tu dirección web actual' : '✓ Enlace web disponible';
                                     }
                                 } else {
                                     if (rIcon) {

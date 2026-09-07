@@ -72,15 +72,30 @@ try {
         }
     }
 
-    $baseRuta = slugify($nombre_fantasia);
-    $ruta = $baseRuta;
-    $count = 1;
-    while (true) {
-        $stmtRuta = $pdo->prepare("SELECT id FROM negocios WHERE ruta = :ruta LIMIT 1");
+    $rutaParam = trim($_POST['ruta'] ?? '');
+    if (!empty($rutaParam)) {
+        $ruta = preg_replace('/[^a-zA-Z0-9-]/', '', strtolower($rutaParam));
+        if (strlen($ruta) < 3) {
+            echo json_encode(['success' => false, 'error' => 'La dirección web debe contener al menos 3 caracteres (solo letras, números y guiones).']);
+            exit;
+        }
+        $stmtRuta = $pdo->prepare("SELECT id FROM negocios WHERE ruta = :ruta OR subdominio = :ruta LIMIT 1");
         $stmtRuta->execute(['ruta' => $ruta]);
-        if (!$stmtRuta->fetch()) break;
-        $ruta = $baseRuta . '-' . $count;
-        $count++;
+        if ($stmtRuta->fetch()) {
+            echo json_encode(['success' => false, 'error' => "La dirección web '$ruta' ya está en uso por otro negocio. Por favor elige otra."]);
+            exit;
+        }
+    } else {
+        $baseRuta = slugify($nombre_fantasia);
+        $ruta = $baseRuta;
+        $count = 1;
+        while (true) {
+            $stmtRuta = $pdo->prepare("SELECT id FROM negocios WHERE ruta = :ruta OR subdominio = :ruta LIMIT 1");
+            $stmtRuta->execute(['ruta' => $ruta]);
+            if (!$stmtRuta->fetch()) break;
+            $ruta = $baseRuta . '-' . $count;
+            $count++;
+        }
     }
 
     // 3. Obtener días de prueba por defecto configurados por el Super Admin

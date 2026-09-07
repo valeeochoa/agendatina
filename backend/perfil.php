@@ -43,6 +43,19 @@ try {
         }
     }
 
+    if (isset($_GET['action']) && $_GET['action'] === 'check_ruta_public') {
+        $rutaCheck = preg_replace('/[^a-zA-Z0-9-]/', '', strtolower(trim($_GET['ruta'] ?? '')));
+        if (empty($rutaCheck)) {
+            echo json_encode(['success' => true, 'available' => false, 'reason' => 'Vacio']);
+            exit;
+        }
+        $stmtCheck = $pdo->prepare("SELECT id FROM negocios WHERE (ruta = ? OR subdominio = ?)");
+        $stmtCheck->execute([$rutaCheck, $rutaCheck]);
+        $exists = $stmtCheck->fetch();
+        echo json_encode(['success' => true, 'available' => !$exists]);
+        exit;
+    }
+
     if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_negocio'])) {
         session_write_close();
         echo json_encode(['success' => false, 'error' => 'No autorizado. Inicia sesión.']);
@@ -62,7 +75,12 @@ try {
             $stmtCheck = $pdo->prepare("SELECT id FROM negocios WHERE (ruta = ? OR subdominio = ?) AND id != ?");
             $stmtCheck->execute([$rutaCheck, $rutaCheck, $id_negocio]);
             $exists = $stmtCheck->fetch();
-            echo json_encode(['success' => true, 'available' => !$exists]);
+
+            $stmtOwn = $pdo->prepare("SELECT id FROM negocios WHERE id = ? AND (ruta = ? OR subdominio = ?)");
+            $stmtOwn->execute([$id_negocio, $rutaCheck, $rutaCheck]);
+            $isOwn = (bool)$stmtOwn->fetch();
+
+            echo json_encode(['success' => true, 'available' => !$exists, 'is_own' => $isOwn]);
             exit;
         }
 

@@ -2250,7 +2250,7 @@ window.openReportErrorModal = function(segment) {
         const div = document.createElement('div');
         div.innerHTML = `
         <div id="reportErrorModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[99999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto opacity-0 transition-opacity duration-300">
-            <div class="bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl border border-slate-100 max-w-md w-full p-4 sm:p-6 md:p-8 transform scale-95 transition-transform duration-300 my-auto max-h-[90vh] overflow-y-auto" id="reportErrorModalContent">
+            <div class="bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-2xl border border-slate-100 max-w-md md:max-w-2xl lg:max-w-3xl w-full p-4 sm:p-6 md:p-8 transform scale-95 transition-transform duration-300 my-auto max-h-[90vh] overflow-y-auto" id="reportErrorModalContent">
                 <div class="flex justify-between items-center mb-5 border-b border-slate-100 pb-4">
                     <div class="flex items-center gap-2 text-red-600">
                         <span class="material-symbols-outlined text-2xl">bug_report</span>
@@ -2272,7 +2272,7 @@ window.openReportErrorModal = function(segment) {
                         
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Descripción de la Incidencia / Error *</label>
-                            <textarea id="reportMensaje" name="mensaje" rows="4" required class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium focus:ring-2 focus:ring-red-500 outline-none transition-all resize-none" placeholder="Explica detalladamente qué problema tuviste para que el equipo técnico pueda solucionarlo rápidamente..."></textarea>
+                            <textarea id="reportMensaje" name="mensaje" rows="5" required class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-medium focus:ring-2 focus:ring-red-500 outline-none transition-all resize-y min-h-[140px]" placeholder="Explica detalladamente qué problema tuviste para que el equipo técnico pueda solucionarlo rápidamente..."></textarea>
                         </div>
                     </div>
                     
