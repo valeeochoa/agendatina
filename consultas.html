@@ -149,8 +149,17 @@
         document.addEventListener('DOMContentLoaded', () => {
             fetch('backend/perfil.php')
                 .then(r => r.json())
-                .then(d => {})
-                .catch(() => {});
+                .then(d => {
+                    if (!d || !d.success) {
+                        const errReason = (d && d.error) ? d.error : 'Sin respuesta válida de sesión en consultas';
+                        console.error('⚠️ [Error de Carga - Consultas] No se pudo volver a cargar la información. Motivo:', errReason);
+                        window.location.href = 'login.html';
+                    }
+                })
+                .catch(err => {
+                    console.error('⚠️ [Error de Carga - Consultas] Desconexión de red o fallo al volver a cargar información:', err);
+                    window.location.href = 'login.html';
+                });
         });
     </script>
 </body>

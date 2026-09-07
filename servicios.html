@@ -230,9 +230,16 @@
                         currentOwnerName = (d.nombre_completo && d.nombre_completo !== 'Dueño Principal') ? d.nombre_completo : (d.nombre_fantasia || '');
                         loadServices();
                         loadTeam();
+                    } else {
+                        const errReason = (d && d.error) ? d.error : 'Sin respuesta válida de sesión en servicios';
+                        console.error('⚠️ [Error de Carga - Servicios] No se pudo volver a cargar la información. Motivo:', errReason);
+                        window.location.href = 'login.html';
                     }
                 })
-                .catch(() => {});
+                .catch(err => {
+                    console.error('⚠️ [Error de Carga - Servicios] Desconexión de red o fallo al volver a cargar información:', err);
+                    window.location.href = 'login.html';
+                });
         });
 
         function populateProfSelect(profs) {

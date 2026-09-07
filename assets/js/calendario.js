@@ -2965,6 +2965,9 @@ function checkAdminCalendarSession(config = null) {
         let isUserAdmin = false;
 
         if ((!data || !data.success) && !negocioSlug) {
+            const errReason = (data && data.error) ? data.error : 'Sin respuesta válida de sesión en calendario';
+            console.error('⚠️ [Error de Carga - Calendario] No se pudo volver a cargar la sesión del negocio. Motivo:', errReason);
+            window.location.href = 'login.html';
             return;
         }
 
@@ -3031,8 +3034,13 @@ function checkAdminCalendarSession(config = null) {
             if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
         }
     })
-    .catch(() => {
-        // En caso de error o sesión cerrada, ocultar marca Agendatina del header y botones de administración
+    .catch(err => {
+        if (!negocioSlug) {
+            console.error('⚠️ [Error de Carga - Calendario] Desconexión de red o fallo al volver a cargar información:', err);
+            window.location.href = 'login.html';
+            return;
+        }
+        // En caso de error o sesión cerrada en vista pública, ocultar marca Agendatina del header y botones de administración
         if (brand) { brand.classList.add('hidden'); brand.style.display = 'none'; }
         if (sep) { sep.classList.add('hidden'); sep.style.display = 'none'; }
         if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }

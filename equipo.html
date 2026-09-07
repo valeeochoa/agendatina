@@ -412,7 +412,15 @@
                         }
 
                         loadTeamAndServices();
+                    } else {
+                        const errReason = (d && d.error) ? d.error : 'Sin respuesta válida de sesión en equipo';
+                        console.error('⚠️ [Error de Carga - Equipo] No se pudo volver a cargar la información. Motivo:', errReason);
+                        window.location.href = 'login.html';
                     }
+                })
+                .catch(err => {
+                    console.error('⚠️ [Error de Carga - Equipo] Desconexión de red o fallo al volver a cargar información:', err);
+                    window.location.href = 'login.html';
                 });
         });
 

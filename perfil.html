@@ -328,6 +328,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             fetch('backend/perfil.php').then(r=>r.json()).then(data => {
                 if (!data || !data.success || !data.user) {
+                    const errReason = (data && data.error) ? data.error : 'Sin respuesta válida de sesión en perfil.php';
+                    console.error('⚠️ [Error de Carga - Perfil] No se pudo recuperar la información del perfil. Motivo:', errReason);
+                    window.location.href = 'login.html';
                     return;
                 }
                 let isStaff = false;
@@ -513,7 +516,9 @@
                             btnPago.classList.remove('hidden');
                         }
                     }
-                }
+            }).catch(err => {
+                console.error('⚠️ [Error de Carga - Perfil] Desconexión de red o fallo al volver a cargar información:', err);
+                window.location.href = 'login.html';
             });
             
             // Cargar datos de diseño (Web Config)

@@ -20,10 +20,16 @@ function cargarClientes() {
                 actualizarMetricas();
                 renderTablaAlumnos();
             } else {
-                if (typeof showToast === 'function') showToast(data.error || 'Error al cargar alumnos', 'error');
+                const errReason = data.error || 'No se pudieron cargar los datos de alumnos';
+                console.error('⚠️ [Error de Carga - Clientes/Alumnos] No se pudo volver a cargar la información. Motivo:', errReason);
+                if (errReason.toLowerCase().includes('inicia sesión') || errReason.toLowerCase().includes('autorizado') || errReason.toLowerCase().includes('sesión expirada')) {
+                    window.location.href = 'login.html';
+                } else if (typeof showToast === 'function') {
+                    showToast(errReason, 'error');
+                }
             }
         })
-        .catch(err => console.error('Error al obtener clientes:', err));
+        .catch(err => console.error('⚠️ [Error de Carga - Clientes/Alumnos] Desconexión de red o fallo al volver a cargar información:', err));
 }
 
 function verificarRestriccionPremium() {

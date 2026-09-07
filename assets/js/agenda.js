@@ -44,7 +44,8 @@ window.cargarAgenda = function(force = false) {
         .then(res => res.json())
         .then(data => {
             if (data && data.error) {
-                if (data.error.toLowerCase().includes('inicia sesión') || data.error.toLowerCase().includes('autorizado')) {
+                console.error('⚠️ [Error al cargar agenda] No se pudo volver a cargar la información. Motivo:', data.error);
+                if (data.error.toLowerCase().includes('inicia sesión') || data.error.toLowerCase().includes('autorizado') || data.error.toLowerCase().includes('sesión expirada')) {
                     window.location.href = 'login.html';
                 } else {
                     if(typeof window.showToast === 'function') window.showToast(data.error, 'error');
@@ -793,6 +794,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(r => r.json())
                 .then(d => {
                     if (!d || !d.success || !d.business) {
+                        const errReason = (d && d.error) ? d.error : 'Sin respuesta válida de sesión en agenda';
+                        console.error('⚠️ [Error de Carga - Agenda] No se pudo volver a cargar la sesión. Motivo:', errReason);
+                        window.location.href = 'login.html';
                         return;
                     }
                     const isDemo = d.success && d.user && d.user.email && d.user.email.includes('demo');
@@ -802,7 +806,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         sessionStorage.removeItem('is_demo_user');
                     }
-                }).catch(() => {});
+                }).catch(err => {
+                    console.error('⚠️ [Error de Carga - Agenda] Desconexión de red o fallo al volver a cargar información:', err);
+                    window.location.href = 'login.html';
+                });
         }
     }
 });

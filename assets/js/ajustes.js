@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json())
         .then(data => {
             if (!data || !data.success || !data.business) {
+                const errReason = (data && data.error) ? data.error : 'Sin respuesta válida de sesión en ajustes';
+                console.error('⚠️ [Error de Carga - Ajustes] No se pudo volver a cargar la información. Motivo:', errReason);
+                window.location.href = 'login.html';
                 return;
             }
             if (data && data.success && data.business) {
@@ -33,7 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
-        }).catch(() => {
+        }).catch((err) => {
+            console.error('⚠️ [Error de Carga - Ajustes] Desconexión de red o fallo al volver a cargar información:', err);
             if (sessionStorage.getItem('is_demo_user') === 'true' && !sessionStorage.getItem('demo_retry_attempted')) {
                 sessionStorage.setItem('demo_retry_attempted', 'true');
                 window.location.href = 'demo.php';

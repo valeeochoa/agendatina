@@ -105,6 +105,8 @@
                 }
                 fetch('backend/perfil.php').then(r=>r.json()).then(data => {
                     if (!data || !data.success || !data.business) {
+                        const errReason = (data && data.error) ? data.error : 'Sin respuesta válida de sesión en pago.html';
+                        console.error('⚠️ [Error de Carga - Pago] No se pudo volver a cargar la información. Motivo:', errReason);
                         window.location.href = 'login.html';
                         return;
                     }
@@ -162,7 +164,10 @@
                         document.getElementById('pagoPlanNombre').textContent = planNombreDisplay;
                         document.getElementById('pagoMonto').innerHTML = `$${finalPrice.toLocaleString('es-AR', {maximumFractionDigits:0})} <span class="text-xs text-slate-500 font-normal">${notaProrrateo}</span><br><span class="text-xs font-bold text-purple-700 block mt-1">Próximo Período: ${nextBillingStr}</span>`;
                     }
-                }).catch(() => {});
+                }).catch(err => {
+                    console.error('⚠️ [Error de Carga - Pago] Desconexión de red o fallo al volver a cargar información:', err);
+                    window.location.href = 'login.html';
+                });
             });
 
             document.getElementById('formComprobante').addEventListener('submit', (e) => {

@@ -9,10 +9,16 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(res => res.json())
         .then(data => {
             if (!data || !data.success || !data.business) {
+                const errReason = (data && data.error) ? data.error : 'Sin respuesta válida de sesión en estadísticas';
+                console.error('⚠️ [Error de Carga - Estadísticas] No se pudo volver a cargar la información. Motivo:', errReason);
+                window.location.href = 'login.html';
                 return;
             }
         })
-        .catch(() => {});
+        .catch(err => {
+            console.error('⚠️ [Error de Carga - Estadísticas] Desconexión de red o fallo al volver a cargar información:', err);
+            window.location.href = 'login.html';
+        });
     
     const fechaDesdeInput = document.getElementById('fechaDesde');
     const fechaHastaInput = document.getElementById('fechaHasta');
