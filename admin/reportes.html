@@ -85,9 +85,15 @@
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-500 mt-1">Revisa y gestiona las incidencias o fallas informadas por los usuarios de la plataforma.</p>
             </div>
-            <span id="totalReportesBadge" class="bg-red-50 text-[#d11149] border border-red-200 px-4 py-2 rounded-2xl text-xs font-bold self-start sm:self-auto">
-                Cargando...
-            </span>
+            <div class="flex items-center gap-3 flex-wrap">
+                <span id="totalReportesBadge" class="bg-red-50 text-[#d11149] border border-red-200 px-4 py-2.5 rounded-2xl text-xs font-bold">
+                    Cargando...
+                </span>
+                <button onclick="abrirModalResumenCopiar()" class="bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold px-4 py-2.5 rounded-2xl transition-all flex items-center gap-2 shadow-lg shadow-[#d11149]/20 text-xs sm:text-sm">
+                    <span class="material-symbols-outlined text-[18px]">content_copy</span>
+                    <span>Copiar Resumen Pendientes</span>
+                </button>
+            </div>
         </div>
 
         <!-- Buscador y Filtros -->
@@ -520,8 +526,139 @@
             fetch('../backend/admin_auth.php', { method: 'DELETE' })
                 .then(() => window.location.href = 'login.html');
         }
+
+        function abrirModalResumenCopiar() {
+            const errorReportesOnly = (reportesData || []).filter(r => {
+                const isMejora = (r.tipo && (r.tipo.includes('Mejora') || r.tipo.includes('Sugerencia'))) || 
+                                 (r.modulo && (r.modulo.startsWith('Sugerencia') || r.modulo.startsWith('Mejora')));
+                return !isMejora;
+            });
+
+            const pendientes = errorReportesOnly.filter(r => (r.estado || 'pendiente') === 'pendiente');
+
+            if (pendientes.length === 0) {
+                document.getElementById('txtResumenPendientes').value = "📌 RESUMEN DE REPORTES DE ERROR PENDIENTES\n==========================================\n¡No hay reportes de error pendientes registrados en este momento!";
+            } else {
+                let lines = [];
+                lines.push(`📌 RESUMEN DE REPORTES DE ERROR PENDIENTES (${pendientes.length} Pendientes)`);
+                lines.push(`================================================================`);
+                lines.push(``);
+
+                pendientes.forEach((r, idx) => {
+                    const f = new Date(r.fecha).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+                    
+                    let senderName = (r.nombre_usuario || '').trim();
+                    let senderEmail = (r.email_usuario || '').trim();
+
+                    if (!senderName || !senderEmail || senderName === 'Usuario Desconocido' || senderEmail === 'Sin email') {
+                        const msg = r.descripcion || '';
+                        const match = msg.match(/(?:registrado:\s*|de\s*|por\s*|^)([A-ZÁÉÍÓÚÑa-záéíóúñ\s]+)\s*\(([^@\s]+@[^@\s]+\.[^@\s\)]+)\)/i);
+                        if (match) {
+                            if (!senderName || senderName === 'Usuario Desconocido') senderName = match[1].trim();
+                            if (!senderEmail || senderEmail === 'Sin email') senderEmail = match[2].trim();
+                        } else {
+                            const emailMatch = msg.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+                            if (emailMatch && (!senderEmail || senderEmail === 'Sin email')) {
+                                senderEmail = emailMatch[1];
+                            }
+                        }
+                    }
+
+                    const modulo = r.modulo || 'General';
+                    const negocio = r.nombre_negocio || 'Sin Negocio';
+                    const idNegocio = r.id_negocio || '?';
+                    const desc = (r.descripcion || '').trim();
+
+                    lines.push(`${idx + 1}. [Segmento / Módulo: ${modulo}]`);
+                    lines.push(`   - Negocio: ${negocio} (ID: #${idNegocio})`);
+                    lines.push(`   - Emisor: ${senderName || 'Desconocido'} (${senderEmail || 'Sin email'})`);
+                    lines.push(`   - Fecha: ${f} hs`);
+                    lines.push(`   - Mensaje / Incidencia: ${desc}`);
+                    lines.push(``);
+                });
+
+                document.getElementById('txtResumenPendientes').value = lines.join('\n');
+            }
+
+            const modal = document.getElementById('modalResumenCopiar');
+            const content = document.getElementById('modalResumenCopiarContent');
+            const btnCopy = document.getElementById('btnCopiarResumenText');
+            btnCopy.innerHTML = '<span class="material-symbols-outlined text-[18px]">content_copy</span> Copiar al Portapapeles';
+            btnCopy.className = 'px-6 py-3 bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold rounded-2xl text-xs transition-all shadow-lg shadow-[#d11149]/20 flex items-center justify-center gap-1.5 flex-1';
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function cerrarModalResumenCopiar() {
+            const modal = document.getElementById('modalResumenCopiar');
+            const content = document.getElementById('modalResumenCopiarContent');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        function copiarTextoResumenAccion() {
+            const txt = document.getElementById('txtResumenPendientes');
+            txt.select();
+            txt.setSelectionRange(0, 99999);
+
+            const btn = document.getElementById('btnCopiarResumenText');
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(txt.value).then(() => {
+                    btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> ¡Copiado al Portapapeles!';
+                    btn.className = 'px-6 py-3 bg-emerald-600 text-white font-extrabold rounded-2xl text-xs transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-1.5 flex-1';
+                }).catch(() => {
+                    document.execCommand('copy');
+                    btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> ¡Copiado al Portapapeles!';
+                    btn.className = 'px-6 py-3 bg-emerald-600 text-white font-extrabold rounded-2xl text-xs transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-1.5 flex-1';
+                });
+            } else {
+                document.execCommand('copy');
+                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> ¡Copiado al Portapapeles!';
+                btn.className = 'px-6 py-3 bg-emerald-600 text-white font-extrabold rounded-2xl text-xs transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-1.5 flex-1';
+            }
+        }
     </script>
     <script src="admin_nav.js?v=2"></script>
+
+    <!-- MODAL RESUMEN Y COPIADO DE PENDIENTES -->
+    <div id="modalResumenCopiar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="modalResumenCopiarContent" class="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative transform scale-95 transition-transform duration-300">
+            <button type="button" onclick="cerrarModalResumenCopiar()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+
+            <div class="mb-4">
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    <span class="material-symbols-outlined text-[#d11149] text-lg">description</span>
+                    <span>Resumen de Incidencias</span>
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-900">Resumen de Reportes Pendientes</h3>
+                <p class="text-xs text-slate-500 mt-1">Texto con el segmento y mensaje de cada reporte listo para copiar y enviar.</p>
+            </div>
+
+            <div class="mb-5">
+                <textarea id="txtResumenPendientes" rows="12" readonly class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-mono text-slate-800 outline-none focus:ring-2 focus:ring-[#d11149] leading-relaxed resize-none"></textarea>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="button" onclick="cerrarModalResumenCopiar()" class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-xs transition-all">Cerrar</button>
+                <button type="button" id="btnCopiarResumenText" onclick="copiarTextoResumenAccion()" class="px-6 py-3 bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold rounded-2xl text-xs transition-all shadow-lg shadow-[#d11149]/20 flex items-center justify-center gap-1.5 flex-1">
+                    <span class="material-symbols-outlined text-[18px]">content_copy</span> Copiar al Portapapeles
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL RESPONDER REPORTES / MEJORAS (SuperAdmin) -->
     <div id="modalResponderSuperAdmin" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div id="modalResponderSuperAdminContent" class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative transform scale-95 transition-transform duration-300">
