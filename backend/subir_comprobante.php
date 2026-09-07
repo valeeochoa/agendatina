@@ -8,6 +8,11 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_negocio'])) {
     exit;
 }
 
+if (isset($_SESSION['rol_en_local']) && $_SESSION['rol_en_local'] === 'profesional') {
+    echo json_encode(['success' => false, 'error' => 'Solo el administrador o dueño del negocio puede subir comprobantes de pago.']);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_FILES['comprobante'])) {
     echo json_encode(['success' => false, 'error' => 'No se recibió ningún archivo.']);
     exit;

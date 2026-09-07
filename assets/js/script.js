@@ -1173,29 +1173,31 @@ function checkSubscription(subscriptionData) {
     let isDashboardBannerHidden = true;
     let dashBannerClass = '';
     let dashIcon = '';
-    let dashMsg = '';
-    let dashBtnText = '';
-    let dashBtnClass = '';
-    let showActionBtn = false;
-    
-    let priceStr = subscriptionData.priceFormatted ? ` <strong>$${subscriptionData.priceFormatted}</strong>` : '';
+    let dashMs    const isProf = (window.currentUserRole === 'profesional') || 
+                   (window.currentUserData && (window.currentUserData.rol === 'profesional' || window.currentUserData.rol_en_local === 'profesional'));
+
+    let priceStr = (!isProf && subscriptionData.priceFormatted) ? ` <strong>$${subscriptionData.priceFormatted}</strong>` : '';
 
     if (subscriptionData.status === 'prueba') {
         if (diffToCycleEnd > 0) {
             isDashboardBannerHidden = false;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-blue-50 border border-blue-200 text-blue-800';
             dashIcon = 'schedule';
-            dashMsg = `Estás en tu período de prueba. Te quedan <strong>${diffToCycleEnd} días</strong> de acceso gratuito. Tu próximo período de facturación inicia el <strong>${nextBillingStr}</strong> (Abonarás tu primer mes${priceStr}). <em>Nota: Los aumentos de tarifa se aplican a partir de tu siguiente ciclo de facturación.</em>`;
+            dashMsg = isProf ? 
+                `Estás en tu período de prueba. Te quedan <strong>${diffToCycleEnd} días</strong> de acceso gratuito.` : 
+                `Estás en tu período de prueba. Te quedan <strong>${diffToCycleEnd} días</strong> de acceso gratuito. Tu próximo período de facturación inicia el <strong>${nextBillingStr}</strong> (Abonarás tu primer mes${priceStr}). <em>Nota: Los aumentos de tarifa se aplican a partir de tu siguiente ciclo de facturación.</em>`;
             showActionBtn = false; // El botón de pago no estará habilitado durante la prueba gratuita
         } else {
             subscriptionData.status = 'suspendido';
             isDashboardBannerHidden = false;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-red-50 border border-red-200 text-red-800';
             dashIcon = 'error';
-            dashMsg = `Tu período de prueba ha finalizado. Debes abonar tu primer mes${priceStr} para reactivar el servicio. El nuevo ciclo de 30 días correrá a partir de que el pago sea aprobado.`;
+            dashMsg = isProf ?
+                'La cuenta del negocio se encuentra suspendida por falta de pago. Por favor, comunícate con el administrador o dueño del negocio para que realice el pago o abonado de la cuenta.' :
+                `Tu período de prueba ha finalizado. Debes abonar tu primer mes${priceStr} para reactivar el servicio. El nuevo ciclo de 30 días correrá a partir de que el pago sea aprobado.`;
             dashBtnText = 'Pagar Plan';
             dashBtnClass = 'bg-red-600 hover:bg-red-700 text-white';
-            showActionBtn = true;
+            showActionBtn = !isProf;
         }
     } else if (subscriptionData.status === 'beta') {
         if (diffToCycleEnd > 0) {
@@ -1208,10 +1210,12 @@ function checkSubscription(subscriptionData) {
             isDashboardBannerHidden = false;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-amber-50 border border-amber-200 text-amber-800';
             dashIcon = 'warning';
-            dashMsg = `Tu periodo beta ha finalizado. Tienes <strong>${diffToDeadline} días de gracia</strong> para abonar tu primer mes${priceStr} antes de que se suspenda el servicio.`;
+            dashMsg = isProf ?
+                `Tu periodo beta ha finalizado. La cuenta registra días de gracia antes de ser suspendida.` :
+                `Tu periodo beta ha finalizado. Tienes <strong>${diffToDeadline} días de gracia</strong> para abonar tu primer mes${priceStr} antes de que se suspenda el servicio.`;
             dashBtnText = 'Pagar ahora';
             dashBtnClass = 'bg-amber-500 hover:bg-amber-600 text-white';
-            showActionBtn = true;
+            showActionBtn = !isProf;
         } else {
             subscriptionData.status = 'suspendido';
         }
@@ -1226,10 +1230,12 @@ function checkSubscription(subscriptionData) {
             isDashboardBannerHidden = false;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-amber-50 border border-amber-200 text-amber-800';
             dashIcon = 'warning';
-            dashMsg = `Tu mes de servicio ha finalizado. Tienes <strong>${diffToDeadline} días de gracia</strong> para renovar tu suscripción${priceStr} y evitar interrupciones.`;
+            dashMsg = isProf ?
+                `El mes de servicio del negocio ha finalizado.` :
+                `Tu mes de servicio ha finalizado. Tienes <strong>${diffToDeadline} días de gracia</strong> para renovar tu suscripción${priceStr} y evitar interrupciones.`;
             dashBtnText = 'Renovar Plan';
             dashBtnClass = 'bg-amber-500 hover:bg-amber-600 text-white';
-            showActionBtn = true;
+            showActionBtn = !isProf;
         } else {
             subscriptionData.status = 'suspendido';
         }
@@ -1237,20 +1243,24 @@ function checkSubscription(subscriptionData) {
         isDashboardBannerHidden = false;
         dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-amber-50 border border-amber-200 text-amber-800';
         dashIcon = 'hourglass_empty';
-        dashMsg = 'Tu pago está en revisión. Pronto actualizaremos tu estado.';
+        dashMsg = 'El pago del negocio está en revisión. Pronto actualizaremos el estado del servicio.';
         dashBtnText = 'Ver comprobantes';
         dashBtnClass = 'bg-amber-500 hover:bg-amber-600 text-white';
-        showActionBtn = true;
+        showActionBtn = !isProf;
     }
 
     // Estado Impago / Suspendido
     if (subscriptionData.status === 'suspendido' || subscriptionData.status === 'unpaid') {
-        if (!dashMsg) {
-            isDashboardBannerHidden = false;
-            dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-red-50 border border-red-200 text-red-800';
-            dashIcon = 'error';
-            dashMsg = `Tu último comprobante fue rechazado o tu cuenta registra un saldo pendiente. Aboná${priceStr} para reactivar el servicio.`;
-            dashBtnText = 'Pagar Plan';
+        isDashboardBannerHidden = false;
+        dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-red-50 border border-red-200 text-red-800';
+        dashIcon = 'error';
+        dashMsg = isProf ?
+            'La cuenta del negocio se encuentra suspendida por falta de pago. Por favor, comunícate con el administrador o dueño del negocio para que realice el pago o abonado de la cuenta.' :
+            `Tu último comprobante fue rechazado o tu cuenta registra un saldo pendiente. Aboná${priceStr} para reactivar el servicio.`;
+        dashBtnText = 'Pagar Plan';
+        dashBtnClass = 'bg-red-600 hover:bg-red-700 text-white';
+        showActionBtn = !isProf;
+    }an';
             dashBtnClass = 'bg-red-600 hover:bg-red-700 text-white';
             showActionBtn = true;
         }
@@ -2961,6 +2971,13 @@ function closeWebModal() {
 }
 
 function showSuspendedAccountModal(message) {
+    const isProf = (window.currentUserRole === 'profesional') || 
+                   (window.currentUserData && (window.currentUserData.rol === 'profesional' || window.currentUserData.rol_en_local === 'profesional'));
+
+    const displayMsg = isProf ?
+        'La cuenta del negocio se encuentra suspendida por falta de pago. Por favor, comunícate con el administrador o dueño del negocio para que realice el pago o abonado de la cuenta.' :
+        (message || 'Tu cuenta está suspendida por falta de pago. Serás redirigido al panel de control para regularizar tu situación.');
+
     let modal = document.getElementById('suspendedAccountModal');
     if (!modal) {
         modal = document.createElement('div');
@@ -2972,7 +2989,7 @@ function showSuspendedAccountModal(message) {
                     <span class="material-symbols-outlined text-3xl">block</span>
                 </div>
                 <h3 class="text-xl font-extrabold text-slate-800 mb-2">Cuenta Suspendida</h3>
-                <p class="text-sm text-slate-600 font-medium mb-6">${message || 'Tu cuenta está suspendida por falta de pago. Serás redirigido al panel de control para regularizar tu situación.'}</p>
+                <p id="suspendedAccountModalMsg" class="text-sm text-slate-600 font-medium mb-6">${displayMsg}</p>
                 <button onclick="window.location.href='dashboard.html'" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3.5 px-6 rounded-2xl transition-all shadow-lg shadow-red-500/20 active:scale-95">
                     Ir al Panel de Control
                 </button>
@@ -2980,6 +2997,8 @@ function showSuspendedAccountModal(message) {
         `;
         document.body.appendChild(modal);
     } else {
+        const msgEl = document.getElementById('suspendedAccountModalMsg') || modal.querySelector('p');
+        if (msgEl) msgEl.textContent = displayMsg;
         modal.classList.remove('hidden');
     }
 }
