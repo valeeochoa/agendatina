@@ -45,13 +45,14 @@ try {
 
     if (isset($_GET['action']) && $_GET['action'] === 'check_ruta_public') {
         $rutaCheck = preg_replace('/[^a-zA-Z0-9-]/', '', strtolower(trim($_GET['ruta'] ?? '')));
-        if (empty($rutaCheck)) {
-            echo json_encode(['success' => true, 'available' => false, 'reason' => 'Vacio']);
+        $rutaCheck = trim($rutaCheck, '-');
+        if (empty($rutaCheck) || strlen($rutaCheck) < 3) {
+            echo json_encode(['success' => true, 'available' => false, 'reason' => 'Mínimo 3 caracteres']);
             exit;
         }
-        $stmtCheck = $pdo->prepare("SELECT id FROM negocios WHERE (ruta = ? OR subdominio = ?)");
+        $stmtCheck = $pdo->prepare("SELECT id FROM negocios WHERE LOWER(TRIM(ruta)) = ? OR (subdominio IS NOT NULL AND subdominio != '' AND LOWER(TRIM(subdominio)) = ?) LIMIT 1");
         $stmtCheck->execute([$rutaCheck, $rutaCheck]);
-        $exists = $stmtCheck->fetch();
+        $exists = (bool)$stmtCheck->fetch();
         echo json_encode(['success' => true, 'available' => !$exists]);
         exit;
     }

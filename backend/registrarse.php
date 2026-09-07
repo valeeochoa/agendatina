@@ -75,11 +75,12 @@ try {
     $rutaParam = trim($_POST['ruta'] ?? '');
     if (!empty($rutaParam)) {
         $ruta = preg_replace('/[^a-zA-Z0-9-]/', '', strtolower($rutaParam));
+        $ruta = trim($ruta, '-');
         if (strlen($ruta) < 3) {
             echo json_encode(['success' => false, 'error' => 'La dirección web debe contener al menos 3 caracteres (solo letras, números y guiones).']);
             exit;
         }
-        $stmtRuta = $pdo->prepare("SELECT id FROM negocios WHERE ruta = :ruta OR subdominio = :ruta LIMIT 1");
+        $stmtRuta = $pdo->prepare("SELECT id FROM negocios WHERE LOWER(TRIM(ruta)) = :ruta OR (subdominio IS NOT NULL AND subdominio != '' AND LOWER(TRIM(subdominio)) = :ruta) LIMIT 1");
         $stmtRuta->execute(['ruta' => $ruta]);
         if ($stmtRuta->fetch()) {
             echo json_encode(['success' => false, 'error' => "La dirección web '$ruta' ya está en uso por otro negocio. Por favor elige otra."]);
@@ -90,7 +91,7 @@ try {
         $ruta = $baseRuta;
         $count = 1;
         while (true) {
-            $stmtRuta = $pdo->prepare("SELECT id FROM negocios WHERE ruta = :ruta OR subdominio = :ruta LIMIT 1");
+            $stmtRuta = $pdo->prepare("SELECT id FROM negocios WHERE LOWER(TRIM(ruta)) = :ruta OR (subdominio IS NOT NULL AND subdominio != '' AND LOWER(TRIM(subdominio)) = :ruta) LIMIT 1");
             $stmtRuta->execute(['ruta' => $ruta]);
             if (!$stmtRuta->fetch()) break;
             $ruta = $baseRuta . '-' . $count;

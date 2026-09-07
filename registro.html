@@ -179,30 +179,30 @@
 
                         <div class="space-y-4">
                             <div id="regGeneralScheduleBox" class="space-y-4 transition-all duration-300">
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                    <div class="min-w-0">
                                         <label class="block text-xs font-semibold text-slate-700 mb-1.5">Hora de Apertura *</label>
-                                        <input type="time" id="regHoraApertura" value="09:00" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
+                                        <input type="time" id="regHoraApertura" value="09:00" required class="w-full max-w-full box-border min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
                                     </div>
-                                    <div>
+                                    <div class="min-w-0">
                                         <label class="block text-xs font-semibold text-slate-700 mb-1.5">Hora de Cierre *</label>
-                                        <input type="time" id="regHoraCierre" value="19:00" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
+                                        <input type="time" id="regHoraCierre" value="19:00" required class="w-full max-w-full box-border min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-3 sm:px-4 py-2.5 text-xs sm:text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
                                     </div>
                                 </div>
 
                                 <!-- Horarios de Descanso (Opcional) -->
-                                <div class="bg-amber-50/50 p-4 rounded-2xl border border-amber-200/60">
+                                <div class="bg-amber-50/50 p-3.5 sm:p-4 rounded-2xl border border-amber-200/60 min-w-0">
                                     <label class="block text-xs font-bold text-amber-800 mb-2 flex items-center gap-1.5">
                                         <span class="material-symbols-outlined text-[18px] text-amber-600">coffee</span> Horario de Descanso (Opcional)
                                     </label>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                        <div class="min-w-0">
                                             <label class="block text-xs font-semibold text-slate-600 mb-1">Inicio Descanso</label>
-                                            <input type="time" id="regHoraDescansoInicio" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                                            <input type="time" id="regHoraDescansoInicio" class="w-full max-w-full box-border min-w-0 bg-white border border-slate-200 rounded-xl px-3 sm:px-4 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500 outline-none">
                                         </div>
-                                        <div>
+                                        <div class="min-w-0">
                                             <label class="block text-xs font-semibold text-slate-600 mb-1">Fin Descanso</label>
-                                            <input type="time" id="regHoraDescansoFin" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none">
+                                            <input type="time" id="regHoraDescansoFin" class="w-full max-w-full box-border min-w-0 bg-white border border-slate-200 rounded-xl px-3 sm:px-4 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500 outline-none">
                                         </div>
                                     </div>
                                 </div>
@@ -834,6 +834,13 @@
             .replace(/^-+|-+$/g, '');
     }
 
+    function formatRutaInput(text) {
+        return (text || '').toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9-]/g, '')
+            .replace(/-+/g, '-');
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         const regNegocioInput = document.getElementById('regNegocio');
         const regRutaInput = document.getElementById('regRuta');
@@ -849,7 +856,7 @@
 
             regRutaInput.addEventListener('input', (e) => {
                 regRutaManuallyEdited = true;
-                let val = slugifyText(e.target.value);
+                let val = formatRutaInput(e.target.value);
                 e.target.value = val;
                 triggerCheckRegRuta(val);
             });
@@ -861,8 +868,10 @@
         const regRutaIcon = document.getElementById('regRutaCheckIcon');
         const regRutaFb = document.getElementById('regRutaFeedback');
 
+        const cleanVal = (val || '').replace(/^-+|-+$/g, '');
+
         if (regRutaTimer) clearTimeout(regRutaTimer);
-        if (!val || val.length < 3) {
+        if (!cleanVal || cleanVal.length < 3) {
             if (regRutaIcon) regRutaIcon.classList.add('hidden');
             if (regRutaSpinner) regRutaSpinner.classList.add('hidden');
             if (regRutaFb) {
@@ -876,7 +885,7 @@
         if (regRutaIcon) regRutaIcon.classList.add('hidden');
 
         regRutaTimer = setTimeout(() => {
-            fetch(`backend/perfil.php?action=check_ruta_public&ruta=${encodeURIComponent(val)}`)
+            fetch(`backend/perfil.php?action=check_ruta_public&ruta=${encodeURIComponent(cleanVal)}`)
                 .then(r => r.json())
                 .then(res => {
                     if (regRutaSpinner) regRutaSpinner.classList.add('hidden');
@@ -888,7 +897,7 @@
                         }
                         if (regRutaFb) {
                             regRutaFb.className = 'text-[11px] font-semibold mt-1 block text-emerald-600';
-                            regRutaFb.textContent = '✓ Dirección web disponible (agendatina.site/' + val + ')';
+                            regRutaFb.textContent = '✓ Dirección web disponible (agendatina.site/' + cleanVal + ')';
                         }
                     } else {
                         if (regRutaIcon) {
