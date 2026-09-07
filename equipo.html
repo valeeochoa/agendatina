@@ -365,6 +365,20 @@
         </div>
     </div>
 
+    <!-- MODAL DE CONFIRMACIÓN DE ÉXITO DE ACCIONES -->
+    <div id="successNoticeModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl relative text-center animate-modal-pop">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-4 border border-emerald-100">
+                <span class="material-symbols-outlined text-3xl">check_circle</span>
+            </div>
+            <h3 id="successNoticeTitle" class="text-lg font-extrabold text-slate-900 mb-2">¡Cambios Guardados!</h3>
+            <p id="successNoticeMessage" class="text-xs sm:text-sm text-slate-600 mb-6 leading-relaxed"></p>
+            <button onclick="closeSuccessNoticeModal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-2xl text-xs sm:text-sm transition-all shadow-md shadow-emerald-600/20 cursor-pointer">
+                Entendido
+            </button>
+        </div>
+    </div>
+
     <script>
         let teamList = [];
         let servicesList = [];
@@ -663,6 +677,24 @@
             document.getElementById('errorModal').classList.add('hidden');
         }
 
+        function showSuccessModal(msg, title = '¡Cambios Guardados!') {
+            const modal = document.getElementById('successNoticeModal');
+            const msgEl = document.getElementById('successNoticeMessage');
+            const titleEl = document.getElementById('successNoticeTitle');
+            if (msgEl) msgEl.textContent = msg;
+            if (titleEl) titleEl.textContent = title;
+            if (modal) modal.classList.remove('hidden');
+
+            if (typeof window.showToast === 'function') {
+                window.showToast(msg, 'success');
+            }
+        }
+
+        function closeSuccessNoticeModal() {
+            const modal = document.getElementById('successNoticeModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
         function openEditProfeshInfoModal(userId) {
             const p = teamList.find(item => item.id == userId);
             if (!p) return;
@@ -721,8 +753,7 @@
                 if (d.success) {
                     closeEditProfeshInfoModal();
                     loadTeamAndServices();
-                    if (typeof showToast === 'function') showToast('¡Datos del profesional actualizados con éxito!', 'success');
-                    else showErrorModal('¡Datos del profesional actualizados con éxito!');
+                    showSuccessModal('¡Los datos del profesional se actualizaron con éxito!', '¡Cambios Guardados!');
                 } else {
                     showErrorModal(d.error || 'Ocurrió un error al guardar los datos.');
                 }
@@ -803,7 +834,7 @@
                 if (d.success) {
                     closePermisosModal();
                     loadTeamAndServices();
-                    showErrorModal('¡Permisos actualizados con éxito para el profesional!');
+                    showSuccessModal('¡Los permisos de acceso del profesional fueron actualizados con éxito!', '¡Permisos Actualizados!');
                 } else {
                     showErrorModal(d.error || 'Ocurrió un error al guardar los permisos.');
                 }
@@ -834,6 +865,7 @@
                 closeDeleteTeamModal();
                 if (d.success) {
                     loadTeamAndServices();
+                    showSuccessModal('El acceso del profesional fue revocado correctamente.', '¡Acceso Revocado!');
                 } else {
                     showErrorModal(d.error || 'Error al revocar el acceso.');
                 }
@@ -864,6 +896,7 @@
                     if (d.success) {
                         closeTeamModal();
                         loadTeamAndServices();
+                        showSuccessModal('¡La cuenta del profesional fue registrada exitosamente!', '¡Profesional Registrado!');
                     } else {
                         closeTeamModal();
                         showErrorModal(d.error || 'Error al crear la cuenta.');
