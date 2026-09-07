@@ -130,3 +130,12 @@ Este documento registra las nuevas características, mejoras planificadas y soli
 
   > [!TIP]
   > **Recomendación de Implementación**: La **Opción A** es la más recomendada para incentivar a los clientes a migrar directamente hacia el **Plan Premium**, aumentando el valor percibido del software y simplificando la decisión de compra en `index.html`.
+
+---
+
+## 📅 Modificación de la Visualización del Calendario de un Negocio desde el Portal del Alumno
+
+- **Descripción**: Permitir adaptar y personalizar la vista o visualización del calendario del negocio al ser desplegado de forma integrada dentro del recuadro del Portal de Alumnos (`mi-cuenta.html`).
+- **Puntos Clave**:
+  - Habilitar modos de presentación condensados y filtros específicos de clases para los alumnos dentro de `mi-cuenta.html`.
+  - Sincronización automática de preferencias visuales definidas por el administrador del establecimiento.

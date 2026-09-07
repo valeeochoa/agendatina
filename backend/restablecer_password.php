@@ -23,25 +23,51 @@ if (strlen($password) < 6 || strlen($password) > 14) {
 require_once __DIR__ . '/conexion.php';
 
 try {
-    // Verificar que el token exista y no haya expirado
-    $stmt = $pdo->prepare("SELECT id, email FROM usuarios WHERE reset_token = :token AND reset_token_expire > NOW() LIMIT 1");
-    $stmt->execute(['token' => $token]);
-    $user = $stmt->fetch();
+    $hash = password_hash($password, PASSWORD_DEFAULT);
 
-    if (!$user) {
-        echo json_encode(['success' => false, 'error' => 'El enlace ha expirado o no es válido. Por favor, solicita uno nuevo.']);
+    // 1. Verificar primero si el token pertenece a un alumno/cliente (en clientes_negocio)
+    try {
+        $stmtClient = $pdo->prepare("SELECT id, email FROM clientes_negocio WHERE reset_token = :token AND reset_token_expire > NOW() LIMIT 1");
+        $stmtClient->execute(['token' => $token]);
+        $client = $stmtClient->fetch();
+
+        if ($client) {
+            $updateClient = $pdo->prepare("UPDATE clientes_negocio SET password = :pass, reset_token = NULL, reset_token_expire = NULL WHERE LOWER(TRIM(email)) = :email");
+            $updateClient->execute(['pass' => $hash, 'email' => strtolower(trim($client['email']))]);
+
+            echo json_encode([
+                'success' => true, 
+                'user_type' => 'cliente', 
+                'redirect' => 'mi-cuenta.html', 
+                'message' => '¡Contraseña del Portal de Alumno actualizada con éxito! Redirigiendo...'
+            ]);
+            exit;
+        }
+    } catch (Exception $eClient) {}
+
+    // 2. Si no es un cliente, verificar si pertenece a un usuario/comercio (en usuarios)
+    $stmtUser = $pdo->prepare("SELECT id, email FROM usuarios WHERE reset_token = :token AND reset_token_expire > NOW() LIMIT 1");
+    $stmtUser->execute(['token' => $token]);
+    $user = $stmtUser->fetch();
+
+    if ($user) {
+        try { $pdo->exec("ALTER TABLE usuarios MODIFY password VARCHAR(255)"); } catch(Exception $e) {}
+
+        $updateUser = $pdo->prepare("UPDATE usuarios SET password = :pass, reset_token = NULL, reset_token_expire = NULL WHERE LOWER(TRIM(email)) = :email");
+        $updateUser->execute(['pass' => $hash, 'email' => strtolower(trim($user['email']))]);
+
+        echo json_encode([
+            'success' => true, 
+            'user_type' => 'usuario', 
+            'redirect' => 'login.html', 
+            'message' => '¡Contraseña restablecida con éxito! Redirigiendo al inicio de sesión...'
+        ]);
         exit;
     }
-    
-    // Asegurar que la columna tenga suficiente tamaño para el hash (60 chars)
-    try { $pdo->exec("ALTER TABLE usuarios MODIFY password VARCHAR(255)"); } catch(Exception $e) {}
 
-    $hash = password_hash($password, PASSWORD_DEFAULT);
-    // Actualizamos TODOS los registros con el mismo email para evitar que el login use una clave vieja de cuentas clonadas
-    $update = $pdo->prepare("UPDATE usuarios SET password = :pass, reset_token = NULL, reset_token_expire = NULL WHERE email = :email");
-    $update->execute(['pass' => $hash, 'email' => $user['email']]);
+    echo json_encode(['success' => false, 'error' => 'El enlace ha expirado (validez de 10 minutos) o no es válido. Por favor solicita uno nuevo.']);
+    exit;
 
-    echo json_encode(['success' => true]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => 'Error del servidor al restablecer contraseña.']);
 }
