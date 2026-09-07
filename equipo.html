@@ -395,6 +395,8 @@
                                        (d.business && (d.business.ruta === 'demo' || d.business.is_demo === true)) ||
                                        sessionStorage.getItem('is_demo_user') === 'true';
                         window.isDemoUser = isDemo;
+                        window.currentUserRole = (d.user && (d.user.rol || d.user.rol_en_local)) ? (d.user.rol || d.user.rol_en_local) : 'admin';
+                        window.currentUserId = (d.user && d.user.id) ? d.user.id : 0;
                         
                         const btnReportBug = document.getElementById('navReportBugBtn');
                         if (btnReportBug) {
@@ -599,6 +601,10 @@
         }
 
         function openTeamModal() {
+            if (window.currentUserRole && window.currentUserRole !== 'admin') {
+                showErrorModal('Opción no disponible: Solo el dueño o administrador del negocio puede registrar nuevos integrantes al equipo.');
+                return;
+            }
             document.getElementById('teamForm').reset();
             const isLimitReached = teamList.length >= currentLimit;
             const noticeEl = document.getElementById('teamLimitReachedNotice');
@@ -658,6 +664,10 @@
         }
 
         function confirmDeleteTeamMember(id, name) {
+            if (window.currentUserRole && window.currentUserRole !== 'admin') {
+                showErrorModal('Opción no disponible: Solo el dueño o administrador del negocio puede revocar cuentas de acceso.');
+                return;
+            }
             profIdToDelete = id;
             document.getElementById('deleteProfName').textContent = name ? `"${name}"` : '';
             document.getElementById('deleteTeamModal').classList.remove('hidden');
@@ -696,6 +706,10 @@
         }
 
         function openEditProfeshInfoModal(userId) {
+            if (window.currentUserRole && window.currentUserRole !== 'admin' && userId != window.currentUserId) {
+                showErrorModal('Opción no disponible: Solo el dueño o administrador del negocio puede modificar los datos de otros integrantes del equipo.');
+                return;
+            }
             const p = teamList.find(item => item.id == userId);
             if (!p) return;
 
@@ -766,6 +780,10 @@
         }
 
         function openPermisosModal(userId) {
+            if (window.currentUserRole && window.currentUserRole !== 'admin') {
+                showErrorModal('Opción no disponible: Solo el dueño o administrador del negocio puede gestionar los permisos del equipo.');
+                return;
+            }
             const p = teamList.find(item => item.id == userId);
             if (!p) return;
 

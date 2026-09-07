@@ -301,7 +301,7 @@ try {
         if (!empty($nombre_fantasia)) {
             $userRole = $_SESSION['rol_en_local'] ?? 'admin';
             if ($userRole !== 'admin' && (!isset($_SESSION['is_demo']) || $_SESSION['is_demo'] !== true)) {
-                throw new Exception("Solo el administrador del local puede modificar el nombre del negocio.");
+                throw new Exception("Opción no disponible: Solo el dueño o administrador del negocio puede modificar el nombre del comercio.");
             }
             $pdo->prepare("UPDATE negocios SET nombre_fantasia = ? WHERE id = ?")->execute([$nombre_fantasia, $id_negocio]);
         }
@@ -333,7 +333,7 @@ try {
         if (!empty($ruta)) {
             $userRole = $_SESSION['rol_en_local'] ?? 'admin';
             if ($userRole !== 'admin' && (!isset($_SESSION['is_demo']) || $_SESSION['is_demo'] !== true)) {
-                throw new Exception("Solo el administrador del local puede modificar la dirección de la página web.");
+                throw new Exception("Opción no disponible: Solo el dueño o administrador del negocio puede modificar la dirección web.");
             }
 
             // Comprobar si ya es su propia ruta registrada
