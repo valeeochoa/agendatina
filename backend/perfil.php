@@ -6,6 +6,15 @@ try {
     header('Content-Type: application/json; charset=utf-8');
     require_once __DIR__ . '/conexion.php';
 
+    // Auto-migración para garantizar la existencia de la columna subdominio
+    try { 
+        $pdo->query("SELECT subdominio FROM negocios LIMIT 1"); 
+    } catch(Throwable $eSub) { 
+        try { 
+            $pdo->exec("ALTER TABLE negocios ADD COLUMN subdominio VARCHAR(100) DEFAULT NULL"); 
+        } catch(Throwable $exSub) {} 
+    }
+
     // Verificación de sesión con auto-instanciación aislada para el entorno Demo
     if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_negocio'])) {
         $isDemoContext = (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || 

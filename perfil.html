@@ -330,6 +330,7 @@
                 if (!data || !data.success || !data.user) {
                     return;
                 }
+                let isStaff = false;
                 if(data.user) {
                     document.getElementById('perfilNombre').value = data.user.nombre_completo || '';
                     document.getElementById('perfilEmail').value = data.user.email || '';
@@ -399,7 +400,7 @@
                     // Restricción de Rol para Nombre del Negocio
                     const negocioInput = document.getElementById('perfilNombreNegocio');
                     const negocioHelp = document.getElementById('negocioNombreHelp');
-                    const isStaff = (data.user.rol === 'profesional' || data.user.rol === 'empleado');
+                    isStaff = (data.user.rol === 'profesional' || data.user.rol === 'empleado');
                     if (isStaff && negocioInput) {
                         negocioInput.disabled = true;
                         negocioInput.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');

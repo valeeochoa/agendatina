@@ -6,6 +6,14 @@ unset($_SESSION['demo_negocio_id']);
 unset($_SESSION['ruta_negocio']);
 require_once __DIR__ . '/conexion.php';
 
+try { 
+    $pdo->query("SELECT subdominio FROM negocios LIMIT 1"); 
+} catch(Throwable $eSub) { 
+    try { 
+        $pdo->exec("ALTER TABLE negocios ADD COLUMN subdominio VARCHAR(100) DEFAULT NULL"); 
+    } catch(Throwable $exSub) {} 
+}
+
 if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
     if (file_exists(__DIR__ . '/phpmailer/Exception.php')) @require_once __DIR__ . '/phpmailer/Exception.php';
     if (file_exists(__DIR__ . '/phpmailer/PHPMailer.php')) @require_once __DIR__ . '/phpmailer/PHPMailer.php';
