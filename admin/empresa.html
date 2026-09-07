@@ -17,7 +17,7 @@
         .font-brand { font-family: 'Fredoka', cursive, sans-serif !important; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col md:flex-row" style="display: none;">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col md:flex-row">
 
     <!-- Sidebar Menú Izquierdo (Fijo) -->
     <aside class="w-full md:w-64 bg-slate-900 text-white shrink-0 md:h-screen md:sticky md:top-0 flex flex-col justify-between p-4 sm:p-6 shadow-xl overflow-y-auto z-40">
@@ -380,13 +380,12 @@ let currentEmpresaData = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Verificar sesión Super Admin
-    fetch('../backend/admin_auth.php')
+    fetch('../backend/admin_auth.php?t=' + Date.now())
         .then(res => res.json())
         .then(data => {
             if (!data.logged_in) {
                 window.location.href = 'login.html';
             } else {
-                document.body.style.display = 'block';
                 loadEmpresaData();
             }
         })
@@ -404,14 +403,15 @@ function loadEmpresaData() {
         return;
     }
 
-    fetch('../backend/admin_api.php?action=get_clients')
+    fetch('../backend/admin_api.php?t=' + Date.now())
         .then(res => res.json())
         .then(data => {
-            if (!data.success || !data.data) {
+            const list = data.data || data.negocios || [];
+            if (!data.success || !Array.isArray(list)) {
                 showNotFound();
                 return;
             }
-            const client = data.data.find(c => c.id == currentEmpresaId);
+            const client = list.find(c => String(c.id) === String(currentEmpresaId));
             if (!client) {
                 showNotFound();
                 return;
@@ -431,10 +431,11 @@ function loadEmpresaData() {
 }
 
 function fetchComprobantesEmpresa() {
-    fetch(`../backend/comprobantes_api.php?id_negocio=${currentEmpresaId}`)
+    if (!currentEmpresaId) return;
+    fetch(`../backend/comprobantes_api.php?id_negocio=${currentEmpresaId}&t=${Date.now()}`)
         .then(res => res.json())
         .then(data => {
-            if (data.success && data.data) {
+            if (data.success && Array.isArray(data.data)) {
                 document.getElementById('empresaMetricComprobantes').textContent = data.data.length;
                 renderComprobantes(data.data);
             }
@@ -456,10 +457,15 @@ function renderEmpresaDetails(client) {
     document.getElementById('empresaId').textContent = 'ID: #' + client.id;
     document.getElementById('empresaNombre').textContent = client.nombre_fantasia || 'Sin Nombre';
 
-    const urlRuta = client.ruta || client.subdominio;
+    const urlRuta = client.ruta || client.subdominio || '';
     const linkEl = document.getElementById('empresaLink');
-    linkEl.href = '../calendarioMensual.html?n=' + urlRuta;
-    linkEl.innerHTML = `<span class="material-symbols-outlined text-[16px]">link</span> agendatina.site/${urlRuta}`;
+    if (urlRuta) {
+        linkEl.href = '../calendarioMensual.html?n=' + urlRuta;
+        linkEl.innerHTML = `<span class="material-symbols-outlined text-[16px]">link</span> agendatina.site/${urlRuta}`;
+    } else {
+        linkEl.href = '#';
+        linkEl.innerHTML = `<span class="material-symbols-outlined text-[16px]">link</span> Sin enlace configurado`;
+    }
 
     let badgeStatus = '';
     if (client.estado_pago === 'activo') badgeStatus = '<span class="bg-green-100 text-green-700 px-3 py-1 rounded-xl text-xs font-bold border border-green-200">Activo</span>';
@@ -495,15 +501,16 @@ function switchTab(tab) {
 function renderComprobantes(comps) {
     const tbody = document.getElementById('comprobantesList');
     comps = comps || [];
-    if (window.empresaData && window.empresaData.comprobante) {
-        const singlePath = window.empresaData.comprobante;
-        const existsInComps = comps.some(c => c.archivo_path === singlePath);
+    const emp = currentEmpresaData || window.empresaData;
+    if (emp && emp.comprobante) {
+        const singlePath = emp.comprobante;
+        const existsInComps = comps.some(c => c && c.archivo_path === singlePath);
         if (!existsInComps) {
             comps.unshift({
                 id: 'legacy',
-                fecha_pago: window.empresaData.fecha_alta || new Date().toISOString(),
+                fecha_pago: emp.fecha_alta || new Date().toISOString(),
                 monto: 0,
-                plan: window.empresaData.plan || 'Básico',
+                plan: emp.plan || 'Básico',
                 notas: 'Comprobante enviado por cliente',
                 archivo_path: singlePath,
                 nombre_archivo: 'comprobante_cliente.jpg'
@@ -516,8 +523,16 @@ function renderComprobantes(comps) {
     }
     let html = '';
     comps.forEach(c => {
-        const fecha = new Date(c.fecha_pago.replace(/-/g, '/')).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-        const monto = parseFloat(c.monto).toLocaleString('es-AR');
+        let fecha = 'Sin fecha';
+        if (c.fecha_pago) {
+            try {
+                const dateStr = String(c.fecha_pago).replace(/-/g, '/');
+                fecha = new Date(dateStr).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            } catch(e) {
+                fecha = String(c.fecha_pago);
+            }
+        }
+        const monto = parseFloat(c.monto || 0).toLocaleString('es-AR');
         html += `
             <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                 <td class="p-3.5 font-semibold text-slate-700 text-xs">${fecha}</td>
@@ -526,7 +541,7 @@ function renderComprobantes(comps) {
                 <td class="p-3.5 text-xs text-slate-500 max-w-xs truncate">${c.notas || 'Sin observaciones'}</td>
                 <td class="p-3.5 text-right space-x-1.5 whitespace-nowrap">
                     <button onclick="openReceiptModal('../${c.archivo_path}')" class="px-3 py-1 bg-[#fcb0b3]/20 hover:bg-[#fcb0b3]/40 text-[#d11149] rounded-lg font-bold text-xs border border-[#fcb0b3] transition-all">Ver</button>
-                    <a href="../${c.archivo_path}" download="${c.nombre_archivo}" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-xs border border-slate-200 transition-all inline-block">Descargar</a>
+                    <a href="../${c.archivo_path}" download="${c.nombre_archivo || 'comprobante'}" class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-xs border border-slate-200 transition-all inline-block">Descargar</a>
                     <button onclick="deleteComprobante(${c.id})" class="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg font-bold text-xs border border-red-200 transition-all">Borrar</button>
                 </td>
             </tr>
