@@ -189,9 +189,20 @@ catch(Exception $e) {
         precio_premium DECIMAL(10,2) DEFAULT 16667
     )"); 
     $pdo->exec("INSERT IGNORE INTO configuracion_global (id, precio_basico, precio_intermedio, precio_premium) VALUES (1, 8889, 11111, 16667)");
-    try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN descuento_porcentaje INT DEFAULT 10"); } catch(Exception $ex) {}
-    try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN descuento_hasta DATETIME DEFAULT NULL"); } catch(Exception $ex) {}
 }
+try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN descuento_porcentaje INT DEFAULT 10"); } catch(Exception $ex) {}
+try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN descuento_hasta DATETIME DEFAULT NULL"); } catch(Exception $ex) {}
+try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN dias_prueba_defecto INT DEFAULT 30"); } catch(Exception $ex) {}
+
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `configuracion_web` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `id_negocio` INT NOT NULL,
+        `tipo_calendario` VARCHAR(50) DEFAULT 'clasico',
+        INDEX (`id_negocio`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+} catch(Exception $e) {}
+try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN tipo_calendario VARCHAR(50) DEFAULT 'clasico'"); } catch(Exception $e) {}
 
 // Ampliar la columna password para que no corte la encriptación
 try { $pdo->exec("ALTER TABLE usuarios MODIFY password VARCHAR(255)"); } catch(Exception $e) {}
@@ -219,6 +230,7 @@ if ($method === 'GET') {
             FROM negocios n
             LEFT JOIN personal_negocio pn ON n.id = pn.id_negocio AND pn.rol_en_local = 'admin'
             LEFT JOIN usuarios u ON pn.id_usuario = u.id
+            LEFT JOIN configuracion_web cw ON n.id = cw.id_negocio
             LEFT JOIN (
                 SELECT an1.id_negocio, an1.nota
                 FROM admin_notas an1
