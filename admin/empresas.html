@@ -322,22 +322,13 @@
                     ? `<span class="bg-orange-50 text-orange-800 font-extrabold border border-orange-200 px-3 py-1 rounded-xl text-xs inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-orange-500">school</span> ${c.alumnos_count || 0} alumnos</span>`
                     : `<span class="text-slate-400 text-xs font-medium whitespace-nowrap">- (Sin portal)</span>`;
 
-                const initial = (c.nombre_fantasia || 'E').charAt(0).toUpperCase();
-
                 html += `
                     <tr class="border-b border-slate-100 hover:bg-slate-50/80 transition-colors">
                         <td class="p-4 whitespace-nowrap">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm">
-                                    ${initial}
-                                </div>
-                                <div>
-                                    <div class="font-extrabold text-slate-900 text-sm">${c.nombre_fantasia || 'Sin Nombre'}</div>
-                                    <a href="../${ruta}" target="_blank" class="text-xs text-[#d11149] font-bold hover:underline inline-flex items-center gap-0.5 mt-0.5">
-                                        agendatina.site/${ruta} <span class="material-symbols-outlined text-[12px]">open_in_new</span>
-                                    </a>
-                                </div>
-                            </div>
+                            <div class="font-extrabold text-slate-900 text-sm">${c.nombre_fantasia || 'Sin Nombre'}</div>
+                            <a href="../${ruta}" target="_blank" class="text-xs text-[#d11149] font-bold hover:underline inline-flex items-center gap-0.5 mt-0.5">
+                                agendatina.site/${ruta} <span class="material-symbols-outlined text-[12px]">open_in_new</span>
+                            </a>
                         </td>
                         <td class="p-4 whitespace-nowrap">
                             <div class="text-xs font-bold text-slate-800">${c.nombre_completo || 'N/A'}</div>
@@ -349,22 +340,22 @@
                         <td class="p-4 whitespace-nowrap">${diasText}</td>
                         <td class="p-4 text-center whitespace-nowrap">
                             <div class="flex items-center justify-center gap-2">
-                                <a href="empresa.html?id=${c.id}" class="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 shadow-xs cursor-pointer">
-                                    <span class="material-symbols-outlined text-[15px]">visibility</span> Ficha
+                                <a href="empresa.html?id=${c.id}" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 cursor-pointer">
+                                    <span class="material-symbols-outlined text-[14px]">visibility</span> Ficha
                                 </a>
-                                <button onclick="openNoteModal(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}', '${(c.nota_interna || '').replace(/'/g, "\\'").replace(/\r?\n/g, "\\n")}')" class="px-3 py-1.5 ${c.nota_interna ? 'bg-purple-100 text-purple-800 border border-purple-300' : 'bg-slate-100 text-slate-700 border border-slate-200'} hover:bg-purple-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-xs" title="Anotaciones privadas">
-                                    <span class="material-symbols-outlined text-[15px]">notes</span> ${c.nota_interna ? 'Nota' : '+ Nota'}
+                                <button onclick="openNoteModal(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}', '${(c.nota_interna || '').replace(/'/g, "\\'").replace(/\r?\n/g, "\\n")}')" class="px-3 py-1.5 ${c.nota_interna ? 'bg-purple-100 text-purple-800 border border-purple-300' : 'bg-slate-100 text-slate-700 border border-slate-200'} hover:bg-purple-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 cursor-pointer" title="Anotaciones privadas">
+                                    <span class="material-symbols-outlined text-[14px]">notes</span> ${c.nota_interna ? 'Nota' : '+ Nota'}
                                 </button>
                                 ${c.estado_pago === 'suspendido' ? `
-                                    <button onclick="reactivarEmpresa(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-xs" title="Dar de alta / Reactivar cuenta">
-                                        <span class="material-symbols-outlined text-[15px]">check_circle</span> Dar de Alta
+                                    <button onclick="reactivarEmpresa(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 cursor-pointer" title="Dar de alta / Reactivar cuenta">
+                                        <span class="material-symbols-outlined text-[14px]">check_circle</span> Dar de Alta
                                     </button>
-                                    <button onclick="eliminarEmpresaSuperAdmin(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-xs" title="Eliminar definitivamente de la Base de Datos">
-                                        <span class="material-symbols-outlined text-[15px]">delete_forever</span> Eliminar
+                                    <button onclick="eliminarEmpresaSuperAdmin(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 cursor-pointer" title="Eliminar definitivamente de la Base de Datos">
+                                        <span class="material-symbols-outlined text-[14px]">delete_forever</span> Eliminar
                                     </button>
                                 ` : `
-                                    <button onclick="darDeBajaEmpresa(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-xs" title="Dar de baja / Cancelar cuenta">
-                                        <span class="material-symbols-outlined text-[15px]">block</span> Dar de Baja
+                                    <button onclick="darDeBajaEmpresa(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 cursor-pointer" title="Dar de baja / Cancelar cuenta">
+                                        <span class="material-symbols-outlined text-[14px]">block</span> Dar de Baja
                                     </button>
                                 `}
                             </div>
