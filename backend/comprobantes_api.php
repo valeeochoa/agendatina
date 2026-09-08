@@ -31,11 +31,35 @@ if ($method === 'GET') {
     if (!$id_negocio) {
         if ($isSuperAdmin) {
             try {
+                // Auto-sincronizar comprobantes legacy de la tabla negocios
+                try {
+                    $stmtLegacy = $pdo->query("SELECT id, plan, comprobante, estado_pago FROM negocios WHERE comprobante IS NOT NULL AND TRIM(comprobante) != ''");
+                    $legacyBizs = $stmtLegacy ? $stmtLegacy->fetchAll(PDO::FETCH_ASSOC) : [];
+                    foreach ($legacyBizs as $lb) {
+                        $stmtCheck = $pdo->prepare("SELECT id FROM comprobantes_pago WHERE id_negocio = ? AND (archivo_path = ? OR nombre_archivo = ?)");
+                        $stmtCheck->execute([$lb['id'], $lb['comprobante'], basename($lb['comprobante'])]);
+                        if (!$stmtCheck->fetch()) {
+                            $stmtIns = $pdo->prepare("INSERT INTO comprobantes_pago (id_negocio, monto, plan, archivo_path, nombre_archivo, fecha_pago, estado, notas) VALUES (?, 0, ?, ?, ?, NOW(), ?, 'Comprobante legacy')");
+                            $stmtIns->execute([
+                                $lb['id'],
+                                $lb['plan'] ?? 'Básico',
+                                $lb['comprobante'],
+                                basename($lb['comprobante']),
+                                ($lb['estado_pago'] === 'pendiente_revision' ? 'pendiente' : 'aprobado')
+                            ]);
+                        }
+                    }
+                } catch (Exception $eLeg) {}
+
                 $stmtAll = $pdo->query("
                     SELECT c.id, c.id_negocio, c.monto, c.plan, c.archivo_path, c.nombre_archivo, c.fecha_pago, c.estado, c.notas,
-                           COALESCE(n.nombre_fantasia, CONCAT('Negocio #', c.id_negocio)) AS nombre_negocio
+                           COALESCE(n.nombre_fantasia, CONCAT('Negocio #', c.id_negocio)) AS nombre_fantasia,
+                           COALESCE(u.email, 'Sin email') AS email,
+                           COALESCE(n.estado_pago, c.estado) AS estado_pago
                     FROM comprobantes_pago c
                     LEFT JOIN negocios n ON c.id_negocio = n.id
+                    LEFT JOIN personal_negocio pn ON (n.id = pn.id_negocio AND pn.rol_en_local = 'admin')
+                    LEFT JOIN usuarios u ON pn.id_usuario = u.id
                     ORDER BY c.fecha_pago DESC
                 ");
                 $comprobantes = $stmtAll ? $stmtAll->fetchAll(PDO::FETCH_ASSOC) : [];

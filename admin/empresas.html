@@ -235,12 +235,14 @@
                 // Días restantes
                 let diasText = '-';
                 if (c.fecha_alta) {
-                    const fAlta = new Date(c.fecha_alta.replace(/-/g, '/'));
-                    const hoy = new Date();
-                    const diffDays = Math.floor((hoy - fAlta) / (1000 * 60 * 60 * 24));
-                    const limite = c.estado_pago === 'beta' ? 35 : 15;
-                    const rest = limite - diffDays;
-                    diasText = rest > 0 ? `${rest} días` : '<span class="text-red-500 font-bold">Vencido</span>';
+                    const fAlta = new Date(String(c.fecha_alta).replace(/-/g, '/'));
+                    if (!isNaN(fAlta.getTime())) {
+                        const hoy = new Date();
+                        const diffDays = Math.floor((hoy - fAlta) / (1000 * 60 * 60 * 24));
+                        const limite = c.estado_pago === 'beta' ? 35 : 15;
+                        const rest = limite - diffDays;
+                        diasText = rest > 0 ? `${rest} días` : '<span class="text-red-500 font-bold">Vencido</span>';
+                    }
                 }
 
                 // Alumnos (Portal Premium)
