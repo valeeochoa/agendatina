@@ -4,7 +4,7 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/conexion.php';
 
 // Verificar permisos (Superadmin o el dueño del negocio)
-$isSuperAdmin = isset($_SESSION['is_superadmin']) && $_SESSION['is_superadmin'] === true;
+$isSuperAdmin = (isset($_SESSION['is_superadmin']) && $_SESSION['is_superadmin'] === true) || (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true);
 $idNegocioSesion = $_SESSION['id_negocio'] ?? null;
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -21,7 +21,7 @@ try {
       `fecha_pago` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       `estado` VARCHAR(50) DEFAULT 'aprobado',
       `notas` TEXT DEFAULT NULL,
-      FOREIGN KEY (`id_negocio`) REFERENCES `negocios` (`id`) ON DELETE CASCADE
+      INDEX (`id_negocio`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 } catch (Exception $e) {}
 
@@ -29,6 +29,22 @@ try {
 if ($method === 'GET') {
     $id_negocio = $_GET['id_negocio'] ?? $idNegocioSesion;
     if (!$id_negocio) {
+        if ($isSuperAdmin) {
+            try {
+                $stmtAll = $pdo->query("
+                    SELECT c.id, c.id_negocio, c.monto, c.plan, c.archivo_path, c.nombre_archivo, c.fecha_pago, c.estado, c.notas,
+                           COALESCE(n.nombre_fantasia, CONCAT('Negocio #', c.id_negocio)) AS nombre_negocio
+                    FROM comprobantes_pago c
+                    LEFT JOIN negocios n ON c.id_negocio = n.id
+                    ORDER BY c.fecha_pago DESC
+                ");
+                $comprobantes = $stmtAll ? $stmtAll->fetchAll(PDO::FETCH_ASSOC) : [];
+                echo json_encode(['success' => true, 'data' => $comprobantes]);
+            } catch (Exception $e) {
+                echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            }
+            exit;
+        }
         echo json_encode(['success' => false, 'error' => 'ID de negocio no especificado.']);
         exit;
     }

@@ -1184,19 +1184,19 @@ function fetchClients() {
                 }
             }
             // Renderizar los reportes de error que devuelve la API
-            if (data.notificaciones) {
-                renderAdminReports(data.notificaciones);
-            }
+            renderAdminReports(data.notificaciones || []);
             // Renderizar las notas recientes
-            if (data.notas_recientes) {
-                renderAdminNotes(data.notas_recientes);
-            }
+            renderAdminNotes(data.notas_recientes || []);
         } else {
             document.getElementById('clientsList').innerHTML = `<tr><td colspan="6" class="p-8 text-center text-red-500 font-medium flex items-center justify-center gap-2"><span class="material-symbols-outlined">warning</span> Error de BD: ${data.error || 'No se pudieron cargar los datos.'}</td></tr>`;
+            renderAdminReports([]);
+            renderAdminNotes([]);
         }
     })
     .catch(err => {
         document.getElementById('clientsList').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-red-500 font-medium flex items-center justify-center gap-2"><span class="material-symbols-outlined">warning</span> Error al cargar los datos desde la BD.</td></tr>';
+        renderAdminReports([]);
+        renderAdminNotes([]);
     });
 }
 

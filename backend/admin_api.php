@@ -103,16 +103,29 @@ catch(Exception $e) {
     )"); 
 }
 
-try { $pdo->query("SELECT 1 FROM admin_notas LIMIT 1"); } 
-catch(Exception $e) { 
-    $pdo->exec("CREATE TABLE admin_notas (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        id_negocio INT NOT NULL,
-        nota TEXT,
-        fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        UNIQUE KEY (id_negocio)
-    )"); 
-}
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `admin_notas` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `id_negocio` INT NOT NULL,
+        `nota` TEXT NOT NULL,
+        `fecha` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        `estado` VARCHAR(20) DEFAULT 'activo',
+        `fecha_eliminado` DATETIME DEFAULT NULL,
+        INDEX (id_negocio)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+} catch(Exception $e) {}
+
+try { $pdo->exec("ALTER TABLE admin_notas ADD COLUMN estado VARCHAR(20) DEFAULT 'activo'"); } catch(Exception $e) {}
+try { $pdo->exec("ALTER TABLE admin_notas ADD COLUMN fecha DATETIME DEFAULT CURRENT_TIMESTAMP"); } catch(Exception $e) {}
+try { $pdo->exec("ALTER TABLE admin_notas ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL"); } catch(Exception $e) {}
+
+try {
+    $stmtKeys = $pdo->query("SHOW KEYS FROM admin_notas WHERE Key_name = 'id_negocio' AND Non_unique = 0");
+    if ($stmtKeys && $stmtKeys->fetch()) {
+        $pdo->exec("ALTER TABLE admin_notas DROP INDEX id_negocio");
+        $pdo->exec("ALTER TABLE admin_notas ADD INDEX (id_negocio)");
+    }
+} catch (Exception $e) {}
 
 try { $pdo->query("SELECT descuento_porcentaje FROM configuracion_global LIMIT 1"); } 
 catch(Exception $e) { 
