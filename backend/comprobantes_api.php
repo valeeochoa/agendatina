@@ -173,6 +173,9 @@ if ($method === 'POST') {
                 'nombre' => $file['name'],
                 'notas' => $notas
             ]);
+            try {
+                $pdo->prepare("UPDATE negocios SET estado_pago = 'activo', ultimo_pago = NOW(), comprobante = ? WHERE id = ?")->execute([$relativePath, $id_negocio]);
+            } catch(Exception $eNeg) {}
             echo json_encode(['success' => true]);
         } catch (Exception $e) {
             echo json_encode(['success' => false, 'error' => 'Error en BD: ' . $e->getMessage()]);

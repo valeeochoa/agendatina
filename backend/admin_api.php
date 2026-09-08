@@ -478,10 +478,14 @@ elseif ($method === 'POST') {
 
                 if ($nuevo_estado === 'eliminado' || $nuevo_estado === 'suspendido') {
                     $stmt = $pdo->prepare("UPDATE negocios SET estado_pago = ?, fecha_eliminado = NOW() WHERE id = ?");
+                    $stmt->execute([$nuevo_estado, $id_neg]);
+                } elseif ($nuevo_estado === 'activo' || $nuevo_estado === 'pagado') {
+                    $stmt = $pdo->prepare("UPDATE negocios SET estado_pago = ?, fecha_eliminado = NULL, ultimo_pago = NOW() WHERE id = ?");
+                    $stmt->execute([$nuevo_estado, $id_neg]);
                 } else {
                     $stmt = $pdo->prepare("UPDATE negocios SET estado_pago = ?, fecha_eliminado = NULL WHERE id = ?");
+                    $stmt->execute([$nuevo_estado, $id_neg]);
                 }
-                $stmt->execute([$nuevo_estado, $id_neg]);
                 echo json_encode(['success' => true, 'message' => 'Estado del negocio actualizado correctamente.']);
             } catch (Exception $e) {
                 echo json_encode(['success' => false, 'error' => 'Error al cambiar el estado: ' . $e->getMessage()]);
@@ -835,6 +839,9 @@ elseif ($method === 'PUT') {
                 if ($estado_pago !== null) {
                     $updates[] = "estado_pago = :estado_pago";
                     $params['estado_pago'] = $estado_pago;
+                    if ($estado_pago === 'activo' || $estado_pago === 'pagado') {
+                        $updates[] = "ultimo_pago = NOW()";
+                    }
                 }
             }
             

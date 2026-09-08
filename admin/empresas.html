@@ -301,17 +301,44 @@
 
                 // Días restantes
                 let diasText = '<span class="text-slate-400 font-medium">-</span>';
-                if (c.fecha_alta) {
-                    const fAlta = new Date(String(c.fecha_alta).replace(/-/g, '/'));
-                    if (!isNaN(fAlta.getTime())) {
-                        const hoy = new Date();
-                        const diffDays = Math.floor((hoy - fAlta) / (1000 * 60 * 60 * 24));
-                        const limite = c.estado_pago === 'beta' ? 35 : 15;
-                        const rest = limite - diffDays;
-                        if (rest > 0) {
-                            diasText = `<span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-slate-400">schedule</span> ${rest} días</span>`;
-                        } else {
-                            diasText = `<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-rose-500">warning</span> Vencido</span>`;
+                const estadoVal = c.estado_pago || 'prueba';
+                const hoy = new Date();
+
+                if (estadoVal === 'suspendido') {
+                    diasText = `<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">block</span> Suspendido</span>`;
+                } else if (estadoVal === 'pendiente_revision') {
+                    diasText = `<span class="bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">hourglass_empty</span> Pendiente</span>`;
+                } else if (estadoVal === 'activo' || estadoVal === 'pagado') {
+                    const refStr = c.ultimo_pago || c.fecha_alta;
+                    if (refStr) {
+                        const refDate = new Date(String(refStr).replace(/-/g, '/'));
+                        if (!isNaN(refDate.getTime())) {
+                            const diffDays = Math.floor((hoy - refDate) / (1000 * 60 * 60 * 24));
+                            const rest = 30 - diffDays;
+                            if (rest > 0) {
+                                diasText = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event_available</span> ${rest} días</span>`;
+                            } else if (rest >= -5) {
+                                diasText = `<span class="bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">warning</span> Por vencer</span>`;
+                            } else {
+                                diasText = `<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">error</span> Pago Vencido</span>`;
+                            }
+                        }
+                    } else {
+                        diasText = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">check_circle</span> Al día</span>`;
+                    }
+                } else {
+                    const refStr = c.fecha_alta;
+                    if (refStr) {
+                        const fAlta = new Date(String(refStr).replace(/-/g, '/'));
+                        if (!isNaN(fAlta.getTime())) {
+                            const diffDays = Math.floor((hoy - fAlta) / (1000 * 60 * 60 * 24));
+                            const limite = estadoVal === 'beta' ? 35 : 15;
+                            const rest = limite - diffDays;
+                            if (rest > 0) {
+                                diasText = `<span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-slate-400">schedule</span> ${rest} días</span>`;
+                            } else {
+                                diasText = `<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-rose-500">warning</span> Prueba Vencida</span>`;
+                            }
                         }
                     }
                 }
