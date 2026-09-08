@@ -420,7 +420,7 @@
             document.getElementById('noteModal').classList.add('hidden');
         }
 
-        document.getElementById('noteForm').addEventListener('submit', function(e) {
+        function saveNoteModalSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById('btnNoteSubmit');
             const orig = btn.innerHTML;
@@ -451,7 +451,7 @@
                 btn.innerHTML = orig;
                 alert('Error de conexión al guardar la nota.');
             });
-        });
+        }
 
         function logoutAdmin() {
             fetch('../backend/admin_auth.php', { method: 'DELETE' })
@@ -467,7 +467,7 @@
                 <span class="material-symbols-outlined text-[#d11149]">notes</span> Anotación Interna
             </h3>
             <p id="noteModalBizName" class="text-xs text-slate-500 mb-4 font-semibold"></p>
-            <form id="noteForm" class="space-y-4">
+            <form id="noteForm" onsubmit="saveNoteModalSubmit(event)" class="space-y-4">
                 <input type="hidden" id="noteIdNegocio">
                 <div>
                     <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Observaciones / Detalles Privados</label>

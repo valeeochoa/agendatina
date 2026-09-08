@@ -1208,15 +1208,18 @@ function renderAdminNotes(notes) {
         return;
     }
     listEl.innerHTML = notes.slice(0, 5).map(n => {
-        const f = new Date(n.fecha).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+        const dateRaw = n.fecha || n.fecha_actualizacion || n.created_at || '';
+        const f = dateRaw ? new Date(String(dateRaw).replace(/-/g, '/')).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'Reciente';
+        const notaText = n.nota || n.nota_interna || '';
+        const bizName = n.nombre_fantasia || n.nombre_negocio || (n.id_negocio ? 'Empresa #' + n.id_negocio : 'General');
         return `
             <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 hover:border-slate-300 transition-all flex justify-between items-start gap-3">
                 <div class="space-y-1">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span class="px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-extrabold text-[10px] uppercase border border-emerald-200">🏢 ${n.nombre_negocio || 'Empresa #' + n.id_negocio}</span>
+                        <span class="px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-extrabold text-[10px] uppercase border border-emerald-200">🏢 ${bizName}</span>
                         <span class="text-[11px] text-slate-400 font-medium">${f} hs</span>
                     </div>
-                    <p class="text-xs text-slate-700 font-medium leading-relaxed">${n.nota}</p>
+                    <p class="text-xs text-slate-700 font-medium leading-relaxed">${notaText}</p>
                 </div>
                 <a href="notas.html" class="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors shrink-0" title="Ver todas las notas">
                     <span class="material-symbols-outlined text-[18px]">open_in_new</span>
@@ -2272,7 +2275,8 @@ function renderAdminReports(notificaciones) {
         }
     } else {
         activeList.forEach(notif => {
-            const dateObj = new Date(notif.fecha.replace(/-/g, '/')); 
+            const rawFecha = notif.fecha || notif.fecha_actualizacion || notif.created_at || '';
+            const dateObj = rawFecha ? new Date(String(rawFecha).replace(/-/g, '/')) : new Date(); 
             const fechaFormat = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
             const horaFormat = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 

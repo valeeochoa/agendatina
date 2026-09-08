@@ -104,20 +104,73 @@ catch(Exception $e) {
 }
 
 try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `reportes_error` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `id_negocio` INT NULL,
+        `nombre_negocio` VARCHAR(255) DEFAULT NULL,
+        `id_usuario` INT NULL,
+        `nombre_usuario` VARCHAR(255) DEFAULT NULL,
+        `email_usuario` VARCHAR(255) DEFAULT NULL,
+        `rol_usuario` VARCHAR(100) DEFAULT 'dueño',
+        `tipo` VARCHAR(100) DEFAULT 'Reporte de Error',
+        `modulo` VARCHAR(100) DEFAULT 'General',
+        `descripcion` TEXT NOT NULL,
+        `estado` VARCHAR(50) DEFAULT 'pendiente',
+        `fecha` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        `fecha_resuelto` DATETIME DEFAULT NULL,
+        `fecha_eliminado` DATETIME DEFAULT NULL,
+        INDEX (`id_negocio`),
+        INDEX (`estado`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+} catch(Exception $e) {}
+
+try { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN nombre_negocio VARCHAR(255) DEFAULT NULL"); } catch(Exception $e) {}
+try { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN id_usuario INT NULL"); } catch(Exception $e) {}
+try { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN nombre_usuario VARCHAR(255) DEFAULT NULL"); } catch(Exception $e) {}
+try { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN email_usuario VARCHAR(255) DEFAULT NULL"); } catch(Exception $e) {}
+try { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN rol_usuario VARCHAR(100) DEFAULT 'dueño'"); } catch(Exception $e) {}
+try { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN tipo VARCHAR(100) DEFAULT 'Reporte de Error'"); } catch(Exception $e) {}
+try { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN modulo VARCHAR(100) DEFAULT 'General'"); } catch(Exception $e) {}
+try { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN estado VARCHAR(50) DEFAULT 'pendiente'"); } catch(Exception $e) {}
+try { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN fecha DATETIME DEFAULT CURRENT_TIMESTAMP"); } catch(Exception $e) {}
+try { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN fecha_resuelto DATETIME DEFAULT NULL"); } catch(Exception $e) {}
+try { $pdo->exec("ALTER TABLE reportes_error ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL"); } catch(Exception $e) {}
+
+try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS `admin_notas` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `id_negocio` INT NOT NULL,
-        `nota` TEXT NOT NULL,
+        `nota` TEXT NULL,
+        `nota_interna` TEXT NULL,
         `fecha` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        `fecha_actualizacion` DATETIME DEFAULT CURRENT_TIMESTAMP,
         `estado` VARCHAR(20) DEFAULT 'activo',
         `fecha_eliminado` DATETIME DEFAULT NULL,
         INDEX (id_negocio)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 } catch(Exception $e) {}
 
-try { $pdo->exec("ALTER TABLE admin_notas ADD COLUMN estado VARCHAR(20) DEFAULT 'activo'"); } catch(Exception $e) {}
+try { $pdo->exec("ALTER TABLE admin_notas ADD COLUMN nota TEXT"); } catch(Exception $e) {}
+try { $pdo->exec("ALTER TABLE admin_notas ADD COLUMN nota_interna TEXT"); } catch(Exception $e) {}
 try { $pdo->exec("ALTER TABLE admin_notas ADD COLUMN fecha DATETIME DEFAULT CURRENT_TIMESTAMP"); } catch(Exception $e) {}
+try { $pdo->exec("ALTER TABLE admin_notas ADD COLUMN fecha_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP"); } catch(Exception $e) {}
+try { $pdo->exec("ALTER TABLE admin_notas ADD COLUMN estado VARCHAR(20) DEFAULT 'activo'"); } catch(Exception $e) {}
 try { $pdo->exec("ALTER TABLE admin_notas ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL"); } catch(Exception $e) {}
+
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `comprobantes_pago` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `id_negocio` INT NOT NULL,
+        `monto` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+        `plan` VARCHAR(100) DEFAULT NULL,
+        `archivo_path` VARCHAR(255) NOT NULL,
+        `nombre_archivo` VARCHAR(255) NOT NULL,
+        `fecha_pago` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        `estado` VARCHAR(50) DEFAULT 'aprobado',
+        `notas` TEXT DEFAULT NULL,
+        INDEX (`id_negocio`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+} catch(Exception $e) {}
 
 try {
     $stmtKeys = $pdo->query("SHOW KEYS FROM admin_notas WHERE Key_name = 'id_negocio' AND Non_unique = 0");
