@@ -75,7 +75,7 @@
     <!-- Contenido Principal -->
     <main class="flex-1 p-4 sm:p-8 max-w-7xl w-full min-w-0 overflow-x-hidden">
         <!-- Encabezado -->
-        <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
                 <h1 class="text-2xl sm:text-3xl font-black text-slate-900">Catálogo Completo de Empresas</h1>
                 <p class="text-xs sm:text-sm text-slate-500 mt-1">Busca, filtra y administra todos los emprendimientos registrados en Agendatina.</p>
@@ -85,14 +85,54 @@
             </span>
         </div>
 
+        <!-- Tarjetas de Resumen Rápido -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4 hover:shadow-md transition-all">
+                <div class="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold shadow-md shadow-slate-900/10 shrink-0">
+                    <span class="material-symbols-outlined text-[24px]">storefront</span>
+                </div>
+                <div class="min-w-0">
+                    <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">Total Empresas</span>
+                    <span id="metricTotalCount" class="text-2xl font-black text-slate-900">0</span>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4 hover:shadow-md transition-all">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold shrink-0">
+                    <span class="material-symbols-outlined text-[24px]">verified</span>
+                </div>
+                <div class="min-w-0">
+                    <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">Activas / Al día</span>
+                    <span id="metricActivasCount" class="text-2xl font-black text-emerald-600">0</span>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4 hover:shadow-md transition-all">
+                <div class="w-12 h-12 rounded-2xl bg-sky-100 text-sky-700 flex items-center justify-center font-bold shrink-0">
+                    <span class="material-symbols-outlined text-[24px]">schedule</span>
+                </div>
+                <div class="min-w-0">
+                    <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">Prueba Gratis</span>
+                    <span id="metricPruebaCount" class="text-2xl font-black text-sky-600">0</span>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center gap-4 hover:shadow-md transition-all">
+                <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center font-bold shrink-0">
+                    <span class="material-symbols-outlined text-[24px]">block</span>
+                </div>
+                <div class="min-w-0">
+                    <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider block truncate">Suspendidas</span>
+                    <span id="metricSuspendidasCount" class="text-2xl font-black text-rose-600">0</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Buscador y Filtros -->
-        <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-200 mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white rounded-3xl p-4 sm:p-6 shadow-xs border border-slate-200 mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="relative">
                 <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
-                <input type="text" id="searchInput" oninput="filterClients()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#d11149]" placeholder="Buscar por nombre, email o ruta...">
+                <input type="text" id="searchInput" oninput="filterClients()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d11149] font-medium" placeholder="Buscar por nombre, email o ruta...">
             </div>
             <div>
-                <select id="statusFilter" onchange="filterClients()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#d11149] font-medium">
+                <select id="statusFilter" onchange="filterClients()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d11149] font-semibold text-slate-700">
                     <option value="">Todos los Estados de Pago</option>
                     <option value="prueba">Prueba Gratis (15 días)</option>
                     <option value="pendiente_revision">Comprobante Subido (Pendiente)</option>
@@ -102,28 +142,28 @@
                 </select>
             </div>
             <div>
-                <select id="planFilter" onchange="filterClients()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#d11149] font-medium">
+                <select id="planFilter" onchange="filterClients()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d11149] font-semibold text-slate-700">
                     <option value="">Todos los Planes</option>
                     <option value="básico">Plan Básico</option>
-                    <option value="intermedio">Plan Intermedio</option>
+                    <option value="intermedio">Plan Intermedio / Profesional</option>
                     <option value="completo">Plan Completo / Premium</option>
                 </select>
             </div>
         </div>
 
         <!-- Tabla Completa de Empresas -->
-        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="border-b border-slate-200 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50">
-                            <th class="p-4">Empresa</th>
-                            <th class="p-4">Contacto Admin</th>
-                            <th class="p-4">Plan Actual</th>
-                            <th class="p-4">Alumnos (Portal)</th>
-                            <th class="p-4">Estado de Pago</th>
-                            <th class="p-4">Días Restantes</th>
-                            <th class="p-4 text-center">Acciones</th>
+                        <tr class="border-b border-slate-200 text-[11px] font-extrabold text-slate-400 uppercase tracking-wider bg-slate-50/80">
+                            <th class="p-4 whitespace-nowrap">Empresa</th>
+                            <th class="p-4 whitespace-nowrap">Contacto Admin</th>
+                            <th class="p-4 whitespace-nowrap">Plan Actual</th>
+                            <th class="p-4 whitespace-nowrap">Alumnos (Portal)</th>
+                            <th class="p-4 whitespace-nowrap">Estado de Pago</th>
+                            <th class="p-4 whitespace-nowrap">Días Restantes</th>
+                            <th class="p-4 text-center whitespace-nowrap">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="clientsList">
@@ -173,7 +213,17 @@
                     const list = Array.isArray(data.data) ? data.data : (Array.isArray(data.negocios) ? data.negocios : []);
                     if (data.success && list) {
                         clientsData = list;
-                        document.getElementById('totalEmpresasBadge').textContent = `${clientsData.length} Emprendimientos Registrados`;
+                        
+                        const total = clientsData.length;
+                        const activas = clientsData.filter(c => c.estado_pago === 'activo' || c.estado_pago === 'pagado').length;
+                        const prueba = clientsData.filter(c => !c.estado_pago || c.estado_pago === 'prueba').length;
+                        const suspendidas = clientsData.filter(c => c.estado_pago === 'suspendido').length;
+
+                        document.getElementById('totalEmpresasBadge').textContent = `${total} Emprendimientos Registrados`;
+                        if (document.getElementById('metricTotalCount')) document.getElementById('metricTotalCount').textContent = total;
+                        if (document.getElementById('metricActivasCount')) document.getElementById('metricActivasCount').textContent = activas;
+                        if (document.getElementById('metricPruebaCount')) document.getElementById('metricPruebaCount').textContent = prueba;
+                        if (document.getElementById('metricSuspendidasCount')) document.getElementById('metricSuspendidasCount').textContent = suspendidas;
                         
                         const params = new URLSearchParams(window.location.search);
                         const filterParam = params.get('filter');
@@ -184,11 +234,11 @@
                         
                         filterClients();
                     } else {
-                        document.getElementById('clientsList').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-red-500 font-medium">Error al cargar las empresas desde el servidor.</td></tr>';
+                        document.getElementById('clientsList').innerHTML = '<tr><td colspan="7" class="p-8 text-center text-red-500 font-medium">Error al cargar las empresas desde el servidor.</td></tr>';
                     }
                 })
                 .catch(err => {
-                    document.getElementById('clientsList').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-red-500 font-medium">Error de conexión al cargar empresas.</td></tr>';
+                    document.getElementById('clientsList').innerHTML = '<tr><td colspan="7" class="p-8 text-center text-red-500 font-medium">Error de conexión al cargar empresas.</td></tr>';
                 });
         }
 
@@ -215,25 +265,42 @@
         function renderClientsTable(list) {
             const tbody = document.getElementById('clientsList');
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-400 text-sm">No se encontraron negocios con los filtros seleccionados.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center text-slate-400 text-sm font-medium">No se encontraron negocios con los filtros seleccionados.</td></tr>';
                 return;
             }
 
             let html = '';
             list.forEach(c => {
                 const ruta = c.ruta || c.subdominio || '';
-                const planStr = c.plan || 'Básico';
+                const planRaw = (c.plan || 'Básico').trim();
+                const planLower = planRaw.toLowerCase();
+
+                // Plan Badge
+                let planBadge = '';
+                if (planLower.includes('premium') || planLower.includes('completo')) {
+                    planBadge = '<span class="bg-amber-50 text-amber-900 border border-amber-300 px-3 py-1 rounded-xl text-xs font-black inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-amber-500">workspace_premium</span> Premium</span>';
+                } else if (planLower.includes('intermedio') || planLower.includes('profesional')) {
+                    planBadge = '<span class="bg-purple-50 text-purple-900 border border-purple-200 px-3 py-1 rounded-xl text-xs font-extrabold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-purple-500">star</span> Profesional</span>';
+                } else {
+                    planBadge = '<span class="bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1 rounded-xl text-xs font-bold inline-flex items-center gap-1 whitespace-nowrap">Básico</span>';
+                }
 
                 // Estado Badge
                 let statusBadge = '';
-                if (c.estado_pago === 'pendiente_revision') statusBadge = '<span class="bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1">⚠️ Comprobante Subido</span>';
-                else if (c.estado_pago === 'activo' || c.estado_pago === 'pagado') statusBadge = '<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-1 rounded-full text-xs font-bold">Activo / Al día</span>';
-                else if (c.estado_pago === 'suspendido') statusBadge = '<span class="bg-red-100 text-red-800 border border-red-300 px-2.5 py-1 rounded-full text-xs font-bold">Suspendido</span>';
-                else if (c.estado_pago === 'beta') statusBadge = '<span class="bg-purple-100 text-purple-800 border border-purple-300 px-2.5 py-1 rounded-full text-xs font-bold">Beta VIP</span>';
-                else statusBadge = '<span class="bg-blue-100 text-blue-800 border border-blue-300 px-2.5 py-1 rounded-full text-xs font-bold">Prueba Gratis</span>';
+                if (c.estado_pago === 'pendiente_revision') {
+                    statusBadge = '<span class="bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-amber-600">hourglass_empty</span> Comprobante Subido</span>';
+                } else if (c.estado_pago === 'activo' || c.estado_pago === 'pagado') {
+                    statusBadge = '<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-emerald-600">check_circle</span> Activo / Al día</span>';
+                } else if (c.estado_pago === 'suspendido') {
+                    statusBadge = '<span class="bg-rose-100 text-rose-800 border border-rose-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-rose-600">block</span> Suspendido</span>';
+                } else if (c.estado_pago === 'beta') {
+                    statusBadge = '<span class="bg-purple-100 text-purple-800 border border-purple-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-purple-600">verified</span> Beta VIP</span>';
+                } else {
+                    statusBadge = '<span class="bg-sky-100 text-sky-800 border border-sky-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-sky-600">schedule</span> Prueba Gratis</span>';
+                }
 
                 // Días restantes
-                let diasText = '-';
+                let diasText = '<span class="text-slate-400 font-medium">-</span>';
                 if (c.fecha_alta) {
                     const fAlta = new Date(String(c.fecha_alta).replace(/-/g, '/'));
                     if (!isNaN(fAlta.getTime())) {
@@ -241,48 +308,63 @@
                         const diffDays = Math.floor((hoy - fAlta) / (1000 * 60 * 60 * 24));
                         const limite = c.estado_pago === 'beta' ? 35 : 15;
                         const rest = limite - diffDays;
-                        diasText = rest > 0 ? `${rest} días` : '<span class="text-red-500 font-bold">Vencido</span>';
+                        if (rest > 0) {
+                            diasText = `<span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-slate-400">schedule</span> ${rest} días</span>`;
+                        } else {
+                            diasText = `<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-rose-500">warning</span> Vencido</span>`;
+                        }
                     }
                 }
 
                 // Alumnos (Portal Premium)
-                const isPremium = planStr.toLowerCase().includes('premium') || planStr.toLowerCase().includes('completo');
+                const isPremium = planLower.includes('premium') || planLower.includes('completo');
                 const alumnosBadge = isPremium 
-                    ? `<span class="bg-orange-100 text-orange-800 font-extrabold border border-orange-200 px-2.5 py-1 rounded-xl text-xs inline-flex items-center gap-1">🎓 ${c.alumnos_count || 0} alumnos</span>`
-                    : `<span class="text-slate-400 text-xs font-medium">- (Sin portal)</span>`;
+                    ? `<span class="bg-orange-50 text-orange-800 font-extrabold border border-orange-200 px-3 py-1 rounded-xl text-xs inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-orange-500">school</span> ${c.alumnos_count || 0} alumnos</span>`
+                    : `<span class="text-slate-400 text-xs font-medium whitespace-nowrap">- (Sin portal)</span>`;
+
+                const initial = (c.nombre_fantasia || 'E').charAt(0).toUpperCase();
 
                 html += `
-                    <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                        <td class="p-4">
-                            <div class="font-bold text-slate-800 text-sm">${c.nombre_fantasia || 'Sin Nombre'}</div>
-                            <a href="../${ruta}" target="_blank" class="text-xs text-blue-600 font-semibold hover:underline flex items-center gap-1 mt-0.5">agendatina.site/${ruta} <span class="material-symbols-outlined text-[12px]">open_in_new</span></a>
+                    <tr class="border-b border-slate-100 hover:bg-slate-50/80 transition-colors">
+                        <td class="p-4 whitespace-nowrap">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm">
+                                    ${initial}
+                                </div>
+                                <div>
+                                    <div class="font-extrabold text-slate-900 text-sm">${c.nombre_fantasia || 'Sin Nombre'}</div>
+                                    <a href="../${ruta}" target="_blank" class="text-xs text-[#d11149] font-bold hover:underline inline-flex items-center gap-0.5 mt-0.5">
+                                        agendatina.site/${ruta} <span class="material-symbols-outlined text-[12px]">open_in_new</span>
+                                    </a>
+                                </div>
+                            </div>
                         </td>
-                        <td class="p-4">
-                            <div class="text-xs font-bold text-slate-700">${c.nombre_completo || 'N/A'}</div>
-                            <div class="text-xs text-slate-400">${c.email || ''}</div>
+                        <td class="p-4 whitespace-nowrap">
+                            <div class="text-xs font-bold text-slate-800">${c.nombre_completo || 'N/A'}</div>
+                            <div class="text-xs text-slate-400 font-medium">${c.email || 'Sin email'}</div>
                         </td>
-                        <td class="p-4 text-xs font-bold text-slate-700">${planStr}</td>
-                        <td class="p-4">${alumnosBadge}</td>
-                        <td class="p-4">${statusBadge}</td>
-                        <td class="p-4 text-xs font-semibold text-slate-600">${diasText}</td>
-                        <td class="p-4 text-center">
-                            <div class="flex items-center justify-center gap-1.5">
-                                <a href="empresa.html?id=${c.id}" class="px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm">
-                                    <span class="material-symbols-outlined text-[14px]">visibility</span> Ficha
+                        <td class="p-4 whitespace-nowrap">${planBadge}</td>
+                        <td class="p-4 whitespace-nowrap">${alumnosBadge}</td>
+                        <td class="p-4 whitespace-nowrap">${statusBadge}</td>
+                        <td class="p-4 whitespace-nowrap">${diasText}</td>
+                        <td class="p-4 text-center whitespace-nowrap">
+                            <div class="flex items-center justify-center gap-2">
+                                <a href="empresa.html?id=${c.id}" class="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 shadow-xs cursor-pointer">
+                                    <span class="material-symbols-outlined text-[15px]">visibility</span> Ficha
                                 </a>
-                                <button onclick="openNoteModal(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}', '${(c.nota_interna || '').replace(/'/g, "\\'").replace(/\r?\n/g, "\\n")}')" class="px-2.5 py-1.5 ${c.nota_interna ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-slate-100 text-slate-600 border border-slate-200'} hover:bg-purple-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-xs" title="Anotaciones privadas">
-                                    <span class="material-symbols-outlined text-[14px]">notes</span> ${c.nota_interna ? 'Nota' : '+ Nota'}
+                                <button onclick="openNoteModal(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}', '${(c.nota_interna || '').replace(/'/g, "\\'").replace(/\r?\n/g, "\\n")}')" class="px-3 py-1.5 ${c.nota_interna ? 'bg-purple-100 text-purple-800 border border-purple-300' : 'bg-slate-100 text-slate-700 border border-slate-200'} hover:bg-purple-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-xs" title="Anotaciones privadas">
+                                    <span class="material-symbols-outlined text-[15px]">notes</span> ${c.nota_interna ? 'Nota' : '+ Nota'}
                                 </button>
                                 ${c.estado_pago === 'suspendido' ? `
-                                    <button onclick="reactivarEmpresa(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm" title="Dar de alta / Reactivar cuenta">
-                                        <span class="material-symbols-outlined text-[14px]">check_circle</span> Dar de Alta
+                                    <button onclick="reactivarEmpresa(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-xs" title="Dar de alta / Reactivar cuenta">
+                                        <span class="material-symbols-outlined text-[15px]">check_circle</span> Dar de Alta
                                     </button>
-                                    <button onclick="eliminarEmpresaSuperAdmin(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm" title="Eliminar definitivamente de la Base de Datos">
-                                        <span class="material-symbols-outlined text-[14px]">delete_forever</span> Eliminar
+                                    <button onclick="eliminarEmpresaSuperAdmin(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-xs" title="Eliminar definitivamente de la Base de Datos">
+                                        <span class="material-symbols-outlined text-[15px]">delete_forever</span> Eliminar
                                     </button>
                                 ` : `
-                                    <button onclick="darDeBajaEmpresa(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1 shadow-sm" title="Dar de baja / Cancelar cuenta">
-                                        <span class="material-symbols-outlined text-[14px]">block</span> Dar de Baja
+                                    <button onclick="darDeBajaEmpresa(${c.id}, '${(c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-xl text-xs font-bold transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-xs" title="Dar de baja / Cancelar cuenta">
+                                        <span class="material-symbols-outlined text-[15px]">block</span> Dar de Baja
                                     </button>
                                 `}
                             </div>
