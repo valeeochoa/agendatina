@@ -1,5 +1,7 @@
 # Ignorar archivo de entorno local (CREDenciales)
 .env
+backend/conexion.php
+backend/admin_auth.php
 
 # Ignorar archivos subidos por los usuarios/negocios
 backend/uploads/

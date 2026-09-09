@@ -923,7 +923,7 @@ function loadDashboardData() {
                     const existingBtn = document.getElementById('navSwitchBizBtn');
                     dashBusinessName.textContent = bName;
                     if (existingBtn) {
-                        dashBusinessName.appendChild(existingBtn);
+                        dashBusinessName.insertBefore(existingBtn, dashBusinessName.firstChild);
                     }
                 }
             }
@@ -1731,7 +1731,7 @@ function loadCustomization() {
                     const existingBtn = document.getElementById('navSwitchBizBtn');
                     dashBusinessName.textContent = displayName;
                     if (existingBtn) {
-                        dashBusinessName.appendChild(existingBtn);
+                        dashBusinessName.insertBefore(existingBtn, dashBusinessName.firstChild);
                     }
                 }
                 
@@ -4591,7 +4591,7 @@ window.checkUserMultipleBusinesses = function() {
             window.userBusinessesList = data.negocios;
             window.userActualBusinessId = data.actual_id_negocio;
 
-            // 1. Inyectar la ruedita en el header si existe navBusinessNameHeader o dashboardBusinessName
+            // 1. Inyectar el botón de cambio de negocio (flechas circulares) antes del nombre
             const headerContainer = document.getElementById('navBusinessNameHeader') || document.getElementById('dashboardBusinessName');
             if (headerContainer && !document.getElementById('navSwitchBizBtn')) {
                 const btn = document.createElement('button');
@@ -4602,10 +4602,10 @@ window.checkUserMultipleBusinesses = function() {
                     e.stopPropagation();
                     window.openGlobalSwitchBusinessModal();
                 };
-                btn.className = 'p-1 rounded-lg text-slate-500 hover:text-purple-600 hover:bg-slate-200 transition-colors ml-0.5 inline-flex items-center cursor-pointer';
+                btn.className = 'p-1 rounded-lg text-slate-500 hover:text-purple-600 hover:bg-slate-200 transition-colors mr-1 inline-flex items-center cursor-pointer';
                 btn.title = 'Cambiar de negocio activo (Múltiples locales detectados)';
-                btn.innerHTML = '<span class="material-symbols-outlined text-[17px]">sync_alt</span>';
-                headerContainer.appendChild(btn);
+                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">autorenew</span>';
+                headerContainer.insertBefore(btn, headerContainer.firstChild);
             }
 
             // 2. Renderizar lista en perfil.html si existe perfilMultiBusinessSection
