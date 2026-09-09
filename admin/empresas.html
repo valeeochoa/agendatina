@@ -460,6 +460,24 @@
                 const safeName = (c.nombre_fantasia || 'Empresa').replace(/'/g, "\\'");
                 const safeNote = (c.nota_interna || '').replace(/'/g, "\\'").replace(/\r?\n/g, "\\n");
 
+                let fechaAltaStr = '-';
+                if (c.fecha_alta) {
+                    try {
+                        const d = new Date(String(c.fecha_alta).replace(/-/g, '/'));
+                        fechaAltaStr = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    } catch(e) { fechaAltaStr = String(c.fecha_alta); }
+                }
+
+                let fechaPagoStr = 'Sin pagos';
+                if (c.ultimo_pago) {
+                    try {
+                        const d = new Date(String(c.ultimo_pago).replace(/-/g, '/'));
+                        fechaPagoStr = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    } catch(e) { fechaPagoStr = String(c.ultimo_pago); }
+                } else if (c.estado_pago === 'activo' || c.estado_pago === 'pagado') {
+                    fechaPagoStr = 'Cuenta Activa';
+                }
+
                 html += `
                     <tr class="border-b border-slate-100 hover:bg-slate-50/80 transition-colors">
                         <td class="p-4 whitespace-nowrap">
@@ -467,6 +485,11 @@
                             <a href="../${ruta}" target="_blank" class="text-xs text-[#d11149] font-bold hover:underline inline-flex items-center gap-0.5 mt-0.5">
                                 agendatina.site/${ruta} <span class="material-symbols-outlined text-[12px]">open_in_new</span>
                             </a>
+                            <div class="text-[11px] text-slate-500 font-semibold mt-1 flex items-center gap-2">
+                                <span>📅 Alta: <strong class="text-slate-700">${fechaAltaStr}</strong></span>
+                                <span>•</span>
+                                <span>💳 Pago: <strong class="text-slate-700">${fechaPagoStr}</strong></span>
+                            </div>
                         </td>
                         <td class="p-4 whitespace-nowrap">
                             <div class="text-xs font-bold text-slate-800">${c.nombre_completo || 'N/A'}</div>

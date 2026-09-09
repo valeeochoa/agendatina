@@ -77,26 +77,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Buscamos TODOS los usuarios que coincidan con ese email
-        try { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN permisos TEXT NULL"); } catch(Exception $e) {}
-        try { $pdo->exec("ALTER TABLE usuarios ADD COLUMN debe_cambiar_pass TINYINT DEFAULT 0"); } catch(Exception $e) {}
+        try { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN permisos TEXT NULL"); } catch(Throwable $e) {}
+        try { $pdo->exec("ALTER TABLE usuarios ADD COLUMN debe_cambiar_pass TINYINT DEFAULT 0"); } catch(Throwable $e) {}
 
-        // 1. Verificar si la cuenta requiere establecer contraseña por primera vez
-        $stmtCheckFirst = $pdo->prepare("SELECT id, nombre_completo, email, debe_cambiar_pass FROM usuarios WHERE email = :email LIMIT 1");
-        $stmtCheckFirst->execute(['email' => $email]);
-        $firstUser = $stmtCheckFirst->fetch(PDO::FETCH_ASSOC);
+        // 1. Verificar si la cuenta requiere establecer contraseña por primera vez (aislado de forma segura)
+        try {
+            $stmtCheckFirst = $pdo->prepare("SELECT id, nombre_completo, email, debe_cambiar_pass FROM usuarios WHERE email = :email LIMIT 1");
+            $stmtCheckFirst->execute(['email' => $email]);
+            $firstUser = $stmtCheckFirst->fetch(PDO::FETCH_ASSOC);
 
-        if ($firstUser && (int)($firstUser['debe_cambiar_pass'] ?? 0) === 1) {
-            echo json_encode([
-                'success' => false,
-                'require_first_password' => true,
-                'email' => $email,
-                'nombre' => $firstUser['nombre_completo'],
-                'message' => 'Es tu primer inicio de sesión. Por favor establece tu contraseña de acceso.'
-            ]);
-            exit;
-        }
+            if ($firstUser && (int)($firstUser['debe_cambiar_pass'] ?? 0) === 1) {
+                echo json_encode([
+                    'success' => false,
+                    'require_first_password' => true,
+                    'email' => $email,
+                    'nombre' => $firstUser['nombre_completo'],
+                    'message' => 'Es tu primer inicio de sesión. Por favor establece tu contraseña de acceso.'
+                ]);
+                exit;
+            }
+        } catch (Throwable $eFirst) {}
 
-        $sql = "SELECT u.id, u.nombre_completo, u.password, u.debe_cambiar_pass, pn.id_negocio, pn.rol_en_local, pn.permisos, n.plan, n.nombre_fantasia 
+        $sql = "SELECT u.id, u.nombre_completo, u.password, pn.id_negocio, pn.rol_en_local, pn.permisos, n.plan, n.nombre_fantasia 
                 FROM usuarios u
                 LEFT JOIN personal_negocio pn ON u.id = pn.id_usuario
                 LEFT JOIN negocios n ON pn.id_negocio = n.id
@@ -104,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['email' => $email]);
-        $users = $stmt->fetchAll();
+        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($users)) {
             // Registrar intento fallido
@@ -133,18 +135,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Reseteamos los intentos si el login es exitoso
         $pdo->prepare("DELETE FROM login_attempts WHERE ip_address = :ip")->execute(['ip' => $ip_address]);
 
-        // Consultar todos los negocios vinculados a este usuario
-        $stmtBiz = $pdo->prepare("
-            SELECT pn.id_negocio, pn.rol_en_local, pn.permisos, n.nombre_fantasia, n.plan, cw.logo
-            FROM personal_negocio pn
-            JOIN negocios n ON pn.id_negocio = n.id
-            LEFT JOIN configuracion_web cw ON n.id = cw.id_negocio
-            WHERE pn.id_usuario = :user_id
-            GROUP BY pn.id_negocio
-            ORDER BY (pn.rol_en_local = 'admin') DESC, pn.id_negocio ASC
-        ");
-        $stmtBiz->execute(['user_id' => $validUser['id']]);
-        $allBiz = $stmtBiz->fetchAll(PDO::FETCH_ASSOC);
+        // Consultar todos los negocios vinculados a este usuario (sin GROUP BY para máxima compatibilidad con SQL Mode)
+        $allBiz = [];
+        try {
+            $stmtBiz = $pdo->prepare("
+                SELECT pn.id_negocio, pn.rol_en_local, pn.permisos, n.nombre_fantasia, n.plan, cw.logo
+                FROM personal_negocio pn
+                JOIN negocios n ON pn.id_negocio = n.id
+                LEFT JOIN configuracion_web cw ON n.id = cw.id_negocio
+                WHERE pn.id_usuario = :user_id
+                ORDER BY (pn.rol_en_local = 'admin') DESC, pn.id_negocio ASC
+            ");
+            $stmtBiz->execute(['user_id' => $validUser['id']]);
+            $allBiz = $stmtBiz->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (Throwable $eBiz) {
+            $allBiz = [];
+        }
 
         if (count($allBiz) > 1) {
             // Usuario en MÚLTIPLES NEGOCIOS: Solicitar selección en el frontend
@@ -192,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-    } catch (PDOException $e) {
+    } catch (Throwable $e) {
         http_response_code(500);
         echo json_encode(['success' => false, 'error' => 'Error en la base de datos: ' . $e->getMessage()]);
         exit;

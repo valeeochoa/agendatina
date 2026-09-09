@@ -146,6 +146,49 @@
                     <p class="text-2xl font-black text-[#d11149]" id="empresaMetricComprobantes">0</p>
                 </div>
             </div>
+
+            <!-- Información Relevante SuperAdmin (Fechas de Registro y Pagos) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4 p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[18px]">calendar_add_on</span>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Fecha de Creación</p>
+                        <p class="text-xs font-bold text-slate-800 truncate" id="empresaFechaAlta">Cargando...</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[18px]">payments</span>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Último Pago / Activación</p>
+                        <p class="text-xs font-bold text-slate-800 truncate" id="empresaFechaUltimoPago">Cargando...</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[18px]">manage_accounts</span>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Contacto Principal</p>
+                        <p class="text-xs font-bold text-slate-800 truncate" id="empresaContactoAdmin" title="">Cargando...</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[18px]">groups</span>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Cupo de Profesionales</p>
+                        <p class="text-xs font-bold text-slate-800 truncate" id="empresaCupoEquipo">Cargando...</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Vista Principal con Pestañas -->
@@ -592,8 +635,52 @@ function renderEmpresaDetails(client) {
 
     document.getElementById('empresaMetricPlan').textContent = client.plan || 'Básico';
     document.getElementById('empresaMetricTurnos').textContent = client.turnos_count !== undefined ? client.turnos_count : 0;
-    const profsCount = client.profesionales_count !== undefined ? client.profesionales_count : ((client.profesionales ? client.profesionales.length : 0) || 1);
-    document.getElementById('empresaMetricEquipo').textContent = `${profsCount} / ${client.max_profesionales || 1}`;
+    
+    // Fechas Relevantes SuperAdmin
+    let fechaAltaStr = 'Sin fecha registrada';
+    if (client.fecha_alta) {
+        try {
+            const d = new Date(String(client.fecha_alta).replace(/-/g, '/'));
+            fechaAltaStr = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        } catch(e) { fechaAltaStr = String(client.fecha_alta); }
+    }
+    const elFechaAlta = document.getElementById('empresaFechaAlta');
+    if (elFechaAlta) elFechaAlta.textContent = fechaAltaStr;
+
+    let fechaPagoStr = 'Sin pagos cargados';
+    if (client.ultimo_pago) {
+        try {
+            const d = new Date(String(client.ultimo_pago).replace(/-/g, '/'));
+            fechaPagoStr = d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        } catch(e) { fechaPagoStr = String(client.ultimo_pago); }
+    } else if (client.estado_pago === 'activo' || client.estado_pago === 'pagado') {
+        fechaPagoStr = 'Cuenta Marcada Activa';
+    }
+    const elFechaPago = document.getElementById('empresaFechaUltimoPago');
+    if (elFechaPago) elFechaPago.textContent = fechaPagoStr;
+
+    const elContactoAdmin = document.getElementById('empresaContactoAdmin');
+    if (elContactoAdmin) {
+        const adminText = (client.nombre_completo || 'Sin nombre') + (client.email ? ` (${client.email})` : '');
+        elContactoAdmin.textContent = adminText;
+        elContactoAdmin.title = adminText;
+    }
+
+    // Deduplicación y cálculo exacto de integrantes de equipo
+    const profs = Array.isArray(client.profesionales) ? client.profesionales : [];
+    const ownerEmail = (client.email || '').toLowerCase().trim();
+    const seenEmailsCount = new Set();
+    if (ownerEmail) seenEmailsCount.add(ownerEmail);
+    profs.forEach(p => {
+        const pe = (p.email || '').toLowerCase().trim();
+        if (pe) seenEmailsCount.add(pe);
+    });
+
+    const realTeamCount = Math.max(1, seenEmailsCount.size);
+    document.getElementById('empresaMetricEquipo').textContent = `${realTeamCount} / ${client.max_profesionales || 1}`;
+    
+    const elCupoEquipo = document.getElementById('empresaCupoEquipo');
+    if (elCupoEquipo) elCupoEquipo.textContent = `${realTeamCount} de ${client.max_profesionales || 1} asignados`;
 
     renderEquipo(client);
 
@@ -669,31 +756,78 @@ function renderComprobantes(comps) {
 
 function renderEquipo(client) {
     const container = document.getElementById('equipoList');
-    let html = `
-        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center justify-between">
-            <div>
-                <span class="bg-[#fcb0b3]/30 text-[#d11149] px-2 py-0.5 rounded-md text-[10px] font-black uppercase">Dueño / Admin</span>
-                <p class="font-bold text-slate-900 text-sm mt-1">${client.nombre_completo || 'Administrador'}</p>
-                <p class="text-xs text-slate-500">${client.email || 'N/A'}</p>
-            </div>
-            <span class="material-symbols-outlined text-[#d11149]">manage_accounts</span>
-        </div>
-    `;
+    if (!container) return;
 
-    if (client.profesionales && client.profesionales.length > 0) {
-        client.profesionales.forEach(p => {
-            html += `
-                <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center justify-between shadow-sm">
-                    <div>
-                        <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md text-[10px] font-black uppercase">Profesional</span>
-                        <p class="font-bold text-slate-900 text-sm mt-1">${p.nombre_completo}</p>
-                        <p class="text-xs text-slate-500">${p.email || 'Sin correo'}</p>
-                    </div>
-                    <span class="material-symbols-outlined text-blue-500">person</span>
-                </div>
-            `;
+    let html = '';
+    const ownerEmail = (client.email || '').toLowerCase().trim();
+    const profs = Array.isArray(client.profesionales) ? client.profesionales : [];
+
+    const seenEmails = new Set();
+    const uniqueTeam = [];
+
+    // 1. Agregar Dueño/Admin
+    if (ownerEmail || client.nombre_completo) {
+        if (ownerEmail) seenEmails.add(ownerEmail);
+        uniqueTeam.push({
+            nombre_completo: client.nombre_completo || 'Administrador',
+            email: client.email || 'N/A',
+            isOwner: true
         });
     }
+
+    // 2. Agregar otros profesionales evitando duplicados
+    profs.forEach(p => {
+        const pEmail = (p.email || '').toLowerCase().trim();
+        const isOwnerRole = (p.rol_en_local === 'admin') || (pEmail && pEmail === ownerEmail);
+
+        if (pEmail && seenEmails.has(pEmail)) {
+            return; // Ya incluido como dueño o entrada previa
+        }
+
+        if (pEmail) seenEmails.add(pEmail);
+
+        uniqueTeam.push({
+            nombre_completo: p.nombre_completo || 'Profesional',
+            email: p.email || 'Sin correo',
+            isOwner: isOwnerRole
+        });
+    });
+
+    if (uniqueTeam.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-400 text-center py-4 col-span-full font-medium">No hay integrantes registrados en este equipo.</p>';
+        return;
+    }
+
+    uniqueTeam.forEach(member => {
+        if (member.isOwner) {
+            html += `
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center justify-between shadow-2xs">
+                    <div>
+                        <span class="bg-[#fcb0b3]/30 text-[#d11149] px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider">Dueño / Admin</span>
+                        <p class="font-bold text-slate-900 text-sm mt-1">${member.nombre_completo}</p>
+                        <p class="text-xs text-slate-500">${member.email}</p>
+                    </div>
+                    <div class="w-9 h-9 rounded-xl bg-red-50 text-[#d11149] flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
+                    </div>
+                </div>
+            `;
+        } else {
+            html += `
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 flex items-center justify-between shadow-2xs">
+                    <div>
+                        <span class="bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider">Profesional</span>
+                        <p class="font-bold text-slate-900 text-sm mt-1">${member.nombre_completo}</p>
+                        <p class="text-xs text-slate-500">${member.email}</p>
+                    </div>
+                    <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">person</span>
+                    </div>
+                </div>
+            `;
+        }
+    });
+
     container.innerHTML = html;
 }
 

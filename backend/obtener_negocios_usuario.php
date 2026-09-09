@@ -17,7 +17,6 @@ try {
         JOIN negocios n ON pn.id_negocio = n.id
         LEFT JOIN configuracion_web cw ON n.id = cw.id_negocio
         WHERE pn.id_usuario = ?
-        GROUP BY pn.id_negocio
         ORDER BY (pn.rol_en_local = 'admin') DESC, pn.id_negocio ASC
     ");
     $stmt->execute([$user_id]);
