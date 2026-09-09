@@ -449,6 +449,126 @@ function showNotFound() {
     document.getElementById('notFoundState').classList.remove('hidden');
 }
 
+function getSubscriptionDetails(c, trialDays = 15) {
+    const estado = c.estado_pago || 'prueba';
+    const hoy = new Date();
+    const today = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+
+    let fechaAlta = c.fecha_alta ? new Date(String(c.fecha_alta).replace(/-/g, '/')) : today;
+    if (isNaN(fechaAlta.getTime())) fechaAlta = today;
+    const fechaAltaZero = new Date(fechaAlta.getFullYear(), fechaAlta.getMonth(), fechaAlta.getDate());
+
+    const anchorDay = fechaAltaZero.getDate();
+
+    if (estado === 'suspendido') {
+        return {
+            estado: 'suspendido',
+            statusBadge: '<span class="bg-rose-100 text-rose-800 border border-rose-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-rose-600">block</span> Suspendido</span>',
+            diasBadge: '<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">block</span> Suspendido</span>'
+        };
+    }
+
+    if (estado === 'pendiente_revision') {
+        return {
+            estado: 'pendiente_revision',
+            statusBadge: '<span class="bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-amber-600">hourglass_empty</span> Comprobante Subido</span>',
+            diasBadge: '<span class="bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">hourglass_empty</span> En Revisión</span>'
+        };
+    }
+
+    if (estado === 'prueba' || estado === 'trial') {
+        const trialLimit = parseInt(trialDays) || 15;
+        const trialEndDate = new Date(fechaAltaZero);
+        trialEndDate.setDate(trialEndDate.getDate() + trialLimit);
+
+        const diffTime = trialEndDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays > 0) {
+            return {
+                estado: 'prueba',
+                statusBadge: '<span class="bg-sky-100 text-sky-800 border border-sky-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-sky-600">schedule</span> Prueba Gratis</span>',
+                diasBadge: `<span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-slate-400">schedule</span> ${diffDays} días prueba</span>`
+            };
+        } else {
+            const overdueDays = Math.abs(diffDays);
+            const graceRemaining = 10 - overdueDays;
+            if (graceRemaining > 0) {
+                return {
+                    estado: 'vencido',
+                    statusBadge: '<span class="bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-amber-600">warning</span> Prueba Vencida</span>',
+                    diasBadge: `<span class="bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">warning</span> ${graceRemaining} días para pagar</span>`
+                };
+            } else {
+                return {
+                    estado: 'suspendido',
+                    statusBadge: '<span class="bg-rose-100 text-rose-800 border border-rose-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-rose-600">block</span> Suspendido</span>',
+                    diasBadge: '<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">error</span> Plazo Vencido</span>'
+                };
+            }
+        }
+    }
+
+    if (estado === 'beta') {
+        const betaEndDate = new Date(fechaAltaZero);
+        betaEndDate.setDate(betaEndDate.getDate() + 35);
+        const diffDays = Math.ceil((betaEndDate - today) / (1000 * 60 * 60 * 24));
+        return {
+            estado: 'beta',
+            statusBadge: '<span class="bg-purple-100 text-purple-800 border border-purple-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-purple-600">verified</span> Beta VIP</span>',
+            diasBadge: diffDays > 0 
+                ? `<span class="bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span> ${diffDays} días</span>`
+                : `<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">error</span> Beta Vencida</span>`
+        };
+    }
+
+    // Para estado 'activo' o 'pagado'
+    let curYear = today.getFullYear();
+    let curMonth = today.getMonth();
+
+    let maxDaysCurMonth = new Date(curYear, curMonth + 1, 0).getDate();
+    let currentMonthDueDate = new Date(curYear, curMonth, Math.min(anchorDay, maxDaysCurMonth));
+
+    let targetDueDate;
+
+    if (today <= currentMonthDueDate) {
+        targetDueDate = currentMonthDueDate;
+    } else {
+        let nextMonth = curMonth + 1;
+        let nextYear = curYear;
+        if (nextMonth > 11) { nextMonth = 0; nextYear++; }
+        let maxDaysNextMonth = new Date(nextYear, nextMonth + 1, 0).getDate();
+        targetDueDate = new Date(nextYear, nextMonth, Math.min(anchorDay, maxDaysNextMonth));
+    }
+
+    const diffDays = Math.ceil((targetDueDate - today) / (1000 * 60 * 60 * 24));
+
+    if (diffDays >= 0) {
+        return {
+            estado: 'activo',
+            statusBadge: '<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-emerald-600">check_circle</span> Activo / Al día</span>',
+            diasBadge: `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event_available</span> ${diffDays} días (Día ${anchorDay})</span>`
+        };
+    } else {
+        const overdueDays = Math.abs(diffDays);
+        const graceRemaining = 10 - overdueDays;
+
+        if (graceRemaining > 0) {
+            return {
+                estado: 'vencido',
+                statusBadge: '<span class="bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-amber-600">warning</span> Pago Vencido</span>',
+                diasBadge: `<span class="bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">warning</span> ${graceRemaining} días para pagar</span>`
+            };
+        } else {
+            return {
+                estado: 'suspendido',
+                statusBadge: '<span class="bg-rose-100 text-rose-800 border border-rose-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-rose-600">block</span> Suspendido</span>',
+                diasBadge: '<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">error</span> Plazo Vencido</span>'
+            };
+        }
+    }
+}
+
 function renderEmpresaDetails(client) {
     document.getElementById('loadingState').classList.add('hidden');
     document.getElementById('notFoundState').classList.add('hidden');
@@ -467,11 +587,8 @@ function renderEmpresaDetails(client) {
         linkEl.innerHTML = `<span class="material-symbols-outlined text-[16px]">link</span> Sin enlace configurado`;
     }
 
-    let badgeStatus = '';
-    if (client.estado_pago === 'activo') badgeStatus = '<span class="bg-green-100 text-green-700 px-3 py-1 rounded-xl text-xs font-bold border border-green-200">Activo</span>';
-    else if (client.estado_pago === 'prueba') badgeStatus = '<span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-xl text-xs font-bold border border-blue-200">Prueba</span>';
-    else badgeStatus = '<span class="bg-red-100 text-red-700 px-3 py-1 rounded-xl text-xs font-bold border border-red-200">' + (client.estado_pago || 'Desconocido') + '</span>';
-    document.getElementById('empresaBadgeStatus').innerHTML = badgeStatus;
+    const subInfo = getSubscriptionDetails(client, window.globalConfig ? window.globalConfig.dias_prueba_defecto : 15);
+    document.getElementById('empresaBadgeStatus').innerHTML = `<div class="flex items-center gap-2">${subInfo.statusBadge} ${subInfo.diasBadge}</div>`;
 
     document.getElementById('empresaMetricPlan').textContent = client.plan || 'Básico';
     document.getElementById('empresaMetricTurnos').textContent = client.turnos_count !== undefined ? client.turnos_count : 0;

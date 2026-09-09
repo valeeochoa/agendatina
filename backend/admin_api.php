@@ -218,7 +218,13 @@ if ($method === 'GET') {
 
     // Ejecutar auto-suspensión silenciosa antes de devolver los datos a la tabla (excluyendo negocios que subieron comprobante 'pendiente_revision')
     try {
-        $pdo->exec("UPDATE negocios SET estado_pago = 'suspendido' WHERE estado_pago NOT IN ('pendiente_revision', 'suspendido') AND ((estado_pago = 'prueba' AND DATEDIFF(NOW(), fecha_alta) > 15) OR (estado_pago = 'beta' AND DATEDIFF(NOW(), fecha_alta) > 35) OR (estado_pago IN ('activo', 'pagado') AND ultimo_pago IS NOT NULL AND DATEDIFF(NOW(), ultimo_pago) > 35))");
+        $diasPruebaDefecto = 15;
+        $stmtTrialConf = $pdo->query("SELECT COALESCE(dias_prueba_defecto, 15) FROM configuracion_global WHERE id = 1 LIMIT 1");
+        if ($stmtTrialConf && $valTrial = $stmtTrialConf->fetchColumn()) {
+            $diasPruebaDefecto = max(1, (int)$valTrial);
+        }
+        $diasMaxPruebaConGracia = $diasPruebaDefecto + 10;
+        $pdo->exec("UPDATE negocios SET estado_pago = 'suspendido' WHERE estado_pago NOT IN ('pendiente_revision', 'suspendido') AND ((estado_pago = 'prueba' AND DATEDIFF(NOW(), fecha_alta) > {$diasMaxPruebaConGracia}) OR (estado_pago = 'beta' AND DATEDIFF(NOW(), fecha_alta) > 45) OR (estado_pago IN ('activo', 'pagado') AND ultimo_pago IS NOT NULL AND DATEDIFF(NOW(), ultimo_pago) > 40))");
     } catch(Exception $e) {}
 
     try {
