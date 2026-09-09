@@ -30,22 +30,15 @@
                  <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149] hidden sm:inline">Agenda<span class="text-[#fc8712]">tina</span></span>
             </a>
             <div class="flex items-center gap-4">
-                <div class="text-right hidden sm:flex items-center gap-3">
-                    <div id="navBusinessNameHeader" class="hidden sm:flex items-center gap-2 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-2xl shadow-xs">
-                        <img id="navBusinessLogoImg" src="" alt="Logo Negocio" class="hidden h-6 w-6 object-cover rounded-full border border-slate-300" onerror="this.classList.add('hidden'); const ic=document.getElementById('navBusinessIcon'); if(ic) ic.classList.remove('hidden');">
-                        <span id="navBusinessIcon" class="material-symbols-outlined text-[18px] text-[#d11149]">storefront</span>
-                        <span id="navBusinessNameText" class="text-xs sm:text-sm font-extrabold text-slate-800 truncate max-w-[110px] sm:max-w-xs">Mi Negocio</span>
-                    </div>
-                    <div>
-                        <p class="text-sm font-bold text-slate-800 flex items-center justify-end gap-2" id="dashboardBusinessName">
-                            Cargando... 
-                        </p>
-                        <div class="flex items-center justify-end gap-2 mt-0.5">
-                            <span id="demoBadge" class="hidden items-center gap-1.5 bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-extrabold px-2 py-0.5 rounded-lg uppercase shadow-xs">
-                                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Modo Demo
-                            </span>
-                            <p class="text-xs text-slate-500" id="navPlanName">Cargando plan...</p>
-                        </div>
+                <div class="text-right hidden sm:flex flex-col justify-center">
+                    <p class="text-sm font-extrabold text-slate-800 flex items-center justify-end gap-1.5" id="dashboardBusinessName">
+                        Cargando... 
+                    </p>
+                    <div class="flex items-center justify-end gap-2 mt-0.5">
+                        <span id="demoBadge" class="hidden items-center gap-1.5 bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-extrabold px-2 py-0.5 rounded-lg uppercase shadow-xs">
+                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Modo Demo
+                        </span>
+                        <p class="text-xs font-semibold text-slate-500" id="navPlanName">Cargando plan...</p>
                     </div>
                 </div>
                 <a href="perfil.html" id="navAvatar" class="w-10 h-10 rounded-full signature-glow text-white flex items-center justify-center font-bold shadow-md cursor-pointer overflow-hidden hover:ring-2 hover:ring-primary hover:ring-offset-2 transition-all" title="Ir a Mi Perfil">

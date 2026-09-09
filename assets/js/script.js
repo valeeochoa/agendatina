@@ -917,10 +917,14 @@ function loadDashboardData() {
             // Actualizar Nombre en el Navbar como fallback rápido si tarda en cargar la web
             const dashBusinessName = document.getElementById('dashboardBusinessName');
             if (dashBusinessName) {
-                const userFullName = (window.currentUserData && window.currentUserData.nombre_completo) || '';
+                const bName = business.nombre_fantasia || 'Mi Negocio';
                 const currentText = dashBusinessName.textContent.trim();
                 if (currentText === 'Cargando...' || currentText === 'Mi Negocio') {
-                    dashBusinessName.textContent = userFullName ? userFullName : (business.nombre_fantasia || 'Mi Negocio');
+                    const existingBtn = document.getElementById('navSwitchBizBtn');
+                    dashBusinessName.textContent = bName;
+                    if (existingBtn) {
+                        dashBusinessName.appendChild(existingBtn);
+                    }
                 }
             }
 
@@ -1724,7 +1728,11 @@ function loadCustomization() {
                 
                 const dashBusinessName = document.getElementById('dashboardBusinessName');
                 if (dashBusinessName) {
-                    dashBusinessName.textContent = userFullName ? userFullName : displayName;
+                    const existingBtn = document.getElementById('navSwitchBizBtn');
+                    dashBusinessName.textContent = displayName;
+                    if (existingBtn) {
+                        dashBusinessName.appendChild(existingBtn);
+                    }
                 }
                 
                 const navBusinessName = document.getElementById('navBusinessNameText');
@@ -4583,8 +4591,8 @@ window.checkUserMultipleBusinesses = function() {
             window.userBusinessesList = data.negocios;
             window.userActualBusinessId = data.actual_id_negocio;
 
-            // 1. Inyectar la ruedita en el header si existe navBusinessNameHeader
-            const headerContainer = document.getElementById('navBusinessNameHeader');
+            // 1. Inyectar la ruedita en el header si existe navBusinessNameHeader o dashboardBusinessName
+            const headerContainer = document.getElementById('navBusinessNameHeader') || document.getElementById('dashboardBusinessName');
             if (headerContainer && !document.getElementById('navSwitchBizBtn')) {
                 const btn = document.createElement('button');
                 btn.id = 'navSwitchBizBtn';

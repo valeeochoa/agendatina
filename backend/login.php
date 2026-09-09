@@ -139,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $allBiz = [];
         try {
             $stmtBiz = $pdo->prepare("
-                SELECT pn.id_negocio, pn.rol_en_local, pn.permisos, n.nombre_fantasia, n.plan, cw.logo
+                SELECT pn.id_negocio, pn.rol_en_local, pn.permisos, n.nombre_fantasia, n.plan, cw.url_logo AS logo
                 FROM personal_negocio pn
                 JOIN negocios n ON pn.id_negocio = n.id
                 LEFT JOIN configuracion_web cw ON n.id = cw.id_negocio
