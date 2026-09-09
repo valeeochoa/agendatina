@@ -1763,7 +1763,10 @@ function loadCustomization() {
                     
                     const navAvatar = document.getElementById('navAvatar');
                     if (navAvatar) {
-                        navAvatar.innerHTML = `<img src="${data.logo}" class="w-full h-full object-cover" alt="Logo">`;
+                        const words = displayName.trim().split(/\s+/);
+                        const initials = words.length > 1 ? (words[0][0] + words[1][0]) : displayName.substring(0, 2);
+                        const safeInitials = initials.toUpperCase();
+                        navAvatar.innerHTML = `<img src="${data.logo}" class="w-full h-full object-cover" alt="Logo" onerror="this.onerror=null; this.remove(); const av=document.getElementById('navAvatar'); if(av){ av.style.background='linear-gradient(135deg, #D11149 0%, #FC8712 100%)'; av.textContent='${safeInitials}'; }">`;
                         navAvatar.style.background = 'transparent';
                     }
                 } else {
