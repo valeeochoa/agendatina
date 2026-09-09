@@ -125,6 +125,16 @@ if ($method === 'POST') {
         exit;
     }
 
+    // Validar permisos si el rol es profesional
+    if (isset($_SESSION['rol_en_local']) && $_SESSION['rol_en_local'] === 'profesional') {
+        $perms = $_SESSION['permisos'] ?? [];
+        $hasServPerm = !empty($perms['servicios']) || !empty($perms['perm_servicios']);
+        if (!$hasServPerm) {
+            echo json_encode(['success' => false, 'error' => 'Acceso denegado. No tienes permisos para administrar o crear servicios en este negocio. Contacta al Administrador.']);
+            exit;
+        }
+    }
+
     $contentType = isset($_SERVER["CONTENT_TYPE"]) ? trim($_SERVER["CONTENT_TYPE"]) : '';
     if (strpos($contentType, 'application/json') !== false) {
         $data = json_decode(file_get_contents('php://input'), true);

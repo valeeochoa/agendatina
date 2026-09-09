@@ -4604,7 +4604,7 @@ window.checkUserMultipleBusinesses = function() {
                 };
                 btn.className = 'p-1 rounded-lg text-slate-500 hover:text-purple-600 hover:bg-slate-200 transition-colors ml-0.5 inline-flex items-center cursor-pointer';
                 btn.title = 'Cambiar de negocio activo (Múltiples locales detectados)';
-                btn.innerHTML = '<span class="material-symbols-outlined text-[17px]">settings</span>';
+                btn.innerHTML = '<span class="material-symbols-outlined text-[17px]">sync_alt</span>';
                 headerContainer.appendChild(btn);
             }
 
