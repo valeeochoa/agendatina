@@ -78,8 +78,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Buscamos TODOS los usuarios que coincidan con ese email
         try { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN permisos TEXT NULL"); } catch(Exception $e) {}
+        try { $pdo->exec("ALTER TABLE usuarios ADD COLUMN debe_cambiar_pass TINYINT DEFAULT 0"); } catch(Exception $e) {}
 
-        $sql = "SELECT u.id, u.nombre_completo, u.password, pn.id_negocio, pn.rol_en_local, pn.permisos, n.plan 
+        // 1. Verificar si la cuenta requiere establecer contraseña por primera vez
+        $stmtCheckFirst = $pdo->prepare("SELECT id, nombre_completo, email, debe_cambiar_pass FROM usuarios WHERE email = :email LIMIT 1");
+        $stmtCheckFirst->execute(['email' => $email]);
+        $firstUser = $stmtCheckFirst->fetch(PDO::FETCH_ASSOC);
+
+        if ($firstUser && (int)($firstUser['debe_cambiar_pass'] ?? 0) === 1) {
+            echo json_encode([
+                'success' => false,
+                'require_first_password' => true,
+                'email' => $email,
+                'nombre' => $firstUser['nombre_completo'],
+                'message' => 'Es tu primer inicio de sesión. Por favor establece tu contraseña de acceso.'
+            ]);
+            exit;
+        }
+
+        $sql = "SELECT u.id, u.nombre_completo, u.password, u.debe_cambiar_pass, pn.id_negocio, pn.rol_en_local, pn.permisos, n.plan, n.nombre_fantasia 
                 FROM usuarios u
                 LEFT JOIN personal_negocio pn ON u.id = pn.id_usuario
                 LEFT JOIN negocios n ON pn.id_negocio = n.id
@@ -116,26 +133,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Reseteamos los intentos si el login es exitoso
         $pdo->prepare("DELETE FROM login_attempts WHERE ip_address = :ip")->execute(['ip' => $ip_address]);
 
-        // Credenciales correctas: Creamos la sesión
-        $_SESSION['user_id'] = $validUser['id']; 
-        $_SESSION['nombre_completo'] = $validUser['nombre_completo'];
-        $_SESSION['rol_en_local'] = $validUser['rol_en_local'] ?? 'admin';
-        $_SESSION['id_negocio'] = $validUser['id_negocio']; // Clave para aislar la información
-        $_SESSION['plan'] = $validUser['plan']; // Guardamos el plan en sesión
+        // Consultar todos los negocios vinculados a este usuario
+        $stmtBiz = $pdo->prepare("
+            SELECT pn.id_negocio, pn.rol_en_local, pn.permisos, n.nombre_fantasia, n.plan, cw.logo
+            FROM personal_negocio pn
+            JOIN negocios n ON pn.id_negocio = n.id
+            LEFT JOIN configuracion_web cw ON n.id = cw.id_negocio
+            WHERE pn.id_usuario = :user_id
+            GROUP BY pn.id_negocio
+            ORDER BY (pn.rol_en_local = 'admin') DESC, pn.id_negocio ASC
+        ");
+        $stmtBiz->execute(['user_id' => $validUser['id']]);
+        $allBiz = $stmtBiz->fetchAll(PDO::FETCH_ASSOC);
 
-        $defaultProfPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 0, 'servicios' => 0, 'estadisticas' => 0, 'equipo' => 0];
-        $defaultAdminPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 1, 'servicios' => 1, 'estadisticas' => 1, 'equipo' => 1];
+        if (count($allBiz) > 1) {
+            // Usuario en MÚLTIPLES NEGOCIOS: Solicitar selección en el frontend
+            $_SESSION['pending_user_id'] = $validUser['id'];
+            $_SESSION['nombre_completo'] = $validUser['nombre_completo'];
 
-        if ($_SESSION['rol_en_local'] === 'admin') {
-            $_SESSION['permisos'] = $defaultAdminPerms;
+            echo json_encode([
+                'success' => true,
+                'multiple_businesses' => true,
+                'user_id' => $validUser['id'],
+                'nombre' => $validUser['nombre_completo'],
+                'businesses' => array_map(function($b) {
+                    return [
+                        'id_negocio' => (int)$b['id_negocio'],
+                        'nombre' => $b['nombre_fantasia'] ?: 'Mi Negocio',
+                        'rol' => $b['rol_en_local'],
+                        'plan' => $b['plan'] ?: 'Plan Simple',
+                        'logo' => $b['logo'] ?? null
+                    ];
+                }, $allBiz)
+            ]);
+            exit;
         } else {
-            $parsedPerms = !empty($validUser['permisos']) ? json_decode($validUser['permisos'], true) : null;
-            $_SESSION['permisos'] = is_array($parsedPerms) ? array_merge($defaultProfPerms, $parsedPerms) : $defaultProfPerms;
+            // Un solo negocio o por defecto
+            $bizTarget = $allBiz[0] ?? $validUser;
+            
+            $_SESSION['user_id'] = $validUser['id']; 
+            $_SESSION['nombre_completo'] = $validUser['nombre_completo'];
+            $_SESSION['rol_en_local'] = $bizTarget['rol_en_local'] ?? 'admin';
+            $_SESSION['id_negocio'] = (int)($bizTarget['id_negocio'] ?? $validUser['id_negocio']);
+            $_SESSION['plan'] = $bizTarget['plan'] ?? $validUser['plan'];
+
+            $defaultProfPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 0, 'servicios' => 0, 'estadisticas' => 0, 'equipo' => 0];
+            $defaultAdminPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 1, 'servicios' => 1, 'estadisticas' => 1, 'equipo' => 1];
+
+            if ($_SESSION['rol_en_local'] === 'admin') {
+                $_SESSION['permisos'] = $defaultAdminPerms;
+            } else {
+                $parsedPerms = !empty($bizTarget['permisos']) ? json_decode($bizTarget['permisos'], true) : null;
+                $_SESSION['permisos'] = is_array($parsedPerms) ? array_merge($defaultProfPerms, $parsedPerms) : $defaultProfPerms;
+            }
+            
+            session_write_close();
+            echo json_encode(['success' => true, 'plan' => $_SESSION['plan']]);
+            exit;
         }
-        
-        session_write_close();
-        echo json_encode(['success' => true, 'plan' => $validUser['plan']]);
-        exit;
 
     } catch (PDOException $e) {
         http_response_code(500);

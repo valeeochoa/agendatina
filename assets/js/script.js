@@ -917,17 +917,10 @@ function loadDashboardData() {
             // Actualizar Nombre en el Navbar como fallback rápido si tarda en cargar la web
             const dashBusinessName = document.getElementById('dashboardBusinessName');
             if (dashBusinessName) {
-                const fallbackName = business.nombre_fantasia || (window.currentUserData && window.currentUserData.nombre_completo) || 'Mi Negocio';
+                const userFullName = (window.currentUserData && window.currentUserData.nombre_completo) || '';
                 const currentText = dashBusinessName.textContent.trim();
                 if (currentText === 'Cargando...' || currentText === 'Mi Negocio') {
-                    dashBusinessName.textContent = fallbackName;
-                    
-                    const navAvatar = document.getElementById('navAvatar');
-                    if (navAvatar && !navAvatar.querySelector('img')) {
-                        const words = fallbackName.trim().split(/\s+/);
-                        const initials = words.length > 1 ? (words[0][0] + words[1][0]) : fallbackName.substring(0, 2);
-                        navAvatar.innerHTML = initials.toUpperCase();
-                    }
+                    dashBusinessName.textContent = userFullName ? userFullName : (business.nombre_fantasia || 'Mi Negocio');
                 }
             }
 
@@ -1726,10 +1719,13 @@ function loadCustomization() {
                 if(document.getElementById('profColor2')) document.getElementById('profColor2').value = data.color_secundario || '#FC8712';
                 if(document.getElementById('profileColor')) document.getElementById('profileColor').value = data.color_primario || '#D11149';
 
-                const displayName = data.titulo || (window.currentBusinessData && window.currentBusinessData.nombre_fantasia) || (window.currentUserData && window.currentUserData.nombre_completo) || 'Mi Negocio';
+                const displayName = data.titulo || (window.currentBusinessData && window.currentBusinessData.nombre_fantasia) || 'Mi Negocio';
+                const userFullName = (window.currentUserData && window.currentUserData.nombre_completo) || '';
                 
                 const dashBusinessName = document.getElementById('dashboardBusinessName');
-                if (dashBusinessName) dashBusinessName.textContent = displayName;
+                if (dashBusinessName) {
+                    dashBusinessName.textContent = userFullName ? userFullName : displayName;
+                }
                 
                 const navBusinessName = document.getElementById('navBusinessNameText');
                 if (navBusinessName && displayName) navBusinessName.textContent = displayName;
@@ -4573,4 +4569,201 @@ window.confirmPlanUpgradeAction = function() {
     } else {
         window.location.href = 'pago.html?plan=' + encodeURIComponent(window.selectedUpgradeTarget) + '&monto=' + window.calculatedUpgradeAmount;
     }
-};
+};
+
+// =========================================================================
+// GESTIÓN MULTI-NEGOCIO (Detección, Ruedita Selector en Header y Perfil)
+// =========================================================================
+window.checkUserMultipleBusinesses = function() {
+    fetch('backend/obtener_negocios_usuario.php')
+        .then(r => r.json())
+        .then(data => {
+            if (!data.success || !data.has_multiple || !Array.isArray(data.negocios)) return;
+
+            window.userBusinessesList = data.negocios;
+            window.userActualBusinessId = data.actual_id_negocio;
+
+            // 1. Inyectar la ruedita en el header si existe navBusinessNameHeader
+            const headerContainer = document.getElementById('navBusinessNameHeader');
+            if (headerContainer && !document.getElementById('navSwitchBizBtn')) {
+                const btn = document.createElement('button');
+                btn.id = 'navSwitchBizBtn';
+                btn.type = 'button';
+                btn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.openGlobalSwitchBusinessModal();
+                };
+                btn.className = 'p-1 rounded-lg text-slate-500 hover:text-purple-600 hover:bg-slate-200 transition-colors ml-0.5 inline-flex items-center cursor-pointer';
+                btn.title = 'Cambiar de negocio activo (Múltiples locales detectados)';
+                btn.innerHTML = '<span class="material-symbols-outlined text-[17px]">settings</span>';
+                headerContainer.appendChild(btn);
+            }
+
+            // 2. Renderizar lista en perfil.html si existe perfilMultiBusinessSection
+            const section = document.getElementById('perfilMultiBusinessSection');
+            const listContainer = document.getElementById('perfilMultiBusinessList');
+            if (section && listContainer) {
+                section.classList.remove('hidden');
+                listContainer.innerHTML = '';
+
+                data.negocios.forEach(b => {
+                    const card = document.createElement('div');
+                    const isCurrent = b.is_current;
+                    card.className = `p-4 rounded-2xl border flex items-center justify-between gap-3 transition-all ${isCurrent ? 'bg-purple-50/70 border-purple-300 ring-2 ring-purple-500/20' : 'bg-slate-50 border-slate-200 hover:border-purple-300 hover:bg-white cursor-pointer'}`;
+                    
+                    const roleBadge = b.rol === 'admin'
+                        ? '<span class="bg-purple-100 text-purple-700 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border border-purple-200">Administrador / Dueño</span>'
+                        : '<span class="bg-blue-100 text-blue-700 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border border-blue-200">Profesional</span>';
+                    
+                    const activeBadge = isCurrent
+                        ? '<span class="bg-emerald-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full flex items-center gap-1 shadow-xs"><span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> ACTIVO</span>'
+                        : `<button onclick="window.switchActiveBusiness(${b.id_negocio})" class="px-3 py-1.5 bg-white hover:bg-purple-600 hover:text-white text-purple-700 border border-purple-200 font-bold rounded-xl text-xs shadow-2xs transition-all">Ingresar</button>`;
+
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-purple-600 font-bold text-lg shrink-0 overflow-hidden shadow-xs">
+                                ${b.logo ? `<img src="${b.logo}" class="w-full h-full object-cover">` : `<span class="material-symbols-outlined text-xl">storefront</span>`}
+                            </div>
+                            <div>
+                                <h4 class="font-extrabold text-slate-900 text-sm">${b.nombre}</h4>
+                                <div class="mt-0.5 flex items-center gap-2">${roleBadge}</div>
+                            </div>
+                        </div>
+                        <div>${activeBadge}</div>
+                    `;
+
+                    if (!isCurrent) {
+                        card.onclick = function(e) {
+                            if (e.target.tagName !== 'BUTTON') window.switchActiveBusiness(b.id_negocio);
+                        };
+                    }
+
+                    listContainer.appendChild(card);
+                });
+            }
+        })
+        .catch(() => {});
+};
+
+window.openGlobalSwitchBusinessModal = function() {
+    let modal = document.getElementById('globalSwitchBusinessModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'globalSwitchBusinessModal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[9999] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300';
+        modal.innerHTML = `
+            <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300" id="globalSwitchModalContent">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-xl">storefront</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-extrabold text-slate-900">Cambiar de Negocio</h3>
+                            <p class="text-xs text-slate-500">Selecciona el local con el que deseas operar:</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="window.closeGlobalSwitchBusinessModal()" class="text-slate-400 hover:text-slate-600 p-1"><span class="material-symbols-outlined">close</span></button>
+                </div>
+                <div id="globalSwitchBizList" class="space-y-3 max-h-72 overflow-y-auto pr-1"></div>
+                <div id="globalSwitchMsg" class="hidden mt-3 p-3 rounded-xl text-xs font-semibold bg-red-50 text-red-600 border border-red-200 text-center"></div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    const container = document.getElementById('globalSwitchBizList');
+    if (container && Array.isArray(window.userBusinessesList)) {
+        container.innerHTML = '';
+        window.userBusinessesList.forEach(b => {
+            const isCurrent = b.is_current;
+            const card = document.createElement('div');
+            card.className = `flex items-center justify-between p-3.5 border rounded-2xl transition-all ${isCurrent ? 'bg-purple-50/80 border-purple-300' : 'bg-slate-50 border-slate-200 hover:border-purple-500 hover:bg-purple-50/40 cursor-pointer'}`;
+            
+            const roleBadge = b.rol === 'admin'
+                ? '<span class="bg-purple-100 text-purple-700 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border border-purple-200">Administrador / Dueño</span>'
+                : '<span class="bg-blue-100 text-blue-700 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border border-blue-200">Profesional</span>';
+
+            const activeStatus = isCurrent
+                ? '<span class="bg-emerald-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> ACTIVO</span>'
+                : '<span class="text-xs font-bold text-purple-600 group-hover:underline">Seleccionar</span>';
+
+            card.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-purple-600 font-bold text-lg shrink-0 overflow-hidden shadow-xs">
+                        ${b.logo ? `<img src="${b.logo}" class="w-full h-full object-cover">` : `<span class="material-symbols-outlined text-xl">storefront</span>`}
+                    </div>
+                    <div>
+                        <h4 class="font-extrabold text-slate-800 text-sm">${b.nombre}</h4>
+                        <div class="mt-0.5">${roleBadge}</div>
+                    </div>
+                </div>
+                <div>${activeStatus}</div>
+            `;
+
+            if (!isCurrent) {
+                card.onclick = function() {
+                    window.switchActiveBusiness(b.id_negocio);
+                };
+            }
+
+            container.appendChild(card);
+        });
+    }
+
+    const content = document.getElementById('globalSwitchModalContent');
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        if (content) {
+            content.classList.remove('scale-95', 'animate-modal-pop');
+            void content.offsetWidth;
+            content.classList.add('animate-modal-pop');
+        }
+    }, 10);
+};
+
+window.closeGlobalSwitchBusinessModal = function() {
+    const modal = document.getElementById('globalSwitchBusinessModal');
+    const content = document.getElementById('globalSwitchModalContent');
+    if (!modal) return;
+    modal.classList.add('opacity-0');
+    if (content) {
+        content.classList.remove('animate-modal-pop');
+        content.classList.add('scale-95');
+    }
+    setTimeout(() => { modal.classList.add('hidden'); }, 300);
+};
+
+window.switchActiveBusiness = function(idNegocio) {
+    const msgDiv = document.getElementById('globalSwitchMsg');
+    if (msgDiv) msgDiv.classList.add('hidden');
+
+    fetch('backend/cambiar_negocio.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_negocio: idNegocio })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            window.location.reload();
+        } else {
+            if (msgDiv) {
+                msgDiv.textContent = data.error || 'Error al cambiar de negocio.';
+                msgDiv.classList.remove('hidden');
+            }
+        }
+    })
+    .catch(() => {
+        if (msgDiv) {
+            msgDiv.textContent = 'Error de conexión al cambiar de negocio.';
+            msgDiv.classList.remove('hidden');
+        }
+    });
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    window.checkUserMultipleBusinesses();
+});

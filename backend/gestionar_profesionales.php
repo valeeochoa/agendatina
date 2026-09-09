@@ -207,8 +207,8 @@ if ($method === 'GET') {
     $permisosFinal = is_array($permisosInput) ? array_merge($defaultProfPerms, $permisosInput) : $defaultProfPerms;
     $permisosJson = json_encode($permisosFinal);
 
-    if (!$nombre || !$email || !$password) {
-        echo json_encode(['success' => false, 'error' => 'Por favor completa todos los campos (Nombre, Email y Contraseña).']);
+    if (!$nombre || !$email) {
+        echo json_encode(['success' => false, 'error' => 'Por favor completa el Nombre y Correo Electrónico.']);
         exit;
     }
 
@@ -264,6 +264,9 @@ if ($method === 'GET') {
             $stmtPn->execute([$id_negocio, $id_usuario, $permisosJson]);
         } else {
             // Crear usuario nuevo (marcado para cambio obligatorio de contraseña en su primer inicio)
+            if (empty($password)) {
+                $password = bin2hex(random_bytes(8));
+            }
             $hash = password_hash($password, PASSWORD_DEFAULT);
             try { $pdo->query("SELECT debe_cambiar_pass FROM usuarios LIMIT 1"); } 
             catch(Exception $e) { try { $pdo->exec("ALTER TABLE usuarios ADD COLUMN debe_cambiar_pass TINYINT DEFAULT 0"); } catch(Exception $e2) {} }
