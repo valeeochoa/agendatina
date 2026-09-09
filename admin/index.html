@@ -921,7 +921,7 @@ function getSubscriptionDetails(c, trialDays = 15) {
     }
 
     if (estado === 'prueba' || estado === 'trial') {
-        const trialLimit = parseInt(trialDays) || 15;
+        const trialLimit = (c && c.dias_prueba !== undefined && c.dias_prueba !== null && parseInt(c.dias_prueba) > 0) ? parseInt(c.dias_prueba) : (parseInt(trialDays) || 15);
         const trialEndDate = new Date(fechaAltaZero);
         trialEndDate.setDate(trialEndDate.getDate() + trialLimit);
 

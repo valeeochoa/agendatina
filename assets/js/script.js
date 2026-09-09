@@ -3012,28 +3012,9 @@ function isAccountSuspended(dbStatus, lastPaymentStr, fechaAltaStr) {
                    (sessionStorage.getItem('agendatina_demo_alert') === 'true');
     if (isDemo) return false;
 
-    if (dbStatus === 'suspendido') return true;
-    
-    const today = new Date();
-    
-    if (dbStatus === 'prueba' || dbStatus === 'beta') {
-        if (!fechaAltaStr) return false;
-        const fechaAlta = new Date(fechaAltaStr.replace(/-/g, '/'));
-        const trialEnd = new Date(fechaAlta);
-        trialEnd.setDate(trialEnd.getDate() + 30);
-        return today > trialEnd;
-    } 
-    
-    if (dbStatus === 'activo' || dbStatus === 'pagado') {
-        if (!lastPaymentStr) return false; // Si aún no registra fecha de pago en cuenta activa, se asume vigente
-        const lastPayment = new Date(lastPaymentStr.replace(/-/g, '/'));
-        if (isNaN(lastPayment.getTime())) return false;
-        const paymentDeadline = new Date(lastPayment);
-        paymentDeadline.setDate(paymentDeadline.getDate() + 40); // 30 días + 10 días de gracia
-        return today > paymentDeadline;
-    }
-    
-    return false;
+    // La cuenta se considera suspendida únicamente si la base de datos la marcó explícitamente como 'suspendido'
+    // Durante los 10 días de gracia/tolerancia, la cuenta sigue operando normalmente.
+    return (dbStatus === 'suspendido');
 }
 
 function applyWebCustomization() {

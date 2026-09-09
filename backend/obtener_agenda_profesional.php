@@ -27,29 +27,8 @@ try {
     $dbStatus = $negocio['estado_pago'] ?? 'prueba';
     $isSuspended = ($dbStatus === 'suspendido');
     
-    $today = new DateTime();
-    if ($dbStatus === 'prueba') {
-        $fechaAltaStr = !empty($negocio['fecha_alta']) ? $negocio['fecha_alta'] : 'now';
-        $fechaAlta = new DateTime($fechaAltaStr);
-        $fechaAlta->modify('+15 days');
-        if ($today > $fechaAlta) { $isSuspended = true; }
-    } elseif ($dbStatus === 'beta') {
-        $fechaAltaStr = !empty($negocio['fecha_alta']) ? $negocio['fecha_alta'] : 'now';
-        $fechaAlta = new DateTime($fechaAltaStr);
-        $fechaAlta->modify('+30 days');
-        if ($today > $fechaAlta) { $isSuspended = true; }
-    }
-
     if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || (isset($negocio['ruta']) && strpos($negocio['ruta'], 'demo') === 0)) {
         $isSuspended = false;
-    } elseif ($dbStatus === 'activo' || $dbStatus === 'pagado') {
-        if (!empty($negocio['ultimo_pago'])) {
-            $ultimoPago = new DateTime($negocio['ultimo_pago']);
-            $ultimoPago->modify('+40 days');
-            if ($today > $ultimoPago) { $isSuspended = true; }
-        } else {
-            $isSuspended = false;
-        }
     }
 
     if ($isSuspended) {

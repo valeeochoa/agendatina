@@ -136,13 +136,15 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN limit
 // Suspende si pasaron > 40 días de prueba (30 días + 10 de gracia para pagar)
 // Suspende si están Activos y pasaron > 35 días desde su último pago
 try {
-    $diasPruebaDefecto = 15;
-    $stmtTrialConf = $pdo->query("SELECT COALESCE(dias_prueba_defecto, 15) FROM configuracion_global WHERE id = 1 LIMIT 1");
-    if ($stmtTrialConf && $valTrial = $stmtTrialConf->fetchColumn()) {
-        $diasPruebaDefecto = max(1, (int)$valTrial);
-    }
-    $diasMaxPruebaConGracia = $diasPruebaDefecto + 10;
-    $pdo->exec("UPDATE negocios SET estado_pago = 'suspendido' WHERE estado_pago NOT IN ('pendiente_revision', 'suspendido') AND ((estado_pago = 'prueba' AND DATEDIFF(NOW(), fecha_alta) > {$diasMaxPruebaConGracia}) OR (estado_pago = 'beta' AND DATEDIFF(NOW(), fecha_alta) > 45) OR (estado_pago IN ('activo', 'pagado') AND ultimo_pago IS NOT NULL AND DATEDIFF(NOW(), ultimo_pago) > 40))");
+    $pdo->exec("UPDATE negocios n 
+                LEFT JOIN configuracion_global cg ON cg.id = 1 
+                SET n.estado_pago = 'suspendido' 
+                WHERE n.estado_pago NOT IN ('pendiente_revision', 'suspendido') 
+                  AND (
+                      (n.estado_pago = 'prueba' AND DATEDIFF(NOW(), n.fecha_alta) > (COALESCE(n.dias_prueba, cg.dias_prueba_defecto, 15) + 10)) 
+                      OR (n.estado_pago = 'beta' AND DATEDIFF(NOW(), n.fecha_alta) > 45) 
+                      OR (n.estado_pago IN ('activo', 'pagado') AND n.ultimo_pago IS NOT NULL AND DATEDIFF(NOW(), n.ultimo_pago) > 40)
+                  )");
 } catch(Exception $e) { /* Ejecución silenciosa */ }
 
 // Petición GET: Devolver los datos actuales desde la BD
@@ -181,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
         
         // Si el título de la página web está vacío, podemos usar el nombre del negocio de la BD como alternativa
-        $stmtN = $pdo->prepare("SELECT nombre_fantasia, plan, estado_pago, ultimo_pago, fecha_alta, ruta FROM negocios WHERE id = :id");
+        $stmtN = $pdo->prepare("SELECT nombre_fantasia, plan, estado_pago, ultimo_pago, fecha_alta, dias_prueba, ruta FROM negocios WHERE id = :id");
         $stmtN->execute(['id' => $id_negocio]);
         $n = $stmtN->fetch();
         
@@ -193,6 +195,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $config['estado_pago'] = $n['estado_pago'] ?? 'prueba';
             $config['ultimo_pago'] = $n['ultimo_pago'] ?? null;
             $config['fecha_alta'] = $n['fecha_alta'] ?? null;
+            $config['dias_prueba'] = $n['dias_prueba'] ?? 15;
             $config['ruta'] = $n['ruta'] ?? '';
         }
         

@@ -148,6 +148,9 @@ try {
     try { $pdo->query("SELECT fecha_alta FROM negocios LIMIT 1"); } 
     catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN fecha_alta DATETIME DEFAULT CURRENT_TIMESTAMP"); }
 
+    try { $pdo->query("SELECT dias_prueba FROM negocios LIMIT 1"); } 
+    catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN dias_prueba INT DEFAULT 15"); }
+
     try { $pdo->query("SELECT codigo_descuento FROM negocios LIMIT 1"); } 
     catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN codigo_descuento VARCHAR(50) DEFAULT NULL"); }
 
@@ -248,13 +251,14 @@ try {
     ]);
     $idUsuario = $pdo->lastInsertId();
 
-    // 5. Crear negocio con plan, límite de profesionales y código de descuento
-    $stmtNegocio = $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago, codigo_descuento, descuento_aplicado_pct, fecha_alta) VALUES (:nombre, :ruta, :plan, :max_p, 'prueba', :cod_desc, :pct_desc, NOW())");
+    // 5. Crear negocio con plan, límite de profesionales, días de prueba fijos al alta y código de descuento
+    $stmtNegocio = $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago, dias_prueba, codigo_descuento, descuento_aplicado_pct, fecha_alta) VALUES (:nombre, :ruta, :plan, :max_p, 'prueba', :dias_p, :cod_desc, :pct_desc, NOW())");
     $stmtNegocio->execute([
         'nombre' => $nombre_fantasia,
         'ruta' => $ruta,
         'plan' => $plan,
         'max_p' => $max_profesionales,
+        'dias_p' => $diasPrueba,
         'cod_desc' => $codigoCanjeado,
         'pct_desc' => $descuentoPct
     ]);

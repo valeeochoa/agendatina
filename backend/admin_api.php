@@ -59,6 +59,9 @@ catch(Exception $e) {
 try { $pdo->query("SELECT ultimo_pago FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN ultimo_pago DATETIME DEFAULT NULL"); }
 
+try { $pdo->query("SELECT dias_prueba FROM negocios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN dias_prueba INT DEFAULT 15"); }
+
 try { $pdo->query("SELECT codigo_descuento FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN codigo_descuento VARCHAR(50) DEFAULT NULL"); }
 
@@ -218,18 +221,20 @@ if ($method === 'GET') {
 
     // Ejecutar auto-suspensión silenciosa antes de devolver los datos a la tabla (excluyendo negocios que subieron comprobante 'pendiente_revision')
     try {
-        $diasPruebaDefecto = 15;
-        $stmtTrialConf = $pdo->query("SELECT COALESCE(dias_prueba_defecto, 15) FROM configuracion_global WHERE id = 1 LIMIT 1");
-        if ($stmtTrialConf && $valTrial = $stmtTrialConf->fetchColumn()) {
-            $diasPruebaDefecto = max(1, (int)$valTrial);
-        }
-        $diasMaxPruebaConGracia = $diasPruebaDefecto + 10;
-        $pdo->exec("UPDATE negocios SET estado_pago = 'suspendido' WHERE estado_pago NOT IN ('pendiente_revision', 'suspendido') AND ((estado_pago = 'prueba' AND DATEDIFF(NOW(), fecha_alta) > {$diasMaxPruebaConGracia}) OR (estado_pago = 'beta' AND DATEDIFF(NOW(), fecha_alta) > 45) OR (estado_pago IN ('activo', 'pagado') AND ultimo_pago IS NOT NULL AND DATEDIFF(NOW(), ultimo_pago) > 40))");
+        $pdo->exec("UPDATE negocios n 
+                    LEFT JOIN configuracion_global cg ON cg.id = 1 
+                    SET n.estado_pago = 'suspendido' 
+                    WHERE n.estado_pago NOT IN ('pendiente_revision', 'suspendido') 
+                      AND (
+                          (n.estado_pago = 'prueba' AND DATEDIFF(NOW(), n.fecha_alta) > (COALESCE(n.dias_prueba, cg.dias_prueba_defecto, 15) + 10)) 
+                          OR (n.estado_pago = 'beta' AND DATEDIFF(NOW(), n.fecha_alta) > 45) 
+                          OR (n.estado_pago IN ('activo', 'pagado') AND n.ultimo_pago IS NOT NULL AND DATEDIFF(NOW(), n.ultimo_pago) > 40)
+                      )");
     } catch(Exception $e) {}
 
     try {
         $stmt = $pdo->query("
-            SELECT n.id, n.nombre_fantasia, n.ruta, n.plan, n.max_profesionales, n.estado_pago, n.fecha_alta, 
+            SELECT n.id, n.nombre_fantasia, n.ruta, n.plan, n.max_profesionales, n.estado_pago, n.fecha_alta, n.dias_prueba,
                    n.ultimo_pago, n.comprobante, n.codigo_descuento, n.descuento_aplicado_pct, u.nombre_completo, u.email, u.id AS id_usuario_admin,
                    COALESCE(cw.tipo_calendario, 'clasico') AS tipo_calendario,
                    an.nota AS nota_interna

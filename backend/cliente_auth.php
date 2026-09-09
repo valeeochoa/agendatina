@@ -198,7 +198,7 @@ try {
 
         // Obtener la información de los negocios donde el alumno está registrado
         $stmtNegocios = $pdo->prepare("
-            SELECT cn.id_negocio, n.nombre_fantasia AS negocio_nombre, n.ruta AS negocio_ruta, cn.pases_disponibles, COALESCE(cn.pases_totales, cn.pases_disponibles) AS pases_totales, cn.fecha_vencimiento, cn.telefono, cn.nombre_completo
+            SELECT cn.id_negocio, n.nombre_fantasia AS negocio_nombre, n.ruta AS negocio_ruta, n.estado_pago, cn.pases_disponibles, COALESCE(cn.pases_totales, cn.pases_disponibles) AS pases_totales, cn.fecha_vencimiento, cn.telefono, cn.nombre_completo
             FROM clientes_negocio cn
             JOIN negocios n ON cn.id_negocio = n.id
             WHERE LOWER(TRIM(cn.email)) = :email

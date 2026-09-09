@@ -67,24 +67,6 @@ if (!$negocioBD) {
 $dbStatus = $negocioBD['estado_pago'] ?? 'prueba';
 $isSuspended = ($dbStatus === 'suspendido');
 
-$today = new DateTime();
-if ($dbStatus === 'prueba') {
-    $fechaAltaStr = !empty($negocioBD['fecha_alta']) ? $negocioBD['fecha_alta'] : 'now';
-    $fechaAlta = new DateTime($fechaAltaStr);
-    $fechaAlta->modify('+15 days');
-    if ($today > $fechaAlta) { $isSuspended = true; }
-} elseif ($dbStatus === 'beta') {
-    $fechaAltaStr = !empty($negocioBD['fecha_alta']) ? $negocioBD['fecha_alta'] : 'now';
-    $fechaAlta = new DateTime($fechaAltaStr);
-    $fechaAlta->modify('+35 days');
-    if ($today > $fechaAlta) { $isSuspended = true; }
-} elseif ($dbStatus === 'activo' || $dbStatus === 'pagado') {
-    $ultimoPagoStr = !empty($negocioBD['ultimo_pago']) ? $negocioBD['ultimo_pago'] : '2000-01-01';
-    $ultimoPago = new DateTime($ultimoPagoStr);
-    $ultimoPago->modify('+35 days');
-    if ($today > $ultimoPago) { $isSuspended = true; }
-}
-
 if ($isSuspended) {
     http_response_code(403);
     echo json_encode(['success' => false, 'error' => 'Este negocio tiene las reservas temporalmente suspendidas por falta de pago.']);

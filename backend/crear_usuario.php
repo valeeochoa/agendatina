@@ -69,9 +69,17 @@ try {
     $stmtUser->execute(['nombre' => $nombre_completo, 'email' => $email, 'password' => password_hash($password, PASSWORD_DEFAULT)]);
     $id_usuario = $pdo->lastInsertId();
 
-    // 4. Crear el Negocio (Asignando el Plan y Límite solicitados, en Prueba de 15 días)
-    $stmtNegocio = $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago) VALUES (:fantasia, :ruta, :plan, :max_profesionales, 'prueba')");
-    $stmtNegocio->execute(['fantasia' => $nombre_fantasia, 'ruta' => $ruta, 'plan' => $plan, 'max_profesionales' => $max_profesionales]);
+    // 4. Obtener días de prueba vigentes y Crear el Negocio
+    $diasPrueba = 15;
+    try {
+        $stmtConf = $pdo->query("SELECT COALESCE(dias_prueba_defecto, 15) FROM configuracion_global WHERE id = 1 LIMIT 1");
+        if ($stmtConf && $valC = $stmtConf->fetchColumn()) {
+            $diasPrueba = max(1, (int)$valC);
+        }
+    } catch (Exception $exConf) {}
+
+    $stmtNegocio = $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago, dias_prueba) VALUES (:fantasia, :ruta, :plan, :max_profesionales, 'prueba', :dias_p)");
+    $stmtNegocio->execute(['fantasia' => $nombre_fantasia, 'ruta' => $ruta, 'plan' => $plan, 'max_profesionales' => $max_profesionales, 'dias_p' => $diasPrueba]);
     $id_negocio = $pdo->lastInsertId();
 
     // 5. Vincular al Usuario como Administrador de ese Negocio
