@@ -359,6 +359,7 @@
                     return;
                 }
                 let isStaff = false;
+                let isProf = false;
                 if(data.user) {
                     document.getElementById('perfilNombre').value = data.user.nombre_completo || '';
                     document.getElementById('perfilEmail').value = data.user.email || '';
@@ -429,6 +430,7 @@
                     const negocioInput = document.getElementById('perfilNombreNegocio');
                     const negocioHelp = document.getElementById('negocioNombreHelp');
                     isStaff = (data.user.rol === 'profesional' || data.user.rol === 'empleado');
+                    isProf = isStaff;
                     if (isStaff && negocioInput) {
                         negocioInput.disabled = true;
                         negocioInput.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
