@@ -1169,6 +1169,10 @@ function checkSubscription(subscriptionData) {
     const diffToCycleEnd = Math.ceil((cycleEnd - todayZero) / (1000 * 60 * 60 * 24));
     const diffToDeadline = Math.ceil((paymentDeadline - todayZero) / (1000 * 60 * 60 * 24));
 
+    // Regla de visibilidad: El aviso de rutina solo se muestra los lunes o cuando falten 3 días o menos para el fin del ciclo
+    const isMonday = todayZero.getDay() === 1;
+    const showRoutineNotice = isMonday || diffToCycleEnd <= 3;
+
     // Variables de configuración de la UI
     let isDashboardBannerHidden = true;
     let dashBannerClass = '';
@@ -1185,7 +1189,7 @@ function checkSubscription(subscriptionData) {
 
     if (subscriptionData.status === 'prueba') {
         if (diffToCycleEnd > 0) {
-            isDashboardBannerHidden = false;
+            isDashboardBannerHidden = !showRoutineNotice;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-blue-50 border border-blue-200 text-blue-800';
             dashIcon = 'schedule';
             dashMsg = isProf ? 
@@ -1206,7 +1210,7 @@ function checkSubscription(subscriptionData) {
         }
     } else if (subscriptionData.status === 'beta') {
         if (diffToCycleEnd > 0) {
-            isDashboardBannerHidden = false;
+            isDashboardBannerHidden = !showRoutineNotice;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-blue-50 border border-blue-200 text-blue-800';
             dashIcon = 'schedule';
             dashMsg = `Estás en la fase beta. Te quedan ${diffToCycleEnd} días gratuitos.`;
@@ -1226,7 +1230,7 @@ function checkSubscription(subscriptionData) {
         }
     } else if (subscriptionData.status === 'activo' || subscriptionData.status === 'pagado') {
         if (diffToCycleEnd > 0) {
-            isDashboardBannerHidden = false;
+            isDashboardBannerHidden = !showRoutineNotice;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-emerald-50 border border-emerald-200 text-emerald-800';
             dashIcon = 'check_circle';
             dashMsg = `Tu cuenta está al día y tu pago fue aprobado. Te quedan <strong>${diffToCycleEnd} días</strong> de servicio.`;
