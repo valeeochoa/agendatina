@@ -325,6 +325,31 @@
     <script src="assets/js/csrf.js"></script>
     <script>
         let isDemoUser = false;
+        let currentPlan = 'Basico';
+        let extraColorsObj = {};
+
+        function getMaxExtraSlots(plan) {
+            const p = (plan || '').toLowerCase();
+            if (p.includes('premium')) return 3;
+            if (p.includes('profesional') || p.includes('intermedio')) return 1;
+            return 0;
+        }
+
+        function updatePlanBadge() {
+            const badge = document.getElementById('planColorBadge');
+            const max = getMaxExtraSlots(currentPlan);
+            const used = Object.keys(extraColorsObj).length;
+            if (badge) {
+                if (max === 0) {
+                    badge.textContent = `Plan ${currentPlan || 'Simple'}: 2 colores base (Actualiza a Profesional o Premium para sumar más)`;
+                    badge.className = 'text-[11px] font-bold text-amber-600';
+                } else {
+                    badge.textContent = `Plan ${currentPlan}: ${used} de ${max} colores extra en uso (Total: ${2 + used} colores)`;
+                    badge.className = 'text-[11px] font-bold text-purple-600';
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             fetch('backend/perfil.php').then(r=>r.json()).then(data => {
                 if (!data || !data.success || !data.user) {
@@ -535,8 +560,10 @@
                     }
                 }
             }).catch(err => {
-                console.error('⚠️ [Error de Carga - Perfil] Desconexión de red o fallo al volver a cargar información:', err);
-                window.location.href = 'login.html';
+                console.error('⚠️ [Error de Carga - Perfil] Error al procesar información:', err);
+                if (typeof showToast === 'function') {
+                    showToast('Error al cargar datos del perfil: ' + err.message, 'error');
+                }
             });
             
             // Cargar datos de diseño (Web Config)
@@ -861,9 +888,6 @@
                 }
             }, 300);
         }
-        let currentPlan = 'Basico';
-        let extraColorsObj = {};
-
         const TARGET_LABELS = {
             'color_terciario': { label: 'Color Terciario', desc: 'Acentos especiales' },
             'color_header': { label: 'Fondo del Header', desc: 'Navegación principal' },
@@ -872,28 +896,6 @@
             'color_cards': { label: 'Fondo de Tarjetas', desc: 'Contenedores y cards' },
             'color_hover': { label: 'Efectos Hover', desc: 'Color al pasar cursor' }
         };
-
-        function getMaxExtraSlots(plan) {
-            const p = (plan || '').toLowerCase();
-            if (p.includes('premium')) return 3;
-            if (p.includes('profesional') || p.includes('intermedio')) return 1;
-            return 0;
-        }
-
-        function updatePlanBadge() {
-            const badge = document.getElementById('planColorBadge');
-            const max = getMaxExtraSlots(currentPlan);
-            const used = Object.keys(extraColorsObj).length;
-            if (badge) {
-                if (max === 0) {
-                    badge.textContent = `Plan ${currentPlan || 'Simple'}: 2 colores base (Actualiza a Profesional o Premium para sumar más)`;
-                    badge.className = 'text-[11px] font-bold text-amber-600';
-                } else {
-                    badge.textContent = `Plan ${currentPlan}: ${used} de ${max} colores extra en uso (Total: ${2 + used} colores)`;
-                    badge.className = 'text-[11px] font-bold text-purple-600';
-                }
-            }
-        }
 
         function renderExtraColorsGrid() {
             const grid = document.getElementById('extraColorsGrid');

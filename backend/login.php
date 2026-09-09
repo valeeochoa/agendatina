@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/conexion.php';
 header('Content-Type: application/json; charset=utf-8');
 
 // Por defecto, asegurarnos de que no esté en modo demo al intentar iniciar sesión real
@@ -22,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // INTERCEPTOR PARA EL MODO DEMO (Simulador aislado)
     if ($email === 'demo@agendatina.site') {
         $_SESSION['is_demo'] = true; 
-        require_once __DIR__ . '/conexion.php';
         
         $stmt = $pdo->prepare("SELECT u.id, u.nombre_completo, pn.id_negocio, pn.rol_en_local, n.plan 
                                FROM usuarios u
