@@ -131,7 +131,7 @@
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-[#fff7ed] via-[#fff1eb] to-[#ffecf1] text-slate-900 antialiased min-h-screen flex flex-col justify-center items-center p-4 sm:p-6 relative overflow-x-hidden selection:bg-[#FC8712]/20">
+<body class="bg-gradient-to-br from-[#fff7ed] via-[#fff1eb] to-[#ffecf1] text-slate-900 antialiased min-h-screen flex flex-col relative overflow-x-hidden selection:bg-[#FC8712]/20">
 
     <!-- Fondo Animado Efecto Lava -->
     <div class="lava-container" aria-hidden="true">
@@ -144,12 +144,12 @@
     <!-- Malla sutil para dispersión de luz -->
     <div class="fixed inset-0 w-screen h-screen bg-white/20 backdrop-blur-[20px] pointer-events-none z-0"></div>
 
-    <!-- Header Navbar (Visible al estar logueado) -->
-    <header id="mainHeaderNav" class="bg-white/95 backdrop-blur-xl border-b border-slate-200/80 sticky top-0 z-40 shadow-xs hidden w-full">
+    <!-- Header Navbar Pegado al Top Edge -->
+    <header id="mainHeaderNav" class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-200/80 shadow-xs w-full">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             <a href="index.html" class="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
                 <img src="public/logo.png" alt="Agendatina" class="h-9 w-auto drop-shadow-xs">
-                <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149] hidden sm:inline">Agenda<span class="text-[#fc8712]">tina</span></span>
+                <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
             </a>
             
             <div id="userHeaderBox" class="hidden flex items-center gap-3">
@@ -162,11 +162,18 @@
                     <span class="hidden sm:inline">Salir</span>
                 </button>
             </div>
+
+            <div id="guestHeaderBox" class="flex items-center gap-2">
+                <a href="index.html" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100/80 text-[#FC8712] border border-orange-200/80 text-xs font-extrabold transition-all">
+                    <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                    <span class="hidden sm:inline">Volver al</span> Inicio
+                </a>
+            </div>
         </div>
     </header>
 
     <!-- Main Container -->
-    <main id="mainContainer" class="flex-1 flex flex-col justify-center items-center max-w-5xl mx-auto w-full z-10 relative my-auto">
+    <main id="mainContainer" class="flex-1 flex flex-col justify-center items-center max-w-5xl mx-auto w-full z-10 relative pt-20 sm:pt-24 pb-8 px-4 sm:px-6 my-auto">
         
         <!-- VISTA 1: INICIO DE SESIÓN / DETECCIÓN DE EMAIL -->
         <div id="authBox" class="bg-white/95 backdrop-blur-2xl p-6 sm:p-10 rounded-[2.5rem] shadow-[0_25px_65px_-15px_rgba(252,135,18,0.25)] border border-white/90 max-w-md w-full my-auto transition-all duration-300 relative z-10">
@@ -675,11 +682,13 @@
             document.getElementById('dashboardBox').classList.remove('hidden');
             document.getElementById('userHeaderBox').classList.remove('hidden');
             document.getElementById('mainHeaderNav').classList.remove('hidden');
+            const guestBox = document.getElementById('guestHeaderBox');
+            if (guestBox) guestBox.classList.add('hidden');
             
             const mainContainer = document.getElementById('mainContainer');
             if (mainContainer) {
                 mainContainer.classList.remove('justify-center', 'my-auto');
-                mainContainer.classList.add('py-6', 'sm:py-10', 'px-4');
+                mainContainer.classList.add('pt-20', 'sm:pt-24', 'pb-12', 'px-4', 'sm:px-6');
             }
 
             const name = cliente.nombre || cliente.email || 'Alumno';
