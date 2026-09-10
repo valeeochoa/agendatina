@@ -1,0 +1,45 @@
+name: Deploy a Entorno de Pruebas via FTP
+
+on:
+  push:
+    branches:
+      - pruebas
+      - dev
+
+jobs:
+  web-deploy-pruebas:
+    name: Deploy a Carpeta Pruebas
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sincronizar solo cambios a /public_html/pruebas/ por FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftps
+          security-options: '{"rejectUnauthorized": false}'
+          timeout: 300000
+          log-level: verbose
+          server-dir: /public_html/pruebas/
+          state-name: .ftp-deploy-sync-state-pruebas.json
+          exclude: |
+            **/.git*/**
+            **/.github/**
+            **/.agents/**
+            **/node_modules/**
+            .env
+            .env.example
+            implementation_plan.md
+            walkthrough.md
+            temp_zip/**
+            actualizacion*.zip
+            backend/conexion.php
+            backend/admin_auth.php
