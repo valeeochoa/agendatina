@@ -2,16 +2,25 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Portal del Alumno | Agendatina</title>
     <link rel="icon" href="public/logo.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/global.css">
     <script src="assets/js/csrf.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-color: #fff7ed !important;
+            font-family: 'Inter', sans-serif;
+        }
+
         .font-brand { font-family: 'Fredoka', cursive, sans-serif !important; }
         
         .tab-btn.active {
@@ -31,12 +40,108 @@
             color: #1E293B;
             background-color: rgba(254, 243, 199, 0.4);
         }
+
+        /* Animación Lava Agendatina Alumno */
+        .lava-container {
+            position: fixed;
+            top: -20%;
+            left: -20%;
+            right: -20%;
+            bottom: -20%;
+            width: 140vw;
+            height: 140vh;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+            filter: blur(70px);
+            opacity: 0.85;
+        }
+
+        .lava-blob {
+            position: absolute;
+            border-radius: 50%;
+            mix-blend-mode: multiply;
+            will-change: transform, border-radius;
+        }
+
+        .lava-1 {
+            top: 10%;
+            left: 15%;
+            width: 520px;
+            height: 520px;
+            background: radial-gradient(circle, #FC8712 0%, #ff8a65 100%);
+            animation: lavaMove1 22s ease-in-out infinite alternate;
+        }
+
+        .lava-2 {
+            bottom: 10%;
+            right: 15%;
+            width: 560px;
+            height: 560px;
+            background: radial-gradient(circle, #D11149 0%, #ff4d79 100%);
+            animation: lavaMove2 26s ease-in-out infinite alternate;
+        }
+
+        .lava-3 {
+            top: 40%;
+            left: 35%;
+            width: 440px;
+            height: 440px;
+            background: radial-gradient(circle, #ff6b35 0%, #FC8712 100%);
+            animation: lavaMove3 19s ease-in-out infinite alternate;
+        }
+
+        .lava-4 {
+            bottom: 25%;
+            left: 10%;
+            width: 480px;
+            height: 480px;
+            background: radial-gradient(circle, #ff922b 0%, #D11149 100%);
+            animation: lavaMove4 24s ease-in-out infinite alternate;
+        }
+
+        @keyframes lavaMove1 {
+            0% { transform: translate(0px, 0px) scale(1) rotate(0deg); border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%; }
+            33% { transform: translate(140px, -90px) scale(1.2) rotate(110deg); border-radius: 70% 30% 46% 54% / 30% 60% 40% 70%; }
+            66% { transform: translate(-100px, 120px) scale(0.9) rotate(230deg); border-radius: 38% 62% 63% 37% / 60% 35% 65% 40%; }
+            100% { transform: translate(60px, 80px) scale(1.1) rotate(360deg); border-radius: 55% 45% 30% 70% / 50% 60% 40% 50%; }
+        }
+
+        @keyframes lavaMove2 {
+            0% { transform: translate(0px, 0px) scale(1) rotate(0deg); border-radius: 60% 40% 30% 70% / 50% 30% 70% 50%; }
+            33% { transform: translate(-130px, 110px) scale(1.2) rotate(-130deg); border-radius: 40% 60% 70% 30% / 60% 40% 60% 40%; }
+            66% { transform: translate(120px, -80px) scale(0.85) rotate(-250deg); border-radius: 70% 30% 40% 60% / 35% 65% 35% 65%; }
+            100% { transform: translate(-70px, -90px) scale(1.15) rotate(-360deg); border-radius: 45% 55% 60% 40% / 50% 45% 55% 50%; }
+        }
+
+        @keyframes lavaMove3 {
+            0% { transform: translate(0px, 0px) scale(0.9) rotate(0deg); border-radius: 50% 50% 60% 40% / 40% 60% 40% 60%; }
+            50% { transform: translate(-150px, -130px) scale(1.3) rotate(180deg); border-radius: 35% 65% 30% 70% / 65% 35% 65% 35%; }
+            100% { transform: translate(110px, 100px) scale(0.95) rotate(360deg); border-radius: 65% 35% 55% 45% / 45% 55% 45% 55%; }
+        }
+
+        @keyframes lavaMove4 {
+            0% { transform: translate(0px, 0px) scale(1) rotate(0deg); border-radius: 70% 30% 50% 50% / 30% 50% 50% 70%; }
+            50% { transform: translate(130px, -110px) scale(1.25) rotate(-160deg); border-radius: 40% 60% 35% 65% / 65% 35% 65% 35%; }
+            100% { transform: translate(-90px, 120px) scale(0.9) rotate(-320deg); border-radius: 55% 45% 60% 40% / 40% 60% 40% 60%; }
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-[#FC8712]/10 via-[#FF8A65]/10 to-[#FFF7ED] min-h-screen flex flex-col selection:bg-[#FC8712]/20">
+<body class="bg-gradient-to-br from-[#fff7ed] via-[#fff1eb] to-[#ffecf1] text-slate-900 antialiased min-h-screen flex flex-col justify-center items-center p-4 sm:p-6 relative overflow-x-hidden selection:bg-[#FC8712]/20">
 
-    <!-- Header Navbar -->
-    <header class="bg-white/95 backdrop-blur-xl border-b border-orange-200/80 sticky top-0 z-40 shadow-xs">
+    <!-- Fondo Animado Efecto Lava -->
+    <div class="lava-container" aria-hidden="true">
+        <div class="lava-blob lava-1"></div>
+        <div class="lava-blob lava-2"></div>
+        <div class="lava-blob lava-3"></div>
+        <div class="lava-blob lava-4"></div>
+    </div>
+
+    <!-- Malla sutil para dispersión de luz -->
+    <div class="fixed inset-0 w-screen h-screen bg-white/20 backdrop-blur-[20px] pointer-events-none z-0"></div>
+
+    <!-- Header Navbar (Visible únicamente al estar logueado) -->
+    <header id="mainHeaderNav" class="bg-white/95 backdrop-blur-xl border-b border-orange-200/80 sticky top-0 z-40 shadow-xs hidden w-full">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             <a href="index.html" class="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
                 <img src="public/logo.png" alt="Agendatina" class="h-9 w-auto drop-shadow-xs">
@@ -56,39 +161,69 @@
         </div>
     </header>
 
-    <!-- Main Container -->
-    <main class="flex-1 py-6 sm:py-10 px-4 max-w-5xl mx-auto w-full">
+    <!-- Main Container (Centrado vertical y horizontalmente en Móvil y Computadora) -->
+    <main id="mainContainer" class="flex-1 flex flex-col justify-center items-center max-w-5xl mx-auto w-full z-10 relative my-auto">
         
-        <!-- VISTA 1: INICIO DE SESIÓN / DETECCIÓN DE EMAIL -->
-        <div id="authBox" class="bg-white/95 backdrop-blur-xl rounded-3xl border-2 border-orange-200/90 shadow-2xl p-6 sm:p-10 max-w-md mx-auto my-auto">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-gradient-to-tr from-[#FC8712] to-[#FF8A65] text-white rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-orange-500/20">
-                    <span class="material-symbols-outlined text-3xl">school</span>
+        <!-- VISTA 1: INICIO DE SESIÓN / DETECCIÓN DE EMAIL (Centrado Total) -->
+        <div id="authBox" class="bg-white/90 backdrop-blur-2xl p-6 sm:p-10 rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(252,135,18,0.25)] border border-white/80 max-w-md w-full my-auto transition-all duration-300 relative z-10">
+            <div class="text-center mb-7">
+                <a href="index.html" class="inline-flex items-center justify-center gap-2.5 mb-3 hover:opacity-90 transition-opacity">
+                    <img src="public/logo.png" alt="Agendatina" class="h-9 w-auto drop-shadow-xs">
+                    <span class="font-brand font-semibold text-2.5xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
+                </a>
+                <div class="flex justify-center mb-3">
+                    <span class="inline-flex items-center gap-1.5 bg-gradient-to-r from-orange-100/90 to-amber-100/90 text-[#FC8712] border border-orange-200/90 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-2xs">
+                        <span class="material-symbols-outlined text-[16px]">school</span> Portal del Alumno
+                    </span>
                 </div>
-                <h1 class="text-2xl font-black text-slate-900">Portal del Alumno</h1>
-                <p class="text-xs text-slate-600 mt-1.5 font-medium leading-relaxed">Ingresá tu correo electrónico para consultar tus pases, reservas y asistencias.</p>
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">¡Bienvenido!</h1>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1 font-medium leading-relaxed">Ingresá tu correo electrónico para consultar tus pases, reservas y asistencias.</p>
             </div>
 
             <form id="clientLoginForm" onsubmit="handleClientAuth(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wider">Tu Correo Electrónico *</label>
-                    <input type="email" id="clientEmailInput" required oninput="resetAuthStep()" placeholder="alumno@ejemplo.com" class="w-full bg-slate-50 border border-orange-200/90 rounded-2xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-[#FC8712] outline-none font-medium text-slate-800 transition-all">
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5 uppercase tracking-wider">Tu Correo Electrónico *</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[20px] pointer-events-none">alternate_email</span>
+                        <input type="email" id="clientEmailInput" required oninput="resetAuthStep()" placeholder="alumno@ejemplo.com" class="w-full bg-slate-50/80 border border-slate-200/90 rounded-2xl pl-11 pr-4 py-3.5 text-sm focus:ring-2 focus:ring-[#FC8712] focus:bg-white outline-none font-medium text-slate-800 transition-all shadow-2xs">
+                    </div>
                 </div>
 
-                <div id="passwordGroup" class="hidden space-y-1">
+                <div id="passwordGroup" class="hidden space-y-1.5">
                     <div class="flex items-center justify-between">
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Contraseña *</label>
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Contraseña *</label>
                         <button type="button" onclick="solicitarRecuperacionPasswordAlumno()" class="text-[11px] font-extrabold text-[#FC8712] hover:underline cursor-pointer">¿Olvidaste tu contraseña?</button>
                     </div>
-                    <input type="password" id="clientPasswordInput" placeholder="••••••••" class="w-full bg-slate-50 border border-orange-200/90 rounded-2xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-[#FC8712] outline-none font-medium text-slate-800 transition-all">
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[20px] pointer-events-none">lock</span>
+                        <input type="password" id="clientPasswordInput" placeholder="••••••••" class="w-full bg-slate-50/80 border border-slate-200/90 rounded-2xl pl-11 pr-11 py-3.5 text-sm focus:ring-2 focus:ring-[#FC8712] focus:bg-white outline-none font-medium text-slate-800 transition-all shadow-2xs">
+                        <button type="button" onclick="togglePasswordVisibility('clientPasswordInput', this)" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1" title="Mostrar/ocultar contraseña">
+                            <span class="material-symbols-outlined text-[20px]">visibility</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div id="authNotice" class="hidden text-xs p-4 rounded-2xl font-medium"></div>
 
-                <button type="submit" id="btnAuthSubmit" class="w-full bg-gradient-to-r from-[#FC8712] via-[#FF8A65] to-[#FF7E67] hover:opacity-95 text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-orange-500/25 text-sm transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">
-                    Continuar <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                <button type="submit" id="btnAuthSubmit" class="w-full bg-gradient-to-r from-[#FC8712] via-[#FF8A65] to-[#D11149] hover:opacity-95 text-white font-extrabold py-4 rounded-2xl shadow-lg shadow-orange-500/25 text-sm sm:text-base transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">
+                    Continuar <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
                 </button>
             </form>
+
+            <div class="grid grid-cols-3 gap-2 mt-6 pt-5 border-t border-slate-100 text-center">
+                <div class="bg-orange-50/60 border border-orange-100 rounded-xl p-2">
+                    <span class="material-symbols-outlined text-[#FC8712] text-[20px] block mx-auto mb-0.5">calendar_month</span>
+                    <span class="text-[10px] font-bold text-slate-700 block">Mis Reservas</span>
+                </div>
+                <div class="bg-orange-50/60 border border-orange-100 rounded-xl p-2">
+                    <span class="material-symbols-outlined text-[#FC8712] text-[20px] block mx-auto mb-0.5">confirmation_number</span>
+                    <span class="text-[10px] font-bold text-slate-700 block">Pases Vigentes</span>
+                </div>
+                <div class="bg-orange-50/60 border border-orange-100 rounded-xl p-2">
+                    <span class="material-symbols-outlined text-[#FC8712] text-[20px] block mx-auto mb-0.5">fact_check</span>
+                    <span class="text-[10px] font-bold text-slate-700 block">Asistencias</span>
+                </div>
+            </div>
         </div>
 
         <!-- VISTA 2: PANEL DE CONTROL DEL ALUMNO -->
@@ -573,11 +708,31 @@
             }
         });
 
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const icon = btn.querySelector('.material-symbols-outlined');
+            if (input.type === 'password') {
+                input.type = 'text';
+                if (icon) icon.textContent = 'visibility_off';
+            } else {
+                input.type = 'password';
+                if (icon) icon.textContent = 'visibility';
+            }
+        }
+
         function renderDashboard(cliente) {
             document.getElementById('authBox').classList.add('hidden');
             document.getElementById('dashboardBox').classList.remove('hidden');
             document.getElementById('userHeaderBox').classList.remove('hidden');
+            document.getElementById('mainHeaderNav').classList.remove('hidden');
             
+            const mainContainer = document.getElementById('mainContainer');
+            if (mainContainer) {
+                mainContainer.classList.remove('justify-center', 'my-auto');
+                mainContainer.classList.add('py-6', 'sm:py-10', 'px-4');
+            }
+
             const name = cliente.nombre || cliente.email || 'Alumno';
             document.getElementById('userNameDisplay').textContent = name;
             document.getElementById('dashClientName').textContent = `¡Hola de nuevo, ${name.split(' ')[0]}!`;
