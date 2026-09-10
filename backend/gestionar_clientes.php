@@ -36,6 +36,14 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN fecha_
 try { $pdo->query("SELECT notas FROM clientes_negocio LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN notas TEXT DEFAULT NULL"); }
 
+try { $pdo->query("SELECT cancelaciones_permitidas FROM clientes_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN cancelaciones_permitidas INT DEFAULT NULL"); }
+
+try { $pdo->query("SELECT cancelaciones_restantes FROM clientes_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN cancelaciones_restantes INT DEFAULT NULL"); }
+
+
+
 
 if (!isset($_SESSION['id_negocio'])) {
     http_response_code(403);
@@ -165,10 +173,10 @@ try {
         $id = !empty($data['id']) ? (int)$data['id'] : null;
         $action = $data['action'] ?? '';
 
-        // Acción especial: Cargar más pases / créditos rápidamente
+        // Acción especial: Cargar más pases / créditos rápidamente (Resetea el contador de cancelaciones al nuevo pase)
         if ($action === 'add_pases' && $id) {
             $cantAdd = (int)($data['cantidad'] ?? 0);
-            $stmtAdd = $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + :add, pases_totales = pases_totales + :add WHERE id = :id AND id_negocio = :id_negocio");
+            $stmtAdd = $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + :add, pases_totales = pases_totales + :add, cancelaciones_restantes = COALESCE(cancelaciones_permitidas, pases_totales + :add) WHERE id = :id AND id_negocio = :id_negocio");
             $stmtAdd->execute(['add' => $cantAdd, 'id' => $id, 'id_negocio' => $id_negocio]);
             echo json_encode(['success' => true, 'message' => 'Clases agregadas con éxito.']);
             exit;
@@ -191,7 +199,8 @@ try {
             // Actualizar
             $stmt = $pdo->prepare("
                 UPDATE clientes_negocio 
-                SET nombre_completo = :nombre, email = :email, telefono = :telefono, pases_disponibles = :pases, pases_totales = :pases_totales, fecha_vencimiento = :venc, notas = :notas 
+                SET nombre_completo = :nombre, email = :email, telefono = :telefono, pases_disponibles = :pases, pases_totales = :pases_totales, fecha_vencimiento = :venc, notas = :notas,
+                    cancelaciones_restantes = COALESCE(cancelaciones_restantes, cancelaciones_permitidas, :pases_totales) 
                 WHERE id = :id AND id_negocio = :id_negocio
             ");
             $stmt->execute([
@@ -215,8 +224,8 @@ try {
             }
 
             $stmt = $pdo->prepare("
-                INSERT INTO clientes_negocio (id_negocio, nombre_completo, email, telefono, pases_disponibles, pases_totales, fecha_vencimiento, notas, estado)
-                VALUES (:id_negocio, :nombre, :email, :telefono, :pases, :pases_totales, :venc, :notas, 'pendiente_activacion')
+                INSERT INTO clientes_negocio (id_negocio, nombre_completo, email, telefono, pases_disponibles, pases_totales, fecha_vencimiento, notas, cancelaciones_permitidas, cancelaciones_restantes, estado)
+                VALUES (:id_negocio, :nombre, :email, :telefono, :pases, :pases_totales, :venc, :notas, :canc_perm, :canc_rest, 'pendiente_activacion')
             ");
             $stmt->execute([
                 'id_negocio' => $id_negocio,
@@ -226,7 +235,9 @@ try {
                 'pases' => $pases,
                 'pases_totales' => $pases_totales,
                 'venc' => $fecha_vencimiento,
-                'notas' => $notas
+                'notas' => $notas,
+                'canc_perm' => $pases_totales,
+                'canc_rest' => $pases_totales
             ]);
         }
 

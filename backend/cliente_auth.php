@@ -36,6 +36,13 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN fecha_
 try { $pdo->query("SELECT notas FROM clientes_negocio LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN notas TEXT DEFAULT NULL"); }
 
+try { $pdo->query("SELECT cancelaciones_permitidas FROM clientes_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN cancelaciones_permitidas INT DEFAULT NULL"); }
+
+try { $pdo->query("SELECT cancelaciones_restantes FROM clientes_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN cancelaciones_restantes INT DEFAULT NULL"); }
+
+
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
 try {
@@ -198,7 +205,9 @@ try {
 
         // Obtener la información de los negocios donde el alumno está registrado
         $stmtNegocios = $pdo->prepare("
-            SELECT cn.id_negocio, n.nombre_fantasia AS negocio_nombre, n.ruta AS negocio_ruta, n.estado_pago, cn.pases_disponibles, COALESCE(cn.pases_totales, cn.pases_disponibles) AS pases_totales, cn.fecha_vencimiento, cn.telefono, cn.nombre_completo
+            SELECT cn.id_negocio, n.nombre_fantasia AS negocio_nombre, n.ruta AS negocio_ruta, n.estado_pago, 
+                   cn.pases_disponibles, COALESCE(cn.pases_totales, cn.pases_disponibles) AS pases_totales, 
+                   cn.fecha_vencimiento, cn.cancelaciones_permitidas, cn.cancelaciones_restantes, cn.telefono, cn.nombre_completo
             FROM clientes_negocio cn
             JOIN negocios n ON cn.id_negocio = n.id
             WHERE LOWER(TRIM(cn.email)) = :email
@@ -206,21 +215,42 @@ try {
         $stmtNegocios->execute(['email' => $email]);
         $negociosAsociados = $stmtNegocios->fetchAll(PDO::FETCH_ASSOC);
 
+        foreach ($negociosAsociados as &$neg) {
+            $pTotales = max(1, (int)$neg['pases_totales']);
+            $maxCanc = isset($neg['cancelaciones_permitidas']) && $neg['cancelaciones_permitidas'] !== null ? (int)$neg['cancelaciones_permitidas'] : $pTotales;
+            $restCanc = isset($neg['cancelaciones_restantes']) && $neg['cancelaciones_restantes'] !== null ? (int)$neg['cancelaciones_restantes'] : $maxCanc;
+            $neg['cancelaciones_max'] = $maxCanc;
+            $neg['cancelaciones_restantes'] = $restCanc;
+        }
+        unset($neg);
+
         // Obtener perfil del cliente
         $stmtPerfil = $pdo->prepare("SELECT nombre_completo, email, telefono FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email LIMIT 1");
         $stmtPerfil->execute(['email' => $email]);
         $perfil = $stmtPerfil->fetch(PDO::FETCH_ASSOC);
 
-        // Obtener el historial completo de clases y turnos
+        // Obtener el historial completo de clases y turnos con vencimiento y límites de devolución
         $stmt = $pdo->prepare("
-            SELECT t.id, t.id_negocio, COALESCE(n.nombre_fantasia, 'Establecimiento') AS negocio, n.ruta AS negocio_ruta, t.servicio, t.profesional, t.fecha, t.hora, t.estado
+            SELECT t.id, t.id_negocio, COALESCE(n.nombre_fantasia, 'Establecimiento') AS negocio, n.ruta AS negocio_ruta, 
+                   t.servicio, t.profesional, t.fecha, t.hora, t.estado,
+                   cn.fecha_vencimiento, cn.cancelaciones_restantes, cn.cancelaciones_permitidas, cn.pases_totales
             FROM turnos t
             LEFT JOIN negocios n ON t.id_negocio = n.id
+            LEFT JOIN clientes_negocio cn ON t.id_negocio = cn.id_negocio AND LOWER(TRIM(cn.email)) = :email
             WHERE LOWER(TRIM(t.cliente_celular)) = :email OR LOWER(t.cliente_nombre) LIKE :emailLike
             ORDER BY t.fecha DESC, t.hora DESC
         ");
         $stmt->execute(['email' => $email, 'emailLike' => '%' . $email . '%']);
         $clases = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($clases as &$c) {
+            $pTotales = max(1, (int)($c['pases_totales'] ?? 4));
+            $maxCanc = isset($c['cancelaciones_permitidas']) && $c['cancelaciones_permitidas'] !== null ? (int)$c['cancelaciones_permitidas'] : $pTotales;
+            $restCanc = isset($c['cancelaciones_restantes']) && $c['cancelaciones_restantes'] !== null ? (int)$c['cancelaciones_restantes'] : $maxCanc;
+            $c['cancelaciones_max'] = $maxCanc;
+            $c['cancelaciones_restantes'] = $restCanc;
+        }
+        unset($c);
 
         echo json_encode([
             'success' => true, 
@@ -266,7 +296,7 @@ try {
     }
 
     // ---------------------------------------------------------
-    // 6. Cancelar Reserva de Clase (Devolviendo pase si corresponde)
+    // 6. Cancelar Reserva de Clase (Devolviendo pase si le quedan cancelaciones)
     // ---------------------------------------------------------
     if ($action === 'cancelar_turno') {
         $email = strtolower(trim($_SESSION['cliente_email'] ?? $_POST['email'] ?? $_GET['email'] ?? ''));
@@ -291,10 +321,39 @@ try {
             exit;
         }
 
-        $pdo->prepare("UPDATE turnos SET estado = 'cancelado' WHERE id = ?")->execute([$turnoId]);
-        $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + 1 WHERE id_negocio = ? AND LOWER(TRIM(email)) = ?")->execute([$turno['id_negocio'], $email]);
+        // Obtener el registro del cliente en este establecimiento para controlar el límite de cancelaciones
+        $stmtClient = $pdo->prepare("SELECT id, pases_totales, pases_disponibles, cancelaciones_permitidas, cancelaciones_restantes FROM clientes_negocio WHERE id_negocio = :id_negocio AND LOWER(TRIM(email)) = :email LIMIT 1");
+        $stmtClient->execute(['id_negocio' => $turno['id_negocio'], 'email' => $email]);
+        $cn = $stmtClient->fetch(PDO::FETCH_ASSOC);
 
-        echo json_encode(['success' => true, 'message' => 'Reserva cancelada correctamente. Se ha devuelto tu pase a tu cuenta.']);
+        $nuevasRestantes = 0;
+        $maxCanc = 4;
+
+        if ($cn) {
+            $pTotales = max(1, (int)($cn['pases_totales'] ?? 4));
+            $maxCanc = isset($cn['cancelaciones_permitidas']) && $cn['cancelaciones_permitidas'] !== null ? (int)$cn['cancelaciones_permitidas'] : $pTotales;
+            $restCanc = isset($cn['cancelaciones_restantes']) && $cn['cancelaciones_restantes'] !== null ? (int)$cn['cancelaciones_restantes'] : $maxCanc;
+
+            if ($restCanc <= 0) {
+                echo json_encode([
+                    'success' => false, 
+                    'error' => "Has alcanzado el límite máximo de cancelaciones (" . $maxCanc . ") de tu pase actual en este establecimiento. No podés realizar más devoluciones en este ciclo."
+                ]);
+                exit;
+            }
+
+            $nuevasRestantes = max(0, $restCanc - 1);
+            $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + 1, cancelaciones_restantes = ? WHERE id = ?")->execute([$nuevasRestantes, $cn['id']]);
+        } else {
+            $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + 1 WHERE id_negocio = ? AND LOWER(TRIM(email)) = ?")->execute([$turno['id_negocio'], $email]);
+        }
+
+        $pdo->prepare("UPDATE turnos SET estado = 'cancelado' WHERE id = ?")->execute([$turnoId]);
+
+        echo json_encode([
+            'success' => true, 
+            'message' => 'Reserva cancelada correctamente. Se devolvió 1 pase a tu cuenta. Te quedan ' . $nuevasRestantes . ' cancelaciones disponibles en tu pase actual.'
+        ]);
         exit;
     }
 
