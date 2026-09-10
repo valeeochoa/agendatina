@@ -27,5 +27,9 @@ En todas las vistas HTML de la plataforma (`index.html`, `login.html`, `registro
 - **Plan Premium**: Incluye 2 colores base + **hasta 3 opciones adicionales de colores personalizados (+3)** a elección del cliente (Color Terciario, Fondo del Header, Color de Títulos, Botones CTA, Fondo de Tarjetas o Efectos Hover). Total: 5 colores.
 - **Formato del Modal (+)**: Al presionar el botón `+` en `perfil.html`, se muestra un modal desplegable con las opciones de destino del nuevo color (Fondo del Header, Color de Títulos, Botones CTA, Fondo de Tarjetas, Color Terciario, Hover) y un selector cromático de color.
 
+## Flujo de Trabajo en Entorno de Pruebas (`pruebas`)
+- **REGLA EXPLICITA DEL USUARIO**: A partir de ahora, todo el desarrollo, modificaciones y despliegues se realizan sobre la rama **`pruebas`** (`git checkout pruebas` -> `git push origin pruebas` -> despliegue automático a `/public_html/pruebas/`).
+- Únicamente se pasará/fusionará a la rama **`main`** (producción en `/public_html/`) cuando el usuario lo solicite explícitamente ("actualizar el sitio" / pasar a producción).
+
 
 
