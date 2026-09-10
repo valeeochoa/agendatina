@@ -298,6 +298,52 @@ try {
         exit;
     }
 
+    // ---------------------------------------------------------
+    // 7. Reservar Clase con Pase (1-Click Booking Alumno)
+    // ---------------------------------------------------------
+    if ($action === 'reservar_con_pase') {
+        $email = strtolower(trim($_SESSION['cliente_email'] ?? $_POST['email'] ?? ''));
+        $id_negocio = (int)($_POST['id_negocio'] ?? 0);
+        $fecha = trim($_POST['fecha'] ?? '');
+        $hora = trim($_POST['hora'] ?? '');
+        $servicio = trim($_POST['servicio'] ?? '');
+        $profesional = trim($_POST['profesional'] ?? 'Cualquiera (Sin preferencia)');
+        $id_servicio = (int)($_POST['id_servicio'] ?? 0);
+
+        if (empty($email) || !$id_negocio || empty($fecha) || empty($hora) || empty($servicio)) {
+            echo json_encode(['success' => false, 'error' => 'Por favor selecciona fecha, hora y servicio válidos.']);
+            exit;
+        }
+
+        // Verificar si el cliente tiene pases disponibles en este negocio
+        $stmtClient = $pdo->prepare("SELECT id, nombre_completo, pases_disponibles FROM clientes_negocio WHERE id_negocio = :id_negocio AND LOWER(TRIM(email)) = :email LIMIT 1");
+        $stmtClient->execute(['id_negocio' => $id_negocio, 'email' => $email]);
+        $clientData = $stmtClient->fetch(PDO::FETCH_ASSOC);
+
+        $nombreCliente = $_SESSION['cliente_nombre'] ?? ($clientData ? $clientData['nombre_completo'] : 'Alumno');
+
+        // Si tiene pases registrados, descontar 1 pase
+        if ($clientData && (int)$clientData['pases_disponibles'] > 0) {
+            $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = GREATEST(0, pases_disponibles - 1) WHERE id = ?")->execute([$clientData['id']]);
+        }
+
+        // Insertar reserva en la tabla turnos
+        $stmtIns = $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, metodo_pago, estado) VALUES (:id_negocio, :nombre, :email, :fecha, :hora, :servicio, :profesional, :id_servicio, 'Pase de Alumno', 'confirmado')");
+        $stmtIns->execute([
+            'id_negocio' => $id_negocio,
+            'nombre' => $nombreCliente,
+            'email' => $email,
+            'fecha' => $fecha,
+            'hora' => $hora,
+            'servicio' => $servicio,
+            'profesional' => $profesional,
+            'id_servicio' => $id_servicio ?: null
+        ]);
+
+        echo json_encode(['success' => true, 'message' => '¡Inscripción confirmada con éxito! Tu clase ha sido agendada.']);
+        exit;
+    }
+
     echo json_encode(['success' => false, 'error' => 'Acción no válida.']);
 
 } catch (PDOException $e) {

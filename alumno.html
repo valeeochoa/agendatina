@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Portal del Alumno | Agendatina</title>
+    <link rel="icon" href="public/logo.png" type="image/png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/global.css">
+    <script src="assets/js/csrf.js"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-color: #fff7ed !important;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .font-brand { font-family: 'Fredoka', cursive, sans-serif !important; }
+        
+        /* Pestañas de Navegación con Alto Contraste */
+        .tab-btn.active {
+            background-color: #FC8712 !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 8px 20px -3px rgba(252, 135, 18, 0.35);
+            border-color: #FC8712 !important;
+            font-weight: 800;
+        }
+
+        .tab-btn {
+            background-color: #F8FAFC;
+            color: #475569;
+            border: 1px solid #E2E8F0;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .tab-btn:hover:not(.active) {
+            color: #0F172A;
+            background-color: #FFFFFF;
+            border-color: #CBD5E1;
+        }
+
+        /* Animación Lava Agendatina Alumno */
+        .lava-container {
+            position: fixed;
+            top: -20%;
+            left: -20%;
+            right: -20%;
+            bottom: -20%;
+            width: 140vw;
+            height: 140vh;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+            filter: blur(75px);
+            opacity: 0.85;
+        }
+
+        .lava-blob {
+            position: absolute;
+            border-radius: 50%;
+            mix-blend-mode: multiply;
+            will-change: transform, border-radius;
+        }
+
+        .lava-1 {
+            top: 10%;
+            left: 15%;
+            width: 520px;
+            height: 520px;
+            background: radial-gradient(circle, #FC8712 0%, #ff8a65 100%);
+            animation: lavaMove1 22s ease-in-out infinite alternate;
+        }
+
+        .lava-2 {
+            bottom: 10%;
+            right: 15%;
+            width: 560px;
+            height: 560px;
+            background: radial-gradient(circle, #D11149 0%, #ff4d79 100%);
+            animation: lavaMove2 26s ease-in-out infinite alternate;
+        }
+
+        .lava-3 {
+            top: 40%;
+            left: 35%;
+            width: 440px;
+            height: 440px;
+            background: radial-gradient(circle, #ff6b35 0%, #FC8712 100%);
+            animation: lavaMove3 19s ease-in-out infinite alternate;
+        }
+
+        .lava-4 {
+            bottom: 25%;
+            left: 10%;
+            width: 480px;
+            height: 480px;
+            background: radial-gradient(circle, #ff922b 0%, #D11149 100%);
+            animation: lavaMove4 24s ease-in-out infinite alternate;
+        }
+
+        @keyframes lavaMove1 {
+            0% { transform: translate(0px, 0px) scale(1) rotate(0deg); border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%; }
+            33% { transform: translate(140px, -90px) scale(1.2) rotate(110deg); border-radius: 70% 30% 46% 54% / 30% 60% 40% 70%; }
+            66% { transform: translate(-100px, 120px) scale(0.9) rotate(230deg); border-radius: 38% 62% 63% 37% / 60% 35% 65% 40%; }
+            100% { transform: translate(60px, 80px) scale(1.1) rotate(360deg); border-radius: 55% 45% 30% 70% / 50% 60% 40% 50%; }
+        }
+
+        @keyframes lavaMove2 {
+            0% { transform: translate(0px, 0px) scale(1) rotate(0deg); border-radius: 60% 40% 30% 70% / 50% 30% 70% 50%; }
+            33% { transform: translate(-130px, 110px) scale(1.2) rotate(-130deg); border-radius: 40% 60% 70% 30% / 60% 40% 60% 40%; }
+            66% { transform: translate(120px, -80px) scale(0.85) rotate(-250deg); border-radius: 70% 30% 40% 60% / 35% 65% 35% 65%; }
+            100% { transform: translate(-70px, -90px) scale(1.15) rotate(-360deg); border-radius: 45% 55% 60% 40% / 50% 45% 55% 50%; }
+        }
+
+        @keyframes lavaMove3 {
+            0% { transform: translate(0px, 0px) scale(0.9) rotate(0deg); border-radius: 50% 50% 60% 40% / 40% 60% 40% 60%; }
+            50% { transform: translate(-150px, -130px) scale(1.3) rotate(180deg); border-radius: 35% 65% 30% 70% / 65% 35% 65% 35%; }
+            100% { transform: translate(110px, 100px) scale(0.95) rotate(360deg); border-radius: 65% 35% 55% 45% / 45% 55% 45% 55%; }
+        }
+
+        @keyframes lavaMove4 {
+            0% { transform: translate(0px, 0px) scale(1) rotate(0deg); border-radius: 70% 30% 50% 50% / 30% 50% 50% 70%; }
+            50% { transform: translate(130px, -110px) scale(1.25) rotate(-160deg); border-radius: 40% 60% 35% 65% / 65% 35% 65% 35%; }
+            100% { transform: translate(-90px, 120px) scale(0.9) rotate(-320deg); border-radius: 55% 45% 60% 40% / 40% 60% 40% 60%; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-[#fff7ed] via-[#fff1eb] to-[#ffecf1] text-slate-900 antialiased min-h-screen flex flex-col justify-center items-center p-4 sm:p-6 relative overflow-x-hidden selection:bg-[#FC8712]/20">
+
+    <!-- Fondo Animado Efecto Lava -->
+    <div class="lava-container" aria-hidden="true">
+        <div class="lava-blob lava-1"></div>
+        <div class="lava-blob lava-2"></div>
+        <div class="lava-blob lava-3"></div>
+        <div class="lava-blob lava-4"></div>
+    </div>
+
+    <!-- Malla sutil para dispersión de luz -->
+    <div class="fixed inset-0 w-screen h-screen bg-white/20 backdrop-blur-[20px] pointer-events-none z-0"></div>
+
+    <!-- Header Navbar (Visible al estar logueado) -->
+    <header id="mainHeaderNav" class="bg-white/95 backdrop-blur-xl border-b border-slate-200/80 sticky top-0 z-40 shadow-xs hidden w-full">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
+                <img src="public/logo.png" alt="Agendatina" class="h-9 w-auto drop-shadow-xs">
+                <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149] hidden sm:inline">Agenda<span class="text-[#fc8712]">tina</span></span>
+            </a>
+            
+            <div id="userHeaderBox" class="hidden flex items-center gap-3">
+                <div onclick="switchTab('perfil')" class="flex items-center gap-2 bg-orange-50 hover:bg-orange-100/80 border border-orange-200/80 px-3 py-1.5 rounded-full shadow-2xs cursor-pointer transition-colors" title="Ver mi Perfil">
+                    <div id="userAvatarPill" class="w-6 h-6 rounded-full bg-gradient-to-tr from-[#FC8712] to-[#FF8A65] text-white flex items-center justify-center text-xs font-black">A</div>
+                    <span id="userNameDisplay" class="text-xs sm:text-sm font-extrabold text-slate-800 max-w-[140px] truncate">Alumno</span>
+                </div>
+                <button onclick="logoutCliente()" class="p-2 text-slate-500 hover:text-red-600 rounded-xl hover:bg-red-50 transition-colors flex items-center gap-1 text-xs font-bold" title="Cerrar Sesión">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                    <span class="hidden sm:inline">Salir</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main id="mainContainer" class="flex-1 flex flex-col justify-center items-center max-w-5xl mx-auto w-full z-10 relative my-auto">
+        
+        <!-- VISTA 1: INICIO DE SESIÓN / DETECCIÓN DE EMAIL -->
+        <div id="authBox" class="bg-white/95 backdrop-blur-2xl p-6 sm:p-10 rounded-[2.5rem] shadow-[0_25px_65px_-15px_rgba(252,135,18,0.25)] border border-white/90 max-w-md w-full my-auto transition-all duration-300 relative z-10">
+            <div class="text-center mb-7">
+                <a href="index.html" class="inline-flex items-center justify-center gap-2.5 mb-3 hover:opacity-90 transition-opacity">
+                    <img src="public/logo.png" alt="Agendatina" class="h-9 w-auto drop-shadow-xs">
+                    <span class="font-brand font-semibold text-2.5xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
+                </a>
+                <div class="flex justify-center mb-3">
+                    <span class="inline-flex items-center gap-1.5 bg-gradient-to-r from-orange-100/90 to-amber-100/90 text-[#FC8712] border border-orange-200/90 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-2xs">
+                        <span class="material-symbols-outlined text-[16px]">school</span> Portal del Alumno
+                    </span>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">¡Bienvenido!</h1>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1 font-medium leading-relaxed">Ingresá tu correo electrónico para consultar tus pases, reservas y asistencias.</p>
+            </div>
+
+            <form id="clientLoginForm" onsubmit="handleClientAuth(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5 uppercase tracking-wider">Tu Correo Electrónico Completo *</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[20px] pointer-events-none">mail</span>
+                        <input type="email" id="clientEmailInput" required oninput="resetAuthStep()" placeholder="ejemplo: valentina@gmail.com" class="w-full bg-slate-50/80 border border-slate-200/90 rounded-2xl pl-11 pr-4 py-3.5 text-sm focus:ring-2 focus:ring-[#FC8712] focus:bg-white outline-none font-medium text-slate-800 transition-all shadow-2xs">
+                    </div>
+                </div>
+
+                <div id="passwordGroup" class="hidden space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Contraseña *</label>
+                        <button type="button" onclick="solicitarRecuperacionPasswordAlumno()" class="text-[11px] font-extrabold text-[#FC8712] hover:underline cursor-pointer">¿Olvidaste tu contraseña?</button>
+                    </div>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[20px] pointer-events-none">lock</span>
+                        <input type="password" id="clientPasswordInput" placeholder="••••••••" class="w-full bg-slate-50/80 border border-slate-200/90 rounded-2xl pl-11 pr-11 py-3.5 text-sm focus:ring-2 focus:ring-[#FC8712] focus:bg-white outline-none font-medium text-slate-800 transition-all shadow-2xs">
+                        <button type="button" onclick="togglePasswordVisibility('clientPasswordInput', this)" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1" title="Mostrar/ocultar contraseña">
+                            <span class="material-symbols-outlined text-[20px]">visibility</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="authNotice" class="hidden text-xs p-4 rounded-2xl font-medium"></div>
+
+                <button type="submit" id="btnAuthSubmit" class="w-full bg-gradient-to-r from-[#FC8712] via-[#FF8A65] to-[#D11149] hover:opacity-95 text-white font-extrabold py-4 rounded-2xl shadow-lg shadow-orange-500/25 text-sm sm:text-base transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">
+                    Continuar <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                </button>
+            </form>
+
+            <div class="grid grid-cols-3 gap-2 mt-6 pt-5 border-t border-slate-100 text-center">
+                <div class="bg-orange-50/60 border border-orange-100 rounded-xl p-2">
+                    <span class="material-symbols-outlined text-[#FC8712] text-[20px] block mx-auto mb-0.5">calendar_month</span>
+                    <span class="text-[10px] font-bold text-slate-700 block">Mis Reservas</span>
+                </div>
+                <div class="bg-orange-50/60 border border-orange-100 rounded-xl p-2">
+                    <span class="material-symbols-outlined text-[#FC8712] text-[20px] block mx-auto mb-0.5">confirmation_number</span>
+                    <span class="text-[10px] font-bold text-slate-700 block">Pases Vigentes</span>
+                </div>
+                <div class="bg-orange-50/60 border border-orange-100 rounded-xl p-2">
+                    <span class="material-symbols-outlined text-[#FC8712] text-[20px] block mx-auto mb-0.5">fact_check</span>
+                    <span class="text-[10px] font-bold text-slate-700 block">Asistencias</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA 2: PANEL DE CONTROL DEL ALUMNO (ALTO CONTRASTE Y CALENDARIO DE CUPOS) -->
+        <div id="dashboardBox" class="hidden space-y-6 w-full">
+            
+            <!-- Hero Banner de Bienvenida -->
+            <div class="bg-gradient-to-r from-[#D11149] via-[#FC8712] to-[#FF8A65] text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-white/20 relative overflow-hidden">
+                <div class="absolute -right-12 -bottom-12 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+                    <div>
+                        <span class="text-[11px] font-black uppercase tracking-wider text-orange-100 bg-white/20 px-3 py-1 rounded-full border border-white/30 inline-block mb-2.5">Portal del Alumno</span>
+                        <h2 class="text-2xl sm:text-3xl font-black text-white" id="dashClientName">¡Hola de nuevo!</h2>
+                        <p class="text-xs sm:text-sm text-orange-50 mt-1 font-medium">Gestioná tus pases activos, revisá los cupos disponibles en el calendario y consultá tu historial.</p>
+                    </div>
+
+                    <div id="bookNewClassHeaderBtnContainer" class="shrink-0">
+                        <button onclick="switchTab('reservar')" id="btnReservarClaseHeader" class="bg-white hover:bg-orange-50 text-[#FC8712] font-black px-5 py-3 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2 w-fit cursor-pointer">
+                            <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                            <span>Ver Cupos y Reservar</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Resumen Rápido -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-white/20 relative z-10">
+                    <div class="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/20">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-orange-100 block">Pases Disponibles</span>
+                        <span class="text-2xl font-black text-white" id="statPasesCount">0</span>
+                        <span class="text-[10px] font-semibold text-orange-100 block">en tus negocios</span>
+                    </div>
+
+                    <div class="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/20">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-orange-100 block">Próximas Clases</span>
+                        <span class="text-2xl font-black text-white" id="statProximasCount">0</span>
+                        <span class="text-[10px] font-semibold text-orange-100 block">agendadas</span>
+                    </div>
+
+                    <div class="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 col-span-2 sm:col-span-1">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-orange-100 block">Establecimientos</span>
+                        <span class="text-2xl font-black text-white" id="statNegociosCount">0</span>
+                        <span class="text-[10px] font-semibold text-orange-100 block">asociados</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navegación por Pestañas (Píldoras de Alto Contraste) -->
+            <div class="bg-white/95 backdrop-blur-md p-2 rounded-2xl border border-slate-200/90 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 shadow-lg">
+                <button onclick="switchTab('clases')" id="tabBtnClases" class="tab-btn active px-3 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">event_upcoming</span>
+                    <span>Mis Clases</span>
+                    <span id="tabBadgeClases" class="bg-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full hidden">0</span>
+                </button>
+
+                <button onclick="switchTab('reservar')" id="tabBtnReservar" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+                    <span>Calendario y Cupos</span>
+                </button>
+
+                <button onclick="switchTab('pagos')" id="tabBtnPagos" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">confirmation_number</span>
+                    <span>Mis Pases</span>
+                </button>
+
+                <button onclick="switchTab('historial')" id="tabBtnHistorial" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">history</span>
+                    <span>Historial</span>
+                </button>
+
+                <button onclick="switchTab('perfil')" id="tabBtnPerfil" class="tab-btn px-3 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer col-span-2 sm:col-span-1">
+                    <span class="material-symbols-outlined text-[18px]">person</span>
+                    <span>Mi Perfil</span>
+                </button>
+            </div>
+
+            <!-- CONTENIDO PESTAÑA 1: MIS CLASES PRÓXIMAS (Tarjetas Blancas de Alto Contraste) -->
+            <div id="tabContentClases" class="space-y-4">
+                <div class="flex justify-between items-center bg-white/95 p-4 rounded-2xl border border-slate-200/90 shadow-sm">
+                    <h3 class="font-black text-slate-900 text-base sm:text-lg flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[#FC8712]">event_upcoming</span>
+                        <span>Próximas Clases Agendadas</span>
+                    </h3>
+                </div>
+
+                <div id="misClasesList" class="space-y-3">
+                    <div class="bg-white/95 border border-slate-200 p-8 rounded-3xl text-center shadow-xs">
+                        <span class="material-symbols-outlined text-4xl text-slate-300 animate-spin">sync</span>
+                        <p class="text-slate-500 font-bold text-sm mt-2">Cargando tus clases...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENIDO PESTAÑA 2: CALENDARIO DE CUPOS DISPONIBLES Y RESERVA 1-CLICK -->
+            <div id="tabContentReservar" class="space-y-5 hidden">
+                <div class="bg-white/95 backdrop-blur-xl border border-slate-200/90 p-6 sm:p-8 rounded-3xl shadow-xl space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                        <div>
+                            <span class="text-[10px] font-black uppercase tracking-wider text-[#FC8712] bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-full inline-block mb-1">Cupos en Tiempo Real</span>
+                            <h3 class="font-black text-slate-900 text-xl flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[#FC8712]">calendar_month</span>
+                                <span>Calendario de Clases y Cupos Disponibles</span>
+                            </h3>
+                            <p class="text-xs text-slate-600 font-medium mt-0.5">Elegí tu establecimiento para consultar las clases abiertas y agendarte con 1 clic usando tus pases.</p>
+                        </div>
+
+                        <div class="shrink-0">
+                            <label class="block text-[10px] font-extrabold uppercase text-slate-500 mb-1">Seleccionar Negocio:</label>
+                            <select id="studentSelectNegocio" onchange="loadStudentBusinessCalendar(this.value)" class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-[#FC8712]">
+                                <option value="">Cargando establecimientos...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Grilla del Calendario de Cupos -->
+                    <div id="studentCalendarGrid" class="space-y-4 pt-2">
+                        <div class="bg-slate-50 border border-slate-200 p-8 rounded-2xl text-center">
+                            <span class="material-symbols-outlined text-4xl text-slate-400 mb-2">storefront</span>
+                            <p class="text-slate-600 font-bold text-sm">Seleccioná un establecimiento para desplegar sus clases y disponibilidad de cupos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENIDO PESTAÑA 3: MIS PASES Y MEMBRESÍAS -->
+            <div id="tabContentPagos" class="space-y-4 hidden">
+                <div class="bg-white/95 backdrop-blur-xl border border-slate-200/90 p-6 sm:p-8 rounded-3xl shadow-xl space-y-4">
+                    <h3 class="font-black text-slate-900 text-xl flex items-center gap-2 border-b border-slate-100 pb-4">
+                        <span class="material-symbols-outlined text-[#FC8712]">confirmation_number</span>
+                        <span>Mis Pases y Paquetes Activos</span>
+                    </h3>
+                    <div id="misPasesList" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center col-span-2">
+                            <span class="material-symbols-outlined text-4xl text-slate-300 mb-1">confirmation_number</span>
+                            <p class="text-slate-500 font-bold text-sm">No tenés pases o membresías registradas actualmente.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENIDO PESTAÑA 4: HISTORIAL DE ASISTENCIAS -->
+            <div id="tabContentHistorial" class="space-y-4 hidden">
+                <div class="bg-white/95 backdrop-blur-xl border border-slate-200/90 p-6 sm:p-8 rounded-3xl shadow-xl space-y-4">
+                    <h3 class="font-black text-slate-900 text-xl flex items-center gap-2 border-b border-slate-100 pb-4">
+                        <span class="material-symbols-outlined text-[#FC8712]">history</span>
+                        <span>Historial de Clases y Asistencias</span>
+                    </h3>
+                    <div id="historialClasesList" class="space-y-3">
+                        <div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center">
+                            <p class="text-slate-500 font-bold text-sm">No hay registros pasados.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENIDO PESTAÑA 5: PERFIL DEL ALUMNO -->
+            <div id="tabContentPerfil" class="space-y-4 hidden">
+                <div class="bg-white/95 backdrop-blur-xl border border-slate-200/90 p-6 sm:p-8 rounded-3xl shadow-xl max-w-xl mx-auto space-y-6">
+                    <h3 class="font-black text-slate-900 text-xl flex items-center gap-2 border-b border-slate-100 pb-4">
+                        <span class="material-symbols-outlined text-[#FC8712]">person</span>
+                        <span>Mi Perfil de Alumno</span>
+                    </h3>
+
+                    <form id="profileForm" onsubmit="handleUpdateProfile(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Correo Electrónico</label>
+                            <input type="email" id="profileEmail" readonly class="w-full bg-slate-100 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-500 cursor-not-allowed">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Nombre Completo *</label>
+                            <input type="text" id="profileNombre" required placeholder="Tu Nombre" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-[#FC8712] outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Teléfono / Celular</label>
+                            <input type="tel" id="profileTelefono" placeholder="ej: 1122334455" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-[#FC8712] outline-none">
+                        </div>
+
+                        <button type="submit" id="btnSaveProfile" class="w-full bg-[#FC8712] hover:bg-orange-600 text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-orange-500/20 text-sm transition-all cursor-pointer">
+                            Guardar Cambios de Perfil
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL DE PRIMER REGISTRO / CONFIGURAR CONTRASEÑA -->
+    <div id="firstPasswordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[9999] hidden flex items-center justify-center p-4">
+        <div class="bg-white/95 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative border border-orange-100 my-auto">
+            <div class="flex items-center justify-start mb-2">
+                <span class="material-symbols-outlined text-[44px] bg-clip-text text-transparent bg-gradient-to-r from-[#FC8712] to-[#FF8A65]">lock_reset</span>
+            </div>
+            <h3 class="text-xl font-black text-slate-900 mb-1">Configurar Contraseña</h3>
+            <p class="text-xs text-slate-600 mb-6 font-medium">Tu cuenta ha sido pre-registrada por el establecimiento. Crea tu clave personal para acceder a tu panel.</p>
+
+            <form id="setPassForm" onsubmit="submitSetPassword(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1 uppercase tracking-wider">Define tu Contraseña (mínimo 6 caracteres) *</label>
+                    <div class="relative">
+                        <input type="password" id="newPassInput" minlength="6" required placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-[#FC8712] outline-none font-medium">
+                        <button type="button" onclick="togglePasswordVisibility('newPassInput', this)" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1">
+                            <span class="material-symbols-outlined text-[20px]">visibility</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="setPassError" class="hidden text-xs text-red-600 p-3 rounded-2xl bg-red-50 font-medium"></div>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-[#FC8712] via-[#FF8A65] to-[#D11149] text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-orange-500/25 text-sm transition-all cursor-pointer">
+                    Guardar Contraseña y Acceder
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-[99999] flex flex-col gap-2 pointer-events-none"></div>
+
+    <script>
+        let currentClientEmail = '';
+        let clientIsDetected = false;
+        let allStudentClases = [];
+        let studentNegocios = [];
+        let pendingCancelTurnoId = null;
+
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const icon = btn.querySelector('.material-symbols-outlined');
+            if (input.type === 'password') {
+                input.type = 'text';
+                if (icon) icon.textContent = 'visibility_off';
+            } else {
+                input.type = 'password';
+                if (icon) icon.textContent = 'visibility';
+            }
+        }
+
+        function showStudentToast(msg, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `px-4 py-3 rounded-2xl shadow-xl text-xs font-extrabold flex items-center gap-2 text-white transition-all transform translate-y-4 opacity-0 pointer-events-auto ${type === 'success' ? 'bg-emerald-600' : 'bg-red-600'}`;
+            toast.innerHTML = `<span class="material-symbols-outlined text-[18px]">${type === 'success' ? 'check_circle' : 'error'}</span><span>${msg}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function switchTab(tabName) {
+            const tabs = ['clases', 'reservar', 'historial', 'pagos', 'perfil'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                const content = document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if (btn && content) {
+                    if (t === tabName) {
+                        btn.classList.add('active');
+                        content.classList.remove('hidden');
+                    } else {
+                        btn.classList.remove('active');
+                        content.classList.add('hidden');
+                    }
+                }
+            });
+
+            if (tabName === 'reservar' && studentNegocios.length > 0) {
+                const sel = document.getElementById('studentSelectNegocio');
+                if (sel && sel.value) loadStudentBusinessCalendar(sel.value);
+            }
+        }
+
+        function resetAuthStep() {
+            if (clientIsDetected) {
+                clientIsDetected = false;
+                document.getElementById('passwordGroup').classList.add('hidden');
+                document.getElementById('clientPasswordInput').value = '';
+                const notice = document.getElementById('authNotice');
+                notice.classList.add('hidden');
+                notice.innerHTML = '';
+                const btn = document.getElementById('btnAuthSubmit');
+                btn.innerHTML = 'Continuar <span class="material-symbols-outlined text-[18px]">arrow_forward</span>';
+            }
+        }
+
+        function handleClientAuth(e) {
+            e.preventDefault();
+            const emailInput = document.getElementById('clientEmailInput');
+            const email = emailInput.value.trim();
+            const passwordInput = document.getElementById('clientPasswordInput');
+            const password = passwordInput.value.trim();
+            const notice = document.getElementById('authNotice');
+            const btn = document.getElementById('btnAuthSubmit');
+
+            if (!clientIsDetected) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Verificando en base de datos...';
+                notice.classList.add('hidden');
+
+                fetch('backend/cliente_auth.php?action=check_email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'email=' + encodeURIComponent(email)
+                })
+                .then(r => r.json())
+                .then(d => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Continuar <span class="material-symbols-outlined text-[18px]">arrow_forward</span>';
+
+                    if (d.success) {
+                        currentClientEmail = email;
+                        if (d.exists) {
+                            if (!d.has_password) {
+                                document.getElementById('firstPasswordModal').classList.remove('hidden');
+                            } else {
+                                clientIsDetected = true;
+                                document.getElementById('passwordGroup').classList.remove('hidden');
+                                passwordInput.focus();
+                                notice.className = 'text-xs p-3.5 rounded-2xl bg-amber-50 text-amber-900 border border-amber-200/90 shadow-sm leading-relaxed';
+                                notice.innerHTML = '<div class="flex items-center gap-2.5"><span class="material-symbols-outlined text-[20px] text-[#FC8712] shrink-0">lock</span><div><strong class="font-extrabold block text-slate-900 text-xs mb-0.5">¡Alumno encontrado!</strong>Ingresá tu contraseña para acceder a tu panel.</div></div>';
+                                notice.classList.remove('hidden');
+                                btn.innerHTML = 'Iniciar Sesión <span class="material-symbols-outlined text-[18px]">login</span>';
+                            }
+                        } else {
+                            notice.className = 'text-xs p-3.5 rounded-2xl bg-red-50 text-red-700 border border-red-200/90 shadow-sm leading-relaxed';
+                            notice.innerHTML = `<div class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-[20px] text-red-500 shrink-0 mt-0.5">error</span>
+                                <div>
+                                    <strong class="font-extrabold block text-slate-900 text-xs mb-0.5">No estás registrado como alumno</strong>
+                                    ${d.message || 'No encontramos tu correo en la lista de alumnos.'}
+                                </div>
+                            </div>`;
+                            notice.classList.remove('hidden');
+                        }
+                    } else {
+                        notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
+                        notice.textContent = d.error || 'Error al verificar el correo.';
+                        notice.classList.remove('hidden');
+                    }
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Continuar <span class="material-symbols-outlined text-[18px]">arrow_forward</span>';
+                    notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
+                    notice.textContent = 'Error de conexión. Intentá nuevamente.';
+                    notice.classList.remove('hidden');
+                });
+            } else {
+                if (!password) {
+                    notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
+                    notice.textContent = 'Por favor ingresá tu contraseña.';
+                    notice.classList.remove('hidden');
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Iniciando sesión...';
+
+                fetch('backend/cliente_auth.php?action=login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password)
+                })
+                .then(r => r.json())
+                .then(d => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Iniciar Sesión <span class="material-symbols-outlined text-[18px]">login</span>';
+
+                    if (d.success) {
+                        sessionStorage.setItem('agendatina_alumno_email', email);
+                        renderDashboard(d.cliente);
+                    } else {
+                        notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
+                        notice.textContent = d.error || 'Contraseña incorrecta.';
+                        notice.classList.remove('hidden');
+                    }
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Iniciar Sesión <span class="material-symbols-outlined text-[18px]">login</span>';
+                    notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
+                    notice.textContent = 'Error de conexión. Intentá nuevamente.';
+                    notice.classList.remove('hidden');
+                });
+            }
+        }
+
+        function submitSetPassword(e) {
+            e.preventDefault();
+            const pass = document.getElementById('newPassInput').value.trim();
+            const errDiv = document.getElementById('setPassError');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+
+            if (!pass || pass.length < 6) {
+                errDiv.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+                errDiv.classList.remove('hidden');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Guardando...';
+
+            fetch('backend/cliente_auth.php?action=set_password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'email=' + encodeURIComponent(currentClientEmail) + '&password=' + encodeURIComponent(pass)
+            })
+            .then(r => r.json())
+            .then(d => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Guardar Contraseña y Acceder';
+
+                if (d.success) {
+                    document.getElementById('firstPasswordModal').classList.add('hidden');
+                    sessionStorage.setItem('agendatina_alumno_email', currentClientEmail);
+                    renderDashboard(d.cliente || { nombre: 'Alumno', email: currentClientEmail, pases: 0 });
+                } else {
+                    errDiv.textContent = d.error || 'Error al guardar la contraseña.';
+                    errDiv.classList.remove('hidden');
+                }
+            })
+            .catch(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Guardar Contraseña y Acceder';
+                errDiv.textContent = 'Error de conexión con el servidor.';
+                errDiv.classList.remove('hidden');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedEmail = sessionStorage.getItem('agendatina_alumno_email');
+            if (savedEmail) {
+                renderDashboard({ email: savedEmail, nombre: 'Alumno' });
+            }
+        });
+
+        function renderDashboard(cliente) {
+            document.getElementById('authBox').classList.add('hidden');
+            document.getElementById('dashboardBox').classList.remove('hidden');
+            document.getElementById('userHeaderBox').classList.remove('hidden');
+            document.getElementById('mainHeaderNav').classList.remove('hidden');
+            
+            const mainContainer = document.getElementById('mainContainer');
+            if (mainContainer) {
+                mainContainer.classList.remove('justify-center', 'my-auto');
+                mainContainer.classList.add('py-6', 'sm:py-10', 'px-4');
+            }
+
+            const name = cliente.nombre || cliente.email || 'Alumno';
+            document.getElementById('userNameDisplay').textContent = name;
+            document.getElementById('dashClientName').textContent = `¡Hola de nuevo, ${name.split(' ')[0]}!`;
+            
+            const avatar = document.getElementById('userAvatarPill');
+            if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
+
+            document.getElementById('profileEmail').value = cliente.email || sessionStorage.getItem('agendatina_alumno_email') || '';
+            document.getElementById('profileNombre').value = cliente.nombre || '';
+
+            loadMisClases(cliente.email || sessionStorage.getItem('agendatina_alumno_email'));
+        }
+
+        function loadMisClases(email) {
+            fetch('backend/cliente_auth.php?action=mis_clases&email=' + encodeURIComponent(email))
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) {
+                        allStudentClases = d.data || [];
+                        studentNegocios = d.negocios || [];
+                        renderStudentDashboardContent(d);
+                    }
+                });
+        }
+
+        function renderStudentDashboardContent(d) {
+            const clases = d.data || [];
+            const negocios = d.negocios || [];
+            const perfil = d.perfil || {};
+
+            if (perfil.nombre_completo) {
+                document.getElementById('profileNombre').value = perfil.nombre_completo;
+                document.getElementById('userNameDisplay').textContent = perfil.nombre_completo;
+                document.getElementById('dashClientName').textContent = `¡Hola de nuevo, ${perfil.nombre_completo.split(' ')[0]}!`;
+            }
+            if (perfil.telefono) document.getElementById('profileTelefono').value = perfil.telefono;
+
+            // Stats
+            let totalPases = 0;
+            negocios.forEach(n => totalPases += (parseInt(n.pases_disponibles) || 0));
+            document.getElementById('statPasesCount').textContent = totalPases;
+            document.getElementById('statNegociosCount').textContent = negocios.length;
+
+            const ahora = new Date();
+            const proximas = clases.filter(c => c.estado !== 'cancelado' && new Date(c.fecha + 'T' + c.hora) >= ahora);
+            document.getElementById('statProximasCount').textContent = proximas.length;
+            if (document.getElementById('tabBadgeClases')) {
+                document.getElementById('tabBadgeClases').textContent = proximas.length;
+                document.getElementById('tabBadgeClases').classList.toggle('hidden', proximas.length === 0);
+            }
+
+            // Render Pestaña 1: Mis Clases
+            const misClasesList = document.getElementById('misClasesList');
+            if (proximas.length === 0) {
+                misClasesList.innerHTML = `<div class="bg-white/95 border border-slate-200 p-8 rounded-3xl text-center shadow-xs">
+                    <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">event_available</span>
+                    <p class="text-slate-700 font-bold text-base">No tenés clases agendadas próximamente.</p>
+                    <p class="text-xs text-slate-500 mt-1 mb-4">Revisá los cupos disponibles en tus establecimientos y agendate en 1 clic.</p>
+                    <button onclick="switchTab('reservar')" class="px-5 py-2.5 bg-[#FC8712] hover:bg-orange-600 text-white text-xs font-black rounded-xl uppercase tracking-wider transition-all shadow-md">Ver Calendario y Cupos</button>
+                </div>`;
+            } else {
+                misClasesList.innerHTML = proximas.map(c => `
+                    <div class="bg-white/95 border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-xl transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div class="flex items-start gap-4">
+                            <div class="w-12 h-12 rounded-2xl bg-orange-100 text-[#FC8712] flex items-center justify-center shrink-0 font-black">
+                                <span class="material-symbols-outlined text-2xl">fitness_center</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-black uppercase text-[#FC8712] tracking-wider bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200 inline-block mb-1">${c.negocio}</span>
+                                <h4 class="font-black text-slate-900 text-lg sm:text-xl">${c.servicio}</h4>
+                                <p class="text-xs font-bold text-slate-600 flex items-center gap-3 mt-1">
+                                    <span class="flex items-center gap-1 text-[#FC8712]"><span class="material-symbols-outlined text-[16px]">calendar_month</span> ${c.fecha}</span>
+                                    <span class="flex items-center gap-1 text-slate-700"><span class="material-symbols-outlined text-[16px]">schedule</span> ${c.hora} hs</span>
+                                    <span class="flex items-center gap-1 text-slate-500"><span class="material-symbols-outlined text-[16px]">person</span> ${c.profesional || 'Instructor'}</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 w-full sm:w-auto border-t sm:border-0 pt-3 sm:pt-0">
+                            <span class="bg-emerald-100 text-emerald-800 text-xs font-black px-3 py-1.5 rounded-full border border-emerald-200 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Confirmada</span>
+                            <button onclick="promptCancelTurno(${c.id})" class="text-xs font-bold text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-xl border border-red-200 transition-colors ml-auto">Cancelar</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Render Pestaña 3: Mis Pases
+            const misPasesList = document.getElementById('misPasesList');
+            if (negocios.length === 0) {
+                misPasesList.innerHTML = `<div class="bg-white/95 border border-slate-200 p-6 rounded-2xl text-center col-span-2 shadow-xs">
+                    <p class="text-slate-500 font-bold text-sm">No estás asociado a ningún establecimiento por el momento.</p>
+                </div>`;
+            } else {
+                misPasesList.innerHTML = negocios.map(n => `
+                    <div class="bg-white/95 border border-slate-200/90 rounded-3xl p-5 shadow-md space-y-3">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-black text-slate-900 text-base">${n.negocio_nombre}</h4>
+                                <span class="text-[11px] font-bold text-slate-500 block">Pase de Alumno</span>
+                            </div>
+                            <span class="bg-orange-500 text-white text-sm font-black px-3 py-1 rounded-xl shadow-xs">${n.pases_disponibles} pases libres</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                            <div class="bg-gradient-to-r from-[#FC8712] to-[#FF8A65] h-full" style="width: ${Math.min(100, ((parseInt(n.pases_disponibles)/Math.max(1, parseInt(n.pases_totales)))*100))}%"></div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Render Pestaña 4: Historial
+            const historialList = document.getElementById('historialClasesList');
+            const pasadas = clases.filter(c => c.estado === 'cancelado' || new Date(c.fecha + 'T' + c.hora) < ahora);
+            if (pasadas.length === 0) {
+                historialList.innerHTML = `<div class="bg-white/95 border border-slate-200 p-6 rounded-2xl text-center shadow-xs"><p class="text-slate-500 font-bold text-sm">No tenés historial de asistencias o clases pasadas.</p></div>`;
+            } else {
+                historialList.innerHTML = pasadas.map(c => `
+                    <div class="bg-white/95 border border-slate-200 rounded-2xl p-4 flex justify-between items-center opacity-85">
+                        <div>
+                            <span class="text-[10px] font-extrabold uppercase text-slate-400 block">${c.negocio}</span>
+                            <h5 class="font-bold text-slate-800 text-sm">${c.servicio}</h5>
+                            <span class="text-xs text-slate-500">${c.fecha} a las ${c.hora} hs</span>
+                        </div>
+                        <span class="${c.estado === 'cancelado' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'} text-xs font-bold px-3 py-1 rounded-lg uppercase">${c.estado}</span>
+                    </div>
+                `).join('');
+            }
+
+            // Rellenar Selector de Negocios para el Calendario de Cupos
+            const selNegocio = document.getElementById('studentSelectNegocio');
+            if (selNegocio && negocios.length > 0) {
+                selNegocio.innerHTML = negocios.map(n => `<option value="${n.negocio_ruta}">${n.negocio_nombre}</option>`).join('');
+                loadStudentBusinessCalendar(negocios[0].negocio_ruta);
+            }
+        }
+
+        // CARGAR CALENDARIO CON CUPOS DISPONIBLES EN TIEMPO REAL
+        function loadStudentBusinessCalendar(ruta) {
+            if (!ruta) return;
+            const grid = document.getElementById('studentCalendarGrid');
+            grid.innerHTML = `<div class="p-8 text-center"><span class="material-symbols-outlined animate-spin text-4xl text-[#FC8712] mb-2">sync</span><p class="font-bold text-slate-600 text-sm">Consultando cupos y clases abiertas...</p></div>`;
+
+            Promise.all([
+                fetch('backend/gestionar_servicios.php?n=' + encodeURIComponent(ruta)).then(r => r.json()),
+                fetch('backend/obtener_turnos_ocupados.php?n=' + encodeURIComponent(ruta)).then(r => r.json())
+            ])
+            .then(([serviciosData, ocupadosData]) => {
+                const servicios = Array.isArray(serviciosData) ? serviciosData : (serviciosData.servicios || []);
+                if (servicios.length === 0) {
+                    grid.innerHTML = `<div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center"><p class="text-slate-600 font-bold text-sm">Este establecimiento no posee clases configuradas activas.</p></div>`;
+                    return;
+                }
+
+                const hoy = new Date();
+                let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+
+                servicios.forEach(s => {
+                    const cupoMax = parseInt(s.cupo_maximo || s.capacidad || 1);
+                    const duracion = parseInt(s.duracion || s.duracion_minutos || 30);
+                    const prof = s.profesional || 'Instructor';
+
+                    // Generar 3 fechas próximas disponibles (hoy, mañana, pasado)
+                    for (let i = 0; i < 4; i++) {
+                        const dateObj = new Date();
+                        dateObj.setDate(hoy.getDate() + i);
+                        const fechaStr = dateObj.toISOString().split('T')[0];
+                        const dateFormatted = dateObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
+                        
+                        const horaDef = s.hora_apertura || '10:00';
+                        const keySlot = fechaStr + '_' + horaDef;
+                        const ocupadosCount = Array.isArray(ocupadosData[fechaStr]) ? ocupadosData[fechaStr].filter(h => h === horaDef).length : 0;
+                        const cuposLibres = Math.max(0, cupoMax - ocupadosCount);
+
+                        let badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                        let badgeText = `🟢 ${cuposLibres} cupos libres`;
+                        if (cuposLibres === 1) {
+                            badgeColor = 'bg-amber-100 text-amber-800 border-amber-200';
+                            badgeText = `⚠️ 1 cupo libre`;
+                        } else if (cuposLibres <= 0) {
+                            badgeColor = 'bg-red-100 text-red-700 border-red-200';
+                            badgeText = `🔴 COMPLETO`;
+                        }
+
+                        html += `
+                            <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-3">
+                                <div>
+                                    <div class="flex justify-between items-start gap-2 mb-1">
+                                        <h5 class="font-black text-slate-900 text-base">${s.nombre_servicio || s.nombre}</h5>
+                                        <span class="text-[10px] font-black px-2.5 py-1 rounded-full border ${badgeColor}">${badgeText}</span>
+                                    </div>
+                                    <p class="text-xs font-bold text-slate-600 flex items-center gap-2">
+                                        <span class="text-[#FC8712] flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">calendar_today</span> ${dateFormatted}</span>
+                                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">schedule</span> ${horaDef} hs (${duracion} min)</span>
+                                    </p>
+                                    <p class="text-xs text-slate-500 font-medium mt-1">Instructor: ${prof}</p>
+                                </div>
+                                <button onclick="bookStudentClass('${s.id_negocio}', '${s.id}', '${s.nombre_servicio || s.nombre}', '${fechaStr}', '${horaDef}', '${prof}')" ${cuposLibres <= 0 ? 'disabled' : ''} class="w-full ${cuposLibres > 0 ? 'bg-[#FC8712] hover:bg-orange-600 text-white' : 'bg-slate-200 text-slate-400 cursor-not-allowed'} font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-xs flex items-center justify-center gap-1">
+                                    <span class="material-symbols-outlined text-[16px]">add_task</span>
+                                    <span>${cuposLibres > 0 ? 'Agendarme en esta Clase' : 'Completo'}</span>
+                                </button>
+                            </div>
+                        `;
+                    }
+                });
+
+                html += '</div>';
+                grid.innerHTML = html;
+            })
+            .catch(err => {
+                grid.innerHTML = `<div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center"><p class="text-slate-500 font-bold text-sm">No se pudieron cargar los cupos. Por favor intentá nuevamente.</p></div>`;
+            });
+        }
+
+        // RESERVAR CLASE CON 1-CLICK CON PASE DE ALUMNO
+        function bookStudentClass(idNegocio, idServicio, servicioNombre, fecha, hora, profesional) {
+            const email = sessionStorage.getItem('agendatina_alumno_email');
+            if (!email) return showStudentToast('Sesión no válida. Iniciar sesión nuevamente.', 'error');
+
+            showStudentToast('Procesando tu reserva...', 'success');
+
+            fetch('backend/cliente_auth.php?action=reservar_con_pase', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `email=${encodeURIComponent(email)}&id_negocio=${idNegocio}&id_servicio=${idServicio}&servicio=${encodeURIComponent(servicioNombre)}&fecha=${fecha}&hora=${hora}&profesional=${encodeURIComponent(profesional)}`
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    showStudentToast(d.message || '¡Inscripción confirmada con éxito!', 'success');
+                    loadMisClases(email);
+                    switchTab('clases');
+                } else {
+                    showStudentToast(d.error || 'No se pudo realizar la inscripción.', 'error');
+                }
+            })
+            .catch(() => showStudentToast('Error de conexión al reservar.', 'error'));
+        }
+
+        function handleUpdateProfile(e) {
+            e.preventDefault();
+            const nombre = document.getElementById('profileNombre').value.trim();
+            const telefono = document.getElementById('profileTelefono').value.trim();
+            const btn = document.getElementById('btnSaveProfile');
+            const origHTML = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Guardando...';
+
+            fetch('backend/cliente_auth.php?action=update_profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'email=' + encodeURIComponent(sessionStorage.getItem('agendatina_alumno_email') || '') + 
+                      '&nombre=' + encodeURIComponent(nombre) + 
+                      '&telefono=' + encodeURIComponent(telefono)
+            })
+            .then(r => r.json())
+            .then(d => {
+                btn.disabled = false;
+                btn.innerHTML = origHTML;
+
+                if (d.success) {
+                    showStudentToast('¡Perfil actualizado correctamente!', 'success');
+                    document.getElementById('userNameDisplay').textContent = nombre;
+                    document.getElementById('dashClientName').textContent = `¡Hola de nuevo, ${nombre.split(' ')[0]}!`;
+                } else {
+                    showStudentToast(d.error || 'Error al actualizar el perfil.', 'error');
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerHTML = origHTML;
+                showStudentToast('Error de conexión.', 'error');
+            });
+        }
+
+        function solicitarRecuperacionPasswordAlumno() {
+            const email = document.getElementById('profileEmail').value || sessionStorage.getItem('agendatina_alumno_email') || document.getElementById('clientEmailInput')?.value;
+            if (!email) {
+                showStudentToast('Ingresá o confirmá tu correo electrónico primero.', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('email', email);
+
+            fetch('backend/cliente_recuperar_password.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    showStudentToast(d.message || 'Se envió un correo con instrucciones.', 'success');
+                } else {
+                    showStudentToast(d.error || 'Error al solicitar el restablecimiento.', 'error');
+                }
+            })
+            .catch(err => {
+                showStudentToast('Error de conexión al solicitar restablecimiento.', 'error');
+            });
+        }
+
+        function logoutCliente() {
+            sessionStorage.clear();
+            location.reload();
+        }
+    </script>
+</body>
+</html>

@@ -38,7 +38,7 @@ try {
             echo json_encode([
                 'success' => true, 
                 'user_type' => 'cliente', 
-                'redirect' => 'mi-cuenta.html', 
+                'redirect' => 'alumno.html', 
                 'message' => '¡Contraseña del Portal de Alumno actualizada con éxito! Redirigiendo...'
             ]);
             exit;
