@@ -2,6 +2,8 @@ let allClientes = [];
 let filtroActual = 'todos';
 let isPremiumAccount = true;
 let currentPlanName = 'Simple';
+let negocioRutaUnica = '';
+let negocioNombreUnico = '';
 
 document.addEventListener('DOMContentLoaded', () => {
     cargarClientes();
@@ -15,7 +17,10 @@ function cargarClientes() {
                 allClientes = data.data || [];
                 isPremiumAccount = data.is_premium !== undefined ? data.is_premium : true;
                 currentPlanName = data.plan || 'Simple';
+                negocioRutaUnica = data.negocio_ruta || '';
+                negocioNombreUnico = data.negocio_nombre || '';
                 
+                actualizarEnlaceUnicoView();
                 verificarRestriccionPremium();
                 actualizarMetricas();
                 renderTablaAlumnos();
@@ -376,3 +381,66 @@ function formatearFecha(f) {
 function escapeHtml(str) {
     return String(str || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
+
+function actualizarEnlaceUnicoView() {
+    const el = document.getElementById('inputEnlaceUnicoText');
+    const elModal = document.getElementById('modalInputEnlaceUnicoText');
+    if (negocioRutaUnica) {
+        const fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}`;
+        if (el) el.textContent = fullUrl;
+        if (elModal) elModal.textContent = fullUrl;
+    } else {
+        if (el) el.textContent = 'Enlace no disponible';
+        if (elModal) elModal.textContent = 'Enlace no disponible';
+    }
+}
+
+function openModalInvitarAlumnos() {
+    actualizarEnlaceUnicoView();
+    const modal = document.getElementById('modalInvitarAlumnos');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeModalInvitarAlumnos() {
+    const modal = document.getElementById('modalInvitarAlumnos');
+    if (modal) modal.classList.add('hidden');
+}
+
+function copiarEnlaceUnicoModal() {
+    copiarEnlaceUnico();
+}
+
+function copiarEnlaceUnico() {
+    if (!negocioRutaUnica) return;
+    const fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}`;
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(fullUrl).then(() => {
+            if (typeof showToast === 'function') showToast('¡Enlace de registro copiado al portapapeles!', 'success');
+            else alert('¡Enlace copiado al portapapeles!');
+        }).catch(() => fallbackCopiar(fullUrl));
+    } else {
+        fallbackCopiar(fullUrl);
+    }
+}
+
+function fallbackCopiar(text) {
+    const input = document.createElement('input');
+    input.value = text;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand('copy');
+    document.body.removeChild(input);
+    if (typeof showToast === 'function') showToast('¡Enlace copiado al portapapeles!', 'success');
+    else alert('¡Enlace copiado!');
+}
+
+function compartirWhatsAppEnlaceUnico() {
+    if (!negocioRutaUnica) return;
+    const fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}`;
+    const nom = negocioNombreUnico || 'nuestro establecimiento';
+    const msg = `¡Hola! Podés registrarte o anotarte a nuestras clases en ${nom} a través de nuestro enlace oficial:\n\n${fullUrl}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+

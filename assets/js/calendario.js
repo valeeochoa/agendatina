@@ -123,20 +123,82 @@ window.isWorkingDay = function(date) {
     return workingDays.includes(date.getDay());
 };
 
+function getServiceDuration(serviceName, profName = null) {
+    if (!serviceName || typeof services === 'undefined' || !Array.isArray(services) || services.length === 0) return 30;
+    const cleanName = String(serviceName).trim().toLowerCase();
+    
+    let match = null;
+    if (profName && profName !== 'Cualquiera (Sin preferencia)' && profName !== 'Cualquiera' && profName !== 'columnas') {
+        const cleanProf = String(profName).trim().toLowerCase();
+        match = services.find(s => String(s.nombre || '').trim().toLowerCase() === cleanName && String(s.profesional || '').trim().toLowerCase() === cleanProf);
+    }
+    if (!match) {
+        match = services.find(s => String(s.nombre || '').trim().toLowerCase() === cleanName);
+    }
+    if (match) {
+        const dur = parseInt(match.duracion || match.duracion_minutos, 10);
+        if (!isNaN(dur) && dur > 0) return dur;
+    }
+    return 30;
+}
+
+function isSlotAvailableForDuration(dateString, timeStr, durationMin, capacity, baseOcupadas, isToday, slotDate) {
+    if (!timeStr) return false;
+    if (window.isTimeInBreak(timeStr)) return false;
+    if (baseOcupadas.includes('blocked_day') || baseOcupadas.includes('blocked_day_prof')) return false;
+    
+    const now = new Date();
+    if (isToday && slotDate && slotDate.getTime() <= now.getTime()) return false;
+    
+    const minAdvance = parseInt(window.businessWebConfig?.anticipacion_turno_min || 0, 10) || 0;
+    if (minAdvance > 0 && slotDate && slotDate.getTime() < (now.getTime() + (minAdvance * 60000))) return false;
+    
+    const [h, m] = timeStr.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return false;
+    const startMins = h * 60 + m;
+    const endMins = startMins + (parseInt(durationMin, 10) || 30);
+    
+    let endStr = window.businessWebConfig?.hora_cierre || '18:00';
+    let [closeH, closeM] = endStr.split(':').map(Number);
+    if (isNaN(closeH)) closeH = 18;
+    if (isNaN(closeM)) closeM = 0;
+    const closeMins = closeH * 60 + closeM;
+    
+    if (endMins > closeMins) return false;
+    
+    const cap = parseInt(capacity, 10) || 1;
+    for (let curMins = startMins; curMins < endMins; curMins += 30) {
+        const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
+        const curM = (curMins % 60).toString().padStart(2, '0');
+        const subSlotStr = `${curH}:${curM}`;
+        
+        if (window.getBreakTimes().includes(subSlotStr)) return false;
+        
+        const countTaken = baseOcupadas.filter(t => t.substring(0, 5) === subSlotStr).length;
+        if (countTaken >= cap) return false;
+    }
+    
+    return true;
+}
+
 function generateTimeSlots(startStr = null, endStr = null, interval = null) {
     if (!startStr) startStr = window.businessWebConfig?.hora_apertura || '09:00';
     if (!endStr) endStr = window.businessWebConfig?.hora_cierre || '18:00';
     
     if (interval === 'servicio' || (!interval && window.businessWebConfig && window.businessWebConfig.intervalo_turnos === 'servicio')) {
         let servDur = 30;
-        const serviceSelect = document.getElementById('serviceSelect') || document.getElementById('manualServicio');
-        if (serviceSelect && serviceSelect.value && typeof services !== 'undefined' && Array.isArray(services)) {
-            const s = services.find(item => item.nombre === serviceSelect.value);
-            if (s && s.duracion) servDur = parseInt(s.duracion) || 30;
+        const selectedServName = (typeof adminWeeklySelectedService !== 'undefined' && adminWeeklySelectedService) 
+            || (typeof weeklySelectedService !== 'undefined' && weeklySelectedService) 
+            || (document.getElementById('serviceSelect')?.value) 
+            || (document.getElementById('manualServicio')?.value);
+            
+        if (selectedServName) {
+            const activeProf = (typeof adminWeeklySelectedProf !== 'undefined' && adminWeeklySelectedProf) || (typeof globalSelectedProfessional !== 'undefined' && globalSelectedProfessional);
+            servDur = getServiceDuration(selectedServName, activeProf);
         }
         interval = servDur;
     } else {
-        interval = parseInt(interval) || (window.businessWebConfig && parseInt(window.businessWebConfig.intervalo_turnos)) || 30;
+        interval = parseInt(interval) || (window.businessWebConfig && window.businessWebConfig.intervalo_turnos !== 'servicio' && parseInt(window.businessWebConfig.intervalo_turnos)) || 30;
     }
     if (isNaN(interval) || interval < 5) interval = 30;
 
@@ -1863,18 +1925,17 @@ function renderAdminWeeklyGrid() {
     let selectedDuration = 30;
     let selectedCapacidad = 1;
     if (adminWeeklySelectedService) {
-        const matchingService = services.find(s => s.nombre === adminWeeklySelectedService && (s.profesional === adminWeeklySelectedProf || !adminWeeklySelectedProf));
+        selectedDuration = getServiceDuration(adminWeeklySelectedService, adminWeeklySelectedProf);
+        const matchingService = services.find(s => String(s.nombre || '').trim().toLowerCase() === String(adminWeeklySelectedService).trim().toLowerCase() && (s.profesional === adminWeeklySelectedProf || !adminWeeklySelectedProf));
         if (matchingService) {
-            selectedDuration = parseInt(matchingService.duracion) || 30;
-            selectedCapacidad = parseInt(matchingService.capacidad) || 1;
+            selectedCapacidad = parseInt(matchingService.capacidad || matchingService.cupo_maximo) || 1;
         }
     }
     
     let interval = 30;
-    if (window.businessWebConfig && window.businessWebConfig.intervalo_turnos) interval = window.businessWebConfig.intervalo_turnos === 'servicio' ? selectedDuration : parseInt(window.businessWebConfig.intervalo_turnos);
+    if (window.businessWebConfig && window.businessWebConfig.intervalo_turnos) interval = window.businessWebConfig.intervalo_turnos === 'servicio' ? selectedDuration : (parseInt(window.businessWebConfig.intervalo_turnos) || 30);
     
     generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval);
-    const blocksNeeded = Math.ceil(selectedDuration / interval);
 
     for (let i = 0; i < 7; i++) {
         const date = new Date(weekStartDate); date.setDate(weekStartDate.getDate() + i);
@@ -1959,17 +2020,10 @@ function renderAdminWeeklyGrid() {
         } else {
             cal_availableTimes.forEach((time, idx) => {
                 if (window.isTimeInBreak(time)) return;
-                let isBooked = false;
                 const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), ...time.split(':').map(Number), 0, 0);
                 const baseOcupadas = cal_bookedSlots[dateString] || [];
-                for (let j = 0; j < blocksNeeded; j++) { 
-                    if (idx + j >= cal_availableTimes.length) { isBooked = true; break; } 
-                    const timeToCheck = cal_availableTimes[idx + j].substring(0, 5);
-                    if (window.getBreakTimes().includes(timeToCheck) || baseOcupadas.includes('blocked_day') || baseOcupadas.includes('blocked_day_prof')) { isBooked = true; break; }
-                    const countTaken = baseOcupadas.filter(t => t.substring(0, 5) === timeToCheck).length;
-                    if (countTaken >= selectedCapacidad) { isBooked = true; break; }
-                }
-                if (!isBooked && isToday && slotDate.getTime() <= new Date().getTime()) isBooked = true;
+                const isAvailable = isSlotAvailableForDuration(dateString, time, selectedDuration, selectedCapacidad, baseOcupadas, isToday, slotDate);
+                const isBooked = !isAvailable;
                 
                 const slot = document.createElement('div');
                 
@@ -2236,21 +2290,13 @@ function updateWeeklyScrollArrows() {
 }
 
 function checkDayHasAvailableSlots(date) {
-    const fechaActual = toYYYYMMDD(date);
-    const horasOcupadas = [...(cal_bookedSlots[fechaActual] || []), ...window.getBreakTimes()];
-    const now = new Date();
-    const isToday = date.getTime() === new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    const minAdvance = parseInt(window.businessWebConfig?.anticipacion_turno_min || 0, 10) || 0;
     const sName = weeklySelectedService;
-    let matchingService = null;
-    if (globalSelectedProfessional && globalSelectedProfessional !== 'Cualquiera (Sin preferencia)') {
-        matchingService = services.find(s => s.nombre === sName && s.profesional === globalSelectedProfessional);
+    let selectedDuration = getServiceDuration(sName, globalSelectedProfessional);
+    let selectedCapacidad = 1;
+    const matchingService = services.find(s => String(s.nombre || '').trim().toLowerCase() === String(sName || '').trim().toLowerCase());
+    if (matchingService) {
+        selectedCapacidad = parseInt(matchingService.capacidad || matchingService.cupo_maximo) || 1;
     }
-    if (!matchingService) {
-        matchingService = services.find(s => s.nombre === sName);
-    }
-    let selectedDuration = parseInt((matchingService || {}).duracion || 30);
-    let selectedCapacidad = parseInt((matchingService || {}).capacidad || 1);
     
     let interval = 30;
     if (window.businessWebConfig && window.businessWebConfig.intervalo_turnos) {
@@ -2261,26 +2307,18 @@ function checkDayHasAvailableSlots(date) {
         }
     }
     generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval);
-    
-    const blocksNeeded = Math.ceil(selectedDuration / interval);
+
+    const now = new Date();
+    const isToday = date.getTime() === new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const baseOcupadas = cal_bookedSlots[toYYYYMMDD(date)] || [];
 
     for (let i = 0; i < cal_availableTimes.length; i++) {
-        if (window.isTimeInBreak(cal_availableTimes[i])) continue;
-        let isBooked = false;
-        const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), ...cal_availableTimes[i].split(':').map(Number), 0, 0);
-        
-        const baseOcupadas = cal_bookedSlots[toYYYYMMDD(date)] || [];
-        
-        for (let j = 0; j < blocksNeeded; j++) {
-            if (i + j >= cal_availableTimes.length) { isBooked = true; break; }
-            const timeToCheck = cal_availableTimes[i + j].substring(0, 5);
-            if (window.getBreakTimes().includes(timeToCheck) || baseOcupadas.includes('blocked_day') || baseOcupadas.includes('blocked_day_prof')) { isBooked = true; break; }
-            const countTaken = baseOcupadas.filter(t => t.substring(0, 5) === timeToCheck).length;
-            if (countTaken >= selectedCapacidad) { isBooked = true; break; }
+        const time = cal_availableTimes[i];
+        if (window.isTimeInBreak(time)) continue;
+        const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), ...time.split(':').map(Number), 0, 0);
+        if (isSlotAvailableForDuration(toYYYYMMDD(date), time, selectedDuration, selectedCapacidad, baseOcupadas, isToday, slotDate)) {
+            return true;
         }
-        if (!isBooked && isToday && slotDate.getTime() <= now.getTime()) isBooked = true;
-        if (!isBooked && minAdvance > 0 && slotDate.getTime() < (now.getTime() + (minAdvance * 60000))) isBooked = true;
-        if (!isBooked) return true;
     }
     return false;
 }
@@ -2296,20 +2334,13 @@ function selectWeeklyDate(date) {
     document.getElementById('weeklyHora').value = '';
     cal2_selectedTime = null;
     
-    const horasOcupadas = [...(cal_bookedSlots[toYYYYMMDD(date)] || []), ...window.getBreakTimes()];
-    const now = new Date();
-    const isToday = date.getTime() === new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    const minAdvance = parseInt(window.businessWebConfig?.anticipacion_turno_min || 0, 10) || 0;
     const sName = weeklySelectedService;
-    let matchingService = null;
-    if (globalSelectedProfessional && globalSelectedProfessional !== 'Cualquiera (Sin preferencia)') {
-        matchingService = services.find(s => s.nombre === sName && s.profesional === globalSelectedProfessional);
+    let selectedDuration = getServiceDuration(sName, globalSelectedProfessional);
+    let selectedCapacidad = 1;
+    const matchingService = services.find(s => String(s.nombre || '').trim().toLowerCase() === String(sName || '').trim().toLowerCase());
+    if (matchingService) {
+        selectedCapacidad = parseInt(matchingService.capacidad || matchingService.cupo_maximo) || 1;
     }
-    if (!matchingService) {
-        matchingService = services.find(s => s.nombre === sName);
-    }
-    let selectedDuration = parseInt((matchingService || {}).duracion || 30);
-    let selectedCapacidad = parseInt((matchingService || {}).capacidad || 1);
     
     let interval = 30;
     if (window.businessWebConfig && window.businessWebConfig.intervalo_turnos) {
@@ -2320,35 +2351,37 @@ function selectWeeklyDate(date) {
         }
     }
     generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval);
-    
-    const blocksNeeded = Math.ceil(selectedDuration / interval);
 
     let slotsGenerated = 0;
     let firstAvailableTime = null;
-    cal_availableTimes.forEach((time, index) => {
-        if (window.isTimeInBreak(time)) return;
-        let isBooked = false;
-        let maxSpotsTaken = 0;
-        const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), ...time.split(':').map(Number), 0, 0);
-        const baseOcupadas = cal_bookedSlots[toYYYYMMDD(date)] || [];
-        for (let i = 0; i < blocksNeeded; i++) {
-            if (index + i >= cal_availableTimes.length) { isBooked = true; break; }
-            const timeToCheck = cal_availableTimes[index + i].substring(0, 5);
-            if (window.getBreakTimes().includes(timeToCheck) || baseOcupadas.includes('blocked_day') || baseOcupadas.includes('blocked_day_prof')) { isBooked = true; break; }
-            const countTaken = baseOcupadas.filter(t => t.substring(0, 5) === timeToCheck).length;
-            if (countTaken >= selectedCapacidad) { isBooked = true; break; }
-            if (countTaken > maxSpotsTaken) maxSpotsTaken = countTaken;
-        }
-        if (!isBooked && isToday && slotDate.getTime() <= now.getTime()) isBooked = true;
-        if (!isBooked && minAdvance > 0 && slotDate.getTime() < (now.getTime() + (minAdvance * 60000))) isBooked = true;
+    const now = new Date();
+    const isToday = date.getTime() === new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const baseOcupadas = cal_bookedSlots[toYYYYMMDD(date)] || [];
 
-        if (!isBooked) {
+    cal_availableTimes.forEach((time) => {
+        if (window.isTimeInBreak(time)) return;
+        const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), ...time.split(':').map(Number), 0, 0);
+        
+        const isAvailable = isSlotAvailableForDuration(toYYYYMMDD(date), time, selectedDuration, selectedCapacidad, baseOcupadas, isToday, slotDate);
+
+        if (isAvailable) {
             if (!firstAvailableTime) firstAvailableTime = time;
             slotsGenerated++;
             const slot = document.createElement('div');
             
             let spotsText = '';
             if (selectedCapacidad > 1) {
+                let maxSpotsTaken = 0;
+                const [h, m] = time.split(':').map(Number);
+                const startMins = h * 60 + m;
+                const endMins = startMins + selectedDuration;
+                for (let curMins = startMins; curMins < endMins; curMins += 30) {
+                    const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
+                    const curM = (curMins % 60).toString().padStart(2, '0');
+                    const subSlotStr = `${curH}:${curM}`;
+                    const countTaken = baseOcupadas.filter(t => t.substring(0, 5) === subSlotStr).length;
+                    if (countTaken > maxSpotsTaken) maxSpotsTaken = countTaken;
+                }
                 const spotsLeft = selectedCapacidad - maxSpotsTaken;
                 spotsText = `<span class="block text-[10px] font-semibold opacity-85 leading-none mt-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full">${spotsLeft} lugares</span>`;
             }

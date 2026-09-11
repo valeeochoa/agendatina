@@ -47,6 +47,191 @@ $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
 try {
     // ---------------------------------------------------------
+    // 0. Obtener Información de Negocio por Ruta (Invitación)
+    // ---------------------------------------------------------
+    if ($action === 'info_negocio') {
+        $ruta = strtolower(trim($_POST['ruta'] ?? $_GET['ruta'] ?? ''));
+
+        if (empty($ruta)) {
+            echo json_encode(['success' => false, 'error' => 'Ruta de negocio no especificada.']);
+            exit;
+        }
+
+        $stmt = $pdo->prepare("SELECT id, nombre_fantasia, ruta FROM negocios WHERE LOWER(TRIM(ruta)) = :ruta LIMIT 1");
+        $stmt->execute(['ruta' => $ruta]);
+        $negocio = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$negocio) {
+            echo json_encode(['success' => false, 'error' => 'El establecimiento especificado no fue encontrado.']);
+            exit;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'negocio' => [
+                'id' => $negocio['id'],
+                'nombre' => $negocio['nombre_fantasia'],
+                'ruta' => $negocio['ruta']
+            ]
+        ]);
+        exit;
+    }
+
+    // ---------------------------------------------------------
+    // 0b. Registrar Nuevo Alumno y Vincular a Negocio
+    // ---------------------------------------------------------
+    if ($action === 'register_and_link') {
+        $ruta = strtolower(trim($_POST['ruta'] ?? ''));
+        $nombre = trim($_POST['nombre'] ?? '');
+        $email = strtolower(trim($_POST['email'] ?? ''));
+        $telefono = trim($_POST['telefono'] ?? '');
+        $password = trim($_POST['password'] ?? '');
+
+        if (empty($ruta) || empty($nombre) || empty($email) || strlen($password) < 6) {
+            echo json_encode(['success' => false, 'error' => 'Completa todos los campos obligatorios y ingresá una contraseña de al menos 6 caracteres.']);
+            exit;
+        }
+
+        // Buscar negocio por ruta
+        $stmtNeg = $pdo->prepare("SELECT id, nombre_fantasia FROM negocios WHERE LOWER(TRIM(ruta)) = :ruta LIMIT 1");
+        $stmtNeg->execute(['ruta' => $ruta]);
+        $negocio = $stmtNeg->fetch(PDO::FETCH_ASSOC);
+
+        if (!$negocio) {
+            echo json_encode(['success' => false, 'error' => 'El establecimiento no existe o la URL no es válida.']);
+            exit;
+        }
+
+        $id_negocio = $negocio['id'];
+
+        // Verificar si ya existe un alumno con este email vinculado a ESTE negocio
+        $stmtCheck = $pdo->prepare("SELECT id, password FROM clientes_negocio WHERE id_negocio = :id_negocio AND LOWER(TRIM(email)) = :email LIMIT 1");
+        $stmtCheck->execute(['id_negocio' => $id_negocio, 'email' => $email]);
+        $existente = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+
+        if ($existente) {
+            if (!empty($existente['password'])) {
+                echo json_encode(['success' => false, 'error' => 'Ya tenés una cuenta registrada en este establecimiento. Seleccioná la opción "Ya tengo cuenta" para ingresar.']);
+                exit;
+            } else {
+                // Pre-registrado previamente por el administrador del negocio sin contraseña -> actualizar clave y activar
+                $stmtUp = $pdo->prepare("UPDATE clientes_negocio SET nombre_completo = :nombre, telefono = :telefono, password = :hash, estado = 'activo' WHERE id = :id");
+                $stmtUp->execute(['nombre' => $nombre, 'telefono' => $telefono, 'hash' => $hash, 'id' => $existente['id']]);
+                $cId = $existente['id'];
+            }
+        } else {
+            // Crear nuevo registro en el negocio
+            $stmtIns = $pdo->prepare("INSERT INTO clientes_negocio (id_negocio, nombre_completo, email, telefono, password, pases_disponibles, pases_totales, estado) VALUES (:id_negocio, :nombre, :email, :telefono, :hash, 0, 0, 'pendiente_activacion')");
+            $stmtIns->execute([
+                'id_negocio' => $id_negocio,
+                'nombre' => $nombre,
+                'email' => $email,
+                'telefono' => $telefono,
+                'hash' => $hash
+            ]);
+            $cId = $pdo->lastInsertId();
+        }
+
+        $_SESSION['cliente_id'] = $cId;
+        $_SESSION['cliente_email'] = $email;
+        $_SESSION['cliente_nombre'] = $nombre;
+
+        echo json_encode([
+            'success' => true,
+            'message' => '¡Cuenta registrada y vinculada con éxito a ' . $negocio['nombre_fantasia'] . '!',
+            'cliente' => [
+                'id' => $cId,
+                'nombre' => $nombre,
+                'email' => $email
+            ],
+            'negocio_nombre' => $negocio['nombre_fantasia']
+        ]);
+        exit;
+    }
+
+    // ---------------------------------------------------------
+    // 0c. Iniciar Sesión y Vincular Alumno Existente a Negocio
+    // ---------------------------------------------------------
+    if ($action === 'login_and_link') {
+        $ruta = strtolower(trim($_POST['ruta'] ?? ''));
+        $email = strtolower(trim($_POST['email'] ?? ''));
+        $password = trim($_POST['password'] ?? '');
+
+        if (empty($ruta) || empty($email) || empty($password)) {
+            echo json_encode(['success' => false, 'error' => 'Ingresá tu correo electrónico y contraseña.']);
+            exit;
+        }
+
+        // Buscar negocio por ruta
+        $stmtNeg = $pdo->prepare("SELECT id, nombre_fantasia FROM negocios WHERE LOWER(TRIM(ruta)) = :ruta LIMIT 1");
+        $stmtNeg->execute(['ruta' => $ruta]);
+        $negocio = $stmtNeg->fetch(PDO::FETCH_ASSOC);
+
+        if (!$negocio) {
+            echo json_encode(['success' => false, 'error' => 'El establecimiento no fue encontrado.']);
+            exit;
+        }
+
+        $id_negocio = $negocio['id'];
+
+        // Buscar alumno por email en cualquier negocio para validar contraseña
+        $stmtClient = $pdo->prepare("SELECT id, nombre_completo, email, telefono, password FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email AND password IS NOT NULL LIMIT 1");
+        $stmtClient->execute(['email' => $email]);
+        $alumno = $stmtClient->fetch(PDO::FETCH_ASSOC);
+
+        $isSessionValid = isset($_SESSION['cliente_email']) && strtolower(trim($_SESSION['cliente_email'])) === $email;
+
+        if (!$isSessionValid && (!$alumno || empty($alumno['password']) || !password_verify($password, $alumno['password']))) {
+            echo json_encode(['success' => false, 'error' => 'Contraseña incorrecta o correo no registrado.']);
+            exit;
+        }
+
+        if (!$alumno && $isSessionValid) {
+            $alumno = ['nombre_completo' => $_SESSION['cliente_nombre'] ?? 'Alumno', 'telefono' => '', 'password' => ''];
+        }
+
+        // Verificar si ya existe vinculación en este negocio específico
+        $stmtLink = $pdo->prepare("SELECT id, nombre_completo, pases_disponibles FROM clientes_negocio WHERE id_negocio = :id_negocio AND LOWER(TRIM(email)) = :email LIMIT 1");
+        $stmtLink->execute(['id_negocio' => $id_negocio, 'email' => $email]);
+        $link = $stmtLink->fetch(PDO::FETCH_ASSOC);
+
+        if (!$link) {
+            // Crear la vinculación en el nuevo negocio
+            $stmtNewLink = $pdo->prepare("INSERT INTO clientes_negocio (id_negocio, nombre_completo, email, telefono, password, pases_disponibles, pases_totales, estado) VALUES (:id_negocio, :nombre, :email, :telefono, :hash, 0, 0, 'pendiente_activacion')");
+            $stmtNewLink->execute([
+                'id_negocio' => $id_negocio,
+                'nombre' => $alumno['nombre_completo'],
+                'email' => $email,
+                'telefono' => $alumno['telefono'] ?? '',
+                'hash' => $alumno['password']
+            ]);
+            $cId = $pdo->lastInsertId();
+            $msg = '¡Te has vinculado con éxito a ' . $negocio['nombre_fantasia'] . '! El establecimiento te asignará tus cupos de clase.';
+        } else {
+            $cId = $link['id'];
+            $msg = '¡Bienvenido! Tu cuenta ya se encuentra vinculada a ' . $negocio['nombre_fantasia'] . '.';
+        }
+
+        $_SESSION['cliente_id'] = $cId;
+        $_SESSION['cliente_email'] = $email;
+        $_SESSION['cliente_nombre'] = $alumno['nombre_completo'];
+
+        echo json_encode([
+            'success' => true,
+            'message' => $msg,
+            'cliente' => [
+                'id' => $cId,
+                'nombre' => $alumno['nombre_completo'],
+                'email' => $email
+            ],
+            'negocio_nombre' => $negocio['nombre_fantasia']
+        ]);
+        exit;
+    }
+
+    // ---------------------------------------------------------
     // 1. Verificar Email de Cliente (Detección de Pre-Registro)
     // ---------------------------------------------------------
     if ($action === 'check_email') {

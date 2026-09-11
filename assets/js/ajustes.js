@@ -761,8 +761,26 @@ function handleCalendarConfigSubmit(e) {
         btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">refresh</span> Guardando...';
     });
 
-    // Recolectar días de trabajo (checkboxes)
-    const diasTrabajo = Array.from(form.querySelectorAll('input[name="dias_trabajo"]:checked')).map(cb => cb.value).join(',');
+    // Recolectar días de trabajo (de checkboxes si existen, o computando desde horarios personalizados)
+    const diasCheckboxes = form.querySelectorAll('input[name="dias_trabajo"]:checked');
+    let diasTrabajo = Array.from(diasCheckboxes).map(cb => cb.value).join(',');
+    if (diasCheckboxes.length === 0) {
+        const hJsonStr = form.querySelector('#horariosDetalladosJsonInput')?.value || '{}';
+        try {
+            const hObj = JSON.parse(hJsonStr);
+            const numMap = { lun: '1', mar: '2', mie: '3', jue: '4', vie: '5', sab: '6', dom: '0' };
+            const activeDays = [];
+            for (const k in numMap) {
+                if (hObj[k] && hObj[k].activo !== false) {
+                    activeDays.push(numMap[k]);
+                }
+            }
+            if (activeDays.length > 0) diasTrabajo = activeDays.join(',');
+            else diasTrabajo = window.businessWebConfig?.dias_trabajo || '1,2,3,4,5,6';
+        } catch(e) {
+            diasTrabajo = window.businessWebConfig?.dias_trabajo || '1,2,3,4,5,6';
+        }
+    }
 
     // Recolectar tipo de calendario (radio)
     const tipoCalendarioRadio = form.querySelector('input[name="tipo_calendario"]:checked');

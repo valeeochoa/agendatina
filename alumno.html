@@ -177,49 +177,151 @@
         
         <!-- VISTA 1: INICIO DE SESIÓN / DETECCIÓN DE EMAIL -->
         <div id="authBox" class="bg-white/95 backdrop-blur-2xl p-6 sm:p-10 rounded-[2.5rem] shadow-[0_25px_65px_-15px_rgba(252,135,18,0.25)] border border-white/90 max-w-md w-full my-auto transition-all duration-300 relative z-10">
-            <div class="text-center mb-7">
-                <a href="index.html" class="inline-flex items-center justify-center gap-2.5 mb-3 hover:opacity-90 transition-opacity">
-                    <img src="public/logo.png" alt="Agendatina" class="h-9 w-auto drop-shadow-xs">
-                    <span class="font-brand font-semibold text-2.5xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
-                </a>
-                <div class="flex justify-center mb-3">
-                    <span class="inline-flex items-center gap-1.5 bg-gradient-to-r from-orange-100/90 to-amber-100/90 text-[#FC8712] border border-orange-200/90 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-2xs">
-                        <span class="material-symbols-outlined text-[16px]">school</span> Portal del Alumno
-                    </span>
+            <div id="authStandardBox">
+                <div class="text-center mb-7">
+                    <a href="index.html" class="inline-flex items-center justify-center gap-2.5 mb-3 hover:opacity-90 transition-opacity">
+                        <img src="public/logo.png" alt="Agendatina" class="h-9 w-auto drop-shadow-xs">
+                        <span class="font-brand font-semibold text-2.5xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
+                    </a>
+                    <div class="flex justify-center mb-3">
+                        <span class="inline-flex items-center gap-1.5 bg-gradient-to-r from-orange-100/90 to-amber-100/90 text-[#FC8712] border border-orange-200/90 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-2xs">
+                            <span class="material-symbols-outlined text-[16px]">school</span> Portal del Alumno
+                        </span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">¡Bienvenido!</h1>
+                    <p class="text-xs sm:text-sm text-slate-600 mt-1 font-medium leading-relaxed">Ingresá tu correo electrónico para consultar tus pases, reservas y asistencias.</p>
                 </div>
-                <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">¡Bienvenido!</h1>
-                <p class="text-xs sm:text-sm text-slate-600 mt-1 font-medium leading-relaxed">Ingresá tu correo electrónico para consultar tus pases, reservas y asistencias.</p>
+
+                <form id="clientLoginForm" onsubmit="handleClientAuth(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 mb-1.5 uppercase tracking-wider">Tu Correo Electrónico Completo *</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[20px] pointer-events-none">mail</span>
+                            <input type="email" id="clientEmailInput" required oninput="resetAuthStep()" placeholder="ejemplo: valentina@gmail.com" class="w-full bg-slate-50/80 border border-slate-200/90 rounded-2xl pl-11 pr-4 py-3.5 text-sm focus:ring-2 focus:ring-[#FC8712] focus:bg-white outline-none font-medium text-slate-800 transition-all shadow-2xs">
+                        </div>
+                    </div>
+
+                    <div id="passwordGroup" class="hidden space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Contraseña *</label>
+                            <button type="button" onclick="solicitarRecuperacionPasswordAlumno()" class="text-[11px] font-extrabold text-[#FC8712] hover:underline cursor-pointer">¿Olvidaste tu contraseña?</button>
+                        </div>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[20px] pointer-events-none">lock</span>
+                            <input type="password" id="clientPasswordInput" placeholder="••••••••" class="w-full bg-slate-50/80 border border-slate-200/90 rounded-2xl pl-11 pr-11 py-3.5 text-sm focus:ring-2 focus:ring-[#FC8712] focus:bg-white outline-none font-medium text-slate-800 transition-all shadow-2xs">
+                            <button type="button" onclick="togglePasswordVisibility('clientPasswordInput', this)" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1" title="Mostrar/ocultar contraseña">
+                                <span class="material-symbols-outlined text-[20px]">visibility</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="authNotice" class="hidden text-xs p-4 rounded-2xl font-medium"></div>
+
+                    <button type="submit" id="btnAuthSubmit" class="w-full bg-gradient-to-r from-[#FC8712] via-[#FF8A65] to-[#D11149] hover:opacity-95 text-white font-extrabold py-4 rounded-2xl shadow-lg shadow-orange-500/25 text-sm sm:text-base transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">
+                        Continuar <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                    </button>
+                </form>
             </div>
 
-            <form id="clientLoginForm" onsubmit="handleClientAuth(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5 uppercase tracking-wider">Tu Correo Electrónico Completo *</label>
-                    <div class="relative">
-                        <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[20px] pointer-events-none">mail</span>
-                        <input type="email" id="clientEmailInput" required oninput="resetAuthStep()" placeholder="ejemplo: valentina@gmail.com" class="w-full bg-slate-50/80 border border-slate-200/90 rounded-2xl pl-11 pr-4 py-3.5 text-sm focus:ring-2 focus:ring-[#FC8712] focus:bg-white outline-none font-medium text-slate-800 transition-all shadow-2xs">
-                    </div>
+            <!-- BANNER Y CONTENIDO DE INVITACIÓN POR ENLACE FIJO -->
+            <div id="inviteModeBox" class="hidden space-y-4">
+                <div class="text-center mb-2">
+                    <a href="index.html" class="inline-flex items-center justify-center gap-2 mb-2 hover:opacity-90 transition-opacity">
+                        <img src="public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-xs">
+                        <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
+                    </a>
                 </div>
 
-                <div id="passwordGroup" class="hidden space-y-1.5">
-                    <div class="flex items-center justify-between">
-                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider">Contraseña *</label>
-                        <button type="button" onclick="solicitarRecuperacionPasswordAlumno()" class="text-[11px] font-extrabold text-[#FC8712] hover:underline cursor-pointer">¿Olvidaste tu contraseña?</button>
-                    </div>
-                    <div class="relative">
-                        <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[20px] pointer-events-none">lock</span>
-                        <input type="password" id="clientPasswordInput" placeholder="••••••••" class="w-full bg-slate-50/80 border border-slate-200/90 rounded-2xl pl-11 pr-11 py-3.5 text-sm focus:ring-2 focus:ring-[#FC8712] focus:bg-white outline-none font-medium text-slate-800 transition-all shadow-2xs">
-                        <button type="button" onclick="togglePasswordVisibility('clientPasswordInput', this)" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1" title="Mostrar/ocultar contraseña">
-                            <span class="material-symbols-outlined text-[20px]">visibility</span>
-                        </button>
-                    </div>
+                <div class="bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-red-500/10 border border-orange-200/90 rounded-2xl p-4 text-center">
+                    <span class="inline-flex items-center gap-1.5 bg-[#FC8712] text-white text-[10px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full mb-1.5 shadow-xs">
+                        <span class="material-symbols-outlined text-[14px]">how_to_reg</span> Sumándote a Clase
+                    </span>
+                    <h2 class="text-lg sm:text-xl font-black text-slate-900" id="inviteBusinessTitle">Te estás anotando a un establecimiento</h2>
+                    <p class="text-xs text-slate-600 font-medium mt-1 leading-relaxed" id="inviteBusinessDesc">Creá tu cuenta de alumno o iniciá sesión para vincularte y recibir tus pases.</p>
                 </div>
 
-                <div id="authNotice" class="hidden text-xs p-4 rounded-2xl font-medium"></div>
+                <!-- Selector de Pestaña Invitación -->
+                <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200">
+                    <button type="button" onclick="setInviteTab('register')" id="btnInviteTabRegister" class="py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all bg-white text-slate-900 shadow-xs">
+                        Crear Cuenta Nueva
+                    </button>
+                    <button type="button" onclick="setInviteTab('login')" id="btnInviteTabLogin" class="py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900">
+                        Ya tengo Cuenta
+                    </button>
+                </div>
 
-                <button type="submit" id="btnAuthSubmit" class="w-full bg-gradient-to-r from-[#FC8712] via-[#FF8A65] to-[#D11149] hover:opacity-95 text-white font-extrabold py-4 rounded-2xl shadow-lg shadow-orange-500/25 text-sm sm:text-base transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98">
-                    Continuar <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
-                </button>
-            </form>
+                <!-- FORMULARIO 1: CREAR CUENTA NUEVA -->
+                <form id="inviteRegisterForm" onsubmit="handleInviteRegister(event)" class="space-y-3.5">
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 mb-1 uppercase tracking-wider">Tu Nombre Completo *</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">person</span>
+                            <input type="text" id="inviteRegNombre" required placeholder="Ej: Valentina Perez" class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-4 py-3 text-xs font-medium focus:ring-2 focus:ring-[#FC8712] outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 mb-1 uppercase tracking-wider">Correo Electrónico *</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">mail</span>
+                            <input type="email" id="inviteRegEmail" required placeholder="alumno@gmail.com" class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-4 py-3 text-xs font-medium focus:ring-2 focus:ring-[#FC8712] outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 mb-1 uppercase tracking-wider">Teléfono / WhatsApp (Opcional)</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">call</span>
+                            <input type="tel" id="inviteRegTelefono" placeholder="Ej: 11 2233 4455" class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-4 py-3 text-xs font-medium focus:ring-2 focus:ring-[#FC8712] outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 mb-1 uppercase tracking-wider">Crear Contraseña (mín. 6 caracteres) *</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">lock</span>
+                            <input type="password" id="inviteRegPassword" minlength="6" required placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-10 py-3 text-xs font-medium focus:ring-2 focus:ring-[#FC8712] outline-none">
+                            <button type="button" onclick="togglePasswordVisibility('inviteRegPassword', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 p-1">
+                                <span class="material-symbols-outlined text-[18px]">visibility</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="inviteRegNotice" class="hidden text-xs p-3 rounded-xl font-medium"></div>
+
+                    <button type="submit" id="btnInviteRegSubmit" class="w-full bg-gradient-to-r from-[#FC8712] via-[#FF8A65] to-[#D11149] text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-orange-500/25 text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
+                        <span class="material-symbols-outlined text-[18px]">person_add</span> Registrarme y Vincularme
+                    </button>
+                </form>
+
+                <!-- FORMULARIO 2: YA TENGO CUENTA (LOGIN) -->
+                <form id="inviteLoginForm" onsubmit="handleInviteLogin(event)" class="hidden space-y-3.5">
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 mb-1 uppercase tracking-wider">Tu Correo Electrónico *</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">mail</span>
+                            <input type="email" id="inviteLogEmail" required placeholder="alumno@gmail.com" class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-4 py-3 text-xs font-medium focus:ring-2 focus:ring-[#FC8712] outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 mb-1 uppercase tracking-wider">Tu Contraseña *</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">lock</span>
+                            <input type="password" id="inviteLogPassword" required placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-10 pr-10 py-3 text-xs font-medium focus:ring-2 focus:ring-[#FC8712] outline-none">
+                            <button type="button" onclick="togglePasswordVisibility('inviteLogPassword', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 p-1">
+                                <span class="material-symbols-outlined text-[18px]">visibility</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="inviteLogNotice" class="hidden text-xs p-3 rounded-xl font-medium"></div>
+
+                    <button type="submit" id="btnInviteLogSubmit" class="w-full bg-gradient-to-r from-[#FC8712] via-[#FF8A65] to-[#D11149] text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-orange-500/25 text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
+                        <span class="material-symbols-outlined text-[18px]">link</span> Iniciar Sesión y Vincularme
+                    </button>
+                </form>
+            </div>
 
             <div class="grid grid-cols-3 gap-2 mt-6 pt-5 border-t border-slate-100 text-center">
                 <div class="bg-orange-50/60 border border-orange-100 rounded-xl p-2">
@@ -692,12 +794,214 @@
             });
         }
 
+        let inviteRuta = '';
+        let inviteBusinessData = null;
+
         document.addEventListener('DOMContentLoaded', () => {
-            const savedEmail = sessionStorage.getItem('agendatina_alumno_email');
-            if (savedEmail) {
-                renderDashboard({ email: savedEmail, nombre: 'Alumno' });
+            const urlParams = new URLSearchParams(window.location.search);
+            inviteRuta = urlParams.get('unirse') || urlParams.get('negocio') || '';
+
+            if (inviteRuta) {
+                checkInviteBusiness(inviteRuta);
+            } else {
+                const savedEmail = sessionStorage.getItem('agendatina_alumno_email');
+                if (savedEmail) {
+                    renderDashboard({ email: savedEmail, nombre: 'Alumno' });
+                }
             }
         });
+
+        function checkInviteBusiness(ruta) {
+            fetch('backend/cliente_auth.php?action=info_negocio&ruta=' + encodeURIComponent(ruta))
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success && d.negocio) {
+                        inviteBusinessData = d.negocio;
+                        const stdBox = document.getElementById('authStandardBox');
+                        const invBox = document.getElementById('inviteModeBox');
+                        if (stdBox) stdBox.classList.add('hidden');
+                        if (invBox) invBox.classList.remove('hidden');
+                        
+                        const tEl = document.getElementById('inviteBusinessTitle');
+                        const dEl = document.getElementById('inviteBusinessDesc');
+                        if (tEl) tEl.textContent = `Te estás anotando en ${d.negocio.nombre}`;
+                        if (dEl) dEl.textContent = `Creá tu cuenta de alumno o iniciá sesión para asociarte a ${d.negocio.nombre} y acceder a sus clases.`;
+
+                        // Si ya tiene sesión activa de alumno en este navegador, auto-vincular directamente
+                        const savedEmail = sessionStorage.getItem('agendatina_alumno_email');
+                        if (savedEmail) {
+                            autoVincularAlumnoLogueado(d.negocio);
+                        }
+                    } else {
+                        showStudentToast(d.error || 'Establecimiento no encontrado.', 'error');
+                        const savedEmail = sessionStorage.getItem('agendatina_alumno_email');
+                        if (savedEmail) renderDashboard({ email: savedEmail, nombre: 'Alumno' });
+                    }
+                })
+                .catch(() => {
+                    const savedEmail = sessionStorage.getItem('agendatina_alumno_email');
+                    if (savedEmail) renderDashboard({ email: savedEmail, nombre: 'Alumno' });
+                });
+        }
+
+        function autoVincularAlumnoLogueado(negocio) {
+            const email = sessionStorage.getItem('agendatina_alumno_email');
+            fetch('backend/cliente_auth.php?action=login_and_link', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'ruta=' + encodeURIComponent(negocio.ruta) + '&email=' + encodeURIComponent(email) + '&password='
+            })
+            .then(r => r.json())
+            .then(d => {
+                showStudentToast(d.message || `¡Te vinculaste con éxito a ${negocio.nombre}!`, 'success');
+                renderDashboard({ email: email, nombre: d.cliente ? d.cliente.nombre : 'Alumno' });
+            });
+        }
+
+        function setInviteTab(tab) {
+            const regForm = document.getElementById('inviteRegisterForm');
+            const logForm = document.getElementById('inviteLoginForm');
+            const btnReg = document.getElementById('btnInviteTabRegister');
+            const btnLog = document.getElementById('btnInviteTabLogin');
+
+            if (tab === 'register') {
+                if (regForm) regForm.classList.remove('hidden');
+                if (logForm) logForm.classList.add('hidden');
+                if (btnReg) btnReg.className = 'py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all bg-white text-slate-900 shadow-xs';
+                if (btnLog) btnLog.className = 'py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900';
+            } else {
+                if (regForm) regForm.classList.add('hidden');
+                if (logForm) logForm.classList.remove('hidden');
+                if (btnLog) btnLog.className = 'py-2.5 px-3 rounded-xl text-xs font-extrabold transition-all bg-white text-slate-900 shadow-xs';
+                if (btnReg) btnReg.className = 'py-2.5 px-3 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900';
+            }
+        }
+
+        function handleInviteRegister(e) {
+            e.preventDefault();
+            const nombre = document.getElementById('inviteRegNombre').value.trim();
+            const email = document.getElementById('inviteRegEmail').value.trim();
+            const telefono = document.getElementById('inviteRegTelefono').value.trim();
+            const password = document.getElementById('inviteRegPassword').value.trim();
+            const notice = document.getElementById('inviteRegNotice');
+            const btn = document.getElementById('btnInviteRegSubmit');
+
+            if (!nombre || !email || !password || password.length < 6) {
+                if (notice) {
+                    notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
+                    notice.textContent = 'Completa todos los campos obligatorios. La contraseña debe tener al menos 6 caracteres.';
+                    notice.classList.remove('hidden');
+                }
+                return;
+            }
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Registrando...';
+            }
+            if (notice) notice.classList.add('hidden');
+
+            fetch('backend/cliente_auth.php?action=register_and_link', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'ruta=' + encodeURIComponent(inviteRuta) +
+                      '&nombre=' + encodeURIComponent(nombre) +
+                      '&email=' + encodeURIComponent(email) +
+                      '&telefono=' + encodeURIComponent(telefono) +
+                      '&password=' + encodeURIComponent(password)
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">person_add</span> Registrarme y Vincularme';
+                }
+
+                if (d.success) {
+                    sessionStorage.setItem('agendatina_alumno_email', email);
+                    showStudentToast(d.message, 'success');
+                    renderDashboard(d.cliente || { nombre: nombre, email: email });
+                } else {
+                    if (notice) {
+                        notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
+                        notice.textContent = d.error || 'Error al registrar la cuenta.';
+                        notice.classList.remove('hidden');
+                    }
+                }
+            })
+            .catch(() => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">person_add</span> Registrarme y Vincularme';
+                }
+                if (notice) {
+                    notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
+                    notice.textContent = 'Error de conexión. Intentá nuevamente.';
+                    notice.classList.remove('hidden');
+                }
+            });
+        }
+
+        function handleInviteLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('inviteLogEmail').value.trim();
+            const password = document.getElementById('inviteLogPassword').value.trim();
+            const notice = document.getElementById('inviteLogNotice');
+            const btn = document.getElementById('btnInviteLogSubmit');
+
+            if (!email || !password) {
+                if (notice) {
+                    notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
+                    notice.textContent = 'Ingresá tu email y contraseña.';
+                    notice.classList.remove('hidden');
+                }
+                return;
+            }
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Vinculando...';
+            }
+            if (notice) notice.classList.add('hidden');
+
+            fetch('backend/cliente_auth.php?action=login_and_link', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'ruta=' + encodeURIComponent(inviteRuta) +
+                      '&email=' + encodeURIComponent(email) +
+                      '&password=' + encodeURIComponent(password)
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">link</span> Iniciar Sesión y Vincularme';
+                }
+
+                if (d.success) {
+                    sessionStorage.setItem('agendatina_alumno_email', email);
+                    showStudentToast(d.message, 'success');
+                    renderDashboard(d.cliente || { nombre: 'Alumno', email: email });
+                } else {
+                    if (notice) {
+                        notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
+                        notice.textContent = d.error || 'Error al iniciar sesión.';
+                        notice.classList.remove('hidden');
+                    }
+                }
+            })
+            .catch(() => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">link</span> Iniciar Sesión y Vincularme';
+                }
+                if (notice) {
+                    notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
+                    notice.textContent = 'Error de conexión. Intentá nuevamente.';
+                    notice.classList.remove('hidden');
+                }
+            });
+        }
 
         function renderDashboard(cliente) {
             document.getElementById('authBox').classList.add('hidden');

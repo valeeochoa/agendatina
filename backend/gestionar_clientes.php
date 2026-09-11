@@ -76,6 +76,19 @@ try {
 $planLower = strtolower($plan_negocio);
 $is_premium = $is_demo || (strpos($planLower, 'premium') !== false) || (strpos($planLower, 'completo') !== false);
 
+$negocio_ruta = '';
+$negocio_nombre = '';
+try {
+    $stmtPlan = $pdo->prepare("SELECT plan, ruta, nombre_fantasia FROM negocios WHERE id = :id LIMIT 1");
+    $stmtPlan->execute(['id' => $id_negocio]);
+    $negocioData = $stmtPlan->fetch(PDO::FETCH_ASSOC);
+    if ($negocioData) {
+        if (!empty($negocioData['plan'])) $plan_negocio = $negocioData['plan'];
+        $negocio_ruta = $negocioData['ruta'] ?? '';
+        $negocio_nombre = $negocioData['nombre_fantasia'] ?? '';
+    }
+} catch (Exception $ePlan) {}
+
 try {
     // ---------------------------------------------------------
     // OBTENER LISTADO DE ALUMNOS (GET)
@@ -145,7 +158,9 @@ try {
             'success' => true, 
             'data' => $clientes,
             'is_premium' => $is_premium,
-            'plan' => $plan_negocio
+            'plan' => $plan_negocio,
+            'negocio_ruta' => $negocio_ruta,
+            'negocio_nombre' => $negocio_nombre
         ]);
         exit;
     }

@@ -78,9 +78,47 @@
                 <p class="text-slate-500 text-sm mt-1">Carga nuevos alumnos, asigna paquetes de clases o pases temporales y controla sus créditos y vencimientos.</p>
             </div>
 
-            <button onclick="openModalCliente()" class="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white font-extrabold py-3.5 px-6 rounded-2xl shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 text-sm shrink-0">
-                <span class="material-symbols-outlined text-[20px]">person_add</span> Cargar Nuevo Alumno
-            </button>
+            <div class="flex items-center gap-2.5 shrink-0">
+                <button onclick="openModalInvitarAlumnos()" class="bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-3.5 px-5 rounded-2xl shadow-md shadow-slate-900/10 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 text-sm cursor-pointer">
+                    <span class="material-symbols-outlined text-[20px] text-orange-400">link</span> Invitar Alumnos
+                </button>
+                <button onclick="openModalCliente()" class="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white font-extrabold py-3.5 px-5 sm:px-6 rounded-2xl shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 text-sm cursor-pointer">
+                    <span class="material-symbols-outlined text-[20px]">person_add</span> Cargar Alumno
+                </button>
+            </div>
+        </div>
+
+        <!-- Banner de Enlace Único de Inscripción para Alumnos -->
+        <div id="cardEnlaceUnico" class="bg-gradient-to-r from-slate-900 via-slate-800 to-orange-950 text-white rounded-3xl p-6 sm:p-7 shadow-xl border border-slate-700/60 mb-8 relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-orange-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
+                <div class="space-y-1 max-w-xl">
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/30 text-[11px] font-black uppercase tracking-wider mb-1">
+                        <span class="material-symbols-outlined text-[15px] text-orange-400">link</span>
+                        <span>Enlace Único de Registro de Alumnos</span>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">¡Evitá cargar alumnos uno por uno!</h2>
+                    <p class="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">Compartí este enlace fijo con tus alumnos por WhatsApp o redes. Al registrarse o vincularse, aparecerán aquí para que les asignes sus clases.</p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 bg-slate-950/80 p-2 sm:p-2.5 rounded-2xl border border-slate-700/80 shrink-0 w-full lg:w-auto">
+                    <div class="flex items-center gap-2 bg-slate-900 px-3.5 py-2.5 rounded-xl border border-slate-800 text-xs font-mono text-orange-300 truncate max-w-full sm:max-w-xs">
+                        <span class="material-symbols-outlined text-[16px] text-slate-400 shrink-0">link</span>
+                        <span id="inputEnlaceUnicoText" class="truncate select-all">Cargando enlace...</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="copiarEnlaceUnico()" id="btnCopiarEnlaceUnico" class="flex-1 sm:flex-none bg-orange-500 hover:bg-orange-600 active:scale-95 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-md shadow-orange-500/20 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]">content_copy</span>
+                            <span>Copiar</span>
+                        </button>
+                        <button type="button" onclick="compartirWhatsAppEnlaceUnico()" class="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer" title="Compartir por WhatsApp">
+                            <span class="material-symbols-outlined text-[16px]">share</span>
+                            <span class="hidden sm:inline">WhatsApp</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Tarjetas de Métricas -->
@@ -273,6 +311,40 @@
                     <span class="text-lg text-orange-600">+Otro</span>
                     <span class="text-[10px] font-bold text-slate-500 uppercase">Manual</span>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Invitar Alumnos (Enlace Fijo) -->
+    <div id="modalInvitarAlumnos" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative my-auto">
+            <button type="button" onclick="closeModalInvitarAlumnos()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2"><span class="material-symbols-outlined">close</span></button>
+
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center mx-auto mb-3 shadow-inner">
+                    <span class="material-symbols-outlined text-3xl">link</span>
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-900">Invitar Alumnos a Registrase</h3>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed">Compartí este enlace único y permanente con tus alumnos por WhatsApp o redes. Al abrirlo, podrán registrarse o vincularse a tu negocio y aparecerán automáticamente en tu lista para asignarles clases.</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5 uppercase tracking-wider">Tu Enlace Fijo de Invitación</label>
+                    <div class="flex items-center gap-2 bg-slate-100 p-2.5 rounded-2xl border border-slate-200">
+                        <span class="material-symbols-outlined text-orange-500 text-[20px] pl-2 shrink-0">link</span>
+                        <span id="modalInputEnlaceUnicoText" class="w-full bg-transparent text-xs font-mono font-bold text-slate-800 outline-none select-all truncate">Cargando enlace...</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <button type="button" onclick="copiarEnlaceUnicoModal()" id="btnCopiarEnlaceModal" class="w-full bg-orange-600 hover:bg-orange-700 active:scale-95 text-white font-extrabold py-3.5 rounded-2xl text-xs transition-all flex items-center justify-center gap-2 shadow-md shadow-orange-600/20 cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]">content_copy</span> Copiar Enlace
+                    </button>
+                    <button type="button" onclick="compartirWhatsAppEnlaceUnico()" class="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-extrabold py-3.5 rounded-2xl text-xs transition-all flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]">share</span> WhatsApp
+                    </button>
+                </div>
             </div>
         </div>
     </div>
