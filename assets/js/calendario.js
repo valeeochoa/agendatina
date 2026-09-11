@@ -224,7 +224,11 @@ function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration =
     }
 
     const isServMode = (window.businessWebConfig?.intervalo_turnos === 'servicio' || !window.businessWebConfig?.intervalo_turnos);
-    const turnosSimultaneos = window.businessWebConfig?.turnos_simultaneos || 'no';
+    const modoReservas = window.businessWebConfig?.modo_reservas || 'libre';
+    let turnosSimultaneos = window.businessWebConfig?.turnos_simultaneos || 'no';
+    if (modoReservas === 'cupos_alumnos') {
+        turnosSimultaneos = 'si';
+    }
     const isSingleSlotMode = (turnosSimultaneos === 'no' && servCapacidad <= 1);
 
     const bookedDetails = (dateStr && cal_bookedSlots['_details'] && cal_bookedSlots['_details'][dateStr]) ? cal_bookedSlots['_details'][dateStr] : [];

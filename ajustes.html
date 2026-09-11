@@ -281,12 +281,17 @@
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">¿Permitir turnos simultáneos por profesional?</label>
+                        <div class="flex items-center justify-between gap-2 mb-1">
+                            <label class="block text-sm font-semibold text-slate-700">¿Permitir turnos simultáneos por profesional?</label>
+                            <span id="badgeCuposSimultaneos" class="hidden text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800 border border-orange-200 shadow-2xs">
+                                🔒 Requerido para Cupos y Alumnos
+                            </span>
+                        </div>
                         <select id="configSimultaneos" name="turnos_simultaneos" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none transition-all font-medium">
                             <option value="no" selected>No, solo 1 turno por profesional a la vez (Bloqueo automático al reservar)</option>
                             <option value="si">Sí, permitir varios turnos simultáneos</option>
                         </select>
-                        <p class="text-xs text-slate-500 mt-1">Si eliges "No", al reservarse un turno se bloqueará la franja horaria correspondiente para ese profesional y los nuevos turnos se generarán a partir de la finalización del servicio. (Para servicios en grupo / cupos, esta opción no afecta y se permiten múltiples reservas según el cupo del servicio).</p>
+                        <p class="text-xs text-slate-500 mt-1">Si eliges "No", al reservarse un turno se bloqueará la franja horaria correspondiente para ese profesional y los nuevos turnos se generarán a partir de la finalización del servicio. (En el Módulo de Cupos y Alumnos esta opción permanece habilitada permanentemente para permitir múltiples alumnos en las clases).</p>
                     </div>
                     <div class="p-5 bg-gradient-to-r from-purple-50/70 to-slate-50 border border-purple-200/80 rounded-2xl space-y-3">
                         <div class="flex items-center gap-2">
