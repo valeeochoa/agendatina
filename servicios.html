@@ -178,6 +178,22 @@
                     <textarea name="descripcion" id="svcDescripcion" rows="2" placeholder="Detalles de lo que incluye el servicio..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"></textarea>
                 </div>
 
+                <!-- Seccion Especial: Paquetes de Pases / Tarifas por Cantidad de Cupos -->
+                <div class="border-t border-slate-100 pt-3">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-extrabold text-slate-800 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[#FC8712] text-[16px]">inventory_2</span>
+                            Paquetes de Pases / Tarifas por Cupos (Opcional)
+                        </label>
+                        <button type="button" onclick="addCupoPricingRow()" class="text-[11px] font-black text-primary hover:underline flex items-center gap-0.5 cursor-pointer">
+                            <span class="material-symbols-outlined text-[14px]">add_circle</span> ➕ Agregar Paquete
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mb-2">Definí precios por cantidad de clases (ej: 4 clases = $55.000, 8 clases = $99.000).</p>
+                    <div id="cupoPricingContainer" class="space-y-2"></div>
+                    <input type="hidden" name="precios_paquetes_json" id="svcPreciosPaquetesJson" value="[]">
+                </div>
+
                 <button type="submit" id="btnSvcSubmit" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/20 text-sm transition-all mt-2">
                     Guardar Servicio
                 </button>
@@ -312,6 +328,56 @@
             renderServicesList(filtered);
         }
 
+        function addCupoPricingRow(cupos = 4, precio = 55000, etiqueta = '') {
+            const container = document.getElementById('cupoPricingContainer');
+            if (!container) return;
+            const rowId = 'cupo_row_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+            const div = document.createElement('div');
+            div.id = rowId;
+            div.className = 'flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200';
+            div.innerHTML = `
+                <div class="w-24 shrink-0">
+                    <span class="text-[9px] font-bold text-slate-400 block uppercase">Clases / Cupos</span>
+                    <input type="number" min="1" max="100" value="${cupos}" class="cupo-qty-input w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-slate-800 outline-none" oninput="collectCupoPricingRows()">
+                </div>
+                <div class="flex-1">
+                    <span class="text-[9px] font-bold text-slate-400 block uppercase">Precio Total ($)</span>
+                    <input type="number" min="0" step="100" value="${precio}" placeholder="55000" class="cupo-price-input w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-emerald-700 outline-none" oninput="collectCupoPricingRows()">
+                </div>
+                <div class="flex-1 hidden sm:block">
+                    <span class="text-[9px] font-bold text-slate-400 block uppercase">Etiqueta (Opcional)</span>
+                    <input type="text" value="${etiqueta}" placeholder="Pase Mensual" class="cupo-label-input w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-medium text-slate-700 outline-none" oninput="collectCupoPricingRows()">
+                </div>
+                <button type="button" onclick="removeCupoPricingRow('${rowId}')" class="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors mt-3 cursor-pointer" title="Eliminar Paquete">
+                    <span class="material-symbols-outlined text-[16px]">delete</span>
+                </button>
+            `;
+            container.appendChild(div);
+            collectCupoPricingRows();
+        }
+
+        function removeCupoPricingRow(rowId) {
+            const el = document.getElementById(rowId);
+            if (el) el.remove();
+            collectCupoPricingRows();
+        }
+
+        function collectCupoPricingRows() {
+            const container = document.getElementById('cupoPricingContainer');
+            if (!container) return;
+            const rows = container.querySelectorAll('[id^="cupo_row_"]');
+            const result = [];
+            rows.forEach(r => {
+                const cupos = parseInt(r.querySelector('.cupo-qty-input')?.value || 1);
+                const precio = parseFloat(r.querySelector('.cupo-price-input')?.value || 0);
+                const etiqueta = r.querySelector('.cupo-label-input')?.value?.trim() || '';
+                if (cupos > 0 && precio >= 0) {
+                    result.push({ cupos, precio, etiqueta: etiqueta || `Pase ${cupos} Clases` });
+                }
+            });
+            document.getElementById('svcPreciosPaquetesJson').value = JSON.stringify(result);
+        }
+
         function renderServicesList(list) {
             const container = document.getElementById('servicesList');
             if (!container) return;
@@ -328,6 +394,16 @@
                     ? `<span class="bg-orange-100 text-orange-800 text-[11px] font-extrabold px-2 py-0.5 rounded-md border border-orange-200 inline-flex items-center gap-1">👥 Clase (${cuposCount} cupos)</span>`
                     : `<span class="text-slate-500 text-xs font-medium">👤 Individual (1 cupo)</span>`;
 
+                let paquetesBadges = '';
+                try {
+                    const pkgs = typeof s.precios_paquetes_json === 'string' ? JSON.parse(s.precios_paquetes_json || '[]') : (s.precios_paquetes_json || []);
+                    if (Array.isArray(pkgs) && pkgs.length > 0) {
+                        paquetesBadges = '<div class="flex flex-wrap items-center gap-1.5 mt-2">' + pkgs.map(p => 
+                            `<span class="bg-purple-50 text-purple-800 text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-purple-200/80 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">inventory_2</span> ${p.cupos} clases x $${parseFloat(p.precio).toLocaleString('es-AR')}</span>`
+                        ).join('') + '</div>';
+                    }
+                } catch(e) {}
+
                 html += `
                     <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-300 transition-all">
                         <div>
@@ -340,6 +416,7 @@
                                 <span class="font-bold text-emerald-700">💲 $${precioFmt}</span>
                                 <span>👨‍⚕️ ${s.profesional || 'Cualquiera'}</span>
                             </p>
+                            ${paquetesBadges}
                         </div>
                         <div class="flex items-center gap-2">
                             <button onclick="editService(${s.id})" class="p-2 rounded-xl bg-white text-slate-600 hover:text-primary border border-slate-200 transition-colors" title="Editar Servicio"><span class="material-symbols-outlined text-[18px]">edit</span></button>
@@ -397,6 +474,8 @@
             document.getElementById('svcMinutos').value = 45;
             document.getElementById('svcDuracion').value = 45;
             document.getElementById('svcCapacidad').value = 1;
+            document.getElementById('cupoPricingContainer').innerHTML = '';
+            document.getElementById('svcPreciosPaquetesJson').value = '[]';
             populateProfSelect(professionalsData);
             document.getElementById('serviceModalTitle').innerHTML = '<span class="material-symbols-outlined text-primary">add_task</span> Nuevo Servicio';
             document.getElementById('serviceModal').classList.remove('hidden');
@@ -426,6 +505,20 @@
                 document.getElementById('svcProfesional').value = s.profesional;
             }
             document.getElementById('svcDescripcion').value = s.descripcion || '';
+
+            // Cargar Paquetes de Pases configurados
+            const cupoContainer = document.getElementById('cupoPricingContainer');
+            if (cupoContainer) {
+                cupoContainer.innerHTML = '';
+                let paquetes = [];
+                try {
+                    paquetes = typeof s.precios_paquetes_json === 'string' ? JSON.parse(s.precios_paquetes_json || '[]') : (s.precios_paquetes_json || []);
+                } catch(e) {}
+                if (Array.isArray(paquetes) && paquetes.length > 0) {
+                    paquetes.forEach(p => addCupoPricingRow(p.cupos, p.precio, p.etiqueta));
+                }
+            }
+
             document.getElementById('serviceModalTitle').innerHTML = '<span class="material-symbols-outlined text-primary">edit</span> Editar Servicio';
             document.getElementById('serviceModal').classList.remove('hidden');
         }
@@ -458,6 +551,7 @@
 
         document.getElementById('serviceForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            collectCupoPricingRows();
             const btn = document.getElementById('btnSvcSubmit');
             btn.disabled = true;
             btn.textContent = 'Guardando...';

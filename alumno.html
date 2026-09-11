@@ -948,6 +948,17 @@
                                         <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">schedule</span> ${horaDef} hs (${duracion} min)</span>
                                     </p>
                                     <p class="text-xs text-slate-500 font-medium mt-1">Instructor: ${prof}</p>
+                                    ${(function(){
+                                        try {
+                                            const pkgs = typeof s.precios_paquetes_json === 'string' ? JSON.parse(s.precios_paquetes_json || '[]') : (s.precios_paquetes_json || []);
+                                            if (Array.isArray(pkgs) && pkgs.length > 0) {
+                                                return '<div class="flex flex-wrap gap-1 mt-2">' + pkgs.map(p => 
+                                                    `<span class="bg-orange-50 text-orange-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-orange-200/80">📦 ${p.cupos} clases x $${parseFloat(p.precio).toLocaleString('es-AR')}</span>`
+                                                ).join('') + '</div>';
+                                            }
+                                        } catch(e) {}
+                                        return '';
+                                    })()}
                                 </div>
                                 <button onclick="bookStudentClass('${s.id_negocio}', '${s.id}', '${s.nombre_servicio || s.nombre}', '${fechaStr}', '${horaDef}', '${prof}')" ${cuposLibres <= 0 ? 'disabled' : ''} class="w-full ${cuposLibres > 0 ? 'bg-[#FC8712] hover:bg-orange-600 text-white' : 'bg-slate-200 text-slate-400 cursor-not-allowed'} font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-xs flex items-center justify-center gap-1">
                                     <span class="material-symbols-outlined text-[16px]">add_task</span>

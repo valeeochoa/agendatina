@@ -327,12 +327,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 const badgeJustify = alignVal === 'center' ? 'justify-center' : (alignVal === 'right' ? 'justify-end' : 'justify-start');
                 const textAlignClass = alignVal === 'center' ? 'text-center' : (alignVal === 'right' ? 'text-right' : 'text-left');
 
+                let packagesBadgeHtml = '';
+                try {
+                    const pkgs = typeof service.precios_paquetes_json === 'string' ? JSON.parse(service.precios_paquetes_json || '[]') : (service.precios_paquetes_json || []);
+                    if (Array.isArray(pkgs) && pkgs.length > 0) {
+                        packagesBadgeHtml = '<div class="flex flex-wrap gap-1 mt-2 mb-2 w-full ' + badgeJustify + '">' + pkgs.map(p => 
+                            `<span class="bg-orange-50 text-[#FC8712] border border-orange-200/80 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">inventory_2</span> ${p.cupos} clases x $${parseFloat(p.precio).toLocaleString('es-AR')}</span>`
+                        ).join('') + '</div>';
+                    }
+                } catch(e) {}
+
                 grid.innerHTML += `
                     <div onclick="openWebModalService('${service.id}')" class="service-card cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                         ${imagesHtml}
                         <div class="p-6 flex flex-col flex-1 ${flexAlignClass}">
                             <h3 class="text-xl font-bold text-slate-800 leading-tight mb-2 w-full ${textAlignClass}">${service.nombre}</h3>
-                            <div class="flex items-center gap-2 text-sm font-medium text-slate-500 mb-4 w-full service-duration-badge ${badgeJustify}"><span class="material-symbols-outlined text-base">schedule</span> ${durFmt}</div>
+                            <div class="flex items-center gap-2 text-sm font-medium text-slate-500 mb-2 w-full service-duration-badge ${badgeJustify}"><span class="material-symbols-outlined text-base">schedule</span> ${durFmt}</div>
+                            ${packagesBadgeHtml}
                             <div class="text-slate-500 text-sm mb-6 flex-1 line-clamp-3 overflow-hidden w-full ${textAlignClass}" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;" title="Clic para leer más">${plainTextDesc}</div>
                             <div class="flex items-center justify-between w-full mt-auto pt-4 border-t border-slate-100">
                                 ${precio}
@@ -449,8 +460,16 @@ window.openWebModalService = function(id) {
         return `${m} min`;
     })(service.duracion);
     document.getElementById('webServiceModalDuration').innerHTML = `<span class="material-symbols-outlined text-base">schedule</span> ${durFmtModal}`;
-    document.getElementById('webServiceModalPrice').textContent = service.precio ? `$${service.precio}` : '';
-    document.getElementById('webServiceModalDesc').innerHTML = service.descripcion || 'Sin descripción detallada.';
+    let packagesModalHtml = '';
+    try {
+        const pkgs = typeof service.precios_paquetes_json === 'string' ? JSON.parse(service.precios_paquetes_json || '[]') : (service.precios_paquetes_json || []);
+        if (Array.isArray(pkgs) && pkgs.length > 0) {
+            packagesModalHtml = '<div class="mt-4 p-4 bg-orange-50/90 border border-orange-200/90 rounded-2xl space-y-2 text-left"><span class="text-xs font-black text-slate-800 uppercase tracking-wider block flex items-center gap-1.5"><span class="material-symbols-outlined text-[#FC8712] text-[18px]">inventory_2</span> Paquetes de Pases Disponibles</span><div class="grid grid-cols-1 sm:grid-cols-2 gap-2">' + pkgs.map(p => 
+                `<div class="bg-white p-3 rounded-xl border border-orange-200/70 shadow-2xs flex justify-between items-center"><div><span class="text-xs font-extrabold text-slate-800 block">${p.etiqueta || p.cupos + ' Clases'}</span><span class="text-[10px] font-bold text-slate-400 block">${p.cupos} clases / cupos</span></div><span class="text-sm font-black text-[#FC8712]">$${parseFloat(p.precio).toLocaleString('es-AR')}</span></div>`
+            ).join('') + '</div></div>';
+        }
+    } catch(e) {}
+    document.getElementById('webServiceModalDesc').innerHTML = (service.descripcion || 'Sin descripción detallada.') + packagesModalHtml;
     const imgContainer = document.getElementById('webServiceModalImages');
     
     clearInterval(carouselInterval);
