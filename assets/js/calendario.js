@@ -686,9 +686,22 @@ function renderAdminDayView(dateString) {
     if (adminAppointmentsList) adminAppointmentsList.innerHTML = '';
 
     const horasOcupadas = [...(cal_bookedSlots[dateString] || []), ...window.getBreakTimes()];
+    const now = new Date();
+    const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const selectedDateObj = new Date(dateString + 'T00:00:00');
-    const todayZero = new Date(); todayZero.setHours(0,0,0,0);
     const isPastDay = selectedDateObj < todayZero;
+    const isTodaySelected = (selectedDateObj.getTime() === todayZero.getTime());
+
+    let adminInterval = 30;
+    if (window.businessWebConfig?.intervalo_turnos) {
+        if (window.businessWebConfig.intervalo_turnos === 'servicio') {
+            const selServ = document.getElementById('serviceSelect')?.value || document.getElementById('manualServicio')?.value;
+            adminInterval = getServiceDuration(selServ, globalSelectedProfessional);
+        } else {
+            adminInterval = parseInt(window.businessWebConfig.intervalo_turnos) || 30;
+        }
+    }
+    generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, adminInterval, dateString, globalSelectedProfessional);
 
     const dayActionBtns = document.getElementById('adminDayActionBtns');
     if (dayActionBtns) {
@@ -739,7 +752,6 @@ function renderAdminDayView(dateString) {
             const profApts = appointmentsForDay.filter(a => a.profesional === prof || (prof === 'General'));
             const profSlotOwnership = {};
             const selDur = (typeof selectedDuration !== 'undefined' && selectedDuration > 0) ? selectedDuration : 30;
-            const adminInterval = window.businessWebConfig?.intervalo_turnos === 'servicio' ? selDur : (parseInt(window.businessWebConfig?.intervalo_turnos) || 30);
 
             profApts.forEach(apt => {
                 const start = apt.hora.substring(0, 5);
@@ -759,7 +771,11 @@ function renderAdminDayView(dateString) {
                 if (window.isTimeInBreak(time)) return;
                 const timeKey = time.substring(0, 5);
                 const apt = profSlotOwnership[timeKey];
-                const isBooked = horasOcupadas.includes('blocked_day') || (!apt && horasOcupadas.includes(timeKey)); 
+                const isBooked = horasOcupadas.includes('blocked_day') || (!apt && horasOcupadas.includes(timeKey));
+
+                const [hh, mm] = timeKey.split(':').map(Number);
+                const slotDate = new Date(selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate(), hh, mm, 0, 0);
+                const isSlotInPast = isPastDay || (isTodaySelected && slotDate.getTime() <= now.getTime());
 
                 const slotDiv = document.createElement('div');
                 slotDiv.className = 'bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-2 shadow-sm flex flex-col justify-between w-full mb-2 gap-1.5';
@@ -804,11 +820,11 @@ function renderAdminDayView(dateString) {
                             <span class="text-sm font-bold text-slate-400">${time}</span>
                             <span class="bg-slate-100 dark:bg-slate-800 text-slate-400 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">Ocupado</span>
                         </div>`;
-                } else if (isPastDay) {
+                } else if (isSlotInPast) {
                     slotDiv.innerHTML = `
                         <div class="flex justify-between items-center w-full">
-                            <span class="text-sm font-bold text-slate-700 dark:text-slate-300">${time}</span>
-                            <span class="text-[10px] text-slate-400 font-medium">Pasado</span>
+                            <span class="text-sm font-bold text-slate-400">${time}</span>
+                            <span class="text-[10px] text-slate-400 font-medium bg-slate-100 dark:bg-slate-800/60 px-1.5 py-0.5 rounded uppercase">Pasado</span>
                         </div>`;
                 } else {
                     slotDiv.innerHTML = `
@@ -894,7 +910,6 @@ function renderAdminDayView(dateString) {
     // 2. Mapear dueños de slots (propagación de duración)
     const slotOwnership = {};
     const selDur = (typeof selectedDuration !== 'undefined' && selectedDuration > 0) ? selectedDuration : 30;
-    const adminInterval = window.businessWebConfig?.intervalo_turnos === 'servicio' ? selDur : (parseInt(window.businessWebConfig?.intervalo_turnos) || 30);
     
     appointmentsForDay.forEach(apt => {
         const start = apt.hora.substring(0, 5);
@@ -917,6 +932,10 @@ function renderAdminDayView(dateString) {
         const isBooked = horasOcupadas.includes(timeKey);
         const apt = slotOwnership[timeKey];
         
+        const [hh, mm] = timeKey.split(':').map(Number);
+        const slotDate = new Date(selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate(), hh, mm, 0, 0);
+        const isSlotInPast = isPastDay || (isTodaySelected && slotDate.getTime() <= now.getTime());
+
         const slotDiv = document.createElement('div');
         // Usamos w-full y mb-2 para asegurar que estén uno debajo del otro ocupando todo el ancho
         slotDiv.className = 'bg-white rounded-xl border border-slate-200 p-3 shadow-sm flex items-center justify-between w-full mb-2';
@@ -959,8 +978,8 @@ function renderAdminDayView(dateString) {
             } else if (isBooked) {
                 slotDiv.innerHTML = `<span class="text-sm font-bold text-slate-400">${time}</span><span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">Ocupado</span>`;
             }
-        } else if (isPastDay) {
-            slotDiv.innerHTML = `<span class="text-sm font-bold text-slate-700">${time}</span><span class="text-[10px] text-slate-400 font-medium">Pasado</span>`;
+        } else if (isSlotInPast) {
+            slotDiv.innerHTML = `<span class="text-sm font-bold text-slate-400">${time}</span><span class="text-[10px] text-slate-400 font-medium bg-slate-100 dark:bg-slate-800/60 px-2 py-0.5 rounded uppercase">Pasado</span>`;
         } else {
             // Se añaden clases de flex center para forzar que los botones SIEMPRE se vean
             slotDiv.innerHTML = `
@@ -1137,13 +1156,24 @@ function openManualTurnoModal(preselectedTime = null, preselectedProf = null) {
     const horasOcupadas = [...(cal_bookedSlots[fechaActual] || []), ...window.getBreakTimes()];
     const simultaneos = window.businessWebConfig?.turnos_simultaneos === 'si';
 
+    const now = new Date();
+    const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const selectedDateObj = new Date(fechaActual + 'T00:00:00');
+    const isPastDay = selectedDateObj < todayZero;
+    const isTodaySelected = (selectedDateObj.getTime() === todayZero.getTime());
+
     const horaSelect = document.getElementById('manualHora');
     horaSelect.innerHTML = '';
     cal_availableTimes.forEach(t => {
         if (window.isTimeInBreak(t)) return;
-        const isOccupied = horasOcupadas.includes(t.substring(0, 5));
-        const isDisabled = (!simultaneos && isOccupied) ? 'disabled' : '';
-        const suffix = isOccupied ? ' (Ocupado)' : '';
+        const timeKey = t.substring(0, 5);
+        const isOccupied = horasOcupadas.includes(timeKey);
+        const [hh, mm] = timeKey.split(':').map(Number);
+        const slotDate = new Date(selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate(), hh, mm, 0, 0);
+        const isPastSlot = isPastDay || (isTodaySelected && slotDate.getTime() <= now.getTime());
+
+        const isDisabled = (isPastSlot || (!simultaneos && isOccupied)) ? 'disabled' : '';
+        const suffix = isPastSlot ? ' (Pasado)' : (isOccupied ? ' (Ocupado)' : '');
         const isSelected = t === timeToSelect ? 'selected' : '';
         horaSelect.innerHTML += `<option value="${t}" ${isSelected} ${isDisabled}>${t}${suffix}</option>`;
     });
