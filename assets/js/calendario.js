@@ -1542,7 +1542,7 @@ function renderServicesList() {
             <div class="flex items-center justify-between bg-slate-50 p-3 rounded-lg">
                 <div>
                     <p class="font-bold text-slate-800 flex items-center flex-wrap gap-1">${service.nombre} ${service.profesional ? `<span class="text-xs font-normal text-purple-600 bg-purple-100 px-2 py-0.5 rounded-md inline-flex items-center gap-1 ml-1">${profIcon} <span>${service.profesional}</span></span>${linkBtn}` : ''}</p>
-                    <p class="text-sm text-slate-500">${service.duracion} min${precioText}</p>
+                    <p class="text-sm text-slate-500">${formatDuracionText(service.duracion)}${precioText}</p>
                 </div>
                 <div class="flex gap-2">
                     <button onclick="editService('${service.id}')" class="text-blue-500 hover:text-blue-700"><span class="material-symbols-outlined">edit</span></button>
@@ -1780,23 +1780,37 @@ function initWizard() {
     uniqueServices.forEach(sName => {
         const sMatches = services.filter(s => s.nombre === sName);
         const minPrice = Math.min(...sMatches.map(s => parseFloat(s.precio) || 0));
-        const priceDisplay = minPrice > 0 ? `Desde $${minPrice}` : '';
+        const priceDisplay = minPrice > 0 ? `Desde $${minPrice.toLocaleString('es-AR')}` : '';
         const dur = sMatches[0].duracion;
+        const formattedDur = formatDuracionText(dur);
         const img = sMatches[0].imagen1 || sMatches[0].foto_profesional;
+        const iconToUse = sMatches[0].icono || 'local_florist';
 
-        const imgHtml = img ? `<img src="${img}" class="w-16 h-16 rounded-xl object-cover shrink-0 border border-slate-200">` : `<div class="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200"><span class="material-symbols-outlined text-slate-400">spa</span></div>`;
+        let imgHtml = '';
+        if (img) {
+            imgHtml = `<img src="${img}" class="w-14 h-14 rounded-2xl object-cover shrink-0 border border-slate-200 shadow-xs">`;
+        } else if (iconToUse.startsWith('http') || iconToUse.startsWith('data:') || iconToUse.includes('/')) {
+            imgHtml = `<img src="${iconToUse}" class="w-14 h-14 rounded-2xl object-cover shrink-0 border border-slate-200 shadow-xs">`;
+        } else {
+            imgHtml = `
+                <div class="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-200/60 dark:border-emerald-800/60 shadow-xs">
+                    <span class="material-symbols-outlined text-[26px]">${iconToUse}</span>
+                </div>`;
+        }
 
         const btn = document.createElement('button');
-        btn.className = 'w-full text-left p-4 rounded-2xl border border-slate-200 hover:border-primary hover:shadow-lg hover:-translate-y-0.5 transition-all bg-white flex justify-between items-center gap-4 group mb-3';
+        btn.className = 'w-full text-left p-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-primary hover:shadow-lg hover:-translate-y-0.5 transition-all bg-white dark:bg-slate-800/80 flex justify-between items-center gap-4 group mb-3';
         btn.innerHTML = `
             <div class="flex items-center gap-4">
                 ${imgHtml}
                 <div>
-                    <p class="font-bold text-slate-800 text-lg group-hover:text-primary transition-colors">${sName}</p>
-                    <p class="text-sm font-semibold text-slate-500 mt-1 flex items-center gap-2"><span class="material-symbols-outlined text-[16px]">schedule</span> ${dur} min ${priceDisplay ? ' <span class="text-slate-300">|</span> <span class="text-emerald-600 font-bold">' + priceDisplay + '</span>' : ''}</p>
+                    <p class="font-bold text-slate-800 dark:text-white text-lg group-hover:text-primary transition-colors">${sName}</p>
+                    <p class="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[16px] text-slate-400">schedule</span> ${formattedDur} ${priceDisplay ? '<span class="text-slate-300 dark:text-slate-600">|</span> <span class="text-emerald-600 dark:text-emerald-400 font-bold">' + priceDisplay + '</span>' : ''}
+                    </p>
                 </div>
             </div>
-            <span class="material-symbols-outlined text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-transform">chevron_right</span>
+            <span class="material-symbols-outlined text-slate-300 dark:text-slate-600 group-hover:text-primary group-hover:translate-x-1 transition-transform">chevron_right</span>
         `;
         btn.onclick = () => selectWizardService(sName);
         sList.appendChild(btn);
