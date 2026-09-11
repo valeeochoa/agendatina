@@ -222,7 +222,8 @@ function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration =
             const dObj = new Date(dateStr + 'T00:00:00');
             const dayKeyMap = { 1: 'lun', 2: 'mar', 3: 'mie', 4: 'jue', 5: 'vie', 6: 'sab', 0: 'dom' };
             const dKey = dayKeyMap[dObj.getDay()];
-            const diaData = dKey ? hDet[dKey] : null;
+            const numKey = String(dObj.getDay());
+            const diaData = hDet[numKey] || (dKey ? hDet[dKey] : null);
             if (diaData && diaData.activo !== false && Array.isArray(diaData.tramos) && diaData.tramos.length > 0) {
                 tramos = diaData.tramos.map(t => {
                     let [sh, sm] = (t.inicio || '09:00').split(':').map(Number);

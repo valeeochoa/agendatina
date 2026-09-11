@@ -119,6 +119,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Escuchar cambios en vivo de Hora Apertura y Hora Cierre para sincronizar los tramos
+    const inpApertura = document.getElementById('configHoraApertura');
+    const inpCierre = document.getElementById('configHoraCierre');
+    if (inpApertura) {
+        inpApertura.addEventListener('change', () => window.handleGeneralHoursChange());
+        inpApertura.addEventListener('input', () => window.handleGeneralHoursChange());
+    }
+    if (inpCierre) {
+        inpCierre.addEventListener('change', () => window.handleGeneralHoursChange());
+        inpCierre.addEventListener('input', () => window.handleGeneralHoursChange());
+    }
+
     // Manejar el envío del formulario de configuración del calendario
     const form = document.getElementById('calendarConfigForm');
     if (form) {
@@ -657,6 +669,47 @@ window.removeTramoHorario = function(dayKey, idx) {
     }
 };
 
+window.handleGeneralHoursChange = function() {
+    const newApertura = document.getElementById('configHoraApertura')?.value;
+    const newCierre = document.getElementById('configHoraCierre')?.value;
+
+    if (!newApertura || !newCierre) return;
+
+    const rawVal = document.getElementById('horariosDetalladosJsonInput')?.value || '{}';
+    try {
+        if (!currentHorariosDetallados || Object.keys(currentHorariosDetallados).length === 0) {
+            currentHorariosDetallados = JSON.parse(rawVal);
+        }
+    } catch(e) {
+        currentHorariosDetallados = {};
+    }
+
+    const keys = Object.keys(currentHorariosDetallados);
+    if (keys.length > 0) {
+        DIAS_SEMANA_MAP.forEach(dia => {
+            const diaData = currentHorariosDetallados[dia.key];
+            if (diaData && diaData.activo !== false && Array.isArray(diaData.tramos) && diaData.tramos.length > 0) {
+                if (diaData.tramos.length === 1) {
+                    diaData.tramos[0].inicio = newApertura;
+                    diaData.tramos[0].fin = newCierre;
+                } else {
+                    diaData.tramos[0].inicio = newApertura;
+                    const lastIdx = diaData.tramos.length - 1;
+                    diaData.tramos[lastIdx].fin = newCierre;
+                }
+            }
+        });
+
+        const jsonStr = JSON.stringify(currentHorariosDetallados);
+        const hiddenInp = document.getElementById('horariosDetalladosJsonInput');
+        if (hiddenInp) hiddenInp.value = jsonStr;
+
+        if (typeof window.renderHorariosDetalladosResumen === 'function') {
+            window.renderHorariosDetalladosResumen();
+        }
+    }
+};
+
 window.renderHorariosDetalladosResumen = function() {
     const hiddenInp = document.getElementById('horariosDetalladosJsonInput');
     const container = document.getElementById('horariosDetalladosResumenContainer');
@@ -689,34 +742,34 @@ window.renderHorariosDetalladosResumen = function() {
             let tramosItemsHtml = '';
             if (activo && diaData.tramos && diaData.tramos.length > 0) {
                 tramosItemsHtml = diaData.tramos.map((t, idx) => `
-                    <div class="flex items-center justify-between text-xs text-purple-950 font-bold bg-purple-50/70 px-2.5 py-1 rounded-lg border border-purple-100/60">
-                        <span class="text-[11px] font-extrabold text-purple-600">Tramo ${idx + 1}:</span>
-                        <span class="font-extrabold text-slate-800">${t.inicio || '09:00'} - ${t.fin || '18:00'} hs</span>
+                    <div class="inline-flex items-center gap-1.5 text-xs text-purple-950 font-bold bg-purple-50/90 px-3 py-1.5 rounded-xl border border-purple-200/80 shadow-2xs">
+                        <span class="text-[11px] font-extrabold text-purple-600 shrink-0">Tramo ${idx + 1}:</span>
+                        <span class="font-extrabold text-slate-800 whitespace-nowrap">${t.inicio || '09:00'} - ${t.fin || '18:00'} hs</span>
                     </div>
                 `).join('');
             } else if (activo) {
-                tramosItemsHtml = `<div class="text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded">Abierto (Horario general)</div>`;
+                tramosItemsHtml = `<div class="inline-flex items-center text-xs text-emerald-700 font-bold bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200/80">Abierto (Horario general)</div>`;
             }
 
             summaryCardsHtml += `
-                <div class="p-3 bg-white rounded-2xl border border-purple-200/80 shadow-xs flex flex-col justify-between gap-2">
-                    <div class="flex items-center justify-between gap-2 border-b border-purple-100/80 pb-1.5">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full ${activo ? 'bg-emerald-500 shadow-xs' : 'bg-slate-300'}"></span>
-                            <strong class="text-xs text-slate-900 font-extrabold">${dia.nombre}</strong>
-                        </div>
+                <div class="p-3.5 bg-white rounded-2xl border border-purple-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-purple-300 transition-all w-full">
+                    <div class="flex items-center gap-3 shrink-0 min-w-[150px]">
+                        <span class="w-3 h-3 rounded-full ${activo ? 'bg-emerald-500 shadow-xs' : 'bg-slate-300'}"></span>
+                        <strong class="text-sm text-slate-900 font-extrabold">${dia.nombre}</strong>
                         <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${activo ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' : 'bg-slate-100 text-slate-400 border border-slate-200'}">
                             ${activo ? 'Abierto' : 'Cerrado'}
                         </span>
                     </div>
                     
-                    ${activo ? `
-                        <div class="space-y-1">
-                            ${tramosItemsHtml}
-                        </div>
-                    ` : `
-                        <div class="text-xs text-slate-400 font-medium italic pt-0.5">Cerrado (Sin atención)</div>
-                    `}
+                    <div class="flex-1 w-full">
+                        ${activo ? `
+                            <div class="flex flex-wrap items-center gap-2">
+                                ${tramosItemsHtml}
+                            </div>
+                        ` : `
+                            <span class="text-xs text-slate-400 font-medium italic">Cerrado (Sin atención)</span>
+                        `}
+                    </div>
                 </div>
             `;
         }
@@ -735,7 +788,7 @@ window.renderHorariosDetalladosResumen = function() {
             </div>
             <span class="text-[10px] font-black uppercase bg-purple-600 text-white px-2.5 py-1 rounded-full shadow-xs">Activos</span>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+        <div class="flex flex-col gap-2.5 w-full">
             ${summaryCardsHtml}
         </div>
     `;
