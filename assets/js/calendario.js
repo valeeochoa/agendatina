@@ -181,28 +181,41 @@ function isSlotAvailableForDuration(dateString, timeStr, durationMin, capacity, 
     return true;
 }
 
+function formatDuracionText(minutosRaw) {
+    const min = parseInt(minutosRaw, 10) || 0;
+    if (min <= 0) return '15 min';
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    if (h > 0 && m > 0) return `${h} h ${m} min`;
+    if (h > 0 && m === 0) return h === 1 ? '1 hora' : `${h} horas`;
+    return `${m} min`;
+}
+
 function generateTimeSlots(startStr = null, endStr = null, interval = null) {
     if (!startStr) startStr = window.businessWebConfig?.hora_apertura || '09:00';
     if (!endStr) endStr = window.businessWebConfig?.hora_cierre || '18:00';
     
-    if (interval === 'servicio' || (!interval && window.businessWebConfig && window.businessWebConfig.intervalo_turnos === 'servicio')) {
-        let servDur = 30;
-        const selectedServName = (typeof adminWeeklySelectedService !== 'undefined' && adminWeeklySelectedService) 
-            || (typeof weeklySelectedService !== 'undefined' && weeklySelectedService) 
-            || (document.getElementById('serviceSelect')?.value) 
-            || (document.getElementById('manualServicio')?.value);
-            
-        if (selectedServName) {
-            const activeProf = (typeof adminWeeklySelectedProf !== 'undefined' && adminWeeklySelectedProf) || (typeof globalSelectedProfessional !== 'undefined' && globalSelectedProfessional);
-            servDur = getServiceDuration(selectedServName, activeProf);
-        }
-        interval = servDur;
-    } else {
-        interval = parseInt(interval) || (window.businessWebConfig && window.businessWebConfig.intervalo_turnos !== 'servicio' && parseInt(window.businessWebConfig.intervalo_turnos)) || 30;
+    let step = 30;
+    const selectedServName = (typeof adminWeeklySelectedService !== 'undefined' && adminWeeklySelectedService) 
+        || (typeof weeklySelectedService !== 'undefined' && weeklySelectedService) 
+        || (document.getElementById('serviceSelect')?.value) 
+        || (document.getElementById('manualServicio')?.value);
+        
+    if (selectedServName) {
+        const activeProf = (typeof adminWeeklySelectedProf !== 'undefined' && adminWeeklySelectedProf) || (typeof globalSelectedProfessional !== 'undefined' && globalSelectedProfessional);
+        step = getServiceDuration(selectedServName, activeProf);
+    } else if (interval && typeof interval === 'number' && interval > 0) {
+        step = interval;
+    } else if (interval && !isNaN(parseInt(interval)) && parseInt(interval) > 0) {
+        step = parseInt(interval);
+    } else if (window.businessWebConfig?.intervalo_turnos && window.businessWebConfig.intervalo_turnos !== 'servicio') {
+        step = parseInt(window.businessWebConfig.intervalo_turnos) || 30;
     }
-    if (isNaN(interval) || interval < 5) interval = 30;
+
+    if (isNaN(step) || step < 5) step = 30;
 
     cal_availableTimes.length = 0;
+
     let [startH, startM] = (startStr || '09:00').split(':').map(Number);
     let [endH, endM] = (endStr || '18:00').split(':').map(Number);
 
@@ -211,20 +224,44 @@ function generateTimeSlots(startStr = null, endStr = null, interval = null) {
     if (isNaN(endH)) endH = 18;
     if (isNaN(endM)) endM = 0;
 
-    let current = new Date();
-    current.setHours(startH, startM, 0, 0);
+    const startMins = startH * 60 + startM;
+    const endMins = endH * 60 + endM;
 
-    let end = new Date();
-    end.setHours(endH, endM, 0, 0);
+    let curMins = startMins;
 
-    while (current < end) {
-        let h = current.getHours().toString().padStart(2, '0');
-        let m = current.getMinutes().toString().padStart(2, '0');
-        let timeSlot = `${h}:${m}`;
-        if (!window.isTimeInBreak(timeSlot)) {
-            cal_availableTimes.push(timeSlot);
+    while (curMins + step <= endMins) {
+        const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
+        const curM = (curMins % 60).toString().padStart(2, '0');
+        const timeSlot = `${curH}:${curM}`;
+
+        let overlapsBreak = false;
+        for (let sub = curMins; sub < curMins + step; sub += 30) {
+            const subH = Math.floor(sub / 60).toString().padStart(2, '0');
+            const subM = (sub % 60).toString().padStart(2, '0');
+            const subSlot = `${subH}:${subM}`;
+            if (window.isTimeInBreak(subSlot)) {
+                overlapsBreak = true;
+                break;
+            }
         }
-        current.setMinutes(current.getMinutes() + interval);
+
+        if (!overlapsBreak) {
+            if (!cal_availableTimes.includes(timeSlot)) {
+                cal_availableTimes.push(timeSlot);
+            }
+            curMins += step;
+        } else {
+            let breakEnd = window.businessWebConfig?.hora_descanso_fin || '';
+            let nextMins = curMins + 30;
+            if (breakEnd) {
+                let [bEndH, bEndM] = breakEnd.split(':').map(Number);
+                if (!isNaN(bEndH) && !isNaN(bEndM)) {
+                    const bEndMins = bEndH * 60 + bEndM;
+                    if (bEndMins > curMins) nextMins = bEndMins;
+                }
+            }
+            curMins = nextMins;
+        }
     }
 }
 generateTimeSlots();

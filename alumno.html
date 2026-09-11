@@ -1213,9 +1213,20 @@
                 const hoy = new Date();
                 let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
 
+                function formatDuracionText(minutosRaw) {
+                    const min = parseInt(minutosRaw, 10) || 0;
+                    if (min <= 0) return '15 min';
+                    const h = Math.floor(min / 60);
+                    const m = min % 60;
+                    if (h > 0 && m > 0) return `${h} h ${m} min`;
+                    if (h > 0 && m === 0) return h === 1 ? '1 hora' : `${h} horas`;
+                    return `${m} min`;
+                }
+
                 servicios.forEach(s => {
                     const cupoMax = parseInt(s.cupo_maximo || s.capacidad || 1);
                     const duracion = parseInt(s.duracion || s.duracion_minutos || 30);
+                    const duracionFmt = formatDuracionText(duracion);
                     const prof = s.profesional || 'Instructor';
 
                     // Generar 3 fechas próximas disponibles (hoy, mañana, pasado)
@@ -1249,7 +1260,7 @@
                                     </div>
                                     <p class="text-xs font-bold text-slate-600 flex items-center gap-2">
                                         <span class="text-[#FC8712] flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">calendar_today</span> ${dateFormatted}</span>
-                                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">schedule</span> ${horaDef} hs (${duracion} min)</span>
+                                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">schedule</span> ${horaDef} hs (${duracionFmt})</span>
                                     </p>
                                     <p class="text-xs text-slate-500 font-medium mt-1">Instructor: ${prof}</p>
                                     ${(function(){

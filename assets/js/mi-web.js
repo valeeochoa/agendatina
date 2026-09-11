@@ -1,5 +1,14 @@
-// backend/js/mi-web.js
 // Lógica para el Editor Visual de la Página Web (mi-web.html)
+
+function formatDuracionText(minutosRaw) {
+    const min = parseInt(minutosRaw, 10) || 0;
+    if (min <= 0) return '15 min';
+    const h = Math.floor(min / 60);
+    const m = min % 60;
+    if (h > 0 && m > 0) return `${h} h ${m} min`;
+    if (h > 0 && m === 0) return h === 1 ? '1 hora' : `${h} horas`;
+    return `${m} min`;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     // Verificar sesión y mostrar badge si es Demo
@@ -564,7 +573,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 serviceItemDiv.innerHTML = `
                     <div class="flex-1">
                         <p class="font-bold text-slate-800">${service.nombre}</p>
-                        <p class="text-sm text-slate-500 mt-1">${service.duracion} min${precioText}</p>
+                        <p class="text-sm text-slate-500 mt-1">${formatDuracionText(service.duracion)}${precioText}</p>
                         ${service.profesional ? `<div class="mt-2 flex flex-wrap items-center gap-2"><span class="bg-purple-100 text-purple-700 text-xs px-2 py-1 rounded-md inline-flex items-center gap-1">${profIcon} <span>${service.profesional}</span></span></div>` : ''}
                     </div>
                     <span class="material-symbols-outlined text-slate-400 self-end sm:self-auto group-hover:text-primary transition-colors">edit</span>

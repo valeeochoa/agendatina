@@ -308,15 +308,15 @@
         }
 
         function formatDuracionText(minutosRaw) {
-            const min = parseInt(minutosRaw) || 0;
+            const min = parseInt(minutosRaw, 10) || 0;
             if (min <= 0) return '15 min';
             const h = Math.floor(min / 60);
             const m = min % 60;
             
             if (h > 0 && m > 0) {
-                return `${h}h ${m}min`;
+                return `${h} h ${m} min`;
             } else if (h > 0) {
-                return `${h}h`;
+                return h === 1 ? '1 hora' : `${h} horas`;
             } else {
                 return `${m} min`;
             }

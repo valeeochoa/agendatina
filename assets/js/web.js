@@ -317,8 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (min <= 0) return '15 min';
                 const h = Math.floor(min / 60);
                 const m = min % 60;
-                if (h > 0 && m > 0) return `${h}h ${m}min`;
-                if (h > 0) return `${h}h`;
+                if (h > 0 && m > 0) return `${h} h ${m} min`;
+                if (h > 0) return h === 1 ? '1 hora' : `${h} horas`;
                 return `${m} min`;
             })(service.duracion);
 
@@ -455,8 +455,8 @@ window.openWebModalService = function(id) {
         if (min <= 0) return '15 min';
         const h = Math.floor(min / 60);
         const m = min % 60;
-        if (h > 0 && m > 0) return `${h}h ${m}min`;
-        if (h > 0) return `${h}h`;
+        if (h > 0 && m > 0) return `${h} h ${m} min`;
+        if (h > 0) return h === 1 ? '1 hora' : `${h} horas`;
         return `${m} min`;
     })(service.duracion);
     document.getElementById('webServiceModalDuration').innerHTML = `<span class="material-symbols-outlined text-base">schedule</span> ${durFmtModal}`;
