@@ -142,14 +142,14 @@ window.updateIntervalHelpText = function() {
     if (val === 'custom') {
         if (customDiv) customDiv.classList.remove('hidden');
         if (helpText) {
-            helpText.innerHTML = `<strong>Modo Personalizado:</strong> Ingresa la cantidad exacta de minutos entre cada turno. Por ejemplo: si ingresas 20, en tu web se mostrarán horarios cada 20 minutos (10:00, 10:20, 10:40...).`;
+            helpText.innerHTML = `<strong>⚙️ Modo Personalizado:</strong> Ingresa la cantidad exacta de minutos entre cada turno. Por ejemplo: si ingresas 20, en tu agenda se mostrarán horarios cada 20 minutos (10:00, 10:20, 10:40...).`;
         }
     } else {
         if (customDiv) customDiv.classList.add('hidden');
         
         if (val === 'servicio') {
             if (helpText) {
-                helpText.innerHTML = `<strong>Según la Duración del Servicio:</strong> Las opciones de horarios se calcularán dinámicamente según el tiempo que dura el servicio seleccionado por el cliente (Ej: Si el servicio dura 45 min, los horarios serán 10:00, 10:45, 11:30...).`;
+                helpText.innerHTML = `<strong>⚡ Según la Duración del Servicio (Recomendado):</strong> Los turnos de tu agenda se calculan dinámicamente según el tiempo que dura cada servicio (Ej: 1h 30m para uñas, 2hs para pestañas). Si un cliente reserva a las 9am de uñas (9:00 - 10:30), los siguientes turnos disponibles para ese profesional se adaptarán automáticamente a partir de las 10:30 hs.`;
             }
         } else {
             const mins = parseInt(val) || 30;
@@ -158,7 +158,7 @@ window.updateIntervalHelpText = function() {
             let m2 = t2 % 60;
             let ex2 = `${h2}:${m2 < 10 ? '0' : ''}${m2}`;
             if (helpText) {
-                helpText.innerHTML = `<strong>Frecuencia fija de ${mins} minutos:</strong> En tu web pública figurarán bloques de horarios cada ${mins} minutos (Ej: 10:00, ${ex2}, ...).`;
+                helpText.innerHTML = `<strong>⏱️ Frecuencia fija de ${mins} minutos:</strong> En tu agenda figurarán bloques fijos de horarios cada ${mins} minutos (Ej: 10:00, ${ex2}, ...), independientemente de la duración del servicio.`;
             }
         }
     }
@@ -247,19 +247,18 @@ window.applyCalendarConfigToForm = function(data) {
         if (form.querySelector('#configAnticipacionMin')) form.querySelector('#configAnticipacionMin').value = totalMin;
     }
 
-    if (data.intervalo_turnos) {
-        const selectInter = form.querySelector('#configIntervalo');
-        if (selectInter) {
-            const knownVals = ['servicio', '15', '30', '45', '60', '90', '120'];
-            if (knownVals.includes(String(data.intervalo_turnos))) {
-                selectInter.value = String(data.intervalo_turnos);
-            } else {
-                selectInter.value = 'custom';
-                const customInp = form.querySelector('#inputIntervaloCustom');
-                if (customInp) customInp.value = data.intervalo_turnos;
-            }
-            window.updateIntervalHelpText();
+    const selectInter = form.querySelector('#configIntervalo');
+    if (selectInter) {
+        const valInter = data.intervalo_turnos ? String(data.intervalo_turnos) : 'servicio';
+        const knownVals = ['servicio', '15', '30', '45', '60', '90', '120'];
+        if (knownVals.includes(valInter)) {
+            selectInter.value = valInter;
+        } else {
+            selectInter.value = 'custom';
+            const customInp = form.querySelector('#inputIntervaloCustom');
+            if (customInp) customInp.value = valInter;
         }
+        window.updateIntervalHelpText();
     }
 
     if (data.limite_eliminacion_dias !== undefined) {

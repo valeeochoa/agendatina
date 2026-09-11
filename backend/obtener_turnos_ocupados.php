@@ -48,7 +48,7 @@ try {
     }
 
     // 2. Turnos Ocupados (Calculando su duración y cupos por servicio)
-    $sqlTurnos = "SELECT t.fecha, t.hora, COALESCE(s.duracion_minutos, 30) as duracion, t.id_servicio, COALESCE(s.cupo_maximo, s.capacidad, 1) as cupo_maximo 
+    $sqlTurnos = "SELECT t.fecha, t.hora, COALESCE(s.duracion_minutos, 30) as duracion, t.id_servicio, COALESCE(s.cupo_maximo, s.capacidad, 1) as cupo_maximo, t.profesional 
                   FROM turnos t 
                   LEFT JOIN servicios s ON t.id_servicio = s.id 
                   WHERE t.id_negocio = :id_negocio AND t.estado IN ('pendiente', 'confirmado', 'bloqueado')";
@@ -64,18 +64,45 @@ try {
 
     $conteoTurnosPorSlot = [];
     $maxCupoPorSlot = [];
+    $ocupados['_details'] = [];
+
+    // Usar intervalos finos de 15 minutos para cubrir exactamente el tiempo ocupado por la atención
+    $sliceStep = 15;
 
     foreach ($stmtTurnos->fetchAll() as $t) {
         $f = $t['fecha'];
         if (!isset($ocupados[$f])) $ocupados[$f] = [];
+        if (!isset($ocupados['_details'][$f])) $ocupados['_details'][$f] = [];
         
-        $horaInicio = strtotime($t['hora']);
-        $duracion = max((int)$t['duracion'], $intervalo);
-        $bloques = ceil($duracion / $intervalo);
+        $tsStart = strtotime($t['hora']);
+        $duracionMin = max(15, (int)$t['duracion']);
+        $tsEnd = $tsStart + ($duracionMin * 60);
+        
+        $hStart = date('H:i', $tsStart);
+        $hEnd = date('H:i', $tsEnd);
         $cupo = max(1, (int)$t['cupo_maximo']);
+        $prof = $t['profesional'] ?? '';
+
+        list($startH, $startM) = explode(':', $hStart);
+        list($endH, $endM) = explode(':', $hEnd);
+        $startMins = ((int)$startH * 60) + (int)$startM;
+        $endMins = ((int)$endH * 60) + (int)$endM;
+
+        $ocupados['_details'][$f][] = [
+            'start' => $hStart,
+            'end' => $hEnd,
+            'startMins' => $startMins,
+            'endMins' => $endMins,
+            'duracion' => $duracionMin,
+            'cupo_maximo' => $cupo,
+            'profesional' => $prof
+        ];
         
-        for ($i = 0; $i < $bloques; $i++) {
-            $slotHora = date('H:i', $horaInicio + ($i * $intervalo * 60));
+        // Agregar los cortes de tiempo ocupados durante la atención (sin incluir la hora de finalización exacta)
+        for ($subMins = $startMins; $subMins < $endMins; $subMins += $sliceStep) {
+            $curH = str_pad((string)floor($subMins / 60), 2, '0', STR_PAD_LEFT);
+            $curM = str_pad((string)($subMins % 60), 2, '0', STR_PAD_LEFT);
+            $slotHora = "{$curH}:{$curM}";
             $keySlot = $f . '_' . $slotHora;
             
             if ($cupo > 1) {
@@ -84,10 +111,10 @@ try {
                 $maxCupoPorSlot[$keySlot] = $cupo;
                 
                 if ($conteoTurnosPorSlot[$keySlot] >= $maxCupoPorSlot[$keySlot]) {
-                    $ocupados[$f][] = $slotHora;
+                    if (!in_array($slotHora, $ocupados[$f])) $ocupados[$f][] = $slotHora;
                 }
             } else {
-                $ocupados[$f][] = $slotHora;
+                if (!in_array($slotHora, $ocupados[$f])) $ocupados[$f][] = $slotHora;
             }
         }
     }

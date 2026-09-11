@@ -2049,28 +2049,15 @@ function applyCalendarConfigToForm(c) {
 
     const selectInterval = document.getElementById('configIntervalo');
     if(selectInterval) {
-        // Garantizar que la opción 'servicio' exista
-        if (!selectInterval.querySelector('option[value="servicio"]')) {
-            const customOption = selectInterval.querySelector('option[value="custom"]');
-            const serviceOption = new Option('Determinado por la duración del servicio', 'servicio');
-            if (customOption) {
-                selectInterval.insertBefore(serviceOption, customOption);
-            } else {
-                selectInterval.appendChild(serviceOption);
-            }
-        }
-
-        const validOpts = ['15','30','45','60','90','120'];
-        if(validOpts.includes(c.intervalo_turnos?.toString())) {
-            selectInterval.value = c.intervalo_turnos;
-            if (document.getElementById('divIntervaloCustom')) document.getElementById('divIntervaloCustom').classList.add('hidden');
-        } else if (c.intervalo_turnos === 'servicio') {
-            selectInterval.value = 'servicio';
+        const valInter = c.intervalo_turnos ? c.intervalo_turnos.toString() : 'servicio';
+        const validOpts = ['servicio', '15', '30', '45', '60', '90', '120'];
+        if(validOpts.includes(valInter)) {
+            selectInterval.value = valInter;
             if (document.getElementById('divIntervaloCustom')) document.getElementById('divIntervaloCustom').classList.add('hidden');
         } else {
             selectInterval.value = 'custom';
             if (document.getElementById('divIntervaloCustom')) document.getElementById('divIntervaloCustom').classList.remove('hidden');
-            if (document.getElementById('inputIntervaloCustom')) document.getElementById('inputIntervaloCustom').value = c.intervalo_turnos || 30;
+            if (document.getElementById('inputIntervaloCustom')) document.getElementById('inputIntervaloCustom').value = valInter;
         }
 
         if (typeof window.updateIntervalHelpText === 'function') {

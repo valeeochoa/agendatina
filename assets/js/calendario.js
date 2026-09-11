@@ -167,7 +167,7 @@ function isSlotAvailableForDuration(dateString, timeStr, durationMin, capacity, 
     if (endMins > closeMins) return false;
     
     const cap = parseInt(capacity, 10) || 1;
-    for (let curMins = startMins; curMins < endMins; curMins += 30) {
+    for (let curMins = startMins; curMins < endMins; curMins += 15) {
         const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
         const curM = (curMins % 60).toString().padStart(2, '0');
         const subSlotStr = `${curH}:${curM}`;
@@ -191,78 +191,157 @@ function formatDuracionText(minutosRaw) {
     return `${m} min`;
 }
 
-function generateTimeSlots(startStr = null, endStr = null, interval = null) {
+function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration = 30, servCapacidad = 1, startStr = null, endStr = null) {
     if (!startStr) startStr = window.businessWebConfig?.hora_apertura || '09:00';
     if (!endStr) endStr = window.businessWebConfig?.hora_cierre || '18:00';
-    
-    let step = 30;
-    const selectedServName = (typeof adminWeeklySelectedService !== 'undefined' && adminWeeklySelectedService) 
-        || (typeof weeklySelectedService !== 'undefined' && weeklySelectedService) 
-        || (document.getElementById('serviceSelect')?.value) 
-        || (document.getElementById('manualServicio')?.value);
-        
-    if (selectedServName) {
-        const activeProf = (typeof adminWeeklySelectedProf !== 'undefined' && adminWeeklySelectedProf) || (typeof globalSelectedProfessional !== 'undefined' && globalSelectedProfessional);
-        step = getServiceDuration(selectedServName, activeProf);
-    } else if (interval && typeof interval === 'number' && interval > 0) {
-        step = interval;
-    } else if (interval && !isNaN(parseInt(interval)) && parseInt(interval) > 0) {
-        step = parseInt(interval);
-    } else if (window.businessWebConfig?.intervalo_turnos && window.businessWebConfig.intervalo_turnos !== 'servicio') {
-        step = parseInt(window.businessWebConfig.intervalo_turnos) || 30;
-    }
 
-    if (isNaN(step) || step < 5) step = 30;
-
-    cal_availableTimes.length = 0;
-
-    let [startH, startM] = (startStr || '09:00').split(':').map(Number);
-    let [endH, endM] = (endStr || '18:00').split(':').map(Number);
-
-    if (isNaN(startH)) startH = 9;
-    if (isNaN(startM)) startM = 0;
-    if (isNaN(endH)) endH = 18;
-    if (isNaN(endM)) endM = 0;
+    let [startH, startM] = startStr.split(':').map(Number);
+    let [endH, endM] = endStr.split(':').map(Number);
+    if (isNaN(startH)) startH = 9; if (isNaN(startM)) startM = 0;
+    if (isNaN(endH)) endH = 18; if (isNaN(endM)) endM = 0;
 
     const startMins = startH * 60 + startM;
     const endMins = endH * 60 + endM;
 
-    let curMins = startMins;
-
-    while (curMins + step <= endMins) {
-        const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
-        const curM = (curMins % 60).toString().padStart(2, '0');
-        const timeSlot = `${curH}:${curM}`;
-
-        let overlapsBreak = false;
-        for (let sub = curMins; sub < curMins + step; sub += 30) {
-            const subH = Math.floor(sub / 60).toString().padStart(2, '0');
-            const subM = (sub % 60).toString().padStart(2, '0');
-            const subSlot = `${subH}:${subM}`;
-            if (window.isTimeInBreak(subSlot)) {
-                overlapsBreak = true;
-                break;
+    let tramos = [{ start: startMins, end: endMins }];
+    if (dateStr && window.businessWebConfig?.horarios_detallados_json) {
+        try {
+            const hDet = typeof window.businessWebConfig.horarios_detallados_json === 'string'
+                ? JSON.parse(window.businessWebConfig.horarios_detallados_json)
+                : window.businessWebConfig.horarios_detallados_json;
+            const dObj = new Date(dateStr + 'T00:00:00');
+            const dayKeyMap = { 1: 'lun', 2: 'mar', 3: 'mie', 4: 'jue', 5: 'vie', 6: 'sab', 0: 'dom' };
+            const dKey = dayKeyMap[dObj.getDay()];
+            const diaData = dKey ? hDet[dKey] : null;
+            if (diaData && diaData.activo !== false && Array.isArray(diaData.tramos) && diaData.tramos.length > 0) {
+                tramos = diaData.tramos.map(t => {
+                    let [sh, sm] = (t.inicio || '09:00').split(':').map(Number);
+                    let [eh, em] = (t.fin || '18:00').split(':').map(Number);
+                    return { start: sh * 60 + sm, end: eh * 60 + em };
+                });
             }
-        }
+        } catch(e) {}
+    }
 
-        if (!overlapsBreak) {
-            if (!cal_availableTimes.includes(timeSlot)) {
-                cal_availableTimes.push(timeSlot);
-            }
-            curMins += step;
-        } else {
-            let breakEnd = window.businessWebConfig?.hora_descanso_fin || '';
-            let nextMins = curMins + 30;
-            if (breakEnd) {
-                let [bEndH, bEndM] = breakEnd.split(':').map(Number);
-                if (!isNaN(bEndH) && !isNaN(bEndM)) {
-                    const bEndMins = bEndH * 60 + bEndM;
-                    if (bEndMins > curMins) nextMins = bEndMins;
-                }
-            }
-            curMins = nextMins;
+    const isServMode = (window.businessWebConfig?.intervalo_turnos === 'servicio' || !window.businessWebConfig?.intervalo_turnos);
+    const turnosSimultaneos = window.businessWebConfig?.turnos_simultaneos || 'no';
+    const isSingleSlotMode = (turnosSimultaneos === 'no' && servCapacidad <= 1);
+
+    const bookedDetails = (dateStr && cal_bookedSlots['_details'] && cal_bookedSlots['_details'][dateStr]) ? cal_bookedSlots['_details'][dateStr] : [];
+    
+    const activeProf = profName || (typeof globalSelectedProfessional !== 'undefined' ? globalSelectedProfessional : '');
+    const relevantBookings = bookedDetails.filter(b => {
+        if (b.cupo_maximo > 1) return false;
+        if (!activeProf || activeProf === 'Cualquiera (Sin preferencia)' || activeProf === 'Cualquiera' || activeProf === 'columnas') return true;
+        if (!b.profesional || b.profesional === 'Cualquiera (Sin preferencia)' || b.profesional === '') return true;
+        return String(b.profesional).trim().toLowerCase() === String(activeProf).trim().toLowerCase();
+    }).sort((a, b) => a.startMins - b.startMins);
+
+    let breakStartMins = -1, breakEndMins = -1;
+    if (window.businessWebConfig?.hora_descanso_inicio && window.businessWebConfig?.hora_descanso_fin) {
+        let [bsh, bsm] = window.businessWebConfig.hora_descanso_inicio.split(':').map(Number);
+        let [beh, bem] = window.businessWebConfig.hora_descanso_fin.split(':').map(Number);
+        if (!isNaN(bsh) && !isNaN(beh)) {
+            breakStartMins = bsh * 60 + bsm;
+            breakEndMins = beh * 60 + bem;
         }
     }
+
+    const availableSlots = [];
+
+    tramos.forEach(tramo => {
+        let curMins = tramo.start;
+        const step = isServMode ? servDuration : (parseInt(window.businessWebConfig?.intervalo_turnos) || 30);
+
+        if (isSingleSlotMode && isServMode && dateStr) {
+            while (curMins + servDuration <= tramo.end) {
+                if (breakStartMins > -1 && curMins >= breakStartMins && curMins < breakEndMins) {
+                    curMins = breakEndMins;
+                    continue;
+                }
+
+                const activeBooking = relevantBookings.find(b => curMins >= b.startMins && curMins < b.endMins);
+                if (activeBooking) {
+                    curMins = activeBooking.endMins;
+                    continue;
+                }
+
+                const slotEndMins = curMins + servDuration;
+                
+                if (breakStartMins > -1 && curMins < breakStartMins && slotEndMins > breakStartMins) {
+                    curMins = breakEndMins;
+                    continue;
+                }
+
+                const overlappingBooking = relevantBookings.find(b => curMins < b.startMins && slotEndMins > b.startMins);
+                if (overlappingBooking) {
+                    curMins = overlappingBooking.endMins;
+                    continue;
+                }
+
+                const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
+                const curM = (curMins % 60).toString().padStart(2, '0');
+                const timeSlot = `${curH}:${curM}`;
+
+                if (!availableSlots.includes(timeSlot)) {
+                    availableSlots.push(timeSlot);
+                }
+
+                curMins += servDuration;
+            }
+        } else {
+            while (curMins + step <= tramo.end) {
+                const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
+                const curM = (curMins % 60).toString().padStart(2, '0');
+                const timeSlot = `${curH}:${curM}`;
+
+                let overlapsBreak = false;
+                if (breakStartMins > -1 && curMins >= breakStartMins && curMins < breakEndMins) {
+                    overlapsBreak = true;
+                }
+
+                if (!overlapsBreak && !availableSlots.includes(timeSlot)) {
+                    availableSlots.push(timeSlot);
+                }
+                curMins += step;
+            }
+        }
+    });
+
+    return availableSlots;
+}
+
+function generateTimeSlots(startStr = null, endStr = null, interval = null, targetDateStr = null, targetProfName = null) {
+    if (!startStr) startStr = window.businessWebConfig?.hora_apertura || '09:00';
+    if (!endStr) endStr = window.businessWebConfig?.hora_cierre || '18:00';
+    
+    const dateStr = targetDateStr || (typeof cal_selectedDate !== 'undefined' && cal_selectedDate ? toYYYYMMDD(cal_selectedDate) : (typeof cal2_selectedDate !== 'undefined' && cal2_selectedDate ? toYYYYMMDD(cal2_selectedDate) : null));
+    const profName = targetProfName || (typeof adminWeeklySelectedProf !== 'undefined' && adminWeeklySelectedProf) || (typeof globalSelectedProfessional !== 'undefined' && globalSelectedProfessional) || null;
+
+    const selectedServName = (typeof adminWeeklySelectedService !== 'undefined' && adminWeeklySelectedService) 
+        || (typeof weeklySelectedService !== 'undefined' && weeklySelectedService) 
+        || (document.getElementById('serviceSelect')?.value) 
+        || (document.getElementById('manualServicio')?.value);
+
+    let selectedDuration = 30;
+    let selectedCapacidad = 1;
+
+    if (selectedServName) {
+        selectedDuration = getServiceDuration(selectedServName, profName);
+        const matchingService = services.find(s => String(s.nombre || '').trim().toLowerCase() === String(selectedServName).trim().toLowerCase());
+        if (matchingService) {
+            selectedCapacidad = parseInt(matchingService.capacidad || matchingService.cupo_maximo) || 1;
+        }
+    } else if (interval && typeof interval === 'number' && interval > 0) {
+        selectedDuration = interval;
+    } else if (interval && !isNaN(parseInt(interval)) && parseInt(interval) > 0) {
+        selectedDuration = parseInt(interval);
+    }
+
+    const slots = computeDynamicTimeSlotsForDate(dateStr, profName, selectedDuration, selectedCapacidad, startStr, endStr);
+    cal_availableTimes.length = 0;
+    cal_availableTimes.push(...slots);
+    return slots;
 }
 generateTimeSlots();
 
@@ -484,65 +563,19 @@ function cal_renderTimeSlots() {
     const dayKey = dayKeyMap[cal_selectedDate.getDay()];
     const diaData = dayKey ? horariosDetallados[dayKey] : null;
 
-    if (diaData && diaData.activo !== false && Array.isArray(diaData.tramos) && diaData.tramos.length > 0) {
-        cal_availableTimes.length = 0;
-        diaData.tramos.forEach(tramo => {
-            if (!tramo.inicio || !tramo.fin) return;
-            let [startH, startM] = tramo.inicio.split(':').map(Number);
-            let [endH, endM] = tramo.fin.split(':').map(Number);
-            let current = new Date();
-            current.setHours(startH, startM, 0, 0);
-            let end = new Date();
-            end.setHours(endH, endM, 0, 0);
+    generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval, fechaActual, globalSelectedProfessional);
 
-            while (current < end) {
-                let h = current.getHours().toString().padStart(2, '0');
-                let m = current.getMinutes().toString().padStart(2, '0');
-                let timeSlot = `${h}:${m}`;
-                if (!window.isTimeInBreak(timeSlot) && !cal_availableTimes.includes(timeSlot)) {
-                    cal_availableTimes.push(timeSlot);
-                }
-                current.setMinutes(current.getMinutes() + interval);
-            }
-        });
-    } else {
-        generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval);
-    }
-
-    const blocksNeeded = Math.ceil(selectedDuration / interval);
     const effectiveIsAdmin = isAdmin && !isPreviewMode;
 
-    cal_availableTimes.forEach((time, index) => {
+    cal_availableTimes.forEach((time) => {
         if (window.isTimeInBreak(time)) return; 
         const slot = document.createElement('div');
-        let isBooked = false;
-        let maxSpotsTaken = 0;
         const [hh, mm] = time.split(':').map(Number);
         const slotDate = new Date(cal_selectedDate.getFullYear(), cal_selectedDate.getMonth(), cal_selectedDate.getDate(), hh, mm, 0, 0);
         
-        for (let i = 0; i < blocksNeeded; i++) {
-            if (index + i >= cal_availableTimes.length) {
-                isBooked = true; 
-                break;
-            }
-            const timeToCheck = cal_availableTimes[index + i].substring(0, 5);
-            
-            if (window.getBreakTimes().includes(timeToCheck) || baseOcupadas.includes('blocked_day') || baseOcupadas.includes('blocked_day_prof')) {
-                isBooked = true;
-                break;
-            }
-            const countTaken = baseOcupadas.filter(t => t.substring(0, 5) === timeToCheck).length;
-            if (countTaken >= selectedCapacidad) {
-                isBooked = true;
-                break;
-            }
-            if (countTaken > maxSpotsTaken) maxSpotsTaken = countTaken;
-        }
-        if (!isBooked && isTodaySelected && slotDate.getTime() <= now.getTime()) isBooked = true;
-        if (!isBooked && minAdvance > 0) {
-            const minAllowed = new Date(now.getTime() + (minAdvance * 60000));
-            if (slotDate.getTime() < minAllowed.getTime()) isBooked = true;
-        }
+        const isAvailable = isSlotAvailableForDuration(fechaActual, time, selectedDuration, selectedCapacidad, baseOcupadas, isTodaySelected, slotDate);
+        const isBooked = !isAvailable;
+        const countTaken = baseOcupadas.filter(t => t.substring(0, 5) === time).length;
         
         // Si es la vista del cliente público y el horario está reservado u ocupado, no mostrar la opción
         if (isBooked && (!effectiveIsAdmin || isPreviewMode)) {
@@ -551,7 +584,7 @@ function cal_renderTimeSlots() {
 
         let spotsText = '';
         if (!isBooked && selectedCapacidad > 1) {
-            const spotsLeft = selectedCapacidad - maxSpotsTaken;
+            const spotsLeft = Math.max(0, selectedCapacidad - countTaken);
             spotsText = `<span class="block text-[10px] font-semibold opacity-85 leading-none mt-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full">${spotsLeft} lugares</span>`;
         }
 
