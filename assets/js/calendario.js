@@ -738,7 +738,8 @@ function renderAdminDayView(dateString) {
 
             const profApts = appointmentsForDay.filter(a => a.profesional === prof || (prof === 'General'));
             const profSlotOwnership = {};
-            const adminInterval = window.businessWebConfig?.intervalo_turnos === 'servicio' ? 30 : (parseInt(window.businessWebConfig?.intervalo_turnos) || 30);
+            const selDur = (typeof selectedDuration !== 'undefined' && selectedDuration > 0) ? selectedDuration : 30;
+            const adminInterval = window.businessWebConfig?.intervalo_turnos === 'servicio' ? selDur : (parseInt(window.businessWebConfig?.intervalo_turnos) || 30);
 
             profApts.forEach(apt => {
                 const start = apt.hora.substring(0, 5);
@@ -892,7 +893,8 @@ function renderAdminDayView(dateString) {
 
     // 2. Mapear dueños de slots (propagación de duración)
     const slotOwnership = {};
-    const adminInterval = window.businessWebConfig?.intervalo_turnos === 'servicio' ? 30 : (parseInt(window.businessWebConfig?.intervalo_turnos) || 30);
+    const selDur = (typeof selectedDuration !== 'undefined' && selectedDuration > 0) ? selectedDuration : 30;
+    const adminInterval = window.businessWebConfig?.intervalo_turnos === 'servicio' ? selDur : (parseInt(window.businessWebConfig?.intervalo_turnos) || 30);
     
     appointmentsForDay.forEach(apt => {
         const start = apt.hora.substring(0, 5);
@@ -1129,7 +1131,8 @@ function openManualTurnoModal(preselectedTime = null, preselectedProf = null) {
     if (window.businessWebConfig && window.businessWebConfig.intervalo_turnos && window.businessWebConfig.intervalo_turnos !== 'servicio') {
         adminInterval = parseInt(window.businessWebConfig.intervalo_turnos) || 30;
     }
-    generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, adminInterval);
+    const profToSelect = preselectedProf || globalSelectedProfessional;
+    generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, adminInterval, fechaActual, profToSelect);
     
     const horasOcupadas = [...(cal_bookedSlots[fechaActual] || []), ...window.getBreakTimes()];
     const simultaneos = window.businessWebConfig?.turnos_simultaneos === 'si';
@@ -1145,7 +1148,6 @@ function openManualTurnoModal(preselectedTime = null, preselectedProf = null) {
         horaSelect.innerHTML += `<option value="${t}" ${isSelected} ${isDisabled}>${t}${suffix}</option>`;
     });
 
-    const profToSelect = preselectedProf || globalSelectedProfessional;
     const profSelect = document.getElementById('manualProfesional');
     profSelect.innerHTML = '';
     const uniqueProfs = getUniqueProfessionals();
@@ -2008,8 +2010,6 @@ function renderAdminWeeklyGrid() {
     
     let interval = 30;
     if (window.businessWebConfig && window.businessWebConfig.intervalo_turnos) interval = window.businessWebConfig.intervalo_turnos === 'servicio' ? selectedDuration : (parseInt(window.businessWebConfig.intervalo_turnos) || 30);
-    
-    generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval);
 
     for (let i = 0; i < 7; i++) {
         const date = new Date(weekStartDate); date.setDate(weekStartDate.getDate() + i);
@@ -2092,7 +2092,8 @@ function renderAdminWeeklyGrid() {
                 </div>
             `;
         } else {
-            cal_availableTimes.forEach((time, idx) => {
+            const availableTimesForDay = generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval, dateString, adminWeeklySelectedProf);
+            availableTimesForDay.forEach((time, idx) => {
                 if (window.isTimeInBreak(time)) return;
                 const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), ...time.split(':').map(Number), 0, 0);
                 const baseOcupadas = cal_bookedSlots[dateString] || [];
@@ -2380,17 +2381,18 @@ function checkDayHasAvailableSlots(date) {
             interval = parseInt(window.businessWebConfig.intervalo_turnos) || 30;
         }
     }
-    generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval);
+    const dayStr1 = toYYYYMMDD(date);
+    const availableTimes1 = generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval, dayStr1, globalSelectedProfessional);
 
     const now = new Date();
     const isToday = date.getTime() === new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    const baseOcupadas = cal_bookedSlots[toYYYYMMDD(date)] || [];
+    const baseOcupadas = cal_bookedSlots[dayStr1] || [];
 
-    for (let i = 0; i < cal_availableTimes.length; i++) {
-        const time = cal_availableTimes[i];
+    for (let i = 0; i < availableTimes1.length; i++) {
+        const time = availableTimes1[i];
         if (window.isTimeInBreak(time)) continue;
         const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), ...time.split(':').map(Number), 0, 0);
-        if (isSlotAvailableForDuration(toYYYYMMDD(date), time, selectedDuration, selectedCapacidad, baseOcupadas, isToday, slotDate)) {
+        if (isSlotAvailableForDuration(dayStr1, time, selectedDuration, selectedCapacidad, baseOcupadas, isToday, slotDate)) {
             return true;
         }
     }
@@ -2424,7 +2426,8 @@ function selectWeeklyDate(date) {
             interval = parseInt(window.businessWebConfig.intervalo_turnos) || 30;
         }
     }
-    generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval);
+    const dayStr2 = toYYYYMMDD(date);
+    generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval, dayStr2, globalSelectedProfessional);
 
     let slotsGenerated = 0;
     let firstAvailableTime = null;
