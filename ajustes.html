@@ -372,19 +372,17 @@
                 <input type="hidden" id="selectModoReservas" name="modo_reservas" value="libre">
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="containerModoReservasGrid">
-                    <!-- Opción A: Reserva Libre -->
-                    <div id="cardModoLibre" onclick="setModoReserva('libre')" class="cursor-pointer relative p-5 rounded-2xl border-2 border-[#D11149] bg-rose-50/40 hover:bg-rose-50/80 transition-all flex flex-col justify-between shadow-sm group">
+                    <!-- Opción A: Reserva Libre para Clientes Generales -->
+                    <div id="cardModoLibre" onclick="setModoReserva('libre', true)" class="cursor-pointer relative p-5 rounded-2xl border-2 border-[#D11149] bg-rose-50/40 transition-all flex flex-col justify-between shadow-sm group">
                         <div class="flex items-start justify-between gap-3 mb-3">
-                            <div class="w-10 h-10 rounded-xl bg-[#D11149]/10 text-[#D11149] flex items-center justify-center font-bold shrink-0">
-                                <span class="material-symbols-outlined text-2xl">public</span>
+                            <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-[#D11149] flex items-center justify-center font-bold shrink-0">
+                                <span class="material-symbols-outlined text-2xl">event_available</span>
                             </div>
-                            <span class="bg-[#D11149] text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-full shadow-xs">
-                                Recomendado Locales
-                            </span>
+                            <span class="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">Modo Estándar</span>
                         </div>
                         <div>
                             <h3 class="text-base font-extrabold text-slate-900 mb-1 flex items-center gap-1.5">
-                                Reserva Libre (Sin Registro)
+                                Reserva Libre (Público General)
                             </h3>
                             <p class="text-xs text-slate-600 leading-relaxed font-medium">
                                 Cualquier visitante ingresa a tu web, elige el servicio y reserva su turno al instante sin necesidad de crear cuenta ni iniciar sesión.
@@ -396,7 +394,7 @@
                     </div>
 
                     <!-- Opción B: Módulo de Cupos y Alumnos (Exclusivo Plan Premium) -->
-                    <div id="cardModoCupos" onclick="setModoReserva('cupos_alumnos')" class="hidden cursor-pointer relative p-5 rounded-2xl border-2 border-slate-200 hover:border-orange-400 bg-slate-50/50 hover:bg-orange-50/30 transition-all flex flex-col justify-between shadow-sm group">
+                    <div id="cardModoCupos" onclick="setModoReserva('cupos_alumnos', true)" class="hidden cursor-pointer relative p-5 rounded-2xl border-2 border-slate-200 hover:border-orange-400 bg-slate-50/50 hover:bg-orange-50/30 transition-all flex flex-col justify-between shadow-sm group">
                         <div class="flex items-start justify-between gap-3 mb-3">
                             <div class="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-600 flex items-center justify-center font-bold shrink-0">
                                 <span class="material-symbols-outlined text-2xl">groups</span>

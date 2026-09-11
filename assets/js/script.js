@@ -4591,24 +4591,34 @@ window.checkUserMultipleBusinesses = function() {
             window.userBusinessesList = data.negocios;
             window.userActualBusinessId = data.actual_id_negocio;
 
-            // 1. Inyectar el botón de cambio de negocio (flechas circulares) antes del nombre
+            const pathname = (window.location.pathname || '').toLowerCase();
+            const isDashboard = pathname.endsWith('dashboard.html') || pathname.endsWith('dashboard') || pathname === '/' || pathname === '';
+
+            // 1. Inyectar el botón de cambio de negocio (flechas circulares) únicamente en dashboard.html
             const headerContainer = document.getElementById('navBusinessNameHeader') || document.getElementById('dashboardBusinessName');
-            if (headerContainer && !document.getElementById('navSwitchBizBtn')) {
-                const btn = document.createElement('button');
-                btn.id = 'navSwitchBizBtn';
-                btn.type = 'button';
-                btn.onclick = function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    window.openGlobalSwitchBusinessModal();
-                };
-                btn.className = 'p-1 rounded-lg text-slate-500 hover:text-purple-600 hover:bg-slate-200 transition-colors mr-1 inline-flex items-center cursor-pointer';
-                btn.title = 'Cambiar de negocio activo (Múltiples locales detectados)';
-                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">autorenew</span>';
-                headerContainer.insertBefore(btn, headerContainer.firstChild);
+            if (headerContainer) {
+                if (isDashboard) {
+                    if (!document.getElementById('navSwitchBizBtn')) {
+                        const btn = document.createElement('button');
+                        btn.id = 'navSwitchBizBtn';
+                        btn.type = 'button';
+                        btn.onclick = function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            window.openGlobalSwitchBusinessModal();
+                        };
+                        btn.className = 'p-1 rounded-lg text-slate-500 hover:text-purple-600 hover:bg-slate-200 transition-colors mr-1 inline-flex items-center cursor-pointer';
+                        btn.title = 'Cambiar de negocio activo (Múltiples locales detectados)';
+                        btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">autorenew</span>';
+                        headerContainer.insertBefore(btn, headerContainer.firstChild);
+                    }
+                } else {
+                    const existingBtn = document.getElementById('navSwitchBizBtn');
+                    if (existingBtn) existingBtn.remove();
+                }
             }
 
-            // 2. Renderizar lista en perfil.html si existe perfilMultiBusinessSection
+            // 2. Renderizar lista informativa en perfil.html si existe perfilMultiBusinessSection
             const section = document.getElementById('perfilMultiBusinessSection');
             const listContainer = document.getElementById('perfilMultiBusinessList');
             if (section && listContainer) {
@@ -4618,7 +4628,7 @@ window.checkUserMultipleBusinesses = function() {
                 data.negocios.forEach(b => {
                     const card = document.createElement('div');
                     const isCurrent = b.is_current;
-                    card.className = `p-4 rounded-2xl border flex items-center justify-between gap-3 transition-all ${isCurrent ? 'bg-purple-50/70 border-purple-300 ring-2 ring-purple-500/20' : 'bg-slate-50 border-slate-200 hover:border-purple-300 hover:bg-white cursor-pointer'}`;
+                    card.className = `p-4 rounded-2xl border flex items-center justify-between gap-3 transition-all ${isCurrent ? 'bg-purple-50/70 border-purple-300 ring-2 ring-purple-500/20' : 'bg-slate-50 border-slate-200'}`;
                     
                     const roleBadge = b.rol === 'admin'
                         ? '<span class="bg-purple-100 text-purple-700 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border border-purple-200">Administrador / Dueño</span>'
@@ -4626,7 +4636,7 @@ window.checkUserMultipleBusinesses = function() {
                     
                     const activeBadge = isCurrent
                         ? '<span class="bg-emerald-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full flex items-center gap-1 shadow-xs"><span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> ACTIVO</span>'
-                        : `<button onclick="window.switchActiveBusiness(${b.id_negocio})" class="px-3 py-1.5 bg-white hover:bg-purple-600 hover:text-white text-purple-700 border border-purple-200 font-bold rounded-xl text-xs shadow-2xs transition-all">Ingresar</button>`;
+                        : '<span class="text-[11px] font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">Cambio desde Dashboard</span>';
 
                     card.innerHTML = `
                         <div class="flex items-center gap-3">
@@ -4641,12 +4651,6 @@ window.checkUserMultipleBusinesses = function() {
                         <div>${activeBadge}</div>
                     `;
 
-                    if (!isCurrent) {
-                        card.onclick = function(e) {
-                            if (e.target.tagName !== 'BUTTON') window.switchActiveBusiness(b.id_negocio);
-                        };
-                    }
-
                     listContainer.appendChild(card);
                 });
             }
@@ -4655,6 +4659,17 @@ window.checkUserMultipleBusinesses = function() {
 };
 
 window.openGlobalSwitchBusinessModal = function() {
+    const pathname = (window.location.pathname || '').toLowerCase();
+    const isDashboard = pathname.endsWith('dashboard.html') || pathname.endsWith('dashboard') || pathname === '/' || pathname === '';
+    if (!isDashboard) {
+        if (typeof showToast === 'function') {
+            showToast('El cambio de negocio activo solo se permite desde el Dashboard principal.', 'warning');
+        } else {
+            alert('El cambio de negocio activo solo se permite desde el Dashboard principal.');
+        }
+        return;
+    }
+
     let modal = document.getElementById('globalSwitchBusinessModal');
     if (!modal) {
         modal = document.createElement('div');
@@ -4745,6 +4760,17 @@ window.closeGlobalSwitchBusinessModal = function() {
 };
 
 window.switchActiveBusiness = function(idNegocio) {
+    const pathname = (window.location.pathname || '').toLowerCase();
+    const isDashboard = pathname.endsWith('dashboard.html') || pathname.endsWith('dashboard') || pathname === '/' || pathname === '';
+    if (!isDashboard) {
+        if (typeof showToast === 'function') {
+            showToast('El cambio de negocio activo solo se permite desde el Dashboard principal.', 'warning');
+        } else {
+            alert('El cambio de negocio activo solo se permite desde el Dashboard principal.');
+        }
+        return;
+    }
+
     const msgDiv = document.getElementById('globalSwitchMsg');
     if (msgDiv) msgDiv.classList.add('hidden');
 

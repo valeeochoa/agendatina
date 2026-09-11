@@ -56,6 +56,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data && !data.error) {
                 // Guardar la configuración para usarla en otros modales si es necesario
                 window.businessWebConfig = data;
+                if (data.plan) {
+                    window.currentBusinessPlan = data.plan;
+                    if (typeof window.updateModoReservasVisibility === 'function') {
+                        window.updateModoReservasVisibility(data.plan);
+                    }
+                }
 
                 if (data.color_primario || data.color_secundario || data.colores_extra_json) {
                     if (typeof window.applyUserCustomColors === 'function') {
@@ -346,15 +352,17 @@ window.updateModoReservasVisibility = function(planName) {
     }
 };
 
-window.setModoReserva = function(val) {
-    const plan = (window.currentBusinessPlan || '').toLowerCase();
+window.setModoReserva = function(val, isUserAction = false) {
+    const plan = (window.currentBusinessPlan || window.businessWebConfig?.plan || '').toLowerCase();
     const isPremium = plan.includes('premium') || plan.includes('completo');
 
     if (val === 'cupos_alumnos' && !isPremium) {
-        if (typeof showToast === 'function') {
-            showToast('🔒 El Módulo de Cupos y Portal de Alumnos es exclusivo del Plan Premium. Podés mejorar tu plan en la sección Perfil.', 'warning');
-        } else {
-            alert('🔒 El Módulo de Cupos y Portal de Alumnos es exclusivo del Plan Premium. Podés mejorar tu plan en cualquier momento desde la sección Perfil.');
+        if (isUserAction) {
+            if (typeof showToast === 'function') {
+                showToast('🔒 El Módulo de Cupos y Portal de Alumnos es exclusivo del Plan Premium. Podés mejorar tu plan en la sección Perfil.', 'warning');
+            } else {
+                alert('🔒 El Módulo de Cupos y Portal de Alumnos es exclusivo del Plan Premium. Podés mejorar tu plan en cualquier momento desde la sección Perfil.');
+            }
         }
         val = 'libre';
     }

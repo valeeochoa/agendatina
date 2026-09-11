@@ -185,6 +185,9 @@ try {
         }
 
         if ($business) {
+            if (!empty($business['plan'])) {
+                $_SESSION['plan'] = $business['plan'];
+            }
             if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || (isset($business['ruta']) && strpos($business['ruta'], 'demo') === 0)) {
                 require_once __DIR__ . '/helpers/demo_helper.php';
                 asegurarDatosDemo($pdo, $id_negocio);
