@@ -123,18 +123,28 @@ window.isWorkingDay = function(date) {
     return workingDays.includes(date.getDay());
 };
 
-function getServiceDuration(serviceName, profName = null) {
-    if (!serviceName || typeof services === 'undefined' || !Array.isArray(services) || services.length === 0) return 30;
-    const cleanName = String(serviceName).trim().toLowerCase();
+function getServiceDuration(serviceName = null, profName = null) {
+    if (typeof services === 'undefined' || !Array.isArray(services) || services.length === 0) return 30;
     
     let match = null;
-    if (profName && profName !== 'Cualquiera (Sin preferencia)' && profName !== 'Cualquiera' && profName !== 'columnas') {
-        const cleanProf = String(profName).trim().toLowerCase();
+    const cleanName = serviceName ? String(serviceName).trim().toLowerCase() : null;
+    const cleanProf = (profName && profName !== 'Cualquiera (Sin preferencia)' && profName !== 'Cualquiera' && profName !== 'columnas') 
+        ? String(profName).trim().toLowerCase() 
+        : null;
+
+    if (cleanName && cleanProf) {
         match = services.find(s => String(s.nombre || '').trim().toLowerCase() === cleanName && String(s.profesional || '').trim().toLowerCase() === cleanProf);
     }
-    if (!match) {
+    if (!match && cleanName) {
         match = services.find(s => String(s.nombre || '').trim().toLowerCase() === cleanName);
     }
+    if (!match && cleanProf) {
+        match = services.find(s => String(s.profesional || '').trim().toLowerCase() === cleanProf);
+    }
+    if (!match && services.length > 0) {
+        match = services[0];
+    }
+
     if (match) {
         const dur = parseInt(match.duracion || match.duracion_minutos, 10);
         if (!isNaN(dur) && dur > 0) return dur;
@@ -336,6 +346,14 @@ function generateTimeSlots(startStr = null, endStr = null, interval = null, targ
         if (matchingService) {
             selectedCapacidad = parseInt(matchingService.capacidad || matchingService.cupo_maximo) || 1;
         }
+    } else if (profName && profName !== 'columnas' && profName !== 'Cualquiera (Sin preferencia)' && profName !== 'Cualquiera') {
+        selectedDuration = getServiceDuration(null, profName);
+        const matchingService = services.find(s => String(s.profesional || '').trim().toLowerCase() === String(profName).trim().toLowerCase());
+        if (matchingService) {
+            selectedCapacidad = parseInt(matchingService.capacidad || matchingService.cupo_maximo) || 1;
+        }
+    } else if (window.businessWebConfig?.intervalo_turnos === 'servicio' || !window.businessWebConfig?.intervalo_turnos) {
+        selectedDuration = getServiceDuration(null, null);
     } else if (interval && typeof interval === 'number' && interval > 0) {
         selectedDuration = interval;
     } else if (interval && !isNaN(parseInt(interval)) && parseInt(interval) > 0) {
@@ -751,23 +769,37 @@ function renderAdminDayView(dateString) {
 
             const profApts = appointmentsForDay.filter(a => a.profesional === prof || (prof === 'General'));
             const profSlotOwnership = {};
-            const selDur = (typeof selectedDuration !== 'undefined' && selectedDuration > 0) ? selectedDuration : 30;
+
+            const profDur = (window.businessWebConfig?.intervalo_turnos === 'servicio' || !window.businessWebConfig?.intervalo_turnos) 
+                ? getServiceDuration(null, prof) 
+                : (parseInt(window.businessWebConfig?.intervalo_turnos) || 30);
+            const profMatchingServ = services.find(s => String(s.profesional || '').trim().toLowerCase() === String(prof).trim().toLowerCase());
+            const profCap = profMatchingServ ? (parseInt(profMatchingServ.capacidad || profMatchingServ.cupo_maximo) || 1) : 1;
+
+            const profAvailableTimes = computeDynamicTimeSlotsForDate(
+                dateString,
+                prof,
+                profDur,
+                profCap,
+                window.businessWebConfig?.hora_apertura,
+                window.businessWebConfig?.hora_cierre
+            );
 
             profApts.forEach(apt => {
                 const start = apt.hora.substring(0, 5);
                 const duration = parseInt(apt.duracion_minutos || apt.duracion || 30);
-                const blocks = Math.ceil(duration / adminInterval);
-                const startIndex = cal_availableTimes.findIndex(t => t.substring(0, 5) === start);
+                const blocks = Math.ceil(duration / profDur);
+                const startIndex = profAvailableTimes.findIndex(t => t.substring(0, 5) === start);
                 if (startIndex !== -1) {
                     for (let i = 0; i < blocks; i++) {
-                        if (startIndex + i < cal_availableTimes.length) {
-                            profSlotOwnership[cal_availableTimes[startIndex + i].substring(0, 5)] = apt;
+                        if (startIndex + i < profAvailableTimes.length) {
+                            profSlotOwnership[profAvailableTimes[startIndex + i].substring(0, 5)] = apt;
                         }
                     }
                 }
             });
 
-            cal_availableTimes.forEach(time => {
+            profAvailableTimes.forEach(time => {
                 if (window.isTimeInBreak(time)) return;
                 const timeKey = time.substring(0, 5);
                 const apt = profSlotOwnership[timeKey];
