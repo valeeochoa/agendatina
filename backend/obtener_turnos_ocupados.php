@@ -95,8 +95,23 @@ try {
             'endMins' => $endMins,
             'duracion' => $duracionMin,
             'cupo_maximo' => $cupo,
-            'profesional' => $prof
+            'profesional' => $prof,
+            'id_servicio' => $t['id_servicio'] ?? null
         ];
+
+        // Guardar conteo exacto por servicio y hora para el calendario de clases
+        if (!isset($ocupados['_counts'])) $ocupados['_counts'] = [];
+        if (!isset($ocupados['_counts_hora'])) $ocupados['_counts_hora'] = [];
+
+        $servId = (int)($t['id_servicio'] ?? 0);
+        $keyServSlot = $f . '_' . $servId . '_' . $hStart;
+        $keyHoraSlot = $f . '_' . $hStart;
+
+        if (!isset($ocupados['_counts'][$keyServSlot])) $ocupados['_counts'][$keyServSlot] = 0;
+        $ocupados['_counts'][$keyServSlot]++;
+
+        if (!isset($ocupados['_counts_hora'][$keyHoraSlot])) $ocupados['_counts_hora'][$keyHoraSlot] = 0;
+        $ocupados['_counts_hora'][$keyHoraSlot]++;
         
         // Agregar los cortes de tiempo ocupados durante la atención (sin incluir la hora de finalización exacta)
         for ($subMins = $startMins; $subMins < $endMins; $subMins += $sliceStep) {

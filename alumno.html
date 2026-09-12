@@ -571,7 +571,45 @@
                 <button id="btnConfirmCancelTurno" onclick="confirmCancelTurnoAction()" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-2xl text-xs shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-1 cursor-pointer">
                     Sí, Cancelar
                 </button>
+    </div>
+
+    <!-- Modal Visual de Inscripción Exitosa (Auto-cierre 4.5s) -->
+    <div id="studentSuccessModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 hidden transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl relative border border-slate-100 transform transition-all scale-95" id="studentSuccessModalContent">
+            <button type="button" onclick="closeStudentSuccessModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+
+            <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4 border border-emerald-200/80 shadow-xs">
+                <span class="material-symbols-outlined text-4xl font-bold">check_circle</span>
             </div>
+            
+            <h3 class="text-2xl font-black text-slate-900 mb-1">¡Inscripción realizada con éxito!</h3>
+            <p class="text-xs sm:text-sm text-slate-500 font-medium mb-5">Te agendaste correctamente a tu clase.</p>
+            
+            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 text-left space-y-2 mb-6">
+                <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                    <span class="text-xs text-slate-500 font-medium">Clase / Servicio:</span>
+                    <span id="successModalServicio" class="text-xs font-black text-slate-900 truncate max-w-[180px]">Clase</span>
+                </div>
+                <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                    <span class="text-xs text-slate-500 font-medium">Fecha y Hora:</span>
+                    <span id="successModalFechaHora" class="text-xs font-black text-[#FC8712]"></span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-slate-500 font-medium">Establecimiento:</span>
+                    <span id="successModalNegocio" class="text-xs font-black text-slate-800"></span>
+                </div>
+            </div>
+
+            <!-- Barrita de Progreso para auto-cierre en 4.5s -->
+            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-5">
+                <div id="successModalProgressBar" class="bg-emerald-500 h-full w-full"></div>
+            </div>
+
+            <button type="button" onclick="closeStudentSuccessModal()" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md shadow-emerald-500/20 cursor-pointer">
+                Entendido
+            </button>
         </div>
     </div>
 
@@ -1193,6 +1231,42 @@
             }
         }
 
+        let autoCloseSuccessTimer = null;
+
+        function showStudentSuccessModal(servicio, fechaFmt, hora, negocioNombre) {
+            const sEl = document.getElementById('successModalServicio');
+            const fhEl = document.getElementById('successModalFechaHora');
+            const nEl = document.getElementById('successModalNegocio');
+            const overlay = document.getElementById('studentSuccessModalOverlay');
+            const pBar = document.getElementById('successModalProgressBar');
+
+            if (sEl) sEl.textContent = servicio;
+            if (fhEl) fhEl.textContent = `${fechaFmt} a las ${hora} hs`;
+            if (nEl) nEl.textContent = negocioNombre || '';
+
+            if (pBar) {
+                pBar.style.transition = 'none';
+                pBar.style.width = '100%';
+                setTimeout(() => {
+                    pBar.style.transition = 'width 4500ms linear';
+                    pBar.style.width = '0%';
+                }, 50);
+            }
+
+            if (overlay) overlay.classList.remove('hidden');
+
+            if (autoCloseSuccessTimer) clearTimeout(autoCloseSuccessTimer);
+            autoCloseSuccessTimer = setTimeout(() => {
+                closeStudentSuccessModal();
+            }, 4500);
+        }
+
+        function closeStudentSuccessModal() {
+            if (autoCloseSuccessTimer) clearTimeout(autoCloseSuccessTimer);
+            const overlay = document.getElementById('studentSuccessModalOverlay');
+            if (overlay) overlay.classList.add('hidden');
+        }
+
         // CARGAR CALENDARIO CON CUPOS DISPONIBLES EN TIEMPO REAL
         function loadStudentBusinessCalendar(ruta) {
             if (!ruta) return;
@@ -1228,8 +1302,10 @@
                     const duracion = parseInt(s.duracion || s.duracion_minutos || 30);
                     const duracionFmt = formatDuracionText(duracion);
                     const prof = s.profesional || 'Instructor';
+                    const sNombre = s.nombre_servicio || s.nombre;
+                    const sId = s.id;
 
-                    // Generar 3 fechas próximas disponibles (hoy, mañana, pasado)
+                    // Generar 4 fechas próximas disponibles
                     for (let i = 0; i < 4; i++) {
                         const dateObj = new Date();
                         dateObj.setDate(hoy.getDate() + i);
@@ -1237,13 +1313,40 @@
                         const dateFormatted = dateObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
                         
                         const horaDef = s.hora_apertura || '10:00';
-                        const keySlot = fechaStr + '_' + horaDef;
-                        const ocupadosCount = Array.isArray(ocupadosData[fechaStr]) ? ocupadosData[fechaStr].filter(h => h === horaDef).length : 0;
+                        const horaDef5 = horaDef.substring(0, 5);
+
+                        // 1. Verificar si este alumno ya está inscripto a esta clase en este día y hora
+                        const isAlreadyEnrolled = allStudentClases.some(c => {
+                            if (c.estado === 'cancelado') return false;
+                            if (c.fecha !== fechaStr) return false;
+                            const cHora = (c.hora || '').substring(0, 5);
+                            if (cHora !== horaDef5) return false;
+                            const cServ = String(c.servicio || '').trim().toLowerCase();
+                            const targetServ = String(sNombre).trim().toLowerCase();
+                            return (c.id_servicio == sId || cServ === targetServ);
+                        });
+
+                        // 2. Calcular conteo real de inscriptos y cupos disponibles
+                        const keyServSlot = fechaStr + '_' + sId + '_' + horaDef5;
+                        const keyHoraSlot = fechaStr + '_' + horaDef5;
+                        let ocupadosCount = 0;
+                        if (ocupadosData && ocupadosData['_counts'] && ocupadosData['_counts'][keyServSlot] !== undefined) {
+                            ocupadosCount = parseInt(ocupadosData['_counts'][keyServSlot]);
+                        } else if (ocupadosData && ocupadosData['_counts_hora'] && ocupadosData['_counts_hora'][keyHoraSlot] !== undefined) {
+                            ocupadosCount = parseInt(ocupadosData['_counts_hora'][keyHoraSlot]);
+                        } else if (ocupadosData && Array.isArray(ocupadosData[fechaStr])) {
+                            ocupadosCount = ocupadosData[fechaStr].filter(h => h === horaDef5 || h === horaDef).length;
+                        }
+
                         const cuposLibres = Math.max(0, cupoMax - ocupadosCount);
 
                         let badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
                         let badgeText = `🟢 ${cuposLibres} cupos libres`;
-                        if (cuposLibres === 1) {
+                        
+                        if (isAlreadyEnrolled) {
+                            badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-300 font-extrabold';
+                            badgeText = `✓ Ya estás inscripto`;
+                        } else if (cuposLibres === 1) {
                             badgeColor = 'bg-amber-100 text-amber-800 border-amber-200';
                             badgeText = `⚠️ 1 cupo libre`;
                         } else if (cuposLibres <= 0) {
@@ -1251,16 +1354,39 @@
                             badgeText = `🔴 COMPLETO`;
                         }
 
+                        let buttonHtml = '';
+                        if (isAlreadyEnrolled) {
+                            buttonHtml = `
+                                <button disabled class="w-full bg-emerald-600 text-white font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-1.5 cursor-default opacity-95">
+                                    <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                                    <span>✓ Ya estás inscripto/a</span>
+                                </button>
+                            `;
+                        } else if (cuposLibres <= 0) {
+                            buttonHtml = `
+                                <button disabled class="w-full bg-slate-200 text-slate-400 font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider cursor-not-allowed shadow-xs">
+                                    COMPLETO (Sin cupos)
+                                </button>
+                            `;
+                        } else {
+                            buttonHtml = `
+                                <button onclick="bookStudentClass('${s.id_negocio}', '${sId}', '${sNombre}', '${fechaStr}', '${horaDef5}', '${prof}')" class="w-full bg-[#FC8712] hover:bg-orange-600 text-white font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
+                                    <span class="material-symbols-outlined text-[18px]">add_task</span>
+                                    <span>Agendarme en esta Clase</span>
+                                </button>
+                            `;
+                        }
+
                         html += `
-                            <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-3">
+                            <div class="bg-white border ${isAlreadyEnrolled ? 'border-emerald-300 bg-emerald-50/20' : 'border-slate-200/90'} rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-3">
                                 <div>
                                     <div class="flex justify-between items-start gap-2 mb-1">
-                                        <h5 class="font-black text-slate-900 text-base">${s.nombre_servicio || s.nombre}</h5>
+                                        <h5 class="font-black text-slate-900 text-base">${sNombre}</h5>
                                         <span class="text-[10px] font-black px-2.5 py-1 rounded-full border ${badgeColor}">${badgeText}</span>
                                     </div>
                                     <p class="text-xs font-bold text-slate-600 flex items-center gap-2">
                                         <span class="text-[#FC8712] flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">calendar_today</span> ${dateFormatted}</span>
-                                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">schedule</span> ${horaDef} hs (${duracionFmt})</span>
+                                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">schedule</span> ${horaDef5} hs (${duracionFmt})</span>
                                     </p>
                                     <p class="text-xs text-slate-500 font-medium mt-1">Instructor: ${prof}</p>
                                     ${(function(){
@@ -1275,10 +1401,7 @@
                                         return '';
                                     })()}
                                 </div>
-                                <button onclick="bookStudentClass('${s.id_negocio}', '${s.id}', '${s.nombre_servicio || s.nombre}', '${fechaStr}', '${horaDef}', '${prof}')" ${cuposLibres <= 0 ? 'disabled' : ''} class="w-full ${cuposLibres > 0 ? 'bg-[#FC8712] hover:bg-orange-600 text-white' : 'bg-slate-200 text-slate-400 cursor-not-allowed'} font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-xs flex items-center justify-center gap-1">
-                                    <span class="material-symbols-outlined text-[16px]">add_task</span>
-                                    <span>${cuposLibres > 0 ? 'Agendarme en esta Clase' : 'Completo'}</span>
-                                </button>
+                                ${buttonHtml}
                             </div>
                         `;
                     }
@@ -1297,7 +1420,11 @@
             const email = sessionStorage.getItem('agendatina_alumno_email');
             if (!email) return showStudentToast('Sesión no válida. Iniciar sesión nuevamente.', 'error');
 
-            showStudentToast('Procesando tu reserva...', 'success');
+            const selNegocio = document.getElementById('studentSelectNegocio');
+            const negocioNombre = selNegocio ? selNegocio.options[selNegocio.selectedIndex]?.text : '';
+
+            const parts = fecha.split('-');
+            const dateFormatted = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : fecha;
 
             fetch('backend/cliente_auth.php?action=reservar_con_pase', {
                 method: 'POST',
@@ -1307,9 +1434,9 @@
             .then(r => r.json())
             .then(d => {
                 if (d.success) {
-                    showStudentToast(d.message || '¡Inscripción confirmada con éxito!', 'success');
+                    // Mostrar un único modal de "Inscripción con éxito" que se cierra solo en 4.5 seg
+                    showStudentSuccessModal(servicioNombre, dateFormatted, hora, negocioNombre);
                     loadMisClases(email);
-                    switchTab('clases');
                 } else {
                     showStudentToast(d.error || 'No se pudo realizar la inscripción.', 'error');
                 }

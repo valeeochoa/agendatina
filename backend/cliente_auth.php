@@ -559,7 +559,22 @@ try {
             exit;
         }
 
-        // Verificar si el cliente tiene pases disponibles en este negocio
+        // 1. Verificar si el alumno ya está inscripto en esta misma clase, fecha y hora
+        $stmtCheckDup = $pdo->prepare("SELECT id FROM turnos WHERE id_negocio = :id_negocio AND LOWER(TRIM(cliente_celular)) = :email AND fecha = :fecha AND hora LIKE :hora AND (id_servicio = :id_servicio OR servicio = :servicio) AND estado != 'cancelado' LIMIT 1");
+        $stmtCheckDup->execute([
+            'id_negocio' => $id_negocio,
+            'email' => $email,
+            'fecha' => $fecha,
+            'hora' => substr($hora, 0, 5) . '%',
+            'id_servicio' => $id_servicio ?: 0,
+            'servicio' => $servicio
+        ]);
+        if ($stmtCheckDup->fetch()) {
+            echo json_encode(['success' => false, 'error' => 'Ya te encontrás inscripto/a en esta clase para este día y horario.']);
+            exit;
+        }
+
+        // 2. Verificar si el cliente tiene pases disponibles en este negocio
         $stmtClient = $pdo->prepare("SELECT id, nombre_completo, pases_disponibles FROM clientes_negocio WHERE id_negocio = :id_negocio AND LOWER(TRIM(email)) = :email LIMIT 1");
         $stmtClient->execute(['id_negocio' => $id_negocio, 'email' => $email]);
         $clientData = $stmtClient->fetch(PDO::FETCH_ASSOC);
@@ -571,7 +586,7 @@ try {
             $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = GREATEST(0, pases_disponibles - 1) WHERE id = ?")->execute([$clientData['id']]);
         }
 
-        // Insertar reserva en la tabla turnos
+        // 3. Insertar reserva en la tabla turnos
         $stmtIns = $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, metodo_pago, estado) VALUES (:id_negocio, :nombre, :email, :fecha, :hora, :servicio, :profesional, :id_servicio, 'Pase de Alumno', 'confirmado')");
         $stmtIns->execute([
             'id_negocio' => $id_negocio,
@@ -583,6 +598,26 @@ try {
             'profesional' => $profesional,
             'id_servicio' => $id_servicio ?: null
         ]);
+
+        // 4. Crear notificación en la campanita para el negocio
+        try {
+            try {
+                $pdo->query("SELECT id FROM notificaciones LIMIT 1");
+            } catch (\Throwable $e) {
+                $pdo->exec("CREATE TABLE notificaciones (id INT AUTO_INCREMENT PRIMARY KEY, id_negocio INT NULL, titulo VARCHAR(255), mensaje TEXT, fecha DATETIME DEFAULT CURRENT_TIMESTAMP, leida TINYINT DEFAULT 0)");
+            }
+
+            $fechaFmt = date('d/m/Y', strtotime($fecha));
+            $horaFmt = substr($hora, 0, 5);
+            $stmtNotif = $pdo->prepare("INSERT INTO notificaciones (id_negocio, titulo, mensaje, fecha) VALUES (:id_negocio, :titulo, :mensaje, NOW())");
+            $stmtNotif->execute([
+                'id_negocio' => $id_negocio,
+                'titulo' => '🎒 Nueva Inscripción a Clase',
+                'mensaje' => "El alumno/a {$nombreCliente} ({$email}) se inscribió a la clase de {$servicio} ({$profesional}) para el día {$fechaFmt} a las {$horaFmt} hs."
+            ]);
+        } catch (\Throwable $eNotif) {
+            error_log("Error guardando notificacion de negocio: " . $eNotif->getMessage());
+        }
 
         echo json_encode(['success' => true, 'message' => '¡Inscripción confirmada con éxito! Tu clase ha sido agendada.']);
         exit;
