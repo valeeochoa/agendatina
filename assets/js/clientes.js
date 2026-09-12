@@ -297,9 +297,9 @@ function eliminarCliente(id, nombre) {
     }
     const doDelete = () => {
         fetch('backend/gestionar_clientes.php', {
-            method: 'DELETE',
+            method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `id=${id}`
+            body: `action=delete&id=${id}`
         })
         .then(r => r.json())
         .then(d => {
@@ -309,6 +309,10 @@ function eliminarCliente(id, nombre) {
             } else {
                 if (typeof showToast === 'function') showToast(d.error || 'Error al eliminar alumno', 'error');
             }
+        })
+        .catch(err => {
+            console.error('Error al eliminar alumno:', err);
+            if (typeof showToast === 'function') showToast('Error al conectar con el servidor para eliminar.', 'error');
         });
     };
 

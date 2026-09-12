@@ -185,8 +185,16 @@ try {
             $data = $_POST;
         }
 
-        $id = !empty($data['id']) ? (int)$data['id'] : null;
-        $action = $data['action'] ?? '';
+        $id = !empty($data['id']) ? (int)$data['id'] : (!empty($_POST['id']) ? (int)$_POST['id'] : null);
+        $action = $data['action'] ?? $_POST['action'] ?? '';
+
+        // Acción especial: Eliminar Alumno (POST delete)
+        if (($action === 'delete' || $action === 'eliminar') && $id) {
+            $stmtDel = $pdo->prepare("DELETE FROM clientes_negocio WHERE id = :id AND id_negocio = :id_negocio");
+            $stmtDel->execute(['id' => $id, 'id_negocio' => $id_negocio]);
+            echo json_encode(['success' => true, 'message' => 'Alumno eliminado con éxito.']);
+            exit;
+        }
 
         // Consultar preferencia de auto-renovación de vencimiento (+1 mes)
         $stmtConfAR = $pdo->prepare("SELECT auto_renovar_vencimiento FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");

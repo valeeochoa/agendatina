@@ -1113,8 +1113,29 @@
             document.getElementById('statPasesCount').textContent = totalPases;
             document.getElementById('statNegociosCount').textContent = negocios.length;
 
-            const ahora = new Date();
-            const proximas = clases.filter(c => c.estado !== 'cancelado' && new Date(c.fecha + 'T' + c.hora) >= ahora);
+            const hoy = new Date();
+            const yyyy = hoy.getFullYear();
+            const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+            const dd = String(hoy.getDate()).padStart(2, '0');
+            const hoyStr = `${yyyy}-${mm}-${dd}`;
+
+            const proximas = clases.filter(c => {
+                if (c.estado === 'cancelado') return false;
+                
+                const cFecha = (c.fecha || '').substring(0, 10);
+                if (!cFecha) return false;
+
+                if (cFecha > hoyStr) return true;
+                if (cFecha === hoyStr) {
+                    const cHoraStr = (c.hora || '00:00').substring(0, 5);
+                    const [h, m] = cHoraStr.split(':').map(Number);
+                    const classEndTimeObj = new Date(yyyy, hoy.getMonth(), parseInt(dd, 10), (h || 0) + 3, m || 0, 0);
+                    return classEndTimeObj >= hoy;
+                }
+
+                return false;
+            });
+
             document.getElementById('statProximasCount').textContent = proximas.length;
             if (document.getElementById('tabBadgeClases')) {
                 document.getElementById('tabBadgeClases').textContent = proximas.length;
