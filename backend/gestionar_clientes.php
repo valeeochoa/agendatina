@@ -188,11 +188,23 @@ try {
         $id = !empty($data['id']) ? (int)$data['id'] : null;
         $action = $data['action'] ?? '';
 
-        // Acción especial: Cargar más pases / créditos rápidamente (Resetea el contador de cancelaciones al nuevo pase)
+        // Consultar preferencia de auto-renovación de vencimiento (+1 mes)
+        $stmtConfAR = $pdo->prepare("SELECT auto_renovar_vencimiento FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");
+        $stmtConfAR->execute(['id_negocio' => $id_negocio]);
+        $confAR = $stmtConfAR->fetch(PDO::FETCH_ASSOC);
+        $autoRenovarVenc = !$confAR || !isset($confAR['auto_renovar_vencimiento']) || $confAR['auto_renovar_vencimiento'] !== 'no';
+
+        // Acción especial: Cargar más pases / créditos rápidamente
         if ($action === 'add_pases' && $id) {
             $cantAdd = (int)($data['cantidad'] ?? 0);
-            $stmtAdd = $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + :add, pases_totales = pases_totales + :add, cancelaciones_restantes = COALESCE(cancelaciones_permitidas, pases_totales + :add) WHERE id = :id AND id_negocio = :id_negocio");
-            $stmtAdd->execute(['add' => $cantAdd, 'id' => $id, 'id_negocio' => $id_negocio]);
+            if ($autoRenovarVenc) {
+                $newVenc = date('Y-m-d', strtotime('+1 month'));
+                $stmtAdd = $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + :add, pases_totales = pases_totales + :add, fecha_vencimiento = :newVenc, cancelaciones_restantes = COALESCE(cancelaciones_permitidas, pases_totales + :add) WHERE id = :id AND id_negocio = :id_negocio");
+                $stmtAdd->execute(['add' => $cantAdd, 'newVenc' => $newVenc, 'id' => $id, 'id_negocio' => $id_negocio]);
+            } else {
+                $stmtAdd = $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + :add, pases_totales = pases_totales + :add, cancelaciones_restantes = COALESCE(cancelaciones_permitidas, pases_totales + :add) WHERE id = :id AND id_negocio = :id_negocio");
+                $stmtAdd->execute(['add' => $cantAdd, 'id' => $id, 'id_negocio' => $id_negocio]);
+            }
             echo json_encode(['success' => true, 'message' => 'Clases agregadas con éxito.']);
             exit;
         }
@@ -202,7 +214,7 @@ try {
         $telefono = trim($data['telefono'] ?? '');
         $pases = max(0, (int)($data['pases_disponibles'] ?? $data['pases'] ?? 0));
         $pases_totales = max($pases, (int)($data['pases_totales'] ?? $pases));
-        $fecha_vencimiento = !empty($data['fecha_vencimiento']) ? $data['fecha_vencimiento'] : null;
+        $fecha_vencimiento = !empty($data['fecha_vencimiento']) ? $data['fecha_vencimiento'] : ($autoRenovarVenc ? date('Y-m-d', strtotime('+1 month')) : null);
         $notas = trim($data['notas'] ?? '');
 
         if (empty($nombre) || empty($email)) {

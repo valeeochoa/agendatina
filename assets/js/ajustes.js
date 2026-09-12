@@ -278,6 +278,11 @@ window.applyCalendarConfigToForm = function(data) {
         if (selectElim) selectElim.value = String(data.limite_eliminacion_dias);
     }
 
+    if (data.auto_renovar_vencimiento !== undefined) {
+        const selectAutoRen = form.querySelector('#configAutoRenovarVencimiento');
+        if (selectAutoRen) selectAutoRen.value = data.auto_renovar_vencimiento;
+    }
+
     if (data.datos_transferencia !== undefined) {
         const inpDatos = form.querySelector('#configDatosTransferencia');
         if (inpDatos) inpDatos.value = data.datos_transferencia || '';

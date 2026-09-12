@@ -1374,13 +1374,24 @@
                         // 1. Verificar si este alumno ya está inscripto a esta clase en este día y hora
                         const isAlreadyEnrolled = allStudentClases.some(c => {
                             if (c.estado === 'cancelado') return false;
-                            if (c.fecha !== fechaStr) return false;
+                            
+                            const cFecha = (c.fecha || '').substring(0, 10);
+                            if (cFecha !== fechaStr) return false;
+
                             const cHora = (c.hora || '').substring(0, 5);
                             if (cHora !== horaDef5) return false;
+
                             const cServ = String(c.servicio || '').trim().toLowerCase();
                             const targetServ = String(sNombre).trim().toLowerCase();
-                            const matchServ = (c.id_servicio && sId) ? (c.id_servicio == sId) : (cServ === targetServ);
-                            const matchNeg = c.id_negocio ? (c.id_negocio == s.id_negocio) : (c.negocio_ruta === ruta);
+                            const cIdServ = parseInt(c.id_servicio, 10) || 0;
+                            const targetIdServ = parseInt(sId, 10) || 0;
+
+                            const matchServ = (cIdServ > 0 && targetIdServ > 0) ? (cIdServ === targetIdServ) : (cServ === targetServ);
+
+                            const cIdNeg = parseInt(c.id_negocio, 10) || 0;
+                            const targetIdNeg = parseInt(s.id_negocio, 10) || 0;
+                            const matchNeg = (cIdNeg > 0 && targetIdNeg > 0) ? (cIdNeg === targetIdNeg) : (c.negocio_ruta === ruta);
+
                             return matchServ && matchNeg;
                         });
 
