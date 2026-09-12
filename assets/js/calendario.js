@@ -111,15 +111,22 @@ window.isWorkingDay = function(date) {
         } catch(e) {}
     }
     const dayKeyMap = { 1: 'lun', 2: 'mar', 3: 'mie', 4: 'jue', 5: 'vie', 6: 'sab', 0: 'dom' };
-    const dayKey = dayKeyMap[date.getDay()];
-    if (dayKey && horariosDetallados && horariosDetallados[dayKey] !== undefined) {
-        return horariosDetallados[dayKey].activo !== false;
+    const textKey = dayKeyMap[date.getDay()];
+    const numKey = String(date.getDay());
+
+    let diaData = null;
+    if (horariosDetallados && Object.keys(horariosDetallados).length > 0) {
+        if (horariosDetallados[numKey] !== undefined) diaData = horariosDetallados[numKey];
+        else if (textKey && horariosDetallados[textKey] !== undefined) diaData = horariosDetallados[textKey];
+    }
+
+    if (diaData !== null && diaData !== undefined) {
+        return diaData.activo !== false;
     }
 
     let diasTrabajo = window.businessWebConfig?.dias_trabajo;
-    if (diasTrabajo === undefined) diasTrabajo = '1,2,3,4,5,6';
-    if (!diasTrabajo) return false;
-    const workingDays = diasTrabajo.split(',').map(Number);
+    if (diasTrabajo === undefined || diasTrabajo === null || diasTrabajo === '') diasTrabajo = '1,2,3,4,5,6';
+    const workingDays = String(diasTrabajo).split(',').map(Number);
     return workingDays.includes(date.getDay());
 };
 
@@ -583,8 +590,9 @@ function cal_renderTimeSlots() {
         } catch(e) {}
     }
     const dayKeyMap = { 1: 'lun', 2: 'mar', 3: 'mie', 4: 'jue', 5: 'vie', 6: 'sab', 0: 'dom' };
-    const dayKey = dayKeyMap[cal_selectedDate.getDay()];
-    const diaData = dayKey ? horariosDetallados[dayKey] : null;
+    const textKey = dayKeyMap[cal_selectedDate.getDay()];
+    const numKey = String(cal_selectedDate.getDay());
+    const diaData = (horariosDetallados && (horariosDetallados[numKey] !== undefined ? horariosDetallados[numKey] : (textKey ? horariosDetallados[textKey] : null)));
 
     generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval, fechaActual, globalSelectedProfessional);
 

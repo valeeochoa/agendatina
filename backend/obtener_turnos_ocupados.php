@@ -29,10 +29,21 @@ session_write_close();
 try {
     $ocupados = [];
 
-   // Obtener intervalo_turnos
-    $stmtConf = $pdo->prepare("SELECT intervalo_turnos FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");
+   // Obtener configuración web del negocio (horarios, días laborables, etc.)
+    $stmtConf = $pdo->prepare("SELECT hora_apertura, hora_cierre, dias_trabajo, horarios_detallados_json, intervalo_turnos, primer_dia_semana FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");
     $stmtConf->execute(['id_negocio' => $id_negocio]);
-    $conf = $stmtConf->fetch();
+    $conf = $stmtConf->fetch(PDO::FETCH_ASSOC);
+
+    if ($conf) {
+        $ocupados['_config'] = [
+            'hora_apertura' => $conf['hora_apertura'] ?? '09:00',
+            'hora_cierre' => $conf['hora_cierre'] ?? '18:00',
+            'dias_trabajo' => $conf['dias_trabajo'] ?? '1,2,3,4,5,6',
+            'horarios_detallados_json' => $conf['horarios_detallados_json'] ?? '{}',
+            'intervalo_turnos' => $conf['intervalo_turnos'] ?? '30',
+            'primer_dia_semana' => (int)($conf['primer_dia_semana'] ?? 1)
+        ];
+    }
     
     $intervaloRaw = $conf && isset($conf['intervalo_turnos']) && is_numeric($conf['intervalo_turnos']) ? (int)$conf['intervalo_turnos'] : 30;
     $intervalo = $intervaloRaw > 0 ? $intervaloRaw : 30;

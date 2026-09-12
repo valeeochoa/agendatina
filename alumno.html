@@ -1309,6 +1309,71 @@
         }
 
         // CARGAR CALENDARIO CON CUPOS DISPONIBLES EN TIEMPO REAL (DISCRIMINADO POR NEGOCIO)
+        let studentWeekOffset = 0;
+
+        function changeStudentWeek(direction) {
+            studentWeekOffset += direction;
+            const sel = document.getElementById('studentSelectNegocio');
+            if (sel && sel.value) loadStudentBusinessCalendar(sel.value);
+        }
+
+        function resetStudentWeek() {
+            studentWeekOffset = 0;
+            const sel = document.getElementById('studentSelectNegocio');
+            if (sel && sel.value) loadStudentBusinessCalendar(sel.value);
+        }
+
+        function isBusinessDayWorking(dateObj, config) {
+            if (!config) return true;
+            let hDet = {};
+            if (config.horarios_detallados_json) {
+                try {
+                    hDet = typeof config.horarios_detallados_json === 'string'
+                        ? JSON.parse(config.horarios_detallados_json)
+                        : config.horarios_detallados_json;
+                } catch(e) {}
+            }
+
+            const dayKeyMap = { 1: 'lun', 2: 'mar', 3: 'mie', 4: 'jue', 5: 'vie', 6: 'sab', 0: 'dom' };
+            const textKey = dayKeyMap[dateObj.getDay()];
+            const numKey = String(dateObj.getDay());
+
+            let diaData = null;
+            if (hDet && Object.keys(hDet).length > 0) {
+                if (hDet[numKey] !== undefined) diaData = hDet[numKey];
+                else if (textKey && hDet[textKey] !== undefined) diaData = hDet[textKey];
+            }
+
+            if (diaData !== null && diaData !== undefined) {
+                return diaData.activo !== false;
+            }
+
+            let diasTrabajo = config.dias_trabajo;
+            if (diasTrabajo === undefined || diasTrabajo === null || diasTrabajo === '') diasTrabajo = '1,2,3,4,5,6';
+            const workingDays = String(diasTrabajo).split(',').map(Number);
+            return workingDays.includes(dateObj.getDay());
+        }
+
+        function getStudentWeekDays(offset = 0, firstDayOfWeek = 1) {
+            const now = new Date();
+            const currentDay = now.getDay();
+            let diff = currentDay - firstDayOfWeek;
+            if (diff < 0) diff += 7;
+
+            const startDate = new Date(now);
+            startDate.setDate(now.getDate() - diff + (offset * 7));
+            startDate.setHours(0, 0, 0, 0);
+
+            const days = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(startDate);
+                d.setDate(startDate.getDate() + i);
+                days.push(d);
+            }
+            return days;
+        }
+
+        // CARGAR CALENDARIO CON CUPOS DISPONIBLES EN TIEMPO REAL (DISCRIMINADO POR NEGOCIO)
         function loadStudentBusinessCalendar(ruta) {
             if (!ruta) return;
             const grid = document.getElementById('studentCalendarGrid');
@@ -1348,13 +1413,39 @@
             ])
             .then(([serviciosData, ocupadosData]) => {
                 const servicios = Array.isArray(serviciosData) ? serviciosData : (serviciosData.servicios || []);
+                const bizConfig = (ocupadosData && ocupadosData['_config']) ? ocupadosData['_config'] : {};
+
                 if (servicios.length === 0) {
                     grid.innerHTML = passBannerHtml + `<div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center"><p class="text-slate-600 font-bold text-sm">Este establecimiento no posee clases configuradas activas.</p></div>`;
                     return;
                 }
 
+                const firstDayOfWeek = parseInt(bizConfig.primer_dia_semana, 10) || 1;
+                const weekDays = getStudentWeekDays(studentWeekOffset, firstDayOfWeek);
                 const hoy = new Date();
-                let html = passBannerHtml + '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+
+                const startFmt = weekDays[0].toLocaleDateString('es-AR', { day: 'numeric', month: 'numeric' });
+                const endFmt = weekDays[6].toLocaleDateString('es-AR', { day: 'numeric', month: 'numeric', year: 'numeric' });
+
+                // Barra Navegación Semanal
+                let weekNavHtml = `
+                    <div class="flex items-center justify-between bg-white border border-slate-200/90 p-3 sm:p-4 rounded-2xl shadow-xs mb-5 gap-2">
+                        <button type="button" onclick="changeStudentWeek(-1)" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold px-3 py-2 rounded-xl text-xs flex items-center gap-1 cursor-pointer transition-colors shrink-0">
+                            <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                            <span class="hidden sm:inline">Semana Anterior</span>
+                        </button>
+                        
+                        <div class="text-center">
+                            <span class="text-xs sm:text-sm font-black text-slate-900 block">Semana del ${startFmt} al ${endFmt}</span>
+                            ${studentWeekOffset !== 0 ? `<button type="button" onclick="resetStudentWeek()" class="text-[11px] font-extrabold text-[#FC8712] hover:underline mt-0.5 inline-block">Volver a esta semana</button>` : `<span class="text-[10px] font-extrabold text-slate-400">Semana actual</span>`}
+                        </div>
+
+                        <button type="button" onclick="changeStudentWeek(1)" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold px-3 py-2 rounded-xl text-xs flex items-center gap-1 cursor-pointer transition-colors shrink-0">
+                            <span class="hidden sm:inline">Semana Siguiente</span>
+                            <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                        </button>
+                    </div>
+                `;
 
                 function formatDuracionText(minutosRaw) {
                     const min = parseInt(minutosRaw, 10) || 0;
@@ -1366,33 +1457,58 @@
                     return `${m} min`;
                 }
 
-                servicios.forEach(s => {
-                    const cupoMax = parseInt(s.cupo_maximo || s.capacidad || 1);
-                    const duracion = parseInt(s.duracion || s.duracion_minutos || 30);
-                    const duracionFmt = formatDuracionText(duracion);
-                    const prof = s.profesional || 'Instructor';
-                    const sNombre = s.nombre_servicio || s.nombre;
-                    const sId = s.id;
+                // Generar los bloques de días de la semana uno debajo del otro
+                let htmlDays = '<div class="flex flex-col space-y-6 w-full">';
 
-                    // Generar 4 fechas próximas disponibles
-                    for (let i = 0; i < 4; i++) {
-                        const dateObj = new Date();
-                        dateObj.setDate(hoy.getDate() + i);
-                        const y = dateObj.getFullYear();
-                        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-                        const d = String(dateObj.getDate()).padStart(2, '0');
-                        const fechaStr = `${y}-${m}-${d}`;
-                        const dateFormatted = dateObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
-                        
+                weekDays.forEach(dateObj => {
+                    const y = dateObj.getFullYear();
+                    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                    const d = String(dateObj.getDate()).padStart(2, '0');
+                    const fechaStr = `${y}-${m}-${d}`;
+
+                    const dayNameCap = dateObj.toLocaleDateString('es-AR', { weekday: 'long' });
+                    const dayFormattedFull = dayNameCap.charAt(0).toUpperCase() + dayNameCap.slice(1) + ' ' + dateObj.toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
+
+                    const isOpenToday = isBusinessDayWorking(dateObj, bizConfig);
+
+                    if (!isOpenToday) {
+                        htmlDays += `
+                            <div class="bg-white/80 border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs">
+                                <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+                                    <h4 class="font-extrabold text-slate-700 text-sm sm:text-base flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-slate-400 text-[18px]">event_busy</span>
+                                        <span>${dayFormattedFull}</span>
+                                    </h4>
+                                    <span class="bg-slate-100 text-slate-500 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border border-slate-200">Cerrado</span>
+                                </div>
+                                <div class="bg-slate-50 border border-slate-200/60 rounded-xl p-3 text-center">
+                                    <p class="text-xs font-semibold text-slate-400">El establecimiento permanece cerrado este día.</p>
+                                </div>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    // Si está abierto, renderizar las clases disponibles para este día
+                    let dayClassesHtml = '';
+                    let countClassesForDay = 0;
+
+                    servicios.forEach(s => {
+                        const cupoMax = parseInt(s.cupo_maximo || s.capacidad || 1);
+                        const duracion = parseInt(s.duracion || s.duracion_minutos || 30);
+                        const duracionFmt = formatDuracionText(duracion);
+                        const prof = s.profesional || 'Instructor';
+                        const sNombre = s.nombre_servicio || s.nombre;
+                        const sId = s.id;
+
                         const horaDef = s.hora_apertura || '10:00';
                         const horaDef5 = horaDef.substring(0, 5);
 
-                        // Comprobar si el horario ya transcurrió en la fecha y hora actual
                         const [hr, mn] = horaDef5.split(':').map(Number);
                         const slotDateObj = new Date(y, dateObj.getMonth(), parseInt(d, 10), hr, mn, 0);
                         const isPastTime = slotDateObj < hoy;
 
-                        // 1. Verificar si este alumno ya está inscripto a esta clase en este día y hora
+                        // 1. Verificar si ya está inscripto
                         const isAlreadyEnrolled = allStudentClases.some(c => {
                             if (c.estado === 'cancelado') return false;
                             
@@ -1416,7 +1532,7 @@
                             return matchServ && matchNeg;
                         });
 
-                        // 2. Calcular conteo real de inscriptos y cupos disponibles
+                        // 2. Calcular conteo de cupos
                         const keyServSlot = fechaStr + '_' + sId + '_' + horaDef5;
                         const keyHoraSlot = fechaStr + '_' + horaDef5;
                         let ocupadosCount = 0;
@@ -1496,7 +1612,8 @@
                             cardClass = 'border-slate-200/90 bg-slate-50/60 opacity-85';
                         }
 
-                        html += `
+                        countClassesForDay++;
+                        dayClassesHtml += `
                             <div class="bg-white border ${cardClass} rounded-2xl p-4 shadow-sm transition-all flex flex-col justify-between gap-3">
                                 <div>
                                     <div class="flex justify-between items-start gap-2 mb-1">
@@ -1504,10 +1621,9 @@
                                         <span class="text-[10px] font-black px-2.5 py-1 rounded-full border ${badgeColor}">${badgeText}</span>
                                     </div>
                                     <p class="text-xs font-bold text-slate-600 flex items-center gap-2">
-                                        <span class="text-[#FC8712] flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">calendar_today</span> ${dateFormatted}</span>
-                                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">schedule</span> ${horaDef5} hs (${duracionFmt})</span>
+                                        <span class="text-[#FC8712] flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">schedule</span> ${horaDef5} hs (${duracionFmt})</span>
+                                        <span class="flex items-center gap-1 text-slate-500"><span class="material-symbols-outlined text-[15px]">person</span> ${prof}</span>
                                     </p>
-                                    <p class="text-xs text-slate-500 font-medium mt-1">Instructor: ${prof}</p>
                                     ${(function(){
                                         try {
                                             const pkgs = typeof s.precios_paquetes_json === 'string' ? JSON.parse(s.precios_paquetes_json || '[]') : (s.precios_paquetes_json || []);
@@ -1523,11 +1639,29 @@
                                 ${buttonHtml}
                             </div>
                         `;
-                    }
+                    });
+
+                    htmlDays += `
+                        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+                            <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                                <h4 class="font-black text-slate-900 text-base sm:text-lg flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[#FC8712]">calendar_today</span>
+                                    <span>${dayFormattedFull}</span>
+                                </h4>
+                                <span class="bg-orange-50 text-[#FC8712] text-[10px] font-black uppercase px-2.5 py-1 rounded-full border border-orange-200">
+                                    ${countClassesForDay} ${countClassesForDay === 1 ? 'clase disponible' : 'clases disponibles'}
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                                ${dayClassesHtml}
+                            </div>
+                        </div>
+                    `;
                 });
 
-                html += '</div>';
-                grid.innerHTML = html;
+                htmlDays += '</div>';
+                grid.innerHTML = passBannerHtml + weekNavHtml + htmlDays;
             })
             .catch(err => {
                 grid.innerHTML = passBannerHtml + `<div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center"><p class="text-slate-500 font-bold text-sm">No se pudieron cargar los cupos. Por favor intentá nuevamente.</p></div>`;
