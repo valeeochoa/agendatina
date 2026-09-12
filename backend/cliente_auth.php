@@ -416,7 +416,7 @@ try {
 
         // Obtener el historial completo de clases y turnos con vencimiento y límites de devolución
         $stmt = $pdo->prepare("
-            SELECT t.id, t.id_negocio, COALESCE(n.nombre_fantasia, 'Establecimiento') AS negocio, n.ruta AS negocio_ruta, 
+            SELECT t.id, t.id_negocio, t.id_servicio, COALESCE(n.nombre_fantasia, 'Establecimiento') AS negocio, n.ruta AS negocio_ruta, 
                    t.servicio, t.profesional, t.fecha, t.hora, t.estado,
                    cn.fecha_vencimiento, cn.cancelaciones_restantes, cn.cancelaciones_permitidas, cn.pases_totales
             FROM turnos t
@@ -574,17 +574,26 @@ try {
             exit;
         }
 
-        // 2. Verificar si el cliente tiene pases disponibles en este negocio
+        // 2. Verificar si el cliente tiene pases disponibles EXCLUSIVAMENTE en este negocio
         $stmtClient = $pdo->prepare("SELECT id, nombre_completo, pases_disponibles FROM clientes_negocio WHERE id_negocio = :id_negocio AND LOWER(TRIM(email)) = :email LIMIT 1");
         $stmtClient->execute(['id_negocio' => $id_negocio, 'email' => $email]);
         $clientData = $stmtClient->fetch(PDO::FETCH_ASSOC);
 
-        $nombreCliente = $_SESSION['cliente_nombre'] ?? ($clientData ? $clientData['nombre_completo'] : 'Alumno');
-
-        // Si tiene pases registrados, descontar 1 pase
-        if ($clientData && (int)$clientData['pases_disponibles'] > 0) {
-            $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = GREATEST(0, pases_disponibles - 1) WHERE id = ?")->execute([$clientData['id']]);
+        if (!$clientData) {
+            echo json_encode(['success' => false, 'error' => 'No estás registrado/a como alumno en este establecimiento.']);
+            exit;
         }
+
+        $pasesDisponibles = (int)($clientData['pases_disponibles'] ?? 0);
+        if ($pasesDisponibles <= 0) {
+            echo json_encode(['success' => false, 'error' => 'No tenés pases disponibles en este establecimiento para agendarte. Por favor contactá al negocio para renovar tu pase.']);
+            exit;
+        }
+
+        $nombreCliente = $_SESSION['cliente_nombre'] ?? $clientData['nombre_completo'] ?? 'Alumno';
+
+        // Descontar 1 pase únicamente de la cuenta de ESTE negocio
+        $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = GREATEST(0, pases_disponibles - 1) WHERE id = ?")->execute([$clientData['id']]);
 
         // 3. Insertar reserva en la tabla turnos
         $stmtIns = $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, metodo_pago, estado) VALUES (:id_negocio, :nombre, :email, :fecha, :hora, :servicio, :profesional, :id_servicio, 'Pase de Alumno', 'confirmado')");

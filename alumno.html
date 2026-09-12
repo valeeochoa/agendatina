@@ -1181,17 +1181,18 @@
                     const vencTag = formatVencimientoTag(n.fecha_vencimiento);
                     const cancRest = n.cancelaciones_restantes !== undefined ? parseInt(n.cancelaciones_restantes) : (parseInt(n.cancelaciones_max) || parseInt(n.pases_totales) || 4);
                     const cancMax = parseInt(n.cancelaciones_max) || parseInt(n.pases_totales) || 4;
+                    const pasesDisp = parseInt(n.pases_disponibles) || 0;
                     return `
                         <div class="bg-white/95 border border-slate-200/90 rounded-3xl p-5 shadow-md space-y-3.5">
                             <div class="flex justify-between items-start">
                                 <div>
                                     <h4 class="font-black text-slate-900 text-base sm:text-lg">${n.negocio_nombre}</h4>
-                                    <span class="text-[11px] font-bold text-slate-500 block">Pase de Alumno</span>
+                                    <span class="text-[11px] font-bold text-slate-500 block">Pase de Alumno (Exclusivo de este negocio)</span>
                                 </div>
-                                <span class="bg-gradient-to-r from-[#FC8712] to-[#FF8A65] text-white text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl shadow-xs">${n.pases_disponibles} pases libres</span>
+                                <span class="bg-gradient-to-r from-[#FC8712] to-[#FF8A65] text-white text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl shadow-xs">${pasesDisp} pases libres</span>
                             </div>
                             <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                                <div class="bg-gradient-to-r from-[#FC8712] to-[#FF8A65] h-full" style="width: ${Math.min(100, ((parseInt(n.pases_disponibles)/Math.max(1, parseInt(n.pases_totales)))*100))}%"></div>
+                                <div class="bg-gradient-to-r from-[#FC8712] to-[#FF8A65] h-full" style="width: ${Math.min(100, ((pasesDisp/Math.max(1, parseInt(n.pases_totales)))*100))}%"></div>
                             </div>
                             <div class="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
                                 <div>${vencTag}</div>
@@ -1200,6 +1201,10 @@
                                     <span>Devoluciones: <strong>${cancRest} / ${cancMax}</strong></span>
                                 </div>
                             </div>
+                            <button onclick="selectBusinessAndGoToCalendar('${n.negocio_ruta}')" class="w-full mt-2 bg-orange-50 hover:bg-orange-100 text-[#FC8712] border border-orange-200/90 font-extrabold py-2.5 rounded-2xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                                <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+                                <span>Ver Clases de ${n.negocio_nombre}</span>
+                            </button>
                         </div>
                     `;
                 }).join('');
@@ -1228,6 +1233,15 @@
             if (selNegocio && negocios.length > 0) {
                 selNegocio.innerHTML = negocios.map(n => `<option value="${n.negocio_ruta}">${n.negocio_nombre}</option>`).join('');
                 loadStudentBusinessCalendar(negocios[0].negocio_ruta);
+            }
+        }
+
+        function selectBusinessAndGoToCalendar(ruta) {
+            switchTab('reservar');
+            const sel = document.getElementById('studentSelectNegocio');
+            if (sel) {
+                sel.value = ruta;
+                loadStudentBusinessCalendar(ruta);
             }
         }
 
@@ -1267,11 +1281,39 @@
             if (overlay) overlay.classList.add('hidden');
         }
 
-        // CARGAR CALENDARIO CON CUPOS DISPONIBLES EN TIEMPO REAL
+        // CARGAR CALENDARIO CON CUPOS DISPONIBLES EN TIEMPO REAL (DISCRIMINADO POR NEGOCIO)
         function loadStudentBusinessCalendar(ruta) {
             if (!ruta) return;
             const grid = document.getElementById('studentCalendarGrid');
             grid.innerHTML = `<div class="p-8 text-center"><span class="material-symbols-outlined animate-spin text-4xl text-[#FC8712] mb-2">sync</span><p class="font-bold text-slate-600 text-sm">Consultando cupos y clases abiertas...</p></div>`;
+
+            // Obtener negocio seleccionado para discriminar pases
+            const currentNegocio = studentNegocios.find(n => n.negocio_ruta === ruta) || {};
+            const pasesNegocio = parseInt(currentNegocio.pases_disponibles) || 0;
+            const negocioNombreSel = currentNegocio.negocio_nombre || 'este negocio';
+
+            let passBannerHtml = '';
+            if (pasesNegocio > 0) {
+                passBannerHtml = `
+                    <div class="mb-5 p-4 rounded-2xl bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-50 border border-orange-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm font-extrabold text-slate-800 shadow-xs">
+                        <div class="flex items-center gap-2.5">
+                            <span class="material-symbols-outlined text-[#FC8712] text-[22px]">confirmation_number</span>
+                            <span>Tus pases disponibles en <strong>${negocioNombreSel}</strong>:</span>
+                        </div>
+                        <span class="bg-[#FC8712] text-white px-3.5 py-1.5 rounded-xl text-xs font-black shadow-xs shrink-0">${pasesNegocio} ${pasesNegocio === 1 ? 'pase libre' : 'pases libres'}</span>
+                    </div>
+                `;
+            } else {
+                passBannerHtml = `
+                    <div class="mb-5 p-4 rounded-2xl bg-red-50 border border-red-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm font-bold text-red-900 shadow-xs">
+                        <div class="flex items-center gap-2.5">
+                            <span class="material-symbols-outlined text-red-600 text-[22px]">lock</span>
+                            <span>No tenés pases disponibles en <strong>${negocioNombreSel}</strong> (0 pases).</span>
+                        </div>
+                        <span class="text-xs text-red-700 font-extrabold bg-red-100 px-3.5 py-1.5 rounded-xl border border-red-200 shrink-0">Contactá al negocio para renovar tu pase</span>
+                    </div>
+                `;
+            }
 
             Promise.all([
                 fetch('backend/gestionar_servicios.php?n=' + encodeURIComponent(ruta)).then(r => r.json()),
@@ -1280,12 +1322,12 @@
             .then(([serviciosData, ocupadosData]) => {
                 const servicios = Array.isArray(serviciosData) ? serviciosData : (serviciosData.servicios || []);
                 if (servicios.length === 0) {
-                    grid.innerHTML = `<div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center"><p class="text-slate-600 font-bold text-sm">Este establecimiento no posee clases configuradas activas.</p></div>`;
+                    grid.innerHTML = passBannerHtml + `<div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center"><p class="text-slate-600 font-bold text-sm">Este establecimiento no posee clases configuradas activas.</p></div>`;
                     return;
                 }
 
                 const hoy = new Date();
-                let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+                let html = passBannerHtml + '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
 
                 function formatDuracionText(minutosRaw) {
                     const min = parseInt(minutosRaw, 10) || 0;
@@ -1323,7 +1365,9 @@
                             if (cHora !== horaDef5) return false;
                             const cServ = String(c.servicio || '').trim().toLowerCase();
                             const targetServ = String(sNombre).trim().toLowerCase();
-                            return (c.id_servicio == sId || cServ === targetServ);
+                            const matchServ = (c.id_servicio && sId) ? (c.id_servicio == sId) : (cServ === targetServ);
+                            const matchNeg = c.id_negocio ? (c.id_negocio == s.id_negocio) : (c.negocio_ruta === ruta);
+                            return matchServ && matchNeg;
                         });
 
                         // 2. Calcular conteo real de inscriptos y cupos disponibles
@@ -1344,8 +1388,11 @@
                         let badgeText = `🟢 ${cuposLibres} cupos libres`;
                         
                         if (isAlreadyEnrolled) {
-                            badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-300 font-extrabold';
-                            badgeText = `✓ Ya estás inscripto`;
+                            badgeColor = 'bg-emerald-600 text-white border-emerald-700 font-extrabold shadow-2xs';
+                            badgeText = `✓ YA ESTÁS ANOTADO/A`;
+                        } else if (pasesNegocio <= 0) {
+                            badgeColor = 'bg-red-100 text-red-800 border-red-200 font-extrabold';
+                            badgeText = `🔒 Sin pases en este negocio`;
                         } else if (cuposLibres === 1) {
                             badgeColor = 'bg-amber-100 text-amber-800 border-amber-200';
                             badgeText = `⚠️ 1 cupo libre`;
@@ -1357,9 +1404,16 @@
                         let buttonHtml = '';
                         if (isAlreadyEnrolled) {
                             buttonHtml = `
-                                <button disabled class="w-full bg-emerald-600 text-white font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider shadow-xs flex items-center justify-center gap-1.5 cursor-default opacity-95">
-                                    <span class="material-symbols-outlined text-[18px]">check_circle</span>
-                                    <span>✓ Ya estás inscripto/a</span>
+                                <button disabled class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2 cursor-default opacity-95">
+                                    <span class="material-symbols-outlined text-[18px]">verified</span>
+                                    <span>✓ Ya estás anotado/a a esta clase</span>
+                                </button>
+                            `;
+                        } else if (pasesNegocio <= 0) {
+                            buttonHtml = `
+                                <button disabled class="w-full bg-slate-200 text-slate-500 font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider cursor-not-allowed shadow-xs flex items-center justify-center gap-1.5">
+                                    <span class="material-symbols-outlined text-[18px]">lock</span>
+                                    <span>Sin pases en este negocio</span>
                                 </button>
                             `;
                         } else if (cuposLibres <= 0) {
@@ -1370,7 +1424,7 @@
                             `;
                         } else {
                             buttonHtml = `
-                                <button onclick="bookStudentClass('${s.id_negocio}', '${sId}', '${sNombre}', '${fechaStr}', '${horaDef5}', '${prof}')" class="w-full bg-[#FC8712] hover:bg-orange-600 text-white font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
+                                <button onclick="bookStudentClass('${s.id_negocio}', '${sId}', '${sNombre}', '${fechaStr}', '${horaDef5}', '${prof}')" class="w-full bg-[#FC8712] hover:bg-orange-600 text-white font-extrabold py-3 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md shadow-orange-500/20 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
                                     <span class="material-symbols-outlined text-[18px]">add_task</span>
                                     <span>Agendarme en esta Clase</span>
                                 </button>
@@ -1378,7 +1432,7 @@
                         }
 
                         html += `
-                            <div class="bg-white border ${isAlreadyEnrolled ? 'border-emerald-300 bg-emerald-50/20' : 'border-slate-200/90'} rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col justify-between gap-3">
+                            <div class="bg-white border ${isAlreadyEnrolled ? 'border-2 border-emerald-400 bg-emerald-50/70 shadow-md transform scale-[1.01]' : (pasesNegocio <= 0 ? 'border-slate-200/90 bg-slate-50/60 opacity-85' : 'border-slate-200/90 hover:border-orange-300 hover:shadow-md')} rounded-2xl p-4 shadow-sm transition-all flex flex-col justify-between gap-3">
                                 <div>
                                     <div class="flex justify-between items-start gap-2 mb-1">
                                         <h5 class="font-black text-slate-900 text-base">${sNombre}</h5>
@@ -1411,7 +1465,7 @@
                 grid.innerHTML = html;
             })
             .catch(err => {
-                grid.innerHTML = `<div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center"><p class="text-slate-500 font-bold text-sm">No se pudieron cargar los cupos. Por favor intentá nuevamente.</p></div>`;
+                grid.innerHTML = passBannerHtml + `<div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center"><p class="text-slate-500 font-bold text-sm">No se pudieron cargar los cupos. Por favor intentá nuevamente.</p></div>`;
             });
         }
 
@@ -1421,7 +1475,15 @@
             if (!email) return showStudentToast('Sesión no válida. Iniciar sesión nuevamente.', 'error');
 
             const selNegocio = document.getElementById('studentSelectNegocio');
+            const negocioRuta = selNegocio ? selNegocio.value : '';
             const negocioNombre = selNegocio ? selNegocio.options[selNegocio.selectedIndex]?.text : '';
+
+            // Verificar cliente-side que tenga pases para el negocio seleccionado
+            const currentNegocio = studentNegocios.find(n => n.negocio_ruta === negocioRuta) || {};
+            const pasesDisp = parseInt(currentNegocio.pases_disponibles) || 0;
+            if (pasesDisp <= 0) {
+                return showStudentToast(`No tenés pases disponibles en ${negocioNombre || 'este negocio'} para agendarte.`, 'error');
+            }
 
             const parts = fecha.split('-');
             const dateFormatted = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : fecha;
