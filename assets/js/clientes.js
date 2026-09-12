@@ -290,43 +290,72 @@ function editarCliente(id) {
     if (cliente) openModalCliente(cliente);
 }
 
+let clienteIdAEliminar = null;
+
 function eliminarCliente(id, nombre) {
     if (!isPremiumAccount) {
         showPremiumModalNotice();
         return;
     }
-    const doDelete = () => {
-        fetch('backend/gestionar_clientes.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `action=delete&id=${id}`
-        })
-        .then(r => r.json())
-        .then(d => {
-            if (d.success) {
-                if (typeof showToast === 'function') showToast('Alumno eliminado correctamente.', 'success');
-                cargarClientes();
-            } else {
-                if (typeof showToast === 'function') showToast(d.error || 'Error al eliminar alumno', 'error');
-            }
-        })
-        .catch(err => {
-            console.error('Error al eliminar alumno:', err);
-            if (typeof showToast === 'function') showToast('Error al conectar con el servidor para eliminar.', 'error');
-        });
-    };
+    clienteIdAEliminar = id;
+    const inputId = document.getElementById('deleteAlumnoId');
+    const txtNombre = document.getElementById('deleteAlumnoNombreText');
+    const modal = document.getElementById('modalConfirmDeleteAlumno');
 
-    if (typeof showConfirm === 'function') {
-        showConfirm({
-            title: '¿Eliminar Alumno?',
-            message: `¿Estás seguro de eliminar a <strong>${nombre}</strong> del sistema?`,
-            confirmText: 'Sí, Eliminar Alumno',
-            confirmColor: 'red',
-            onConfirm: doDelete
-        });
+    if (inputId) inputId.value = id;
+    if (txtNombre) txtNombre.innerHTML = escapeHtml(nombre);
+
+    if (modal) {
+        modal.classList.remove('hidden');
     } else {
-        if (confirm(`¿Eliminar a ${nombre}?`)) doDelete();
+        ejecutarEliminarAlumno(id);
     }
+}
+
+function closeModalConfirmDeleteAlumno() {
+    clienteIdAEliminar = null;
+    const modal = document.getElementById('modalConfirmDeleteAlumno');
+    if (modal) modal.classList.add('hidden');
+}
+
+function ejecutarEliminarAlumno(idOverride = null) {
+    const id = idOverride || clienteIdAEliminar || document.getElementById('deleteAlumnoId')?.value;
+    if (!id) return;
+
+    const btn = document.getElementById('btnConfirmDeleteAlumno');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span> Eliminando...`;
+    }
+
+    fetch('backend/gestionar_clientes.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `action=delete&id=${encodeURIComponent(id)}`
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">delete</span> Sí, Eliminar`;
+        }
+        closeModalConfirmDeleteAlumno();
+        if (d.success) {
+            if (typeof showToast === 'function') showToast('Alumno eliminado correctamente.', 'success');
+            cargarClientes();
+        } else {
+            if (typeof showToast === 'function') showToast(d.error || 'Error al eliminar alumno', 'error');
+        }
+    })
+    .catch(err => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">delete</span> Sí, Eliminar`;
+        }
+        closeModalConfirmDeleteAlumno();
+        console.error('Error al eliminar alumno:', err);
+        if (typeof showToast === 'function') showToast('Error al conectar con el servidor para eliminar.', 'error');
+    });
 }
 
 // Modal Cargar Más Pases Rápidos
