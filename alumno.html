@@ -1528,7 +1528,6 @@
                 return showStudentToast(`No tenés pases disponibles en ${negocioNombre || 'este negocio'} para agendarte.`, 'error');
             }
 
-            const parts = fecha.split('-');
             const dateFormatted = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : fecha;
 
             fetch('backend/cliente_auth.php?action=reservar_con_pase', {
