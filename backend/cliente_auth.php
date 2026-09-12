@@ -559,6 +559,14 @@ try {
             exit;
         }
 
+        // 0. Validar que la clase no sea para un horario que ya transcurrió
+        date_default_timezone_set('America/Argentina/Buenos_Aires');
+        $classTimestamp = strtotime($fecha . ' ' . $hora);
+        if ($classTimestamp !== false && $classTimestamp < time()) {
+            echo json_encode(['success' => false, 'error' => 'No podés reservar una clase cuyo horario ya transcurrió.']);
+            exit;
+        }
+
         // 1. Verificar si el alumno ya está inscripto en esta misma clase, fecha y hora
         $stmtCheckDup = $pdo->prepare("SELECT id FROM turnos WHERE id_negocio = :id_negocio AND LOWER(TRIM(cliente_celular)) = :email AND fecha = :fecha AND hora LIKE :hora AND (id_servicio = :id_servicio OR servicio = :servicio) AND estado != 'cancelado' LIMIT 1");
         $stmtCheckDup->execute([

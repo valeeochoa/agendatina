@@ -1231,8 +1231,14 @@
             // Rellenar Selector de Negocios para el Calendario de Cupos
             const selNegocio = document.getElementById('studentSelectNegocio');
             if (selNegocio && negocios.length > 0) {
+                const currentVal = selNegocio.value;
                 selNegocio.innerHTML = negocios.map(n => `<option value="${n.negocio_ruta}">${n.negocio_nombre}</option>`).join('');
-                loadStudentBusinessCalendar(negocios[0].negocio_ruta);
+                if (currentVal && negocios.some(n => n.negocio_ruta === currentVal)) {
+                    selNegocio.value = currentVal;
+                    loadStudentBusinessCalendar(currentVal);
+                } else {
+                    loadStudentBusinessCalendar(negocios[0].negocio_ruta);
+                }
             }
         }
 
@@ -1351,11 +1357,19 @@
                     for (let i = 0; i < 4; i++) {
                         const dateObj = new Date();
                         dateObj.setDate(hoy.getDate() + i);
-                        const fechaStr = dateObj.toISOString().split('T')[0];
+                        const y = dateObj.getFullYear();
+                        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+                        const d = String(dateObj.getDate()).padStart(2, '0');
+                        const fechaStr = `${y}-${m}-${d}`;
                         const dateFormatted = dateObj.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' });
                         
                         const horaDef = s.hora_apertura || '10:00';
                         const horaDef5 = horaDef.substring(0, 5);
+
+                        // Comprobar si el horario ya transcurrió en la fecha y hora actual
+                        const [hr, mn] = horaDef5.split(':').map(Number);
+                        const slotDateObj = new Date(y, dateObj.getMonth(), parseInt(d, 10), hr, mn, 0);
+                        const isPastTime = slotDateObj < hoy;
 
                         // 1. Verificar si este alumno ya está inscripto a esta clase en este día y hora
                         const isAlreadyEnrolled = allStudentClases.some(c => {
@@ -1390,6 +1404,9 @@
                         if (isAlreadyEnrolled) {
                             badgeColor = 'bg-emerald-600 text-white border-emerald-700 font-extrabold shadow-2xs';
                             badgeText = `✓ YA ESTÁS ANOTADO/A`;
+                        } else if (isPastTime) {
+                            badgeColor = 'bg-slate-200 text-slate-600 border-slate-300 font-bold';
+                            badgeText = `🕒 Horario transcurrido`;
                         } else if (pasesNegocio <= 0) {
                             badgeColor = 'bg-red-100 text-red-800 border-red-200 font-extrabold';
                             badgeText = `🔒 Sin pases en este negocio`;
@@ -1407,6 +1424,13 @@
                                 <button disabled class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2 cursor-default opacity-95">
                                     <span class="material-symbols-outlined text-[18px]">verified</span>
                                     <span>✓ Ya estás anotado/a a esta clase</span>
+                                </button>
+                            `;
+                        } else if (isPastTime) {
+                            buttonHtml = `
+                                <button disabled class="w-full bg-slate-100 text-slate-400 font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider cursor-not-allowed shadow-none border border-slate-200/80 flex items-center justify-center gap-1.5">
+                                    <span class="material-symbols-outlined text-[18px]">history</span>
+                                    <span>Horario Finalizado</span>
                                 </button>
                             `;
                         } else if (pasesNegocio <= 0) {
@@ -1431,8 +1455,17 @@
                             `;
                         }
 
+                        let cardClass = 'border-slate-200/90 hover:border-orange-300 hover:shadow-md';
+                        if (isAlreadyEnrolled) {
+                            cardClass = 'border-2 border-emerald-400 bg-emerald-50/70 shadow-md transform scale-[1.01]';
+                        } else if (isPastTime) {
+                            cardClass = 'border-slate-200 bg-slate-50/50 opacity-60';
+                        } else if (pasesNegocio <= 0) {
+                            cardClass = 'border-slate-200/90 bg-slate-50/60 opacity-85';
+                        }
+
                         html += `
-                            <div class="bg-white border ${isAlreadyEnrolled ? 'border-2 border-emerald-400 bg-emerald-50/70 shadow-md transform scale-[1.01]' : (pasesNegocio <= 0 ? 'border-slate-200/90 bg-slate-50/60 opacity-85' : 'border-slate-200/90 hover:border-orange-300 hover:shadow-md')} rounded-2xl p-4 shadow-sm transition-all flex flex-col justify-between gap-3">
+                            <div class="bg-white border ${cardClass} rounded-2xl p-4 shadow-sm transition-all flex flex-col justify-between gap-3">
                                 <div>
                                     <div class="flex justify-between items-start gap-2 mb-1">
                                         <h5 class="font-black text-slate-900 text-base">${sNombre}</h5>
@@ -1473,6 +1506,16 @@
         function bookStudentClass(idNegocio, idServicio, servicioNombre, fecha, hora, profesional) {
             const email = sessionStorage.getItem('agendatina_alumno_email');
             if (!email) return showStudentToast('Sesión no válida. Iniciar sesión nuevamente.', 'error');
+
+            // Validar cliente-side si el horario ya transcurrió
+            const parts = fecha.split('-');
+            if (parts.length === 3) {
+                const [hr, mn] = hora.split(':').map(Number);
+                const classDT = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), hr, mn, 0);
+                if (classDT < new Date()) {
+                    return showStudentToast('No podés reservar una clase cuyo horario ya transcurrió.', 'error');
+                }
+            }
 
             const selNegocio = document.getElementById('studentSelectNegocio');
             const negocioRuta = selNegocio ? selNegocio.value : '';
