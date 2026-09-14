@@ -1,4 +1,5 @@
 let allClientes = [];
+let allServicios = [];
 let filtroActual = 'todos';
 let isPremiumAccount = true;
 let currentPlanName = 'Simple';
@@ -16,11 +17,13 @@ function cargarClientes() {
         .then(data => {
             if (data.success) {
                 allClientes = data.data || [];
+                allServicios = data.servicios || [];
                 isPremiumAccount = data.is_premium !== undefined ? data.is_premium : true;
                 currentPlanName = data.plan || 'Simple';
                 negocioRutaUnica = data.negocio_ruta || '';
                 negocioNombreUnico = data.negocio_nombre || '';
                 
+                poblarServiciosDropdowns();
                 actualizarEnlaceUnicoView();
                 verificarRestriccionPremium();
                 actualizarMetricas();
@@ -140,6 +143,7 @@ function renderTablaAlumnos() {
         }
 
         const vencText = c.fecha_vencimiento ? formatearFecha(c.fecha_vencimiento) : 'Sin Vencimiento';
+        const sNombre = c.servicio || (c.id_servicio ? (allServicios.find(s => s.id == c.id_servicio)?.nombre || '') : '');
 
         return `
             <tr class="hover:bg-slate-50/80 transition-colors">
@@ -150,7 +154,8 @@ function renderTablaAlumnos() {
                         </div>
                         <div>
                             <strong class="text-slate-900 font-bold block text-xs sm:text-sm">${c.nombre_completo}</strong>
-                            ${c.notas ? `<span class="text-[11px] text-slate-400 line-clamp-1">${c.notas}</span>` : ''}
+                            ${sNombre ? `<span class="inline-flex items-center gap-1 bg-orange-50 text-orange-700 border border-orange-200/60 px-2 py-0.5 rounded-md text-[10px] font-extrabold mt-0.5"><span class="material-symbols-outlined text-[12px]">fitness_center</span> ${escapeHtml(sNombre)}</span>` : ''}
+                            ${c.notas ? `<span class="text-[11px] text-slate-400 block line-clamp-1 mt-0.5">${c.notas}</span>` : ''}
                         </div>
                     </div>
                 </td>
@@ -188,6 +193,48 @@ function renderTablaAlumnos() {
     }).join('');
 }
 
+function poblarServiciosDropdowns() {
+    const selCliente = document.getElementById('clienteServicio');
+    if (selCliente) {
+        const currentVal = selCliente.value;
+        let html = '<option value="">-- Seleccionar Servicio --</option>';
+        allServicios.forEach(s => {
+            html += `<option value="${s.id}">${escapeHtml(s.nombre)} (${s.cupo_maximo} cupos)</option>`;
+        });
+        selCliente.innerHTML = html;
+        if (currentVal) selCliente.value = currentVal;
+    }
+
+    const selInvite = document.getElementById('inviteModalServicio');
+    if (selInvite) {
+        const currentVal = selInvite.value;
+        let html = '<option value="">Todos los Servicios (Predeterminado)</option>';
+        allServicios.forEach(s => {
+            html += `<option value="${s.id}">${escapeHtml(s.nombre)}</option>`;
+        });
+        selInvite.innerHTML = html;
+        if (currentVal) selInvite.value = currentVal;
+    }
+}
+
+function onClienteServicioChange() {
+    const sel = document.getElementById('clienteServicio');
+    if (!sel) return;
+    const servId = sel.value;
+    if (!servId) return;
+
+    const serv = allServicios.find(s => s.id == servId);
+    if (serv) {
+        const pasesInput = document.getElementById('clientePases');
+        if (pasesInput) pasesInput.value = serv.cupo_maximo || 8;
+
+        const defaultDate = new Date();
+        defaultDate.setDate(defaultDate.getDate() + 30);
+        const vencInput = document.getElementById('clienteVencimiento');
+        if (vencInput) vencInput.value = defaultDate.toISOString().split('T')[0];
+    }
+}
+
 function filtrarAlumnos() {
     renderTablaAlumnos();
 }
@@ -215,6 +262,8 @@ function openModalCliente(cliente = null) {
     const form = document.getElementById('formCliente');
     if (form) form.reset();
 
+    poblarServiciosDropdowns();
+
     if (cliente) {
         document.getElementById('modalClienteTitle').textContent = 'Editar Alumno';
         document.getElementById('clienteId').value = cliente.id;
@@ -224,15 +273,22 @@ function openModalCliente(cliente = null) {
         document.getElementById('clientePases').value = cliente.pases_disponibles || 0;
         document.getElementById('clienteVencimiento').value = cliente.fecha_vencimiento || '';
         document.getElementById('clienteNotas').value = cliente.notas || '';
+        const selServ = document.getElementById('clienteServicio');
+        if (selServ) selServ.value = cliente.id_servicio || '';
     } else {
         document.getElementById('modalClienteTitle').textContent = 'Cargar Nuevo Alumno';
         document.getElementById('clienteId').value = '';
-        document.getElementById('clientePases').value = 8;
-        
-        // Colocar vencimiento a 30 días por defecto
-        const defaultDate = new Date();
-        defaultDate.setDate(defaultDate.getDate() + 30);
-        document.getElementById('clienteVencimiento').value = defaultDate.toISOString().split('T')[0];
+        const selServ = document.getElementById('clienteServicio');
+        if (selServ && allServicios.length === 1) {
+            selServ.value = allServicios[0].id;
+            onClienteServicioChange();
+        } else {
+            if (selServ) selServ.value = '';
+            document.getElementById('clientePases').value = 8;
+            const defaultDate = new Date();
+            defaultDate.setDate(defaultDate.getDate() + 30);
+            document.getElementById('clienteVencimiento').value = defaultDate.toISOString().split('T')[0];
+        }
     }
 
     const modal = document.getElementById('modalCliente');
@@ -253,11 +309,16 @@ function guardarCliente(e) {
     const btn = document.getElementById('btnGuardarCliente');
     if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
 
+    const selectedServId = document.getElementById('clienteServicio')?.value || null;
+    const selectedServObj = allServicios.find(s => s.id == selectedServId);
+
     const payload = {
         id: document.getElementById('clienteId')?.value || null,
         nombre_completo: document.getElementById('clienteNombre')?.value || '',
         email: document.getElementById('clienteEmail')?.value || '',
         telefono: document.getElementById('clienteTelefono')?.value || '',
+        id_servicio: selectedServId,
+        servicio: selectedServObj ? selectedServObj.nombre : '',
         pases_disponibles: document.getElementById('clientePases')?.value || 0,
         fecha_vencimiento: document.getElementById('clienteVencimiento')?.value || null,
         notas: document.getElementById('clienteNotas')?.value || ''
@@ -418,8 +479,14 @@ function escapeHtml(str) {
 function actualizarEnlaceUnicoView() {
     const el = document.getElementById('inputEnlaceUnicoText');
     const elModal = document.getElementById('modalInputEnlaceUnicoText');
+    const selInvite = document.getElementById('inviteModalServicio');
+    const selectedServId = selInvite ? selInvite.value : '';
+
     if (negocioRutaUnica) {
-        const fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}`;
+        let fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}`;
+        if (selectedServId) {
+            fullUrl += `&s=${encodeURIComponent(selectedServId)}`;
+        }
         if (el) el.textContent = fullUrl;
         if (elModal) elModal.textContent = fullUrl;
     } else {
@@ -429,6 +496,7 @@ function actualizarEnlaceUnicoView() {
 }
 
 function openModalInvitarAlumnos() {
+    poblarServiciosDropdowns();
     actualizarEnlaceUnicoView();
     const modal = document.getElementById('modalInvitarAlumnos');
     if (modal) modal.classList.remove('hidden');
@@ -445,7 +513,12 @@ function copiarEnlaceUnicoModal() {
 
 function copiarEnlaceUnico() {
     if (!negocioRutaUnica) return;
-    const fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}`;
+    const selInvite = document.getElementById('inviteModalServicio');
+    const selectedServId = selInvite ? selInvite.value : '';
+    let fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}`;
+    if (selectedServId) {
+        fullUrl += `&s=${encodeURIComponent(selectedServId)}`;
+    }
     
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(fullUrl).then(() => {
@@ -470,7 +543,12 @@ function fallbackCopiar(text) {
 
 function compartirWhatsAppEnlaceUnico() {
     if (!negocioRutaUnica) return;
-    const fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}`;
+    const selInvite = document.getElementById('inviteModalServicio');
+    const selectedServId = selInvite ? selInvite.value : '';
+    let fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}`;
+    if (selectedServId) {
+        fullUrl += `&s=${encodeURIComponent(selectedServId)}`;
+    }
     const nom = negocioNombreUnico || 'nuestro establecimiento';
     const msg = `¡Hola! Podés registrarte o anotarte a nuestras clases en ${nom} a través de nuestro enlace oficial:\n\n${fullUrl}`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');

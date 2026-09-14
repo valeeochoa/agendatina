@@ -42,6 +42,13 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN cancel
 try { $pdo->query("SELECT cancelaciones_restantes FROM clientes_negocio LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN cancelaciones_restantes INT DEFAULT NULL"); }
 
+try { $pdo->query("SELECT id_servicio FROM clientes_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN id_servicio INT DEFAULT NULL"); }
+
+try { $pdo->query("SELECT servicio FROM clientes_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN servicio VARCHAR(255) DEFAULT NULL"); }
+
+
 
 
 
@@ -98,7 +105,7 @@ try {
 
         try {
             $stmt = $pdo->prepare("
-                SELECT c.id, c.nombre_completo, c.email, c.telefono, c.pases_disponibles, c.pases_totales, c.fecha_vencimiento, c.notas, c.estado, c.fecha_alta,
+                SELECT c.id, c.nombre_completo, c.email, c.telefono, c.pases_disponibles, c.pases_totales, c.fecha_vencimiento, c.notas, c.estado, c.fecha_alta, c.id_servicio, c.servicio,
                        (SELECT COUNT(*) FROM turnos t WHERE t.id_negocio = c.id_negocio AND (t.cliente_celular COLLATE utf8mb4_general_ci = c.email COLLATE utf8mb4_general_ci OR t.cliente_nombre COLLATE utf8mb4_general_ci = c.nombre_completo COLLATE utf8mb4_general_ci) AND t.estado IN ('pendiente', 'confirmado')) AS clases_reservadas
                 FROM clientes_negocio c
                 WHERE c.id_negocio = :id_negocio
@@ -109,7 +116,7 @@ try {
         } catch (Exception $eCollation) {
             // Fallback 100% seguro si hay conflicto de collation entre tablas
             $stmt = $pdo->prepare("
-                SELECT c.id, c.nombre_completo, c.email, c.telefono, c.pases_disponibles, c.pases_totales, c.fecha_vencimiento, c.notas, c.estado, c.fecha_alta,
+                SELECT c.id, c.nombre_completo, c.email, c.telefono, c.pases_disponibles, c.pases_totales, c.fecha_vencimiento, c.notas, c.estado, c.fecha_alta, c.id_servicio, c.servicio,
                        0 AS clases_reservadas
                 FROM clientes_negocio c
                 WHERE c.id_negocio = :id_negocio
@@ -138,6 +145,14 @@ try {
             }
         }
 
+        // Obtener la lista de servicios activos del negocio
+        $servicios = [];
+        try {
+            $stmtServ = $pdo->prepare("SELECT id, nombre_servicio AS nombre, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo FROM servicios WHERE id_negocio = :id_negocio ORDER BY orden ASC, id DESC");
+            $stmtServ->execute(['id_negocio' => $id_negocio]);
+            $servicios = $stmtServ->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $eServ) {}
+
         // Calcular estado automático según vencimiento o pases
         $today = date('Y-m-d');
         foreach ($clientes as &$c) {
@@ -157,6 +172,7 @@ try {
         echo json_encode([
             'success' => true, 
             'data' => $clientes,
+            'servicios' => $servicios,
             'is_premium' => $is_premium,
             'plan' => $plan_negocio,
             'negocio_ruta' => $negocio_ruta,
@@ -243,6 +259,18 @@ try {
             exit;
         }
 
+        $id_servicio = !empty($data['id_servicio']) ? (int)$data['id_servicio'] : (!empty($_POST['id_servicio']) ? (int)$_POST['id_servicio'] : null);
+        $servicio = trim($data['servicio'] ?? $_POST['servicio'] ?? '');
+
+        if ($id_servicio && empty($servicio)) {
+            try {
+                $stmtSName = $pdo->prepare("SELECT nombre_servicio FROM servicios WHERE id = :id_serv AND id_negocio = :id_neg LIMIT 1");
+                $stmtSName->execute(['id_serv' => $id_servicio, 'id_neg' => $id_negocio]);
+                $sName = $stmtSName->fetchColumn();
+                if ($sName) $servicio = $sName;
+            } catch (Exception $eSName) {}
+        }
+
         $nombre = trim($data['nombre_completo'] ?? $data['nombre'] ?? '');
         $email = trim($data['email'] ?? '');
         $telefono = trim($data['telefono'] ?? '');
@@ -267,6 +295,8 @@ try {
                 SET nombre_completo = :nombre, 
                     email = :email, 
                     telefono = :telefono, 
+                    id_servicio = :id_servicio,
+                    servicio = :servicio,
                     pases_disponibles = :pases, 
                     pases_totales = :pases_totales, 
                     fecha_vencimiento = :venc, 
@@ -279,6 +309,8 @@ try {
                 'nombre' => $nombre,
                 'email' => $email,
                 'telefono' => $telefono,
+                'id_servicio' => $id_servicio,
+                'servicio' => $servicio,
                 'pases' => $pases,
                 'pases_totales' => $pases_totales,
                 'venc' => $fecha_vencimiento,
@@ -296,11 +328,13 @@ try {
             }
 
             $stmt = $pdo->prepare("
-                INSERT INTO clientes_negocio (id_negocio, nombre_completo, email, telefono, pases_disponibles, pases_totales, fecha_vencimiento, notas, cancelaciones_permitidas, cancelaciones_restantes, estado)
-                VALUES (:id_negocio, :nombre, :email, :telefono, :pases, :pases_totales, :venc, :notas, :canc_perm, :canc_rest, 'pendiente_activacion')
+                INSERT INTO clientes_negocio (id_negocio, id_servicio, servicio, nombre_completo, email, telefono, pases_disponibles, pases_totales, fecha_vencimiento, notas, cancelaciones_permitidas, cancelaciones_restantes, estado)
+                VALUES (:id_negocio, :id_servicio, :servicio, :nombre, :email, :telefono, :pases, :pases_totales, :venc, :notas, :canc_perm, :canc_rest, 'pendiente_activacion')
             ");
             $stmt->execute([
                 'id_negocio' => $id_negocio,
+                'id_servicio' => $id_servicio,
+                'servicio' => $servicio,
                 'nombre' => $nombre,
                 'email' => $email,
                 'telefono' => $telefono,

@@ -42,6 +42,13 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN cancel
 try { $pdo->query("SELECT cancelaciones_restantes FROM clientes_negocio LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN cancelaciones_restantes INT DEFAULT NULL"); }
 
+try { $pdo->query("SELECT id_servicio FROM clientes_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN id_servicio INT DEFAULT NULL"); }
+
+try { $pdo->query("SELECT servicio FROM clientes_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN servicio VARCHAR(255) DEFAULT NULL"); }
+
+
 
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
@@ -103,6 +110,26 @@ try {
         }
 
         $id_negocio = $negocio['id'];
+        $reqServId = !empty($_POST['id_servicio']) ? (int)$_POST['id_servicio'] : (!empty($_POST['s']) ? (int)$_POST['s'] : (!empty($_GET['s']) ? (int)$_GET['s'] : null));
+
+        // Obtener servicio asignado o servicio por defecto del negocio
+        $targetServ = null;
+        if ($reqServId) {
+            $stmtS = $pdo->prepare("SELECT id, nombre_servicio, COALESCE(cupo_maximo, capacidad, 1) AS cupos FROM servicios WHERE id = :id_serv AND id_negocio = :id_neg LIMIT 1");
+            $stmtS->execute(['id_serv' => $reqServId, 'id_neg' => $id_negocio]);
+            $targetServ = $stmtS->fetch(PDO::FETCH_ASSOC);
+        }
+        if (!$targetServ) {
+            $stmtSDef = $pdo->prepare("SELECT id, nombre_servicio, COALESCE(cupo_maximo, capacidad, 1) AS cupos FROM servicios WHERE id_negocio = :id_neg ORDER BY orden ASC, id ASC LIMIT 1");
+            $stmtSDef->execute(['id_neg' => $id_negocio]);
+            $targetServ = $stmtSDef->fetch(PDO::FETCH_ASSOC);
+        }
+
+        $initialPases = $targetServ ? (int)$targetServ['cupos'] : 0;
+        $initialServId = $targetServ ? (int)$targetServ['id'] : null;
+        $initialServNombre = $targetServ ? $targetServ['nombre_servicio'] : null;
+        $initialVenc = date('Y-m-d', strtotime('+1 month'));
+        $initialEstado = $initialPases > 0 ? 'activo' : 'pendiente_activacion';
 
         // Verificar si ya existe un alumno con este email vinculado a ESTE negocio
         $stmtCheck = $pdo->prepare("SELECT id, password FROM clientes_negocio WHERE id_negocio = :id_negocio AND LOWER(TRIM(email)) = :email LIMIT 1");
@@ -116,20 +143,53 @@ try {
                 echo json_encode(['success' => false, 'error' => 'Ya tenés una cuenta registrada en este establecimiento. Seleccioná la opción "Ya tengo cuenta" para ingresar.']);
                 exit;
             } else {
-                // Pre-registrado previamente por el administrador del negocio sin contraseña -> actualizar clave y activar
-                $stmtUp = $pdo->prepare("UPDATE clientes_negocio SET nombre_completo = :nombre, telefono = :telefono, password = :hash, estado = 'activo' WHERE id = :id");
-                $stmtUp->execute(['nombre' => $nombre, 'telefono' => $telefono, 'hash' => $hash, 'id' => $existente['id']]);
+                // Pre-registrado previamente por el administrador del negocio sin contraseña -> actualizar clave y activar asignando pases del servicio
+                $stmtUp = $pdo->prepare("
+                    UPDATE clientes_negocio 
+                    SET nombre_completo = :nombre, 
+                        telefono = :telefono, 
+                        password = :hash, 
+                        id_servicio = COALESCE(id_servicio, :id_serv),
+                        servicio = COALESCE(servicio, :serv),
+                        pases_disponibles = IF(pases_disponibles <= 0, :pases, pases_disponibles),
+                        pases_totales = IF(pases_totales <= 0, :pases, pases_totales),
+                        cancelaciones_permitidas = IF(cancelaciones_permitidas IS NULL OR cancelaciones_permitidas <= 0, :pases, cancelaciones_permitidas),
+                        cancelaciones_restantes = IF(cancelaciones_restantes IS NULL OR cancelaciones_restantes <= 0, :pases, cancelaciones_restantes),
+                        fecha_vencimiento = COALESCE(fecha_vencimiento, :venc),
+                        estado = 'activo' 
+                    WHERE id = :id
+                ");
+                $stmtUp->execute([
+                    'nombre' => $nombre, 
+                    'telefono' => $telefono, 
+                    'hash' => $hash, 
+                    'id_serv' => $initialServId,
+                    'serv' => $initialServNombre,
+                    'pases' => $initialPases,
+                    'venc' => $initialVenc,
+                    'id' => $existente['id']
+                ]);
                 $cId = $existente['id'];
             }
         } else {
-            // Crear nuevo registro en el negocio
-            $stmtIns = $pdo->prepare("INSERT INTO clientes_negocio (id_negocio, nombre_completo, email, telefono, password, pases_disponibles, pases_totales, estado) VALUES (:id_negocio, :nombre, :email, :telefono, :hash, 0, 0, 'pendiente_activacion')");
+            // Crear nuevo registro en el negocio asignando automáticamente los pases configurados del servicio
+            $stmtIns = $pdo->prepare("
+                INSERT INTO clientes_negocio 
+                (id_negocio, id_servicio, servicio, nombre_completo, email, telefono, password, pases_disponibles, pases_totales, fecha_vencimiento, cancelaciones_permitidas, cancelaciones_restantes, estado) 
+                VALUES 
+                (:id_negocio, :id_serv, :serv, :nombre, :email, :telefono, :hash, :pases, :pases, :venc, :pases, :pases, :estado)
+            ");
             $stmtIns->execute([
                 'id_negocio' => $id_negocio,
+                'id_serv' => $initialServId,
+                'serv' => $initialServNombre,
                 'nombre' => $nombre,
                 'email' => $email,
                 'telefono' => $telefono,
-                'hash' => $hash
+                'hash' => $hash,
+                'pases' => $initialPases,
+                'venc' => $initialVenc,
+                'estado' => $initialEstado
             ]);
             $cId = $pdo->lastInsertId();
         }
@@ -144,13 +204,13 @@ try {
             $stmtNotif->execute([
                 'id_negocio' => $id_negocio,
                 'titulo' => '👤 Nuevo Alumno Vinculado',
-                'mensaje' => "El alumno/a {$nombre} ({$email}) se ha registrado y vinculado a tu negocio por enlace."
+                'mensaje' => "El alumno/a {$nombre} ({$email}) se ha registrado y vinculado a tu negocio por enlace." . ($initialServNombre ? " Servicio: {$initialServNombre} ({$initialPases} pases)." : "")
             ]);
         } catch (\Throwable $eNotif) {}
 
         echo json_encode([
             'success' => true,
-            'message' => '¡Cuenta registrada y vinculada con éxito a ' . $negocio['nombre_fantasia'] . '!',
+            'message' => '¡Cuenta registrada y vinculada con éxito a ' . $negocio['nombre_fantasia'] . '!' . ($initialPases > 0 ? " Se asignaron {$initialPases} pases para {$initialServNombre}." : ''),
             'cliente' => [
                 'id' => $cId,
                 'nombre' => $nombre,
@@ -168,6 +228,7 @@ try {
         $ruta = strtolower(trim($_POST['ruta'] ?? ''));
         $email = strtolower(trim($_POST['email'] ?? ''));
         $password = trim($_POST['password'] ?? '');
+        $reqServId = !empty($_POST['id_servicio']) ? (int)$_POST['id_servicio'] : (!empty($_POST['s']) ? (int)$_POST['s'] : (!empty($_GET['s']) ? (int)$_GET['s'] : null));
 
         if (empty($ruta) || empty($email) || empty($password)) {
             echo json_encode(['success' => false, 'error' => 'Ingresá tu correo electrónico y contraseña.']);
@@ -185,6 +246,25 @@ try {
         }
 
         $id_negocio = $negocio['id'];
+
+        // Obtener servicio asignado o servicio por defecto del negocio
+        $targetServ = null;
+        if ($reqServId) {
+            $stmtS = $pdo->prepare("SELECT id, nombre_servicio, COALESCE(cupo_maximo, capacidad, 1) AS cupos FROM servicios WHERE id = :id_serv AND id_negocio = :id_neg LIMIT 1");
+            $stmtS->execute(['id_serv' => $reqServId, 'id_neg' => $id_negocio]);
+            $targetServ = $stmtS->fetch(PDO::FETCH_ASSOC);
+        }
+        if (!$targetServ) {
+            $stmtSDef = $pdo->prepare("SELECT id, nombre_servicio, COALESCE(cupo_maximo, capacidad, 1) AS cupos FROM servicios WHERE id_negocio = :id_neg ORDER BY orden ASC, id ASC LIMIT 1");
+            $stmtSDef->execute(['id_neg' => $id_negocio]);
+            $targetServ = $stmtSDef->fetch(PDO::FETCH_ASSOC);
+        }
+
+        $initialPases = $targetServ ? (int)$targetServ['cupos'] : 0;
+        $initialServId = $targetServ ? (int)$targetServ['id'] : null;
+        $initialServNombre = $targetServ ? $targetServ['nombre_servicio'] : null;
+        $initialVenc = date('Y-m-d', strtotime('+1 month'));
+        $initialEstado = $initialPases > 0 ? 'activo' : 'pendiente_activacion';
 
         // Buscar alumno por email en cualquier negocio para validar contraseña
         $stmtClient = $pdo->prepare("SELECT id, nombre_completo, email, telefono, password FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email AND password IS NOT NULL LIMIT 1");
@@ -208,19 +288,50 @@ try {
         $link = $stmtLink->fetch(PDO::FETCH_ASSOC);
 
         if (!$link) {
-            // Crear la vinculación en el nuevo negocio
-            $stmtNewLink = $pdo->prepare("INSERT INTO clientes_negocio (id_negocio, nombre_completo, email, telefono, password, pases_disponibles, pases_totales, estado) VALUES (:id_negocio, :nombre, :email, :telefono, :hash, 0, 0, 'pendiente_activacion')");
+            // Crear la vinculación en el nuevo negocio asignando los pases del servicio
+            $stmtNewLink = $pdo->prepare("
+                INSERT INTO clientes_negocio 
+                (id_negocio, id_servicio, servicio, nombre_completo, email, telefono, password, pases_disponibles, pases_totales, fecha_vencimiento, cancelaciones_permitidas, cancelaciones_restantes, estado) 
+                VALUES 
+                (:id_negocio, :id_serv, :serv, :nombre, :email, :telefono, :hash, :pases, :pases, :venc, :pases, :pases, :estado)
+            ");
             $stmtNewLink->execute([
                 'id_negocio' => $id_negocio,
+                'id_serv' => $initialServId,
+                'serv' => $initialServNombre,
                 'nombre' => $alumno['nombre_completo'],
                 'email' => $email,
                 'telefono' => $alumno['telefono'] ?? '',
-                'hash' => $alumno['password']
+                'hash' => $alumno['password'],
+                'pases' => $initialPases,
+                'venc' => $initialVenc,
+                'estado' => $initialEstado
             ]);
             $cId = $pdo->lastInsertId();
-            $msg = '¡Te has vinculado con éxito a ' . $negocio['nombre_fantasia'] . '! El establecimiento te asignará tus cupos de clase.';
+            $msg = '¡Te has vinculado con éxito a ' . $negocio['nombre_fantasia'] . '!' . ($initialPases > 0 ? " Se asignaron {$initialPases} pases para {$initialServNombre}." : ' El establecimiento te asignará tus cupos de clase.');
         } else {
             $cId = $link['id'];
+            if ($link['pases_disponibles'] <= 0 && $initialPases > 0) {
+                $stmtUpL = $pdo->prepare("
+                    UPDATE clientes_negocio 
+                    SET id_servicio = COALESCE(id_servicio, :id_serv),
+                        servicio = COALESCE(servicio, :serv),
+                        pases_disponibles = :pases,
+                        pases_totales = :pases,
+                        cancelaciones_permitidas = :pases,
+                        cancelaciones_restantes = :pases,
+                        fecha_vencimiento = COALESCE(fecha_vencimiento, :venc),
+                        estado = 'activo'
+                    WHERE id = :id
+                ");
+                $stmtUpL->execute([
+                    'id_serv' => $initialServId,
+                    'serv' => $initialServNombre,
+                    'pases' => $initialPases,
+                    'venc' => $initialVenc,
+                    'id' => $link['id']
+                ]);
+            }
             $msg = '¡Bienvenido! Tu cuenta ya se encuentra vinculada a ' . $negocio['nombre_fantasia'] . '.';
         }
 
