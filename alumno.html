@@ -1206,6 +1206,27 @@
                     const vencTag = formatVencimientoTag(c.fecha_vencimiento);
                     const cancRest = c.cancelaciones_restantes !== undefined ? parseInt(c.cancelaciones_restantes) : (parseInt(c.cancelaciones_max) || 4);
                     const cancMax = parseInt(c.cancelaciones_max) || 4;
+
+                    const classStartDate = parseClassDateTime(c.fecha, c.hora);
+                    const hasStarted = classStartDate ? (classStartDate <= hoy) : false;
+
+                    let cancelBtnHtml = '';
+                    if (hasStarted) {
+                        cancelBtnHtml = `
+                            <button disabled class="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 ml-auto flex items-center gap-1 cursor-not-allowed shadow-none" title="No podés cancelar una clase cuyo horario ya inició">
+                                <span class="material-symbols-outlined text-[16px]">lock</span> Clase en curso / iniciada
+                            </button>
+                        `;
+                    } else {
+                        const safeFecha = String(c.fecha).replace(/'/g, "\\'");
+                        const safeHora = String(c.hora).replace(/'/g, "\\'");
+                        cancelBtnHtml = `
+                            <button onclick="promptCancelTurno(${c.id}, ${cancRest}, '${safeFecha}', '${safeHora}')" class="text-xs font-extrabold text-red-600 hover:bg-red-50 px-3.5 py-1.5 rounded-xl border border-red-200 transition-colors ml-auto flex items-center gap-1 cursor-pointer">
+                                <span class="material-symbols-outlined text-[16px]">cancel</span> Cancelar Reserva
+                            </button>
+                        `;
+                    }
+
                     return `
                         <div class="bg-white/95 border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-xl transition-all flex flex-col justify-between gap-4">
                             <div class="flex items-start gap-4">
@@ -1232,9 +1253,7 @@
                                         <span class="material-symbols-outlined text-[14px]">published_with_changes</span> Cancelaciones disponibles: ${cancRest}/${cancMax}
                                     </span>
                                 </div>
-                                <button onclick="promptCancelTurno(${c.id}, ${cancRest})" class="text-xs font-extrabold text-red-600 hover:bg-red-50 px-3.5 py-1.5 rounded-xl border border-red-200 transition-colors ml-auto flex items-center gap-1 cursor-pointer">
-                                    <span class="material-symbols-outlined text-[16px]">cancel</span> Cancelar Reserva
-                                </button>
+                                ${cancelBtnHtml}
                             </div>
                         </div>
                     `;
@@ -2029,7 +2048,14 @@
             });
         }
 
-        function promptCancelTurno(id, cancelacionesRestantes) {
+        function promptCancelTurno(id, cancelacionesRestantes, fechaStr, horaStr) {
+            if (fechaStr && horaStr) {
+                const classSD = parseClassDateTime(fechaStr, horaStr);
+                if (classSD && classSD <= new Date()) {
+                    return showStudentToast('No podés cancelar una reserva para una clase que ya inició o transcurrió.', 'error');
+                }
+            }
+
             pendingCancelTurnoId = id;
             const overlay = document.getElementById('cancelModalOverlay');
             const title = document.getElementById('cancelModalTitle');

@@ -558,7 +558,7 @@ try {
             exit;
         }
 
-        $stmtCheck = $pdo->prepare("SELECT id, id_negocio, estado FROM turnos WHERE id = :id AND (LOWER(TRIM(cliente_celular)) = :email OR LOWER(cliente_nombre) LIKE :emailLike)");
+        $stmtCheck = $pdo->prepare("SELECT id, id_negocio, estado, fecha, hora FROM turnos WHERE id = :id AND (LOWER(TRIM(cliente_celular)) = :email OR LOWER(cliente_nombre) LIKE :emailLike)");
         $stmtCheck->execute(['id' => $turnoId, 'email' => $email, 'emailLike' => '%' . $email . '%']);
         $turno = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
@@ -569,6 +569,18 @@ try {
 
         if ($turno['estado'] === 'cancelado') {
             echo json_encode(['success' => false, 'error' => 'Esta clase ya se encuentra cancelada.']);
+            exit;
+        }
+
+        // Validar que la clase no haya iniciado aún
+        date_default_timezone_set('America/Argentina/Buenos_Aires');
+        $fechaClean = str_replace('/', '-', trim($turno['fecha'] ?? ''));
+        if (preg_match('/^(\d{1,2})-(\d{1,2})-(\d{4})$/', $fechaClean, $matches)) {
+            $fechaClean = $matches[3] . '-' . sprintf('%02d', $matches[2]) . '-' . sprintf('%02d', $matches[1]);
+        }
+        $classStartTimestamp = strtotime($fechaClean . ' ' . trim($turno['hora'] ?? ''));
+        if ($classStartTimestamp !== false && $classStartTimestamp <= time()) {
+            echo json_encode(['success' => false, 'error' => 'No podés cancelar una reserva para una clase que ya inició o transcurrió.']);
             exit;
         }
 
