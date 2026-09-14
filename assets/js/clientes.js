@@ -427,6 +427,13 @@ function openModalAddPases(id, nombre) {
     }
     document.getElementById('addPasesClienteId').value = id;
     document.getElementById('addPasesNombreAlumno').textContent = `Alumno: ${nombre}`;
+    
+    // Reset custom pases section
+    const sec = document.getElementById('sectionCustomPases');
+    if (sec) sec.classList.add('hidden');
+    const inp = document.getElementById('inputCustomPases');
+    if (inp) inp.value = '';
+
     const modal = document.getElementById('modalAddPases');
     if (modal) modal.classList.remove('hidden');
 }
@@ -434,35 +441,37 @@ function openModalAddPases(id, nombre) {
 function closeModalAddPases() {
     const modal = document.getElementById('modalAddPases');
     if (modal) modal.classList.add('hidden');
+    const sec = document.getElementById('sectionCustomPases');
+    if (sec) sec.classList.add('hidden');
 }
 
-function confirmAddPases(cant) {
-    const id = document.getElementById('addPasesClienteId').value;
-    if (!id || !cant) return;
-
-    fetch('backend/gestionar_clientes.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'add_pases', id: id, cantidad: cant })
-    })
-    .then(r => r.json())
-    .then(d => {
-        closeModalAddPases();
-        if (d.success) {
-            if (typeof showToast === 'function') showToast(`Se sumaron +${cant} clases al alumno.`, 'success');
-            cargarClientes();
-        } else {
-            if (typeof showToast === 'function') showToast(d.error || 'Error al agregar clases', 'error');
+function toggleCustomPasesInput() {
+    const sec = document.getElementById('sectionCustomPases');
+    const inp = document.getElementById('inputCustomPases');
+    if (sec) {
+        sec.classList.toggle('hidden');
+        if (!sec.classList.contains('hidden') && inp) {
+            inp.focus();
         }
-    });
+    }
+}
+
+function submitCustomPases() {
+    const inp = document.getElementById('inputCustomPases');
+    const val = parseInt(inp ? inp.value : 0, 10);
+    if (!val || val <= 0) {
+        if (typeof showToast === 'function') {
+            showToast('Por favor, ingresa una cantidad válida de clases (mayor a 0).', 'error');
+        }
+        if (inp) inp.focus();
+        return;
+    }
+    confirmAddPases(val);
 }
 
 function promptCustomPases() {
-    const id = document.getElementById('addPasesClienteId').value;
-    const val = prompt('Ingresa la cantidad exacta de clases a sumar:');
-    if (val && parseInt(val) > 0) {
-        confirmAddPases(parseInt(val));
-    }
+    // Compatibilidad en caso de llamada residual
+    toggleCustomPasesInput();
 }
 
 function formatearFecha(f) {
