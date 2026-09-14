@@ -1141,6 +1141,60 @@
             return new Date(y, m, d, hr, mn, 0);
         }
 
+        function getServiceIconOrImageHtml(servicioNombre, icono, imagenUrl) {
+            if (imagenUrl && (imagenUrl.startsWith('http') || imagenUrl.startsWith('data:') || imagenUrl.includes('/'))) {
+                return `<img src="${imagenUrl}" class="w-12 h-12 rounded-2xl object-cover shrink-0 border border-slate-200 shadow-xs" alt="${servicioNombre}">`;
+            }
+            
+            let iconName = (icono || '').trim();
+            if (iconName && (iconName.startsWith('http') || iconName.startsWith('data:') || iconName.includes('/'))) {
+                return `<img src="${iconName}" class="w-12 h-12 rounded-2xl object-cover shrink-0 border border-slate-200 shadow-xs" alt="${servicioNombre}">`;
+            }
+
+            if (!iconName || iconName === 'fitness_center' || iconName === 'local_florist') {
+                const sLower = String(servicioNombre || '').toLowerCase();
+                if (sLower.includes('ceramica') || sLower.includes('cerámica') || sLower.includes('arte') || sLower.includes('pintura') || sLower.includes('taller')) {
+                    iconName = 'palette';
+                } else if (sLower.includes('yoga') || sLower.includes('meditacion') || sLower.includes('meditación') || sLower.includes('pilates')) {
+                    iconName = 'self_improvement';
+                } else if (sLower.includes('spa') || sLower.includes('masaje') || sLower.includes('estética') || sLower.includes('estetica')) {
+                    iconName = 'spa';
+                } else if (sLower.includes('corte') || sLower.includes('peluquería') || sLower.includes('peluqueria') || sLower.includes('barber')) {
+                    iconName = 'content_cut';
+                } else if (sLower.includes('danza') || sLower.includes('baile') || sLower.includes('zumba') || sLower.includes('ritmos')) {
+                    iconName = 'music_note';
+                } else if (sLower.includes('crossfit') || sLower.includes('gym') || sLower.includes('funcional') || sLower.includes('entrenamiento')) {
+                    iconName = 'fitness_center';
+                } else {
+                    iconName = iconName || 'palette';
+                }
+            }
+
+            return `
+                <div class="w-12 h-12 rounded-2xl bg-orange-100 text-[#FC8712] flex items-center justify-center shrink-0 font-black">
+                    <span class="material-symbols-outlined text-2xl">${iconName}</span>
+                </div>
+            `;
+        }
+
+        function formatFriendlyClassDate(fechaStr) {
+            if (!fechaStr) return '';
+            const dt = parseClassDateTime(fechaStr, '00:00');
+            if (!dt) return fechaStr;
+            const dayName = dt.toLocaleDateString('es-AR', { weekday: 'long' });
+            const monthName = dt.toLocaleDateString('es-AR', { month: 'long' });
+            const dayNum = dt.getDate();
+            const yearNum = dt.getFullYear();
+            const dayCap = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+            const monthCap = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+            return `${dayCap} ${dayNum} de ${monthCap}, ${yearNum}`;
+        }
+
+        function formatFriendlyClassTime(horaStr) {
+            if (!horaStr) return '';
+            return String(horaStr).trim().substring(0, 5) + ' hs';
+        }
+
         function formatVencimientoTag(vencStr) {
             if (!vencStr) return '<span class="text-slate-400 font-semibold text-[11px] flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event_busy</span> Sin fecha de vencimiento</span>';
             const parts = vencStr.split('-');
@@ -1209,6 +1263,9 @@
 
                     const classStartDate = parseClassDateTime(c.fecha, c.hora);
                     const hasStarted = classStartDate ? (classStartDate <= hoy) : false;
+                    const iconHtml = getServiceIconOrImageHtml(c.servicio, c.icono, c.servicio_imagen);
+                    const dateFmt = formatFriendlyClassDate(c.fecha);
+                    const timeFmt = formatFriendlyClassTime(c.hora);
 
                     let cancelBtnHtml = '';
                     if (hasStarted) {
@@ -1230,9 +1287,7 @@
                     return `
                         <div class="bg-white/95 border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-xl transition-all flex flex-col justify-between gap-4">
                             <div class="flex items-start gap-4">
-                                <div class="w-12 h-12 rounded-2xl bg-orange-100 text-[#FC8712] flex items-center justify-center shrink-0 font-black">
-                                    <span class="material-symbols-outlined text-2xl">fitness_center</span>
-                                </div>
+                                ${iconHtml}
                                 <div class="space-y-1">
                                     <div class="flex flex-wrap items-center gap-2">
                                         <span class="text-[10px] font-black uppercase text-[#FC8712] tracking-wider bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">${c.negocio}</span>
@@ -1240,8 +1295,8 @@
                                     </div>
                                     <h4 class="font-black text-slate-900 text-lg sm:text-xl">${c.servicio}</h4>
                                     <p class="text-xs font-bold text-slate-600 flex flex-wrap items-center gap-3 pt-1">
-                                        <span class="flex items-center gap-1 text-[#FC8712]"><span class="material-symbols-outlined text-[16px]">calendar_month</span> ${c.fecha}</span>
-                                        <span class="flex items-center gap-1 text-slate-700"><span class="material-symbols-outlined text-[16px]">schedule</span> ${c.hora} hs</span>
+                                        <span class="flex items-center gap-1 text-[#FC8712]"><span class="material-symbols-outlined text-[16px]">calendar_month</span> ${dateFmt}</span>
+                                        <span class="flex items-center gap-1 text-slate-700"><span class="material-symbols-outlined text-[16px]">schedule</span> ${timeFmt}</span>
                                         <span class="flex items-center gap-1 text-slate-500"><span class="material-symbols-outlined text-[16px]">person</span> ${c.profesional || 'Instructor'}</span>
                                     </p>
                                 </div>
@@ -1306,20 +1361,28 @@
             if (pasadas.length === 0) {
                 historialList.innerHTML = `<div class="bg-white/95 border border-slate-200 p-6 rounded-2xl text-center shadow-xs"><p class="text-slate-500 font-bold text-sm">No tenés historial de asistencias o clases pasadas.</p></div>`;
             } else {
-                historialList.innerHTML = pasadas.map(c => `
-                    <div class="bg-white/95 border border-slate-200 rounded-2xl p-4 flex justify-between items-center opacity-85 hover:opacity-100 transition-opacity">
-                        <div>
-                            <span class="text-[10px] font-extrabold uppercase text-[#FC8712] block">${c.negocio}</span>
-                            <h5 class="font-bold text-slate-800 text-sm sm:text-base">${c.servicio}</h5>
-                            <p class="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
-                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">calendar_month</span> ${c.fecha}</span>
-                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span> ${c.hora} hs</span>
-                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> ${c.profesional || 'Instructor'}</span>
-                            </p>
+                historialList.innerHTML = pasadas.map(c => {
+                    const hIconHtml = getServiceIconOrImageHtml(c.servicio, c.icono, c.servicio_imagen);
+                    const hDateFmt = formatFriendlyClassDate(c.fecha);
+                    const hTimeFmt = formatFriendlyClassTime(c.hora);
+                    return `
+                        <div class="bg-white/95 border border-slate-200 rounded-2xl p-4 flex justify-between items-center opacity-85 hover:opacity-100 transition-opacity gap-3">
+                            <div class="flex items-center gap-3">
+                                ${hIconHtml}
+                                <div>
+                                    <span class="text-[10px] font-extrabold uppercase text-[#FC8712] block">${c.negocio}</span>
+                                    <h5 class="font-bold text-slate-800 text-sm sm:text-base">${c.servicio}</h5>
+                                    <p class="text-xs text-slate-500 flex flex-wrap items-center gap-2 mt-0.5">
+                                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">calendar_month</span> ${hDateFmt}</span>
+                                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span> ${hTimeFmt}</span>
+                                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> ${c.profesional || 'Instructor'}</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="${c.estado === 'cancelado' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-slate-100 text-slate-700 border-slate-200'} text-xs font-bold px-3 py-1 rounded-xl uppercase border shrink-0">${c.estado === 'cancelado' ? 'Cancelada' : 'Finalizada'}</span>
                         </div>
-                        <span class="${c.estado === 'cancelado' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-slate-100 text-slate-700 border-slate-200'} text-xs font-bold px-3 py-1 rounded-xl uppercase border">${c.estado === 'cancelado' ? 'Cancelada' : 'Finalizada'}</span>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             }
 
             // Rellenar Selector de Negocios para el Calendario de Cupos

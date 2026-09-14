@@ -484,9 +484,11 @@ try {
         $stmt = $pdo->prepare("
             SELECT t.id, t.id_negocio, t.id_servicio, COALESCE(n.nombre_fantasia, 'Establecimiento') AS negocio, n.ruta AS negocio_ruta, 
                    t.servicio, t.profesional, t.fecha, t.hora, t.estado,
-                   cn.fecha_vencimiento, cn.cancelaciones_restantes, cn.cancelaciones_permitidas, cn.pases_totales
+                   cn.fecha_vencimiento, cn.cancelaciones_restantes, cn.cancelaciones_permitidas, cn.pases_totales,
+                   COALESCE(s.icono, 'palette') AS icono, s.imagen1 AS servicio_imagen
             FROM turnos t
             LEFT JOIN negocios n ON t.id_negocio = n.id
+            LEFT JOIN servicios s ON (t.id_servicio = s.id OR (t.id_negocio = s.id_negocio AND LOWER(TRIM(t.servicio)) = LOWER(TRIM(s.nombre_servicio))))
             LEFT JOIN clientes_negocio cn ON t.id_negocio = cn.id_negocio AND LOWER(TRIM(cn.email)) = :email
             {$whereClause}
             ORDER BY t.fecha DESC, t.hora DESC
