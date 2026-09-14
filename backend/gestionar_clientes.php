@@ -222,18 +222,24 @@ try {
         $confAR = $stmtConfAR->fetch(PDO::FETCH_ASSOC);
         $autoRenovarVenc = !$confAR || !isset($confAR['auto_renovar_vencimiento']) || $confAR['auto_renovar_vencimiento'] !== 'no';
 
-        // Acción especial: Cargar más pases / créditos rápidamente
+        // Acción especial: Cargar / Renovar pases a un alumno
         if ($action === 'add_pases' && $id) {
             $cantAdd = max(1, (int)($data['cantidad'] ?? 0));
-            if ($autoRenovarVenc) {
-                $newVenc = date('Y-m-d', strtotime('+1 month'));
-                $stmtAdd = $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + :add, pases_totales = pases_disponibles + :add, fecha_vencimiento = :newVenc, cancelaciones_permitidas = :add, cancelaciones_restantes = :add WHERE id = :id AND id_negocio = :id_negocio");
-                $stmtAdd->execute(['add' => $cantAdd, 'newVenc' => $newVenc, 'id' => $id, 'id_negocio' => $id_negocio]);
-            } else {
-                $stmtAdd = $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + :add, pases_totales = pases_disponibles + :add, cancelaciones_permitidas = :add, cancelaciones_restantes = :add WHERE id = :id AND id_negocio = :id_negocio");
-                $stmtAdd->execute(['add' => $cantAdd, 'id' => $id, 'id_negocio' => $id_negocio]);
-            }
-            echo json_encode(['success' => true, 'message' => 'Clases agregadas con éxito.']);
+            $newVenc = date('Y-m-d', strtotime('+1 month'));
+
+            // Al cargar pases nuevos se restablece el ciclo completo (ej. 4 de 4 clases) y se renueva el vencimiento a 1 mes
+            $stmtAdd = $pdo->prepare("
+                UPDATE clientes_negocio 
+                SET pases_disponibles = :add, 
+                    pases_totales = :add, 
+                    fecha_vencimiento = :newVenc, 
+                    cancelaciones_permitidas = :add, 
+                    cancelaciones_restantes = :add 
+                WHERE id = :id AND id_negocio = :id_negocio
+            ");
+            $stmtAdd->execute(['add' => $cantAdd, 'newVenc' => $newVenc, 'id' => $id, 'id_negocio' => $id_negocio]);
+
+            echo json_encode(['success' => true, 'message' => 'Límite de clases y vencimiento restablecidos con éxito (' . $cantAdd . ' de ' . $cantAdd . ' clases).']);
             exit;
         }
 
@@ -241,7 +247,7 @@ try {
         $email = trim($data['email'] ?? '');
         $telefono = trim($data['telefono'] ?? '');
         $pases = max(0, (int)($data['pases_disponibles'] ?? $data['pases'] ?? 0));
-        $pases_totales = max($pases, (int)($data['pases_totales'] ?? $pases));
+        $pases_totales = $pases;
         $fecha_vencimiento = !empty($data['fecha_vencimiento']) ? $data['fecha_vencimiento'] : ($autoRenovarVenc ? date('Y-m-d', strtotime('+1 month')) : null);
         $notas = trim($data['notas'] ?? '');
 
@@ -251,11 +257,22 @@ try {
         }
 
         if ($id) {
-            // Actualizar
+            // Si la fecha de vencimiento es vacía o anterior a hoy y autoRenovarVenc está activo, renovar a +1 mes
+            if ($autoRenovarVenc && (empty($fecha_vencimiento) || $fecha_vencimiento < date('Y-m-d'))) {
+                $fecha_vencimiento = date('Y-m-d', strtotime('+1 month'));
+            }
+
             $stmt = $pdo->prepare("
                 UPDATE clientes_negocio 
-                SET nombre_completo = :nombre, email = :email, telefono = :telefono, pases_disponibles = :pases, pases_totales = :pases_totales, fecha_vencimiento = :venc, notas = :notas,
-                    cancelaciones_restantes = COALESCE(cancelaciones_restantes, cancelaciones_permitidas, :pases_totales) 
+                SET nombre_completo = :nombre, 
+                    email = :email, 
+                    telefono = :telefono, 
+                    pases_disponibles = :pases, 
+                    pases_totales = :pases_totales, 
+                    fecha_vencimiento = :venc, 
+                    notas = :notas,
+                    cancelaciones_permitidas = :pases_totales,
+                    cancelaciones_restantes = :pases_totales
                 WHERE id = :id AND id_negocio = :id_negocio
             ");
             $stmt->execute([
