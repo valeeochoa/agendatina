@@ -1441,19 +1441,23 @@
                 }).join('');
             }
 
-            // Rellenar Selector de Negocios para el Calendario de Cupos
+            // Rellenar Selector de Negocios para el Calendario de Cupos de forma inteligente (sin parpadeos)
             const selNegocio = document.getElementById('studentSelectNegocio');
             if (selNegocio && negocios.length > 0) {
                 const currentVal = selNegocio.value;
-                selNegocio.innerHTML = negocios.map(n => {
+                const newOptionsHtml = negocios.map(n => {
                     const servLabel = n.servicio_nombre || n.servicio ? ` (${n.servicio_nombre || n.servicio})` : '';
                     return `<option value="${n.negocio_ruta}">${n.negocio_nombre}${servLabel}</option>`;
                 }).join('');
-                if (currentVal && negocios.some(n => n.negocio_ruta === currentVal)) {
-                    selNegocio.value = currentVal;
-                    loadStudentBusinessCalendar(currentVal);
-                } else {
-                    loadStudentBusinessCalendar(negocios[0].negocio_ruta);
+
+                if (selNegocio.innerHTML !== newOptionsHtml) {
+                    selNegocio.innerHTML = newOptionsHtml;
+                    if (currentVal && negocios.some(n => n.negocio_ruta === currentVal)) {
+                        selNegocio.value = currentVal;
+                    } else {
+                        selNegocio.value = negocios[0].negocio_ruta;
+                        loadStudentBusinessCalendar(negocios[0].negocio_ruta, true);
+                    }
                 }
             }
         }
@@ -1808,30 +1812,42 @@
                             const slotDateObj = new Date(y, dateObj.getMonth(), parseInt(d, 10), hr, mn, 0);
                             const isPastTime = slotDateObj < hoy;
 
-                            // 1. Verificar si ya está inscripto
+                            // 1. Verificar si el alumno ya está inscripto en esta clase (fecha, hora y servicio)
+                            const cleanHoraDef5 = String(horaDef5).trim().substring(0, 5);
+                            const cleanFechaSlot = String(fechaStr).trim();
+
                             const isAlreadyEnrolled = allStudentClases.some(c => {
                                 if (!c || c.estado === 'cancelado') return false;
                                 
-                                const cDT = parseClassDateTime(c.fecha, c.hora);
-                                if (!cDT) return false;
+                                // Normalizar fecha de la clase del alumno
+                                let cFecha = '';
+                                if (c.fecha) {
+                                    const rawF = String(c.fecha).trim().substring(0, 10);
+                                    if (rawF.includes('-')) {
+                                        const p = rawF.split('-');
+                                        cFecha = p[0].length === 4 ? `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}` : `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+                                    } else if (rawF.includes('/')) {
+                                        const p = rawF.split('/');
+                                        cFecha = p[0].length === 4 ? `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}` : `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+                                    }
+                                }
 
-                                const cYYYY = cDT.getFullYear();
-                                const cMM = String(cDT.getMonth() + 1).padStart(2, '0');
-                                const cDD = String(cDT.getDate()).padStart(2, '0');
-                                const cFmtDate = `${cYYYY}-${cMM}-${cDD}`;
-                                const cFmtHora = String(cDT.getHours()).padStart(2, '0') + ':' + String(cDT.getMinutes()).padStart(2, '0');
+                                if (cFecha && cFecha !== cleanFechaSlot) return false;
 
-                                if (cFmtDate !== fechaStr || cFmtHora !== horaDef5) return false;
+                                // Normalizar hora de la clase del alumno
+                                const cHora = String(c.hora || '').trim().substring(0, 5);
+                                if (cHora && cHora !== cleanHoraDef5) return false;
 
+                                // Verificar negocio
                                 const cIdNeg = parseInt(c.id_negocio, 10) || 0;
                                 const targetIdNeg = parseInt(s.id_negocio || currentNegocio.id_negocio, 10) || 0;
                                 const matchNeg = (cIdNeg > 0 && targetIdNeg > 0 && cIdNeg === targetIdNeg) ||
                                                  (c.negocio_ruta && ruta && c.negocio_ruta === ruta) ||
-                                                 ((c.negocio || '').trim().toLowerCase() === (currentNegocio.negocio_nombre || '').trim().toLowerCase()) ||
                                                  (!cIdNeg || !targetIdNeg);
 
                                 if (!matchNeg) return false;
 
+                                // Verificar servicio
                                 const cServ = String(c.servicio || '').trim().toLowerCase();
                                 const targetServ = String(sNombre).trim().toLowerCase();
                                 const cIdServ = parseInt(c.id_servicio, 10) || 0;
@@ -1849,18 +1865,28 @@
                                 return matchServ;
                             });
 
-                            // 2. Calcular conteo de cupos
-                            const keyServSlot = fechaStr + '_' + sId + '_' + horaDef5;
-                            const keyHoraSlot = fechaStr + '_' + horaDef5;
+                            // 2. Calcular conteo de cupos ocupados de forma exacta para este servicio y horario
+                            const keyServSlot = fechaStr + '_' + sId + '_' + cleanHoraDef5;
+                            const keyHoraSlot = fechaStr + '_' + cleanHoraDef5;
                             let ocupadosCount = 0;
                             if (ocupadosData && ocupadosData['_counts'] && ocupadosData['_counts'][keyServSlot] !== undefined) {
-                                ocupadosCount = parseInt(ocupadosData['_counts'][keyServSlot]);
-                            } else if (ocupadosData && ocupadosData['_counts'] && ocupadosData['_counts'][fechaStr + '_0_' + horaDef5] !== undefined) {
-                                ocupadosCount = parseInt(ocupadosData['_counts'][fechaStr + '_0_' + horaDef5]);
+                                ocupadosCount = parseInt(ocupadosData['_counts'][keyServSlot], 10);
+                            } else if (ocupadosData && ocupadosData['_counts'] && ocupadosData['_counts'][fechaStr + '_0_' + cleanHoraDef5] !== undefined) {
+                                ocupadosCount = parseInt(ocupadosData['_counts'][fechaStr + '_0_' + cleanHoraDef5], 10);
                             } else if (ocupadosData && ocupadosData['_counts_hora'] && ocupadosData['_counts_hora'][keyHoraSlot] !== undefined) {
-                                ocupadosCount = parseInt(ocupadosData['_counts_hora'][keyHoraSlot]);
+                                ocupadosCount = parseInt(ocupadosData['_counts_hora'][keyHoraSlot], 10);
+                            } else if (ocupadosData && ocupadosData['_details'] && Array.isArray(ocupadosData['_details'][fechaStr])) {
+                                // Conteo exacto por details si no viene _counts
+                                ocupadosCount = ocupadosData['_details'][fechaStr].filter(d => {
+                                    const matchHora = String(d.start).trim().substring(0, 5) === cleanHoraDef5;
+                                    const matchServ = !d.id_servicio || parseInt(d.id_servicio, 10) === parseInt(sId, 10);
+                                    return matchHora && matchServ;
+                                }).length;
                             } else if (ocupadosData && Array.isArray(ocupadosData[fechaStr])) {
-                                ocupadosCount = ocupadosData[fechaStr].filter(h => h === horaDef5 || h === (horaDef5 + ':00')).length;
+                                // Solo si cupo es 1 y está en la lista de horas completas
+                                if (ocupadosData[fechaStr].includes(cleanHoraDef5)) {
+                                    ocupadosCount = cupoMax;
+                                }
                             }
 
                             const cuposLibres = Math.max(0, cupoMax - ocupadosCount);
@@ -1947,24 +1973,6 @@
                                                 <span class="text-[#FC8712] flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">schedule</span> ${horaDef5} hs (${duracionFmt})</span>
                                                 <span class="flex items-center gap-1 text-slate-500"><span class="material-symbols-outlined text-[15px]">person</span> ${prof}</span>
                                             </p>
-                                            ${(function(){
-                                                // Mostrar únicamente el pase que el alumno tiene asignado para este negocio/servicio
-                                                if (pasesNegocio > 0 && currentNegocio) {
-                                                    const servAsig = currentNegocio.servicio_nombre || currentNegocio.servicio || '';
-                                                    const pTotales = parseInt(currentNegocio.pases_totales) || pasesNegocio;
-                                                    const esServicioAsignado = !servAsig || (sNombre && sNombre.toLowerCase().includes(servAsig.toLowerCase())) || (sId && currentNegocio.id_servicio && parseInt(sId) === parseInt(currentNegocio.id_servicio));
-                                                    
-                                                    if (esServicioAsignado) {
-                                                        return `
-                                                            <div class="mt-2.5 inline-flex items-center gap-1.5 bg-purple-50 text-purple-800 border border-purple-200/90 text-[11px] font-extrabold px-3 py-1 rounded-xl">
-                                                                <span class="material-symbols-outlined text-[14px] text-purple-600">confirmation_number</span>
-                                                                <span>Tu Pase: <strong>${pasesNegocio} de ${pTotales} clases</strong></span>
-                                                            </div>
-                                                        `;
-                                                    }
-                                                }
-                                                return '';
-                                            })()}
                                         </div>
                                         ${buttonHtml}
                                     </div>
@@ -2094,12 +2102,8 @@
                     });
 
                     showStudentSuccessModal(servicioNombre, dateFormatted, hora, negocioNombre);
-                    
-                    if (negocioRuta) {
-                        loadStudentBusinessCalendar(negocioRuta, true);
-                    }
 
-                    // 3. Sincronizar desde backend en segundo plano
+                    // 3. Sincronizar desde backend de forma ordenada (sin duplicar recargas que causen parpadeo)
                     loadMisClases(email).then(() => {
                         if (negocioRuta) loadStudentBusinessCalendar(negocioRuta, true);
                     });
