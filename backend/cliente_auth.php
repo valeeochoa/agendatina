@@ -575,13 +575,25 @@ try {
         $phonesToMatch = array_unique(array_filter($phonesToMatch));
         $namesToMatch = array_unique(array_filter($namesToMatch));
 
-        $whereConds = ["LOWER(TRIM(t.cliente_celular)) = :email", "LOWER(t.cliente_nombre) LIKE :emailLike"];
-        $params = ['email' => $email, 'emailLike' => '%' . $email . '%'];
+        $whereConds = [
+            "LOWER(TRIM(t.cliente_celular)) = :email",
+            "LOWER(TRIM(t.cliente_nombre)) = :email_direct"
+        ];
+        $params = [
+            'email' => $email,
+            'email_direct' => $email
+        ];
 
         foreach (array_values($phonesToMatch) as $idx => $phone) {
             $key = 'phone_' . $idx;
+            $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
             $whereConds[] = "t.cliente_celular = :" . $key;
             $params[$key] = $phone;
+            if (!empty($cleanPhone) && strlen($cleanPhone) >= 6) {
+                $kClean = 'phone_c_' . $idx;
+                $whereConds[] = "t.cliente_celular LIKE :" . $kClean;
+                $params[$kClean] = '%' . $cleanPhone . '%';
+            }
         }
 
         foreach (array_values($namesToMatch) as $idx => $name) {
@@ -592,20 +604,82 @@ try {
 
         $whereClause = "WHERE " . implode(" OR ", $whereConds);
 
-        $stmt = $pdo->prepare("
-            SELECT t.id, t.id_negocio, t.id_servicio, COALESCE(n.nombre_fantasia, 'Establecimiento') AS negocio, n.ruta AS negocio_ruta, 
-                   t.servicio, t.profesional, t.fecha, t.hora, t.estado,
-                   cn.fecha_vencimiento, cn.cancelaciones_restantes, cn.cancelaciones_permitidas, cn.pases_totales,
-                   COALESCE(s.icono, 'palette') AS icono, s.imagen1 AS servicio_imagen
-            FROM turnos t
-            LEFT JOIN negocios n ON t.id_negocio = n.id
-            LEFT JOIN servicios s ON (t.id_servicio = s.id OR (t.id_negocio = s.id_negocio AND LOWER(TRIM(t.servicio)) = LOWER(TRIM(s.nombre_servicio))))
-            LEFT JOIN clientes_negocio cn ON t.id_negocio = cn.id_negocio AND LOWER(TRIM(cn.email)) = :email
-            {$whereClause}
-            ORDER BY t.fecha DESC, t.hora DESC
-        ");
-        $stmt->execute($params);
-        $clases = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $clases = [];
+        try {
+            $stmt = $pdo->prepare("
+                SELECT t.id, t.id_negocio, t.id_servicio, COALESCE(n.nombre_fantasia, 'Establecimiento') AS negocio, n.ruta AS negocio_ruta, 
+                       t.servicio, t.profesional, t.fecha, t.hora, t.estado,
+                       cn.fecha_vencimiento, cn.cancelaciones_restantes, cn.cancelaciones_permitidas, cn.pases_totales,
+                       COALESCE(s.icono, 'palette') AS icono, s.imagen1 AS servicio_imagen
+                FROM turnos t
+                LEFT JOIN negocios n ON t.id_negocio = n.id
+                LEFT JOIN servicios s ON (t.id_servicio = s.id OR (t.id_negocio = s.id_negocio AND LOWER(TRIM(t.servicio)) = LOWER(TRIM(s.nombre_servicio))))
+                LEFT JOIN clientes_negocio cn ON (t.id_negocio = cn.id_negocio AND LOWER(TRIM(cn.email)) = :email)
+                {$whereClause}
+                ORDER BY t.fecha DESC, t.hora DESC
+            ");
+            $stmt->execute($params);
+            $clases = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Throwable $eTurnos) {
+            error_log("Error en query principal de mis_clases: " . $eTurnos->getMessage());
+            // Fallback directo a turnos sin joins complejos que puedan dar conflicto de collation
+            try {
+                $stmtSimple = $pdo->prepare("
+                    SELECT id, id_negocio, id_servicio, servicio, profesional, fecha, hora, estado
+                    FROM turnos t
+                    {$whereClause}
+                    ORDER BY fecha DESC, hora DESC
+                ");
+                $stmtSimple->execute($params);
+                $rawClases = $stmtSimple->fetchAll(PDO::FETCH_ASSOC);
+
+                // Reconstruir datos de negocio y servicio de forma segura en PHP
+                $stmtNegs = $pdo->query("SELECT id, nombre_fantasia, ruta FROM negocios");
+                $mapNegs = [];
+                if ($stmtNegs) {
+                    while ($nr = $stmtNegs->fetch(PDO::FETCH_ASSOC)) {
+                        $mapNegs[$nr['id']] = $nr;
+                    }
+                }
+
+                foreach ($rawClases as $rc) {
+                    $nData = $mapNegs[$rc['id_negocio']] ?? null;
+                    $cNegocio = $nData ? $nData['nombre_fantasia'] : 'Establecimiento';
+                    $cRuta = $nData ? $nData['ruta'] : '';
+
+                    // Buscar datos de pase del negocio si existen
+                    $matchingNeg = null;
+                    foreach ($negociosAsociados as $na) {
+                        if ($na['id_negocio'] == $rc['id_negocio']) {
+                            $matchingNeg = $na;
+                            break;
+                        }
+                    }
+
+                    $clases[] = [
+                        'id' => $rc['id'],
+                        'id_negocio' => $rc['id_negocio'],
+                        'id_servicio' => $rc['id_servicio'],
+                        'negocio' => $cNegocio,
+                        'negocio_ruta' => $cRuta,
+                        'servicio' => $rc['servicio'],
+                        'profesional' => $rc['profesional'],
+                        'fecha' => $rc['fecha'],
+                        'hora' => $rc['hora'],
+                        'estado' => $rc['estado'],
+                        'fecha_vencimiento' => $matchingNeg ? $matchingNeg['fecha_vencimiento'] : null,
+                        'cancelaciones_restantes' => $matchingNeg ? $matchingNeg['cancelaciones_restantes'] : 4,
+                        'cancelaciones_permitidas' => $matchingNeg ? $matchingNeg['cancelaciones_permitidas'] : 4,
+                        'pases_totales' => $matchingNeg ? $matchingNeg['pases_totales'] : 4,
+                        'icono' => 'palette',
+                        'servicio_imagen' => null
+                    ];
+                }
+            } catch (\Throwable $eSimple) {
+                error_log("Error en fallback de mis_clases: " . $eSimple->getMessage());
+                $clases = [];
+            }
+        }
 
         foreach ($clases as &$c) {
             $pTotales = max(1, (int)($c['pases_totales'] ?? 4));

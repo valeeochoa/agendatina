@@ -1243,15 +1243,20 @@
             document.getElementById('statNegociosCount').textContent = negocios.length;
 
             const hoy = new Date();
+            const startOfToday = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 0, 0, 0);
 
             const proximas = clases.filter(c => {
                 if (c.estado === 'cancelado') return false;
                 
                 const classDate = parseClassDateTime(c.fecha, c.hora);
-                if (!classDate) return false;
+                if (!classDate) {
+                    // Si no se puede parsear fecha precisa, mantener visible si es confirmada o pendiente
+                    return c.estado === 'confirmado' || c.estado === 'pendiente';
+                }
 
-                const classEndTime = new Date(classDate.getTime() + 60 * 60 * 1000);
-                return classEndTime >= hoy;
+                // Considerar próxima si la clase finaliza después de la hora actual, o si es para el día de hoy o futuro
+                const classEndTime = new Date(classDate.getTime() + 90 * 60 * 1000);
+                return classEndTime >= hoy || classDate >= startOfToday;
             });
 
             document.getElementById('statProximasCount').textContent = proximas.length;
