@@ -154,7 +154,7 @@ function renderTablaAlumnos() {
                         </div>
                         <div>
                             <strong class="text-slate-900 font-bold block text-xs sm:text-sm">${c.nombre_completo}</strong>
-                            ${sNombre ? `<span class="inline-flex items-center gap-1 bg-orange-50 text-orange-700 border border-orange-200/60 px-2 py-0.5 rounded-md text-[10px] font-extrabold mt-0.5"><span class="material-symbols-outlined text-[12px]">fitness_center</span> ${escapeHtml(sNombre)}</span>` : ''}
+                            ${sNombre ? `<span class="inline-flex items-center gap-1 bg-orange-50 text-orange-700 border border-orange-200/60 px-2 py-0.5 rounded-md text-[10px] font-extrabold mt-0.5"><span class="material-symbols-outlined text-[12px]">fitness_center</span> ${escapeHtml(sNombre)}</span>` : `<button type="button" onclick="editarCliente(${c.id})" class="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300/80 px-2 py-0.5 rounded-md text-[10px] font-extrabold mt-0.5 transition-colors" title="Haz click para asignarle un servicio"><span class="material-symbols-outlined text-[12px]">add_link</span> Sin servicio (Asignar)</button>`}
                             ${c.notas ? `<span class="text-[11px] text-slate-400 block line-clamp-1 mt-0.5">${c.notas}</span>` : ''}
                         </div>
                     </div>
@@ -237,7 +237,7 @@ function onClienteServicioChange(selectedCupos = null) {
     const serv = allServicios.find(s => s.id == servId);
     if (!serv) return;
 
-    // Parsear paquetes de precios configurados para este servicio
+    // Parsear paquetes de precios configurados para este servicio por el negocio
     let pkgs = [];
     try {
         if (typeof serv.precios_paquetes_json === 'string') {
@@ -247,35 +247,40 @@ function onClienteServicioChange(selectedCupos = null) {
         }
     } catch(e) { pkgs = []; }
 
+    // Filtrar paquetes válidos con cupos definidos
+    pkgs = Array.isArray(pkgs) ? pkgs.filter(p => parseInt(p.cupos, 10) > 0) : [];
+
     // Poblar selector de tipos de pase
     if (selectPaq && containerPaq) {
-        let paqHtml = `<option value="">-- Seleccionar Tipo de Pase --</option>`;
-        const defaultCupo = parseInt(serv.cupo_maximo || 8, 10);
-        paqHtml += `<option value="${defaultCupo}" data-tipo="base">Pase Estándar (${defaultCupo} clases)</option>`;
+        let paqHtml = `<option value="">-- Seleccionar Paquete del Negocio --</option>`;
 
-        if (Array.isArray(pkgs) && pkgs.length > 0) {
-            pkgs.forEach((p, idx) => {
+        if (pkgs.length > 0) {
+            pkgs.forEach(p => {
                 const cupos = parseInt(p.cupos, 10);
                 const precio = parseFloat(p.precio || 0);
                 const precioFmt = precio > 0 ? ` - $${precio.toLocaleString('es-AR')}` : '';
                 paqHtml += `<option value="${cupos}" data-tipo="paquete">📦 Paquete ${cupos} clases${precioFmt}</option>`;
             });
         }
-        paqHtml += `<option value="manual" data-tipo="manual">✍️ Cantidad Manual / Personalizada</option>`;
+        paqHtml += `<option value="manual" data-tipo="manual">✍️ Carga Manual / Personalizada</option>`;
         selectPaq.innerHTML = paqHtml;
         containerPaq.classList.remove('hidden');
 
-        // Seleccionar cupo indicado o el primero disponible
+        // Seleccionar cupo indicado o el primer paquete establecido por el negocio
         if (selectedCupos !== null) {
-            selectPaq.value = selectedCupos;
-            if (!selectPaq.value) selectPaq.value = 'manual';
+            const matchesPkg = pkgs.some(p => parseInt(p.cupos, 10) === parseInt(selectedCupos, 10));
+            if (matchesPkg) {
+                selectPaq.value = selectedCupos;
+            } else {
+                selectPaq.value = 'manual';
+            }
+        } else if (pkgs.length > 0) {
+            selectPaq.value = pkgs[0].cupos;
+            if (pasesInput) pasesInput.value = pkgs[0].cupos;
         } else {
-            selectPaq.value = defaultCupo;
+            selectPaq.value = 'manual';
+            if (pasesInput && !pasesInput.value) pasesInput.value = 4;
         }
-    }
-
-    if (selectedCupos === null && pasesInput) {
-        pasesInput.value = serv.cupo_maximo || 8;
     }
 
     if (vencInput && !vencInput.value) {
@@ -361,8 +366,27 @@ function openModalCliente(cliente = null) {
         
         const selServ = document.getElementById('clienteServicio');
         if (selServ) {
-            selServ.value = cliente.id_servicio || '';
-            onClienteServicioChange(cliente.pases_totales || cliente.pases_disponibles);
+            // Resolver ID del servicio (directo o por nombre coincidente)
+            let sId = cliente.id_servicio || '';
+            if (!sId && cliente.servicio) {
+                const found = allServicios.find(s => s.nombre.toLowerCase().trim() === cliente.servicio.toLowerCase().trim());
+                if (found) sId = found.id;
+            }
+            selServ.value = sId;
+
+            if (sId) {
+                onClienteServicioChange(cliente.pases_totales || cliente.pases_disponibles);
+            } else {
+                // Alumno sin servicio asignado previamente: permitir asignarlo libremente
+                const containerPaq = document.getElementById('containerClientePaquete');
+                if (containerPaq) containerPaq.classList.add('hidden');
+                const infoBanner = document.getElementById('clientePasesInfoBanner');
+                const infoText = document.getElementById('clientePasesInfoText');
+                if (infoBanner && infoText) {
+                    infoText.innerHTML = `⚠️ <strong class="text-amber-700">Sin servicio asignado:</strong> Elegí un servicio arriba para vincular las clases del alumno.`;
+                    infoBanner.classList.remove('hidden');
+                }
+            }
         }
     } else {
         document.getElementById('modalClienteTitle').textContent = 'Cargar Nuevo Alumno';
@@ -561,7 +585,7 @@ function openModalAddPases(id, nombreOverride = null) {
     if (containerBotones) {
         let botones = [];
 
-        // 1. Obtener paquetes configurados del servicio
+        // 1. Obtener únicamente los paquetes comerciales configurados del servicio por el negocio
         if (serv) {
             let pkgs = [];
             try {
@@ -572,18 +596,6 @@ function openModalAddPases(id, nombreOverride = null) {
                 }
             } catch(e) { pkgs = []; }
 
-            // Cupo base / estándar del servicio
-            const cupoBase = parseInt(serv.cupo_maximo || 8, 10);
-            if (cupoBase > 0) {
-                botones.push({
-                    cupos: cupoBase,
-                    label: `+${cupoBase}`,
-                    sub: 'Pase Estándar',
-                    color: 'emerald'
-                });
-            }
-
-            // Paquetes comerciales guardados en el servicio
             if (Array.isArray(pkgs)) {
                 pkgs.forEach(p => {
                     const c = parseInt(p.cupos, 10);
@@ -600,28 +612,43 @@ function openModalAddPases(id, nombreOverride = null) {
             }
         }
 
-        // Si no hay paquetes específicos o son menos de 2, añadir sugerencias estándar
-        if (botones.length === 0) {
-            botones.push({ cupos: 4, label: '+4', sub: 'Clases', color: 'emerald' });
-            botones.push({ cupos: 8, label: '+8', sub: 'Clases', color: 'emerald' });
-            botones.push({ cupos: 12, label: '+12', sub: 'Clases', color: 'emerald' });
-        } else if (botones.length === 1) {
-            const extraCupo = botones[0].cupos * 2;
-            botones.push({ cupos: extraCupo, label: `+${extraCupo}`, sub: 'Doble Pase', color: 'emerald' });
+        let botonesHtml = '';
+
+        if (!serv) {
+            // Si el alumno no tiene servicio asignado, advertir y permitir asignarlo directamente
+            botonesHtml += `
+                <div class="col-span-2 p-3 bg-amber-50 border border-amber-200 rounded-xl mb-1 text-center">
+                    <p class="text-xs text-amber-800 font-bold mb-1">Este alumno no tiene servicio asignado.</p>
+                    <button type="button" onclick="closeModalAddPases(); editarCliente(${id});" class="text-xs text-orange-600 hover:text-orange-700 font-extrabold underline inline-flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">edit</span> Asignar servicio ahora
+                    </button>
+                </div>
+            `;
+        } else if (botones.length === 0) {
+            // Si el servicio no tiene paquetes cargados por el negocio
+            botonesHtml += `
+                <div class="col-span-2 p-3 bg-slate-50 border border-slate-200 rounded-xl mb-1 text-center">
+                    <p class="text-xs text-slate-500 font-medium">El servicio no tiene paquetes de clases configurados.</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Podés ingresar la cantidad deseada con el botón Manual.</p>
+                </div>
+            `;
         }
 
-        let botonesHtml = botones.map(b => `
-            <button type="button" onclick="confirmAddPases(${b.cupos})" class="p-3 rounded-2xl border-2 border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 text-slate-800 font-extrabold text-sm transition-all flex flex-col items-center gap-0.5 group">
-                <span class="text-base text-emerald-600 group-hover:scale-110 transition-transform">${b.label}</span>
-                <span class="text-[10px] font-bold text-slate-500 truncate max-w-full">${escapeHtml(b.sub)}</span>
-            </button>
-        `).join('');
+        if (botones.length > 0) {
+            botonesHtml += botones.map(b => `
+                <button type="button" onclick="confirmAddPases(${b.cupos})" class="p-3 rounded-2xl border-2 border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 text-slate-800 font-extrabold text-sm transition-all flex flex-col items-center gap-0.5 group">
+                    <span class="text-base text-emerald-600 group-hover:scale-110 transition-transform">${b.label}</span>
+                    <span class="text-[10px] font-bold text-slate-500 truncate max-w-full">${escapeHtml(b.sub)}</span>
+                </button>
+            `).join('');
+        }
 
         // Botón Otro (manual)
+        const colSpanClass = (botones.length === 0) ? 'col-span-2' : '';
         botonesHtml += `
-            <button type="button" onclick="toggleCustomPasesInput()" id="btnToggleCustomPases" class="p-3 rounded-2xl border-2 border-slate-200 hover:border-orange-500 hover:bg-orange-50 text-slate-800 font-extrabold text-sm transition-all flex flex-col items-center gap-0.5 group">
+            <button type="button" onclick="toggleCustomPasesInput()" id="btnToggleCustomPases" class="${colSpanClass} p-3 rounded-2xl border-2 border-slate-200 hover:border-orange-500 hover:bg-orange-50 text-slate-800 font-extrabold text-sm transition-all flex flex-col items-center justify-center gap-0.5 group">
                 <span class="text-base text-orange-600 group-hover:scale-110 transition-transform">+Otro</span>
-                <span class="text-[10px] font-bold text-slate-500 uppercase">Manual</span>
+                <span class="text-[10px] font-bold text-slate-500 uppercase">Carga Manual</span>
             </button>
         `;
 
