@@ -1373,6 +1373,103 @@
             return days;
         }
 
+        function getServiceTimeSlotsForDay(s, dateObj, bizConfig) {
+            const duracion = parseInt(s.duracion || s.duracion_minutos || 30, 10) || 30;
+            
+            let step = duracion;
+            if (bizConfig && bizConfig.intervalo_turnos && bizConfig.intervalo_turnos !== 'servicio') {
+                const parsedInt = parseInt(bizConfig.intervalo_turnos, 10);
+                if (!isNaN(parsedInt) && parsedInt > 0) step = parsedInt;
+            }
+
+            let tramos = [];
+            let hDet = {};
+            if (bizConfig && bizConfig.horarios_detallados_json) {
+                try {
+                    hDet = typeof bizConfig.horarios_detallados_json === 'string'
+                        ? JSON.parse(bizConfig.horarios_detallados_json)
+                        : bizConfig.horarios_detallados_json;
+                } catch(e) {}
+            }
+
+            const dayKeyMap = { 1: 'lun', 2: 'mar', 3: 'mie', 4: 'jue', 5: 'vie', 6: 'sab', 0: 'dom' };
+            const textKey = dayKeyMap[dateObj.getDay()];
+            const numKey = String(dateObj.getDay());
+            const diaData = (hDet && (hDet[numKey] !== undefined ? hDet[numKey] : (textKey ? hDet[textKey] : null)));
+
+            if (diaData && diaData.activo !== false && Array.isArray(diaData.tramos) && diaData.tramos.length > 0) {
+                tramos = diaData.tramos.map(t => {
+                    let [sh, sm] = (t.inicio || '09:00').split(':').map(Number);
+                    let [eh, em] = (t.fin || '18:00').split(':').map(Number);
+                    return { start: sh * 60 + sm, end: eh * 60 + em };
+                });
+            } else {
+                let [openH, openM] = (bizConfig?.hora_apertura || '09:00').split(':').map(Number);
+                let [closeH, closeM] = (bizConfig?.hora_cierre || '18:00').split(':').map(Number);
+                tramos = [{ start: openH * 60 + openM, end: closeH * 60 + closeM }];
+            }
+
+            let breakStartMins = -1, breakEndMins = -1;
+            if (bizConfig?.hora_descanso_inicio && bizConfig?.hora_descanso_fin) {
+                let [bsh, bsm] = bizConfig.hora_descanso_inicio.split(':').map(Number);
+                let [beh, bem] = bizConfig.hora_descanso_fin.split(':').map(Number);
+                if (!isNaN(bsh) && !isNaN(beh)) {
+                    breakStartMins = bsh * 60 + bsm;
+                    breakEndMins = beh * 60 + bem;
+                }
+            }
+
+            const slotsSet = new Set();
+
+            tramos.forEach(tramo => {
+                let curMins = tramo.start;
+                while (curMins + duracion <= tramo.end) {
+                    const slotEnd = curMins + duracion;
+
+                    let overlapsBreak = false;
+                    if (breakStartMins > -1 && breakEndMins > -1) {
+                        if ((curMins >= breakStartMins && curMins < breakEndMins) ||
+                            (slotEnd > breakStartMins && slotEnd <= breakEndMins) ||
+                            (curMins < breakStartMins && slotEnd > breakEndMins)) {
+                            overlapsBreak = true;
+                        }
+                    }
+
+                    if (!overlapsBreak) {
+                        const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
+                        const curM = (curMins % 60).toString().padStart(2, '0');
+                        slotsSet.add(`${curH}:${curM}`);
+                    }
+
+                    curMins += step;
+                }
+            });
+
+            if (s.hora_apertura) {
+                let [sh, sm] = s.hora_apertura.substring(0, 5).split(':').map(Number);
+                if (!isNaN(sh) && !isNaN(sm)) {
+                    const sStartMins = sh * 60 + sm;
+                    const sEndMins = sStartMins + duracion;
+                    const fitsInTramo = tramos.some(t => sStartMins >= t.start && sEndMins <= t.end);
+                    let overlapsBreak = false;
+                    if (breakStartMins > -1 && breakEndMins > -1) {
+                        if ((sStartMins >= breakStartMins && sStartMins < breakEndMins) ||
+                            (sEndMins > breakStartMins && sEndMins <= breakEndMins)) {
+                            overlapsBreak = true;
+                        }
+                    }
+                    if (fitsInTramo && !overlapsBreak) {
+                        const curH = Math.floor(sStartMins / 60).toString().padStart(2, '0');
+                        const curM = (sStartMins % 60).toString().padStart(2, '0');
+                        slotsSet.add(`${curH}:${curM}`);
+                    }
+                }
+            }
+
+            const slotsArray = Array.from(slotsSet).sort();
+            return slotsArray.length > 0 ? slotsArray : [(s.hora_apertura || bizConfig?.hora_apertura || '10:00').substring(0, 5)];
+        }
+
         // CARGAR CALENDARIO CON CUPOS DISPONIBLES EN TIEMPO REAL (DISCRIMINADO POR NEGOCIO)
         function loadStudentBusinessCalendar(ruta) {
             if (!ruta) return;
@@ -1490,8 +1587,7 @@
                     }
 
                     // Si está abierto, renderizar las clases disponibles para este día
-                    let dayClassesHtml = '';
-                    let countClassesForDay = 0;
+                    let dayClassesList = [];
 
                     servicios.forEach(s => {
                         const cupoMax = parseInt(s.cupo_maximo || s.capacidad || 1);
@@ -1501,163 +1597,187 @@
                         const sNombre = s.nombre_servicio || s.nombre;
                         const sId = s.id;
 
-                        const horaDef = s.hora_apertura || '10:00';
-                        const horaDef5 = horaDef.substring(0, 5);
+                        const timeSlots = getServiceTimeSlotsForDay(s, dateObj, bizConfig);
 
-                        const [hr, mn] = horaDef5.split(':').map(Number);
-                        const slotDateObj = new Date(y, dateObj.getMonth(), parseInt(d, 10), hr, mn, 0);
-                        const isPastTime = slotDateObj < hoy;
+                        timeSlots.forEach(horaDef5 => {
+                            const [hr, mn] = horaDef5.split(':').map(Number);
+                            const slotDateObj = new Date(y, dateObj.getMonth(), parseInt(d, 10), hr, mn, 0);
+                            const isPastTime = slotDateObj < hoy;
 
-                        // 1. Verificar si ya está inscripto
-                        const isAlreadyEnrolled = allStudentClases.some(c => {
-                            if (c.estado === 'cancelado') return false;
+                            // 1. Verificar si ya está inscripto
+                            const isAlreadyEnrolled = allStudentClases.some(c => {
+                                if (c.estado === 'cancelado') return false;
+                                
+                                const cFecha = (c.fecha || '').substring(0, 10);
+                                if (cFecha !== fechaStr) return false;
+
+                                const cHora = (c.hora || '').substring(0, 5);
+                                if (cHora !== horaDef5) return false;
+
+                                const cServ = String(c.servicio || '').trim().toLowerCase();
+                                const targetServ = String(sNombre).trim().toLowerCase();
+                                const cIdServ = parseInt(c.id_servicio, 10) || 0;
+                                const targetIdServ = parseInt(sId, 10) || 0;
+
+                                const matchServ = (cIdServ > 0 && targetIdServ > 0) ? (cIdServ === targetIdServ) : (cServ === targetServ);
+
+                                const cIdNeg = parseInt(c.id_negocio, 10) || 0;
+                                const targetIdNeg = parseInt(s.id_negocio, 10) || 0;
+                                const matchNeg = (cIdNeg > 0 && targetIdNeg > 0) ? (cIdNeg === targetIdNeg) : (c.negocio_ruta === ruta);
+
+                                return matchServ && matchNeg;
+                            });
+
+                            // 2. Calcular conteo de cupos
+                            const keyServSlot = fechaStr + '_' + sId + '_' + horaDef5;
+                            const keyHoraSlot = fechaStr + '_' + horaDef5;
+                            let ocupadosCount = 0;
+                            if (ocupadosData && ocupadosData['_counts'] && ocupadosData['_counts'][keyServSlot] !== undefined) {
+                                ocupadosCount = parseInt(ocupadosData['_counts'][keyServSlot]);
+                            } else if (ocupadosData && ocupadosData['_counts_hora'] && ocupadosData['_counts_hora'][keyHoraSlot] !== undefined) {
+                                ocupadosCount = parseInt(ocupadosData['_counts_hora'][keyHoraSlot]);
+                            } else if (ocupadosData && Array.isArray(ocupadosData[fechaStr])) {
+                                ocupadosCount = ocupadosData[fechaStr].filter(h => h === horaDef5 || h === (horaDef5 + ':00')).length;
+                            }
+
+                            const cuposLibres = Math.max(0, cupoMax - ocupadosCount);
+
+                            let badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                            let badgeText = `🟢 ${cuposLibres} cupos libres`;
                             
-                            const cFecha = (c.fecha || '').substring(0, 10);
-                            if (cFecha !== fechaStr) return false;
+                            if (isAlreadyEnrolled) {
+                                badgeColor = 'bg-emerald-600 text-white border-emerald-700 font-extrabold shadow-2xs';
+                                badgeText = `✓ YA ESTÁS ANOTADO/A`;
+                            } else if (isPastTime) {
+                                badgeColor = 'bg-slate-200 text-slate-600 border-slate-300 font-bold';
+                                badgeText = `🕒 Horario transcurrido`;
+                            } else if (pasesNegocio <= 0) {
+                                badgeColor = 'bg-red-100 text-red-800 border-red-200 font-extrabold';
+                                badgeText = `🔒 Sin pases en este negocio`;
+                            } else if (cuposLibres === 1) {
+                                badgeColor = 'bg-amber-100 text-amber-800 border-amber-200';
+                                badgeText = `⚠️ 1 cupo libre`;
+                            } else if (cuposLibres <= 0) {
+                                badgeColor = 'bg-red-100 text-red-700 border-red-200';
+                                badgeText = `🔴 COMPLETO`;
+                            }
 
-                            const cHora = (c.hora || '').substring(0, 5);
-                            if (cHora !== horaDef5) return false;
+                            let buttonHtml = '';
+                            if (isAlreadyEnrolled) {
+                                buttonHtml = `
+                                    <button disabled class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2 cursor-default opacity-95">
+                                        <span class="material-symbols-outlined text-[18px]">verified</span>
+                                        <span>✓ Ya estás anotado/a a esta clase</span>
+                                    </button>
+                                `;
+                            } else if (isPastTime) {
+                                buttonHtml = `
+                                    <button disabled class="w-full bg-slate-100 text-slate-400 font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider cursor-not-allowed shadow-none border border-slate-200/80 flex items-center justify-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[18px]">history</span>
+                                        <span>Horario Finalizado</span>
+                                    </button>
+                                `;
+                            } else if (pasesNegocio <= 0) {
+                                buttonHtml = `
+                                    <button disabled class="w-full bg-slate-200 text-slate-500 font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider cursor-not-allowed shadow-xs flex items-center justify-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[18px]">lock</span>
+                                        <span>Sin pases en este negocio</span>
+                                    </button>
+                                `;
+                            } else if (cuposLibres <= 0) {
+                                buttonHtml = `
+                                    <button disabled class="w-full bg-slate-200 text-slate-400 font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider cursor-not-allowed shadow-xs">
+                                        COMPLETO (Sin cupos)
+                                    </button>
+                                `;
+                            } else {
+                                buttonHtml = `
+                                    <button onclick="bookStudentClass('${s.id_negocio}', '${sId}', '${sNombre}', '${fechaStr}', '${horaDef5}', '${prof}')" class="w-full bg-[#FC8712] hover:bg-orange-600 text-white font-extrabold py-3 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md shadow-orange-500/20 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
+                                        <span class="material-symbols-outlined text-[18px]">add_task</span>
+                                        <span>Agendarme en esta Clase</span>
+                                    </button>
+                                `;
+                            }
 
-                            const cServ = String(c.servicio || '').trim().toLowerCase();
-                            const targetServ = String(sNombre).trim().toLowerCase();
-                            const cIdServ = parseInt(c.id_servicio, 10) || 0;
-                            const targetIdServ = parseInt(sId, 10) || 0;
+                            let cardClass = 'border-slate-200/90 hover:border-orange-300 hover:shadow-md';
+                            if (isAlreadyEnrolled) {
+                                cardClass = 'border-2 border-emerald-400 bg-emerald-50/70 shadow-md transform scale-[1.01]';
+                            } else if (isPastTime) {
+                                cardClass = 'border-slate-200 bg-slate-50/50 opacity-60';
+                            } else if (pasesNegocio <= 0) {
+                                cardClass = 'border-slate-200/90 bg-slate-50/60 opacity-85';
+                            }
 
-                            const matchServ = (cIdServ > 0 && targetIdServ > 0) ? (cIdServ === targetIdServ) : (cServ === targetServ);
-
-                            const cIdNeg = parseInt(c.id_negocio, 10) || 0;
-                            const targetIdNeg = parseInt(s.id_negocio, 10) || 0;
-                            const matchNeg = (cIdNeg > 0 && targetIdNeg > 0) ? (cIdNeg === targetIdNeg) : (c.negocio_ruta === ruta);
-
-                            return matchServ && matchNeg;
-                        });
-
-                        // 2. Calcular conteo de cupos
-                        const keyServSlot = fechaStr + '_' + sId + '_' + horaDef5;
-                        const keyHoraSlot = fechaStr + '_' + horaDef5;
-                        let ocupadosCount = 0;
-                        if (ocupadosData && ocupadosData['_counts'] && ocupadosData['_counts'][keyServSlot] !== undefined) {
-                            ocupadosCount = parseInt(ocupadosData['_counts'][keyServSlot]);
-                        } else if (ocupadosData && ocupadosData['_counts_hora'] && ocupadosData['_counts_hora'][keyHoraSlot] !== undefined) {
-                            ocupadosCount = parseInt(ocupadosData['_counts_hora'][keyHoraSlot]);
-                        } else if (ocupadosData && Array.isArray(ocupadosData[fechaStr])) {
-                            ocupadosCount = ocupadosData[fechaStr].filter(h => h === horaDef5 || h === horaDef).length;
-                        }
-
-                        const cuposLibres = Math.max(0, cupoMax - ocupadosCount);
-
-                        let badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
-                        let badgeText = `🟢 ${cuposLibres} cupos libres`;
-                        
-                        if (isAlreadyEnrolled) {
-                            badgeColor = 'bg-emerald-600 text-white border-emerald-700 font-extrabold shadow-2xs';
-                            badgeText = `✓ YA ESTÁS ANOTADO/A`;
-                        } else if (isPastTime) {
-                            badgeColor = 'bg-slate-200 text-slate-600 border-slate-300 font-bold';
-                            badgeText = `🕒 Horario transcurrido`;
-                        } else if (pasesNegocio <= 0) {
-                            badgeColor = 'bg-red-100 text-red-800 border-red-200 font-extrabold';
-                            badgeText = `🔒 Sin pases en este negocio`;
-                        } else if (cuposLibres === 1) {
-                            badgeColor = 'bg-amber-100 text-amber-800 border-amber-200';
-                            badgeText = `⚠️ 1 cupo libre`;
-                        } else if (cuposLibres <= 0) {
-                            badgeColor = 'bg-red-100 text-red-700 border-red-200';
-                            badgeText = `🔴 COMPLETO`;
-                        }
-
-                        let buttonHtml = '';
-                        if (isAlreadyEnrolled) {
-                            buttonHtml = `
-                                <button disabled class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2 cursor-default opacity-95">
-                                    <span class="material-symbols-outlined text-[18px]">verified</span>
-                                    <span>✓ Ya estás anotado/a a esta clase</span>
-                                </button>
-                            `;
-                        } else if (isPastTime) {
-                            buttonHtml = `
-                                <button disabled class="w-full bg-slate-100 text-slate-400 font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider cursor-not-allowed shadow-none border border-slate-200/80 flex items-center justify-center gap-1.5">
-                                    <span class="material-symbols-outlined text-[18px]">history</span>
-                                    <span>Horario Finalizado</span>
-                                </button>
-                            `;
-                        } else if (pasesNegocio <= 0) {
-                            buttonHtml = `
-                                <button disabled class="w-full bg-slate-200 text-slate-500 font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider cursor-not-allowed shadow-xs flex items-center justify-center gap-1.5">
-                                    <span class="material-symbols-outlined text-[18px]">lock</span>
-                                    <span>Sin pases en este negocio</span>
-                                </button>
-                            `;
-                        } else if (cuposLibres <= 0) {
-                            buttonHtml = `
-                                <button disabled class="w-full bg-slate-200 text-slate-400 font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider cursor-not-allowed shadow-xs">
-                                    COMPLETO (Sin cupos)
-                                </button>
-                            `;
-                        } else {
-                            buttonHtml = `
-                                <button onclick="bookStudentClass('${s.id_negocio}', '${sId}', '${sNombre}', '${fechaStr}', '${horaDef5}', '${prof}')" class="w-full bg-[#FC8712] hover:bg-orange-600 text-white font-extrabold py-3 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md shadow-orange-500/20 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
-                                    <span class="material-symbols-outlined text-[18px]">add_task</span>
-                                    <span>Agendarme en esta Clase</span>
-                                </button>
-                            `;
-                        }
-
-                        let cardClass = 'border-slate-200/90 hover:border-orange-300 hover:shadow-md';
-                        if (isAlreadyEnrolled) {
-                            cardClass = 'border-2 border-emerald-400 bg-emerald-50/70 shadow-md transform scale-[1.01]';
-                        } else if (isPastTime) {
-                            cardClass = 'border-slate-200 bg-slate-50/50 opacity-60';
-                        } else if (pasesNegocio <= 0) {
-                            cardClass = 'border-slate-200/90 bg-slate-50/60 opacity-85';
-                        }
-
-                        countClassesForDay++;
-                        dayClassesHtml += `
-                            <div class="bg-white border ${cardClass} rounded-2xl p-4 shadow-sm transition-all flex flex-col justify-between gap-3">
-                                <div>
-                                    <div class="flex justify-between items-start gap-2 mb-1">
-                                        <h5 class="font-black text-slate-900 text-base">${sNombre}</h5>
-                                        <span class="text-[10px] font-black px-2.5 py-1 rounded-full border ${badgeColor}">${badgeText}</span>
+                            dayClassesList.push({
+                                time: horaDef5,
+                                html: `
+                                    <div class="bg-white border ${cardClass} rounded-2xl p-4 shadow-sm transition-all flex flex-col justify-between gap-3">
+                                        <div>
+                                            <div class="flex justify-between items-start gap-2 mb-1">
+                                                <h5 class="font-black text-slate-900 text-base">${sNombre}</h5>
+                                                <span class="text-[10px] font-black px-2.5 py-1 rounded-full border ${badgeColor}">${badgeText}</span>
+                                            </div>
+                                            <p class="text-xs font-bold text-slate-600 flex items-center gap-2">
+                                                <span class="text-[#FC8712] flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">schedule</span> ${horaDef5} hs (${duracionFmt})</span>
+                                                <span class="flex items-center gap-1 text-slate-500"><span class="material-symbols-outlined text-[15px]">person</span> ${prof}</span>
+                                            </p>
+                                            ${(function(){
+                                                try {
+                                                    const pkgs = typeof s.precios_paquetes_json === 'string' ? JSON.parse(s.precios_paquetes_json || '[]') : (s.precios_paquetes_json || []);
+                                                    if (Array.isArray(pkgs) && pkgs.length > 0) {
+                                                        return '<div class="flex flex-wrap gap-1 mt-2">' + pkgs.map(p => 
+                                                            `<span class="bg-orange-50 text-orange-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-orange-200/80">📦 ${p.cupos} clases x $${parseFloat(p.precio).toLocaleString('es-AR')}</span>`
+                                                        ).join('') + '</div>';
+                                                    }
+                                                } catch(e) {}
+                                                return '';
+                                            })()}
+                                        </div>
+                                        ${buttonHtml}
                                     </div>
-                                    <p class="text-xs font-bold text-slate-600 flex items-center gap-2">
-                                        <span class="text-[#FC8712] flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">schedule</span> ${horaDef5} hs (${duracionFmt})</span>
-                                        <span class="flex items-center gap-1 text-slate-500"><span class="material-symbols-outlined text-[15px]">person</span> ${prof}</span>
-                                    </p>
-                                    ${(function(){
-                                        try {
-                                            const pkgs = typeof s.precios_paquetes_json === 'string' ? JSON.parse(s.precios_paquetes_json || '[]') : (s.precios_paquetes_json || []);
-                                            if (Array.isArray(pkgs) && pkgs.length > 0) {
-                                                return '<div class="flex flex-wrap gap-1 mt-2">' + pkgs.map(p => 
-                                                    `<span class="bg-orange-50 text-orange-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-orange-200/80">📦 ${p.cupos} clases x $${parseFloat(p.precio).toLocaleString('es-AR')}</span>`
-                                                ).join('') + '</div>';
-                                            }
-                                        } catch(e) {}
-                                        return '';
-                                    })()}
-                                </div>
-                                ${buttonHtml}
-                            </div>
-                        `;
+                                `
+                            });
+                        });
                     });
 
-                    htmlDays += `
-                        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
-                            <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
-                                <h4 class="font-black text-slate-900 text-base sm:text-lg flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-[#FC8712]">calendar_today</span>
-                                    <span>${dayFormattedFull}</span>
-                                </h4>
-                                <span class="bg-orange-50 text-[#FC8712] text-[10px] font-black uppercase px-2.5 py-1 rounded-full border border-orange-200">
-                                    ${countClassesForDay} ${countClassesForDay === 1 ? 'clase disponible' : 'clases disponibles'}
-                                </span>
-                            </div>
+                    dayClassesList.sort((a, b) => a.time.localeCompare(b.time));
+                    const dayClassesHtml = dayClassesList.map(item => item.html).join('');
+                    const countClassesForDay = dayClassesList.length;
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                                ${dayClassesHtml}
+                    if (countClassesForDay === 0) {
+                        htmlDays += `
+                            <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+                                <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                                    <h4 class="font-black text-slate-900 text-base sm:text-lg flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-[#FC8712]">calendar_today</span>
+                                        <span>${dayFormattedFull}</span>
+                                    </h4>
+                                    <span class="bg-slate-100 text-slate-500 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border border-slate-200">Sin clases</span>
+                                </div>
+                                <div class="bg-slate-50 border border-slate-200/60 rounded-xl p-3 text-center">
+                                    <p class="text-xs font-semibold text-slate-400">No hay horarios de clase disponibles para este día.</p>
+                                </div>
                             </div>
-                        </div>
-                    `;
+                        `;
+                    } else {
+                        htmlDays += `
+                            <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+                                <div class="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                                    <h4 class="font-black text-slate-900 text-base sm:text-lg flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-[#FC8712]">calendar_today</span>
+                                        <span>${dayFormattedFull}</span>
+                                    </h4>
+                                    <span class="bg-orange-50 text-[#FC8712] text-[10px] font-black uppercase px-2.5 py-1 rounded-full border border-orange-200">
+                                        ${countClassesForDay} ${countClassesForDay === 1 ? 'clase disponible' : 'clases disponibles'}
+                                    </span>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                                    ${dayClassesHtml}
+                                </div>
+                            </div>
+                        `;
+                    }
                 });
 
                 htmlDays += '</div>';
