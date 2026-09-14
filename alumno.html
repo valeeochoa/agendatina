@@ -1129,7 +1129,7 @@
                 if (cFecha === hoyStr) {
                     const cHoraStr = (c.hora || '00:00').substring(0, 5);
                     const [h, m] = cHoraStr.split(':').map(Number);
-                    const classEndTimeObj = new Date(yyyy, hoy.getMonth(), parseInt(dd, 10), (h || 0) + 3, m || 0, 0);
+                    const classEndTimeObj = new Date(yyyy, hoy.getMonth(), parseInt(dd, 10), (h || 0) + 1, m || 0, 0);
                     return classEndTimeObj >= hoy;
                 }
 
@@ -1233,18 +1233,22 @@
 
             // Render Pestaña 4: Historial
             const historialList = document.getElementById('historialClasesList');
-            const pasadas = clases.filter(c => c.estado === 'cancelado' || new Date(c.fecha + 'T' + c.hora) < ahora);
+            const pasadas = clases.filter(c => !proximas.includes(c));
             if (pasadas.length === 0) {
                 historialList.innerHTML = `<div class="bg-white/95 border border-slate-200 p-6 rounded-2xl text-center shadow-xs"><p class="text-slate-500 font-bold text-sm">No tenés historial de asistencias o clases pasadas.</p></div>`;
             } else {
                 historialList.innerHTML = pasadas.map(c => `
-                    <div class="bg-white/95 border border-slate-200 rounded-2xl p-4 flex justify-between items-center opacity-85">
+                    <div class="bg-white/95 border border-slate-200 rounded-2xl p-4 flex justify-between items-center opacity-85 hover:opacity-100 transition-opacity">
                         <div>
-                            <span class="text-[10px] font-extrabold uppercase text-slate-400 block">${c.negocio}</span>
-                            <h5 class="font-bold text-slate-800 text-sm">${c.servicio}</h5>
-                            <span class="text-xs text-slate-500">${c.fecha} a las ${c.hora} hs</span>
+                            <span class="text-[10px] font-extrabold uppercase text-[#FC8712] block">${c.negocio}</span>
+                            <h5 class="font-bold text-slate-800 text-sm sm:text-base">${c.servicio}</h5>
+                            <p class="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">calendar_month</span> ${c.fecha}</span>
+                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span> ${c.hora} hs</span>
+                                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> ${c.profesional || 'Instructor'}</span>
+                            </p>
                         </div>
-                        <span class="${c.estado === 'cancelado' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'} text-xs font-bold px-3 py-1 rounded-lg uppercase">${c.estado}</span>
+                        <span class="${c.estado === 'cancelado' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-slate-100 text-slate-700 border-slate-200'} text-xs font-bold px-3 py-1 rounded-xl uppercase border">${c.estado === 'cancelado' ? 'Cancelada' : 'Finalizada'}</span>
                     </div>
                 `).join('');
             }
@@ -1647,7 +1651,7 @@
                             
                             if (isAlreadyEnrolled) {
                                 badgeColor = 'bg-emerald-600 text-white border-emerald-700 font-extrabold shadow-2xs';
-                                badgeText = `✓ YA ESTÁS ANOTADO/A`;
+                                badgeText = `✓ CLASE RESERVADA`;
                             } else if (isPastTime) {
                                 badgeColor = 'bg-slate-200 text-slate-600 border-slate-300 font-bold';
                                 badgeText = `🕒 Horario transcurrido`;
@@ -1667,7 +1671,7 @@
                                 buttonHtml = `
                                     <button disabled class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black py-3 rounded-2xl text-xs uppercase tracking-wider shadow-md flex items-center justify-center gap-2 cursor-default opacity-95">
                                         <span class="material-symbols-outlined text-[18px]">verified</span>
-                                        <span>✓ Ya estás anotado/a a esta clase</span>
+                                        <span>✓ CLASE RESERVADA</span>
                                     </button>
                                 `;
                             } else if (isPastTime) {
@@ -1827,6 +1831,9 @@
                     // Mostrar un único modal de "Inscripción con éxito" que se cierra solo en 4.5 seg
                     showStudentSuccessModal(servicioNombre, dateFormatted, hora, negocioNombre);
                     loadMisClases(email);
+                    if (negocioRuta) {
+                        loadStudentBusinessCalendar(negocioRuta);
+                    }
                 } else {
                     showStudentToast(d.error || 'No se pudo realizar la inscripción.', 'error');
                 }
@@ -1944,6 +1951,8 @@
                 if (d.success) {
                     showStudentToast(d.message || 'Reserva cancelada con éxito.', 'success');
                     loadMisClases(email);
+                    const sel = document.getElementById('studentSelectNegocio');
+                    if (sel && sel.value) loadStudentBusinessCalendar(sel.value);
                 } else {
                     showStudentToast(d.error || 'No se pudo cancelar la reserva.', 'error');
                 }
