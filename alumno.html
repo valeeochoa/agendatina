@@ -1639,11 +1639,11 @@
                                 const cIdServ = parseInt(c.id_servicio, 10) || 0;
                                 const targetIdServ = parseInt(sId, 10) || 0;
 
-                                const matchServ = (cIdServ > 0 && targetIdServ > 0) ? (cIdServ === targetIdServ) : (cServ === targetServ);
+                                const matchServ = (cIdServ > 0 && targetIdServ > 0) ? (cIdServ === targetIdServ) : (cServ === targetServ || cServ.includes(targetServ) || targetServ.includes(cServ));
 
                                 const cIdNeg = parseInt(c.id_negocio, 10) || 0;
-                                const targetIdNeg = parseInt(s.id_negocio, 10) || 0;
-                                const matchNeg = (cIdNeg > 0 && targetIdNeg > 0) ? (cIdNeg === targetIdNeg) : (c.negocio_ruta === ruta);
+                                const targetIdNeg = parseInt(s.id_negocio || currentNegocio.id_negocio, 10) || 0;
+                                const matchNeg = (cIdNeg > 0 && targetIdNeg > 0) ? (cIdNeg === targetIdNeg) : (c.negocio_ruta === ruta || (c.negocio || '').trim().toLowerCase() === (currentNegocio.negocio_nombre || '').trim().toLowerCase());
 
                                 return matchServ && matchNeg;
                             });
@@ -1654,6 +1654,8 @@
                             let ocupadosCount = 0;
                             if (ocupadosData && ocupadosData['_counts'] && ocupadosData['_counts'][keyServSlot] !== undefined) {
                                 ocupadosCount = parseInt(ocupadosData['_counts'][keyServSlot]);
+                            } else if (ocupadosData && ocupadosData['_counts'] && ocupadosData['_counts'][fechaStr + '_0_' + horaDef5] !== undefined) {
+                                ocupadosCount = parseInt(ocupadosData['_counts'][fechaStr + '_0_' + horaDef5]);
                             } else if (ocupadosData && ocupadosData['_counts_hora'] && ocupadosData['_counts_hora'][keyHoraSlot] !== undefined) {
                                 ocupadosCount = parseInt(ocupadosData['_counts_hora'][keyHoraSlot]);
                             } else if (ocupadosData && Array.isArray(ocupadosData[fechaStr])) {
@@ -1711,8 +1713,11 @@
                                     </button>
                                 `;
                             } else {
+                                const targetBizId = s.id_negocio || currentNegocio.id_negocio || '';
+                                const safeSNombre = String(sNombre).replace(/'/g, "\\'");
+                                const safeProf = String(prof).replace(/'/g, "\\'");
                                 buttonHtml = `
-                                    <button onclick="bookStudentClass('${s.id_negocio}', '${sId}', '${sNombre}', '${fechaStr}', '${horaDef5}', '${prof}')" class="w-full bg-[#FC8712] hover:bg-orange-600 text-white font-extrabold py-3 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md shadow-orange-500/20 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
+                                    <button onclick="bookStudentClass('${targetBizId}', '${sId}', '${safeSNombre}', '${fechaStr}', '${horaDef5}', '${safeProf}', this)" class="w-full bg-[#FC8712] hover:bg-orange-600 text-white font-extrabold py-3 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md shadow-orange-500/20 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
                                         <span class="material-symbols-outlined text-[18px]">add_task</span>
                                         <span>Agendarme en esta Clase</span>
                                     </button>
@@ -1809,9 +1814,16 @@
         }
 
         // RESERVAR CLASE CON 1-CLICK CON PASE DE ALUMNO
-        function bookStudentClass(idNegocio, idServicio, servicioNombre, fecha, hora, profesional) {
+        function bookStudentClass(idNegocio, idServicio, servicioNombre, fecha, hora, profesional, btnElem) {
             const email = sessionStorage.getItem('agendatina_alumno_email');
             if (!email) return showStudentToast('Sesión no válida. Iniciar sesión nuevamente.', 'error');
+
+            const selNegocio = document.getElementById('studentSelectNegocio');
+            const negocioRuta = selNegocio ? selNegocio.value : '';
+            const negocioNombre = selNegocio ? selNegocio.options[selNegocio.selectedIndex]?.text : '';
+
+            const currentNegocio = studentNegocios.find(n => n.negocio_ruta === negocioRuta) || {};
+            const targetIdNeg = (idNegocio && idNegocio !== 'undefined' && idNegocio !== '0') ? idNegocio : (currentNegocio.id_negocio || 0);
 
             // Validar cliente-side si el horario ya transcurrió
             const parts = fecha.split('-');
@@ -1823,15 +1835,15 @@
                 }
             }
 
-            const selNegocio = document.getElementById('studentSelectNegocio');
-            const negocioRuta = selNegocio ? selNegocio.value : '';
-            const negocioNombre = selNegocio ? selNegocio.options[selNegocio.selectedIndex]?.text : '';
-
             // Verificar cliente-side que tenga pases para el negocio seleccionado
-            const currentNegocio = studentNegocios.find(n => n.negocio_ruta === negocioRuta) || {};
             const pasesDisp = parseInt(currentNegocio.pases_disponibles) || 0;
             if (pasesDisp <= 0) {
                 return showStudentToast(`No tenés pases disponibles en ${negocioNombre || 'este negocio'} para agendarte.`, 'error');
+            }
+
+            if (btnElem) {
+                btnElem.disabled = true;
+                btnElem.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">sync</span> Reservando...';
             }
 
             const dateFormatted = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : fecha;
@@ -1839,23 +1851,54 @@
             fetch('backend/cliente_auth.php?action=reservar_con_pase', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `email=${encodeURIComponent(email)}&id_negocio=${idNegocio}&id_servicio=${idServicio}&servicio=${encodeURIComponent(servicioNombre)}&fecha=${fecha}&hora=${hora}&profesional=${encodeURIComponent(profesional)}`
+                body: `email=${encodeURIComponent(email)}&id_negocio=${targetIdNeg}&id_servicio=${idServicio}&servicio=${encodeURIComponent(servicioNombre)}&fecha=${fecha}&hora=${hora}&profesional=${encodeURIComponent(profesional)}`
             })
             .then(r => r.json())
             .then(d => {
                 if (d.success) {
-                    // Mostrar un único modal de "Inscripción con éxito" que se cierra solo en 4.5 seg
+                    // 1. Actualización optimista de estado local
+                    allStudentClases.push({
+                        id_negocio: parseInt(targetIdNeg, 10),
+                        id_servicio: parseInt(idServicio, 10),
+                        servicio: servicioNombre,
+                        fecha: fecha,
+                        hora: hora,
+                        profesional: profesional,
+                        estado: 'confirmado',
+                        negocio: negocioNombre,
+                        negocio_ruta: negocioRuta
+                    });
+
+                    if (currentNegocio) {
+                        currentNegocio.pases_disponibles = Math.max(0, (parseInt(currentNegocio.pases_disponibles) || 1) - 1);
+                    }
+
+                    // 2. Refrescar vistas locales e interfaz inmediatamente
                     showStudentSuccessModal(servicioNombre, dateFormatted, hora, negocioNombre);
+                    
+                    if (negocioRuta) {
+                        loadStudentBusinessCalendar(negocioRuta, true);
+                    }
+
+                    // 3. Sincronizar desde backend en segundo plano
                     loadMisClases(email).then(() => {
-                        const sel = document.getElementById('studentSelectNegocio');
-                        const r = sel ? sel.value : negocioRuta;
-                        if (r) loadStudentBusinessCalendar(r, true);
+                        if (negocioRuta) loadStudentBusinessCalendar(negocioRuta, true);
                     });
                 } else {
+                    if (btnElem) {
+                        btnElem.disabled = false;
+                        btnElem.innerHTML = '<span class="material-symbols-outlined text-[18px]">add_task</span><span>Agendarme en esta Clase</span>';
+                    }
                     showStudentToast(d.error || 'No se pudo realizar la inscripción.', 'error');
                 }
             })
-            .catch(() => showStudentToast('Error de conexión al reservar.', 'error'));
+            .catch(() => {
+                if (btnElem) {
+                    btnElem.disabled = false;
+                    btnElem.innerHTML = '<span class="material-symbols-outlined text-[18px]">add_task</span><span>Agendarme en esta Clase</span>';
+                }
+                showStudentToast('Error de conexión al reservar.', 'error');
+            });
         }
 
         function handleUpdateProfile(e) {
