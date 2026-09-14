@@ -209,12 +209,16 @@ function poblarServiciosDropdowns() {
     const selInvite = document.getElementById('inviteModalServicio');
     if (selInvite) {
         const currentVal = selInvite.value;
-        let html = '<option value="">Todos los Servicios (Predeterminado)</option>';
+        let html = '<option value="">-- Seleccionar Servicio --</option>';
         allServicios.forEach(s => {
             html += `<option value="${s.id}">${escapeHtml(s.nombre)}</option>`;
         });
         selInvite.innerHTML = html;
-        if (currentVal) selInvite.value = currentVal;
+        if (currentVal) {
+            selInvite.value = currentVal;
+        } else if (allServicios.length === 1) {
+            selInvite.value = allServicios[0].id;
+        }
     }
 }
 
@@ -739,20 +743,19 @@ function escapeHtml(str) {
 }
 
 function actualizarEnlaceUnicoView() {
-    const el = document.getElementById('inputEnlaceUnicoText');
     const elModal = document.getElementById('modalInputEnlaceUnicoText');
     const selInvite = document.getElementById('inviteModalServicio');
     const selectedServId = selInvite ? selInvite.value : '';
 
+    if (!selectedServId) {
+        if (elModal) elModal.textContent = 'Seleccioná un servicio arriba para generar el enlace...';
+        return;
+    }
+
     if (negocioRutaUnica) {
-        let fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}`;
-        if (selectedServId) {
-            fullUrl += `&s=${encodeURIComponent(selectedServId)}`;
-        }
-        if (el) el.textContent = fullUrl;
+        const fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}&s=${encodeURIComponent(selectedServId)}`;
         if (elModal) elModal.textContent = fullUrl;
     } else {
-        if (el) el.textContent = 'Enlace no disponible';
         if (elModal) elModal.textContent = 'Enlace no disponible';
     }
 }
@@ -777,15 +780,18 @@ function copiarEnlaceUnico() {
     if (!negocioRutaUnica) return;
     const selInvite = document.getElementById('inviteModalServicio');
     const selectedServId = selInvite ? selInvite.value : '';
-    let fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}`;
-    if (selectedServId) {
-        fullUrl += `&s=${encodeURIComponent(selectedServId)}`;
+    
+    if (!selectedServId) {
+        if (typeof showToast === 'function') showToast('Debes seleccionar un servicio para generar el enlace de invitación.', 'error');
+        if (selInvite) selInvite.focus();
+        return;
     }
+
+    const fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}&s=${encodeURIComponent(selectedServId)}`;
     
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(fullUrl).then(() => {
-            if (typeof showToast === 'function') showToast('¡Enlace de registro copiado al portapapeles!', 'success');
-            else alert('¡Enlace copiado al portapapeles!');
+            if (typeof showToast === 'function') showToast('¡Enlace de registro al servicio copiado al portapapeles!', 'success');
         }).catch(() => fallbackCopiar(fullUrl));
     } else {
         fallbackCopiar(fullUrl);
@@ -800,19 +806,26 @@ function fallbackCopiar(text) {
     document.execCommand('copy');
     document.body.removeChild(input);
     if (typeof showToast === 'function') showToast('¡Enlace copiado al portapapeles!', 'success');
-    else alert('¡Enlace copiado!');
 }
 
 function compartirWhatsAppEnlaceUnico() {
     if (!negocioRutaUnica) return;
     const selInvite = document.getElementById('inviteModalServicio');
     const selectedServId = selInvite ? selInvite.value : '';
-    let fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}`;
-    if (selectedServId) {
-        fullUrl += `&s=${encodeURIComponent(selectedServId)}`;
+
+    if (!selectedServId) {
+        if (typeof showToast === 'function') showToast('Debes seleccionar un servicio antes de compartir por WhatsApp.', 'error');
+        if (selInvite) selInvite.focus();
+        return;
     }
+
+    const servObj = allServicios.find(s => s.id == selectedServId);
+    const servNombre = servObj ? servObj.nombre : '';
+
+    const fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}&s=${encodeURIComponent(selectedServId)}`;
     const nom = negocioNombreUnico || 'nuestro establecimiento';
-    const msg = `¡Hola! Podés registrarte o anotarte a nuestras clases en ${nom} a través de nuestro enlace oficial:\n\n${fullUrl}`;
+    const servText = servNombre ? ` para ${servNombre}` : '';
+    const msg = `¡Hola! Podés registrarte o anotarte a nuestras clases${servText} en ${nom} a través de este enlace:\n\n${fullUrl}`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
