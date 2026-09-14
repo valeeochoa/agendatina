@@ -145,10 +145,10 @@ try {
             }
         }
 
-        // Obtener la lista de servicios activos del negocio
+        // Obtener la lista de servicios activos del negocio (con cupo_maximo y precios_paquetes_json)
         $servicios = [];
         try {
-            $stmtServ = $pdo->prepare("SELECT id, nombre_servicio AS nombre, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo FROM servicios WHERE id_negocio = :id_negocio ORDER BY orden ASC, id DESC");
+            $stmtServ = $pdo->prepare("SELECT id, nombre_servicio AS nombre, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo, precios_paquetes_json FROM servicios WHERE id_negocio = :id_negocio ORDER BY orden ASC, id DESC");
             $stmtServ->execute(['id_negocio' => $id_negocio]);
             $servicios = $stmtServ->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $eServ) {}
@@ -241,21 +241,49 @@ try {
         // Acción especial: Cargar / Renovar pases a un alumno
         if ($action === 'add_pases' && $id) {
             $cantAdd = max(1, (int)($data['cantidad'] ?? 0));
+            
+            // Consultar datos actuales del alumno para saber si tiene pases restantes
+            $stmtCurr = $pdo->prepare("SELECT pases_disponibles, pases_totales, fecha_vencimiento, cancelaciones_restantes, cancelaciones_permitidas FROM clientes_negocio WHERE id = :id AND id_negocio = :id_negocio LIMIT 1");
+            $stmtCurr->execute(['id' => $id, 'id_negocio' => $id_negocio]);
+            $currCliente = $stmtCurr->fetch(PDO::FETCH_ASSOC);
+
+            $pasesDispActual = $currCliente ? max(0, (int)$currCliente['pases_disponibles']) : 0;
+            $pasesTotActual = $currCliente ? max(0, (int)$currCliente['pases_totales']) : 0;
+
+            // Calcular nuevo vencimiento: renovar a 1 mes desde hoy
             $newVenc = date('Y-m-d', strtotime('+1 month'));
 
-            // Al cargar pases nuevos se restablece el ciclo completo (ej. 4 de 4 clases) y se renueva el vencimiento a 1 mes
+            if ($pasesDispActual > 0) {
+                // Caso A: El alumno todavía tenía pases (ej: 2 de 4). Si se le cargan 8, pasa a valer 10 de 12 (2+8 de 4+8)
+                $nuevoDisponibles = $pasesDispActual + $cantAdd;
+                $nuevoTotales = ($pasesTotActual > 0 ? $pasesTotActual : $pasesDispActual) + $cantAdd;
+            } else {
+                // Caso B: El alumno agotó sus pases (0 de 4). Se restablece el ciclo completo a la nueva cantidad (ej: 8 de 8)
+                $nuevoDisponibles = $cantAdd;
+                $nuevoTotales = $cantAdd;
+            }
+
             $stmtAdd = $pdo->prepare("
                 UPDATE clientes_negocio 
-                SET pases_disponibles = :add, 
-                    pases_totales = :add, 
+                SET pases_disponibles = :disp, 
+                    pases_totales = :tot, 
                     fecha_vencimiento = :newVenc, 
-                    cancelaciones_permitidas = :add, 
-                    cancelaciones_restantes = :add 
+                    cancelaciones_permitidas = :tot, 
+                    cancelaciones_restantes = :disp 
                 WHERE id = :id AND id_negocio = :id_negocio
             ");
-            $stmtAdd->execute(['add' => $cantAdd, 'newVenc' => $newVenc, 'id' => $id, 'id_negocio' => $id_negocio]);
+            $stmtAdd->execute([
+                'disp' => $nuevoDisponibles, 
+                'tot' => $nuevoTotales, 
+                'newVenc' => $newVenc, 
+                'id' => $id, 
+                'id_negocio' => $id_negocio
+            ]);
 
-            echo json_encode(['success' => true, 'message' => 'Límite de clases y vencimiento restablecidos con éxito (' . $cantAdd . ' de ' . $cantAdd . ' clases).']);
+            echo json_encode([
+                'success' => true, 
+                'message' => "Se cargaron +{$cantAdd} clases exitosamente. Ahora el alumno cuenta con {$nuevoDisponibles} de {$nuevoTotales} clases disponibles hasta el " . date('d/m/Y', strtotime($newVenc)) . "."
+            ]);
             exit;
         }
 
