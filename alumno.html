@@ -1943,14 +1943,21 @@
                                                 <span class="flex items-center gap-1 text-slate-500"><span class="material-symbols-outlined text-[15px]">person</span> ${prof}</span>
                                             </p>
                                             ${(function(){
-                                                try {
-                                                    const pkgs = typeof s.precios_paquetes_json === 'string' ? JSON.parse(s.precios_paquetes_json || '[]') : (s.precios_paquetes_json || []);
-                                                    if (Array.isArray(pkgs) && pkgs.length > 0) {
-                                                        return '<div class="flex flex-wrap gap-1 mt-2">' + pkgs.map(p => 
-                                                            `<span class="bg-orange-50 text-orange-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-orange-200/80">📦 ${p.cupos} clases x $${parseFloat(p.precio).toLocaleString('es-AR')}</span>`
-                                                        ).join('') + '</div>';
+                                                // Mostrar únicamente el pase que el alumno tiene asignado para este negocio/servicio
+                                                if (pasesNegocio > 0 && currentNegocio) {
+                                                    const servAsig = currentNegocio.servicio_nombre || currentNegocio.servicio || '';
+                                                    const pTotales = parseInt(currentNegocio.pases_totales) || pasesNegocio;
+                                                    const esServicioAsignado = !servAsig || (sNombre && sNombre.toLowerCase().includes(servAsig.toLowerCase())) || (sId && currentNegocio.id_servicio && parseInt(sId) === parseInt(currentNegocio.id_servicio));
+                                                    
+                                                    if (esServicioAsignado) {
+                                                        return `
+                                                            <div class="mt-2.5 inline-flex items-center gap-1.5 bg-purple-50 text-purple-800 border border-purple-200/90 text-[11px] font-extrabold px-3 py-1 rounded-xl">
+                                                                <span class="material-symbols-outlined text-[14px] text-purple-600">confirmation_number</span>
+                                                                <span>Tu Pase: <strong>${pasesNegocio} de ${pTotales} clases</strong></span>
+                                                            </div>
+                                                        `;
                                                     }
-                                                } catch(e) {}
+                                                }
                                                 return '';
                                             })()}
                                         </div>
