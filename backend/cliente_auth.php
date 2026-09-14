@@ -451,7 +451,36 @@ try {
             }
         }
 
-        // Obtener el historial completo de clases y turnos con vencimiento y límites de devolución
+        // Obtener el historial completo de clases y turnos (matcheando celular/email, telefono y nombre)
+        $phonesToMatch = [];
+        $namesToMatch = [];
+        foreach ($negociosAsociados as $na) {
+            if (!empty($na['telefono'])) $phonesToMatch[] = trim($na['telefono']);
+            if (!empty($na['nombre_completo']) && strtolower(trim($na['nombre_completo'])) !== 'alumno') $namesToMatch[] = strtolower(trim($na['nombre_completo']));
+        }
+        if ($perfil && !empty($perfil['telefono'])) $phonesToMatch[] = trim($perfil['telefono']);
+        if ($perfil && !empty($perfil['nombre_completo']) && strtolower(trim($perfil['nombre_completo'])) !== 'alumno') $namesToMatch[] = strtolower(trim($perfil['nombre_completo']));
+
+        $phonesToMatch = array_unique(array_filter($phonesToMatch));
+        $namesToMatch = array_unique(array_filter($namesToMatch));
+
+        $whereConds = ["LOWER(TRIM(t.cliente_celular)) = :email", "LOWER(t.cliente_nombre) LIKE :emailLike"];
+        $params = ['email' => $email, 'emailLike' => '%' . $email . '%'];
+
+        foreach (array_values($phonesToMatch) as $idx => $phone) {
+            $key = 'phone_' . $idx;
+            $whereConds[] = "t.cliente_celular = :" . $key;
+            $params[$key] = $phone;
+        }
+
+        foreach (array_values($namesToMatch) as $idx => $name) {
+            $key = 'name_' . $idx;
+            $whereConds[] = "LOWER(TRIM(t.cliente_nombre)) = :" . $key;
+            $params[$key] = $name;
+        }
+
+        $whereClause = "WHERE " . implode(" OR ", $whereConds);
+
         $stmt = $pdo->prepare("
             SELECT t.id, t.id_negocio, t.id_servicio, COALESCE(n.nombre_fantasia, 'Establecimiento') AS negocio, n.ruta AS negocio_ruta, 
                    t.servicio, t.profesional, t.fecha, t.hora, t.estado,
@@ -459,10 +488,10 @@ try {
             FROM turnos t
             LEFT JOIN negocios n ON t.id_negocio = n.id
             LEFT JOIN clientes_negocio cn ON t.id_negocio = cn.id_negocio AND LOWER(TRIM(cn.email)) = :email
-            WHERE LOWER(TRIM(t.cliente_celular)) = :email OR LOWER(t.cliente_nombre) LIKE :emailLike
+            {$whereClause}
             ORDER BY t.fecha DESC, t.hora DESC
         ");
-        $stmt->execute(['email' => $email, 'emailLike' => '%' . $email . '%']);
+        $stmt->execute($params);
         $clases = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($clases as &$c) {

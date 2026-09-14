@@ -1074,10 +1074,15 @@
         function startStudentCalendarPolling() {
             if (studentCalendarPollInterval) clearInterval(studentCalendarPollInterval);
             studentCalendarPollInterval = setInterval(() => {
+                const email = sessionStorage.getItem('agendatina_alumno_email');
                 const sel = document.getElementById('studentSelectNegocio');
                 const contentRes = document.getElementById('tabContentReservar');
-                if (sel && sel.value && contentRes && !contentRes.classList.contains('hidden')) {
-                    loadStudentBusinessCalendar(sel.value, true);
+                if (email) {
+                    loadMisClases(email).then(() => {
+                        if (sel && sel.value && contentRes && !contentRes.classList.contains('hidden')) {
+                            loadStudentBusinessCalendar(sel.value, true);
+                        }
+                    });
                 }
             }, 10000);
         }
@@ -1124,6 +1129,7 @@
             }
 
             if (!y || isNaN(m) || !d) return null;
+            if (y > 0 && y < 100) y += 2000;
 
             let hr = 0, mn = 0;
             if (horaStr) {
@@ -1656,7 +1662,7 @@
 
                             // 1. Verificar si ya está inscripto
                             const isAlreadyEnrolled = allStudentClases.some(c => {
-                                if (c.estado === 'cancelado') return false;
+                                if (!c || c.estado === 'cancelado') return false;
                                 
                                 const cDT = parseClassDateTime(c.fecha, c.hora);
                                 if (!cDT) return false;
@@ -1669,18 +1675,30 @@
 
                                 if (cFmtDate !== fechaStr || cFmtHora !== horaDef5) return false;
 
+                                const cIdNeg = parseInt(c.id_negocio, 10) || 0;
+                                const targetIdNeg = parseInt(s.id_negocio || currentNegocio.id_negocio, 10) || 0;
+                                const matchNeg = (cIdNeg > 0 && targetIdNeg > 0 && cIdNeg === targetIdNeg) ||
+                                                 (c.negocio_ruta && ruta && c.negocio_ruta === ruta) ||
+                                                 ((c.negocio || '').trim().toLowerCase() === (currentNegocio.negocio_nombre || '').trim().toLowerCase()) ||
+                                                 (!cIdNeg || !targetIdNeg);
+
+                                if (!matchNeg) return false;
+
                                 const cServ = String(c.servicio || '').trim().toLowerCase();
                                 const targetServ = String(sNombre).trim().toLowerCase();
                                 const cIdServ = parseInt(c.id_servicio, 10) || 0;
                                 const targetIdServ = parseInt(sId, 10) || 0;
 
-                                const matchServ = (cIdServ > 0 && targetIdServ > 0) ? (cIdServ === targetIdServ) : (cServ === targetServ || cServ.includes(targetServ) || targetServ.includes(cServ));
+                                let matchServ = false;
+                                if (cIdServ > 0 && targetIdServ > 0 && cIdServ === targetIdServ) {
+                                    matchServ = true;
+                                } else if (cServ && targetServ && (cServ === targetServ || cServ.includes(targetServ) || targetServ.includes(cServ))) {
+                                    matchServ = true;
+                                } else if (!cIdServ || !targetIdServ) {
+                                    matchServ = true;
+                                }
 
-                                const cIdNeg = parseInt(c.id_negocio, 10) || 0;
-                                const targetIdNeg = parseInt(s.id_negocio || currentNegocio.id_negocio, 10) || 0;
-                                const matchNeg = (cIdNeg > 0 && targetIdNeg > 0) ? (cIdNeg === targetIdNeg) : (c.negocio_ruta === ruta || (c.negocio || '').trim().toLowerCase() === (currentNegocio.negocio_nombre || '').trim().toLowerCase());
-
-                                return matchServ && matchNeg;
+                                return matchServ;
                             });
 
                             // 2. Calcular conteo de cupos
@@ -1892,7 +1910,8 @@
             .then(d => {
                 if (d.success) {
                     // 1. Actualización optimista de estado local
-                    allStudentClases.push({
+                    const newBooking = {
+                        id: 'temp_' + Date.now(),
                         id_negocio: parseInt(targetIdNeg, 10),
                         id_servicio: parseInt(idServicio, 10),
                         servicio: servicioNombre,
@@ -1901,14 +1920,24 @@
                         profesional: profesional,
                         estado: 'confirmado',
                         negocio: negocioNombre,
-                        negocio_ruta: negocioRuta
-                    });
+                        negocio_ruta: negocioRuta,
+                        fecha_vencimiento: currentNegocio.fecha_vencimiento || '',
+                        cancelaciones_restantes: currentNegocio.cancelaciones_restantes,
+                        cancelaciones_max: currentNegocio.cancelaciones_max || 4
+                    };
+                    allStudentClases.unshift(newBooking);
 
                     if (currentNegocio) {
                         currentNegocio.pases_disponibles = Math.max(0, (parseInt(currentNegocio.pases_disponibles) || 1) - 1);
                     }
 
                     // 2. Refrescar vistas locales e interfaz inmediatamente
+                    renderStudentDashboardContent({
+                        data: allStudentClases,
+                        negocios: studentNegocios,
+                        perfil: { nombre_completo: sessionStorage.getItem('agendatina_alumno_nombre') || 'Alumno', email: email }
+                    });
+
                     showStudentSuccessModal(servicioNombre, dateFormatted, hora, negocioNombre);
                     
                     if (negocioRuta) {
