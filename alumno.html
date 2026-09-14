@@ -1066,10 +1066,24 @@
             document.getElementById('profileNombre').value = cliente.nombre || '';
 
             loadMisClases(cliente.email || sessionStorage.getItem('agendatina_alumno_email'));
+            startStudentCalendarPolling();
+        }
+
+        let studentCalendarPollInterval = null;
+
+        function startStudentCalendarPolling() {
+            if (studentCalendarPollInterval) clearInterval(studentCalendarPollInterval);
+            studentCalendarPollInterval = setInterval(() => {
+                const sel = document.getElementById('studentSelectNegocio');
+                const contentRes = document.getElementById('tabContentReservar');
+                if (sel && sel.value && contentRes && !contentRes.classList.contains('hidden')) {
+                    loadStudentBusinessCalendar(sel.value, true);
+                }
+            }, 10000);
         }
 
         function loadMisClases(email) {
-            fetch('backend/cliente_auth.php?action=mis_clases&email=' + encodeURIComponent(email))
+            return fetch('backend/cliente_auth.php?action=mis_clases&email=' + encodeURIComponent(email))
                 .then(r => r.json())
                 .then(d => {
                     if (d.success) {
@@ -1475,10 +1489,12 @@
         }
 
         // CARGAR CALENDARIO CON CUPOS DISPONIBLES EN TIEMPO REAL (DISCRIMINADO POR NEGOCIO)
-        function loadStudentBusinessCalendar(ruta) {
+        function loadStudentBusinessCalendar(ruta, isSilent = false) {
             if (!ruta) return;
             const grid = document.getElementById('studentCalendarGrid');
-            grid.innerHTML = `<div class="p-8 text-center"><span class="material-symbols-outlined animate-spin text-4xl text-[#FC8712] mb-2">sync</span><p class="font-bold text-slate-600 text-sm">Consultando cupos y clases abiertas...</p></div>`;
+            if (!isSilent) {
+                grid.innerHTML = `<div class="p-8 text-center"><span class="material-symbols-outlined animate-spin text-4xl text-[#FC8712] mb-2">sync</span><p class="font-bold text-slate-600 text-sm">Consultando cupos y clases abiertas...</p></div>`;
+            }
 
             // Obtener negocio seleccionado para discriminar pases
             const currentNegocio = studentNegocios.find(n => n.negocio_ruta === ruta) || {};
@@ -1830,10 +1846,11 @@
                 if (d.success) {
                     // Mostrar un único modal de "Inscripción con éxito" que se cierra solo en 4.5 seg
                     showStudentSuccessModal(servicioNombre, dateFormatted, hora, negocioNombre);
-                    loadMisClases(email);
-                    if (negocioRuta) {
-                        loadStudentBusinessCalendar(negocioRuta);
-                    }
+                    loadMisClases(email).then(() => {
+                        const sel = document.getElementById('studentSelectNegocio');
+                        const r = sel ? sel.value : negocioRuta;
+                        if (r) loadStudentBusinessCalendar(r, true);
+                    });
                 } else {
                     showStudentToast(d.error || 'No se pudo realizar la inscripción.', 'error');
                 }
@@ -1950,9 +1967,10 @@
             .then(d => {
                 if (d.success) {
                     showStudentToast(d.message || 'Reserva cancelada con éxito.', 'success');
-                    loadMisClases(email);
-                    const sel = document.getElementById('studentSelectNegocio');
-                    if (sel && sel.value) loadStudentBusinessCalendar(sel.value);
+                    loadMisClases(email).then(() => {
+                        const sel = document.getElementById('studentSelectNegocio');
+                        if (sel && sel.value) loadStudentBusinessCalendar(sel.value, true);
+                    });
                 } else {
                     showStudentToast(d.error || 'No se pudo cancelar la reserva.', 'error');
                 }
