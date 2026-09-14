@@ -1103,13 +1103,19 @@
 
         function loadMisClases(email) {
             return fetch('backend/cliente_auth.php?action=mis_clases&email=' + encodeURIComponent(email))
-                .then(r => r.json())
+                .then(r => {
+                    if (!r.ok) throw new Error('Network error: ' + r.status);
+                    return r.json();
+                })
                 .then(d => {
-                    if (d.success) {
+                    if (d && d.success) {
                         allStudentClases = d.data || [];
                         studentNegocios = d.negocios || [];
                         renderStudentDashboardContent(d);
                     }
+                })
+                .catch(err => {
+                    console.warn('[Portal Alumno] No se pudo sincronizar clases con el servidor (posible desconexión a internet):', err.message || err);
                 });
         }
 
