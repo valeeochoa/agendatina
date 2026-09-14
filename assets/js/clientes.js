@@ -275,8 +275,10 @@ function onClienteServicioChange(selectedCupos = null) {
             const matchesPkg = pkgs.some(p => parseInt(p.cupos, 10) === parseInt(selectedCupos, 10));
             if (matchesPkg) {
                 selectPaq.value = selectedCupos;
+                if (pasesInput) pasesInput.value = selectedCupos;
             } else {
                 selectPaq.value = 'manual';
+                if (pasesInput) pasesInput.value = selectedCupos;
             }
         } else if (pkgs.length > 0) {
             selectPaq.value = pkgs[0].cupos;
@@ -284,6 +286,16 @@ function onClienteServicioChange(selectedCupos = null) {
         } else {
             selectPaq.value = 'manual';
             if (pasesInput && !pasesInput.value) pasesInput.value = 4;
+        }
+
+        // Si es un paquete del negocio, ocultar inputs manuales de cupos y vencimiento
+        const contManual = document.getElementById('containerCamposManuales');
+        if (contManual) {
+            if (selectPaq.value === 'manual') {
+                contManual.classList.remove('hidden');
+            } else {
+                contManual.classList.add('hidden');
+            }
         }
     }
 
@@ -299,12 +311,15 @@ function onClienteServicioChange(selectedCupos = null) {
 function onClientePaqueteChange() {
     const selectPaq = document.getElementById('clientePaqueteSelect');
     const pasesInput = document.getElementById('clientePases');
+    const contManual = document.getElementById('containerCamposManuales');
     if (!selectPaq || !pasesInput) return;
 
     const val = selectPaq.value;
     if (val && val !== 'manual') {
         pasesInput.value = parseInt(val, 10);
+        if (contManual) contManual.classList.add('hidden');
     } else if (val === 'manual') {
+        if (contManual) contManual.classList.remove('hidden');
         pasesInput.focus();
     }
     actualizarBannerInfoPases();
@@ -407,6 +422,8 @@ function openModalCliente(cliente = null) {
             document.getElementById('clienteVencimiento').value = defaultDate.toISOString().split('T')[0];
             const containerPaq = document.getElementById('containerClientePaquete');
             if (containerPaq) containerPaq.classList.add('hidden');
+            const contManual = document.getElementById('containerCamposManuales');
+            if (contManual) contManual.classList.add('hidden');
             const infoBanner = document.getElementById('clientePasesInfoBanner');
             if (infoBanner) infoBanner.classList.add('hidden');
         }
@@ -432,6 +449,11 @@ function guardarCliente(e) {
 
     const selectedServId = document.getElementById('clienteServicio')?.value || null;
     const selectedServObj = allServicios.find(s => s.id == selectedServId);
+    const selPaq = document.getElementById('clientePaqueteSelect');
+    let pasesVal = parseInt(document.getElementById('clientePases')?.value || 0, 10);
+    if (selPaq && selPaq.value && selPaq.value !== 'manual') {
+        pasesVal = parseInt(selPaq.value, 10);
+    }
 
     const payload = {
         id: document.getElementById('clienteId')?.value || null,
@@ -440,7 +462,7 @@ function guardarCliente(e) {
         telefono: document.getElementById('clienteTelefono')?.value || '',
         id_servicio: selectedServId,
         servicio: selectedServObj ? selectedServObj.nombre : '',
-        pases_disponibles: document.getElementById('clientePases')?.value || 0,
+        pases_disponibles: pasesVal,
         fecha_vencimiento: document.getElementById('clienteVencimiento')?.value || null,
         notas: document.getElementById('clienteNotas')?.value || ''
     };

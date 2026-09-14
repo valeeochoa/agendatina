@@ -234,10 +234,11 @@
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Campos de Clases y Vencimiento (visibles solo en Carga Manual) -->
+                    <div id="containerCamposManuales" class="grid grid-cols-1 sm:grid-cols-2 gap-3 hidden">
                         <div>
                             <label class="block text-[11px] font-bold text-slate-700 mb-1">Clases Disponibles *</label>
-                            <input type="number" id="clientePases" name="pases_disponibles" min="0" value="8" oninput="actualizarBannerInfoPases()" required class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none">
+                            <input type="number" id="clientePases" name="pases_disponibles" min="0" value="4" oninput="actualizarBannerInfoPases()" required class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none">
                             <span class="text-[10px] text-slate-400 mt-1 block">Cupos acreditados al alumno</span>
                         </div>
                         <div>
