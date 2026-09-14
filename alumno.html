@@ -363,19 +363,19 @@
 
                 <!-- Resumen Rápido -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-white/20 relative z-10">
-                    <div class="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/20">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-orange-100 block">Pases Disponibles</span>
-                        <span class="text-2xl font-black text-white" id="statPasesCount">0</span>
-                        <span class="text-[10px] font-semibold text-orange-100 block">en tus negocios</span>
-                    </div>
-
-                    <div class="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/20">
+                    <div onclick="switchTab('clases')" class="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 hover:bg-white/25 transition-all cursor-pointer">
                         <span class="text-[10px] font-bold uppercase tracking-wider text-orange-100 block">Próximas Clases</span>
                         <span class="text-2xl font-black text-white" id="statProximasCount">0</span>
                         <span class="text-[10px] font-semibold text-orange-100 block">agendadas</span>
                     </div>
 
-                    <div class="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 col-span-2 sm:col-span-1">
+                    <div onclick="switchTab('pagos')" class="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 hover:bg-white/25 transition-all cursor-pointer">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-orange-100 block">Pases Activos</span>
+                        <span class="text-2xl font-black text-white" id="statPasesActivosCount">0</span>
+                        <span class="text-[10px] font-semibold text-orange-100 block">paquetes vinculados</span>
+                    </div>
+
+                    <div onclick="switchTab('reservar')" class="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 hover:bg-white/25 transition-all cursor-pointer col-span-2 sm:col-span-1">
                         <span class="text-[10px] font-bold uppercase tracking-wider text-orange-100 block">Establecimientos</span>
                         <span class="text-2xl font-black text-white" id="statNegociosCount">0</span>
                         <span class="text-[10px] font-semibold text-orange-100 block">asociados</span>
@@ -519,6 +519,16 @@
                             Guardar Cambios de Perfil
                         </button>
                     </form>
+
+                    <div id="perfilResumenNegocios" class="pt-4 border-t border-slate-100">
+                        <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[#FC8712] text-[18px]">account_balance_wallet</span>
+                            <span>Mis Pases y Devoluciones por Establecimiento</span>
+                        </h4>
+                        <div id="perfilNegociosList" class="space-y-2.5">
+                            <!-- Inyectado dinámicamente -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1227,9 +1237,9 @@
             if (perfil.telefono) document.getElementById('profileTelefono').value = perfil.telefono;
 
             // Stats
-            let totalPases = 0;
-            negocios.forEach(n => totalPases += (parseInt(n.pases_disponibles) || 0));
-            document.getElementById('statPasesCount').textContent = totalPases;
+            const pasesActivos = negocios.filter(n => (parseInt(n.pases_disponibles) || 0) > 0).length;
+            const statPasesActivosEl = document.getElementById('statPasesActivosCount');
+            if (statPasesActivosEl) statPasesActivosEl.textContent = pasesActivos;
             document.getElementById('statNegociosCount').textContent = negocios.length;
 
             const hoy = new Date();
@@ -1261,9 +1271,7 @@
                 </div>`;
             } else {
                 misClasesList.innerHTML = proximas.map(c => {
-                    const vencTag = formatVencimientoTag(c.fecha_vencimiento);
                     const cancRest = c.cancelaciones_restantes !== undefined ? parseInt(c.cancelaciones_restantes) : (parseInt(c.cancelaciones_max) || 4);
-                    const cancMax = parseInt(c.cancelaciones_max) || 4;
 
                     const classStartDate = parseClassDateTime(c.fecha, c.hora);
                     const hasStarted = classStartDate ? (classStartDate <= hoy) : false;
@@ -1294,8 +1302,9 @@
                                 ${iconHtml}
                                 <div class="space-y-1">
                                     <div class="flex flex-wrap items-center gap-2">
-                                        <span class="text-[10px] font-black uppercase text-[#FC8712] tracking-wider bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">${c.negocio}</span>
-                                        ${vencTag}
+                                        <span class="text-[10px] font-black uppercase text-[#FC8712] tracking-wider bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200 flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-[13px]">storefront</span> ${c.negocio}
+                                        </span>
                                     </div>
                                     <h4 class="font-black text-slate-900 text-lg sm:text-xl">${c.servicio}</h4>
                                     <p class="text-xs font-bold text-slate-600 flex flex-wrap items-center gap-3 pt-1">
@@ -1308,9 +1317,6 @@
                             <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="bg-emerald-100 text-emerald-800 text-xs font-black px-3 py-1.5 rounded-full border border-emerald-200 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Confirmada</span>
-                                    <span class="text-[11px] font-extrabold ${cancRest > 0 ? 'text-slate-700 bg-slate-100' : 'text-red-700 bg-red-50 border border-red-200'} px-2.5 py-1 rounded-full flex items-center gap-1">
-                                        <span class="material-symbols-outlined text-[14px]">published_with_changes</span> Cancelaciones disponibles: ${cancRest}/${cancMax}
-                                    </span>
                                 </div>
                                 ${cancelBtnHtml}
                             </div>
@@ -1331,12 +1337,19 @@
                     const cancRest = n.cancelaciones_restantes !== undefined ? parseInt(n.cancelaciones_restantes) : (parseInt(n.cancelaciones_max) || parseInt(n.pases_totales) || 4);
                     const cancMax = parseInt(n.cancelaciones_max) || parseInt(n.pases_totales) || 4;
                     const pasesDisp = parseInt(n.pases_disponibles) || 0;
+                    const servLabel = n.servicio_nombre || n.servicio || 'Todos los servicios';
+
                     return `
                         <div class="bg-white/95 border border-slate-200/90 rounded-3xl p-5 shadow-md space-y-3.5">
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <h4 class="font-black text-slate-900 text-base sm:text-lg">${n.negocio_nombre}</h4>
-                                    <span class="text-[11px] font-bold text-slate-500 block">Pase de Alumno (Exclusivo de este negocio)</span>
+                                    <div class="flex items-center gap-1.5 mb-1">
+                                        <span class="material-symbols-outlined text-[16px] text-[#FC8712]">storefront</span>
+                                        <h4 class="font-black text-slate-900 text-base sm:text-lg">${n.negocio_nombre}</h4>
+                                    </div>
+                                    <span class="inline-flex items-center gap-1 bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold">
+                                        <span class="material-symbols-outlined text-[13px]">fitness_center</span> Servicio: ${servLabel}
+                                    </span>
                                 </div>
                                 <span class="bg-gradient-to-r from-[#FC8712] to-[#FF8A65] text-white text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl shadow-xs">${pasesDisp} pases libres</span>
                             </div>
@@ -1345,7 +1358,7 @@
                             </div>
                             <div class="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
                                 <div>${vencTag}</div>
-                                <div class="text-[11px] font-extrabold ${cancRest > 0 ? 'text-slate-700 bg-slate-100' : 'text-red-700 bg-red-50 border border-red-200'} px-2.5 py-1 rounded-full flex items-center gap-1">
+                                <div class="text-[11px] font-extrabold ${cancRest > 0 ? 'text-slate-700 bg-slate-100' : 'text-red-700 bg-red-50 border border-red-200'} px-2.5 py-1 rounded-full flex items-center gap-1" title="Devoluciones disponibles en este establecimiento">
                                     <span class="material-symbols-outlined text-[14px]">published_with_changes</span>
                                     <span>Devoluciones: <strong>${cancRest} / ${cancMax}</strong></span>
                                 </div>
@@ -1357,6 +1370,40 @@
                         </div>
                     `;
                 }).join('');
+            }
+
+            // Render en Pestaña 5: Mi Perfil (Resumen de pases y devoluciones por negocio y servicio)
+            const perfilNegociosList = document.getElementById('perfilNegociosList');
+            if (perfilNegociosList) {
+                if (negocios.length === 0) {
+                    perfilNegociosList.innerHTML = `<p class="text-slate-400 text-xs text-center py-2">No estás asociado a ningún establecimiento aún.</p>`;
+                } else {
+                    perfilNegociosList.innerHTML = negocios.map(n => {
+                        const cancRest = n.cancelaciones_restantes !== undefined ? parseInt(n.cancelaciones_restantes) : (parseInt(n.cancelaciones_max) || parseInt(n.pases_totales) || 4);
+                        const cancMax = parseInt(n.cancelaciones_max) || parseInt(n.pases_totales) || 4;
+                        const pasesDisp = parseInt(n.pases_disponibles) || 0;
+                        const servLabel = n.servicio_nombre || n.servicio || 'Todos los servicios';
+                        const vencTag = formatVencimientoTag(n.fecha_vencimiento);
+
+                        return `
+                            <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
+                                <div>
+                                    <strong class="text-sm font-black text-slate-800 block flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[15px] text-[#FC8712]">storefront</span> ${n.negocio_nombre}
+                                    </strong>
+                                    <span class="text-[11px] font-bold text-purple-700 block mt-0.5">🏋️ Servicio: ${servLabel}</span>
+                                    <div class="mt-1">${vencTag}</div>
+                                </div>
+                                <div class="flex flex-col items-end gap-1 shrink-0">
+                                    <span class="bg-[#FC8712] text-white text-xs font-black px-2.5 py-0.5 rounded-lg shadow-2xs">${pasesDisp} pases</span>
+                                    <span class="text-[11px] font-bold text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[13px] text-emerald-600">published_with_changes</span> ${cancRest}/${cancMax} devoluciones
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
             }
 
             // Render Pestaña 4: Historial
@@ -1393,7 +1440,10 @@
             const selNegocio = document.getElementById('studentSelectNegocio');
             if (selNegocio && negocios.length > 0) {
                 const currentVal = selNegocio.value;
-                selNegocio.innerHTML = negocios.map(n => `<option value="${n.negocio_ruta}">${n.negocio_nombre}</option>`).join('');
+                selNegocio.innerHTML = negocios.map(n => {
+                    const servLabel = n.servicio_nombre || n.servicio ? ` (${n.servicio_nombre || n.servicio})` : '';
+                    return `<option value="${n.negocio_ruta}">${n.negocio_nombre}${servLabel}</option>`;
+                }).join('');
                 if (currentVal && negocios.some(n => n.negocio_ruta === currentVal)) {
                     selNegocio.value = currentVal;
                     loadStudentBusinessCalendar(currentVal);
@@ -1622,6 +1672,7 @@
             const currentNegocio = studentNegocios.find(n => n.negocio_ruta === ruta) || {};
             const pasesNegocio = parseInt(currentNegocio.pases_disponibles) || 0;
             const negocioNombreSel = currentNegocio.negocio_nombre || 'este negocio';
+            const servNombreSel = currentNegocio.servicio_nombre || currentNegocio.servicio || '';
 
             let passBannerHtml = '';
             if (pasesNegocio > 0) {
@@ -1629,7 +1680,10 @@
                     <div class="mb-5 p-4 rounded-2xl bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-50 border border-orange-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm font-extrabold text-slate-800 shadow-xs">
                         <div class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-[#FC8712] text-[22px]">confirmation_number</span>
-                            <span>Tus pases disponibles en <strong>${negocioNombreSel}</strong>:</span>
+                            <div>
+                                <span>Tus pases disponibles en <strong>${negocioNombreSel}</strong>:</span>
+                                ${servNombreSel ? `<span class="block text-xs font-bold text-purple-700">🏋️ Válidos para: ${servNombreSel}</span>` : ''}
+                            </div>
                         </div>
                         <span class="bg-[#FC8712] text-white px-3.5 py-1.5 rounded-xl text-xs font-black shadow-xs shrink-0">${pasesNegocio} ${pasesNegocio === 1 ? 'pase libre' : 'pases libres'}</span>
                     </div>
@@ -1639,7 +1693,10 @@
                     <div class="mb-5 p-4 rounded-2xl bg-red-50 border border-red-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm font-bold text-red-900 shadow-xs">
                         <div class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-red-600 text-[22px]">lock</span>
-                            <span>No tenés pases disponibles en <strong>${negocioNombreSel}</strong> (0 pases).</span>
+                            <div>
+                                <span>No tenés pases disponibles en <strong>${negocioNombreSel}</strong> (0 pases).</span>
+                                ${servNombreSel ? `<span class="block text-xs font-bold text-red-700">Servicio: ${servNombreSel}</span>` : ''}
+                            </div>
                         </div>
                         <span class="text-xs text-red-700 font-extrabold bg-red-100 px-3.5 py-1.5 rounded-xl border border-red-200 shrink-0">Contactá al negocio para renovar tu pase</span>
                     </div>

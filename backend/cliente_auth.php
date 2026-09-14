@@ -519,9 +519,9 @@ try {
             exit;
         }
 
-        // Obtener la información de los negocios donde el alumno está registrado
+        // Obtener la información de los negocios y servicios donde el alumno está registrado
         $stmtNegocios = $pdo->prepare("
-            SELECT cn.id_negocio, n.nombre_fantasia AS negocio_nombre, n.ruta AS negocio_ruta, n.estado_pago, 
+            SELECT cn.id_negocio, cn.id_servicio, cn.servicio AS servicio_nombre, n.nombre_fantasia AS negocio_nombre, n.ruta AS negocio_ruta, n.estado_pago, 
                    cn.pases_disponibles, COALESCE(cn.pases_totales, cn.pases_disponibles) AS pases_totales, 
                    cn.fecha_vencimiento, cn.cancelaciones_permitidas, cn.cancelaciones_restantes, cn.telefono, cn.nombre_completo
             FROM clientes_negocio cn
