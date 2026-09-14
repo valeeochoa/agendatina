@@ -402,7 +402,6 @@
                     <button onclick="closePapeleraModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl"><span class="material-symbols-outlined">close</span></button>
                 </div>
             </div>
-
             <div class="overflow-y-auto flex-1 custom-scrollbar pr-1">
                 <div id="papeleraList" class="space-y-3">
                     <p class="text-center text-slate-400 py-8 text-sm">Cargando papelera...</p>
@@ -410,6 +409,66 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Detalle de Clase Grupal / Horario -->
+    <div id="modalDetalleClase" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative max-h-[90vh] flex flex-col">
+            <div class="flex items-start justify-between pb-4 border-b border-slate-100 mb-4 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div id="modalClaseIconBox" class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                        <span id="modalClaseIcon" class="material-symbols-outlined text-2xl">fitness_center</span>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <span id="modalClaseHora" class="text-xs font-black px-2.5 py-0.5 rounded-lg bg-purple-100 text-purple-800 border border-purple-200">--:-- hs</span>
+                            <span id="modalClaseFecha" class="text-xs font-bold text-slate-500">--/--/----</span>
+                        </div>
+                        <h3 id="modalClaseTitulo" class="text-xl font-black text-slate-800">Detalle de la Clase</h3>
+                        <p id="modalClaseProfesor" class="text-xs font-medium text-slate-500 flex items-center gap-1 mt-0.5">
+                            <span class="material-symbols-outlined text-[14px]">person</span> <span>Profesor</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="window.closeClassDetailModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between bg-slate-50 border border-slate-200/80 rounded-2xl p-4 mb-4 shrink-0">
+                <div>
+                    <span class="text-xs font-bold text-slate-500 block uppercase tracking-wider">Capacidad y Cupos</span>
+                    <span id="modalClaseCuposBadge" class="text-sm font-black text-slate-800 flex items-center gap-1.5 mt-0.5">
+                        <span class="material-symbols-outlined text-[18px] text-purple-600">groups</span> 0/0 cupos ocupados
+                    </span>
+                </div>
+                <div id="modalClaseProgressBarBg" class="w-32 sm:w-48 bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                    <div id="modalClaseProgressBar" class="bg-gradient-to-r from-purple-500 to-indigo-600 h-full rounded-full transition-all" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between mb-2 shrink-0">
+                <h4 class="text-xs font-black text-slate-600 uppercase tracking-wider flex items-center gap-1">
+                    <span>Alumnos Inscriptos</span>
+                    <span id="modalClaseTotalInscriptos" class="bg-purple-100 text-purple-800 text-[11px] font-black px-2 py-0.2 rounded-full">0</span>
+                </h4>
+            </div>
+
+            <div class="overflow-y-auto flex-1 custom-scrollbar pr-1">
+                <div id="modalClaseListaAlumnos" class="space-y-2.5">
+                    <!-- Dinámico -->
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-end gap-2 shrink-0">
+                <button onclick="window.closeClassDetailModal()" class="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-100 border border-slate-200 transition-colors">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
 
     <footer id="agendatinaFooter" class="mt-12 py-8 text-center border-t border-slate-200 flex justify-center bg-slate-50/50">
         <a href="index.html" target="_blank" class="inline-block hover:opacity-90 transition-opacity">

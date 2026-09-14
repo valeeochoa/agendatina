@@ -1437,7 +1437,7 @@ function checkNotifications() {
             if (pendientes.length > 0) {
                 pendientes.forEach(t => {
                     const calPage = window.currentWebData?.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
-                    const notifLink = isBasic ? `${calPage}?date=${t.fecha}` : `agenda.html?focus=${t.id}`;
+                    const notifLink = isBasic ? `${calPage}?date=${t.fecha}` : `agenda.html?date=${t.fecha}&focus=${t.id}`;
                     currentNotifs.push({ 
                         id: 'turno_' + t.id,
                         icon: 'event', 
@@ -1454,16 +1454,29 @@ function checkNotifications() {
 
         const cNotifs = window.currentCustomNotifs || [];
         cNotifs.forEach(n => {
+            let nLink = '#';
+            if (n.titulo && (n.titulo.includes('Inscripción') || n.titulo.includes('Clase') || n.titulo.includes('Turno') || n.titulo.includes('Reserva'))) {
+                const matchDate = (n.mensaje || '').match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+                if (matchDate) {
+                    const isoDate = `${matchDate[3]}-${matchDate[2].padStart(2, '0')}-${matchDate[1].padStart(2, '0')}`;
+                    nLink = `agenda.html?date=${isoDate}`;
+                } else {
+                    nLink = 'agenda.html';
+                }
+            } else if (n.titulo && (n.titulo.includes('Alumno') || n.titulo.includes('Vinculad'))) {
+                nLink = 'clientes.html';
+            }
+
             currentNotifs.push({
                 id: 'custom_' + n.id,
                 id_reporte: n.id_reporte || null,
-                icon: 'campaign',
-                color: 'text-blue-500',
-                bg: 'bg-blue-100',
+                icon: (n.titulo && n.titulo.includes('Inscripción')) ? 'backpack' : ((n.titulo && n.titulo.includes('Alumno')) ? 'person' : 'campaign'),
+                color: (n.titulo && n.titulo.includes('Inscripción')) ? 'text-purple-600' : ((n.titulo && n.titulo.includes('Alumno')) ? 'text-orange-500' : 'text-blue-500'),
+                bg: (n.titulo && n.titulo.includes('Inscripción')) ? 'bg-purple-100' : ((n.titulo && n.titulo.includes('Alumno')) ? 'bg-orange-100' : 'bg-blue-100'),
                 title: n.titulo,
                 text: n.mensaje,
-                link: '#',
-                timestamp: new Date(n.fecha.replace(/-/g, '/')).getTime() || Date.now()
+                link: nLink,
+                timestamp: new Date(n.fecha ? n.fecha.replace(/-/g, '/') : Date.now()).getTime() || Date.now()
             });
         });
 
@@ -1521,7 +1534,9 @@ function checkNotifications() {
             displayNotifs.forEach(n => {
                 const isReport = n.id_reporte || (n.title && (n.title.includes('Soporte') || n.title.includes('Reporte')));
                 const safeTitle = (n.title || '').replace(/'/g, "\\'");
-                const onClickAction = isReport ? `onclick="window.abrirHiloSoporteCliente(${n.id_reporte || 0}, '${safeTitle}')"` : (n.link === '#' ? '' : `onclick="window.location.href='${n.link ? n.link : 'agenda.html'}'"`);
+                const onClickAction = isReport 
+                    ? `onclick="window.abrirHiloSoporteCliente(${n.id_reporte || 0}, '${safeTitle}')"` 
+                    : (n.link === '#' ? '' : `onclick="window.abrirNotificacionYNavegar(event, '${n.id}', '${n.link}')"`);
                 const cursorStyle = (n.link === '#' && !isReport) ? 'cursor-default' : 'cursor-pointer hover:bg-slate-100';
                 const dot = n.read ? '' : '<span class="w-2 h-2 rounded-full bg-red-500 mt-2"></span>';
                 

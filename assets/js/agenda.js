@@ -327,7 +327,8 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                 gruposConf[t.fecha].push(t);
             });
 
-            const fechasConf = Object.keys(gruposConf).sort();
+            // Orden cronológico ascendente (el día más próximo primero)
+            const fechasConf = Object.keys(gruposConf).sort((a, b) => a.localeCompare(b));
             fechasConf.forEach(fecha => {
                 const [yyyy, mm, dd] = fecha.split('-');
                 const dateObj = new Date(yyyy, mm - 1, dd);
@@ -338,7 +339,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                 const turnosText = turnosCount === 1 ? '1 turno' : `${turnosCount} turnos`;
 
                 let htmlDia = `
-                    <div class="mb-8">
+                    <div id="dia-${fecha}" class="mb-8 scroll-mt-24">
                         <h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2 ${esHoy ? 'text-primary' : ''}">
                             <span class="material-symbols-outlined text-[20px]">${esHoy ? 'today' : 'event'}</span> 
                             ${esHoy ? 'Hoy, ' + formatFecha : formatFecha}
@@ -353,99 +354,138 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                     const servKey = (t.id_servicio && parseInt(t.id_servicio) > 0) ? ('s_' + t.id_servicio) : (t.servicio || '').trim().toLowerCase();
                     const horaKey = (t.hora || '').substring(0, 5);
                     const profKey = (t.profesional || 'c').trim().toLowerCase();
-                    const slotId = servKey + '_' + horaKey + '_' + profKey;
+                    const slotId = 'slot_' + fecha.replace(/-/g, '') + '_' + servKey.replace(/[^a-zA-Z0-9_]/g, '') + '_' + horaKey.replace(':', '') + '_' + profKey.replace(/[^a-zA-Z0-9_]/g, '');
 
                     if (!slotsDelDia[slotId]) {
+                        // Buscar cupo_maximo del servicio
+                        let cupoMax = parseInt(t.cupo_maximo || 0);
+                        if ((!cupoMax || cupoMax <= 0) && window.services && Array.isArray(window.services)) {
+                            const foundS = window.services.find(s => s.id == t.id_servicio || (s.nombre && s.nombre.trim().toLowerCase() === (t.servicio || '').trim().toLowerCase()));
+                            if (foundS) cupoMax = parseInt(foundS.cupo_maximo || foundS.capacidad || 10);
+                        }
+                        if (!cupoMax || cupoMax <= 0) cupoMax = 10;
+
                         slotsDelDia[slotId] = {
+                            id: slotId,
+                            fecha: fecha,
+                            formatFecha: formatFecha,
                             servicio: t.servicio,
                             hora: horaKey,
                             profesional: t.profesional,
+                            cupo_maximo: cupoMax,
+                            icono: t.servicio_icono || 'fitness_center',
+                            imagen: t.servicio_imagen || '',
                             turnos: []
                         };
                     }
                     slotsDelDia[slotId].turnos.push(t);
                 });
 
+                // Guardar slots globalmente para uso en modalDetalleClase
+                if (!window.agendaSlotsMap) window.agendaSlotsMap = {};
+
                 Object.values(slotsDelDia).forEach(slot => {
-                    if (slot.turnos.length > 1) {
-                        // TARJETA DE CLASE GRUPAL (Múltiples alumnos inscriptos en el mismo turno/horario)
-                        const totalAlumnos = slot.turnos.length;
-                        
-                        let alumnosHtml = slot.turnos.map(t => {
+                    window.agendaSlotsMap[slot.id] = slot;
+                    const totalAlumnos = slot.turnos.length;
+                    const cupoMax = slot.cupo_maximo || 10;
+                    const cupoRatio = `${totalAlumnos}/${cupoMax}`;
+                    const pctOcupado = Math.min(100, Math.round((totalAlumnos / cupoMax) * 100));
+                    const isFull = totalAlumnos >= cupoMax;
+
+                    if (slot.turnos.length > 1 || slot.turnos[0].metodo_pago === 'Pase de Alumno') {
+                        // TARJETA DE CLASE (Grupal o con reserva de pase)
+                        // Mostrar los últimos 3 inscriptos
+                        const ultimos3 = [...slot.turnos].slice(-3);
+                        const restantes = totalAlumnos - ultimos3.length;
+
+                        let alumnosHtml = ultimos3.map(t => {
                             const isAttended = parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio';
                             const asistBtn = isAttended
-                                ? `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 0)" class="text-xs font-extrabold px-3 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all flex items-center gap-1 shadow-xs" title="Asistencia confirmada. Click para desmarcar"><span class="material-symbols-outlined text-[14px]">check_circle</span> Asistió</button>`
-                                : `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 1)" class="text-xs font-extrabold px-3 py-1 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcar si asistió al turno"><span class="material-symbols-outlined text-[15px]">how_to_reg</span> ¿Asistió?</button>`;
+                                ? `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 0)" class="text-xs font-extrabold px-2.5 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all flex items-center gap-1 shrink-0" title="Asistencia confirmada. Click para desmarcar"><span class="material-symbols-outlined text-[14px]">check_circle</span> Asistió</button>`
+                                : `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 1)" class="text-xs font-extrabold px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shrink-0" title="Marcar si asistió al turno"><span class="material-symbols-outlined text-[14px]">how_to_reg</span> ¿Asistió?</button>`;
                             
                             const alumnoNombre = t.cliente_nombre || (t.nombre + ' ' + (t.apellido || '')) || 'Alumno';
                             const alumnoTel = t.cliente_celular || t.celular || '';
 
                             return `
-                                <div id="turno-${t.id}" class="p-3.5 bg-slate-50/90 border border-slate-200/80 rounded-xl flex flex-wrap items-center justify-between gap-3 hover:bg-white hover:shadow-xs transition-all">
-                                    <div class="flex items-center gap-3 min-w-0">
-                                        <div class="w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-extrabold text-xs flex items-center justify-center shrink-0">
+                                <div id="turno-${t.id}" class="p-2.5 bg-slate-50/90 border border-slate-200/80 rounded-xl flex items-center justify-between gap-2 hover:bg-white hover:shadow-xs transition-all">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-black text-xs flex items-center justify-center shrink-0">
                                             ${alumnoNombre.charAt(0).toUpperCase()}
                                         </div>
                                         <div class="min-w-0">
-                                            <strong class="text-xs sm:text-sm font-extrabold text-slate-900 truncate block">${alumnoNombre}</strong>
-                                            <span class="text-[11px] font-bold text-slate-500 flex flex-wrap items-center gap-2">
+                                            <span class="text-xs font-black text-slate-800 truncate block">${alumnoNombre}</span>
+                                            <span class="text-[10px] text-slate-500 flex items-center gap-1.5">
                                                 ${alumnoTel ? `<span>📱 ${alumnoTel}</span>` : ''}
-                                                ${t.metodo_pago ? `<span class="bg-slate-200/70 text-slate-700 text-[10px] px-2 py-0.5 rounded-md font-extrabold">${t.metodo_pago}</span>` : ''}
+                                                ${t.metodo_pago ? `<span class="bg-purple-100 text-purple-700 font-bold px-1.5 py-0.2 rounded">${t.metodo_pago}</span>` : ''}
                                             </span>
                                         </div>
                                     </div>
-                                    <div class="flex items-center gap-2 shrink-0">
+                                    <div class="flex items-center gap-1 shrink-0">
                                         ${asistBtn}
-                                        <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg border border-emerald-200 transition-colors" title="WhatsApp"><span class="material-symbols-outlined text-[16px]">chat</span></button>
-                                        <button onclick="window.openEditTurnoModal('${t.id}')" class="text-slate-500 hover:text-slate-800 p-1.5 rounded-lg hover:bg-slate-100 transition-colors" title="Editar"><span class="material-symbols-outlined text-[16px]">edit</span></button>
-                                        <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Cancelar"><span class="material-symbols-outlined text-[16px]">delete</span></button>
+                                        <button onclick="event.stopPropagation(); window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1 rounded-lg border border-emerald-200 transition-colors" title="WhatsApp"><span class="material-symbols-outlined text-[15px]">chat</span></button>
                                     </div>
                                 </div>
                             `;
                         }).join('');
 
                         htmlDia += `
-                            <div class="bg-white border-2 border-purple-300 shadow-md rounded-2xl p-5 hover:shadow-xl transition-all relative overflow-hidden space-y-4 mb-4">
-                                <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-purple-600 to-indigo-600"></div>
-                                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                            <div id="slotcard-${slot.id}" onclick="window.openClassDetailModal('${slot.id}')" class="bg-white border-2 border-purple-200 hover:border-purple-400 shadow-sm rounded-2xl p-4 sm:p-5 hover:shadow-xl cursor-pointer transition-all relative overflow-hidden space-y-3 mb-4 group">
+                                <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-purple-500 to-indigo-600"></div>
+                                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
                                     <div class="flex items-center gap-2">
-                                        <span class="text-xs font-black px-3 py-1 rounded-xl bg-purple-100 text-purple-900 border border-purple-200">${slot.hora} hs</span>
-                                        <span class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-black px-3 py-1 rounded-xl shadow-2xs flex items-center gap-1">
+                                        <span class="text-xs font-black px-3 py-1 rounded-xl bg-purple-100 text-purple-900 border border-purple-200 flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-[15px]">schedule</span> ${slot.hora} hs
+                                        </span>
+                                        <!-- BADGE DE CANTIDAD RESERVADA X/Y -->
+                                        <span class="text-xs font-black px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-2xs ${isFull ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'}">
                                             <span class="material-symbols-outlined text-[15px]">groups</span>
-                                            <span>🎒 ${totalAlumnos} Alumnos Inscriptos</span>
+                                            <span>${cupoRatio} ${isFull ? 'Completo' : 'Inscriptos'}</span>
                                         </span>
                                     </div>
-                                    ${slot.profesional && slot.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-xl text-xs font-extrabold bg-slate-100 text-slate-700 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> ${slot.profesional}</span>` : ''}
+                                    <div class="flex items-center gap-2">
+                                        ${slot.profesional && slot.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">person</span> ${slot.profesional}</span>` : ''}
+                                        <span class="text-purple-600 group-hover:translate-x-0.5 transition-transform material-symbols-outlined text-[20px]" title="Ver detalles y todos los inscriptos">open_in_new</span>
+                                    </div>
                                 </div>
                                 <div>
                                     <h4 class="font-black text-slate-900 text-base sm:text-lg flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-purple-600 text-[20px]">fitness_center</span>
+                                        <span class="material-symbols-outlined text-purple-600 text-[20px]">${slot.icono || 'fitness_center'}</span>
                                         <span>${slot.servicio}</span>
                                     </h4>
-                                    <p class="text-xs font-bold text-slate-500 mt-0.5">Alumnos agendados para este turno:</p>
+                                    <p class="text-[11px] font-bold text-slate-400 mt-0.5 flex items-center justify-between">
+                                        <span>Últimos registrados (${ultimos3.length} de ${totalAlumnos})</span>
+                                        <span class="text-purple-600 font-extrabold text-[11px] group-hover:underline">Click para ver todos</span>
+                                    </p>
                                 </div>
-                                <div class="space-y-2 pt-1">
+                                <!-- CONTENEDOR CON BARRA DESPLAZADORA -->
+                                <div class="max-h-48 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
                                     ${alumnosHtml}
                                 </div>
+                                ${restantes > 0 ? `
+                                    <div class="pt-1 text-center">
+                                        <span class="text-xs font-black text-purple-700 bg-purple-50 border border-purple-200/80 px-3 py-1 rounded-xl inline-flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-[14px]">more_horiz</span> +${restantes} alumno(s) más inscripto(s) en esta clase
+                                        </span>
+                                    </div>
+                                ` : ''}
                             </div>
                         `;
                     } else {
-                        // TARJETA DE TURNO INDIVIDUAL (1 alumno)
+                        // TARJETA DE TURNO INDIVIDUAL (1 alumno con turno simple)
                         const t = slot.turnos[0];
                         const isAttended = parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio';
                         const asistBtn = isAttended
                             ? `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 0)" class="text-xs font-extrabold px-3 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all flex items-center gap-1 shadow-xs" title="Asistencia confirmada. Click para desmarcar"><span class="material-symbols-outlined text-[15px]">check_circle</span> Asistió</button>`
                             : `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 1)" class="text-xs font-extrabold px-3 py-1 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcar si asistió al turno"><span class="material-symbols-outlined text-[15px]">how_to_reg</span> ¿Asistió?</button>`;
 
-                        const isPase = t.metodo_pago === 'Pase de Alumno';
-
                         htmlDia += `
-                            <div id="turno-${t.id}" onclick="if(!event.target.closest('button')) window.openEditTurnoModal('${t.id}')" class="shadow-sm rounded-2xl p-5 hover:shadow-lg cursor-pointer transition-shadow relative overflow-hidden" style="background-color: #ffffff; border: 1px solid #e2e8f0;">
-                                <div class="absolute top-0 left-0 w-1.5 h-full ${isPase ? 'bg-purple-500' : 'bg-blue-500'}"></div>
+                            <div id="turno-${t.id}" onclick="if(!event.target.closest('button')) window.openClassDetailModal('${slot.id}')" class="shadow-sm rounded-2xl p-5 hover:shadow-lg cursor-pointer transition-shadow relative overflow-hidden" style="background-color: #ffffff; border: 1px solid #e2e8f0;">
+                                <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
                                 <div class="flex justify-between items-start mb-3">
                                     <div class="flex items-center gap-2">
                                         <span class="text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wider" style="background-color: #eff6ff; color: #1d4ed8;">${t.hora} hs</span>
-                                        ${isPase ? `<span class="bg-purple-100 text-purple-800 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-purple-200 flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">groups</span> 1 Alumno Inscripto</span>` : ''}
+                                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">1/${cupoMax} cupos</span>
                                     </div>
                                     <div class="flex items-center gap-2">
                                         ${asistBtn}
@@ -1009,6 +1049,165 @@ window.descargarHistorialTurnos = function(btn) {
     })
     .catch(err => { console.error(err); if(typeof showToast === 'function') showToast('Error al descargar el historial.', 'error'); })
     .finally(() => { btn.innerHTML = originalHtml; btn.disabled = false; });
+};
+
+// --- Modal Detalle de Clase Grupal / Horario ---
+window.openClassDetailModal = function(slotId) {
+    if (!window.agendaSlotsMap || !window.agendaSlotsMap[slotId]) {
+        // Si no es un slot agrupado pero es un ID de turno individual, abrir modal de turno
+        if (typeof window.openEditTurnoModal === 'function') {
+            window.openEditTurnoModal(slotId);
+        }
+        return;
+    }
+
+    const slot = window.agendaSlotsMap[slotId];
+    const modal = document.getElementById('modalDetalleClase');
+    if (!modal) return;
+
+    // Configurar encabezado
+    const horaEl = document.getElementById('modalClaseHora');
+    const fechaEl = document.getElementById('modalClaseFecha');
+    const tituloEl = document.getElementById('modalClaseTitulo');
+    const profEl = document.getElementById('modalClaseProfesor');
+    const iconEl = document.getElementById('modalClaseIcon');
+    const cuposBadge = document.getElementById('modalClaseCuposBadge');
+    const totalInscriptos = document.getElementById('modalClaseTotalInscriptos');
+    const progressBar = document.getElementById('modalClaseProgressBar');
+    const listaAlumnos = document.getElementById('modalClaseListaAlumnos');
+
+    if (horaEl) horaEl.textContent = `${slot.hora} hs`;
+    if (fechaEl) fechaEl.textContent = slot.formatFecha || slot.fecha;
+    if (tituloEl) tituloEl.textContent = slot.servicio;
+    if (profEl) {
+        const profName = slot.profesional && slot.profesional !== 'Cualquiera (Sin preferencia)' ? slot.profesional : 'Sin profesor asignado';
+        profEl.innerHTML = `<span class="material-symbols-outlined text-[14px]">person</span> <span>${profName}</span>`;
+    }
+    if (iconEl) iconEl.textContent = slot.icono || 'fitness_center';
+
+    const total = slot.turnos.length;
+    const max = slot.cupo_maximo || 10;
+    const pct = Math.min(100, Math.round((total / max) * 100));
+
+    if (cuposBadge) {
+        cuposBadge.innerHTML = `<span class="material-symbols-outlined text-[18px] text-purple-600">groups</span> ${total}/${max} cupos ocupados ${total >= max ? '<span class="text-xs bg-rose-100 text-rose-700 px-2 py-0.5 rounded-md font-bold ml-1">¡Clase Completa!</span>' : ''}`;
+    }
+    if (totalInscriptos) totalInscriptos.textContent = total;
+    if (progressBar) {
+        progressBar.style.width = `${pct}%`;
+        if (pct >= 100) {
+            progressBar.className = 'bg-rose-500 h-full rounded-full transition-all';
+        } else if (pct >= 75) {
+            progressBar.className = 'bg-amber-500 h-full rounded-full transition-all';
+        } else {
+            progressBar.className = 'bg-gradient-to-r from-purple-500 to-indigo-600 h-full rounded-full transition-all';
+        }
+    }
+
+    if (listaAlumnos) {
+        if (slot.turnos.length === 0) {
+            listaAlumnos.innerHTML = `<p class="text-sm text-slate-400 text-center py-6">No hay alumnos inscriptos aún.</p>`;
+        } else {
+            listaAlumnos.innerHTML = slot.turnos.map(t => {
+                const isAttended = parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio';
+                const asistBtn = isAttended
+                    ? `<button onclick="window.toggleAsistenciaTurno('${t.id}', 0); setTimeout(() => window.openClassDetailModal('${slotId}'), 400);" class="text-xs font-black px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all flex items-center gap-1 shadow-xs" title="Asistencia confirmada. Click para desmarcar"><span class="material-symbols-outlined text-[15px]">check_circle</span> Asistió</button>`
+                    : `<button onclick="window.toggleAsistenciaTurno('${t.id}', 1); setTimeout(() => window.openClassDetailModal('${slotId}'), 400);" class="text-xs font-black px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcar si asistió a la clase"><span class="material-symbols-outlined text-[15px]">how_to_reg</span> ¿Asistió?</button>`;
+
+                const alumnoNombre = t.cliente_nombre || (t.nombre + ' ' + (t.apellido || '')) || 'Alumno';
+                const alumnoTel = t.cliente_celular || t.celular || '';
+
+                return `
+                    <div id="modal-turno-${t.id}" class="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex flex-wrap items-center justify-between gap-3 hover:bg-white hover:border-purple-200 transition-all">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 font-black text-sm flex items-center justify-center shrink-0">
+                                ${alumnoNombre.charAt(0).toUpperCase()}
+                            </div>
+                            <div class="min-w-0">
+                                <strong class="text-sm font-black text-slate-800 truncate block">${alumnoNombre}</strong>
+                                <div class="text-xs text-slate-500 flex flex-wrap items-center gap-2 mt-0.5">
+                                    ${alumnoTel ? `<span class="flex items-center gap-0.5"><span class="material-symbols-outlined text-[13px]">call</span> ${alumnoTel}</span>` : ''}
+                                    ${t.metodo_pago ? `<span class="bg-purple-100 text-purple-800 text-[10px] font-black px-2 py-0.5 rounded-md">${t.metodo_pago}</span>` : ''}
+                                    ${t.creado_el ? `<span class="text-[10px] text-slate-400">Inscripto: ${t.creado_el.substring(0, 16)}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            ${asistBtn}
+                            <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-xl border border-emerald-200 transition-colors" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
+                            <button onclick="window.closeClassDetailModal(); window.openEditTurnoModal('${t.id}');" class="text-slate-500 hover:text-slate-800 p-1.5 rounded-xl hover:bg-slate-100 transition-colors" title="Editar turno"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+                            <button onclick="window.cancelarTurnoAdmin('${t.id}'); window.closeClassDetailModal();" class="text-red-500 hover:text-red-700 p-1.5 rounded-xl hover:bg-red-50 transition-colors" title="Cancelar reserva"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+    modal.classList.remove('hidden');
+};
+
+window.closeClassDetailModal = function() {
+    const modal = document.getElementById('modalDetalleClase');
+    if (modal) modal.classList.add('hidden');
+};
+
+// Cerrar modal al presionar ESC o hacer click en el fondo
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        window.closeClassDetailModal();
+    }
+});
+document.addEventListener('click', (e) => {
+    const modal = document.getElementById('modalDetalleClase');
+    if (modal && !modal.classList.contains('hidden') && e.target === modal) {
+        window.closeClassDetailModal();
+    }
+});
+
+// Auto-scroll y navegación cuando la URL contiene ?date= o ?fecha= o ?focus=
+function checkUrlNavigationAndFocus() {
+    const params = new URLSearchParams(window.location.search);
+    const targetDate = params.get('date') || params.get('fecha');
+    const focusId = params.get('focus');
+
+    if (targetDate) {
+        // Asegurarse de que esté en la pestaña de próximos confirmados
+        if (typeof window.switchAgendaTab === 'function') {
+            window.switchAgendaTab('proximos');
+        }
+
+        setTimeout(() => {
+            const diaEl = document.getElementById('dia-' + targetDate);
+            if (diaEl) {
+                diaEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                diaEl.classList.add('ring-4', 'ring-purple-400', 'ring-offset-4', 'rounded-2xl', 'transition-all');
+                setTimeout(() => {
+                    diaEl.classList.remove('ring-4', 'ring-purple-400', 'ring-offset-4');
+                }, 3000);
+            }
+        }, 600);
+    }
+
+    if (focusId) {
+        setTimeout(() => {
+            const el = document.getElementById('turno-' + focusId) || document.getElementById('slotcard-' + focusId);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                el.classList.add('ring-4', 'ring-primary', 'ring-offset-2', 'scale-[1.02]', 'transition-all');
+                setTimeout(() => {
+                    el.classList.remove('ring-4', 'ring-primary', 'ring-offset-2', 'scale-[1.02]');
+                }, 3500);
+            }
+        }, 800);
+    }
+}
+
+// Ejecutar check al renderizar
+const origRenderAgendaTurnos = window.renderAgendaTurnos;
+window.renderAgendaTurnos = function() {
+    origRenderAgendaTurnos.apply(this, arguments);
+    checkUrlNavigationAndFocus();
 };
 
 // --- Recarga Automática por Eventos ---

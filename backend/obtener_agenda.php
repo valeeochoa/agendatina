@@ -82,16 +82,20 @@ try {
 
         // Si el admin deshabilitó la opción de ver los turnos de todo el equipo, solo muestra sus turnos
         if (!$verTodos) {
-            $profesional_filter = " AND (profesional = :mi_nombre OR profesional LIKE :mi_nombre_like) ";
+            $profesional_filter = " AND (t.profesional = :mi_nombre OR t.profesional LIKE :mi_nombre_like) ";
         }
     }
 
     if ($historial) {
         // Sin límite de fecha para exportar el historial completo a Excel
-        $sql = "SELECT id, cliente_nombre, nombre, apellido, cliente_celular, celular, fecha, hora, servicio, profesional, estado, asistio, notas, fecha_eliminado, metodo_pago, precio 
-                FROM turnos 
-                WHERE id_negocio = :id_negocio $profesional_filter
-                ORDER BY fecha DESC, hora ASC";
+        $sql = "SELECT t.id, t.id_servicio, t.cliente_nombre, t.nombre, t.apellido, t.cliente_celular, t.celular, t.fecha, t.hora, t.servicio, t.profesional, t.estado, t.asistio, t.notas, t.fecha_eliminado, t.metodo_pago, t.precio,
+                       COALESCE(s.cupo_maximo, s.capacidad, 10) AS cupo_maximo,
+                       COALESCE(s.icono, 'fitness_center') AS servicio_icono,
+                       s.imagen1 AS servicio_imagen
+                FROM turnos t
+                LEFT JOIN servicios s ON (t.id_servicio = s.id OR (t.id_negocio = s.id_negocio AND LOWER(TRIM(t.servicio)) = LOWER(TRIM(s.nombre_servicio))))
+                WHERE t.id_negocio = :id_negocio $profesional_filter
+                ORDER BY t.fecha DESC, t.hora ASC";
         $stmt = $pdo->prepare($sql);
         $params = ['id_negocio' => $_SESSION['id_negocio']];
         if ($profesional_filter) {
@@ -102,12 +106,16 @@ try {
     } else {
         // Ventana de tiempo (60 días) para vista normal de agenda
         $min_fecha = date('Y-m-d', strtotime('-60 days'));
-        $sql = "SELECT id, cliente_nombre, nombre, apellido, cliente_celular, celular, fecha, hora, servicio, profesional, estado, asistio, notas, fecha_eliminado, metodo_pago, precio 
-                FROM turnos 
-                WHERE id_negocio = :id_negocio 
-                AND (fecha >= :min_fecha OR estado IN ('eliminado', 'cancelado'))
+        $sql = "SELECT t.id, t.id_servicio, t.cliente_nombre, t.nombre, t.apellido, t.cliente_celular, t.celular, t.fecha, t.hora, t.servicio, t.profesional, t.estado, t.asistio, t.notas, t.fecha_eliminado, t.metodo_pago, t.precio,
+                       COALESCE(s.cupo_maximo, s.capacidad, 10) AS cupo_maximo,
+                       COALESCE(s.icono, 'fitness_center') AS servicio_icono,
+                       s.imagen1 AS servicio_imagen
+                FROM turnos t
+                LEFT JOIN servicios s ON (t.id_servicio = s.id OR (t.id_negocio = s.id_negocio AND LOWER(TRIM(t.servicio)) = LOWER(TRIM(s.nombre_servicio))))
+                WHERE t.id_negocio = :id_negocio 
+                AND (t.fecha >= :min_fecha OR t.estado IN ('eliminado', 'cancelado'))
                 $profesional_filter
-                ORDER BY fecha DESC, hora ASC";
+                ORDER BY t.fecha DESC, t.hora ASC";
         $stmt = $pdo->prepare($sql);
         $params = ['id_negocio' => $_SESSION['id_negocio'], 'min_fecha' => $min_fecha];
         if ($profesional_filter) {
