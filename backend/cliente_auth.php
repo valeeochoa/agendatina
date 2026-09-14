@@ -138,6 +138,16 @@ try {
         $_SESSION['cliente_email'] = $email;
         $_SESSION['cliente_nombre'] = $nombre;
 
+        // Notificar al negocio que un nuevo alumno se vinculó vía link
+        try {
+            $stmtNotif = $pdo->prepare("INSERT INTO notificaciones (id_negocio, titulo, mensaje, fecha) VALUES (:id_negocio, :titulo, :mensaje, NOW())");
+            $stmtNotif->execute([
+                'id_negocio' => $id_negocio,
+                'titulo' => '👤 Nuevo Alumno Vinculado',
+                'mensaje' => "El alumno/a {$nombre} ({$email}) se ha registrado y vinculado a tu negocio por enlace."
+            ]);
+        } catch (\Throwable $eNotif) {}
+
         echo json_encode([
             'success' => true,
             'message' => '¡Cuenta registrada y vinculada con éxito a ' . $negocio['nombre_fantasia'] . '!',
@@ -213,6 +223,16 @@ try {
             $cId = $link['id'];
             $msg = '¡Bienvenido! Tu cuenta ya se encuentra vinculada a ' . $negocio['nombre_fantasia'] . '.';
         }
+
+        // Notificar al negocio que el alumno se vinculó vía link
+        try {
+            $stmtNotif = $pdo->prepare("INSERT INTO notificaciones (id_negocio, titulo, mensaje, fecha) VALUES (:id_negocio, :titulo, :mensaje, NOW())");
+            $stmtNotif->execute([
+                'id_negocio' => $id_negocio,
+                'titulo' => '👤 Alumno Vinculado por Enlace',
+                'mensaje' => "El alumno/a {$alumno['nombre_completo']} ({$email}) se ha vinculado a tu negocio por enlace."
+            ]);
+        } catch (\Throwable $eNotif) {}
 
         $_SESSION['cliente_id'] = $cId;
         $_SESSION['cliente_email'] = $email;
@@ -381,7 +401,7 @@ try {
     // 4. Mis Clases y Reservas (Discriminadas por Negocio)
     // ---------------------------------------------------------
     if ($action === 'mis_clases') {
-        $email = strtolower(trim($_SESSION['cliente_email'] ?? $_GET['email'] ?? ''));
+        $email = strtolower(trim($_GET['email'] ?? $_POST['email'] ?? $_SESSION['cliente_email'] ?? ''));
 
         if (empty($email)) {
             echo json_encode(['success' => false, 'error' => 'No autorizado.']);
@@ -395,24 +415,41 @@ try {
                    cn.fecha_vencimiento, cn.cancelaciones_permitidas, cn.cancelaciones_restantes, cn.telefono, cn.nombre_completo
             FROM clientes_negocio cn
             JOIN negocios n ON cn.id_negocio = n.id
-            WHERE LOWER(TRIM(cn.email)) = :email
+            WHERE LOWER(TRIM(cn.email)) = :email AND cn.id_negocio > 0
         ");
         $stmtNegocios->execute(['email' => $email]);
         $negociosAsociados = $stmtNegocios->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($negociosAsociados as &$neg) {
+            $pDisp = (int)($neg['pases_disponibles'] ?? 0);
             $pTotales = max(1, (int)$neg['pases_totales']);
             $maxCanc = isset($neg['cancelaciones_permitidas']) && $neg['cancelaciones_permitidas'] !== null ? (int)$neg['cancelaciones_permitidas'] : $pTotales;
-            $restCanc = isset($neg['cancelaciones_restantes']) && $neg['cancelaciones_restantes'] !== null ? (int)$neg['cancelaciones_restantes'] : $maxCanc;
+            
+            if ($pDisp <= 0) {
+                $restCanc = 0;
+            } else {
+                $restCanc = isset($neg['cancelaciones_restantes']) && $neg['cancelaciones_restantes'] !== null ? (int)$neg['cancelaciones_restantes'] : $maxCanc;
+                $restCanc = min($restCanc, $maxCanc);
+            }
+
             $neg['cancelaciones_max'] = $maxCanc;
             $neg['cancelaciones_restantes'] = $restCanc;
         }
         unset($neg);
 
-        // Obtener perfil del cliente
-        $stmtPerfil = $pdo->prepare("SELECT nombre_completo, email, telefono FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email LIMIT 1");
+        // Obtener perfil del cliente (buscando nombre en cualquier registro incluyendo id_negocio = 0 o turnos)
+        $stmtPerfil = $pdo->prepare("SELECT nombre_completo, email, telefono FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email AND nombre_completo IS NOT NULL AND nombre_completo != '' ORDER BY (id_negocio > 0) DESC, id DESC LIMIT 1");
         $stmtPerfil->execute(['email' => $email]);
         $perfil = $stmtPerfil->fetch(PDO::FETCH_ASSOC);
+
+        if (!$perfil || empty($perfil['nombre_completo']) || $perfil['nombre_completo'] === 'Alumno') {
+            $stmtNameTurno = $pdo->prepare("SELECT cliente_nombre FROM turnos WHERE (LOWER(TRIM(cliente_celular)) = :email OR LOWER(cliente_nombre) LIKE :emailLike) AND cliente_nombre IS NOT NULL AND cliente_nombre != '' AND cliente_nombre != 'Alumno' ORDER BY id DESC LIMIT 1");
+            $stmtNameTurno->execute(['email' => $email, 'emailLike' => '%' . $email . '%']);
+            $nRow = $stmtNameTurno->fetch(PDO::FETCH_ASSOC);
+            if ($nRow && !empty($nRow['cliente_nombre'])) {
+                $perfil = ['nombre_completo' => $nRow['cliente_nombre'], 'email' => $email, 'telefono' => ''];
+            }
+        }
 
         // Obtener el historial completo de clases y turnos con vencimiento y límites de devolución
         $stmt = $pdo->prepare("
@@ -484,7 +521,7 @@ try {
     // 6. Cancelar Reserva de Clase (Devolviendo pase si le quedan cancelaciones)
     // ---------------------------------------------------------
     if ($action === 'cancelar_turno') {
-        $email = strtolower(trim($_SESSION['cliente_email'] ?? $_POST['email'] ?? $_GET['email'] ?? ''));
+        $email = strtolower(trim($_POST['email'] ?? $_GET['email'] ?? $_SESSION['cliente_email'] ?? ''));
         $turnoId = (int)($_POST['id'] ?? $_GET['id'] ?? 0);
 
         if (empty($email) || !$turnoId) {
@@ -546,7 +583,7 @@ try {
     // 7. Reservar Clase con Pase (1-Click Booking Alumno)
     // ---------------------------------------------------------
     if ($action === 'reservar_con_pase') {
-        $email = strtolower(trim($_SESSION['cliente_email'] ?? $_POST['email'] ?? ''));
+        $email = strtolower(trim($_POST['email'] ?? $_GET['email'] ?? $_SESSION['cliente_email'] ?? ''));
         $id_negocio = (int)($_POST['id_negocio'] ?? 0);
         $fecha = trim($_POST['fecha'] ?? '');
         $hora = trim($_POST['hora'] ?? '');

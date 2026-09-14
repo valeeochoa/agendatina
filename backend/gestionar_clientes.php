@@ -190,8 +190,28 @@ try {
 
         // Acción especial: Eliminar Alumno (POST delete)
         if (($action === 'delete' || $action === 'eliminar') && $id) {
-            $stmtDel = $pdo->prepare("DELETE FROM clientes_negocio WHERE id = :id AND id_negocio = :id_negocio");
-            $stmtDel->execute(['id' => $id, 'id_negocio' => $id_negocio]);
+            $stmtE = $pdo->prepare("SELECT email FROM clientes_negocio WHERE id = :id AND id_negocio = :id_negocio LIMIT 1");
+            $stmtE->execute(['id' => $id, 'id_negocio' => $id_negocio]);
+            $cTarget = $stmtE->fetch(PDO::FETCH_ASSOC);
+
+            if ($cTarget && !empty($cTarget['email'])) {
+                $cEmail = strtolower(trim($cTarget['email']));
+                $stmtOther = $pdo->prepare("SELECT COUNT(*) FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email AND id_negocio != :id_negocio AND id_negocio > 0");
+                $stmtOther->execute(['email' => $cEmail, 'id_negocio' => $id_negocio]);
+                $otherCount = (int)$stmtOther->fetchColumn();
+
+                if ($otherCount === 0) {
+                    $stmtUnlink = $pdo->prepare("UPDATE clientes_negocio SET id_negocio = 0, pases_disponibles = 0, pases_totales = 0, estado = 'inactivo' WHERE id = :id AND id_negocio = :id_negocio");
+                    $stmtUnlink->execute(['id' => $id, 'id_negocio' => $id_negocio]);
+                } else {
+                    $stmtDel = $pdo->prepare("DELETE FROM clientes_negocio WHERE id = :id AND id_negocio = :id_negocio");
+                    $stmtDel->execute(['id' => $id, 'id_negocio' => $id_negocio]);
+                }
+            } else {
+                $stmtDel = $pdo->prepare("DELETE FROM clientes_negocio WHERE id = :id AND id_negocio = :id_negocio");
+                $stmtDel->execute(['id' => $id, 'id_negocio' => $id_negocio]);
+            }
+
             echo json_encode(['success' => true, 'message' => 'Alumno eliminado con éxito.']);
             exit;
         }
@@ -204,13 +224,13 @@ try {
 
         // Acción especial: Cargar más pases / créditos rápidamente
         if ($action === 'add_pases' && $id) {
-            $cantAdd = (int)($data['cantidad'] ?? 0);
+            $cantAdd = max(1, (int)($data['cantidad'] ?? 0));
             if ($autoRenovarVenc) {
                 $newVenc = date('Y-m-d', strtotime('+1 month'));
-                $stmtAdd = $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + :add, pases_totales = pases_totales + :add, fecha_vencimiento = :newVenc, cancelaciones_restantes = COALESCE(cancelaciones_permitidas, pases_totales + :add) WHERE id = :id AND id_negocio = :id_negocio");
+                $stmtAdd = $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + :add, pases_totales = pases_disponibles + :add, fecha_vencimiento = :newVenc, cancelaciones_permitidas = :add, cancelaciones_restantes = :add WHERE id = :id AND id_negocio = :id_negocio");
                 $stmtAdd->execute(['add' => $cantAdd, 'newVenc' => $newVenc, 'id' => $id, 'id_negocio' => $id_negocio]);
             } else {
-                $stmtAdd = $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + :add, pases_totales = pases_totales + :add, cancelaciones_restantes = COALESCE(cancelaciones_permitidas, pases_totales + :add) WHERE id = :id AND id_negocio = :id_negocio");
+                $stmtAdd = $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + :add, pases_totales = pases_disponibles + :add, cancelaciones_permitidas = :add, cancelaciones_restantes = :add WHERE id = :id AND id_negocio = :id_negocio");
                 $stmtAdd->execute(['add' => $cantAdd, 'id' => $id, 'id_negocio' => $id_negocio]);
             }
             echo json_encode(['success' => true, 'message' => 'Clases agregadas con éxito.']);
@@ -292,8 +312,27 @@ try {
             exit;
         }
 
-        $stmt = $pdo->prepare("DELETE FROM clientes_negocio WHERE id = :id AND id_negocio = :id_negocio");
-        $stmt->execute(['id' => $id, 'id_negocio' => $id_negocio]);
+        $stmtE = $pdo->prepare("SELECT email FROM clientes_negocio WHERE id = :id AND id_negocio = :id_negocio LIMIT 1");
+        $stmtE->execute(['id' => $id, 'id_negocio' => $id_negocio]);
+        $cTarget = $stmtE->fetch(PDO::FETCH_ASSOC);
+
+        if ($cTarget && !empty($cTarget['email'])) {
+            $cEmail = strtolower(trim($cTarget['email']));
+            $stmtOther = $pdo->prepare("SELECT COUNT(*) FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email AND id_negocio != :id_negocio AND id_negocio > 0");
+            $stmtOther->execute(['email' => $cEmail, 'id_negocio' => $id_negocio]);
+            $otherCount = (int)$stmtOther->fetchColumn();
+
+            if ($otherCount === 0) {
+                $stmtUnlink = $pdo->prepare("UPDATE clientes_negocio SET id_negocio = 0, pases_disponibles = 0, pases_totales = 0, estado = 'inactivo' WHERE id = :id AND id_negocio = :id_negocio");
+                $stmtUnlink->execute(['id' => $id, 'id_negocio' => $id_negocio]);
+            } else {
+                $stmtDel = $pdo->prepare("DELETE FROM clientes_negocio WHERE id = :id AND id_negocio = :id_negocio");
+                $stmtDel->execute(['id' => $id, 'id_negocio' => $id_negocio]);
+            }
+        } else {
+            $stmtDel = $pdo->prepare("DELETE FROM clientes_negocio WHERE id = :id AND id_negocio = :id_negocio");
+            $stmtDel->execute(['id' => $id, 'id_negocio' => $id_negocio]);
+        }
 
         echo json_encode(['success' => true]);
         exit;

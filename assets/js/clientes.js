@@ -7,6 +7,7 @@ let negocioNombreUnico = '';
 
 document.addEventListener('DOMContentLoaded', () => {
     cargarClientes();
+    setInterval(cargarClientes, 10000);
 });
 
 function cargarClientes() {
@@ -165,7 +166,6 @@ function renderTablaAlumnos() {
                             <span class="material-symbols-outlined text-[16px]">add_circle</span>
                         </button>
                     </div>
-                    ${c.clases_reservadas > 0 ? `<div class="text-[10px] text-orange-600 font-bold mt-0.5">${c.clases_reservadas} clases reservadas en sistema</div>` : ''}
                 </td>
                 <td class="py-4 px-6 font-medium text-slate-600">
                     ${vencText}

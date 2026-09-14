@@ -1094,6 +1094,47 @@
                 });
         }
 
+        function parseClassDateTime(fechaStr, horaStr) {
+            if (!fechaStr) return null;
+            let y = 0, m = 0, d = 0;
+            let str = String(fechaStr).trim().substring(0, 10);
+            
+            if (str.includes('-')) {
+                const p = str.split('-');
+                if (p[0].length === 4) {
+                    y = parseInt(p[0], 10);
+                    m = parseInt(p[1], 10) - 1;
+                    d = parseInt(p[2], 10);
+                } else {
+                    d = parseInt(p[0], 10);
+                    m = parseInt(p[1], 10) - 1;
+                    y = parseInt(p[2], 10);
+                }
+            } else if (str.includes('/')) {
+                const p = str.split('/');
+                if (p[0].length === 4) {
+                    y = parseInt(p[0], 10);
+                    m = parseInt(p[1], 10) - 1;
+                    d = parseInt(p[2], 10);
+                } else {
+                    d = parseInt(p[0], 10);
+                    m = parseInt(p[1], 10) - 1;
+                    y = parseInt(p[2], 10);
+                }
+            }
+
+            if (!y || isNaN(m) || !d) return null;
+
+            let hr = 0, mn = 0;
+            if (horaStr) {
+                const hp = String(horaStr).trim().substring(0, 5).split(':');
+                hr = parseInt(hp[0], 10) || 0;
+                mn = parseInt(hp[1], 10) || 0;
+            }
+
+            return new Date(y, m, d, hr, mn, 0);
+        }
+
         function formatVencimientoTag(vencStr) {
             if (!vencStr) return '<span class="text-slate-400 font-semibold text-[11px] flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event_busy</span> Sin fecha de vencimiento</span>';
             const parts = vencStr.split('-');
@@ -1128,26 +1169,15 @@
             document.getElementById('statNegociosCount').textContent = negocios.length;
 
             const hoy = new Date();
-            const yyyy = hoy.getFullYear();
-            const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-            const dd = String(hoy.getDate()).padStart(2, '0');
-            const hoyStr = `${yyyy}-${mm}-${dd}`;
 
             const proximas = clases.filter(c => {
                 if (c.estado === 'cancelado') return false;
                 
-                const cFecha = (c.fecha || '').substring(0, 10);
-                if (!cFecha) return false;
+                const classDate = parseClassDateTime(c.fecha, c.hora);
+                if (!classDate) return false;
 
-                if (cFecha > hoyStr) return true;
-                if (cFecha === hoyStr) {
-                    const cHoraStr = (c.hora || '00:00').substring(0, 5);
-                    const [h, m] = cHoraStr.split(':').map(Number);
-                    const classEndTimeObj = new Date(yyyy, hoy.getMonth(), parseInt(dd, 10), (h || 0) + 1, m || 0, 0);
-                    return classEndTimeObj >= hoy;
-                }
-
-                return false;
+                const classEndTime = new Date(classDate.getTime() + 60 * 60 * 1000);
+                return classEndTime >= hoy;
             });
 
             document.getElementById('statProximasCount').textContent = proximas.length;
@@ -1628,11 +1658,16 @@
                             const isAlreadyEnrolled = allStudentClases.some(c => {
                                 if (c.estado === 'cancelado') return false;
                                 
-                                const cFecha = (c.fecha || '').substring(0, 10);
-                                if (cFecha !== fechaStr) return false;
+                                const cDT = parseClassDateTime(c.fecha, c.hora);
+                                if (!cDT) return false;
 
-                                const cHora = (c.hora || '').substring(0, 5);
-                                if (cHora !== horaDef5) return false;
+                                const cYYYY = cDT.getFullYear();
+                                const cMM = String(cDT.getMonth() + 1).padStart(2, '0');
+                                const cDD = String(cDT.getDate()).padStart(2, '0');
+                                const cFmtDate = `${cYYYY}-${cMM}-${cDD}`;
+                                const cFmtHora = String(cDT.getHours()).padStart(2, '0') + ':' + String(cDT.getMinutes()).padStart(2, '0');
+
+                                if (cFmtDate !== fechaStr || cFmtHora !== horaDef5) return false;
 
                                 const cServ = String(c.servicio || '').trim().toLowerCase();
                                 const targetServ = String(sNombre).trim().toLowerCase();
