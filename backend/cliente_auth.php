@@ -603,6 +603,7 @@ try {
         }
 
         $whereClause = "WHERE " . implode(" OR ", $whereConds);
+        $params['email_cn'] = $email;
 
         $clases = [];
         try {
@@ -614,7 +615,7 @@ try {
                 FROM turnos t
                 LEFT JOIN negocios n ON t.id_negocio = n.id
                 LEFT JOIN servicios s ON (t.id_servicio = s.id OR (t.id_negocio = s.id_negocio AND LOWER(TRIM(t.servicio)) = LOWER(TRIM(s.nombre_servicio))))
-                LEFT JOIN clientes_negocio cn ON (t.id_negocio = cn.id_negocio AND LOWER(TRIM(cn.email)) = :email)
+                LEFT JOIN clientes_negocio cn ON (t.id_negocio = cn.id_negocio AND LOWER(TRIM(cn.email)) = :email_cn)
                 {$whereClause}
                 ORDER BY t.fecha DESC, t.hora DESC
             ");
@@ -668,16 +669,15 @@ try {
                         'hora' => $rc['hora'],
                         'estado' => $rc['estado'],
                         'fecha_vencimiento' => $matchingNeg ? $matchingNeg['fecha_vencimiento'] : null,
-                        'cancelaciones_restantes' => $matchingNeg ? $matchingNeg['cancelaciones_restantes'] : 4,
-                        'cancelaciones_permitidas' => $matchingNeg ? $matchingNeg['cancelaciones_permitidas'] : 4,
-                        'pases_totales' => $matchingNeg ? $matchingNeg['pases_totales'] : 4,
+                        'cancelaciones_restantes' => $matchingNeg ? $matchingNeg['cancelaciones_restantes'] : null,
+                        'cancelaciones_permitidas' => $matchingNeg ? $matchingNeg['cancelaciones_permitidas'] : null,
+                        'pases_totales' => $matchingNeg ? $matchingNeg['pases_totales'] : null,
                         'icono' => 'palette',
                         'servicio_imagen' => null
                     ];
                 }
             } catch (\Throwable $eSimple) {
-                error_log("Error en fallback de mis_clases: " . $eSimple->getMessage());
-                $clases = [];
+                error_log("Error en fallback simple de mis_clases: " . $eSimple->getMessage());
             }
         }
 
@@ -813,11 +813,32 @@ try {
     if ($action === 'reservar_con_pase') {
         $email = strtolower(trim($_POST['email'] ?? $_GET['email'] ?? $_SESSION['cliente_email'] ?? ''));
         $id_negocio = (int)($_POST['id_negocio'] ?? 0);
+        $negocio_ruta = trim($_POST['negocio_ruta'] ?? '');
         $fecha = trim($_POST['fecha'] ?? '');
         $hora = trim($_POST['hora'] ?? '');
         $servicio = trim($_POST['servicio'] ?? '');
         $profesional = trim($_POST['profesional'] ?? 'Cualquiera (Sin preferencia)');
         $id_servicio = (int)($_POST['id_servicio'] ?? 0);
+
+        // Si id_negocio vino 0 o inválido, intentar resolverlo mediante negocio_ruta
+        if ($id_negocio <= 0 && !empty($negocio_ruta)) {
+            $stmtNeg = $pdo->prepare("SELECT id FROM negocios WHERE ruta = :ruta LIMIT 1");
+            $stmtNeg->execute(['ruta' => $negocio_ruta]);
+            $foundNeg = $stmtNeg->fetch(PDO::FETCH_ASSOC);
+            if ($foundNeg) {
+                $id_negocio = (int)$foundNeg['id'];
+            }
+        }
+
+        // Si aún no se resolvió id_negocio pero conocemos el id_servicio
+        if ($id_negocio <= 0 && $id_servicio > 0) {
+            $stmtSrv = $pdo->prepare("SELECT id_negocio FROM servicios WHERE id = :id LIMIT 1");
+            $stmtSrv->execute(['id' => $id_servicio]);
+            $foundSrv = $stmtSrv->fetch(PDO::FETCH_ASSOC);
+            if ($foundSrv && !empty($foundSrv['id_negocio'])) {
+                $id_negocio = (int)$foundSrv['id_negocio'];
+            }
+        }
 
         if (empty($email) || !$id_negocio || empty($fecha) || empty($hora) || empty($servicio)) {
             echo json_encode(['success' => false, 'error' => 'Por favor selecciona fecha, hora y servicio válidos.']);
@@ -833,7 +854,7 @@ try {
         }
 
         // 1. Verificar si el alumno ya está inscripto en esta misma clase, fecha y hora
-        $stmtCheckDup = $pdo->prepare("SELECT id FROM turnos WHERE id_negocio = :id_negocio AND LOWER(TRIM(cliente_celular)) = :email AND fecha = :fecha AND hora LIKE :hora AND (id_servicio = :id_servicio OR servicio = :servicio) AND estado != 'cancelado' LIMIT 1");
+        $stmtCheckDup = $pdo->prepare("SELECT id FROM turnos WHERE id_negocio = :id_negocio AND (LOWER(TRIM(cliente_celular)) = :email OR LOWER(TRIM(cliente_nombre)) = :email) AND fecha = :fecha AND hora LIKE :hora AND (id_servicio = :id_servicio OR servicio = :servicio) AND estado != 'cancelado' LIMIT 1");
         $stmtCheckDup->execute([
             'id_negocio' => $id_negocio,
             'email' => $email,
@@ -847,9 +868,13 @@ try {
             exit;
         }
 
-        // 2. Verificar si el cliente tiene pases disponibles EXCLUSIVAMENTE en este negocio
-        $stmtClient = $pdo->prepare("SELECT id, nombre_completo, pases_disponibles FROM clientes_negocio WHERE id_negocio = :id_negocio AND LOWER(TRIM(email)) = :email LIMIT 1");
-        $stmtClient->execute(['id_negocio' => $id_negocio, 'email' => $email]);
+        // 2. Verificar si el cliente tiene pases disponibles EXCLUSIVAMENTE en este negocio (o cuenta de cliente de negocio)
+        $stmtClient = $pdo->prepare("SELECT id, nombre_completo, pases_disponibles, id_negocio FROM clientes_negocio WHERE (id_negocio = :id_negocio OR id_negocio = 0) AND LOWER(TRIM(email)) = :email ORDER BY (id_negocio = :id_negocio_order) DESC LIMIT 1");
+        $stmtClient->execute([
+            'id_negocio' => $id_negocio,
+            'email' => $email,
+            'id_negocio_order' => $id_negocio
+        ]);
         $clientData = $stmtClient->fetch(PDO::FETCH_ASSOC);
 
         if (!$clientData) {

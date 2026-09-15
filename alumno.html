@@ -2073,11 +2073,19 @@
             fetch('backend/cliente_auth.php?action=reservar_con_pase', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `email=${encodeURIComponent(email)}&id_negocio=${targetIdNeg}&id_servicio=${idServicio}&servicio=${encodeURIComponent(servicioNombre)}&fecha=${fecha}&hora=${hora}&profesional=${encodeURIComponent(profesional)}`
+                body: `email=${encodeURIComponent(email)}&id_negocio=${targetIdNeg}&negocio_ruta=${encodeURIComponent(negocioRuta)}&id_servicio=${idServicio}&servicio=${encodeURIComponent(servicioNombre)}&fecha=${fecha}&hora=${hora}&profesional=${encodeURIComponent(profesional)}`
             })
-            .then(r => r.json())
+            .then(async r => {
+                let d = null;
+                try {
+                    d = await r.json();
+                } catch (e) {
+                    throw new Error('Respuesta inválida del servidor (' + r.status + ')');
+                }
+                return d;
+            })
             .then(d => {
-                if (d.success) {
+                if (d && d.success) {
                     // 1. Actualización optimista de estado local
                     const newBooking = {
                         id: 'temp_' + Date.now(),
@@ -2109,7 +2117,7 @@
 
                     showStudentSuccessModal(servicioNombre, dateFormatted, hora, negocioNombre);
 
-                    // 3. Sincronizar desde backend de forma ordenada (sin duplicar recargas que causen parpadeo)
+                    // 3. Sincronizar desde backend de forma ordenada
                     loadMisClases(email).then(() => {
                         if (negocioRuta) loadStudentBusinessCalendar(negocioRuta, true);
                     });
@@ -2118,15 +2126,15 @@
                         btnElem.disabled = false;
                         btnElem.innerHTML = '<span class="material-symbols-outlined text-[18px]">add_task</span><span>Agendarme en esta Clase</span>';
                     }
-                    showStudentToast(d.error || 'No se pudo realizar la inscripción.', 'error');
+                    showStudentToast((d && d.error) ? d.error : 'No se pudo realizar la inscripción.', 'error');
                 }
             })
-            .catch(() => {
+            .catch(err => {
                 if (btnElem) {
                     btnElem.disabled = false;
                     btnElem.innerHTML = '<span class="material-symbols-outlined text-[18px]">add_task</span><span>Agendarme en esta Clase</span>';
                 }
-                showStudentToast('Error de conexión al reservar.', 'error');
+                showStudentToast(err.message || 'Error de conexión al reservar.', 'error');
             });
         }
 
