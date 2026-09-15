@@ -603,10 +603,11 @@ try {
         }
 
         $whereClause = "WHERE " . implode(" OR ", $whereConds);
-        $params['email_cn'] = $email;
 
         $clases = [];
         try {
+            $mainParams = $params;
+            $mainParams['email_cn'] = $email;
             $stmt = $pdo->prepare("
                 SELECT t.id, t.id_negocio, t.id_servicio, COALESCE(n.nombre_fantasia, 'Establecimiento') AS negocio, n.ruta AS negocio_ruta, 
                        t.servicio, t.profesional, t.fecha, t.hora, t.estado,
@@ -619,7 +620,7 @@ try {
                 {$whereClause}
                 ORDER BY t.fecha DESC, t.hora DESC
             ");
-            $stmt->execute($params);
+            $stmt->execute($mainParams);
             $clases = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Throwable $eTurnos) {
             error_log("Error en query principal de mis_clases: " . $eTurnos->getMessage());
