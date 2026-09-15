@@ -31,5 +31,13 @@ En todas las vistas HTML de la plataforma (`index.html`, `login.html`, `registro
 - **REGLA EXPLICITA DEL USUARIO**: A partir de ahora, todo el desarrollo, modificaciones y despliegues se realizan sobre la rama **`pruebas`** (`git checkout pruebas` -> `git push origin pruebas` -> despliegue automático a `/public_html/pruebas/`).
 - Únicamente se pasará/fusionará a la rama **`main`** (producción en `/public_html/`) cuando el usuario lo solicite explícitamente ("actualizar el sitio" / pasar a producción).
 
+## Portal Alumno: Reservas con Pase y Sincronización de Historial (REGLA MEMORIZADA)
+- **Causa del bloqueo "Reservando..." y ausencia en historial/pases**:
+  1. En `backend/cliente_auth.php` (`mis_clases`), la consulta PDO no debe repetir el mismo nombre de marcador con nombre (ej. `:email` en el `WHERE` y en el `LEFT JOIN clientes_negocio`), ya que en MySQL/PDO genera error de parámetro inválido (`HY093`), provocando que la consulta caiga al bloque fallback y se pierdan pases, cupos o datos de la reserva.
+  2. En `reservar_con_pase`, siempre resolver `id_negocio` mediante `negocio_ruta` o `id_servicio` si viene vacío o en `0`.
+  3. La vinculación del alumno en `clientes_negocio` debe contemplar registros con `id_negocio = :id_negocio` o `id_negocio = 0` priorizando el negocio seleccionado (`ORDER BY (id_negocio = :id_negocio) DESC LIMIT 1`).
+  4. En `alumno.html` (`bookStudentClass`), la promesa de `fetch` siempre debe restaurar el botón ("Agendarme en esta Clase") con manejo seguro de excepciones HTTP/JSON, sin quedarse nunca trabado en "Reservando...".
+
+
 
 
