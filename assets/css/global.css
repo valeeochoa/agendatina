@@ -178,9 +178,10 @@ html, body, .custom-scrollbar, .time-slots-scrollbar {
 
 /* Horarios Estilo Pastilla Premium Glossy */
 .time-slot {
-    padding: 10px 14px;
-    min-height: 38px;
-    border-radius: 1.15rem;
+    padding: 8px 10px;
+    min-height: 40px;
+    box-sizing: border-box;
+    border-radius: 1rem;
     text-align: center;
     font-weight: 800;
     background: #ffffff;

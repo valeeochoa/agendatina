@@ -619,9 +619,13 @@ function cal_renderTimeSlots() {
             spotsText = `<span class="block text-[10px] font-semibold opacity-85 leading-none mt-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full">${spotsLeft} lugares</span>`;
         }
 
-        const clockIcon = !isBooked ? '<span class="material-symbols-outlined text-[14px] opacity-75 inline-block shrink-0 mr-1">schedule</span>' : '';
-        slot.innerHTML = isBooked ? `<div class="flex items-center justify-center gap-1 whitespace-nowrap"><span class="whitespace-nowrap font-extrabold text-xs sm:text-sm">${time}&nbsp;hs</span> <span class="text-[10px] font-medium opacity-70 ml-1">(Agotado)</span></div>` : `<div class="flex items-center justify-center gap-1.5 whitespace-nowrap w-full">${clockIcon}<span class="whitespace-nowrap font-extrabold text-xs sm:text-sm tracking-tight">${time}&nbsp;hs</span></div>${spotsText}`;
-        slot.className = isBooked ? 'time-slot booked flex flex-col justify-center items-center py-2 px-3 rounded-2xl text-xs sm:text-sm font-extrabold opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700 min-h-[38px] w-full whitespace-nowrap' : 'time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-900 py-2.5 px-3.5 sm:px-4 rounded-2xl text-xs sm:text-sm font-extrabold border-1.5 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 hover:-translate-y-0.5 hover:shadow-md cursor-pointer transition-all shadow-xs min-h-[38px] w-full whitespace-nowrap';
+        const clockIcon = !isBooked ? '<span class="material-symbols-outlined text-[13px] sm:text-[14px] opacity-75 inline-flex shrink-0">schedule</span>' : '';
+        slot.innerHTML = isBooked 
+            ? `<div class="flex items-center justify-center gap-1 w-full min-w-0"><span class="whitespace-nowrap font-extrabold text-xs sm:text-sm leading-tight">${time}&nbsp;hs</span> <span class="text-[10px] font-medium opacity-70 leading-tight">(Agotado)</span></div>` 
+            : `<div class="flex items-center justify-center gap-1 sm:gap-1.5 w-full min-w-0">${clockIcon}<span class="whitespace-nowrap font-extrabold text-xs sm:text-sm tracking-tight leading-tight">${time}&nbsp;hs</span></div>${spotsText}`;
+        slot.className = isBooked 
+            ? 'time-slot booked flex flex-col justify-center items-center py-2 px-2 sm:px-3 rounded-2xl text-xs sm:text-sm font-extrabold opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700 min-h-[40px] w-full' 
+            : 'time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-900 py-2 sm:py-2.5 px-2 sm:px-3 rounded-2xl text-xs sm:text-sm font-extrabold border-1.5 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 hover:-translate-y-0.5 hover:shadow-md cursor-pointer transition-all shadow-xs min-h-[40px] w-full';
         
         if (!isBooked) {
             slot.addEventListener('click', () => {
@@ -1354,12 +1358,12 @@ function populateCalendarViewFilter() {
         filterContainer.className = 'mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-white dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm';
         
         const label = document.createElement('label');
-        label.className = 'text-sm font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap flex items-center gap-1';
-        label.innerHTML = '<span class="material-symbols-outlined text-[18px]">filter_alt</span> Vista de Profesional:';
+        label.className = 'text-sm font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap flex items-center gap-1.5';
+        label.innerHTML = '<span class="material-symbols-outlined text-[18px] text-primary">calendar_month</span> Calendario:';
         
         const select = document.createElement('select');
         select.id = 'calendarViewFilter';
-        select.className = 'bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-primary w-full sm:w-auto';
+        select.className = 'bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-primary w-full sm:w-auto cursor-pointer';
         
         select.addEventListener('change', (e) => {
             globalSelectedProfessional = e.target.value;
@@ -1410,11 +1414,13 @@ function populateCalendarViewFilter() {
     const effectiveIsAdmin = isAdmin && !isPreviewMode;
     
     if (effectiveIsAdmin) {
-        select.innerHTML += '<option value="">🏢 Todos los Profesionales (General)</option>';
+        const isSelectedGeneral = (!globalSelectedProfessional || globalSelectedProfessional === '') ? 'selected' : '';
+        select.innerHTML += `<option value="" ${isSelectedGeneral}>🏢 Todos los Profesionales (General)</option>`;
         const isSelectedCol = globalSelectedProfessional === 'columnas' ? 'selected' : '';
         select.innerHTML += `<option value="columnas" ${isSelectedCol}>📊 Todos en Columnas (Modo Admin)</option>`;
     } else {
-        select.innerHTML += '<option value="" disabled selected>Selecciona un profesional...</option>';
+        const isSelectedAll = (!globalSelectedProfessional || globalSelectedProfessional === '') ? 'selected' : '';
+        select.innerHTML += `<option value="" ${isSelectedAll}>🏢 Todos los profesionales</option>`;
     }
     
     uniqueProfs.forEach(prof => {
@@ -2552,9 +2558,9 @@ function selectWeeklyDate(date) {
                 spotsText = `<span class="block text-[10px] font-semibold opacity-85 leading-none mt-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full">${spotsLeft} lugares</span>`;
             }
             
-            const clockIcon = '<span class="material-symbols-outlined text-[14px] opacity-75 inline-block shrink-0 mr-1">schedule</span>';
-            slot.innerHTML = `<div class="flex items-center justify-center gap-1.5 whitespace-nowrap w-full">${clockIcon}<span class="whitespace-nowrap font-extrabold text-xs sm:text-sm tracking-tight">${time}&nbsp;hs</span></div>${spotsText}`;
-            slot.className = 'time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-800/90 py-2.5 px-3.5 sm:px-4 rounded-2xl text-xs sm:text-sm font-extrabold border-1.5 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 shadow-xs min-h-[38px] w-full whitespace-nowrap';
+            const clockIcon = '<span class="material-symbols-outlined text-[13px] sm:text-[14px] opacity-75 inline-flex shrink-0">schedule</span>';
+            slot.innerHTML = `<div class="flex items-center justify-center gap-1 sm:gap-1.5 w-full min-w-0"><span class="whitespace-nowrap font-extrabold text-xs sm:text-sm tracking-tight leading-tight">${time}&nbsp;hs</span></div>${spotsText}`;
+            slot.className = 'time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-800/90 py-2 sm:py-2.5 px-2 sm:px-3 rounded-2xl text-xs sm:text-sm font-extrabold border-1.5 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 shadow-xs min-h-[40px] w-full';
             slot.addEventListener('click', () => {
                 document.querySelectorAll('#weeklyTimeSlots .time-slot').forEach(el => {
                     el.classList.remove('selected', 'scale-105');

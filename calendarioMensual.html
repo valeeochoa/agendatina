@@ -150,24 +150,24 @@
           <div id="calendarDays" class="grid grid-cols-7 gap-1.5 sm:gap-2.5 p-2 sm:p-3 bg-slate-50/80 dark:bg-slate-950/40 rounded-2xl border border-slate-200/60 dark:border-slate-800/60"></div>
         </div>
 
-        <div class="hidden mt-8 pt-6 border-t border-slate-200 flex-wrap sm:flex-nowrap flex-col sm:flex-row items-center justify-between gap-3 w-full" id="adminControls">
+        <div class="hidden mt-8 pt-6 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 w-full" id="adminControls">
           <button onclick="copyMyLink()"
-            class="w-full sm:flex-1 text-sm font-bold bg-white text-slate-600 border border-slate-200 px-3 py-2.5 rounded-xl hover:text-primary transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap"
+            class="flex-1 min-w-[140px] text-sm font-bold bg-white text-slate-600 border border-slate-200 px-3 py-2.5 rounded-xl hover:text-primary transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap"
             title="Copiar enlace para clientes">
             <span class="material-symbols-outlined text-[20px]">share</span> Compartir Enlace
           </button>
           <button id="previewClientBtn"
-            class="w-full sm:flex-1 text-sm font-bold bg-white text-slate-600 border border-slate-200 px-3 py-2.5 rounded-xl hover:text-primary transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap"
+            class="flex-1 min-w-[140px] text-sm font-bold bg-white text-slate-600 border border-slate-200 px-3 py-2.5 rounded-xl hover:text-primary transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap"
             title="Ver como cliente">
             <span class="material-symbols-outlined text-[20px]">visibility</span> Vista Cliente
           </button>
           <button onclick="openPapeleraModal()"
-            class="w-full sm:flex-1 text-sm font-bold bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-2xs whitespace-nowrap"
+            class="flex-1 min-w-[120px] text-sm font-bold bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-2xs whitespace-nowrap"
             title="Ver turnos borrados o en la papelera">
             <span class="material-symbols-outlined text-[20px]">delete_outline</span> Papelera
           </button>
           <button id="manageServicesBtn"
-            class="w-full sm:flex-1 text-sm font-bold bg-primary text-white px-3 py-2.5 rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
+            class="flex-1 min-w-[160px] text-sm font-bold bg-primary text-white px-3 py-2.5 rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap">
             <span class="material-symbols-outlined text-[20px]">design_services</span> Gestionar Servicios
           </button>
         </div>
@@ -196,7 +196,7 @@
             <input type="hidden" id="fechaSeleccionada" name="fecha" />
             <input type="hidden" id="horaSeleccionada" name="hora" required />
 
-            <div id="timeSlots" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 sm:gap-3"></div>
+            <div id="timeSlots" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3"></div>
 
             <div class="space-y-4">
               <div>
