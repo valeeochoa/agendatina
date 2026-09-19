@@ -674,6 +674,7 @@ function cal_selectDate(date) {
         if (clientBookingView) clientBookingView.classList.remove('hidden');
         if (selectedDateText) selectedDateText.textContent = formattedDate;
         if (fechaSeleccionada) fechaSeleccionada.value = dateString;
+        if (typeof updateSelectedServicePriceDisplay === 'function') updateSelectedServicePriceDisplay();
         if (typeof cal_renderTimeSlots === 'function') cal_renderTimeSlots();
     }
     
@@ -1463,20 +1464,66 @@ function updateServiceDropdown() {
     availableServices.forEach(service => {
         if (!uniqueNames.has(service.nombre)) {
             uniqueNames.add(service.nombre);
-            let precioText = '';
-            if (service.precio > 0) {
-                precioText += ` - $${parseFloat(service.precio).toLocaleString('es-AR')}`;
-            }
-            if (service.precio_sena > 0) {
-                precioText += ` (Seña: $${parseFloat(service.precio_sena).toLocaleString('es-AR')})`;
-            }
             const isSelected = currentSelectedService === service.nombre ? 'selected' : '';
-            serviceSelect.innerHTML += `<option value="${service.nombre}" ${isSelected}>${service.nombre}${precioText}</option>`;
+            serviceSelect.innerHTML += `<option value="${service.nombre}" ${isSelected}>${service.nombre}</option>`;
         }
     });
     
     if (currentSelectedService && !uniqueNames.has(currentSelectedService)) {
         serviceSelect.value = '';
+    }
+
+    updateSelectedServicePriceDisplay();
+}
+
+function updateSelectedServicePriceDisplay() {
+    const serviceSelect = document.getElementById('serviceSelect');
+    const priceVal = document.getElementById('servicePriceValue');
+    const priceBadge = document.getElementById('servicePriceBadge');
+    if (!priceVal) return;
+
+    const sName = serviceSelect?.value;
+    if (!sName) {
+        priceVal.textContent = '-';
+        if (priceBadge) priceBadge.classList.add('hidden');
+        return;
+    }
+
+    const profSelect = document.getElementById('profesionalSelect');
+    const chosenProf = (profSelect && profSelect.value && profSelect.value !== 'Cualquiera' && !profSelect.value.includes('Sin preferencia'))
+        ? profSelect.value
+        : (globalSelectedProfessional && globalSelectedProfessional !== 'columnas' && globalSelectedProfessional !== 'Cualquiera' && !globalSelectedProfessional.includes('Sin preferencia') ? globalSelectedProfessional : null);
+
+    let match = null;
+    if (chosenProf) {
+        match = services.find(s => s.nombre === sName && s.profesional === chosenProf);
+    }
+    if (!match) {
+        match = services.find(s => s.nombre === sName);
+    }
+
+    if (!match) {
+        priceVal.textContent = '-';
+        if (priceBadge) priceBadge.classList.add('hidden');
+        return;
+    }
+
+    const p = parseFloat(match.precio || 0);
+    const sena = parseFloat(match.precio_sena || 0);
+
+    if (p > 0) {
+        priceVal.textContent = `$${p.toLocaleString('es-AR')}`;
+    } else {
+        priceVal.textContent = 'Gratis';
+    }
+
+    if (priceBadge) {
+        if (sena > 0) {
+            priceBadge.textContent = `Seña: $${sena.toLocaleString('es-AR')}`;
+            priceBadge.classList.remove('hidden');
+        } else {
+            priceBadge.classList.add('hidden');
+        }
     }
 }
 
@@ -2914,6 +2961,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateProfServicesDisplay();
                 }
                 
+                updateSelectedServicePriceDisplay();
                 cal_fetchBookedTimes();
                 if (cal_selectedDate && (!isAdmin || isPreviewMode)) cal_renderTimeSlots();
             });
@@ -2929,6 +2977,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 updateServiceDropdown();
                 updateProfServicesDisplay();
+                updateSelectedServicePriceDisplay();
                 cal_fetchBookedTimes();
                 if (cal_selectedDate && (!isAdmin || isPreviewMode)) cal_renderTimeSlots();
             });
