@@ -162,7 +162,11 @@ function getServiceDuration(serviceName = null, profName = null) {
 function isSlotAvailableForDuration(dateString, timeStr, durationMin, capacity, baseOcupadas, isToday, slotDate) {
     if (!timeStr) return false;
     if (window.isTimeInBreak(timeStr)) return false;
-    if (baseOcupadas.includes('blocked_day') || baseOcupadas.includes('blocked_day_prof')) return false;
+    if (baseOcupadas.includes('blocked_day')) return false;
+    
+    // Si hay un profesional específico filtrado y ese profesional tiene el día bloqueado
+    const isSpecificProf = (typeof globalSelectedProfessional !== 'undefined' && globalSelectedProfessional && globalSelectedProfessional !== 'columnas' && globalSelectedProfessional !== 'Cualquiera (Sin preferencia)' && globalSelectedProfessional !== 'Cualquiera');
+    if (isSpecificProf && baseOcupadas.includes('blocked_day_prof')) return false;
     
     const now = new Date();
     if (isToday && slotDate && slotDate.getTime() <= now.getTime()) return false;
@@ -183,13 +187,47 @@ function isSlotAvailableForDuration(dateString, timeStr, durationMin, capacity, 
     
     if (endMins > closeMins) return false;
     
+    // Comprobar descanso en el rango del turno
+    for (let curMins = startMins; curMins < endMins; curMins += 15) {
+        const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
+        const curM = (curMins % 60).toString().padStart(2, '0');
+        const subSlotStr = `${curH}:${curM}`;
+        if (window.getBreakTimes().includes(subSlotStr)) return false;
+    }
+    
+    // MODO UNIÓN DE PROFESIONALES: Si no hay profesional específico seleccionado (Todos los profesionales o Cualquiera)
+    // El horario está disponible si AL MENOS UN profesional del equipo está libre en ese tramo (o si no hay profesionales, disponibilidad estándar)
+    const bookedDetails = (dateString && cal_bookedSlots['_details'] && cal_bookedSlots['_details'][dateString]) ? cal_bookedSlots['_details'][dateString] : null;
+    const uniqueProfs = typeof getUniqueProfessionals === 'function' ? getUniqueProfessionals() : [];
+    
+    if (!isSpecificProf && uniqueProfs && uniqueProfs.length > 1 && bookedDetails) {
+        // Buscamos si existe al menos un profesional P que esté libre en [startMins, endMins)
+        const hasAnyProfAvailable = uniqueProfs.some(profName => {
+            const cleanP = String(profName).trim().toLowerCase();
+            const profBookings = bookedDetails.filter(b => {
+                if (!b.profesional || b.profesional === 'Cualquiera (Sin preferencia)' || b.profesional === '') return true;
+                return String(b.profesional).trim().toLowerCase() === cleanP;
+            });
+            // Comprobar si este profesional tiene alguna superposición en el tramo
+            const overlaps = profBookings.some(b => {
+                const bStart = b.startMins;
+                const bEnd = b.endMins;
+                return Math.max(startMins, bStart) < Math.min(endMins, bEnd);
+            });
+            return !overlaps;
+        });
+        
+        if (hasAnyProfAvailable) return true;
+        // Si ninguno individual está libre, verificar capacidad si es servicio con cupo grupal
+        const cap = parseInt(capacity, 10) || 1;
+        if (cap <= 1) return false;
+    }
+    
     const cap = parseInt(capacity, 10) || 1;
     for (let curMins = startMins; curMins < endMins; curMins += 15) {
         const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
         const curM = (curMins % 60).toString().padStart(2, '0');
         const subSlotStr = `${curH}:${curM}`;
-        
-        if (window.getBreakTimes().includes(subSlotStr)) return false;
         
         const countTaken = baseOcupadas.filter(t => t.substring(0, 5) === subSlotStr).length;
         if (countTaken >= cap) return false;
@@ -276,22 +314,48 @@ function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration =
         const step = isServMode ? servDuration : (parseInt(window.businessWebConfig?.intervalo_turnos) || 30);
 
         if (isSingleSlotMode && isServMode && dateStr) {
+            const isUnionMode = (!activeProf || activeProf === 'Cualquiera (Sin preferencia)' || activeProf === 'Cualquiera' || activeProf === 'columnas') && (typeof getUniqueProfessionals === 'function' && getUniqueProfessionals().length > 1);
+            const teamProfs = isUnionMode ? getUniqueProfessionals() : [];
+
             while (curMins + servDuration <= tramo.end) {
                 if (breakStartMins > -1 && curMins >= breakStartMins && curMins < breakEndMins) {
                     curMins = breakEndMins;
                     continue;
                 }
 
-                const activeBooking = relevantBookings.find(b => curMins >= b.startMins && curMins < b.endMins);
-                if (activeBooking) {
-                    curMins = activeBooking.endMins;
+                const slotEndMins = curMins + servDuration;
+                if (breakStartMins > -1 && curMins < breakStartMins && slotEndMins > breakStartMins) {
+                    curMins = breakEndMins;
                     continue;
                 }
 
-                const slotEndMins = curMins + servDuration;
-                
-                if (breakStartMins > -1 && curMins < breakStartMins && slotEndMins > breakStartMins) {
-                    curMins = breakEndMins;
+                if (isUnionMode) {
+                    // Modo Unión: El horario curMins está disponible si AL MENOS UN profesional del equipo está libre en [curMins, slotEndMins)
+                    const hasFreeProf = teamProfs.some(pName => {
+                        const cleanP = String(pName).trim().toLowerCase();
+                        const pBookings = bookedDetails.filter(b => {
+                            if (b.cupo_maximo > 1) return false;
+                            if (!b.profesional || b.profesional === 'Cualquiera (Sin preferencia)' || b.profesional === '') return true;
+                            return String(b.profesional).trim().toLowerCase() === cleanP;
+                        });
+                        return !pBookings.some(b => Math.max(curMins, b.startMins) < Math.min(slotEndMins, b.endMins));
+                    });
+
+                    if (hasFreeProf) {
+                        const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
+                        const curM = (curMins % 60).toString().padStart(2, '0');
+                        const timeSlot = `${curH}:${curM}`;
+                        if (!availableSlots.includes(timeSlot)) {
+                            availableSlots.push(timeSlot);
+                        }
+                    }
+                    curMins += servDuration;
+                    continue;
+                }
+
+                const activeBooking = relevantBookings.find(b => curMins >= b.startMins && curMins < b.endMins);
+                if (activeBooking) {
+                    curMins = activeBooking.endMins;
                     continue;
                 }
 
@@ -1367,12 +1431,30 @@ function populateCalendarViewFilter() {
         select.className = 'bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-primary w-full sm:w-auto cursor-pointer';
         
         select.addEventListener('change', (e) => {
-            globalSelectedProfessional = e.target.value;
+            const val = e.target.value;
+            globalSelectedProfessional = val;
             
-            const profSelect = document.getElementById('profesionalSelect');
-            if (profSelect) {
-                const optExists = Array.from(profSelect.options).some(opt => opt.value === e.target.value);
-                profSelect.value = optExists ? e.target.value : 'Cualquiera (Sin preferencia)';
+            // Si hace click en Calendario -> Todos los profesionales, limpiar el formulario de reserva
+            if (!val || val === '' || val === 'columnas') {
+                const bForm = document.getElementById('bookingForm');
+                if (bForm) {
+                    bForm.reset();
+                }
+                const horaInput = document.getElementById('horaSeleccionada');
+                if (horaInput) horaInput.value = '';
+                cal_selectedTime = null;
+                document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('selected'));
+                const pSelect = document.getElementById('profesionalSelect');
+                if (pSelect) pSelect.value = 'Cualquiera';
+                if (typeof updateSelectedServicePriceDisplay === 'function') {
+                    updateSelectedServicePriceDisplay();
+                }
+            } else {
+                const profSelect = document.getElementById('profesionalSelect');
+                if (profSelect) {
+                    const optExists = Array.from(profSelect.options).some(opt => opt.value === val);
+                    profSelect.value = optExists ? val : 'Cualquiera (Sin preferencia)';
+                }
             }
             
             updateServiceDropdown();
