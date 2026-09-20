@@ -141,7 +141,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (data.profesionales_json) {
                     try { window.profesionalesWebData = JSON.parse(data.profesionales_json); } catch(e) { window.profesionalesWebData = []; }
-                    renderProfesionalesWeb();
+                    if (!Array.isArray(window.profesionalesWebData)) window.profesionalesWebData = [];
+                    if (Array.isArray(window.webServicesData) && window.webServicesData.length > 0 && typeof syncProfesionalesFromServices === 'function') {
+                        syncProfesionalesFromServices(window.webServicesData);
+                    } else {
+                        renderProfesionalesWeb();
+                    }
+                } else {
+                    if (Array.isArray(window.webServicesData) && window.webServicesData.length > 0 && typeof syncProfesionalesFromServices === 'function') {
+                        syncProfesionalesFromServices(window.webServicesData);
+                    } else {
+                        renderProfesionalesWeb();
+                    }
                 }
                 if (data.cursos_json) {
                     try { window.cursosWebData = JSON.parse(data.cursos_json); } catch(e) { window.cursosWebData = []; }
@@ -338,7 +349,35 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         });
         
-        makeSortable('cursosWebList', window.cursosWebData, renderCursosWeb);
+        makeSortable('profesionalesWebList', window.profesionalesWebData, renderProfesionalesWeb);
+    }
+
+    function syncProfesionalesFromServices(servicesList) {
+        if (!Array.isArray(servicesList) || servicesList.length === 0) return;
+        if (!Array.isArray(window.profesionalesWebData)) {
+            window.profesionalesWebData = [];
+        }
+        let changed = false;
+        servicesList.forEach(s => {
+            const pName = (s.profesional || '').trim();
+            if (pName && pName !== 'Cualquiera' && !pName.includes('Sin preferencia') && !pName.includes('@')) {
+                const existingIndex = window.profesionalesWebData.findIndex(p => p.nombre && p.nombre.trim().toLowerCase() === pName.toLowerCase());
+                if (existingIndex === -1) {
+                    window.profesionalesWebData.push({
+                        nombre: pName,
+                        descripcion: 'Especialista en servicios del equipo',
+                        foto: s.foto_profesional || ''
+                    });
+                    changed = true;
+                } else if (s.foto_profesional && !window.profesionalesWebData[existingIndex].foto) {
+                    window.profesionalesWebData[existingIndex].foto = s.foto_profesional;
+                    changed = true;
+                }
+            }
+        });
+        if (changed) {
+            renderProfesionalesWeb();
+        }
     }
 
     // ==========================================
@@ -448,7 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         });
         
-        makeSortable('profesionalesWebList', window.profesionalesWebData, renderProfesionalesWeb);
+        makeSortable('cursosWebList', window.cursosWebData, renderCursosWeb);
     }
 
     // ==========================================
@@ -585,6 +624,10 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (typeof window.updateProfesionalesDatalist === 'function') {
                 window.updateProfesionalesDatalist(data);
+            }
+
+            if (typeof syncProfesionalesFromServices === 'function') {
+                syncProfesionalesFromServices(data);
             }
 
             makeServicesSortable();
