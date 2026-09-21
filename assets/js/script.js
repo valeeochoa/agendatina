@@ -2570,7 +2570,7 @@ var carouselData = [
         showOldPrice: true,
         badgeText: '-10% OFF',
         mockupDesktop: 'public/mockup_cuposClientes_computer.png',
-        mockupMobile: 'public/mockup_miagenda_phone.png',
+        mockupMobile: 'public/mockup_cuposClientes_phone.png',
         features: [
             'Todo lo incluido en el Plan Profesional',
             '🔥 Módulo de Cupos y Portal de Alumnos (mi-cuenta)',
@@ -3731,6 +3731,19 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
             body, .text-slate-800, .text-slate-700, .text-slate-900 { color: #f8fafc !important; }
             .text-slate-500, .text-slate-400 { color: #cbd5e1 !important; }
             .border-slate-200, .border-slate-100 { border-color: rgba(255, 255, 255, 0.15) !important; }
+        `;
+    } else {
+        extraCss += `
+            body:not(.dark) p.text-slate-400,
+            body:not(.dark) span.text-slate-400,
+            body:not(.dark) .text-slate-400 {
+                color: #334155 !important;
+            }
+            body:not(.dark) p.text-slate-500,
+            body:not(.dark) span.text-slate-500,
+            body:not(.dark) .text-slate-500 {
+                color: #1e293b !important;
+            }
         `;
     }
 

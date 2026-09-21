@@ -1360,20 +1360,20 @@ function fetchTeamProfessionals() {
 }
 
 function getUniqueProfessionals() {
-    const serviceProfs = (services || []).map(s => s.profesional).filter(p => p && p.trim() !== '' && p !== 'Cualquiera (Sin preferencia)');
+    // Obtenemos solo los profesionales que tienen asignado al menos 1 servicio (omitiendo cuentas sin servicios como Agendatina DEMO)
+    const serviceProfs = (services || [])
+        .map(s => (s.profesional || '').trim())
+        .filter(p => p !== '' && p !== 'Cualquiera (Sin preferencia)' && p !== 'Todos' && p !== 'Sin Asignar');
     
-    let webProfs = [];
-    if (window.businessWebConfig && window.businessWebConfig.profesionales_json) {
-        try {
-            const parsed = typeof window.businessWebConfig.profesionales_json === 'string' ? JSON.parse(window.businessWebConfig.profesionales_json) : window.businessWebConfig.profesionales_json;
-            if (Array.isArray(parsed)) {
-                webProfs = parsed.map(p => typeof p === 'string' ? p : (p.nombre || p.nombre_completo)).filter(n => n && n.trim() !== '');
-            }
-        } catch(e) {}
-    }
-    
-    const combined = [...serviceProfs, ...teamProfessionals, ...webProfs];
-    return [...new Set(combined)];
+    // Deduplicar respetando coincidencias (ej: Valentina vs Valentina Ochoa)
+    const unique = [];
+    serviceProfs.forEach(p => {
+        const exists = unique.find(u => u.toLowerCase() === p.toLowerCase() || u.toLowerCase().startsWith(p.toLowerCase()) || p.toLowerCase().startsWith(u.toLowerCase()));
+        if (!exists) {
+            unique.push(p);
+        }
+    });
+    return unique;
 }
 
 function fetchServices() {
@@ -2022,28 +2022,41 @@ function selectWizardService(sName) {
     const pList = document.getElementById('wizardProfList');
     pList.innerHTML = '';
     
-    const professionals = services.filter(s => s.nombre === sName).map(s => s.profesional).filter(p => p && p.trim() !== '');
-    const uniqueProfs = [...new Set(professionals)];
+    const matchingServices = services.filter(s => s.nombre === sName);
+    const rawProfs = matchingServices.map(s => (s.profesional || '').trim()).filter(p => p !== '' && p !== 'Cualquiera (Sin preferencia)' && p !== 'Todos' && p !== 'Sin Asignar');
+    
+    // Deduplicar respetando coincidencias de nombres
+    const uniqueProfs = [];
+    rawProfs.forEach(p => {
+        const exists = uniqueProfs.find(u => u.toLowerCase() === p.toLowerCase() || u.toLowerCase().startsWith(p.toLowerCase()) || p.toLowerCase().startsWith(u.toLowerCase()));
+        if (!exists) {
+            uniqueProfs.push(p);
+        }
+    });
 
     const createProfBtn = (pName, display, icon) => {
         const btn = document.createElement('button');
-        btn.className = 'w-full text-left p-4 rounded-2xl border border-slate-200 hover:border-primary hover:shadow-lg hover:-translate-y-0.5 transition-all bg-slate-50 flex items-center gap-4 group mb-3';
+        btn.className = 'w-full text-left p-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-primary hover:shadow-lg hover:-translate-y-0.5 transition-all bg-slate-50 dark:bg-slate-800 flex items-center gap-4 group mb-3';
         btn.innerHTML = `
             <div class="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
                 ${icon ? `<img src="${icon}" class="w-full h-full rounded-full object-cover">` : `<span class="material-symbols-outlined text-2xl">${pName === 'Cualquiera' ? 'groups' : 'person'}</span>`}
             </div>
             <div class="flex-1">
-                <p class="font-bold text-slate-800 text-lg group-hover:text-primary transition-colors">${display}</p>
+                <p class="font-bold text-slate-800 dark:text-white text-lg group-hover:text-primary transition-colors">${display}</p>
             </div>
-            <span class="material-symbols-outlined text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-transform">chevron_right</span>
+            <span class="material-symbols-outlined text-slate-300 dark:text-slate-600 group-hover:text-primary group-hover:translate-x-1 transition-transform">chevron_right</span>
         `;
         btn.onclick = () => selectWizardProf(pName);
         return btn;
     };
 
+    if (uniqueProfs.length > 1) {
+        pList.appendChild(createProfBtn('Cualquiera', 'Cualquier profesional (Sin preferencia)', null));
+    }
+
     uniqueProfs.forEach(p => {
-        const sMatch = services.find(s => s.nombre === sName && s.profesional === p);
-        pList.appendChild(createProfBtn(p, p, sMatch ? sMatch.foto_profesional : null));
+        const sMatch = matchingServices.find(s => (s.profesional || '').toLowerCase().includes(p.toLowerCase()) || p.toLowerCase().includes((s.profesional || '').toLowerCase()));
+        pList.appendChild(createProfBtn(p, p, sMatch ? (sMatch.foto_profesional || sMatch.imagen1) : null));
     });
 }
 
@@ -2115,8 +2128,17 @@ function initAdminWeeklyServices() {
         const defaultStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-2xs bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200/90 dark:border-slate-700/80 hover:border-[#D11149]';
         const activeStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-md bg-[#D11149] text-white border-[#D11149] scale-[1.02]';
         
+        const sMatch = services.find(s => s.nombre === sName);
+        const iconToUse = sMatch?.icono || 'calendar_month';
+        let iconHtml = '';
+        if (iconToUse.startsWith('http') || iconToUse.startsWith('data:') || iconToUse.includes('/')) {
+            iconHtml = `<img src="${iconToUse}" class="w-4 h-4 rounded-sm object-cover shrink-0">`;
+        } else {
+            iconHtml = `<span class="material-symbols-outlined text-[16px]">${iconToUse}</span>`;
+        }
+
         btn.className = defaultStyle;
-        btn.innerHTML = `<span>✂️ ${sName}</span>`;
+        btn.innerHTML = `${iconHtml} <span>${sName}</span>`;
         
         btn.onclick = () => {
             document.querySelectorAll('#adminWeeklyServices button').forEach(b => {
@@ -2125,7 +2147,6 @@ function initAdminWeeklyServices() {
             btn.className = activeStyle;
             
             adminWeeklySelectedService = sName;
-            adminWeeklySelectedProf = null; 
             renderAdminWeeklyProfs();
             renderAdminWeeklyGrid(); 
         };
@@ -2140,25 +2161,48 @@ function renderAdminWeeklyProfs() {
     if (!container) return;
     container.innerHTML = '';
     
-    let allProfs = [...new Set(services.map(s => s.profesional).filter(p => p && p.trim() !== ''))];
+    // Obtenemos solo los profesionales que tienen asignado al menos 1 servicio (excluyendo Agendatina DEMO u otros sin servicios)
+    const allProfs = getUniqueProfessionals();
     let matchingProfs = [];
     let otherProfs = [];
     
     if (adminWeeklySelectedService) {
-        matchingProfs = [...new Set(services.filter(s => s.nombre === adminWeeklySelectedService).map(s => s.profesional))];
+        const rawMatching = services
+            .filter(s => s.nombre === adminWeeklySelectedService && s.profesional && s.profesional.trim() !== '' && s.profesional !== 'Cualquiera (Sin preferencia)')
+            .map(s => s.profesional.trim());
+        matchingProfs = allProfs.filter(p => rawMatching.some(m => m.toLowerCase() === p.toLowerCase() || m.toLowerCase().startsWith(p.toLowerCase()) || p.toLowerCase().startsWith(m.toLowerCase())));
         otherProfs = allProfs.filter(p => !matchingProfs.includes(p));
     } else {
-        otherProfs = allProfs;
+        matchingProfs = allProfs;
     }
+
+    const defaultBtnStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-2xs bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-[#FC8712]';
+    const activeBtnStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-md bg-[#FC8712] text-white border-[#FC8712] scale-[1.02]';
+    const activeTodosStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-md bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white border-transparent scale-[1.02]';
+
+    // 1. Botón "Todos los profesionales"
+    const isTodosActive = adminWeeklySelectedProf === 'todos' || !adminWeeklySelectedProf;
+    const btnTodos = document.createElement('button');
+    btnTodos.className = isTodosActive ? activeTodosStyle : defaultBtnStyle;
+    btnTodos.innerHTML = `<span class="material-symbols-outlined text-[16px]">groups</span> <span>Todos los profesionales</span>`;
+    btnTodos.onclick = () => {
+        adminWeeklySelectedProf = 'todos';
+        globalSelectedProfessional = '';
+        document.querySelectorAll('#adminWeeklyProfs button').forEach(b => {
+            b.className = defaultBtnStyle;
+        });
+        btnTodos.className = activeTodosStyle;
+        cal_fetchBookedTimesWeeklyAdmin();
+    };
+    container.appendChild(btnTodos);
     
+    // 2. Botones individuales para cada profesional
     const createProfBtn = (pName, isHighlighted) => {
         const btn = document.createElement('button');
-        const defaultStyle = isHighlighted 
-            ? 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-2xs bg-amber-50 dark:bg-amber-950/50 text-[#FC8712] border-amber-300 dark:border-amber-700' 
-            : 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-2xs bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-[#FC8712]';
-        const activeStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-md bg-[#FC8712] text-white border-[#FC8712] scale-[1.02]';
+        const isActive = adminWeeklySelectedProf === pName;
+        const highlightedStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-2xs bg-amber-50 dark:bg-amber-950/50 text-[#FC8712] border-amber-300 dark:border-amber-700';
         
-        btn.className = defaultStyle;
+        btn.className = isActive ? activeBtnStyle : (isHighlighted ? highlightedStyle : defaultBtnStyle);
         btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">${isHighlighted ? 'check_circle' : 'person'}</span> <span>${pName}</span>`;
         
         btn.onclick = () => {
@@ -2166,9 +2210,9 @@ function renderAdminWeeklyProfs() {
             globalSelectedProfessional = pName;
             
             document.querySelectorAll('#adminWeeklyProfs button').forEach(b => {
-                b.className = defaultStyle;
+                b.className = defaultBtnStyle;
             });
-            btn.className = activeStyle;
+            btn.className = activeBtnStyle;
             
             cal_fetchBookedTimesWeeklyAdmin();
         };
@@ -2177,8 +2221,6 @@ function renderAdminWeeklyProfs() {
     
     matchingProfs.forEach(p => container.appendChild(createProfBtn(p, true)));
     otherProfs.forEach(p => container.appendChild(createProfBtn(p, false)));
-    
-    if (matchingProfs.length === 1) container.firstChild.click();
 }
 
 function cal_fetchBookedTimesWeeklyAdmin() {
@@ -2224,15 +2266,15 @@ function renderAdminWeeklyGrid() {
     const today = new Date(); today.setHours(0,0,0,0);
     
     if (!adminWeeklySelectedProf) {
-        grid.innerHTML = '<div class="w-full text-center p-8 text-slate-400 font-bold border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">Selecciona un profesional para ver su disponibilidad</div>';
-        return;
+        adminWeeklySelectedProf = 'todos';
     }
     
+    const isTodos = adminWeeklySelectedProf === 'todos' || !adminWeeklySelectedProf;
     let selectedDuration = 30;
     let selectedCapacidad = 1;
     if (adminWeeklySelectedService) {
-        selectedDuration = getServiceDuration(adminWeeklySelectedService, adminWeeklySelectedProf);
-        const matchingService = services.find(s => String(s.nombre || '').trim().toLowerCase() === String(adminWeeklySelectedService).trim().toLowerCase() && (s.profesional === adminWeeklySelectedProf || !adminWeeklySelectedProf));
+        selectedDuration = getServiceDuration(adminWeeklySelectedService, isTodos ? null : adminWeeklySelectedProf);
+        const matchingService = services.find(s => String(s.nombre || '').trim().toLowerCase() === String(adminWeeklySelectedService).trim().toLowerCase() && (isTodos || s.profesional === adminWeeklySelectedProf || !adminWeeklySelectedProf));
         if (matchingService) {
             selectedCapacidad = parseInt(matchingService.capacidad || matchingService.cupo_maximo) || 1;
         }
@@ -2311,7 +2353,7 @@ function renderAdminWeeklyGrid() {
         const horasOcupadas = [...(cal_bookedSlots[dateString] || []), ...window.getBreakTimes()];
         const isGeneralBlock = horasOcupadas.includes('blocked_day');
         let isProfBlock = horasOcupadas.includes('blocked_day_prof');
-        if (!adminWeeklySelectedProf || adminWeeklySelectedProf === 'columnas' || adminWeeklySelectedProf === 'Cualquiera (Sin preferencia)') isProfBlock = false;
+        if (isTodos || adminWeeklySelectedProf === 'columnas' || adminWeeklySelectedProf === 'Cualquiera (Sin preferencia)') isProfBlock = false;
         
         // En vista administrador, NO bloquear la columna por ser un día pasado
         if (!window.isWorkingDay(date) || isGeneralBlock || isProfBlock) {
@@ -2322,7 +2364,7 @@ function renderAdminWeeklyGrid() {
                 </div>
             `;
         } else {
-            const availableTimesForDay = generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval, dateString, adminWeeklySelectedProf);
+            const availableTimesForDay = generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval, dateString, isTodos ? null : adminWeeklySelectedProf);
             availableTimesForDay.forEach((time, idx) => {
                 if (window.isTimeInBreak(time)) return;
                 const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), ...time.split(':').map(Number), 0, 0);
@@ -2343,10 +2385,16 @@ function renderAdminWeeklyGrid() {
                 if (!isBooked) {
                     slot.textContent = time;
                     slot.onclick = () => {
-                        if (!adminWeeklySelectedProf || !adminWeeklySelectedService) { showToast('Selecciona un servicio y un profesional primero', 'error'); return; }
-                        cal_selectedDate = date; globalSelectedProfessional = adminWeeklySelectedProf;
+                        if (!adminWeeklySelectedService) { showToast('Selecciona un servicio primero', 'error'); return; }
+                        cal_selectedDate = date; 
+                        globalSelectedProfessional = isTodos ? '' : adminWeeklySelectedProf;
                         openManualTurnoModal(time);
-                        setTimeout(() => { const servSelect = document.getElementById('manualServicio'); if (servSelect) servSelect.value = adminWeeklySelectedService; }, 100);
+                        setTimeout(() => { 
+                            const servSelect = document.getElementById('manualServicio'); 
+                            if (servSelect) servSelect.value = adminWeeklySelectedService; 
+                            const profSelect = document.getElementById('manualProfesional');
+                            if (profSelect && !isTodos) profSelect.value = adminWeeklySelectedProf;
+                        }, 100);
                     };
                     
                     if (effectiveIsAdmin) {
@@ -2365,7 +2413,7 @@ function renderAdminWeeklyGrid() {
                         });
                     }
                 } else { 
-                    const apts = allAppointments.filter(a => a.fecha === dateString && a.hora.substring(0,5) === time && (a.profesional === adminWeeklySelectedProf || !adminWeeklySelectedProf));
+                    const apts = allAppointments.filter(a => a.fecha === dateString && a.hora.substring(0,5) === time && (isTodos || a.profesional === adminWeeklySelectedProf || !a.profesional));
                     
                     if (apts.length > 0) {
                         const isPend = apts.some(a => a.estado === 'pendiente');
@@ -2404,7 +2452,8 @@ function renderAdminWeeklyGrid() {
                                 divApt.title = "Haz clic para ver detalles del turno";
                             }
                             
-                            divApt.innerHTML = `<div class="font-bold text-[10px] leading-tight flex items-center justify-between" title="${clientName}"><span class="truncate">${clientName}</span> ${badgePill}</div><div class="truncate text-[9px] opacity-80 mt-0.5">${apt.servicio || ''}</div>`;
+                            const profBadge = (isTodos && apt.profesional) ? `<span class="text-[8px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1 py-0.2 rounded border border-slate-200 dark:border-slate-700 ml-1">👤 ${apt.profesional}</span>` : '';
+                            divApt.innerHTML = `<div class="font-bold text-[10px] leading-tight flex items-center justify-between" title="${clientName}"><span class="truncate">${clientName}</span> ${badgePill}</div><div class="truncate text-[9px] opacity-80 mt-0.5">${apt.servicio || ''} ${profBadge}</div>`;
                             
                             divApt.onclick = (e) => {
                                 e.stopPropagation();
