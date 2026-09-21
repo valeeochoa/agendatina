@@ -1204,11 +1204,15 @@ function checkUrlNavigationAndFocus() {
 }
 
 // Ejecutar check al renderizar
-const origRenderAgendaTurnos = window.renderAgendaTurnos;
-window.renderAgendaTurnos = function() {
-    origRenderAgendaTurnos.apply(this, arguments);
-    checkUrlNavigationAndFocus();
-};
+if (!window.origRenderAgendaTurnos) {
+    window.origRenderAgendaTurnos = window.renderAgendaTurnos;
+    window.renderAgendaTurnos = function() {
+        if (typeof window.origRenderAgendaTurnos === 'function') {
+            window.origRenderAgendaTurnos.apply(this, arguments);
+        }
+        checkUrlNavigationAndFocus();
+    };
+}
 
 // --- Recarga Automática por Eventos ---
 window.forceCargarAgenda = function() {

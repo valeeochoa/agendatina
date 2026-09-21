@@ -6,7 +6,7 @@ require_once __DIR__ . '/conexion.php';
 $inputData = json_decode(file_get_contents('php://input'), true) ?: $_POST;
 $id_negocio = (int)($inputData['id_negocio'] ?? 0);
 
-$user_id = $_SESSION['user_id'] ?? $_SESSION['pending_user_id'] ?? null;
+$user_id = $_SESSION['user_id'] ?? $_SESSION['pending_user_id'] ?? (int)($inputData['user_id'] ?? 0);
 
 if (!$user_id || !$id_negocio) {
     http_response_code(400);
@@ -18,7 +18,7 @@ try {
     try { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN permisos TEXT NULL"); } catch(Exception $e) {}
 
     $stmt = $pdo->prepare("
-        SELECT pn.id_negocio, pn.rol_en_local, pn.permisos, n.nombre_fantasia, n.plan, u.nombre_completo
+        SELECT pn.id_negocio, pn.rol_en_local, pn.permisos, n.nombre_fantasia, n.plan, n.ruta, u.nombre_completo
         FROM personal_negocio pn
         JOIN negocios n ON pn.id_negocio = n.id
         JOIN usuarios u ON pn.id_usuario = u.id
@@ -42,6 +42,12 @@ try {
     $_SESSION['id_negocio'] = (int)$biz['id_negocio'];
     $_SESSION['rol_en_local'] = $biz['rol_en_local'];
     $_SESSION['plan'] = $biz['plan'] ?: 'Plan Simple';
+    $_SESSION['ruta_negocio'] = $biz['ruta'] ?? '';
+    $_SESSION['nombre_negocio'] = $biz['nombre_fantasia'] ?? '';
+
+    if (empty($biz['ruta']) || strpos(strtolower($biz['ruta']), 'demo') === false) {
+        unset($_SESSION['is_demo']);
+    }
 
     $defaultProfPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 0, 'servicios' => 0, 'estadisticas' => 0, 'equipo' => 0];
     $defaultAdminPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 1, 'servicios' => 1, 'estadisticas' => 1, 'equipo' => 1];

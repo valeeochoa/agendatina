@@ -40,6 +40,18 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN fecha_alta DAT
 try { $pdo->query("SELECT plan FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN plan VARCHAR(50) DEFAULT 'Basico'"); }
 
+try { $pdo->query("SELECT dias_prueba FROM negocios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN dias_prueba INT DEFAULT 15"); }
+
+try { $pdo->query("SELECT wpp_enviados_mes FROM negocios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN wpp_enviados_mes INT DEFAULT 0"); }
+
+try { $pdo->query("SELECT mes_wpp_contador FROM negocios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN mes_wpp_contador VARCHAR(7) DEFAULT NULL"); }
+
+try { $pdo->query("SELECT foto_profesional FROM servicios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN foto_profesional VARCHAR(255) DEFAULT NULL"); }
+
 try { $pdo->query("SELECT hora_apertura FROM configuracion_web LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN hora_apertura VARCHAR(5) DEFAULT '09:00'"); }
 
@@ -309,15 +321,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     }
                 }
             }
+            unset($existingP);
         } catch(Exception $eServ) {}
 
         $config['profesionales_json'] = json_encode($profs_array);
 
         echo json_encode($config);
 
-    } catch (PDOException $e) {
-        http_response_code(500);
-        echo json_encode(['success' => false, 'error' => 'Error al obtener la configuración: ' . $e->getMessage()]);
+    } catch (Exception $e) {
+        // Fallback resiliente para no romper el panel del usuario
+        $fallbackConfig = [
+            'titulo' => 'Mi Negocio',
+            'plan' => 'Basico',
+            'color_primario' => '#D11149',
+            'color_secundario' => '#FC8712',
+            'tipo_calendario' => 'clasico',
+            'error_warning' => $e->getMessage()
+        ];
+        echo json_encode($fallbackConfig);
     }
     exit;
 }

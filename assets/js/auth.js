@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         // Usuario con múltiples negocios: Mostrar modal de selección
                         btnSubmit.disabled = false;
                         btnSubmit.innerHTML = '<span>Ingresar al sistema</span><span class="material-symbols-outlined text-xl">arrow_forward</span>';
-                        openSelectBusinessModal(data.businesses || []);
+                        openSelectBusinessModal(data.businesses || [], data.user_id);
                         return;
                     }
 
@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // ---- Lógica de Modal Selección de Negocio (Multi-Negocio) ----
-    window.openSelectBusinessModal = function(businesses) {
+    window.openSelectBusinessModal = function(businesses, userId = null) {
         const modal = document.getElementById('selectBusinessModal');
         const content = document.getElementById('selectBusinessModalContent');
         const container = document.getElementById('businessListContainer');
@@ -226,7 +226,8 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
 
             card.onclick = function() {
-                selectBusinessAndLogin(b.id_negocio);
+                card.classList.add('opacity-50', 'pointer-events-none');
+                selectBusinessAndLogin(b.id_negocio, userId, card);
             };
 
             container.appendChild(card);
@@ -241,14 +242,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 10);
     };
 
-    function selectBusinessAndLogin(idNegocio) {
+    function selectBusinessAndLogin(idNegocio, userId = null, cardEl = null) {
         const msgDiv = document.getElementById('selectBusinessMessage');
         if (msgDiv) msgDiv.classList.add('hidden');
 
         fetch('backend/cambiar_negocio.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id_negocio: idNegocio })
+            body: JSON.stringify({ id_negocio: idNegocio, user_id: userId })
         })
         .then(r => r.json())
         .then(data => {
@@ -256,6 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 sessionStorage.setItem('agendatina_session', 'active');
                 window.location.href = data.redirect || 'dashboard.html';
             } else {
+                if (cardEl) cardEl.classList.remove('opacity-50', 'pointer-events-none');
                 if (msgDiv) {
                     msgDiv.textContent = data.error || 'Error al seleccionar el negocio.';
                     msgDiv.classList.remove('hidden');
@@ -263,6 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         })
         .catch(() => {
+            if (cardEl) cardEl.classList.remove('opacity-50', 'pointer-events-none');
             if (msgDiv) {
                 msgDiv.textContent = 'Error de conexión al seleccionar el negocio.';
                 msgDiv.classList.remove('hidden');

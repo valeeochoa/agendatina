@@ -914,10 +914,10 @@ function loadDashboardData() {
                 document.querySelectorAll('button[onclick^="openReportErrorModal"]').forEach(btn => btn.style.display = 'none');
             }
 
-            // Actualizar Nombre en el Navbar como fallback rápido si tarda en cargar la web
+            // Actualizar Nombre y Avatar en el Navbar como fallback rápido si tarda en cargar la web
             const dashBusinessName = document.getElementById('dashboardBusinessName');
+            const bName = business.nombre_fantasia || 'Mi Negocio';
             if (dashBusinessName) {
-                const bName = business.nombre_fantasia || 'Mi Negocio';
                 const currentText = dashBusinessName.textContent.trim();
                 if (currentText === 'Cargando...' || currentText === 'Mi Negocio') {
                     const existingBtn = document.getElementById('navSwitchBizBtn');
@@ -926,6 +926,13 @@ function loadDashboardData() {
                         dashBusinessName.insertBefore(existingBtn, dashBusinessName.firstChild);
                     }
                 }
+            }
+            const navAvatarQuick = document.getElementById('navAvatar');
+            if (navAvatarQuick && !navAvatarQuick.querySelector('img')) {
+                const initials = (typeof window.getCleanInitials === 'function') 
+                    ? window.getCleanInitials(bName) 
+                    : bName.replace(/[^a-zA-Z0-9]/g, '').substring(0, 2).toUpperCase();
+                navAvatarQuick.textContent = initials || 'AG';
             }
 
             // Actualizar Plan en el Navbar
@@ -1726,6 +1733,17 @@ function closeSupportModal() {
     }, 300);
 }
 
+window.getCleanInitials = function(name) {
+    if (!name || typeof name !== 'string') return 'AG';
+    const clean = name.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, ' ').trim();
+    if (!clean) return 'AG';
+    const words = clean.split(/\s+/).filter(w => w.length > 0);
+    if (words.length > 1) {
+        return (words[0][0] + words[1][0]).toUpperCase();
+    }
+    return clean.substring(0, Math.min(2, clean.length)).toUpperCase();
+};
+
 function loadCustomization() {
     fetch('backend/guardar_web.php')
         .then(res => res.json())
@@ -1786,18 +1804,15 @@ function loadCustomization() {
                     
                     const navAvatar = document.getElementById('navAvatar');
                     if (navAvatar) {
-                        const words = displayName.trim().split(/\s+/);
-                        const initials = words.length > 1 ? (words[0][0] + words[1][0]) : displayName.substring(0, 2);
-                        const safeInitials = initials.toUpperCase();
+                        const safeInitials = window.getCleanInitials(displayName);
                         navAvatar.innerHTML = `<img src="${data.logo}" class="w-full h-full object-cover" alt="Logo" onerror="this.onerror=null; this.remove(); const av=document.getElementById('navAvatar'); if(av){ av.style.background='linear-gradient(135deg, #D11149 0%, #FC8712 100%)'; av.textContent='${safeInitials}'; }">`;
                         navAvatar.style.background = 'transparent';
                     }
                 } else {
                     const navAvatar = document.getElementById('navAvatar');
                     if (navAvatar) {
-                        const words = displayName.trim().split(/\s+/);
-                        const initials = words.length > 1 ? (words[0][0] + words[1][0]) : displayName.substring(0, 2);
-                        navAvatar.innerHTML = initials.toUpperCase();
+                        const safeInitials = window.getCleanInitials(displayName);
+                        navAvatar.innerHTML = safeInitials;
                     }
                 }
                 

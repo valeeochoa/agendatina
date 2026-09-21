@@ -82,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // 1. Verificar si la cuenta requiere establecer contraseña por primera vez (aislado de forma segura)
         try {
-            $stmtCheckFirst = $pdo->prepare("SELECT id, nombre_completo, email, debe_cambiar_pass FROM usuarios WHERE email = :email LIMIT 1");
+            $stmtCheckFirst = $pdo->prepare("SELECT id, nombre_completo, email, debe_cambiar_pass FROM usuarios WHERE LOWER(TRIM(email)) = LOWER(:email) OR (username IS NOT NULL AND LOWER(TRIM(username)) = LOWER(:email)) LIMIT 1");
             $stmtCheckFirst->execute(['email' => $email]);
             $firstUser = $stmtCheckFirst->fetch(PDO::FETCH_ASSOC);
 
@@ -98,11 +98,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } catch (Throwable $eFirst) {}
 
-        $sql = "SELECT u.id, u.nombre_completo, u.password, pn.id_negocio, pn.rol_en_local, pn.permisos, n.plan, n.nombre_fantasia 
+        $sql = "SELECT u.id, u.nombre_completo, u.password, u.email, pn.id_negocio, pn.rol_en_local, pn.permisos, n.plan, n.nombre_fantasia 
                 FROM usuarios u
                 LEFT JOIN personal_negocio pn ON u.id = pn.id_usuario
                 LEFT JOIN negocios n ON pn.id_negocio = n.id
-                WHERE u.email = :email ORDER BY u.id DESC";
+                WHERE LOWER(TRIM(u.email)) = LOWER(:email) 
+                   OR (u.username IS NOT NULL AND LOWER(TRIM(u.username)) = LOWER(:email))
+                ORDER BY u.id DESC";
                 
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['email' => $email]);
