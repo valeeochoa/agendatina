@@ -2533,6 +2533,8 @@ var carouselData = [
         tag: 'Ideal para comenzar',
         showOldPrice: true,
         badgeText: '-10% OFF',
+        mockupDesktop: 'public/mockup_calendar_computer.png',
+        mockupMobile: 'public/mockup_calendar_phone.png',
         features: [
             'Calendario de reservas online 24/7',
             'Notificaciones automáticas por email',
@@ -2549,6 +2551,8 @@ var carouselData = [
         tag: 'Más Elegido',
         showOldPrice: true,
         badgeText: '-10% OFF',
+        mockupDesktop: 'public/mockup_miagenda_computer.png',
+        mockupMobile: 'public/mockup_miagenda_phone.png',
         features: [
             'Todo lo incluido en el Plan Simple',
             'Agenda Virtual interactiva con listado de reservas',
@@ -2565,6 +2569,8 @@ var carouselData = [
         tag: 'Presencia & Cupos',
         showOldPrice: true,
         badgeText: '-10% OFF',
+        mockupDesktop: 'public/mockup_cuposClientes_computer.png',
+        mockupMobile: 'public/mockup_miagenda_phone.png',
         features: [
             'Todo lo incluido en el Plan Profesional',
             '🔥 Módulo de Cupos y Portal de Alumnos (mi-cuenta)',
