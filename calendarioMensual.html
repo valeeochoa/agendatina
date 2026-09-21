@@ -337,20 +337,14 @@
           <div class="col-span-1 md:col-span-2 bg-slate-50 dark:bg-white/5 p-3.5 rounded-2xl border border-slate-200 dark:border-white/10">
             <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Ícono o Logo / Imagen del Servicio</label>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <select id="serviceIcono" name="icono" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-xs font-bold focus:ring-2 focus:ring-primary outline-none">
-                    <option value="palette">🎨 Arte / Cerámica / Pintura / Taller</option>
-                    <option value="local_florist">🌸 Flor / Naturaleza / Cerámica</option>
-                    <option value="self_improvement">🧘 Yoga / Meditación / Pilates</option>
-                    <option value="spa">🧴 Spa / Bienestar / Masajes</option>
-                    <option value="content_cut">✂️ Peluquería / Corte / Barbería</option>
-                    <option value="face">💆 Rostro / Tratamientos</option>
-                    <option value="fitness_center">🏋️ Fitness / Deporte / Gym</option>
-                    <option value="brush">🖌️ Maquillaje / Uñas / Manicuría</option>
-                    <option value="music_note">🎵 Danza / Baile / Música</option>
-                    <option value="auto_awesome">🔮 Especial / Tarot</option>
-                    <option value="favorite">💖 Cuidado Personal / Salud</option>
-                    <option value="star">⭐ Destacado</option>
-                </select>
+                <input type="hidden" id="serviceIcono" name="icono" value="local_florist">
+                <button type="button" onclick="window.openIconPicker('serviceIcono')" class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-primary transition-colors cursor-pointer text-left">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span id="serviceIconoPreview" class="material-symbols-outlined text-primary text-[22px] shrink-0">local_florist</span>
+                        <span id="serviceIconoLabel" class="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">Flor</span>
+                    </div>
+                    <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0">expand_more</span>
+                </button>
                 <input type="text" id="serviceImagen1" name="imagen1" placeholder="URL Logo / Imagen (Opcional)" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-xs font-bold focus:ring-2 focus:ring-primary outline-none">
             </div>
           </div>
@@ -566,6 +560,7 @@
       </div>
     </div>
   </footer>
+  <script src="assets/js/icon-picker.js?v=1.0.0" defer></script>
   <script src="assets/js/script.js?v=1.5.9" defer></script>
   <script src="assets/js/calendario.js?v=1.5.9" defer></script>
 </body>

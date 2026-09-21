@@ -90,7 +90,7 @@ try {
         // Sin límite de fecha para exportar el historial completo a Excel
         $sql = "SELECT t.id, t.id_servicio, t.cliente_nombre, t.nombre, t.apellido, t.cliente_celular, t.celular, t.fecha, t.hora, t.servicio, t.profesional, t.estado, t.asistio, t.notas, t.fecha_eliminado, t.metodo_pago, t.precio,
                        COALESCE(s.cupo_maximo, s.capacidad, 10) AS cupo_maximo,
-                       COALESCE(s.icono, 'fitness_center') AS servicio_icono,
+                       COALESCE(s.icono, '') AS servicio_icono,
                        s.imagen1 AS servicio_imagen
                 FROM turnos t
                 LEFT JOIN servicios s ON (t.id_servicio = s.id OR (t.id_negocio = s.id_negocio AND LOWER(TRIM(t.servicio)) = LOWER(TRIM(s.nombre_servicio))))
@@ -108,7 +108,7 @@ try {
         $min_fecha = date('Y-m-d', strtotime('-60 days'));
         $sql = "SELECT t.id, t.id_servicio, t.cliente_nombre, t.nombre, t.apellido, t.cliente_celular, t.celular, t.fecha, t.hora, t.servicio, t.profesional, t.estado, t.asistio, t.notas, t.fecha_eliminado, t.metodo_pago, t.precio,
                        COALESCE(s.cupo_maximo, s.capacidad, 10) AS cupo_maximo,
-                       COALESCE(s.icono, 'fitness_center') AS servicio_icono,
+                       COALESCE(s.icono, '') AS servicio_icono,
                        s.imagen1 AS servicio_imagen
                 FROM turnos t
                 LEFT JOIN servicios s ON (t.id_servicio = s.id OR (t.id_negocio = s.id_negocio AND LOWER(TRIM(t.servicio)) = LOWER(TRIM(s.nombre_servicio))))

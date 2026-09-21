@@ -176,19 +176,14 @@
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Ícono o Imagen del Servicio</label>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <select name="icono" id="svcIcono" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold focus:ring-2 focus:ring-primary outline-none">
-                            <option value="local_florist">🌸 Flor / Cerámica</option>
-                            <option value="spa">🧴 Spa / Bienestar</option>
-                            <option value="palette">🎨 Arte / Cerámica / Pintura</option>
-                            <option value="content_cut">✂️ Peluquería / Corte</option>
-                            <option value="face">💆 Masajes / Rostro</option>
-                            <option value="self_improvement">🧘 Yoga / Meditación</option>
-                            <option value="fitness_center">🏋️ Fitness / Deporte</option>
-                            <option value="brush">🖌️ Maquillaje / Uñas</option>
-                            <option value="auto_awesome">🔮 Tarot / Especial</option>
-                            <option value="favorite">💖 Cuidado Personal</option>
-                            <option value="star">⭐ Destacado</option>
-                        </select>
+                        <input type="hidden" name="icono" id="svcIcono" value="local_florist">
+                        <button type="button" onclick="window.openIconPicker('svcIcono')" class="w-full flex items-center justify-between bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 transition-colors cursor-pointer text-left">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span id="svcIconoPreview" class="material-symbols-outlined text-primary text-[22px] shrink-0">local_florist</span>
+                                <span id="svcIconoLabel" class="text-xs font-semibold text-slate-700 truncate">Flor</span>
+                            </div>
+                            <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0">expand_more</span>
+                        </button>
                         <input type="text" name="imagen1" id="svcImagen1" placeholder="URL Imagen (Opcional)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold focus:ring-2 focus:ring-primary outline-none">
                     </div>
                 </div>
@@ -502,7 +497,10 @@
             document.getElementById('svcMinutos').value = 45;
             document.getElementById('svcDuracion').value = 45;
             document.getElementById('svcCapacidad').value = 1;
-            if (document.getElementById('svcIcono')) document.getElementById('svcIcono').value = 'local_florist';
+            if (document.getElementById('svcIcono')) {
+                document.getElementById('svcIcono').value = 'local_florist';
+                if (typeof window.syncIconDisplay === 'function') window.syncIconDisplay('svcIcono');
+            }
             if (document.getElementById('svcImagen1')) document.getElementById('svcImagen1').value = '';
             document.getElementById('cupoPricingContainer').innerHTML = '';
             document.getElementById('svcPreciosPaquetesJson').value = '[]';
@@ -521,7 +519,10 @@
             populateProfSelect(professionalsData);
             document.getElementById('svcId').value = s.id;
             document.getElementById('svcNombre').value = s.nombre;
-            if (document.getElementById('svcIcono')) document.getElementById('svcIcono').value = s.icono || 'local_florist';
+            if (document.getElementById('svcIcono')) {
+                document.getElementById('svcIcono').value = s.icono || 'local_florist';
+                if (typeof window.syncIconDisplay === 'function') window.syncIconDisplay('svcIcono');
+            }
             if (document.getElementById('svcImagen1')) document.getElementById('svcImagen1').value = s.imagen1 || '';
             
             const totalMin = parseInt(s.duracion) || 45;
@@ -644,6 +645,7 @@
             }
         }
     </script>
+    <script src="assets/js/icon-picker.js?v=1.0.0"></script>
     <script src="assets/js/script.js"></script>
 </body>
 </html>

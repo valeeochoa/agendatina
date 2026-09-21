@@ -16,12 +16,36 @@ if (!document.getElementById('agenda-animations')) {
     document.head.appendChild(style);
 }
 
+window.getAgendaServiceIcon = function(t) {
+    if (t && t.servicio_icono && t.servicio_icono.trim() !== '') {
+        return t.servicio_icono.trim();
+    }
+    if (window.servicesList && Array.isArray(window.servicesList)) {
+        const match = window.servicesList.find(s => 
+            (t && t.id_servicio && s.id == t.id_servicio) || 
+            (s.nombre && (t.servicio || '').trim().toLowerCase() === s.nombre.trim().toLowerCase())
+        );
+        if (match && match.icono && match.icono.trim() !== '') {
+            return match.icono.trim();
+        }
+    }
+    return 'event_available';
+};
+
 window.cargarAgenda = function(force = false) {
     if (force) window.agendaLastDataString = null;
     
     // Auto-refresco de la agenda en segundo plano cada 30 segundos
     if (!window.agendaPollingInterval) {
         window.agendaPollingInterval = setInterval(() => window.cargarAgenda(false), 30000);
+    }
+
+    // Cargar catálogo de servicios si aún no está disponible
+    if (!window.servicesList) {
+        fetch('backend/gestionar_servicios.php')
+            .then(r => r.json())
+            .then(svcs => { if (Array.isArray(svcs)) window.servicesList = svcs; })
+            .catch(() => {});
     }
 
     const fetchConfig = typeof window.configData === 'undefined'
@@ -373,7 +397,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                             hora: horaKey,
                             profesional: t.profesional,
                             cupo_maximo: cupoMax,
-                            icono: t.servicio_icono || 'fitness_center',
+                            icono: window.getAgendaServiceIcon(t),
                             imagen: t.servicio_imagen || '',
                             turnos: []
                         };
@@ -450,7 +474,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                                 </div>
                                 <div>
                                     <h4 class="font-black text-slate-900 text-base sm:text-lg flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-purple-600 text-[20px]">${slot.icono || 'fitness_center'}</span>
+                                        <span class="material-symbols-outlined text-purple-600 text-[20px]">${slot.icono || 'event_available'}</span>
                                         <span>${slot.servicio}</span>
                                     </h4>
                                     <p class="text-[11px] font-bold text-slate-400 mt-0.5 flex items-center justify-between">
@@ -474,6 +498,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                     } else {
                         // TARJETA DE TURNO INDIVIDUAL (1 alumno con turno simple)
                         const t = slot.turnos[0];
+                        const tIcon = window.getAgendaServiceIcon(t);
                         const isAttended = parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio';
                         const asistBtn = isAttended
                             ? `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 0)" class="text-xs font-extrabold px-3 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all flex items-center gap-1 shadow-xs" title="Asistencia confirmada. Click para desmarcar"><span class="material-symbols-outlined text-[15px]">check_circle</span> Asistió</button>`
@@ -498,7 +523,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                                     <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
                                 </div>
                                 ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
-                                <p class="text-sm mb-5 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">spa</span> <span class="font-medium">${t.servicio}</span></p>
+                                <p class="text-sm mb-5 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">${tIcon}</span> <span class="font-medium">${t.servicio}</span></p>
                                 <div class="flex items-center gap-3 pt-4 border-t" style="border-color: #e2e8f0;">
                                     <button onclick="window.recordatorioWhatsApp('${t.id}')" class="flex-1 text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 border" style="background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;" title="Enviar recordatorio">
                                         <span class="material-symbols-outlined text-[18px]">notifications_active</span> Recordar
@@ -562,6 +587,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                     const asistBtn = isAttended
                         ? `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 0)" class="text-xs font-black px-3 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all flex items-center gap-1 shadow-xs" title="Asistencia confirmada. Click para desmarcar"><span class="material-symbols-outlined text-[15px]">check_circle</span> Asistió</button>`
                         : `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 1)" class="text-xs font-black px-3 py-1 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcar si asistió al turno"><span class="material-symbols-outlined text-[15px]">how_to_reg</span> ¿Asistió?</button>`;
+                    const tHistIcon = window.getAgendaServiceIcon(t);
 
                     htmlDia += `
                         <div id="turno-${t.id}" onclick="if(!event.target.closest('button')) window.openEditTurnoModal('${t.id}')" class="shadow-sm rounded-2xl p-5 hover:shadow-lg cursor-pointer transition-all relative overflow-hidden ${animClass}" style="background-color: #ffffff; border: 1px solid #e2e8f0; --target-opacity: 0.85; ${customStyle}">
@@ -579,7 +605,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                                 <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
                             </div>
                             ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
-                            <p class="text-sm mb-4 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">spa</span> <span class="font-medium">${t.servicio}</span></p>
+                            <p class="text-sm mb-4 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">${tHistIcon}</span> <span class="font-medium">${t.servicio}</span></p>
                             <div class="flex items-center gap-3 pt-3 border-t" style="border-color: #e2e8f0;">
                                 <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold py-2 px-3 rounded-xl transition-colors flex items-center justify-center border border-red-100 gap-1" title="Eliminar turno">
                                     <span class="material-symbols-outlined text-[16px]">delete</span> Eliminar
@@ -1083,7 +1109,7 @@ window.openClassDetailModal = function(slotId) {
         const profName = slot.profesional && slot.profesional !== 'Cualquiera (Sin preferencia)' ? slot.profesional : 'Sin profesor asignado';
         profEl.innerHTML = `<span class="material-symbols-outlined text-[14px]">person</span> <span>${profName}</span>`;
     }
-    if (iconEl) iconEl.textContent = slot.icono || 'fitness_center';
+    if (iconEl) iconEl.textContent = slot.icono || 'event_available';
 
     const total = slot.turnos.length;
     const max = slot.cupo_maximo || 10;

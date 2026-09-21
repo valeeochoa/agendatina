@@ -611,7 +611,7 @@ try {
                 SELECT t.id, t.id_negocio, t.id_servicio, COALESCE(n.nombre_fantasia, 'Establecimiento') AS negocio, n.ruta AS negocio_ruta, 
                        t.servicio, t.profesional, t.fecha, t.hora, t.estado,
                        cn.fecha_vencimiento, cn.cancelaciones_restantes, cn.cancelaciones_permitidas, cn.pases_totales,
-                       COALESCE(s.icono, 'palette') AS icono, s.imagen1 AS servicio_imagen
+                       COALESCE(s.icono, '') AS icono, s.imagen1 AS servicio_imagen
                 FROM turnos t
                 LEFT JOIN negocios n ON t.id_negocio = n.id
                 LEFT JOIN servicios s ON (t.id_servicio = s.id OR (t.id_negocio = s.id_negocio AND LOWER(TRIM(t.servicio)) = LOWER(TRIM(s.nombre_servicio))))
@@ -672,7 +672,7 @@ try {
                         'cancelaciones_restantes' => $matchingNeg ? $matchingNeg['cancelaciones_restantes'] : null,
                         'cancelaciones_permitidas' => $matchingNeg ? $matchingNeg['cancelaciones_permitidas'] : null,
                         'pases_totales' => $matchingNeg ? $matchingNeg['pases_totales'] : null,
-                        'icono' => 'palette',
+                        'icono' => '',
                         'servicio_imagen' => null
                     ];
                 }

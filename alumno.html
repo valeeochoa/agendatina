@@ -1171,23 +1171,8 @@
                 return `<img src="${iconName}" class="w-12 h-12 rounded-2xl object-cover shrink-0 border border-slate-200 shadow-xs" alt="${servicioNombre}">`;
             }
 
-            if (!iconName || iconName === 'fitness_center' || iconName === 'local_florist') {
-                const sLower = String(servicioNombre || '').toLowerCase();
-                if (sLower.includes('ceramica') || sLower.includes('cerámica') || sLower.includes('arte') || sLower.includes('pintura') || sLower.includes('taller')) {
-                    iconName = 'palette';
-                } else if (sLower.includes('yoga') || sLower.includes('meditacion') || sLower.includes('meditación') || sLower.includes('pilates')) {
-                    iconName = 'self_improvement';
-                } else if (sLower.includes('spa') || sLower.includes('masaje') || sLower.includes('estética') || sLower.includes('estetica')) {
-                    iconName = 'spa';
-                } else if (sLower.includes('corte') || sLower.includes('peluquería') || sLower.includes('peluqueria') || sLower.includes('barber')) {
-                    iconName = 'content_cut';
-                } else if (sLower.includes('danza') || sLower.includes('baile') || sLower.includes('zumba') || sLower.includes('ritmos')) {
-                    iconName = 'music_note';
-                } else if (sLower.includes('crossfit') || sLower.includes('gym') || sLower.includes('funcional') || sLower.includes('entrenamiento')) {
-                    iconName = 'fitness_center';
-                } else {
-                    iconName = iconName || 'palette';
-                }
+            if (!iconName) {
+                iconName = 'event_available';
             }
 
             return `

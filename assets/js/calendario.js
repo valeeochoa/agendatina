@@ -1805,7 +1805,10 @@ function editService(id) {
         if(document.getElementById('serviceProfessionalEmail')) document.getElementById('serviceProfessionalEmail').value = service.email_profesional || '';
         if(document.getElementById('serviceProfessionalPhoto')) document.getElementById('serviceProfessionalPhoto').value = service.foto_profesional || '';
         if(document.getElementById('serviceProfessionalFile')) document.getElementById('serviceProfessionalFile').value = '';
-        if(document.getElementById('serviceIcono')) document.getElementById('serviceIcono').value = service.icono || 'palette';
+        if(document.getElementById('serviceIcono')) {
+            document.getElementById('serviceIcono').value = service.icono || 'local_florist';
+            if (typeof window.syncIconDisplay === 'function') window.syncIconDisplay('serviceIcono');
+        }
         if(document.getElementById('serviceImagen1')) document.getElementById('serviceImagen1').value = service.imagen1 || '';
         if(document.getElementById('descEditor')) document.getElementById('descEditor').innerHTML = service.descripcion || '';
         document.getElementById('cancelEditBtn').classList.remove('hidden');
@@ -1836,7 +1839,10 @@ function resetServiceForm() {
     if(document.getElementById('serviceProfessional')) document.getElementById('serviceProfessional').value = '';
     if(document.getElementById('serviceProfessionalEmail')) document.getElementById('serviceProfessionalEmail').value = '';
     if(document.getElementById('serviceProfessionalPhoto')) document.getElementById('serviceProfessionalPhoto').value = '';
-    if(document.getElementById('serviceIcono')) document.getElementById('serviceIcono').value = 'palette';
+    if(document.getElementById('serviceIcono')) {
+        document.getElementById('serviceIcono').value = 'local_florist';
+        if (typeof window.syncIconDisplay === 'function') window.syncIconDisplay('serviceIcono');
+    }
     if(document.getElementById('serviceImagen1')) document.getElementById('serviceImagen1').value = '';
     const fileInput = document.getElementById('serviceProfessionalFile');
     if(fileInput) {
