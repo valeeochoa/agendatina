@@ -38,6 +38,21 @@ En todas las vistas HTML de la plataforma (`index.html`, `login.html`, `registro
   3. La vinculación del alumno en `clientes_negocio` debe contemplar registros con `id_negocio = :id_negocio` o `id_negocio = 0` priorizando el negocio seleccionado (`ORDER BY (id_negocio = :id_negocio) DESC LIMIT 1`).
   4. En `alumno.html` (`bookStudentClass`), la promesa de `fetch` siempre debe restaurar el botón ("Agendarme en esta Clase") con manejo seguro de excepciones HTTP/JSON, sin quedarse nunca trabado en "Reservando...".
 
+## Conexión a Base de Datos y Aislamiento de Entorno Demo (REGLA MEMORIZADA)
+- **Causas del error "Error de conexión a la base de datos" en Demo y Portal de Alumnos**:
+  1. **Ausencia de `.env` en subdirectorios de despliegue**: Como `.env` está en `.gitignore`, no se despliega automáticamente en carpetas como `/public_html/pruebas/`. Si `conexion.php` cae a valores por defecto locales (`root`/`""`), el servidor DonWeb/cPanel rechaza la conexión.
+  2. **Inexistencia de base de datos física `_d`**: Agendatina maneja el modo Demo de forma lógica en la base principal (filas con token `demo-xxxx` y auto-limpieza). **No se debe conmutar `$dbname` a `_d` ni cambiar el usuario a `DB_DEMO_USER`**, ya que causaba caídas inmediatas por base/usuario inexistente.
+  3. **Contaminación de sesión `is_demo`**: Al navegar por la demo, `$_SESSION['is_demo']` quedaba guardado e impedía el acceso a páginas públicas y al portal de alumnos.
+- **Estrategia Obligatoria de Conexión en `backend/conexion.php`**:
+  1. **Conexión Multicredencial Resiliente**: Intentar siempre en orden:
+     - `[$host, $username, $password]` (cargados de `.env`).
+     - `['localhost', 'c2771918_tina', '*2fo/45pobaLAfo']` (hosting DonWeb / cPanel).
+     - `['127.0.0.1', 'c2771918_tina', '*2fo/45pobaLAfo']`.
+     - `['localhost', 'root', '']` (desarrollo local XAMPP).
+     - `['127.0.0.1', 'root', '']`.
+  2. **Búsqueda multinivel en `backend/dotenv.php`**: Buscar `.env` en `dirname(__DIR__)` (`pruebas/`), `backend/`, `dirname(dirname(__DIR__))` (`public_html/`) y `DOCUMENT_ROOT`.
+  3. **Limpieza de sesión demo**: Limpiar activamente `unset($_SESSION['is_demo'])` cuando se accede al portal de alumnos (`cliente_auth.php`, `alumno.html`) o a cualquier negocio real.
+
 
 
 
