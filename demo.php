@@ -1,31 +1,37 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Forzar siempre el entorno DEMO en esta ruta
 $_SESSION['is_demo'] = true;
 
-require_once __DIR__ . '/backend/conexion.php';
-
-// Si ya existe una sesión Demo activa válida, reutilizarla y no volver a crear filas en la base de datos
-if (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true && !empty($_SESSION['user_id']) && !empty($_SESSION['id_negocio']) && !isset($_GET['reset'])) {
-    try {
-        $stmtCheckExist = $pdo->prepare("SELECT id FROM negocios WHERE id = ? LIMIT 1");
-        $stmtCheckExist->execute([$_SESSION['id_negocio']]);
-        if ($stmtCheckExist->fetchColumn()) {
-            session_write_close();
-            echo "<!DOCTYPE html>\n<html>\n<head>\n<title>Redirigiendo a Demo...</title>\n</head>\n<body>\n";
-            echo "<script>\n";
-            echo "  sessionStorage.setItem('agendatina_session', 'active');\n";
-            echo "  sessionStorage.setItem('is_demo_user', 'true');\n";
-            echo "  window.location.replace('dashboard.html');\n";
-            echo "</script>\n";
-            echo "</body>\n</html>";
-            exit;
-        }
-    } catch (Exception $eExist) {}
-}
-
 try {
+    require_once __DIR__ . '/backend/conexion.php';
+
+    if (!isset($pdo)) {
+        throw new Exception("No se pudo establecer la conexión con la base de datos.");
+    }
+
+    // Si ya existe una sesión Demo activa válida, reutilizarla y no volver a crear filas en la base de datos
+    if (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true && !empty($_SESSION['user_id']) && !empty($_SESSION['id_negocio']) && !isset($_GET['reset'])) {
+        try {
+            $stmtCheckExist = $pdo->prepare("SELECT id FROM negocios WHERE id = ? LIMIT 1");
+            $stmtCheckExist->execute([$_SESSION['id_negocio']]);
+            if ($stmtCheckExist->fetchColumn()) {
+                session_write_close();
+                echo "<!DOCTYPE html>\n<html>\n<head>\n<title>Redirigiendo a Demo...</title>\n</head>\n<body>\n";
+                echo "<script>\n";
+                echo "  sessionStorage.setItem('agendatina_session', 'active');\n";
+                echo "  sessionStorage.setItem('is_demo_user', 'true');\n";
+                echo "  window.location.replace('dashboard.html');\n";
+                echo "</script>\n";
+                echo "</body>\n</html>";
+                exit;
+            }
+        } catch (Throwable $eExist) {}
+    }
+
     // 1. LIMPIEZA AUTOMÁTICA DE CUENTAS DEMO EXPIRADAS (Mayores a 30 minutos)
     try {
         $stmtOld = $pdo->query("SELECT id FROM negocios WHERE (ruta LIKE 'demo-%' OR subdominio LIKE 'demo-%' OR nombre_fantasia LIKE 'Demo%') AND (fecha_alta < NOW() - INTERVAL 30 MINUTE OR fecha_alta IS NULL)");
@@ -177,7 +183,7 @@ try {
     echo "</body>\n</html>";
     exit;
 
-} catch (Exception $e) {
+} catch (Throwable $e) {
     echo "<!DOCTYPE html>\n<html>\n<head>\n<title>Error de Demo</title>\n</head>\n<body style='font-family: sans-serif; padding: 2rem; color: #ef4444;'>\n";
     echo "<h2>Ocurrió un error al preparar la Demostración:</h2>\n";
     echo "<p><b>" . htmlspecialchars($e->getMessage()) . "</b></p>\n";
