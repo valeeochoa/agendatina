@@ -29,9 +29,15 @@ function cargarEnv($path) {
     }
 }
 
-// Cargar automáticamente en el directorio raíz o en el directorio actual (backend/)
-cargarEnv(dirname(__DIR__) . '/.env');
+// Cargar automáticamente buscando en varios niveles posibles
+cargarEnv(dirname(__DIR__) . '/.env'); // Directorio actual del proyecto (ej: /public_html/pruebas/.env)
 if (!isset($_ENV['DB_NAME'])) {
-    cargarEnv(__DIR__ . '/.env');
+    cargarEnv(__DIR__ . '/.env'); // En carpeta backend/
+}
+if (!isset($_ENV['DB_NAME'])) {
+    cargarEnv(dirname(dirname(__DIR__)) . '/.env'); // En carpeta raíz superior (ej: /public_html/.env)
+}
+if (!isset($_ENV['DB_NAME']) && isset($_SERVER['DOCUMENT_ROOT'])) {
+    cargarEnv($_SERVER['DOCUMENT_ROOT'] . '/.env'); // En la raíz del servidor web
 }
 ?>
