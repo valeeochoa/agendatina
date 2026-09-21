@@ -141,8 +141,9 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
             profFilterContainer.classList.add('hidden');
             profFilterContainer.classList.remove('flex');
         } else if (data.length > 0) {
-            const uniqueProfs = [...new Set(data.map(t => t.profesional).filter(p => p && p !== 'Cualquiera (Sin preferencia)'))].sort();
+            const uniqueProfs = [...new Set(data.map(t => t.profesional).filter(p => p && p !== 'Cualquiera (Sin preferencia)' && p !== 'Todos' && p !== 'Agendatina DEMO'))].sort();
             if (uniqueProfs.length > 0) {
+                const displayMap = typeof window.formatProfDisplayNames === 'function' ? window.formatProfDisplayNames(uniqueProfs) : {};
                 profFilterContainer.classList.remove('hidden');
                 profFilterContainer.classList.add('flex');
                 let profTabsHtml = `<div class="flex overflow-x-auto gap-3 pb-2 w-full snap-x pt-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">`;
@@ -158,7 +159,8 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                     const countBadge = count > 0 ? `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-md text-xs font-black ml-1 shadow-sm" title="${count} turnos próximos confirmados">${count}</span>` : '';
                     const isActive = profTerm === p ? 'bg-primary text-white shadow-md ring-2 ring-primary/30 ring-offset-2' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200';
                     const iconColor = profTerm === p ? 'text-white' : 'text-primary';
-                    profTabsHtml += `<button onclick="window.setAgendaProfFilter('${p.replace(/'/g, "\\'")}')" class="snap-start shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${isActive}"><span class="material-symbols-outlined text-[18px] ${iconColor}">person</span> ${p} ${countBadge}</button>`;
+                    const displayLabel = displayMap[p] || p;
+                    profTabsHtml += `<button onclick="window.setAgendaProfFilter('${p.replace(/'/g, "\\'")}')" class="snap-start shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${isActive}"><span class="material-symbols-outlined text-[18px] ${iconColor}">person</span> ${displayLabel} ${countBadge}</button>`;
                 });
                 profTabsHtml += `</div>`;
                 if (profFilterContainer.innerHTML !== profTabsHtml) profFilterContainer.innerHTML = profTabsHtml;

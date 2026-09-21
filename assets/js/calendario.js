@@ -1359,18 +1359,78 @@ function fetchTeamProfessionals() {
         .catch(() => {});
 }
 
+window.formatProfDisplayNames = function(profsList) {
+    if (!Array.isArray(profsList)) return {};
+    
+    // Contar ocurrencias de cada primer nombre
+    const firstNameCounts = {};
+    profsList.forEach(fullName => {
+        if (!fullName || typeof fullName !== 'string') return;
+        const clean = fullName.trim();
+        const firstName = clean.split(/\s+/)[0].toLowerCase();
+        firstNameCounts[firstName] = (firstNameCounts[firstName] || 0) + 1;
+    });
+
+    const displayMap = {};
+    profsList.forEach(fullName => {
+        if (!fullName || typeof fullName !== 'string') return;
+        const clean = fullName.trim();
+        const parts = clean.split(/\s+/);
+        const firstName = parts[0];
+        const firstNameKey = firstName.toLowerCase();
+        
+        // Si hay más de un profesional con este mismo primer nombre, mostramos Nombre y Apellido para distinguirlos
+        if (firstNameCounts[firstNameKey] > 1 && parts.length > 1) {
+            displayMap[clean] = clean;
+        } else {
+            displayMap[clean] = firstName;
+        }
+    });
+
+    return displayMap;
+};
+
+window.isSameProf = function(profA, profB) {
+    if (!profA || !profB) return false;
+    const a = profA.trim().toLowerCase();
+    const b = profB.trim().toLowerCase();
+    return a === b || a.startsWith(b) || b.startsWith(a);
+};
+
 function getUniqueProfessionals() {
-    // Obtenemos solo los profesionales que tienen asignado al menos 1 servicio (omitiendo cuentas sin servicios como Agendatina DEMO)
+    const invalidNames = ['', 'Cualquiera', 'Cualquiera (Sin preferencia)', 'Todos', 'Sin Asignar', 'Agendatina DEMO', 'Agendatina'];
+    
+    // 1. Profesionales de servicios configurados
     const serviceProfs = (services || [])
         .map(s => (s.profesional || '').trim())
-        .filter(p => p !== '' && p !== 'Cualquiera (Sin preferencia)' && p !== 'Todos' && p !== 'Sin Asignar');
+        .filter(p => p && !invalidNames.includes(p));
+
+    // 2. Profesionales que tienen turnos activos
+    const aptProfs = (allAppointments || [])
+        .map(a => (a.profesional || '').trim())
+        .filter(p => p && !invalidNames.includes(p));
+
+    // 3. Profesionales del equipo que tengan servicios o turnos asociados
+    const teamProfsList = (teamProfessionals || [])
+        .map(t => (typeof t === 'string' ? t : (t.nombre_completo || t.nombre || '')).trim())
+        .filter(t => t && !invalidNames.includes(t) && (
+            serviceProfs.some(sp => window.isSameProf(sp, t)) ||
+            aptProfs.some(ap => window.isSameProf(ap, t))
+        ));
+
+    const candidateProfs = [...serviceProfs, ...aptProfs, ...teamProfsList];
     
     // Deduplicar respetando coincidencias (ej: Valentina vs Valentina Ochoa)
     const unique = [];
-    serviceProfs.forEach(p => {
-        const exists = unique.find(u => u.toLowerCase() === p.toLowerCase() || u.toLowerCase().startsWith(p.toLowerCase()) || p.toLowerCase().startsWith(u.toLowerCase()));
-        if (!exists) {
+    candidateProfs.forEach(p => {
+        const existingIdx = unique.findIndex(u => window.isSameProf(u, p));
+        if (existingIdx === -1) {
             unique.push(p);
+        } else {
+            // Si el nuevo nombre tiene apellido y el anterior no, guardar la versión completa para el mapeo
+            if (p.includes(' ') && !unique[existingIdx].includes(' ')) {
+                unique[existingIdx] = p;
+            }
         }
     });
     return unique;
@@ -1483,6 +1543,7 @@ function populateCalendarViewFilter() {
 
     const select = document.getElementById('calendarViewFilter');
     const uniqueProfs = getUniqueProfessionals();
+    const profDisplayMap = window.formatProfDisplayNames(uniqueProfs);
     
     if (uniqueProfs.length === 1 && (!isAdmin || isPreviewMode)) {
         filterContainer.style.display = 'none';
@@ -1508,7 +1569,8 @@ function populateCalendarViewFilter() {
     
     uniqueProfs.forEach(prof => {
         const isSelected = prof === globalSelectedProfessional ? 'selected' : '';
-        select.innerHTML += `<option value="${prof}" ${isSelected}>👤 ${prof}</option>`;
+        const displayLabel = profDisplayMap[prof] || prof;
+        select.innerHTML += `<option value="${prof}" ${isSelected}>👤 ${displayLabel}</option>`;
     });
 }
 
@@ -2161,8 +2223,9 @@ function renderAdminWeeklyProfs() {
     if (!container) return;
     container.innerHTML = '';
     
-    // Obtenemos solo los profesionales que tienen asignado al menos 1 servicio (excluyendo Agendatina DEMO u otros sin servicios)
+    // Obtenemos solo los profesionales que tienen asignado al menos 1 servicio o turnos (excluyendo Agendatina DEMO u otros sin servicios)
     const allProfs = getUniqueProfessionals();
+    const profDisplayMap = window.formatProfDisplayNames(allProfs);
     let matchingProfs = [];
     let otherProfs = [];
     
@@ -2170,7 +2233,7 @@ function renderAdminWeeklyProfs() {
         const rawMatching = services
             .filter(s => s.nombre === adminWeeklySelectedService && s.profesional && s.profesional.trim() !== '' && s.profesional !== 'Cualquiera (Sin preferencia)')
             .map(s => s.profesional.trim());
-        matchingProfs = allProfs.filter(p => rawMatching.some(m => m.toLowerCase() === p.toLowerCase() || m.toLowerCase().startsWith(p.toLowerCase()) || p.toLowerCase().startsWith(m.toLowerCase())));
+        matchingProfs = allProfs.filter(p => rawMatching.some(m => window.isSameProf(m, p)));
         otherProfs = allProfs.filter(p => !matchingProfs.includes(p));
     } else {
         matchingProfs = allProfs;
@@ -2201,9 +2264,10 @@ function renderAdminWeeklyProfs() {
         const btn = document.createElement('button');
         const isActive = adminWeeklySelectedProf === pName;
         const highlightedStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-2xs bg-amber-50 dark:bg-amber-950/50 text-[#FC8712] border-amber-300 dark:border-amber-700';
-        
+        const displayLabel = profDisplayMap[pName] || pName;
+
         btn.className = isActive ? activeBtnStyle : (isHighlighted ? highlightedStyle : defaultBtnStyle);
-        btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">${isHighlighted ? 'check_circle' : 'person'}</span> <span>${pName}</span>`;
+        btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">${isHighlighted ? 'check_circle' : 'person'}</span> <span>${displayLabel}</span>`;
         
         btn.onclick = () => {
             adminWeeklySelectedProf = pName;
