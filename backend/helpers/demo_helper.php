@@ -27,7 +27,7 @@ if (!function_exists('asegurarDatosDemo')) {
             $idServ4 = $servs[3]['id'] ?? null;
             $idServ5 = $servs[4]['id'] ?? null;
 
-            // 2. Verificar reinicio de turnos demo (cada 15 minutos o cuando no haya turnos vigentes)
+            // 2. Verificar si corresponde reiniciar el entorno Demo (cada 15 minutos o cuando no haya turnos vigentes)
             try { $pdo->query("SELECT ultimo_reinicio_demo FROM configuracion_web LIMIT 1"); } 
             catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN ultimo_reinicio_demo INT DEFAULT 0"); }
 
@@ -46,7 +46,7 @@ if (!function_exists('asegurarDatosDemo')) {
             $currentTime = time();
             $needsReset = false;
 
-            if ($turnosCount === 0) {
+            if (empty($servs) || $turnosCount === 0) {
                 $needsReset = true;
             } elseif ($lastReset === 0 || ($currentTime - $lastReset) >= 900) { // 900 segundos = 15 minutos
                 $needsReset = true;
@@ -55,7 +55,27 @@ if (!function_exists('asegurarDatosDemo')) {
             }
 
             if ($needsReset) {
-                // Eliminar turnos previa cuenta demo y volver a generar turnos vigentes y variados
+                // A. Recrear Servicios de Demostración con sus respectivos iconos de Google Material Symbols
+                $pdo->prepare("DELETE FROM servicios WHERE id_negocio = ?")->execute([$negocioId]);
+
+                $pdo->prepare("INSERT INTO servicios (id_negocio, nombre_servicio, duracion_minutos, precio, descripcion, profesional, icono) VALUES 
+                    (?, 'Corte de Demostración', 30, 8000, 'Servicio de prueba para corte y estilismo.', 'Valentina', 'content_cut'),
+                    (?, 'Masaje Relajante', 60, 15000, 'Relájate con nuestros masajes de prueba.', 'Valentina', 'spa'),
+                    (?, 'Limpieza Facial Profunda', 45, 12000, 'Cuidado de la piel con productos premium.', 'Camila', 'face_retouching_natural'),
+                    (?, 'Manicura Semipermanente', 40, 9000, 'Diseños exclusivos y larga duración.', 'Sofía', 'brush'),
+                    (?, 'Perfilado de Cejas', 20, 5000, 'Dale forma y estilo a tu mirada.', 'Marcos', 'visibility')")->execute([$negocioId, $negocioId, $negocioId, $negocioId, $negocioId]);
+
+                $stmtServ = $pdo->prepare("SELECT id, nombre_servicio, profesional FROM servicios WHERE id_negocio = ? ORDER BY id ASC");
+                $stmtServ->execute([$negocioId]);
+                $servs = $stmtServ->fetchAll(PDO::FETCH_ASSOC);
+
+                $idServ1 = $servs[0]['id'] ?? null;
+                $idServ2 = $servs[1]['id'] ?? null;
+                $idServ3 = $servs[2]['id'] ?? null;
+                $idServ4 = $servs[3]['id'] ?? null;
+                $idServ5 = $servs[4]['id'] ?? null;
+
+                // B. Recrear turnos demo variados
                 $pdo->prepare("DELETE FROM turnos WHERE id_negocio = ?")->execute([$negocioId]);
 
                 $t_hoy = date('Y-m-d');
@@ -84,10 +104,40 @@ if (!function_exists('asegurarDatosDemo')) {
                     $negocioId, $t_m3, $idServ4
                 ]);
 
-                $_SESSION['last_demo_reset'] = $currentTime;
+                // C. Restablecer configuración web demo
+                $stmtCfgCheck = $pdo->prepare("SELECT id FROM configuracion_web WHERE id_negocio = ? LIMIT 1");
+                $stmtCfgCheck->execute([$negocioId]);
+                $cfgId = $stmtCfgCheck->fetchColumn();
+
+                if ($cfgId) {
+                    $pdo->prepare("UPDATE configuracion_web SET 
+                        color_primario = '#D11149',
+                        color_secundario = '#FC8712',
+                        mensaje_bienvenida = 'Agendatina',
+                        intervalo_turnos = '30',
+                        tipo_calendario = 'clasico',
+                        titulo = 'Agendatina',
+                        usar_fondo_degrade = 1,
+                        primer_dia_semana = 1,
+                        modo_reservas = 'turnos_clasicos',
+                        ultimo_reinicio_demo = ?
+                        WHERE id_negocio = ?")->execute([$currentTime, $negocioId]);
+                } else {
+                    $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, intervalo_turnos, tipo_calendario, titulo, usar_fondo_degrade, primer_dia_semana, modo_reservas, ultimo_reinicio_demo)
+                                   VALUES (?, '#D11149', '#FC8712', 'Agendatina', '30', 'clasico', 'Agendatina', 1, 1, 'turnos_clasicos', ?)")->execute([$negocioId, $currentTime]);
+                }
+
+                // D. Restablecer Alumnos Demo
                 try {
-                    $pdo->prepare("UPDATE configuracion_web SET ultimo_reinicio_demo = ? WHERE id_negocio = ?")->execute([$currentTime, $negocioId]);
-                } catch(Throwable $eUp) {}
+                    $pdo->prepare("DELETE FROM clientes_negocio WHERE id_negocio = ?")->execute([$negocioId]);
+                    $pdo->prepare("INSERT INTO clientes_negocio (id_negocio, nombre_completo, email, telefono, pases_disponibles, pases_totales, fecha_vencimiento, notas, estado) VALUES 
+                        (?, 'María García', 'maria.demo@agendatina.site', '11 2345 6789', 6, 8, DATE_ADD(CURRENT_DATE, INTERVAL 15 DAY), 'Alumna de Pilates nivel intermedio.', 'activo'),
+                        (?, 'Lucas Fernández', 'lucas.demo@agendatina.site', '11 9876 5432', 12, 12, DATE_ADD(CURRENT_DATE, INTERVAL 30 DAY), 'Abonó pase libre mensual.', 'activo'),
+                        (?, 'Ana Martínez', 'ana.demo@agendatina.site', '11 5555 4444', 0, 8, DATE_ADD(CURRENT_DATE, INTERVAL 5 DAY), 'Sin clases disponibles. Recargar pase.', 'activo')
+                    ")->execute([$negocioId, $negocioId, $negocioId]);
+                } catch(Throwable $eCliDemo) {}
+
+                $_SESSION['last_demo_reset'] = $currentTime;
             }
 
             // 3. Asegurar notificaciones iniciales
@@ -99,15 +149,7 @@ if (!function_exists('asegurarDatosDemo')) {
                     (?, 'Nuevas solicitudes', 'Tienes 1 turno pendiente por confirmar. Revisa tu Agenda Virtual.')")->execute([$negocioId, $negocioId]);
             }
 
-            // 4. Asegurar configuración web por defecto
-            $stmtCfgCount = $pdo->prepare("SELECT COUNT(*) FROM configuracion_web WHERE id_negocio = ?");
-            $stmtCfgCount->execute([$negocioId]);
-            if ((int)$stmtCfgCount->fetchColumn() === 0) {
-                $pdo->prepare("INSERT INTO configuracion_web (id_negocio, color_primario, color_secundario, mensaje_bienvenida, intervalo_turnos, tipo_calendario, titulo, usar_fondo_degrade, primer_dia_semana)
-                               VALUES (?, '#D11149', '#FC8712', 'Agendatina', '30', 'clasico', 'Agendatina', 1, 1)")->execute([$negocioId]);
-            }
-
-            // 5. Asegurar usuarios y personal del equipo Demo (Valentina, Camila, Sofía, Marcos)
+            // 4. Asegurar personal del equipo Demo (Valentina, Camila, Sofía, Marcos)
             $stmtPnCount = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_negocio = ?");
             $stmtPnCount->execute([$negocioId]);
             if ((int)$stmtPnCount->fetchColumn() <= 1) {
@@ -134,19 +176,6 @@ if (!function_exists('asegurarDatosDemo')) {
                     }
                 }
             }
-
-            // 6. Asegurar alumnos demo iniciales si no existen
-            try {
-                $stmtCliCount = $pdo->prepare("SELECT COUNT(*) FROM clientes_negocio WHERE id_negocio = ?");
-                $stmtCliCount->execute([$negocioId]);
-                if ((int)$stmtCliCount->fetchColumn() === 0) {
-                    $pdo->prepare("INSERT INTO clientes_negocio (id_negocio, nombre_completo, email, telefono, pases_disponibles, pases_totales, fecha_vencimiento, notas, estado) VALUES 
-                        (?, 'María García', 'maria.demo@agendatina.site', '11 2345 6789', 6, 8, DATE_ADD(CURRENT_DATE, INTERVAL 15 DAY), 'Alumna de Pilates nivel intermedio.', 'activo'),
-                        (?, 'Lucas Fernández', 'lucas.demo@agendatina.site', '11 9876 5432', 12, 12, DATE_ADD(CURRENT_DATE, INTERVAL 30 DAY), 'Abonó pase libre mensual.', 'activo'),
-                        (?, 'Ana Martínez', 'ana.demo@agendatina.site', '11 5555 4444', 0, 8, DATE_ADD(CURRENT_DATE, INTERVAL 5 DAY), 'Sin clases disponibles. Recargar pase.', 'activo')
-                    ")->execute([$negocioId, $negocioId, $negocioId]);
-                }
-            } catch(Throwable $eCliDemo) {}
         } catch(Throwable $eDemoData) {
             error_log("Error al asegurar datos demo: " . $eDemoData->getMessage());
         }

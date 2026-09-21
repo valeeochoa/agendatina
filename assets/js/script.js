@@ -3612,6 +3612,21 @@ window.isPublicAgendatinaOfficialPage = function() {
     return officialPages.some(page => path.includes(page));
 };
 
+window.getContrastColor = function(hexColor, lightFallback = '#ffffff', darkFallback = '#1e293b') {
+    if (!hexColor || typeof hexColor !== 'string') return darkFallback;
+    let cleanHex = hexColor.replace('#', '').trim();
+    if (cleanHex.length === 3) {
+        cleanHex = cleanHex.split('').map(c => c + c).join('');
+    }
+    if (cleanHex.length !== 6) return darkFallback;
+    const r = parseInt(cleanHex.substr(0, 2), 16);
+    const g = parseInt(cleanHex.substr(2, 2), 16);
+    const b = parseInt(cleanHex.substr(4, 2), 16);
+    if (isNaN(r) || isNaN(g) || isNaN(b)) return darkFallback;
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b);
+    return luminance < 140 ? lightFallback : darkFallback;
+};
+
 window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
     let style = document.getElementById('agendatina-user-custom-colors');
 
@@ -3654,6 +3669,10 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
 
     let extraCss = '';
     const btnColor = (extraColors && extraColors.color_botones) ? extraColors.color_botones : pColor;
+    const btnTextColor = window.getContrastColor(btnColor, '#ffffff', '#1e293b');
+    const isBgDark = finalBg ? (window.getContrastColor(finalBg, '#ffffff', '#1e293b') === '#ffffff') : false;
+    const headerTextColor = extraColors.color_header ? window.getContrastColor(extraColors.color_header, '#ffffff', '#1e293b') : null;
+    const cardTextColor = extraColors.color_cards ? window.getContrastColor(extraColors.color_cards, '#ffffff', '#1e293b') : null;
 
     if (extraColors.color_terciario) {
         extraCss += `
@@ -3664,7 +3683,16 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
     }
     if (extraColors.color_header) {
         extraCss += `
-            header:not(#adminHeader):not(#mainNav), nav:not(#adminHeader):not(#mainNav) { background-color: ${extraColors.color_header} !important; }
+            header:not(#adminHeader):not(#mainNav), nav:not(#adminHeader):not(#mainNav) { 
+                background-color: ${extraColors.color_header} !important; 
+                color: ${headerTextColor} !important; 
+            }
+            header:not(#adminHeader):not(#mainNav) h1,
+            header:not(#adminHeader):not(#mainNav) h2,
+            header:not(#adminHeader):not(#mainNav) p,
+            header:not(#adminHeader):not(#mainNav) span:not([class*="bg-"]) {
+                color: ${headerTextColor} !important;
+            }
         `;
     }
     if (extraColors.color_texto_titulos) {
@@ -3674,17 +3702,29 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
     }
     if (extraColors.color_botones) {
         extraCss += `
-            .btn-cta, button.bg-primary, a.bg-primary, #btnVolverPanel, .signature-glow, .btn-modal-confirm, #btnModalConfirm, #modalConfirmBtn, #btnConfirmAction, #btnCustomConfirm, #btnSaveCalendarConfig, #btnProfileSubmit, #btnTeamSubmit, #btnReportSubmit, #btnSubmitVerify, #btnAcceptConfirm { background-color: ${extraColors.color_botones} !important; border-color: ${extraColors.color_botones} !important; }
+            .btn-cta, button.bg-primary, a.bg-primary, #btnVolverPanel, .signature-glow, .btn-modal-confirm, #btnModalConfirm, #modalConfirmBtn, #btnConfirmAction, #btnCustomConfirm, #btnSaveCalendarConfig, #btnProfileSubmit, #btnTeamSubmit, #btnReportSubmit, #btnSubmitVerify, #btnAcceptConfirm { background-color: ${extraColors.color_botones} !important; border-color: ${extraColors.color_botones} !important; color: ${btnTextColor} !important; }
+            .btn-cta *, button.bg-primary *, a.bg-primary * { color: ${btnTextColor} !important; }
         `;
     }
     if (extraColors.color_cards) {
         extraCss += `
-            .card-custom { background-color: ${extraColors.color_cards} !important; }
+            .card-custom { background-color: ${extraColors.color_cards} !important; color: ${cardTextColor} !important; }
         `;
     }
     if (extraColors.color_hover) {
         extraCss += `
             .hover\\:bg-primary\\/90:hover { background-color: ${extraColors.color_hover} !important; }
+        `;
+    }
+    if (extraColors.color_texto) {
+        extraCss += `
+            body, p, label, .text-slate-800, .text-slate-700, .text-slate-600 { color: ${extraColors.color_texto} !important; }
+        `;
+    } else if (isBgDark) {
+        extraCss += `
+            body, .text-slate-800, .text-slate-700, .text-slate-900 { color: #f8fafc !important; }
+            .text-slate-500, .text-slate-400 { color: #cbd5e1 !important; }
+            .border-slate-200, .border-slate-100 { border-color: rgba(255, 255, 255, 0.15) !important; }
         `;
     }
 

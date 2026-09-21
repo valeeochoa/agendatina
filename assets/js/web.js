@@ -298,7 +298,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 servicesData.forEach(service => {
                 const precio = service.precio ? `<span class="font-bold text-lg text-primary">$${service.precio}</span>` : '';
                 const imgs = [service.imagen1, service.imagen2, service.imagen3].filter(Boolean);
-                let imagesHtml = `<div class="h-48 w-full bg-slate-100 flex items-center justify-center text-slate-400"><span class="material-symbols-outlined text-4xl">spa</span></div>`;
+                const svcIcon = service.icono || 'local_florist';
+                let imagesHtml = `<div class="h-48 w-full bg-primary/10 flex items-center justify-center text-primary border-b border-primary/10"><span class="material-symbols-outlined text-6xl">${svcIcon}</span></div>`;
                 if (imgs.length > 0) {
                     const imgsHtml = imgs.map((img, i) => `<img src="${img}" alt="${service.nombre}" class="card-carousel-img absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${i === 0 ? 'opacity-100' : 'opacity-0'}">`).join('');
                     const controls = imgs.length > 1
@@ -489,7 +490,9 @@ window.openWebModalService = function(id) {
         }
         imgContainer.innerHTML = imgs + controls; imgContainer.classList.remove('hidden');
     } else { 
-        imgContainer.classList.add('hidden'); 
+        const modalIcon = service.icono || 'local_florist';
+        imgContainer.innerHTML = `<div class="h-44 w-full bg-primary/10 flex items-center justify-center text-primary rounded-2xl border border-primary/20"><span class="material-symbols-outlined text-6xl">${modalIcon}</span></div>`;
+        imgContainer.classList.remove('hidden'); 
     }
     const negocioSlug = new URLSearchParams(window.location.search).get('n') || (window.location.pathname.split('/').filter(p => p && !p.includes('.'))[0] || '');
     document.getElementById('webServiceModalBtn').href = `calendarioMensual.html?n=${negocioSlug}&servicio=${encodeURIComponent(service.nombre)}`;

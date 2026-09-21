@@ -469,17 +469,17 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                                     </div>
                                     <div class="flex items-center gap-2">
                                         ${slot.profesional && slot.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">person</span> ${slot.profesional}</span>` : ''}
-                                        <span class="text-purple-600 group-hover:translate-x-0.5 transition-transform material-symbols-outlined text-[20px]" title="Ver detalles y todos los inscriptos">open_in_new</span>
+                                        <span class="text-primary group-hover:translate-x-0.5 transition-transform material-symbols-outlined text-[20px]" title="Ver detalles y todos los inscriptos">open_in_new</span>
                                     </div>
                                 </div>
                                 <div>
                                     <h4 class="font-black text-slate-900 text-base sm:text-lg flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-purple-600 text-[20px]">${slot.icono || 'event_available'}</span>
+                                        <span class="material-symbols-outlined text-primary text-[20px]">${slot.icono || 'event_available'}</span>
                                         <span>${slot.servicio}</span>
                                     </h4>
                                     <p class="text-[11px] font-bold text-slate-400 mt-0.5 flex items-center justify-between">
                                         <span>Últimos registrados (${ultimos3.length} de ${totalAlumnos})</span>
-                                        <span class="text-purple-600 font-extrabold text-[11px] group-hover:underline">Click para ver todos</span>
+                                        <span class="text-primary font-extrabold text-[11px] group-hover:underline">Click para ver todos</span>
                                     </p>
                                 </div>
                                 <!-- CONTENEDOR CON BARRA DESPLAZADORA -->

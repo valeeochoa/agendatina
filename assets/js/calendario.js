@@ -1947,7 +1947,7 @@ function initWizard() {
             imgHtml = `<img src="${iconToUse}" class="w-14 h-14 rounded-2xl object-cover shrink-0 border border-slate-200 shadow-xs">`;
         } else {
             imgHtml = `
-                <div class="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-200/60 dark:border-emerald-800/60 shadow-xs">
+                <div class="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20 shadow-xs">
                     <span class="material-symbols-outlined text-[26px]">${iconToUse}</span>
                 </div>`;
         }
