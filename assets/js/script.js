@@ -25,6 +25,61 @@
 // LÓGICA COMPARTIDA Y UTILIDADES
 // ==========================================
 
+window.normalizeProfName = function(name) {
+    if (!name || typeof name !== 'string') return '';
+    return name.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+};
+
+window.isSameProf = function(profA, profB) {
+    if (!profA || !profB) return false;
+    const a = window.normalizeProfName(profA);
+    const b = window.normalizeProfName(profB);
+    if (!a || !b) return false;
+    if (a === b) return true;
+    
+    const aParts = a.split(/\s+/).filter(Boolean);
+    const bParts = b.split(/\s+/).filter(Boolean);
+    if (aParts.length === 0 || bParts.length === 0) return false;
+    
+    if (aParts[0] === bParts[0]) {
+        if (aParts.length === 1 || bParts.length === 1) return true;
+        return aParts.slice(1).join(' ') === bParts.slice(1).join(' ');
+    }
+    return false;
+};
+
+window.formatProfDisplayNames = function(profsList) {
+    if (!Array.isArray(profsList)) return {};
+    
+    const firstNameCounts = {};
+    profsList.forEach(fullName => {
+        if (!fullName || typeof fullName !== 'string') return;
+        const norm = window.normalizeProfName(fullName);
+        if (!norm) return;
+        const first = norm.split(/\s+/)[0];
+        firstNameCounts[first] = (firstNameCounts[first] || 0) + 1;
+    });
+
+    const displayMap = {};
+    profsList.forEach(fullName => {
+        if (!fullName || typeof fullName !== 'string') return;
+        const clean = fullName.trim();
+        const parts = clean.split(/\s+/).filter(Boolean);
+        if (parts.length === 0) return;
+        
+        const firstName = parts[0];
+        const normFirst = window.normalizeProfName(firstName);
+        
+        if (firstNameCounts[normFirst] > 1 && parts.length > 1) {
+            displayMap[clean] = clean;
+        } else {
+            displayMap[clean] = firstName;
+        }
+    });
+
+    return displayMap;
+};
+
 window.confirmActionCallback = null;
 
 // Estilos globales para la animación "pop" de los modales

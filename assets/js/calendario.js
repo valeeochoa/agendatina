@@ -1359,28 +1359,58 @@ function fetchTeamProfessionals() {
         .catch(() => {});
 }
 
+window.normalizeProfName = function(name) {
+    if (!name || typeof name !== 'string') return '';
+    return name.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+};
+
+window.isSameProf = function(profA, profB) {
+    if (!profA || !profB) return false;
+    const a = window.normalizeProfName(profA);
+    const b = window.normalizeProfName(profB);
+    if (!a || !b) return false;
+    if (a === b) return true;
+    
+    const aParts = a.split(/\s+/).filter(Boolean);
+    const bParts = b.split(/\s+/).filter(Boolean);
+    if (aParts.length === 0 || bParts.length === 0) return false;
+    
+    // Si tienen el mismo primer nombre:
+    if (aParts[0] === bParts[0]) {
+        // Si al menos uno solo tiene el primer nombre (ej: "Marcos" y "Marcos Gómez"), son la misma persona
+        if (aParts.length === 1 || bParts.length === 1) return true;
+        // Si ambos tienen apellido(s), deben coincidir
+        return aParts.slice(1).join(' ') === bParts.slice(1).join(' ');
+    }
+    return false;
+};
+
 window.formatProfDisplayNames = function(profsList) {
     if (!Array.isArray(profsList)) return {};
     
-    // Contar ocurrencias de cada primer nombre
+    // Contar ocurrencias de cada primer nombre normalizado
     const firstNameCounts = {};
     profsList.forEach(fullName => {
         if (!fullName || typeof fullName !== 'string') return;
-        const clean = fullName.trim();
-        const firstName = clean.split(/\s+/)[0].toLowerCase();
-        firstNameCounts[firstName] = (firstNameCounts[firstName] || 0) + 1;
+        const norm = window.normalizeProfName(fullName);
+        if (!norm) return;
+        const first = norm.split(/\s+/)[0];
+        firstNameCounts[first] = (firstNameCounts[first] || 0) + 1;
     });
 
     const displayMap = {};
     profsList.forEach(fullName => {
         if (!fullName || typeof fullName !== 'string') return;
         const clean = fullName.trim();
-        const parts = clean.split(/\s+/);
-        const firstName = parts[0];
-        const firstNameKey = firstName.toLowerCase();
+        const parts = clean.split(/\s+/).filter(Boolean);
+        if (parts.length === 0) return;
         
-        // Si hay más de un profesional con este mismo primer nombre, mostramos Nombre y Apellido para distinguirlos
-        if (firstNameCounts[firstNameKey] > 1 && parts.length > 1) {
+        const firstName = parts[0];
+        const normFirst = window.normalizeProfName(firstName);
+        
+        // Si hay más de un profesional distinto con este mismo primer nombre (ej. Marcos Gómez y Marcos Pérez),
+        // mostramos Nombre y Apellido para distinguirlos. De lo contrario, SOLO el primer nombre (ej: Marcos)!
+        if (firstNameCounts[normFirst] > 1 && parts.length > 1) {
             displayMap[clean] = clean;
         } else {
             displayMap[clean] = firstName;
@@ -1390,44 +1420,37 @@ window.formatProfDisplayNames = function(profsList) {
     return displayMap;
 };
 
-window.isSameProf = function(profA, profB) {
-    if (!profA || !profB) return false;
-    const a = profA.trim().toLowerCase();
-    const b = profB.trim().toLowerCase();
-    return a === b || a.startsWith(b) || b.startsWith(a);
-};
-
 function getUniqueProfessionals() {
-    const invalidNames = ['', 'Cualquiera', 'Cualquiera (Sin preferencia)', 'Todos', 'Sin Asignar', 'Agendatina DEMO', 'Agendatina'];
+    const invalidNames = ['', 'cualquiera', 'cualquiera (sin preferencia)', 'todos', 'sin asignar', 'agendatina demo', 'agendatina'];
     
     // 1. Profesionales de servicios configurados
     const serviceProfs = (services || [])
         .map(s => (s.profesional || '').trim())
-        .filter(p => p && !invalidNames.includes(p));
+        .filter(p => p && !invalidNames.includes(window.normalizeProfName(p)));
 
     // 2. Profesionales que tienen turnos activos
     const aptProfs = (allAppointments || [])
         .map(a => (a.profesional || '').trim())
-        .filter(p => p && !invalidNames.includes(p));
+        .filter(p => p && !invalidNames.includes(window.normalizeProfName(p)));
 
     // 3. Profesionales del equipo que tengan servicios o turnos asociados
     const teamProfsList = (teamProfessionals || [])
         .map(t => (typeof t === 'string' ? t : (t.nombre_completo || t.nombre || '')).trim())
-        .filter(t => t && !invalidNames.includes(t) && (
+        .filter(t => t && !invalidNames.includes(window.normalizeProfName(t)) && (
             serviceProfs.some(sp => window.isSameProf(sp, t)) ||
             aptProfs.some(ap => window.isSameProf(ap, t))
         ));
 
     const candidateProfs = [...serviceProfs, ...aptProfs, ...teamProfsList];
     
-    // Deduplicar respetando coincidencias (ej: Valentina vs Valentina Ochoa)
+    // Deduplicar respetando coincidencias (ej: Marcos vs Marcos Gómez)
     const unique = [];
     candidateProfs.forEach(p => {
         const existingIdx = unique.findIndex(u => window.isSameProf(u, p));
         if (existingIdx === -1) {
             unique.push(p);
         } else {
-            // Si el nuevo nombre tiene apellido y el anterior no, guardar la versión completa para el mapeo
+            // Guardamos la versión con nombre completo si la hay
             if (p.includes(' ') && !unique[existingIdx].includes(' ')) {
                 unique[existingIdx] = p;
             }
@@ -2420,22 +2443,23 @@ function renderAdminWeeklyGrid() {
         let colCardClass = 'bg-white/90 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-800/80 shadow-2xs hover:shadow-xs';
         let headerBgClass = 'bg-slate-100/80 dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 hover:bg-slate-200/80';
         let dayNameClass = 'text-slate-400 dark:text-slate-400 font-bold';
-        let dateNumClass = 'text-slate-900 dark:text-slate-100 font-black';
+        let dateNumContent = '';
 
         if (isMultiSelected) {
             headerBgClass = 'bg-gradient-to-tr from-[#D11149] to-[#FC8712] border-transparent text-white shadow-md shadow-rose-500/25';
             dayNameClass = 'text-white/80 font-bold';
-            dateNumClass = 'text-white font-black';
+            dateNumContent = `<div class="text-sm sm:text-base text-white font-black py-0.5">${date.getDate()}</div>`;
         } else if (isToday) {
-            colCardClass = 'bg-white/95 dark:bg-slate-900/95 border-rose-200 dark:border-rose-900/50 ring-2 ring-[#D11149]/20 shadow-md';
-            headerBgClass = 'bg-white dark:bg-slate-800/90 border-2 border-[#D11149] text-slate-900 dark:text-white shadow-xs';
-            dayNameClass = 'text-[#D11149] dark:text-rose-400 font-black';
-            dateNumClass = 'text-slate-900 dark:text-white font-black';
+            headerBgClass = 'bg-slate-100/90 dark:bg-slate-800/90 border-slate-200/90 dark:border-slate-700/90 text-slate-800 dark:text-slate-100 shadow-2xs';
+            dayNameClass = 'text-[#D11149] dark:text-[#fc8712] font-black';
+            dateNumContent = `<div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#D11149] text-white font-black flex items-center justify-center mx-auto text-xs sm:text-sm shadow-xs my-0.5">${date.getDate()}</div>`;
         } else if (isPast) {
             colCardClass = 'bg-slate-100/60 dark:bg-slate-900/50 border-slate-200/60 dark:border-slate-800/60 shadow-2xs opacity-85';
             headerBgClass = 'bg-slate-200/60 dark:bg-slate-800/60 border-slate-300/60 dark:border-slate-700/60 text-slate-500 dark:text-slate-400 hover:bg-slate-300/60';
             dayNameClass = 'text-slate-400 dark:text-slate-500 font-bold';
-            dateNumClass = 'text-slate-600 dark:text-slate-300 font-black';
+            dateNumContent = `<div class="text-sm sm:text-base text-slate-600 dark:text-slate-300 font-black py-0.5">${date.getDate()}</div>`;
+        } else {
+            dateNumContent = `<div class="text-sm sm:text-base text-slate-900 dark:text-slate-100 font-black py-0.5">${date.getDate()}</div>`;
         }
 
         const col = document.createElement('div');
@@ -2444,14 +2468,12 @@ function renderAdminWeeklyGrid() {
         const colHeader = document.createElement('div');
         colHeader.className = `text-center py-1.5 px-1 rounded-xl border transition-all duration-300 cursor-pointer w-full shrink-0 ${headerBgClass}`;
         
-        let todayTag = '';
-        if (isToday && !isMultiSelected) {
-            todayTag = '<span class="inline-flex items-center gap-1 text-[8px] font-black tracking-wider px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/60 text-[#D11149] dark:text-rose-300 border border-rose-200 dark:border-rose-800 mb-0.5"><span class="w-1.5 h-1.5 rounded-full bg-[#D11149] animate-pulse"></span>HOY</span>';
-        } else if (isPast && !isMultiSelected) {
-            todayTag = '<span class="inline-block text-[8px] font-bold tracking-widest px-1.5 py-0.2 rounded-full bg-slate-200/60 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 mb-0.5 uppercase">Pasado</span>';
+        let pastTag = '';
+        if (isPast && !isMultiSelected) {
+            pastTag = '<span class="inline-block text-[8px] font-bold tracking-widest px-1.5 py-0.2 rounded-full bg-slate-200/60 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 mb-0.5 uppercase">Pasado</span>';
         }
 
-        colHeader.innerHTML = `${todayTag}<div class="text-[9px] sm:text-[10px] font-black tracking-wider uppercase ${dayNameClass}">${dayName}</div><div class="text-sm sm:text-base ${dateNumClass}">${date.getDate()}</div>`;
+        colHeader.innerHTML = `${pastTag}<div class="text-[9px] sm:text-[10px] font-black tracking-wider uppercase ${dayNameClass}">${dayName}</div>${dateNumContent}`;
         colHeader.onclick = () => handleDayClick(new Date(date.getTime() + 12*60*60*1000));
         
         if (effectiveIsAdmin && window.isWorkingDay(date)) {
@@ -2698,12 +2720,16 @@ function renderWeeklyCalendar() {
             borderClass = 'border-emerald-300/80 dark:border-emerald-700/60';
         }
 
+        let dateNumberHtml = '';
         if (isSelected) {
             bgClass = 'bg-gradient-to-tr from-[#D11149] via-[#E61B58] to-[#FC8712] shadow-xl shadow-[#D11149]/35 scale-[1.05]';
             textClass = 'text-white font-black';
             borderClass = 'border-transparent ring-2 ring-rose-300/40';
+            dateNumberHtml = `<span class="text-base sm:text-2xl font-black text-white">${date.getDate()}</span>`;
         } else if (isToday && !visuallyDisabled) {
-            borderClass = 'border-[#D11149] ring-2 ring-[#D11149]/20 shadow-xs';
+            dateNumberHtml = `<span class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#D11149] text-white flex items-center justify-center font-black text-sm sm:text-base shadow-xs mx-auto">${date.getDate()}</span>`;
+        } else {
+            dateNumberHtml = `<span class="text-base sm:text-2xl font-black ${textClass}">${date.getDate()}</span>`;
         }
 
         dayDiv.className = `flex flex-col items-center justify-center py-2 px-1 sm:py-3 sm:px-2 rounded-2xl border-2 ${borderClass} ${bgClass} ${textClass} w-full min-w-0 transition-all duration-300 relative overflow-visible shadow-2xs hover:shadow-lg`;
@@ -2716,13 +2742,11 @@ function renderWeeklyCalendar() {
             dayDiv.addEventListener('click', () => selectWeeklyDate(currentIterDate));
         }
         
-        const todayBadge = isToday ? '<span class="glow-badge-today absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 text-[8px] sm:text-[9px] z-20 font-black shadow-xs uppercase tracking-wider rounded-full bg-white dark:bg-slate-800 text-[#D11149] dark:text-rose-300 border border-rose-200 dark:border-rose-800 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#D11149] animate-pulse"></span>HOY</span>' : '';
-        const activeDot = (!visuallyDisabled && !isSelected) ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 mb-0.5 animate-pulse shadow-2xs"></span>' : (isSelected ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/90 mb-0.5 shadow-2xs"></span>' : '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-transparent mb-0.5"></span>');
+        const activeDot = (!visuallyDisabled && !isSelected && !isToday) ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 mb-0.5 animate-pulse shadow-2xs"></span>' : (isSelected ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/90 mb-0.5 shadow-2xs"></span>' : '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-transparent mb-0.5"></span>');
+        const dayNameColor = isSelected ? 'text-white/90' : (isToday ? 'text-[#D11149] font-black' : 'text-slate-400 dark:text-slate-400');
         
-        dayDiv.innerHTML = `${todayBadge}${activeDot}<span class="text-[9px] sm:text-[11px] font-black tracking-wider uppercase mb-0.5 ${isSelected ? 'text-white/90' : 'text-slate-400 dark:text-slate-400'}">${dayName}</span><span class="text-base sm:text-2xl font-black ${isSelected ? 'text-white' : 'text-slate-900 dark:text-slate-100'}">${date.getDate()}</span>`;
+        dayDiv.innerHTML = `${activeDot}<span class="text-[9px] sm:text-[11px] font-black tracking-wider uppercase mb-0.5 ${dayNameColor}">${dayName}</span>${dateNumberHtml}`;
         fragment.appendChild(dayDiv);
-    }
-    calendarDays.appendChild(fragment);
     
     // Llamar a la función para configurar las flechas de navegación
     setupWeeklyScrollArrows();
