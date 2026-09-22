@@ -212,10 +212,11 @@
         </div>
     </main>
 
-    <script src="assets/js/script.js?v=1.0.9"></script>
+    <script src="assets/js/script.js?v=1.6.0"></script>
     <script>
         let rawTurnos = [];
         let rawServicios = [];
+        let rawAlumnos = [];
         let periodDays = 30;
         let chartDaysInstance = null;
         let chartServicesInstance = null;
@@ -240,14 +241,51 @@
         function fetchStatsData() {
             Promise.all([
                 fetch('backend/obtener_agenda.php?historial=1').then(r => r.json()).catch(() => []),
-                fetch('backend/gestionar_servicios.php').then(r => r.json()).catch(() => [])
-            ]).then(([turnosData, serviciosData]) => {
+                fetch('backend/gestionar_servicios.php').then(r => r.json()).catch(() => []),
+                fetch('backend/gestionar_clientes.php').then(r => r.json()).catch(() => ({ success: false, data: [] }))
+            ]).then(([turnosData, serviciosData, alumnosData]) => {
                 rawTurnos = Array.isArray(turnosData) ? turnosData : [];
                 rawServicios = Array.isArray(serviciosData) ? serviciosData : [];
+                rawAlumnos = (alumnosData && Array.isArray(alumnosData.data)) ? alumnosData.data : [];
+                
                 processStats();
+                processAlumnosStats(rawAlumnos);
             }).catch(err => {
                 console.error('Error al cargar datos:', err);
             });
+        }
+
+        function processAlumnosStats(alumnos) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const total = alumnos.length;
+            
+            let activos = 0;
+            let sinPases = 0;
+            let vencidos = 0;
+
+            alumnos.forEach(c => {
+                const pases = parseInt(c.pases_disponibles) || 0;
+                const vDate = c.fecha_vencimiento ? c.fecha_vencimiento.substring(0, 10) : null;
+                const isVencido = vDate && vDate < todayStr;
+                
+                if (c.estado_calculado === 'vencido' || isVencido) {
+                    vencidos++;
+                } else if (c.estado_calculado === 'sin_pases' || pases <= 0) {
+                    sinPases++;
+                } else {
+                    activos++;
+                }
+            });
+
+            const statTotal = document.getElementById('statAlumnosTotal');
+            const statActivos = document.getElementById('statAlumnosActivos');
+            const statSinPases = document.getElementById('statAlumnosSinPases');
+            const statVencidos = document.getElementById('statAlumnosVencidos');
+
+            if (statTotal) statTotal.textContent = total.toLocaleString('es-AR');
+            if (statActivos) statActivos.textContent = activos.toLocaleString('es-AR');
+            if (statSinPases) statSinPases.textContent = sinPases.toLocaleString('es-AR');
+            if (statVencidos) statVencidos.textContent = vencidos.toLocaleString('es-AR');
         }
 
         function processStats() {
