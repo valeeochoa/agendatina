@@ -2638,64 +2638,89 @@ var carouselData = [
     }
 ];
 
-var currentCarouselIndex = window.currentCarouselIndex || 1;
-var planSimpleMockupInterval = null;
-var planSimpleMockupIndex = 0;
+var currentCarouselIndex = window.currentCarouselIndex || 0;
+var carouselAutoTimer = null;
+var planSimpleSubTimer = null;
 
-function stopPlanSimpleRotation() {
-    if (planSimpleMockupInterval) {
-        clearInterval(planSimpleMockupInterval);
-        planSimpleMockupInterval = null;
+function clearAllCarouselTimers() {
+    if (carouselAutoTimer) {
+        clearTimeout(carouselAutoTimer);
+        carouselAutoTimer = null;
+    }
+    if (planSimpleSubTimer) {
+        clearTimeout(planSimpleSubTimer);
+        planSimpleSubTimer = null;
     }
 }
 
-function startPlanSimpleRotation(desktopList, mobileList) {
-    stopPlanSimpleRotation();
-    if (!desktopList || desktopList.length <= 1) return;
+function scheduleNextCarouselStep() {
+    clearAllCarouselTimers();
+    const titleEl = document.getElementById('carouselTitle');
+    if (!titleEl) return; // Salir si no estamos en la landing
 
-    // Precargar imágenes para evitar parpadeos
-    desktopList.forEach(src => { const img = new Image(); img.src = src; });
-    if (mobileList) mobileList.forEach(src => { const img = new Image(); img.src = src; });
+    const item = carouselData[currentCarouselIndex];
+    if (!item) return;
 
-    planSimpleMockupInterval = setInterval(() => {
-        const mockupPc = document.getElementById('mockupDesktopImg');
-        const mockupCel = document.getElementById('mockupMobileImg');
-        if (!mockupPc && !mockupCel) return;
+    // Si el plan actual tiene múltiples mockups (ej. Plan Simple con 2 versiones de calendario)
+    if (item.mockupDesktopList && item.mockupDesktopList.length > 1) {
+        // A los 5 segundos, alternar a la versión 2 del calendario
+        planSimpleSubTimer = setTimeout(() => {
+            const mockupPc = document.getElementById('mockupDesktopImg');
+            const mockupCel = document.getElementById('mockupMobileImg');
+            if (mockupPc) mockupPc.style.opacity = '0';
+            if (mockupCel) mockupCel.style.opacity = '0';
 
-        planSimpleMockupIndex = (planSimpleMockupIndex + 1) % desktopList.length;
+            setTimeout(() => {
+                if (mockupPc) {
+                    mockupPc.src = item.mockupDesktopList[1];
+                    mockupPc.style.opacity = '1';
+                }
+                if (mockupCel && item.mockupMobileList && item.mockupMobileList[1]) {
+                    mockupCel.src = item.mockupMobileList[1];
+                    mockupCel.style.opacity = '1';
+                }
+            }, 300);
 
-        if (mockupPc) mockupPc.style.opacity = '0';
-        if (mockupCel) mockupCel.style.opacity = '0';
-
-        setTimeout(() => {
-            if (mockupPc) {
-                mockupPc.src = desktopList[planSimpleMockupIndex];
-                mockupPc.style.opacity = '1';
-            }
-            if (mockupCel && mobileList && mobileList[planSimpleMockupIndex]) {
-                mockupCel.src = mobileList[planSimpleMockupIndex];
-                mockupCel.style.opacity = '1';
-            }
-        }, 300);
-    }, 5000);
+            // A los siguientes 5 segundos, avanzar automáticamente al próximo plan
+            carouselAutoTimer = setTimeout(() => {
+                let nextIdx = (currentCarouselIndex + 1) % carouselData.length;
+                window.setCarouselIndex(nextIdx);
+            }, 5000);
+        }, 5000);
+    } else {
+        // Para planes de una sola imagen (Plan Profesional, Plan Premium), rotar al siguiente plan a los 5 segundos
+        carouselAutoTimer = setTimeout(() => {
+            let nextIdx = (currentCarouselIndex + 1) % carouselData.length;
+            window.setCarouselIndex(nextIdx);
+        }, 5000);
+    }
 }
+
+// Precargar todas las imágenes de los mockups para evitar parpadeos
+carouselData.forEach(item => {
+    if (item.mockupDesktop) { const img = new Image(); img.src = item.mockupDesktop; }
+    if (item.mockupMobile) { const img = new Image(); img.src = item.mockupMobile; }
+    if (item.mockupDesktopList) item.mockupDesktopList.forEach(src => { const img = new Image(); img.src = src; });
+    if (item.mockupMobileList) item.mockupMobileList.forEach(src => { const img = new Image(); img.src = src; });
+});
 
 window.setCarouselIndex = function(index) {
     const titleEl = document.getElementById('carouselTitle');
     if (!titleEl) return; // Salir si no estamos en la landing
 
-    stopPlanSimpleRotation();
-    planSimpleMockupIndex = 0;
+    clearAllCarouselTimers();
 
-    currentCarouselIndex = index;
-    document.getElementById('carouselTitle').textContent = carouselData[index].title;
+    currentCarouselIndex = (index + carouselData.length) % carouselData.length;
+    const item = carouselData[currentCarouselIndex];
+
+    document.getElementById('carouselTitle').textContent = item.title;
     
     const descEl = document.getElementById('carouselDesc');
-    if (descEl) descEl.textContent = carouselData[index].desc;
+    if (descEl) descEl.textContent = item.desc;
 
     const featuresEl = document.getElementById('carouselFeatures');
-    if (featuresEl && carouselData[index].features) {
-        featuresEl.innerHTML = carouselData[index].features.map(f => `
+    if (featuresEl && item.features) {
+        featuresEl.innerHTML = item.features.map(f => `
             <li class="flex items-center gap-4">
                 <span class="material-symbols-outlined text-primary">check_circle</span>
                 <span>${f}</span>
@@ -2708,33 +2733,30 @@ window.setCarouselIndex = function(index) {
     const oldPriceEl = document.getElementById('carouselOldPrice');
     const priceEl = document.getElementById('carouselPrice');
     
-    if (oldPriceEl) oldPriceEl.textContent = carouselData[index].oldPrice;
-    if (priceEl) priceEl.textContent = carouselData[index].price;
+    if (oldPriceEl) oldPriceEl.textContent = item.oldPrice;
+    if (priceEl) priceEl.textContent = item.price;
         
-    document.getElementById('carouselTagText').textContent = carouselData[index].tag;
+    const tagEl = document.getElementById('carouselTagText');
+    if (tagEl) tagEl.textContent = item.tag;
     
-    // Actualizar imágenes de los mockups (si existen en el HTML)
+    // Actualizar imágenes de los mockups con opacidad suave
     const mockupPc = document.getElementById('mockupDesktopImg');
     const mockupCel = document.getElementById('mockupMobileImg');
     if (mockupPc) {
         mockupPc.style.opacity = '1';
-        mockupPc.src = carouselData[index].mockupDesktopList ? carouselData[index].mockupDesktopList[0] : carouselData[index].mockupDesktop;
+        mockupPc.src = item.mockupDesktopList ? item.mockupDesktopList[0] : item.mockupDesktop;
     }
     if (mockupCel) {
         mockupCel.style.opacity = '1';
-        mockupCel.src = carouselData[index].mockupMobileList ? carouselData[index].mockupMobileList[0] : carouselData[index].mockupMobile;
-    }
-
-    if (carouselData[index].mockupDesktopList && carouselData[index].mockupDesktopList.length > 1) {
-        startPlanSimpleRotation(carouselData[index].mockupDesktopList, carouselData[index].mockupMobileList);
+        mockupCel.src = item.mockupMobileList ? item.mockupMobileList[0] : item.mockupMobile;
     }
     
     const carouselOldPriceContainer = document.getElementById('carouselOldPriceContainer');
     if (carouselOldPriceContainer) {
-        if (carouselData[index].showOldPrice) {
+        if (item.showOldPrice) {
             carouselOldPriceContainer.style.display = 'flex';
             const badge = carouselOldPriceContainer.querySelector('.bg-emerald-100');
-            if (badge) badge.textContent = carouselData[index].badgeText;
+            if (badge) badge.textContent = item.badgeText;
         } else {
             carouselOldPriceContainer.style.display = 'none';
         }
@@ -2742,9 +2764,9 @@ window.setCarouselIndex = function(index) {
         const perPersonEl = document.getElementById('carouselPerPerson');
         if (perPersonEl) {
             const planKeys = ['basic', 'inter', 'prem'];
-            let currentCount = window.numProfessionals[planKeys[index]];
+            let currentCount = (window.numProfessionals && window.numProfessionals[planKeys[currentCarouselIndex]]) ? window.numProfessionals[planKeys[currentCarouselIndex]] : 1;
             if (currentCount && currentCount > 1) {
-                let numericPrice = parseInt(carouselData[index].price.replace(/[^0-9]/g, ''));
+                let numericPrice = parseInt(item.price.replace(/[^0-9]/g, ''));
                 let perPerson = numericPrice / currentCount;
                 perPersonEl.textContent = `¡Queda en $${perPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} por persona!`;
                 perPersonEl.classList.remove('hidden');
@@ -2757,16 +2779,19 @@ window.setCarouselIndex = function(index) {
     const actionBtn = document.getElementById('carouselActionBtn');
     if (actionBtn) {
         const planKeys = ['basic', 'inter', 'prem'];
-        actionBtn.onclick = () => selectPlan(carouselData[index].title, planKeys[index]);
+        actionBtn.onclick = () => selectPlan(item.title, planKeys[currentCarouselIndex]);
     }
 
     const dotsContainer = document.getElementById('carouselDots');
     if (dotsContainer) {
         const dots = dotsContainer.children;
         for (let i = 0; i < dots.length; i++) {
-            dots[i].className = i === index ? 'w-8 h-2.5 rounded-full bg-primary transition-all' : 'w-2.5 h-2.5 rounded-full bg-slate-300 transition-all';
+            dots[i].className = i === currentCarouselIndex ? 'w-8 h-2.5 rounded-full bg-primary transition-all' : 'w-2.5 h-2.5 rounded-full bg-slate-300 transition-all';
         }
     }
+
+    // Programar la próxima transición automática
+    scheduleNextCarouselStep();
 };
 
 window.selectPlan = function(planName, planKey = 'inter') {
@@ -3099,6 +3124,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 nextBtn.addEventListener('click', () => {
                     setCarouselIndex(currentCarouselIndex + 1 >= carouselData.length ? 0 : currentCarouselIndex + 1);
                 });
+            }
+
+            const carouselSec = document.getElementById('visualizar');
+            if (carouselSec) {
+                carouselSec.addEventListener('mouseenter', () => clearAllCarouselTimers());
+                carouselSec.addEventListener('mouseleave', () => scheduleNextCarouselStep());
             }
         }
 });
