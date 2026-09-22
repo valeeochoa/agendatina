@@ -2590,6 +2590,8 @@ var carouselData = [
         badgeText: '-10% OFF',
         mockupDesktop: 'public/mockup_calendar_computer.png',
         mockupMobile: 'public/mockup_calendar_phone.png',
+        mockupDesktopList: ['public/mockup_calendar_computer.png', 'public/mockup_calendar2_computer.png'],
+        mockupMobileList: ['public/mockup_calendar_phone.png', 'public/mockup_calendar2_phone.png'],
         features: [
             'Calendario de reservas online 24/7',
             'Notificaciones automáticas por email',
@@ -2637,10 +2639,53 @@ var carouselData = [
 ];
 
 var currentCarouselIndex = window.currentCarouselIndex || 1;
+var planSimpleMockupInterval = null;
+var planSimpleMockupIndex = 0;
+
+function stopPlanSimpleRotation() {
+    if (planSimpleMockupInterval) {
+        clearInterval(planSimpleMockupInterval);
+        planSimpleMockupInterval = null;
+    }
+}
+
+function startPlanSimpleRotation(desktopList, mobileList) {
+    stopPlanSimpleRotation();
+    if (!desktopList || desktopList.length <= 1) return;
+
+    // Precargar imágenes para evitar parpadeos
+    desktopList.forEach(src => { const img = new Image(); img.src = src; });
+    if (mobileList) mobileList.forEach(src => { const img = new Image(); img.src = src; });
+
+    planSimpleMockupInterval = setInterval(() => {
+        const mockupPc = document.getElementById('mockupDesktopImg');
+        const mockupCel = document.getElementById('mockupMobileImg');
+        if (!mockupPc && !mockupCel) return;
+
+        planSimpleMockupIndex = (planSimpleMockupIndex + 1) % desktopList.length;
+
+        if (mockupPc) mockupPc.style.opacity = '0';
+        if (mockupCel) mockupCel.style.opacity = '0';
+
+        setTimeout(() => {
+            if (mockupPc) {
+                mockupPc.src = desktopList[planSimpleMockupIndex];
+                mockupPc.style.opacity = '1';
+            }
+            if (mockupCel && mobileList && mobileList[planSimpleMockupIndex]) {
+                mockupCel.src = mobileList[planSimpleMockupIndex];
+                mockupCel.style.opacity = '1';
+            }
+        }, 300);
+    }, 5000);
+}
 
 window.setCarouselIndex = function(index) {
     const titleEl = document.getElementById('carouselTitle');
     if (!titleEl) return; // Salir si no estamos en la landing
+
+    stopPlanSimpleRotation();
+    planSimpleMockupIndex = 0;
 
     currentCarouselIndex = index;
     document.getElementById('carouselTitle').textContent = carouselData[index].title;
@@ -2671,8 +2716,18 @@ window.setCarouselIndex = function(index) {
     // Actualizar imágenes de los mockups (si existen en el HTML)
     const mockupPc = document.getElementById('mockupDesktopImg');
     const mockupCel = document.getElementById('mockupMobileImg');
-    if(mockupPc) mockupPc.src = carouselData[index].mockupDesktop;
-    if(mockupCel) mockupCel.src = carouselData[index].mockupMobile;
+    if (mockupPc) {
+        mockupPc.style.opacity = '1';
+        mockupPc.src = carouselData[index].mockupDesktopList ? carouselData[index].mockupDesktopList[0] : carouselData[index].mockupDesktop;
+    }
+    if (mockupCel) {
+        mockupCel.style.opacity = '1';
+        mockupCel.src = carouselData[index].mockupMobileList ? carouselData[index].mockupMobileList[0] : carouselData[index].mockupMobile;
+    }
+
+    if (carouselData[index].mockupDesktopList && carouselData[index].mockupDesktopList.length > 1) {
+        startPlanSimpleRotation(carouselData[index].mockupDesktopList, carouselData[index].mockupMobileList);
+    }
     
     const carouselOldPriceContainer = document.getElementById('carouselOldPriceContainer');
     if (carouselOldPriceContainer) {

@@ -19,7 +19,12 @@
     <link rel="preload" href="assets/css/global.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript>
         <link rel="stylesheet" href="assets/css/global.css">
-        <style>.reveal-on-scroll { opacity: 1 !important; translate: 0 0 !important; }</style>
+        <style>
+            .reveal-on-scroll {
+                opacity: 1 !important;
+                translate: 0 0 !important;
+            }
+        </style>
     </noscript>
     <script>
         tailwind.config = {
@@ -42,14 +47,22 @@
         }
     </script>
     <style>
-
         @keyframes fadeInUp {
-            from { opacity: 0; translate: 0 40px; }
-            to { opacity: 1; translate: 0 0; }
+            from {
+                opacity: 0;
+                translate: 0 40px;
+            }
+
+            to {
+                opacity: 1;
+                translate: 0 0;
+            }
         }
+
         .reveal-on-scroll {
             opacity: 0;
         }
+
         .reveal-on-scroll.is-visible {
             animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
@@ -57,20 +70,24 @@
 </head>
 
 <body class="bg-[#fdfafb] text-slate-900 antialiased selection:bg-[#D11149]/10">
-    <nav id="mainNav"
+
+    <nav id="mainNav"
         class="fixed w-full z-50 bg-white/70 backdrop-blur-lg border-b border-slate-200/50 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <a href="index.html" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
                 <img src="public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
-                <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
+                <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span
+                        class="text-[#fc8712]">tina</span></span>
             </a>
             <div class="hidden md:flex gap-8 font-medium text-sm text-slate-600">
                 <a href="#inicio" class="hover:text-primary transition-colors">Inicio</a>
                 <a href="#visualizar" class="hover:text-primary transition-colors">Demo</a>
                 <a href="#planes" class="hover:text-primary transition-colors">Planes</a>
                 <a href="#contacto" onclick="resetForm()" class="hover:text-primary transition-colors">Contacto</a>
-            </div>            <div class="flex items-center gap-3">
-                <a href="registro.html" class="bg-[#fcb0b3]/20 text-[#d11149] border border-[#fcb0b3] px-4 py-2 rounded-full font-bold text-xs hover:bg-[#fcb0b3]/30 transition-all hidden sm:flex items-center gap-1">
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="registro.html"
+                    class="bg-[#fcb0b3]/20 text-[#d11149] border border-[#fcb0b3] px-4 py-2 rounded-full font-bold text-xs hover:bg-[#fcb0b3]/30 transition-all hidden sm:flex items-center gap-1">
                     <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Crear Cuenta Gratis
                 </a>
                 <a href="login.html"
@@ -81,31 +98,46 @@
         </div>
     </nav>
 
-    <section id="inicio" class="pt-32 pb-24 px-6 relative overflow-hidden flex flex-col items-center bg-gradient-to-b from-slate-50 via-orange-50/40 to-amber-50/25">
+    <section id="inicio"
+        class="pt-32 pb-24 px-6 relative overflow-hidden flex flex-col items-center bg-gradient-to-b from-slate-50 via-orange-50/40 to-amber-50/25">
         <!-- Fondo Cuadrícula y Orbes de Luz Naranja y Rosa de Marca -->
-        <div class="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:28px_28px]"></div>
-        <div class="absolute top-10 left-1/4 w-[550px] h-[380px] bg-gradient-to-tr from-[#FC8712]/25 to-[#D11149]/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
-        <div class="absolute bottom-10 right-1/4 w-[450px] h-[350px] bg-gradient-to-br from-[#FC8712]/25 to-amber-400/20 rounded-full blur-[120px] pointer-events-none z-0"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-orange-400/15 rounded-full blur-[140px] pointer-events-none z-0"></div>
+        <div
+            class="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:28px_28px]">
+        </div>
+        <div
+            class="absolute top-10 left-1/4 w-[550px] h-[380px] bg-gradient-to-tr from-[#FC8712]/25 to-[#D11149]/20 rounded-full blur-[120px] pointer-events-none z-0">
+        </div>
+        <div
+            class="absolute bottom-10 right-1/4 w-[450px] h-[350px] bg-gradient-to-br from-[#FC8712]/25 to-amber-400/20 rounded-full blur-[120px] pointer-events-none z-0">
+        </div>
+        <div
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-orange-400/15 rounded-full blur-[140px] pointer-events-none z-0">
+        </div>
 
         <div class="max-w-5xl mx-auto text-center relative z-10 mt-6 reveal-on-scroll">
-            <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/90 backdrop-blur-md border border-orange-200 text-slate-800 font-extrabold text-xs sm:text-sm mb-8 shadow-lg shadow-orange-500/5 hover:scale-[1.02] transition-transform">
+            <div
+                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/90 backdrop-blur-md border border-orange-200 text-slate-800 font-extrabold text-xs sm:text-sm mb-8 shadow-lg shadow-orange-500/5 hover:scale-[1.02] transition-transform">
                 <span class="flex h-2.5 w-2.5 relative">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                 </span>
                 <span>El sistema de gestión de turnos inteligente que potencia tu negocio 24/7</span>
             </div>
-            
-            <h1 class="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-8 text-slate-900 font-headline">
+
+            <h1
+                class="text-5xl sm:text-6xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-8 text-slate-900 font-headline">
                 Tu agenda bajo control, <br />
-                <span class="bg-clip-text text-transparent bg-gradient-to-r from-[#D11149] via-[#FC8712] to-[#D11149] animate-gradient">100% automatizada</span>
+                <span
+                    class="bg-clip-text text-transparent bg-gradient-to-r from-[#D11149] via-[#FC8712] to-[#D11149] animate-gradient">100%
+                    automatizada</span>
             </h1>
-            
+
             <p class="text-lg md:text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed font-medium">
-                Ofrecé a tus clientes una experiencia de reserva profesional, simple y rápida. Ahorrá horas de mensajes de WhatsApp y gestioná tus ingresos.
+                Ofrecé a tus clientes una experiencia de reserva profesional, simple y rápida. Ahorrá horas de mensajes
+                de WhatsApp y gestioná tus ingresos.
             </p>
-            
+
             <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
                 <a href="registro.html"
                     class="bg-gradient-to-r from-[#D11149] via-[#e21a56] to-[#FC8712] text-white px-9 py-4 rounded-2xl font-extrabold text-base sm:text-lg shadow-xl shadow-[#D11149]/30 hover:shadow-2xl hover:shadow-[#D11149]/40 hover:-translate-y-1 active:scale-95 transition-all flex items-center gap-2.5">
@@ -121,68 +153,32 @@
                 </a>
             </div>
 
-            <div class="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100/90 via-amber-100/80 to-orange-100/90 border border-orange-300 px-5 py-2 rounded-full text-xs sm:text-sm font-extrabold text-[#FC8712] shadow-sm shadow-orange-500/10">
+            <div
+                class="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100/90 via-amber-100/80 to-orange-100/90 border border-orange-300 px-5 py-2 rounded-full text-xs sm:text-sm font-extrabold text-[#FC8712] shadow-sm shadow-orange-500/10">
                 <span class="material-symbols-outlined text-base">workspace_premium</span>
-                <span>¡Todos los planes incluyen <strong class="text-[#D11149] font-black"><span class="trial-days-display">30</span> días de prueba GRATIS</strong>!</span>
+                <span>¡Todos los planes incluyen <strong class="text-[#D11149] font-black"><span
+                            class="trial-days-display">30</span> días de prueba GRATIS</strong>!</span>
             </div>
 
-            <!-- Hero Apple Device Mockup Showcase (MacBook Pro + iPhone Pro) -->
-            <div class="mt-14 relative w-full max-w-5xl mx-auto px-2">
-                <div class="relative group">
-                    <!-- MacBook Pro Body -->
-                    <div class="relative w-full mx-auto">
-                        <!-- Pantalla / Tapa de MacBook (Lid & Screen) -->
-                        <div class="relative w-full rounded-t-[1.3rem] sm:rounded-t-[1.8rem] bg-[#161618] p-2 sm:p-3 pb-0 border-t border-x border-[#333336] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/10">
-                            <!-- Cámara FaceTime / Notch superior centrado -->
-                            <div class="absolute top-0.5 sm:top-1 left-1/2 -translate-x-1/2 w-12 sm:w-16 h-2 sm:h-3 bg-[#161618] rounded-b-md flex items-center justify-center z-20">
-                                <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-[#0a0a0f] ring-1 ring-slate-700/80 flex items-center justify-center">
-                                    <div class="w-0.5 h-0.5 rounded-full bg-blue-950"></div>
-                                </div>
-                            </div>
-                            <!-- Pantalla Liquid Retina -->
-                            <div class="rounded-t-lg sm:rounded-t-xl overflow-hidden bg-black shadow-inner">
-                                <img src="public/mockup_calendar_computer.png" alt="Plataforma Agendatina en MacBook" class="w-full h-auto object-cover">
-                            </div>
-                        </div>
-                        <!-- Base de aluminio / Chasis inferior con muesca de apertura -->
-                        <div class="relative w-[103%] -left-[1.5%] h-3 sm:h-4.5 bg-gradient-to-b from-[#2d2d31] via-[#1e1e21] to-[#121214] rounded-b-xl sm:rounded-b-2xl border-t border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4)] flex items-start justify-center">
-                            <div class="w-20 sm:w-32 h-1.5 sm:h-2 bg-[#0d0d0f] rounded-b-lg border-b border-white/10 shadow-inner"></div>
-                        </div>
-                        <!-- Pies de goma del MacBook -->
-                        <div class="flex justify-between w-[92%] mx-auto -mt-0.5 px-4 opacity-80">
-                            <div class="w-8 sm:w-12 h-1 bg-[#0a0a0c] rounded-full"></div>
-                            <div class="w-8 sm:w-12 h-1 bg-[#0a0a0c] rounded-full"></div>
-                        </div>
-                    </div>
-
-                    <!-- iPhone Pro Flotante con Dynamic Island y Titanio -->
-                    <div class="absolute -bottom-6 -right-2 sm:-bottom-8 sm:right-2 w-32 sm:w-44 md:w-52 rounded-[2.2rem] sm:rounded-[2.8rem] p-1.5 sm:p-2.5 bg-gradient-to-b from-[#3a3a3d] via-[#1c1c1e] to-[#0a0a0c] border border-slate-600/50 shadow-[0_25px_60px_-10px_rgba(0,0,0,0.85)] ring-1 ring-white/25 hover:scale-105 transition-all duration-300 z-30">
-                        <!-- Dynamic Island -->
-                        <div class="absolute top-2.5 sm:top-4 left-1/2 -translate-x-1/2 w-14 sm:w-20 h-3 sm:h-4 bg-black rounded-full z-30 flex items-center justify-between px-1.5 sm:px-2 shadow-md">
-                            <div class="w-1.5 h-1.5 rounded-full bg-[#0a0a14] ring-1 ring-slate-800"></div>
-                            <div class="w-1 h-1 rounded-full bg-[#08182b]"></div>
-                        </div>
-                        <!-- Pantalla Super Retina -->
-                        <div class="rounded-[1.7rem] sm:rounded-[2.2rem] overflow-hidden bg-black shadow-inner">
-                            <img src="public/mockup_calendar_phone.png" alt="Agendatina en iPhone" class="w-full h-auto object-cover">
-                        </div>
-                        <!-- iOS Home Indicator -->
-                        <div class="absolute bottom-2 sm:bottom-3 left-1/2 -translate-x-1/2 w-14 sm:w-20 h-0.5 sm:h-1 bg-white/40 rounded-full z-30 pointer-events-none"></div>
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
     <!-- Características Destacadas / Pilares de Agendatina -->
-    <section class="py-20 bg-gradient-to-b from-[#fffbf8] via-orange-50/50 to-amber-50/30 border-y border-orange-200/60 relative overflow-hidden">
+    <section
+        class="py-20 bg-gradient-to-b from-[#fffbf8] via-orange-50/50 to-amber-50/30 border-y border-orange-200/60 relative overflow-hidden">
         <!-- Destellos radiales de luz naranja de marca (#FC8712 y #D11149) -->
-        <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#FC8712]/20 rounded-full blur-[120px] pointer-events-none"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-amber-400/15 rounded-full blur-[140px] pointer-events-none"></div>
-        <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-[#FC8712]/25 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#FC8712]/20 rounded-full blur-[120px] pointer-events-none">
+        </div>
+        <div
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-amber-400/15 rounded-full blur-[140px] pointer-events-none">
+        </div>
+        <div
+            class="absolute -bottom-24 -right-24 w-96 h-96 bg-[#FC8712]/25 rounded-full blur-[120px] pointer-events-none">
+        </div>
 
         <div class="max-w-7xl mx-auto px-6 reveal-on-scroll relative z-10">
             <div class="text-center max-w-3xl mx-auto mb-16">
-                <span class="bg-gradient-to-r from-orange-100 to-amber-100 text-[#FC8712] border border-orange-300/80 text-xs font-black uppercase px-4 py-1.5 rounded-full tracking-wider shadow-xs inline-block mb-3">
+                <span
+                    class="bg-gradient-to-r from-orange-100 to-amber-100 text-[#FC8712] border border-orange-300/80 text-xs font-black uppercase px-4 py-1.5 rounded-full tracking-wider shadow-xs inline-block mb-3">
                     ¿Por qué elegir Agendatina?
                 </span>
                 <h2 class="font-headline text-3xl sm:text-4xl font-extrabold text-slate-900 mb-4">
@@ -195,69 +191,90 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Card 1: Automatización 24/7 -->
-                <div class="bg-white/90 backdrop-blur-md p-7 rounded-3xl border border-rose-100 shadow-md hover:shadow-xl hover:border-[#D11149]/40 hover:-translate-y-1.5 transition-all group flex flex-col justify-between">
+                <div
+                    class="bg-white/90 backdrop-blur-md p-7 rounded-3xl border border-rose-100 shadow-md hover:shadow-xl hover:border-[#D11149]/40 hover:-translate-y-1.5 transition-all group flex flex-col justify-between">
                     <div>
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#D11149] to-[#FC8712] text-white flex items-center justify-center mb-6 shadow-md shadow-[#D11149]/20 group-hover:scale-110 transition-transform">
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#D11149] to-[#FC8712] text-white flex items-center justify-center mb-6 shadow-md shadow-[#D11149]/20 group-hover:scale-110 transition-transform">
                             <span class="material-symbols-outlined text-3xl">event_available</span>
                         </div>
                         <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display">Automatización 24/7</h3>
                         <p class="text-xs text-slate-600 leading-relaxed font-medium">
-                            Tus clientes agendan sus turnos solos desde su celular en cualquier horario, sin esperas ni mensajes repetitivos.
+                            Tus clientes agendan sus turnos solos desde su celular en cualquier horario, sin esperas ni
+                            mensajes repetitivos.
                         </p>
                     </div>
-                    <div class="mt-6 pt-4 border-t border-rose-100/60 flex items-center gap-1.5 text-xs font-bold text-[#D11149]">
-                        <span>Turnero siempre activo</span> <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    <div
+                        class="mt-6 pt-4 border-t border-rose-100/60 flex items-center gap-1.5 text-xs font-bold text-[#D11149]">
+                        <span>Turnero siempre activo</span> <span
+                            class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
                     </div>
                 </div>
 
                 <!-- Card 2: Cupos y Alumnos (Redirección directa a alumno.html) -->
-                <div onclick="window.location.href='alumno.html'" class="bg-gradient-to-br from-orange-50/90 via-white to-rose-50/40 backdrop-blur-md p-7 rounded-3xl border border-orange-200/90 hover:border-[#FC8712] shadow-md hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-1.5 transition-all group flex flex-col justify-between cursor-pointer">
+                <div onclick="window.location.href='alumno.html'"
+                    class="bg-gradient-to-br from-orange-50/90 via-white to-rose-50/40 backdrop-blur-md p-7 rounded-3xl border border-orange-200/90 hover:border-[#FC8712] shadow-md hover:shadow-xl hover:shadow-orange-500/10 hover:-translate-y-1.5 transition-all group flex flex-col justify-between cursor-pointer">
                     <div>
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FC8712] to-amber-500 text-white flex items-center justify-center mb-6 shadow-md shadow-[#FC8712]/20 group-hover:scale-110 transition-transform">
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FC8712] to-amber-500 text-white flex items-center justify-center mb-6 shadow-md shadow-[#FC8712]/20 group-hover:scale-110 transition-transform">
                             <span class="material-symbols-outlined text-3xl">groups</span>
                         </div>
                         <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display flex items-center gap-2">
                             Cupos y Alumnos
-                            <span class="text-[10px] uppercase font-black px-2 py-0.5 rounded-md bg-orange-100 text-orange-700 border border-orange-200">Portal</span>
+                            <span
+                                class="text-[10px] uppercase font-black px-2 py-0.5 rounded-md bg-orange-100 text-orange-700 border border-orange-200">Portal</span>
                         </h3>
                         <p class="text-xs text-slate-600 leading-relaxed font-medium">
-                            Administrá academias, pilates y clases grupales con control automático de pases, créditos y vencimientos de alumnos.
+                            Administrá academias, pilates y clases grupales con control automático de pases, créditos y
+                            vencimientos de alumnos.
                         </p>
                     </div>
-                    <div class="mt-6 pt-4 border-t border-orange-100 flex items-center justify-between text-xs font-bold text-[#FC8712]">
-                        <span>Ingresar al Portal de Alumnos</span> <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    <div
+                        class="mt-6 pt-4 border-t border-orange-100 flex items-center justify-between text-xs font-bold text-[#FC8712]">
+                        <span>Ingresar al Portal de Alumnos</span> <span
+                            class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
                     </div>
                 </div>
 
                 <!-- Card 3: Métricas y Reportes -->
-                <div class="bg-white/90 backdrop-blur-md p-7 rounded-3xl border border-purple-100/90 shadow-md hover:shadow-xl hover:border-purple-300/60 hover:-translate-y-1.5 transition-all group flex flex-col justify-between">
+                <div
+                    class="bg-white/90 backdrop-blur-md p-7 rounded-3xl border border-purple-100/90 shadow-md hover:shadow-xl hover:border-purple-300/60 hover:-translate-y-1.5 transition-all group flex flex-col justify-between">
                     <div>
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white flex items-center justify-center mb-6 shadow-md shadow-purple-600/20 group-hover:scale-110 transition-transform">
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 text-white flex items-center justify-center mb-6 shadow-md shadow-purple-600/20 group-hover:scale-110 transition-transform">
                             <span class="material-symbols-outlined text-3xl">insights</span>
                         </div>
                         <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display">Métricas y Reportes</h3>
                         <p class="text-xs text-slate-600 leading-relaxed font-medium">
-                            Conocé en tiempo real tus servicios más solicitados, ingresos estimados y la evolución de demanda mensual.
+                            Conocé en tiempo real tus servicios más solicitados, ingresos estimados y la evolución de
+                            demanda mensual.
                         </p>
                     </div>
-                    <div class="mt-6 pt-4 border-t border-purple-100/60 flex items-center gap-1.5 text-xs font-bold text-purple-600">
-                        <span>Estadísticas claras</span> <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    <div
+                        class="mt-6 pt-4 border-t border-purple-100/60 flex items-center gap-1.5 text-xs font-bold text-purple-600">
+                        <span>Estadísticas claras</span> <span
+                            class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
                     </div>
                 </div>
 
                 <!-- Card 4: Página Web Propia -->
-                <div class="bg-white/90 backdrop-blur-md p-7 rounded-3xl border border-emerald-100/90 shadow-md hover:shadow-xl hover:border-emerald-300/60 hover:-translate-y-1.5 transition-all group flex flex-col justify-between">
+                <div
+                    class="bg-white/90 backdrop-blur-md p-7 rounded-3xl border border-emerald-100/90 shadow-md hover:shadow-xl hover:border-emerald-300/60 hover:-translate-y-1.5 transition-all group flex flex-col justify-between">
                     <div>
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center mb-6 shadow-md shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center mb-6 shadow-md shadow-emerald-500/20 group-hover:scale-110 transition-transform">
                             <span class="material-symbols-outlined text-3xl">language</span>
                         </div>
                         <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display">Página Web Propia</h3>
                         <p class="text-xs text-slate-600 leading-relaxed font-medium">
-                            Tu propia presencia digital personalizada (`mi-web.html`) adaptada con los colores corporativos de tu marca.
+                            Tu propia presencia digital personalizada (`mi-web.html`) adaptada con los colores
+                            corporativos de tu marca.
                         </p>
                     </div>
-                    <div class="mt-6 pt-4 border-t border-emerald-100/60 flex items-center gap-1.5 text-xs font-bold text-emerald-600">
-                        <span>Link personalizado</span> <span class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    <div
+                        class="mt-6 pt-4 border-t border-emerald-100/60 flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+                        <span>Link personalizado</span> <span
+                            class="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
                     </div>
                 </div>
             </div>
@@ -265,10 +282,13 @@
     </section>
 
     <!-- Visualización del Panel -->
-    <section id="visualizar" class="py-24 bg-gradient-to-b from-amber-50/40 via-orange-50/30 to-white overflow-hidden relative border-b border-orange-100/60">
+    <section id="visualizar"
+        class="py-24 bg-gradient-to-b from-amber-50/40 via-orange-50/30 to-white overflow-hidden relative border-b border-orange-100/60">
         <!-- Destellos de luz en tonos naranja y ámbar -->
-        <div class="absolute top-10 right-10 w-96 h-96 bg-[#FC8712]/15 rounded-full blur-[120px] pointer-events-none"></div>
-        <div class="absolute bottom-10 left-10 w-96 h-96 bg-amber-400/15 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="absolute top-10 right-10 w-96 h-96 bg-[#FC8712]/15 rounded-full blur-[120px] pointer-events-none">
+        </div>
+        <div class="absolute bottom-10 left-10 w-96 h-96 bg-amber-400/15 rounded-full blur-[120px] pointer-events-none">
+        </div>
 
         <div class="max-w-7xl mx-auto px-8 reveal-on-scroll relative z-10">
             <div class="mb-16">
@@ -281,25 +301,36 @@
                     id="carouselContent">
 
                     <div class="relative">
-                        <div class="absolute -inset-10 bg-gradient-to-r from-[#FC8712]/20 to-[#D11149]/20 opacity-30 blur-[100px] rounded-full pointer-events-none"></div>
+                        <div
+                            class="absolute -inset-10 bg-gradient-to-r from-[#FC8712]/20 to-[#D11149]/20 opacity-30 blur-[100px] rounded-full pointer-events-none">
+                        </div>
                         <div class="relative flex items-center justify-center lg:justify-start w-full">
                             <!-- Contenedor Principal de Mockups Interactivos del Carrusel estilo MacBook Pro + iPhone Pro -->
                             <div class="relative w-full max-w-[540px]">
                                 <!-- MacBook Pro -->
                                 <div class="relative w-full">
                                     <!-- Pantalla Lid -->
-                                    <div class="relative w-full rounded-t-[1.2rem] sm:rounded-t-[1.6rem] bg-[#161618] p-1.5 sm:p-2.5 pb-0 border-t border-x border-[#333336] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/10 group-hover:shadow-orange-500/20 transition-all duration-300">
+                                    <div
+                                        class="relative w-full rounded-t-[1.2rem] sm:rounded-t-[1.6rem] bg-[#161618] p-1.5 sm:p-2.5 pb-0 border-t border-x border-[#333336] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] ring-1 ring-white/10 group-hover:shadow-orange-500/20 transition-all duration-300">
                                         <!-- Notch cámara FaceTime -->
-                                        <div class="absolute top-0.5 sm:top-1 left-1/2 -translate-x-1/2 w-10 sm:w-14 h-1.5 sm:h-2.5 bg-[#161618] rounded-b-md flex items-center justify-center z-20">
-                                            <div class="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-[#0a0a0f] ring-1 ring-slate-700/80"></div>
+                                        <div
+                                            class="absolute top-0.5 sm:top-1 left-1/2 -translate-x-1/2 w-10 sm:w-14 h-1.5 sm:h-2.5 bg-[#161618] rounded-b-md flex items-center justify-center z-20">
+                                            <div
+                                                class="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-[#0a0a0f] ring-1 ring-slate-700/80">
+                                            </div>
                                         </div>
                                         <div class="rounded-t-lg sm:rounded-t-xl overflow-hidden bg-black shadow-inner">
-                                            <img id="mockupDesktopImg" src="public/mockup_miagenda_computer.png" alt="Captura en MacBook" class="w-full h-auto object-cover transition-opacity duration-300">
+                                            <img id="mockupDesktopImg" src="public/mockup_miagenda_computer.png"
+                                                alt="Captura en MacBook"
+                                                class="w-full h-auto object-cover transition-opacity duration-300">
                                         </div>
                                     </div>
                                     <!-- Base Chasis de aluminio con muesca -->
-                                    <div class="relative w-[103%] -left-[1.5%] h-2.5 sm:h-3.5 bg-gradient-to-b from-[#2d2d31] via-[#1e1e21] to-[#121214] rounded-b-xl border-t border-white/20 shadow-[0_15px_30px_rgba(0,0,0,0.4)] flex items-start justify-center">
-                                        <div class="w-16 sm:w-22 h-1 sm:h-1.5 bg-[#0d0d0f] rounded-b-md border-b border-white/10 shadow-inner"></div>
+                                    <div
+                                        class="relative w-[103%] -left-[1.5%] h-2.5 sm:h-3.5 bg-gradient-to-b from-[#2d2d31] via-[#1e1e21] to-[#121214] rounded-b-xl border-t border-white/20 shadow-[0_15px_30px_rgba(0,0,0,0.4)] flex items-start justify-center">
+                                        <div
+                                            class="w-16 sm:w-22 h-1 sm:h-1.5 bg-[#0d0d0f] rounded-b-md border-b border-white/10 shadow-inner">
+                                        </div>
                                     </div>
                                     <div class="flex justify-between w-[92%] mx-auto -mt-0.5 px-3 opacity-80">
                                         <div class="w-6 sm:w-10 h-0.5 sm:h-1 bg-[#0a0a0c] rounded-full"></div>
@@ -308,17 +339,24 @@
                                 </div>
 
                                 <!-- iPhone Pro Flotante con Dynamic Island y Titanio -->
-                                <div class="absolute -bottom-5 -right-2 sm:-bottom-7 sm:-right-4 w-28 sm:w-36 md:w-42 rounded-[2rem] sm:rounded-[2.5rem] p-1.5 sm:p-2 bg-gradient-to-b from-[#3a3a3d] via-[#1c1c1e] to-[#0a0a0c] border border-slate-600/50 shadow-[0_25px_60px_-10px_rgba(0,0,0,0.85)] ring-1 ring-white/25 group hover:scale-105 transition-all duration-300 z-30">
+                                <div
+                                    class="absolute -bottom-5 -right-2 sm:-bottom-7 sm:-right-4 w-28 sm:w-36 md:w-42 rounded-[2rem] sm:rounded-[2.5rem] p-1.5 sm:p-2 bg-gradient-to-b from-[#3a3a3d] via-[#1c1c1e] to-[#0a0a0c] border border-slate-600/50 shadow-[0_25px_60px_-10px_rgba(0,0,0,0.85)] ring-1 ring-white/25 group hover:scale-105 transition-all duration-300 z-30">
                                     <!-- Dynamic Island -->
-                                    <div class="absolute top-2 sm:top-3 left-1/2 -translate-x-1/2 w-10 sm:w-14 h-2.5 sm:h-3 bg-black rounded-full z-30 flex items-center justify-between px-1.5 shadow-md">
+                                    <div
+                                        class="absolute top-2 sm:top-3 left-1/2 -translate-x-1/2 w-10 sm:w-14 h-2.5 sm:h-3 bg-black rounded-full z-30 flex items-center justify-between px-1.5 shadow-md">
                                         <div class="w-1 h-1 rounded-full bg-[#0a0a14] ring-1 ring-slate-800"></div>
                                         <div class="w-0.5 h-0.5 rounded-full bg-[#08182b]"></div>
                                     </div>
-                                    <div class="rounded-[1.6rem] sm:rounded-[2rem] overflow-hidden bg-black shadow-inner">
-                                        <img id="mockupMobileImg" src="public/mockup_miagenda_phone.png" alt="Captura en iPhone" class="w-full h-auto object-cover transition-opacity duration-300">
+                                    <div
+                                        class="rounded-[1.6rem] sm:rounded-[2rem] overflow-hidden bg-black shadow-inner">
+                                        <img id="mockupMobileImg" src="public/mockup_miagenda_phone.png"
+                                            alt="Captura en iPhone"
+                                            class="w-full h-auto object-cover transition-opacity duration-300">
                                     </div>
                                     <!-- Home bar -->
-                                    <div class="absolute bottom-1.5 sm:bottom-2 left-1/2 -translate-x-1/2 w-10 sm:w-16 h-0.5 bg-white/40 rounded-full z-30 pointer-events-none"></div>
+                                    <div
+                                        class="absolute bottom-1.5 sm:bottom-2 left-1/2 -translate-x-1/2 w-10 sm:w-16 h-0.5 bg-white/40 rounded-full z-30 pointer-events-none">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -341,36 +379,43 @@
                         <h3 class="font-headline text-5xl font-extrabold text-slate-900 leading-tight"
                             id="carouselTitle">Plan Profesional</h3>
                         <p class="text-xl text-slate-600 leading-relaxed" id="carouselDesc">
-                            Sistema de turnos con agenda virtual para administrar todas tus reservas desde un solo lugar.
+                            Sistema de turnos con agenda virtual para administrar todas tus reservas desde un solo
+                            lugar.
                         </p>
                         <ul class="space-y-4 font-medium text-slate-700" id="carouselFeatures">
                             <li class="flex items-center gap-4"><span
-                                    class="material-symbols-outlined text-primary">check_circle</span> Calendario de turnos online</li>
+                                    class="material-symbols-outlined text-primary">check_circle</span> Calendario de
+                                turnos online</li>
                             <li class="flex items-center gap-4"><span
-                                    class="material-symbols-outlined text-primary">check_circle</span> Agenda virtual con listado de reservas</li>
+                                    class="material-symbols-outlined text-primary">check_circle</span> Agenda virtual
+                                con listado de reservas</li>
                             <li class="flex items-center gap-4"><span
-                                    class="material-symbols-outlined text-primary">check_circle</span> Visualización de turnos confirmados y pendientes</li>
+                                    class="material-symbols-outlined text-primary">check_circle</span> Visualización de
+                                turnos confirmados y pendientes</li>
                         </ul>
                         <div class="flex items-center gap-8 pt-4">
-                        <div class="flex flex-col-reverse sm:flex-row items-center sm:items-end justify-start gap-6 pt-4 w-full">
-                            <button id="carouselActionBtn"
-                                class="w-full sm:w-auto px-8 py-4 rounded-xl signature-glow text-white font-bold text-lg hover:shadow-xl transition-all"
-                                onclick="selectPlan('Plan Profesional')">Elegir este plan</button>
+                            <div
+                                class="flex flex-col-reverse sm:flex-row items-center sm:items-end justify-start gap-6 pt-4 w-full">
+                                <button id="carouselActionBtn"
+                                    class="w-full sm:w-auto px-8 py-4 rounded-xl signature-glow text-white font-bold text-lg hover:shadow-xl transition-all"
+                                    onclick="selectPlan('Plan Profesional')">Elegir este plan</button>
 
-                            <div class="flex flex-col items-center sm:items-start">
-                                <div class="flex items-center gap-2 mb-1" id="carouselOldPriceContainer">
-                                    <span class="text-sm text-slate-400 line-through font-medium"
-                                        id="carouselOldPrice">$11.111</span>
-                                    <span
-                                        class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold whitespace-nowrap">-10% OFF</span>
+                                <div class="flex flex-col items-center sm:items-start">
+                                    <div class="flex items-center gap-2 mb-1" id="carouselOldPriceContainer">
+                                        <span class="text-sm text-slate-400 line-through font-medium"
+                                            id="carouselOldPrice">$11.111</span>
+                                        <span
+                                            class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold whitespace-nowrap">-10%
+                                            OFF</span>
+                                    </div>
+                                    <div class="text-3xl font-bold text-slate-800">
+                                        <span id="carouselPrice">$10.000</span><span
+                                            class="text-sm font-normal text-slate-500 ml-1">/mes</span>
+                                    </div>
+                                    <span id="carouselPerPerson"
+                                        class="text-xs font-bold text-primary mt-1 hidden"></span>
                                 </div>
-                                <div class="text-3xl font-bold text-slate-800">
-                                    <span id="carouselPrice">$10.000</span><span
-                                        class="text-sm font-normal text-slate-500 ml-1">/mes</span>
-                                </div>
-                                <span id="carouselPerPerson" class="text-xs font-bold text-primary mt-1 hidden"></span>
                             </div>
-                        </div>
                         </div>
                     </div>
                 </div>
@@ -404,9 +449,12 @@
         </div>
     </section>
     <!-- Planes -->
-    <section id="planes" class="py-24 bg-gradient-to-b from-white via-orange-50/40 to-amber-50/20 px-6 border-t border-orange-100/60 relative overflow-hidden">
-        <div class="absolute top-10 right-10 w-96 h-96 bg-[#FC8712]/15 rounded-full blur-[120px] pointer-events-none"></div>
-        <div class="absolute bottom-20 left-10 w-96 h-96 bg-amber-400/15 rounded-full blur-[120px] pointer-events-none"></div>
+    <section id="planes"
+        class="py-24 bg-gradient-to-b from-white via-orange-50/40 to-amber-50/20 px-6 border-t border-orange-100/60 relative overflow-hidden">
+        <div class="absolute top-10 right-10 w-96 h-96 bg-[#FC8712]/15 rounded-full blur-[120px] pointer-events-none">
+        </div>
+        <div class="absolute bottom-20 left-10 w-96 h-96 bg-amber-400/15 rounded-full blur-[120px] pointer-events-none">
+        </div>
 
         <div class="max-w-7xl mx-auto relative z-10">
             <!-- Header -->
@@ -415,7 +463,8 @@
                 <p class="text-slate-500 text-lg max-w-2xl mx-auto mb-8">
                     Sin comisiones por reserva. Un precio fijo mensual.
                     <br>
-                    <span class="font-bold text-[#D11149]">Probá cualquier plan GRATIS por <span class="trial-days-display font-extrabold">30</span> días</span>
+                    <span class="font-bold text-[#D11149]">Probá cualquier plan GRATIS por <span
+                            class="trial-days-display font-extrabold">30</span> días</span>
                 </p>
             </div>
             <!-- Planes -->
@@ -430,19 +479,23 @@
                     <p class="text-slate-500 text-sm mb-6">
                         Calendario online para que tus clientes puedan solicitar turnos de forma rápida y organizada.
                     </p>
-                    
-                    <div class="mb-5 bg-white border border-orange-100 p-3 rounded-2xl flex items-center justify-between shadow-sm">
+
+                    <div
+                        class="mb-5 bg-white border border-orange-100 p-3 rounded-2xl flex items-center justify-between shadow-sm">
                         <span class="text-sm font-semibold text-slate-600">Profesionales:</span>
                         <div class="flex items-center gap-3">
-                            <button onclick="window.updateProfCount(-1, 'basic')" class="w-8 h-8 flex items-center justify-center bg-orange-50 hover:bg-orange-100 text-slate-600 rounded-lg transition-colors font-bold shadow-sm">-</button>
+                            <button onclick="window.updateProfCount(-1, 'basic')"
+                                class="w-8 h-8 flex items-center justify-center bg-orange-50 hover:bg-orange-100 text-slate-600 rounded-lg transition-colors font-bold shadow-sm">-</button>
                             <span id="profCountDisplay_basic" class="font-black text-slate-800 w-4 text-center">1</span>
-                            <button onclick="window.updateProfCount(1, 'basic')" class="w-8 h-8 flex items-center justify-center bg-orange-50 hover:bg-orange-100 text-slate-600 rounded-lg transition-colors font-bold shadow-sm">+</button>
+                            <button onclick="window.updateProfCount(1, 'basic')"
+                                class="w-8 h-8 flex items-center justify-center bg-orange-50 hover:bg-orange-100 text-slate-600 rounded-lg transition-colors font-bold shadow-sm">+</button>
                         </div>
                     </div>
-                    
+
                     <div class="flex flex-col mb-8">
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="text-sm text-slate-400 line-through font-medium" id="priceBasicOld">$8.889</span>
+                            <span class="text-sm text-slate-400 line-through font-medium"
+                                id="priceBasicOld">$8.889</span>
                             <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-10%
                                 OFF</span>
                         </div>
@@ -510,19 +563,23 @@
                     <p class="text-white/80 text-sm mb-6">
                         Sistema de turnos con agenda virtual y página web propia para administrar tus reservas.
                     </p>
-                    
-                    <div class="mb-5 bg-white/10 border border-white/20 p-3 rounded-2xl flex items-center justify-between shadow-sm">
+
+                    <div
+                        class="mb-5 bg-white/10 border border-white/20 p-3 rounded-2xl flex items-center justify-between shadow-sm">
                         <span class="text-sm font-semibold text-white/90">Profesionales:</span>
                         <div class="flex items-center gap-3">
-                            <button onclick="window.updateProfCount(-1, 'inter')" class="w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors font-bold shadow-sm">-</button>
+                            <button onclick="window.updateProfCount(-1, 'inter')"
+                                class="w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors font-bold shadow-sm">-</button>
                             <span id="profCountDisplay_inter" class="font-black text-white w-4 text-center">1</span>
-                            <button onclick="window.updateProfCount(1, 'inter')" class="w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors font-bold shadow-sm">+</button>
+                            <button onclick="window.updateProfCount(1, 'inter')"
+                                class="w-8 h-8 flex items-center justify-center bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors font-bold shadow-sm">+</button>
                         </div>
                     </div>
 
                     <div class="flex flex-col mb-8">
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="text-sm text-white/60 line-through font-medium" id="priceInterOld">$11.111</span>
+                            <span class="text-sm text-white/60 line-through font-medium"
+                                id="priceInterOld">$11.111</span>
                             <span
                                 class="bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 px-2 py-0.5 rounded-md text-xs font-bold">-10%
                                 OFF</span>
@@ -569,7 +626,9 @@
                             <span class="material-symbols-outlined text-emerald-300 text-sm">chat</span>
                             <div class="leading-tight">
                                 <span class="block">Notificaciones por WhatsApp:</span>
-                                <strong id="wppQuotaDisplay_inter" class="text-xs font-black text-emerald-200 bg-emerald-400/20 px-2 py-0.5 rounded-md border border-emerald-400/30 inline-block mt-0.5">50 WPP/mes total negocio</strong>
+                                <strong id="wppQuotaDisplay_inter"
+                                    class="text-xs font-black text-emerald-200 bg-emerald-400/20 px-2 py-0.5 rounded-md border border-emerald-400/30 inline-block mt-0.5">50
+                                    WPP/mes total negocio</strong>
                             </div>
                         </li>
                     </ul>
@@ -591,19 +650,23 @@
                     <p class="text-slate-500 text-sm mb-6">
                         Plataforma completa con turnero, página web propia, portal del alumno y módulo de cupos.
                     </p>
-                    
-                    <div class="mb-5 bg-white border border-slate-200 p-3 rounded-2xl flex items-center justify-between shadow-sm">
+
+                    <div
+                        class="mb-5 bg-white border border-slate-200 p-3 rounded-2xl flex items-center justify-between shadow-sm">
                         <span class="text-sm font-semibold text-slate-600">Profesionales:</span>
                         <div class="flex items-center gap-3">
-                            <button onclick="window.updateProfCount(-1, 'prem')" class="w-8 h-8 flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg transition-colors font-bold shadow-sm">-</button>
+                            <button onclick="window.updateProfCount(-1, 'prem')"
+                                class="w-8 h-8 flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg transition-colors font-bold shadow-sm">-</button>
                             <span id="profCountDisplay_prem" class="font-black text-slate-800 w-4 text-center">1</span>
-                            <button onclick="window.updateProfCount(1, 'prem')" class="w-8 h-8 flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg transition-colors font-bold shadow-sm">+</button>
+                            <button onclick="window.updateProfCount(1, 'prem')"
+                                class="w-8 h-8 flex items-center justify-center bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-lg transition-colors font-bold shadow-sm">+</button>
                         </div>
                     </div>
 
                     <div class="flex flex-col mb-8">
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="text-sm text-slate-400 line-through font-medium" id="pricePremOld">$16.667</span>
+                            <span class="text-sm text-slate-400 line-through font-medium"
+                                id="pricePremOld">$16.667</span>
                             <span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-10%
                                 OFF</span>
                         </div>
@@ -625,11 +688,14 @@
                             Página Web personalizada del negocio (`mi-web`)
                         </li>
 
-                        <li class="flex gap-2 bg-gradient-to-r from-orange-100/80 to-amber-100/60 p-2.5 rounded-xl border border-orange-300/80">
+                        <li
+                            class="flex gap-2 bg-gradient-to-r from-orange-100/80 to-amber-100/60 p-2.5 rounded-xl border border-orange-300/80">
                             <span class="material-symbols-outlined text-secondary text-sm font-bold">groups</span>
                             <div class="leading-tight">
-                                <strong class="block text-slate-800 font-extrabold text-xs">🔥 Clases por Cupos + Portal de Alumnos (`mi-cuenta`)</strong>
-                                <span class="text-[11px] text-slate-600 font-medium">Control de pases, créditos y asistencias</span>
+                                <strong class="block text-slate-800 font-extrabold text-xs">🔥 Clases por Cupos + Portal
+                                    de Alumnos (`mi-cuenta`)</strong>
+                                <span class="text-[11px] text-slate-600 font-medium">Control de pases, créditos y
+                                    asistencias</span>
                             </div>
                         </li>
 
@@ -647,7 +713,9 @@
                             <span class="material-symbols-outlined text-emerald-600 text-sm">chat</span>
                             <div class="leading-tight">
                                 <span class="block text-slate-700 font-medium">Notificaciones por WhatsApp:</span>
-                                <strong id="wppQuotaDisplay_prem" class="text-xs font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200 inline-block mt-0.5">100 WPP/mes total negocio</strong>
+                                <strong id="wppQuotaDisplay_prem"
+                                    class="text-xs font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200 inline-block mt-0.5">100
+                                    WPP/mes total negocio</strong>
                             </div>
                         </li>
 
@@ -666,162 +734,236 @@
             <p class="text-center text-sm text-slate-500 mt-12">
                 Sin contratos. Podés cancelar cuando quieras.
             </p>
-            
+
             <div id="tabla-comparativa" class="mt-24 max-w-5xl mx-auto reveal-on-scroll scroll-mt-24 font-sans">
                 <div class="text-center mb-10">
-                    <span class="text-[#FC8712] font-extrabold tracking-widest uppercase text-xs mb-2 block">Descubre tu potencial</span>
-                    <h3 class="text-3xl md:text-4xl font-extrabold text-slate-800 font-display">Comparativa detallada de funciones</h3>
-                    <p class="text-slate-500 text-sm mt-2 font-medium">Conoce todas las herramientas incluidas en cada nivel de servicio.</p>
+                    <span class="text-[#FC8712] font-extrabold tracking-widest uppercase text-xs mb-2 block">Descubre tu
+                        potencial</span>
+                    <h3 class="text-3xl md:text-4xl font-extrabold text-slate-800 font-display">Comparativa detallada de
+                        funciones</h3>
+                    <p class="text-slate-500 text-sm mt-2 font-medium">Conoce todas las herramientas incluidas en cada
+                        nivel de servicio.</p>
                 </div>
-                <div class="bg-gradient-to-br from-white via-orange-50/40 to-amber-50/30 rounded-[2.5rem] border border-orange-200/80 shadow-xl overflow-hidden relative z-10">
+                <div
+                    class="bg-gradient-to-br from-white via-orange-50/40 to-amber-50/30 rounded-[2.5rem] border border-orange-200/80 shadow-xl overflow-hidden relative z-10">
                     <div class="h-2.5 w-full bg-gradient-to-r from-[#D11149] via-[#FC8712] to-amber-400"></div>
                     <div class="overflow-x-auto p-4 md:p-6">
                         <table class="w-full text-left border-collapse font-sans">
-                        <thead>
-                            <tr class="bg-gradient-to-r from-orange-100/70 via-amber-50/90 to-orange-100/70 border-b-2 border-orange-200/60">
-                                <th class="p-4 md:p-5 font-extrabold text-slate-800 text-sm rounded-tl-2xl">Funcionalidades y Módulos</th>
-                                <th class="p-4 md:p-5 font-extrabold text-center text-slate-700 text-sm">Plan Simple</th>
-                                <th class="p-4 md:p-5 font-extrabold text-center text-primary text-sm">Plan Profesional</th>
-                                <th class="p-4 md:p-5 font-extrabold text-center text-secondary text-sm rounded-tr-2xl">Plan Premium</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-xs sm:text-sm text-slate-700 divide-y divide-slate-100">
-                            <!-- 1. Turnero y Solicitud de Turnos -->
-                            <tr class="hover:bg-orange-50/40 transition-colors">
-                                <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-primary text-[18px]">calendar_month</span>
-                                    <span>Calendario de reservas online 24/7</span>
-                                </td>
-                                <td class="p-4 text-center"><span class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span></td>
-                                <td class="p-4 text-center"><span class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span></td>
-                                <td class="p-4 text-center"><span class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span></td>
-                            </tr>
+                            <thead>
+                                <tr
+                                    class="bg-gradient-to-r from-orange-100/70 via-amber-50/90 to-orange-100/70 border-b-2 border-orange-200/60">
+                                    <th class="p-4 md:p-5 font-extrabold text-slate-800 text-sm rounded-tl-2xl">
+                                        Funcionalidades y Módulos</th>
+                                    <th class="p-4 md:p-5 font-extrabold text-center text-slate-700 text-sm">Plan Simple
+                                    </th>
+                                    <th class="p-4 md:p-5 font-extrabold text-center text-primary text-sm">Plan
+                                        Profesional</th>
+                                    <th
+                                        class="p-4 md:p-5 font-extrabold text-center text-secondary text-sm rounded-tr-2xl">
+                                        Plan Premium</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-xs sm:text-sm text-slate-700 divide-y divide-slate-100">
+                                <!-- 1. Turnero y Solicitud de Turnos -->
+                                <tr class="hover:bg-orange-50/40 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
+                                        <span
+                                            class="material-symbols-outlined text-primary text-[18px]">calendar_month</span>
+                                        <span>Calendario de reservas online 24/7</span>
+                                    </td>
+                                    <td class="p-4 text-center"><span
+                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    </td>
+                                    <td class="p-4 text-center"><span
+                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    </td>
+                                    <td class="p-4 text-center"><span
+                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    </td>
+                                </tr>
 
-                            <!-- 2. Notificaciones por Email -->
-                            <tr class="hover:bg-orange-50/40 transition-colors">
-                                <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-primary text-[18px]">mail</span>
-                                    <span>Notificaciones automáticas por Email</span>
-                                </td>
-                                <td class="p-4 text-center"><span class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span></td>
-                                <td class="p-4 text-center"><span class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span></td>
-                                <td class="p-4 text-center"><span class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span></td>
-                            </tr>
+                                <!-- 2. Notificaciones por Email -->
+                                <tr class="hover:bg-orange-50/40 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary text-[18px]">mail</span>
+                                        <span>Notificaciones automáticas por Email</span>
+                                    </td>
+                                    <td class="p-4 text-center"><span
+                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    </td>
+                                    <td class="p-4 text-center"><span
+                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    </td>
+                                    <td class="p-4 text-center"><span
+                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    </td>
+                                </tr>
 
-                            <!-- 3. Notificaciones por WhatsApp -->
-                            <tr class="hover:bg-orange-50/40 transition-colors bg-emerald-50/30">
-                                <td class="p-4 md:px-5 font-bold text-slate-900 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-emerald-600 text-[18px]">chat</span>
-                                    <span>Bolsa Mensual de WhatsApps</span>
-                                </td>
-                                <td class="p-4 text-center text-slate-400 text-xs font-medium">Sin WhatsApp (Solo Email)</td>
-                                <td class="p-4 text-center"><span class="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-lg border border-primary/20 inline-block">50 WPP/mes (+10/prof)</span></td>
-                                <td class="p-4 text-center"><span class="text-xs font-extrabold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-300 inline-block">100 WPP/mes (+10/prof)</span></td>
-                            </tr>
+                                <!-- 3. Notificaciones por WhatsApp -->
+                                <tr class="hover:bg-orange-50/40 transition-colors bg-emerald-50/30">
+                                    <td class="p-4 md:px-5 font-bold text-slate-900 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-emerald-600 text-[18px]">chat</span>
+                                        <span>Bolsa Mensual de WhatsApps</span>
+                                    </td>
+                                    <td class="p-4 text-center text-slate-400 text-xs font-medium">Sin WhatsApp (Solo
+                                        Email)</td>
+                                    <td class="p-4 text-center"><span
+                                            class="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-lg border border-primary/20 inline-block">50
+                                            WPP/mes (+10/prof)</span></td>
+                                    <td class="p-4 text-center"><span
+                                            class="text-xs font-extrabold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-300 inline-block">100
+                                            WPP/mes (+10/prof)</span></td>
+                                </tr>
 
-                            <!-- 4. Página Web Pública de Reservas -->
-                            <tr class="hover:bg-orange-50/40 transition-colors">
-                                <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-primary text-[18px]">language</span>
-                                    <span>Página Web pública de reservas (`mi-web`)</span>
-                                </td>
-                                <td class="p-4 text-center text-slate-300"><span class="material-symbols-outlined text-slate-300 text-lg">cancel</span></td>
-                                <td class="p-4 text-center"><span class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span></td>
-                                <td class="p-4 text-center"><span class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span></td>
-                            </tr>
+                                <!-- 4. Página Web Pública de Reservas -->
+                                <tr class="hover:bg-orange-50/40 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary text-[18px]">language</span>
+                                        <span>Página Web pública de reservas (`mi-web`)</span>
+                                    </td>
+                                    <td class="p-4 text-center text-slate-300"><span
+                                            class="material-symbols-outlined text-slate-300 text-lg">cancel</span></td>
+                                    <td class="p-4 text-center"><span
+                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    </td>
+                                    <td class="p-4 text-center"><span
+                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    </td>
+                                </tr>
 
-                            <!-- 5. Personalización Avanzada de Colores -->
-                            <tr class="hover:bg-orange-50/40 transition-colors">
-                                <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-primary text-[18px]">palette</span>
-                                    <span>Personalización de Colores de Marca</span>
-                                </td>
-                                <td class="p-4 text-center text-xs font-medium text-slate-600">2 Colores Base</td>
-                                <td class="p-4 text-center text-xs font-bold text-primary">2 Colores Base + 1 Extra (+1)</td>
-                                <td class="p-4 text-center text-xs font-extrabold text-secondary">2 Colores Base + 3 Extras (+3)</td>
-                            </tr>
+                                <!-- 5. Personalización Avanzada de Colores -->
+                                <tr class="hover:bg-orange-50/40 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary text-[18px]">palette</span>
+                                        <span>Personalización de Colores de Marca</span>
+                                    </td>
+                                    <td class="p-4 text-center text-xs font-medium text-slate-600">2 Colores Base</td>
+                                    <td class="p-4 text-center text-xs font-bold text-primary">2 Colores Base + 1 Extra
+                                        (+1)</td>
+                                    <td class="p-4 text-center text-xs font-extrabold text-secondary">2 Colores Base + 3
+                                        Extras (+3)</td>
+                                </tr>
 
-                            <!-- 6. Equipo de Trabajo / Profesionales -->
-                            <tr class="hover:bg-orange-50/40 transition-colors">
-                                <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-primary text-[18px]">group</span>
-                                    <span>Capacidad del Equipo de Trabajo</span>
-                                </td>
-                                <td class="p-4 text-center text-xs font-medium text-slate-600">Hasta 5 profesionales (al solicitar)</td>
-                                <td class="p-4 text-center text-xs font-bold text-slate-700">Hasta 5 profesionales (al solicitar)</td>
-                                <td class="p-4 text-center text-xs font-extrabold text-slate-800">Hasta 5 profesionales (al solicitar)</td>
-                            </tr>
+                                <!-- 6. Equipo de Trabajo / Profesionales -->
+                                <tr class="hover:bg-orange-50/40 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary text-[18px]">group</span>
+                                        <span>Capacidad del Equipo de Trabajo</span>
+                                    </td>
+                                    <td class="p-4 text-center text-xs font-medium text-slate-600">Hasta 5 profesionales
+                                        (al solicitar)</td>
+                                    <td class="p-4 text-center text-xs font-bold text-slate-700">Hasta 5 profesionales
+                                        (al solicitar)</td>
+                                    <td class="p-4 text-center text-xs font-extrabold text-slate-800">Hasta 5
+                                        profesionales (al solicitar)</td>
+                                </tr>
 
-                            <!-- 6.b. Asignación de Roles y Permisos -->
-                            <tr class="hover:bg-orange-50/40 transition-colors">
-                                <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-purple-600 text-[18px]">admin_panel_settings</span>
-                                    <span>Asignación de Roles y Permisos a Profesionales</span>
-                                </td>
-                                <td class="p-4 text-center text-slate-400 text-xs font-medium">Acceso Estándar (Sin personalización)</td>
-                                <td class="p-4 text-center"><span class="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-lg border border-primary/20 inline-block">✓ Permisos Personalizados</span></td>
-                                <td class="p-4 text-center"><span class="text-xs font-extrabold text-secondary bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-200 inline-block">✓ Roles y Permisos Avanzados</span></td>
-                            </tr>
+                                <!-- 6.b. Asignación de Roles y Permisos -->
+                                <tr class="hover:bg-orange-50/40 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
+                                        <span
+                                            class="material-symbols-outlined text-purple-600 text-[18px]">admin_panel_settings</span>
+                                        <span>Asignación de Roles y Permisos a Profesionales</span>
+                                    </td>
+                                    <td class="p-4 text-center text-slate-400 text-xs font-medium">Acceso Estándar (Sin
+                                        personalización)</td>
+                                    <td class="p-4 text-center"><span
+                                            class="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-lg border border-primary/20 inline-block">✓
+                                            Permisos Personalizados</span></td>
+                                    <td class="p-4 text-center"><span
+                                            class="text-xs font-extrabold text-secondary bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-200 inline-block">✓
+                                            Roles y Permisos Avanzados</span></td>
+                                </tr>
 
-                            <!-- 7. Agenda Virtual e Histórico de Reservas -->
-                            <tr class="hover:bg-orange-50/40 transition-colors">
-                                <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-primary text-[18px]">view_agenda</span>
-                                    <span>Agenda Virtual e Histórico de reservas</span>
-                                </td>
-                                <td class="p-4 text-center text-slate-300"><span class="material-symbols-outlined text-slate-300 text-lg">cancel</span></td>
-                                <td class="p-4 text-center"><span class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span></td>
-                                <td class="p-4 text-center"><span class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span></td>
-                            </tr>
+                                <!-- 7. Agenda Virtual e Histórico de Reservas -->
+                                <tr class="hover:bg-orange-50/40 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
+                                        <span
+                                            class="material-symbols-outlined text-primary text-[18px]">view_agenda</span>
+                                        <span>Agenda Virtual e Histórico de reservas</span>
+                                    </td>
+                                    <td class="p-4 text-center text-slate-300"><span
+                                            class="material-symbols-outlined text-slate-300 text-lg">cancel</span></td>
+                                    <td class="p-4 text-center"><span
+                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    </td>
+                                    <td class="p-4 text-center"><span
+                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    </td>
+                                </tr>
 
-                            <!-- 8. Módulo de Estadísticas y Reportes de Facturación -->
-                            <tr class="hover:bg-orange-50/40 transition-colors">
-                                <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-primary text-[18px]">insights</span>
-                                    <span>Módulo de Estadísticas y Métricas de Facturación</span>
-                                </td>
-                                <td class="p-4 text-center"><span class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span></td>
-                                <td class="p-4 text-center"><span class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span></td>
-                                <td class="p-4 text-center"><span class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span></td>
-                            </tr>
+                                <!-- 8. Módulo de Estadísticas y Reportes de Facturación -->
+                                <tr class="hover:bg-orange-50/40 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary text-[18px]">insights</span>
+                                        <span>Módulo de Estadísticas y Métricas de Facturación</span>
+                                    </td>
+                                    <td class="p-4 text-center"><span
+                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    </td>
+                                    <td class="p-4 text-center"><span
+                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    </td>
+                                    <td class="p-4 text-center"><span
+                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    </td>
+                                </tr>
 
-                            <!-- 8.b. Módulo de Clases por Cupos y Portal de Alumnos -->
-                            <tr class="hover:bg-orange-50/40 transition-colors bg-orange-50/30">
-                                <td class="p-4 md:px-5 font-bold text-orange-950 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-secondary text-[18px]">groups</span>
-                                    <span>Clases Grupales por Cupos y Portal de Alumnos</span>
-                                </td>
-                                <td class="p-4 text-center text-slate-300"><span class="material-symbols-outlined text-slate-300 text-lg">cancel</span></td>
-                                <td class="p-4 text-center text-slate-300"><span class="material-symbols-outlined text-slate-300 text-lg">cancel</span></td>
-                                <td class="p-4 text-center"><span class="text-xs font-extrabold text-secondary bg-orange-100 px-2.5 py-1 rounded-lg border border-orange-300 inline-block">✓ Exclusivo Premium</span></td>
-                            </tr>
+                                <!-- 8.b. Módulo de Clases por Cupos y Portal de Alumnos -->
+                                <tr class="hover:bg-orange-50/40 transition-colors bg-orange-50/30">
+                                    <td class="p-4 md:px-5 font-bold text-orange-950 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-secondary text-[18px]">groups</span>
+                                        <span>Clases Grupales por Cupos y Portal de Alumnos</span>
+                                    </td>
+                                    <td class="p-4 text-center text-slate-300"><span
+                                            class="material-symbols-outlined text-slate-300 text-lg">cancel</span></td>
+                                    <td class="p-4 text-center text-slate-300"><span
+                                            class="material-symbols-outlined text-slate-300 text-lg">cancel</span></td>
+                                    <td class="p-4 text-center"><span
+                                            class="text-xs font-extrabold text-secondary bg-orange-100 px-2.5 py-1 rounded-lg border border-orange-300 inline-block">✓
+                                            Exclusivo Premium</span></td>
+                                </tr>
 
-                            <!-- 9. Bloqueo de Días Feriados y Vacaciones -->
-                            <tr class="hover:bg-orange-50/40 transition-colors">
-                                <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-primary text-[18px]">event_busy</span>
-                                    <span>Bloqueo manual de días feriados y vacaciones</span>
-                                </td>
-                                <td class="p-4 text-center"><span class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span></td>
-                                <td class="p-4 text-center"><span class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span></td>
-                                <td class="p-4 text-center"><span class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span></td>
-                            </tr>
+                                <!-- 9. Bloqueo de Días Feriados y Vacaciones -->
+                                <tr class="hover:bg-orange-50/40 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
+                                        <span
+                                            class="material-symbols-outlined text-primary text-[18px]">event_busy</span>
+                                        <span>Bloqueo manual de días feriados y vacaciones</span>
+                                    </td>
+                                    <td class="p-4 text-center"><span
+                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    </td>
+                                    <td class="p-4 text-center"><span
+                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    </td>
+                                    <td class="p-4 text-center"><span
+                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    </td>
+                                </tr>
 
-                            <!-- 10. Soporte Técnico -->
-                            <tr class="hover:bg-orange-50/40 transition-colors">
-                                <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-primary text-[18px]">support_agent</span>
-                                    <span>Soporte técnico y atención personalizada</span>
-                                </td>
-                                <td class="p-4 text-center text-xs font-medium text-slate-600">Email</td>
-                                <td class="p-4 text-center text-xs font-bold text-slate-700">Email y WhatsApp</td>
-                                <td class="p-4 text-center text-xs font-extrabold text-emerald-700">Atención Prioritaria 24/7</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                <!-- 10. Soporte Técnico -->
+                                <tr class="hover:bg-orange-50/40 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
+                                        <span
+                                            class="material-symbols-outlined text-primary text-[18px]">support_agent</span>
+                                        <span>Soporte técnico y atención personalizada</span>
+                                    </td>
+                                    <td class="p-4 text-center text-xs font-medium text-slate-600">Email</td>
+                                    <td class="p-4 text-center text-xs font-bold text-slate-700">Email y WhatsApp</td>
+                                    <td class="p-4 text-center text-xs font-extrabold text-emerald-700">Atención
+                                        Prioritaria 24/7</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="bg-orange-50/80 border-t border-orange-200/60 p-4 text-center text-xs text-slate-600 font-medium">
-                        💡 <strong>Nota sobre el equipo:</strong> Al solicitar cualquier plan se puede indicar desde 1 hasta 5 profesionales mediante el selector. Si tu negocio requiere más de 5 integrantes, <a href="#contacto" onclick="resetForm()" class="text-[#FC8712] font-bold underline hover:text-orange-600">Contáctanos</a> para coordinar una ampliación especial.
+                    <div
+                        class="bg-orange-50/80 border-t border-orange-200/60 p-4 text-center text-xs text-slate-600 font-medium">
+                        💡 <strong>Nota sobre el equipo:</strong> Al solicitar cualquier plan se puede indicar desde 1
+                        hasta 5 profesionales mediante el selector. Si tu negocio requiere más de 5 integrantes, <a
+                            href="#contacto" onclick="resetForm()"
+                            class="text-[#FC8712] font-bold underline hover:text-orange-600">Contáctanos</a> para
+                        coordinar una ampliación especial.
                     </div>
                 </div>
             </div>
@@ -830,12 +972,16 @@
         </div>
     </section>
     <!-- Formulario de Contacto -->
-    <section id="contacto" class="py-24 bg-gradient-to-b from-amber-50/30 via-orange-50/40 to-slate-100 px-6 relative overflow-hidden">
+    <section id="contacto"
+        class="py-24 bg-gradient-to-b from-amber-50/30 via-orange-50/40 to-slate-100 px-6 relative overflow-hidden">
         <!-- Luz naranja de fondo en sección contacto -->
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[350px] bg-[#FC8712]/15 rounded-full blur-[130px] pointer-events-none"></div>
+        <div
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[350px] bg-[#FC8712]/15 rounded-full blur-[130px] pointer-events-none">
+        </div>
 
         <div class="max-w-3xl mx-auto relative z-10">
-            <div class="bg-gradient-to-br from-white via-orange-50/50 to-amber-50/30 rounded-[2.5rem] shadow-xl border border-orange-200/80 p-8 md:p-12 reveal-on-scroll">
+            <div
+                class="bg-gradient-to-br from-white via-orange-50/50 to-amber-50/30 rounded-[2.5rem] shadow-xl border border-orange-200/80 p-8 md:p-12 reveal-on-scroll">
                 <div class="text-center mb-10">
                     <h2 id="formTitle" class="text-3xl font-extrabold mb-2">Envíanos tu consulta</h2>
                     <p id="formSubtitle" class="text-slate-500">Nos comunicaremos a la brevedad.</p>
@@ -856,7 +1002,8 @@
                     <textarea name="mensaje" placeholder="¿En qué podemos ayudarte?" rows="4" required
                         class="w-full bg-white/90 border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#FC8712] outline-none"></textarea>
 
-                    <div id="contactMessage" class="hidden p-4 rounded-xl text-sm font-medium text-center" role="alert" aria-live="assertive"></div>
+                    <div id="contactMessage" class="hidden p-4 rounded-xl text-sm font-medium text-center" role="alert"
+                        aria-live="assertive"></div>
 
                     <button type="submit" id="submitBtn"
                         class="w-full bg-gradient-to-r from-[#D11149] via-[#e21a56] to-[#FC8712] text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-[#D11149]/20 hover:scale-[1.01] transition-all">Enviar
@@ -866,18 +1013,22 @@
         </div>
     </section>
 
-    <footer class="bg-gradient-to-r from-orange-100/70 via-amber-50/60 to-orange-100/70 text-slate-700 py-12 text-center border-t border-orange-200/80">
+    <footer
+        class="bg-gradient-to-r from-orange-100/70 via-amber-50/60 to-orange-100/70 text-slate-700 py-12 text-center border-t border-orange-200/80">
         <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
             <a href="index.html" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
                 <img src="public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
-                <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
+                <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span
+                        class="text-[#fc8712]">tina</span></span>
             </a>
             <div class="flex flex-col items-center md:items-end gap-1 text-sm">
                 <p class="font-medium text-slate-800">© 2026 Agendatina. Diseñado para potenciar tu negocio.</p>
                 <div class="flex items-center gap-3 text-xs text-slate-500 mt-1">
-                    <a href="terminos.html" target="_blank" class="hover:text-indigo-600 transition-colors underline font-medium">Términos y Condiciones</a>
+                    <a href="terminos.html" target="_blank"
+                        class="hover:text-indigo-600 transition-colors underline font-medium">Términos y Condiciones</a>
                     <span>•</span>
-                    <a href="login.html" class="hover:text-indigo-600 transition-colors hover:underline">Acceso Clientes</a>
+                    <a href="login.html" class="hover:text-indigo-600 transition-colors hover:underline">Acceso
+                        Clientes</a>
                 </div>
             </div>
         </div>
@@ -903,112 +1054,174 @@
     </div>
 
     <!-- Modal Crear Cuenta Gratis (Auto-registro con Onboarding Inicial) -->
-    <div id="registerModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div id="registerModalContent" class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto">
+    <div id="registerModal"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="registerModalContent"
+            class="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2">
-                    <div class="w-10 h-10 rounded-2xl bg-orange-100 text-[#FC8712] flex items-center justify-center shadow-xs">
+                    <div
+                        class="w-10 h-10 rounded-2xl bg-orange-100 text-[#FC8712] flex items-center justify-center shadow-xs">
                         <span class="material-symbols-outlined text-[24px]">rocket_launch</span>
                     </div>
                     <div>
                         <h2 class="text-xl font-bold text-slate-900">Crear Cuenta Gratis</h2>
-                        <p class="text-xs text-slate-500">Configura tu negocio y comienza a usar tu agenda de inmediato.</p>
+                        <p class="text-xs text-slate-500">Configura tu negocio y comienza a usar tu agenda de inmediato.
+                        </p>
                     </div>
                 </div>
-                <button onclick="closeRegisterModal()" class="text-slate-400 hover:text-red-500 bg-slate-100 rounded-full p-1.5 transition-colors"><span class="material-symbols-outlined">close</span></button>
+                <button onclick="closeRegisterModal()"
+                    class="text-slate-400 hover:text-red-500 bg-slate-100 rounded-full p-1.5 transition-colors"><span
+                        class="material-symbols-outlined">close</span></button>
             </div>
 
             <form id="registerForm" onsubmit="submitRegister(event)" class="space-y-5">
                 <!-- Bloque 1: Datos Personales & Negocio -->
                 <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-3">
-                    <h3 class="text-xs font-bold text-[#d11149] uppercase tracking-wider flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">person</span> Datos de Acceso y Negocio</h3>
-                    
+                    <h3 class="text-xs font-bold text-[#d11149] uppercase tracking-wider flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">person</span> Datos de Acceso y Negocio</h3>
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre Completo</label>
-                            <input type="text" id="regNombre" required placeholder="Ej: Valentina Ochoa" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
+                            <input type="text" id="regNombre" required placeholder="Ej: Valentina Ochoa"
+                                class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre de tu Emprendimiento</label>
-                            <input type="text" id="regNegocio" required placeholder="Ej: Studio Barbería" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre de tu
+                                Emprendimiento</label>
+                            <input type="text" id="regNegocio" required placeholder="Ej: Studio Barbería"
+                                class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1">Correo Electrónico</label>
-                            <input type="email" id="regEmail" required placeholder="tu@email.com" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
+                            <input type="email" id="regEmail" required placeholder="tu@email.com"
+                                class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Contraseña (mín 6 car.)</label>
-                            <input type="password" id="regPassword" minlength="6" required placeholder="••••••••" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Contraseña (mín 6
+                                car.)</label>
+                            <input type="password" id="regPassword" minlength="6" required placeholder="••••••••"
+                                class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
                         </div>
                     </div>
                 </div>
 
                 <!-- Bloque 2: Configuración Inicial del Calendario (Ajustes Rápidos) -->
-                <div class="bg-gradient-to-br from-orange-50/90 via-amber-50/60 to-orange-50/80 p-4 rounded-2xl border border-orange-200 space-y-3">
-                    <h3 class="text-xs font-bold text-[#FC8712] uppercase tracking-wider flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">tune</span> Configuración de la Agenda</h3>
+                <div
+                    class="bg-gradient-to-br from-orange-50/90 via-amber-50/60 to-orange-50/80 p-4 rounded-2xl border border-orange-200 space-y-3">
+                    <h3 class="text-xs font-bold text-[#FC8712] uppercase tracking-wider flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px]">tune</span> Configuración de la Agenda</h3>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1">Plan Solicitado</label>
-                            <select id="regPlan" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-[#d11149] outline-none font-bold text-slate-800">
+                            <select id="regPlan"
+                                class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-[#d11149] outline-none font-bold text-slate-800">
                                 <option value="Básico">Plan Simple ($8.000 / mes)</option>
                                 <option value="Profesional">Plan Profesional ($10.000 / mes)</option>
                                 <option value="Premium">Plan Premium ($15.000 / mes)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Cantidad de Profesionales</label>
-                            <input type="number" id="regProfs" min="1" max="20" value="1" required class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-[#d11149] outline-none font-bold">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Cantidad de
+                                Profesionales</label>
+                            <input type="number" id="regProfs" min="1" max="20" value="1" required
+                                class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-[#d11149] outline-none font-bold">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1">Hora de Apertura</label>
-                            <input type="time" id="regHoraApertura" value="09:00" required class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
+                            <input type="time" id="regHoraApertura" value="09:00" required
+                                class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1">Hora de Cierre</label>
-                            <input type="time" id="regHoraCierre" value="19:00" required class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
+                            <input type="time" id="regHoraCierre" value="19:00" required
+                                class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-sm focus:ring-2 focus:ring-[#d11149] outline-none">
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Días que Trabaja el Negocio</label>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Días que Trabaja el
+                            Negocio</label>
                         <div class="flex flex-wrap gap-1.5" id="regDiasTrabajo">
-                            <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="1" class="peer sr-only" checked><div class="px-3 py-1.5 rounded-lg border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Lun</div></label>
-                            <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="2" class="peer sr-only" checked><div class="px-3 py-1.5 rounded-lg border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Mar</div></label>
-                            <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="3" class="peer sr-only" checked><div class="px-3 py-1.5 rounded-lg border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Mié</div></label>
-                            <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="4" class="peer sr-only" checked><div class="px-3 py-1.5 rounded-lg border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Jue</div></label>
-                            <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="5" class="peer sr-only" checked><div class="px-3 py-1.5 rounded-lg border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Vie</div></label>
-                            <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="6" class="peer sr-only" checked><div class="px-3 py-1.5 rounded-lg border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Sáb</div></label>
-                            <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="0" class="peer sr-only"><div class="px-3 py-1.5 rounded-lg border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">Dom</div></label>
+                            <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="1"
+                                    class="peer sr-only" checked>
+                                <div
+                                    class="px-3 py-1.5 rounded-lg border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">
+                                    Lun</div>
+                            </label>
+                            <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="2"
+                                    class="peer sr-only" checked>
+                                <div
+                                    class="px-3 py-1.5 rounded-lg border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">
+                                    Mar</div>
+                            </label>
+                            <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="3"
+                                    class="peer sr-only" checked>
+                                <div
+                                    class="px-3 py-1.5 rounded-lg border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">
+                                    Mié</div>
+                            </label>
+                            <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="4"
+                                    class="peer sr-only" checked>
+                                <div
+                                    class="px-3 py-1.5 rounded-lg border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">
+                                    Jue</div>
+                            </label>
+                            <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="5"
+                                    class="peer sr-only" checked>
+                                <div
+                                    class="px-3 py-1.5 rounded-lg border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">
+                                    Vie</div>
+                            </label>
+                            <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="6"
+                                    class="peer sr-only" checked>
+                                <div
+                                    class="px-3 py-1.5 rounded-lg border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">
+                                    Sáb</div>
+                            </label>
+                            <label class="cursor-pointer"><input type="checkbox" name="reg_dias" value="0"
+                                    class="peer sr-only">
+                                <div
+                                    class="px-3 py-1.5 rounded-lg border border-slate-200 peer-checked:bg-[#d11149] peer-checked:text-white peer-checked:border-[#d11149] transition-all text-xs font-bold text-slate-600">
+                                    Dom</div>
+                            </label>
                         </div>
                     </div>
                 </div>
 
                 <div class="pt-1">
                     <label class="flex items-start gap-2.5 cursor-pointer">
-                        <input type="checkbox" id="regTerminos" required class="mt-1 w-4 h-4 rounded text-[#d11149] focus:ring-[#d11149] border-slate-300">
+                        <input type="checkbox" id="regTerminos" required
+                            class="mt-1 w-4 h-4 rounded text-[#d11149] focus:ring-[#d11149] border-slate-300">
                         <span class="text-xs text-slate-600 leading-relaxed">
-                            Acepto los <a href="terminos.html" target="_blank" class="text-[#d11149] font-bold hover:underline">Términos y Condiciones</a> de Agendatina.
+                            Acepto los <a href="terminos.html" target="_blank"
+                                class="text-[#d11149] font-bold hover:underline">Términos y Condiciones</a> de
+                            Agendatina.
                         </span>
                     </label>
                 </div>
 
-                <div id="registerError" class="hidden bg-red-50 border border-red-200 text-red-700 text-xs p-3 rounded-xl"></div>
+                <div id="registerError"
+                    class="hidden bg-red-50 border border-red-200 text-red-700 text-xs p-3 rounded-xl"></div>
 
-                <button type="submit" id="btnRegisterSubmit" class="w-full signature-glow text-white font-bold py-3.5 rounded-xl shadow-lg shadow-[#d11149]/20 transition-all hover:-translate-y-0.5 mt-2 flex items-center justify-center gap-2 text-base">
-                    <span class="material-symbols-outlined text-[22px]">rocket_launch</span> Crear Cuenta y Comenzar Prueba
+                <button type="submit" id="btnRegisterSubmit"
+                    class="w-full signature-glow text-white font-bold py-3.5 rounded-xl shadow-lg shadow-[#d11149]/20 transition-all hover:-translate-y-0.5 mt-2 flex items-center justify-center gap-2 text-base">
+                    <span class="material-symbols-outlined text-[22px]">rocket_launch</span> Crear Cuenta y Comenzar
+                    Prueba
                 </button>
             </form>
         </div>
     </div>
 
-    <script src="assets/js/script.js?v=1.2.6" defer></script>
+    <script src="assets/js/script.js?v=1.2.7" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // 1. Navbar con efecto cristalino al hacer scroll
