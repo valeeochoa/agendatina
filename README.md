@@ -153,19 +153,22 @@ El esquema principal de la base de datos `agendatina` incluye las siguientes ent
 
 ---
 
-## 💎 Estructura de Planes y Límites
+## 💎 Estructura de Planes y Comparativa
 
 | Funcionalidad | Plan Simple | Plan Profesional | Plan Premium |
 | :--- | :---: | :---: | :---: |
-| **Capacidad de Profesionales** | 1 Profesional | Hasta 20 Profesionales | Hasta 20 Profesionales |
 | **Calendario de Reservas 24/7** | ✅ | ✅ | ✅ |
 | **Notificaciones por Email** | ✅ | ✅ | ✅ |
-| **Colores de Marca Personalizados** | 2 Colores Base | 3 Colores (+1 extra) | 5 Colores (+3 extras) |
-| **Agenda Virtual con Filtros e Histórico** | ❌ | ✅ | ✅ |
+| **Bloqueo de Feriados y Horarios** | ✅ | ✅ | ✅ |
 | **Página Web Propia (`mi-web.html`)** | ❌ | ✅ | ✅ |
+| **Agenda Virtual con Filtros y Estados** | ❌ | ✅ | ✅ |
+| **Métricas y Estadísticas de Demanda** | ❌ | ✅ | ✅ |
+| **Personalización de Colores de Marca** | 2 Colores Base | 3 Colores (+1 extra) | 5 Colores (+3 extras) |
 | **Roles y Permisos de Profesionales** | Estándar | Permisos Básicos | Roles Avanzados |
-| **Métricas y Estadísticas** | ❌ | ✅ | ✅ |
-| **Clases por Cupos y Portal Alumnos** | ❌ | ❌ | **✅ Exclusivo Premium** |
+| **Módulo de Clases por Cupos** | ❌ | ❌ | ✅ |
+| **Portal de Alumnos (`mi-cuenta`)** | ❌ | ❌ | ✅ |
+| **Control de Pases, Créditos y Asistencias** | ❌ | ❌ | ✅ |
+| **Clientes y Alumnos Ilimitados** | ✅ | ✅ | ✅ |
 
 ---
 
