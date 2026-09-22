@@ -2747,6 +2747,8 @@ function renderWeeklyCalendar() {
         
         dayDiv.innerHTML = `${activeDot}<span class="text-[9px] sm:text-[11px] font-black tracking-wider uppercase mb-0.5 ${dayNameColor}">${dayName}</span>${dateNumberHtml}`;
         fragment.appendChild(dayDiv);
+    }
+    calendarDays.appendChild(fragment);
     
     // Llamar a la función para configurar las flechas de navegación
     setupWeeklyScrollArrows();
