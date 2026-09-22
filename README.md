@@ -162,7 +162,7 @@ El esquema principal de la base de datos `agendatina` incluye las siguientes ent
 | **Bloqueo de Feriados y Horarios** | ✅ | ✅ | ✅ |
 | **Página Web Propia (`mi-web.html`)** | ❌ | ✅ | ✅ |
 | **Agenda Virtual con Filtros y Estados** | ❌ | ✅ | ✅ |
-| **Métricas y Estadísticas de Demanda** | ❌ | ✅ | ✅ |
+| **Métricas y Estadísticas de Demanda** | ✅ | ✅ | ✅ |
 | **Personalización de Colores de Marca** | 2 Colores Base | 3 Colores (+1 extra) | 5 Colores (+3 extras) |
 | **Roles y Permisos de Profesionales** | Estándar | Permisos Básicos | Roles Avanzados |
 | **Módulo de Clases por Cupos** | ❌ | ❌ | ✅ |

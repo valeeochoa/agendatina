@@ -2596,6 +2596,7 @@ var carouselData = [
             'Calendario de reservas online 24/7',
             'Notificaciones automáticas por email',
             'Personalización de 2 colores base de marca',
+            'Panel de Métricas y Estadísticas de demanda',
             'Clientes y alumnos ilimitados (por el momento)',
             'Bloqueo manual de días feriados y vacaciones'
         ]
@@ -2966,9 +2967,35 @@ document.addEventListener('DOMContentLoaded', () => {
             window.pricingData = null;
             
             window.updateProfCount = function(change, planKey) {
-                let newVal = window.numProfessionals[planKey] + change;
+                let currentVal = window.numProfessionals[planKey] || 1;
+                
+                // Si ya tiene 5 profesionales y sigue haciendo clic en +, llevar a la sección de contacto
+                if (change > 0 && currentVal >= 5) {
+                    const planNames = { basic: 'Plan Simple', inter: 'Plan Profesional', prem: 'Plan Premium' };
+                    const planName = planNames[planKey] || 'Agendatina';
+                    
+                    const contactSection = document.getElementById('contacto');
+                    if (contactSection) {
+                        contactSection.scrollIntoView({ behavior: 'smooth' });
+                        
+                        const msgInput = document.querySelector('#mainContactForm textarea[name="mensaje"]') || document.querySelector('textarea[name="mensaje"]');
+                        if (msgInput) {
+                            msgInput.value = `¡Hola! Me interesa contratar el ${planName} para un equipo de más de 5 profesionales. Quisiera recibir una propuesta y cotización a medida para mi negocio.`;
+                            setTimeout(() => {
+                                msgInput.focus();
+                            }, 600);
+                        }
+                        
+                        if (typeof showToast === 'function') {
+                            showToast('¿Necesitás más de 5 profesionales? Envianos tu consulta y armamos un plan a tu medida.', 'info');
+                        }
+                    }
+                    return;
+                }
+                
+                let newVal = currentVal + change;
                 if (newVal < 1) newVal = 1;
-                if (newVal > 5) newVal = 5; // Límite de 5 profesionales (50% max) para no regalar el sistema
+                if (newVal > 5) newVal = 5;
                 window.numProfessionals[planKey] = newVal;
                 
                 if (document.getElementById('profCountDisplay_' + planKey)) {
