@@ -2638,89 +2638,41 @@ var carouselData = [
     }
 ];
 
-var currentCarouselIndex = window.currentCarouselIndex || 0;
-var carouselAutoTimer = null;
-var planSimpleSubTimer = null;
+var showcaseSteps = [
+    { planIndex: 0, mockupDesktop: 'public/mockup_calendar_computer.png', mockupMobile: 'public/mockup_calendar_phone.png' },
+    { planIndex: 0, mockupDesktop: 'public/mockup_calendar2_computer.png', mockupMobile: 'public/mockup_calendar2_phone.png' },
+    { planIndex: 1, mockupDesktop: 'public/mockup_miagenda_computer.png', mockupMobile: 'public/mockup_miagenda_phone.png' },
+    { planIndex: 2, mockupDesktop: 'public/mockup_cuposClientes_computer.png', mockupMobile: 'public/mockup_cuposClientes_phone.png' }
+];
 
-function clearAllCarouselTimers() {
-    if (carouselAutoTimer) {
-        clearTimeout(carouselAutoTimer);
-        carouselAutoTimer = null;
-    }
-    if (planSimpleSubTimer) {
-        clearTimeout(planSimpleSubTimer);
-        planSimpleSubTimer = null;
-    }
-}
+var currentShowcaseStep = 0;
+var currentCarouselIndex = 0;
+var showcaseInterval = null;
 
-function scheduleNextCarouselStep() {
-    clearAllCarouselTimers();
-    const titleEl = document.getElementById('carouselTitle');
-    if (!titleEl) return; // Salir si no estamos en la landing
-
-    const item = carouselData[currentCarouselIndex];
-    if (!item) return;
-
-    // Si el plan actual tiene múltiples mockups (ej. Plan Simple con 2 versiones de calendario)
-    if (item.mockupDesktopList && item.mockupDesktopList.length > 1) {
-        // A los 5 segundos, alternar a la versión 2 del calendario
-        planSimpleSubTimer = setTimeout(() => {
-            const mockupPc = document.getElementById('mockupDesktopImg');
-            const mockupCel = document.getElementById('mockupMobileImg');
-            if (mockupPc) mockupPc.style.opacity = '0';
-            if (mockupCel) mockupCel.style.opacity = '0';
-
-            setTimeout(() => {
-                if (mockupPc) {
-                    mockupPc.src = item.mockupDesktopList[1];
-                    mockupPc.style.opacity = '1';
-                }
-                if (mockupCel && item.mockupMobileList && item.mockupMobileList[1]) {
-                    mockupCel.src = item.mockupMobileList[1];
-                    mockupCel.style.opacity = '1';
-                }
-            }, 300);
-
-            // A los siguientes 5 segundos, avanzar automáticamente al próximo plan
-            carouselAutoTimer = setTimeout(() => {
-                let nextIdx = (currentCarouselIndex + 1) % carouselData.length;
-                window.setCarouselIndex(nextIdx);
-            }, 5000);
-        }, 5000);
-    } else {
-        // Para planes de una sola imagen (Plan Profesional, Plan Premium), rotar al siguiente plan a los 5 segundos
-        carouselAutoTimer = setTimeout(() => {
-            let nextIdx = (currentCarouselIndex + 1) % carouselData.length;
-            window.setCarouselIndex(nextIdx);
-        }, 5000);
-    }
-}
-
-// Precargar todas las imágenes de los mockups para evitar parpadeos
-carouselData.forEach(item => {
-    if (item.mockupDesktop) { const img = new Image(); img.src = item.mockupDesktop; }
-    if (item.mockupMobile) { const img = new Image(); img.src = item.mockupMobile; }
-    if (item.mockupDesktopList) item.mockupDesktopList.forEach(src => { const img = new Image(); img.src = src; });
-    if (item.mockupMobileList) item.mockupMobileList.forEach(src => { const img = new Image(); img.src = src; });
+// Precargar todas las imágenes de los mockups
+showcaseSteps.forEach(s => {
+    const d = new Image(); d.src = s.mockupDesktop;
+    const m = new Image(); m.src = s.mockupMobile;
 });
 
-window.setCarouselIndex = function(index) {
+function renderShowcaseStep(stepIdx, animate = true) {
     const titleEl = document.getElementById('carouselTitle');
-    if (!titleEl) return; // Salir si no estamos en la landing
+    if (!titleEl) return;
 
-    clearAllCarouselTimers();
+    currentShowcaseStep = (stepIdx + showcaseSteps.length) % showcaseSteps.length;
+    const step = showcaseSteps[currentShowcaseStep];
+    const plan = carouselData[step.planIndex];
+    currentCarouselIndex = step.planIndex;
 
-    currentCarouselIndex = (index + carouselData.length) % carouselData.length;
-    const item = carouselData[currentCarouselIndex];
-
-    document.getElementById('carouselTitle').textContent = item.title;
+    // Actualizar Textos y Datos del Plan
+    titleEl.textContent = plan.title;
     
     const descEl = document.getElementById('carouselDesc');
-    if (descEl) descEl.textContent = item.desc;
+    if (descEl) descEl.textContent = plan.desc;
 
     const featuresEl = document.getElementById('carouselFeatures');
-    if (featuresEl && item.features) {
-        featuresEl.innerHTML = item.features.map(f => `
+    if (featuresEl && plan.features) {
+        featuresEl.innerHTML = plan.features.map(f => `
             <li class="flex items-center gap-4">
                 <span class="material-symbols-outlined text-primary">check_circle</span>
                 <span>${f}</span>
@@ -2728,35 +2680,21 @@ window.setCarouselIndex = function(index) {
         `).join('');
     }
     
-    // Renderizar Nuevo y Viejo Precio con el 10% OFF
-    // Actualizar precios dinámicamente respetando la estructura HTML de index.html
     const oldPriceEl = document.getElementById('carouselOldPrice');
     const priceEl = document.getElementById('carouselPrice');
-    
-    if (oldPriceEl) oldPriceEl.textContent = item.oldPrice;
-    if (priceEl) priceEl.textContent = item.price;
+    if (oldPriceEl) oldPriceEl.textContent = plan.oldPrice;
+    if (priceEl) priceEl.textContent = plan.price;
         
     const tagEl = document.getElementById('carouselTagText');
-    if (tagEl) tagEl.textContent = item.tag;
-    
-    // Actualizar imágenes de los mockups con opacidad suave
-    const mockupPc = document.getElementById('mockupDesktopImg');
-    const mockupCel = document.getElementById('mockupMobileImg');
-    if (mockupPc) {
-        mockupPc.style.opacity = '1';
-        mockupPc.src = item.mockupDesktopList ? item.mockupDesktopList[0] : item.mockupDesktop;
-    }
-    if (mockupCel) {
-        mockupCel.style.opacity = '1';
-        mockupCel.src = item.mockupMobileList ? item.mockupMobileList[0] : item.mockupMobile;
-    }
-    
+    if (tagEl) tagEl.textContent = plan.tag;
+
+    // Actualizar Precios y Botón
     const carouselOldPriceContainer = document.getElementById('carouselOldPriceContainer');
     if (carouselOldPriceContainer) {
-        if (item.showOldPrice) {
+        if (plan.showOldPrice) {
             carouselOldPriceContainer.style.display = 'flex';
             const badge = carouselOldPriceContainer.querySelector('.bg-emerald-100');
-            if (badge) badge.textContent = item.badgeText;
+            if (badge) badge.textContent = plan.badgeText;
         } else {
             carouselOldPriceContainer.style.display = 'none';
         }
@@ -2764,9 +2702,9 @@ window.setCarouselIndex = function(index) {
         const perPersonEl = document.getElementById('carouselPerPerson');
         if (perPersonEl) {
             const planKeys = ['basic', 'inter', 'prem'];
-            let currentCount = (window.numProfessionals && window.numProfessionals[planKeys[currentCarouselIndex]]) ? window.numProfessionals[planKeys[currentCarouselIndex]] : 1;
+            let currentCount = (window.numProfessionals && window.numProfessionals[planKeys[step.planIndex]]) ? window.numProfessionals[planKeys[step.planIndex]] : 1;
             if (currentCount && currentCount > 1) {
-                let numericPrice = parseInt(item.price.replace(/[^0-9]/g, ''));
+                let numericPrice = parseInt(plan.price.replace(/[^0-9]/g, ''));
                 let perPerson = numericPrice / currentCount;
                 perPersonEl.textContent = `¡Queda en $${perPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} por persona!`;
                 perPersonEl.classList.remove('hidden');
@@ -2775,23 +2713,66 @@ window.setCarouselIndex = function(index) {
             }
         }
     }
-    
+
     const actionBtn = document.getElementById('carouselActionBtn');
     if (actionBtn) {
         const planKeys = ['basic', 'inter', 'prem'];
-        actionBtn.onclick = () => selectPlan(item.title, planKeys[currentCarouselIndex]);
+        actionBtn.onclick = () => selectPlan(plan.title, planKeys[step.planIndex]);
     }
 
+    // Actualizar Indicadores de puntos (dots)
     const dotsContainer = document.getElementById('carouselDots');
     if (dotsContainer) {
         const dots = dotsContainer.children;
         for (let i = 0; i < dots.length; i++) {
-            dots[i].className = i === currentCarouselIndex ? 'w-8 h-2.5 rounded-full bg-primary transition-all' : 'w-2.5 h-2.5 rounded-full bg-slate-300 transition-all';
+            dots[i].className = i === step.planIndex ? 'w-8 h-2.5 rounded-full bg-primary transition-all' : 'w-2.5 h-2.5 rounded-full bg-slate-300 transition-all';
         }
     }
 
-    // Programar la próxima transición automática
-    scheduleNextCarouselStep();
+    // Actualizar Mockups con animación suave
+    const mockupPc = document.getElementById('mockupDesktopImg');
+    const mockupCel = document.getElementById('mockupMobileImg');
+    if (mockupPc || mockupCel) {
+        if (animate) {
+            if (mockupPc) mockupPc.style.opacity = '0';
+            if (mockupCel) mockupCel.style.opacity = '0';
+            setTimeout(() => {
+                if (mockupPc) { mockupPc.src = step.mockupDesktop; mockupPc.style.opacity = '1'; }
+                if (mockupCel) { mockupCel.src = step.mockupMobile; mockupCel.style.opacity = '1'; }
+            }, 250);
+        } else {
+            if (mockupPc) { mockupPc.src = step.mockupDesktop; mockupPc.style.opacity = '1'; }
+            if (mockupCel) { mockupCel.src = step.mockupMobile; mockupCel.style.opacity = '1'; }
+        }
+    }
+}
+
+function startShowcaseTimer() {
+    stopShowcaseTimer();
+    const titleEl = document.getElementById('carouselTitle');
+    if (!titleEl) return;
+    
+    showcaseInterval = setInterval(() => {
+        renderShowcaseStep(currentShowcaseStep + 1, true);
+    }, 5000);
+}
+
+function stopShowcaseTimer() {
+    if (showcaseInterval) {
+        clearInterval(showcaseInterval);
+        showcaseInterval = null;
+    }
+}
+
+window.setCarouselIndex = function(index) {
+    stopShowcaseTimer();
+    let targetStep = 0;
+    if (index === 0) targetStep = 0;
+    else if (index === 1) targetStep = 2;
+    else if (index === 2) targetStep = 3;
+    
+    renderShowcaseStep(targetStep, true);
+    startShowcaseTimer();
 };
 
 window.selectPlan = function(planName, planKey = 'inter') {
@@ -3117,19 +3098,17 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (prevBtn) {
                 prevBtn.addEventListener('click', () => {
-                    setCarouselIndex(currentCarouselIndex - 1 < 0 ? carouselData.length - 1 : currentCarouselIndex - 1);
+                    stopShowcaseTimer();
+                    renderShowcaseStep(currentShowcaseStep - 1, true);
+                    startShowcaseTimer();
                 });
             }
             if (nextBtn) {
                 nextBtn.addEventListener('click', () => {
-                    setCarouselIndex(currentCarouselIndex + 1 >= carouselData.length ? 0 : currentCarouselIndex + 1);
+                    stopShowcaseTimer();
+                    renderShowcaseStep(currentShowcaseStep + 1, true);
+                    startShowcaseTimer();
                 });
-            }
-
-            const carouselSec = document.getElementById('visualizar');
-            if (carouselSec) {
-                carouselSec.addEventListener('mouseenter', () => clearAllCarouselTimers());
-                carouselSec.addEventListener('mouseleave', () => scheduleNextCarouselStep());
             }
         }
 });
