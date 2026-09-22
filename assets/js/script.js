@@ -2630,7 +2630,7 @@ var carouselData = [
         mockupMobile: 'public/mockup_cuposClientes_phone.png',
         features: [
             'Todo lo incluido en el Plan Profesional',
-            '🔥 Módulo de Cupos y Portal de Alumnos (mi-cuenta)',
+            'Módulo de Cupos y Portal de Alumnos (mi-cuenta)',
             'Gestión de Créditos, Pases y Vencimientos',
             'Personalización de 5 colores (2 base + 3 adicionales)',
             'Clientes y alumnos ilimitados (por el momento)'

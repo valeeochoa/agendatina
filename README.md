@@ -165,7 +165,7 @@ El esquema principal de la base de datos `agendatina` incluye las siguientes ent
 | **Página Web Propia (`mi-web.html`)** | ❌ | ✅ | ✅ |
 | **Roles y Permisos de Profesionales** | Estándar | Permisos Básicos | Roles Avanzados |
 | **Métricas y Estadísticas** | ❌ | ✅ | ✅ |
-| **🔥 Clases por Cupos y Portal Alumnos** | ❌ | ❌ | **✅ Exclusivo Premium** |
+| **Clases por Cupos y Portal Alumnos** | ❌ | ❌ | **✅ Exclusivo Premium** |
 
 ---
 
