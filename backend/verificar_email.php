@@ -47,6 +47,7 @@ try {
 
     echo json_encode(['success' => true, 'message' => '¡Cuenta verificada con éxito!']);
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => 'Error al verificar: ' . $e->getMessage()]);
+    error_log("Error al verificar email: " . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'No se pudo verificar la cuenta debido a un error del servidor. Por favor intenta más tarde.']);
 }
 ?>

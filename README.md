@@ -212,7 +212,6 @@ Por motivos de seguridad y configuración de credenciales del servidor DonWeb / 
 2. **Cobros y Señas con Mercado Pago**: Integración de Checkout Pro, QR y validación por Webhooks (`backend/mp_webhook.php`).
 3. **Notificaciones Automatizadas por WhatsApp**: Envío de avisos y recordatorios automáticos vía Meta Cloud API.
 4. **Facturación Electrónica ARCA (AFIP)**: Emisión legal de Facturas A, B y C con CAE y código QR normativo.
-5. **Verificación de Disponibilidad de Subdominios**: Detección en tiempo real de URLs libres (`agendatina.site/tu-nombre`) para nuevos comercios.
 
 ---
 

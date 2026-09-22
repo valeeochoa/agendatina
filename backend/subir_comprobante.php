@@ -73,6 +73,7 @@ try {
     echo json_encode(['success' => true]);
 } catch(Exception $e) {
     @unlink($res['absolute_path']); // Borrar el archivo si falla la base de datos
-    echo json_encode(['success' => false, 'error' => 'Error BD: ' . $e->getMessage()]);
+    error_log("Error al procesar comprobante: " . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'No se pudo registrar el comprobante de pago. Por favor intenta nuevamente.']);
 }
 ?>

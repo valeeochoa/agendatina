@@ -62,7 +62,8 @@ try {
 
 } catch (PDOException $e) {
     @unlink($destination); // Borrar la imagen si falló la base de datos
+    error_log("Error al guardar logo en BD: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['success' => false, 'error' => 'Error al guardar en la base de datos: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'error' => 'Error interno al guardar la imagen en la base de datos. Por favor intenta nuevamente.']);
 }
 ?>

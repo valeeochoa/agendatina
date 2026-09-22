@@ -59,6 +59,7 @@ try {
 
     echo json_encode(['success' => true, 'message' => 'Nuevo código enviado a tu correo electrónico.']);
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => 'Error al reenviar el código: ' . $e->getMessage()]);
+    error_log("Error al reenviar código: " . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'No se pudo reenviar el código en este momento. Por favor intenta más tarde.']);
 }
 ?>

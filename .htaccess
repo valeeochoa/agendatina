@@ -18,6 +18,10 @@ ServerSignature Off
     Header set X-Content-Type-Options "nosniff"
     # Activa el filtro XSS del navegador
     Header set X-XSS-Protection "1; mode=block"
+    # Protege la privacidad evitando enviar URLs completas a terceros
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    # Restringe APIs sensibles del navegador que no son necesarias
+    Header set Permissions-Policy "geolocation=(), camera=(), microphone=()"
 </IfModule>
 
 # 4. Bloqueo de archivos sensibles

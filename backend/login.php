@@ -200,8 +200,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
     } catch (Throwable $e) {
+        error_log("Error en login.php: " . $e->getMessage());
         http_response_code(500);
-        echo json_encode(['success' => false, 'error' => 'Error en la base de datos: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'error' => 'Ocurrió un error inesperado al procesar el inicio de sesión. Por favor intenta más tarde.']);
         exit;
     }
 }

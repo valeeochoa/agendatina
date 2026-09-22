@@ -145,6 +145,7 @@ try {
     echo json_encode(['success' => true]);
 
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => 'Error al procesar el reporte: ' . $e->getMessage()]);
+    error_log("Error al procesar reporte de error: " . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'No se pudo enviar el reporte en este momento. Por favor intenta más tarde.']);
 }
 ?>

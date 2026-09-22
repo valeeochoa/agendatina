@@ -64,10 +64,10 @@ try {
     ]);
 
 } catch (Throwable $e) {
-    // Devuelve respuesta de error JSON con HTTP 200 para evitar errores 500 en consola de navegador
+    error_log("Error al obtener negocios: " . $e->getMessage());
     echo json_encode([
         'success' => false,
-        'error' => 'Error al obtener negocios: ' . $e->getMessage(),
+        'error' => 'No se pudieron recuperar los comercios asociados.',
         'has_multiple' => false,
         'negocios' => []
     ]);

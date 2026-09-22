@@ -36,6 +36,7 @@ try {
         'mensaje' => $asistio === 1 ? 'Asistencia registrada correctamente' : 'Marcar como no asistió'
     ]);
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    error_log("Error en marcar_asistencia.php: " . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'No se pudo actualizar la asistencia del turno.']);
 }
 ?>

@@ -385,9 +385,10 @@ try {
     if (isset($pdo) && $pdo->inTransaction()) {
         try { $pdo->rollBack(); } catch (Throwable $eRb) {}
     }
+    error_log("Error en perfil.php: " . $t->getMessage());
     @session_write_close();
     header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['success' => false, 'error' => 'Error en el servidor: ' . $t->getMessage()]);
+    echo json_encode(['success' => false, 'error' => 'No se pudo procesar la solicitud del perfil debido a un error interno.']);
     exit;
 }
 ?>

@@ -388,6 +388,7 @@ try {
             $pdo->rollBack();
         }
     } catch (Throwable $rollEx) {}
-    echo json_encode(['success' => false, 'error' => 'Error al crear la cuenta: ' . $e->getMessage()]);
+    error_log("Error en registrarse.php: " . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'No se pudo completar el registro debido a un error del servidor. Por favor intenta más tarde.']);
 }
 ?>

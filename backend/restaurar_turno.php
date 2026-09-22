@@ -24,7 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute(['id' => $id, 'id_negocio' => $id_negocio]);
         echo json_encode(['success' => true]);
     } catch (PDOException $e) {
-        echo json_encode(['success' => false, 'error' => 'Error al restaurar: ' . $e->getMessage()]);
+        error_log("Error al restaurar turno: " . $e->getMessage());
+        echo json_encode(['success' => false, 'error' => 'No se pudo restaurar el turno. Por favor intenta nuevamente.']);
     }
 }
 ?>

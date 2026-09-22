@@ -69,5 +69,6 @@ try {
     exit;
 
 } catch (\Throwable $e) {
-    echo json_encode(['success' => false, 'error' => 'Error del servidor al restablecer contraseña: ' . $e->getMessage()]);
+    error_log("Error al restablecer contraseña: " . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'No se pudo restablecer la contraseña debido a un error del servidor. Por favor solicita un nuevo enlace.']);
 }

@@ -130,7 +130,8 @@ try {
     echo json_encode($turnos);
 
 } catch (PDOException $e) {
+    error_log("Error al obtener la agenda: " . $e->getMessage());
     http_response_code(500);
-    die(json_encode(['success' => false, 'error' => 'Error al obtener la agenda: ' . $e->getMessage()]));
+    die(json_encode(['success' => false, 'error' => 'No se pudo cargar la agenda de turnos. Por favor intenta de nuevo.']));
 }
 ?>

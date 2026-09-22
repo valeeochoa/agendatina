@@ -55,6 +55,7 @@ try {
         'message' => "¡Código '{$cupon['codigo']}' aplicado! Obtenés un {$pct}% de descuento en tu primera facturación."
     ]);
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => 'Error al validar código: ' . $e->getMessage()]);
+    error_log("Error al validar cupón: " . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'No se pudo validar el cupón de descuento. Por favor intenta más tarde.']);
 }
 ?>

@@ -90,6 +90,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $pdo->prepare("UPDATE turnos SET fecha = ?, hora = ? WHERE id = ? AND id_negocio = ?")->execute([$nueva_fecha, $hora_final, $id_turno, $id_negocio]);
         echo json_encode(['success' => true]);
-    } catch (Exception $e) { echo json_encode(['success' => false, 'error' => 'Error al mover el turno: ' . $e->getMessage()]); }
+    } catch (Exception $e) {
+        error_log("Error al mover turno: " . $e->getMessage());
+        echo json_encode(['success' => false, 'error' => 'No se pudo mover el turno debido a un error del servidor.']);
+    }
 }
 ?>

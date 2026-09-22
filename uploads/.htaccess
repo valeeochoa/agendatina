@@ -1,0 +1,24 @@
+# Desactivar listado de directorios y ejecución de CGI
+Options -Indexes -ExecCGI
+
+# Desactivar motor PHP en esta carpeta si mod_php está presente
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+
+# Bloquear cualquier intento de ejecutar o acceder a scripts
+<FilesMatch "(?i)\.(php|phtml|php3|php4|php5|php7|php8|phps|cgi|pl|py|sh|bash|exe|bat|cmd|dll|bin|htaccess|htpasswd|env|ini|config|bak)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Asegurar que los archivos multimedia se sirvan con tipos seguros
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+</IfModule>
