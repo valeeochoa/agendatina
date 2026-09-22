@@ -2174,7 +2174,7 @@ function selectWizardProf(pName) {
 var adminWeeklySelectedService = null;
 var adminWeeklySelectedProf = null;
 
-function initAdminWeeklyServices() {
+function renderAdminWeeklyServices() {
     const container = document.getElementById('adminWeeklyServices');
     if (!container) return;
     container.innerHTML = '';
@@ -2185,10 +2185,36 @@ function initAdminWeeklyServices() {
         return;
     }
 
+    if (!adminWeeklySelectedService || !uniqueServices.includes(adminWeeklySelectedService)) {
+        adminWeeklySelectedService = uniqueServices[0];
+    }
+
+    const isSpecificProf = adminWeeklySelectedProf && adminWeeklySelectedProf !== 'todos' && adminWeeklySelectedProf !== 'Cualquiera (Sin preferencia)';
+
+    let profServicesNames = [];
+    if (isSpecificProf) {
+        profServicesNames = services
+            .filter(s => window.isSameProf(s.profesional, adminWeeklySelectedProf))
+            .map(s => s.nombre);
+    }
+
     uniqueServices.forEach(sName => {
         const btn = document.createElement('button');
-        const defaultStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-2xs bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200/90 dark:border-slate-700/80 hover:border-[#D11149]';
-        const activeStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-md bg-[#D11149] text-white border-[#D11149] scale-[1.02]';
+        const isActive = sName === adminWeeklySelectedService;
+        const isOfferedByCurrentProf = isSpecificProf && profServicesNames.includes(sName);
+        
+        let btnStyle = '';
+        if (isActive) {
+            btnStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-md bg-[#D11149] text-white border-[#D11149] scale-[1.02] ring-2 ring-[#D11149]/20';
+        } else if (isSpecificProf) {
+            if (isOfferedByCurrentProf) {
+                btnStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border-2 shadow-2xs bg-rose-50 dark:bg-rose-950/50 text-[#D11149] dark:text-rose-300 border-rose-300 dark:border-rose-700 hover:bg-rose-100 dark:hover:bg-rose-900/60 ring-1 ring-rose-200/50';
+            } else {
+                btnStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-2xs bg-slate-50/70 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 border-slate-200/70 dark:border-slate-800 opacity-60 hover:opacity-100 hover:border-slate-400';
+            }
+        } else {
+            btnStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-2xs bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200/90 dark:border-slate-700/80 hover:border-[#D11149]';
+        }
         
         const sMatch = services.find(s => s.nombre === sName);
         const iconToUse = sMatch?.icono || 'calendar_month';
@@ -2199,23 +2225,45 @@ function initAdminWeeklyServices() {
             iconHtml = `<span class="material-symbols-outlined text-[16px]">${iconToUse}</span>`;
         }
 
-        btn.className = defaultStyle;
-        btn.innerHTML = `${iconHtml} <span>${sName}</span>`;
+        let extraBadge = '';
+        if (!isActive && isSpecificProf && isOfferedByCurrentProf) {
+            extraBadge = '<span class="material-symbols-outlined text-[14px] text-[#D11149] dark:text-rose-300">verified</span>';
+        }
+
+        btn.className = btnStyle;
+        btn.innerHTML = `${iconHtml} <span>${sName}</span> ${extraBadge}`;
         
         btn.onclick = () => {
-            document.querySelectorAll('#adminWeeklyServices button').forEach(b => {
-                b.className = defaultStyle;
-            });
-            btn.className = activeStyle;
-            
             adminWeeklySelectedService = sName;
+            
+            if (isSpecificProf && !profServicesNames.includes(sName)) {
+                const rawMatching = services
+                    .filter(s => s.nombre === sName && s.profesional && s.profesional.trim() !== '' && s.profesional !== 'Cualquiera (Sin preferencia)')
+                    .map(s => s.profesional.trim());
+                const allProfs = getUniqueProfessionals();
+                const matchedProfs = allProfs.filter(p => rawMatching.some(m => window.isSameProf(m, p)));
+                
+                if (matchedProfs.length > 0) {
+                    adminWeeklySelectedProf = matchedProfs[0];
+                    globalSelectedProfessional = matchedProfs[0];
+                } else {
+                    adminWeeklySelectedProf = 'todos';
+                    globalSelectedProfessional = '';
+                }
+            }
+
+            renderAdminWeeklyServices();
             renderAdminWeeklyProfs();
-            renderAdminWeeklyGrid(); 
+            cal_fetchBookedTimesWeeklyAdmin();
         };
         container.appendChild(btn);
     });
-    
-    if (container.firstChild) container.firstChild.click();
+}
+
+function initAdminWeeklyServices() {
+    renderAdminWeeklyServices();
+    renderAdminWeeklyProfs();
+    cal_fetchBookedTimesWeeklyAdmin();
 }
 
 function renderAdminWeeklyProfs() {
@@ -2240,8 +2288,8 @@ function renderAdminWeeklyProfs() {
     }
 
     const defaultBtnStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-2xs bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-[#FC8712]';
-    const activeBtnStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-md bg-[#FC8712] text-white border-[#FC8712] scale-[1.02]';
-    const activeTodosStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-md bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white border-transparent scale-[1.02]';
+    const activeBtnStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-md bg-[#FC8712] text-white border-[#FC8712] scale-[1.02] ring-2 ring-[#FC8712]/20';
+    const activeTodosStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-md bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white border-transparent scale-[1.02] ring-2 ring-[#FC8712]/20';
 
     // 1. Botón "Todos los profesionales"
     const isTodosActive = adminWeeklySelectedProf === 'todos' || !adminWeeklySelectedProf;
@@ -2251,33 +2299,47 @@ function renderAdminWeeklyProfs() {
     btnTodos.onclick = () => {
         adminWeeklySelectedProf = 'todos';
         globalSelectedProfessional = '';
-        document.querySelectorAll('#adminWeeklyProfs button').forEach(b => {
-            b.className = defaultBtnStyle;
-        });
-        btnTodos.className = activeTodosStyle;
+        renderAdminWeeklyServices();
+        renderAdminWeeklyProfs();
         cal_fetchBookedTimesWeeklyAdmin();
     };
     container.appendChild(btnTodos);
     
     // 2. Botones individuales para cada profesional
-    const createProfBtn = (pName, isHighlighted) => {
+    const createProfBtn = (pName, isAssociatedWithService) => {
         const btn = document.createElement('button');
         const isActive = adminWeeklySelectedProf === pName;
-        const highlightedStyle = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-2xs bg-amber-50 dark:bg-amber-950/50 text-[#FC8712] border-amber-300 dark:border-amber-700';
         const displayLabel = profDisplayMap[pName] || pName;
 
-        btn.className = isActive ? activeBtnStyle : (isHighlighted ? highlightedStyle : defaultBtnStyle);
-        btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">${isHighlighted ? 'check_circle' : 'person'}</span> <span>${displayLabel}</span>`;
+        let style = '';
+        if (isActive) {
+            style = activeBtnStyle;
+        } else if (isAssociatedWithService) {
+            // Fuertemente destacado en color ámbar/naranja para indicar que atiende este servicio
+            style = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border-2 shadow-2xs bg-amber-100 dark:bg-amber-950/70 text-[#FC8712] dark:text-amber-400 border-amber-400 dark:border-amber-600 ring-2 ring-amber-300/40 hover:bg-amber-200 dark:hover:bg-amber-900/60';
+        } else {
+            // No asociado al servicio seleccionado: estilo atenuado pero clickeable
+            style = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-2xs bg-slate-50/70 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 border-slate-200/70 dark:border-slate-800 opacity-65 hover:opacity-100 hover:border-slate-400';
+        }
+
+        const iconName = isAssociatedWithService ? 'check_circle' : 'person';
+        btn.className = style;
+        btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">${iconName}</span> <span>${displayLabel}</span>`;
         
         btn.onclick = () => {
+            const profServices = services.filter(s => window.isSameProf(s.profesional, pName));
+            if (profServices.length > 0) {
+                const currentMatches = profServices.some(s => s.nombre === adminWeeklySelectedService);
+                if (!currentMatches) {
+                    adminWeeklySelectedService = profServices[0].nombre;
+                }
+            }
+
             adminWeeklySelectedProf = pName;
             globalSelectedProfessional = pName;
             
-            document.querySelectorAll('#adminWeeklyProfs button').forEach(b => {
-                b.className = defaultBtnStyle;
-            });
-            btn.className = activeBtnStyle;
-            
+            renderAdminWeeklyServices();
+            renderAdminWeeklyProfs();
             cal_fetchBookedTimesWeeklyAdmin();
         };
         return btn;
@@ -2365,9 +2427,10 @@ function renderAdminWeeklyGrid() {
             dayNameClass = 'text-white/80 font-bold';
             dateNumClass = 'text-white font-black';
         } else if (isToday) {
-            headerBgClass = 'bg-gradient-to-br from-[#D11149] to-[#E61B58] text-white border-transparent shadow-md shadow-rose-500/25';
-            dayNameClass = 'text-rose-100 font-extrabold';
-            dateNumClass = 'text-white font-black';
+            colCardClass = 'bg-white/95 dark:bg-slate-900/95 border-rose-200 dark:border-rose-900/50 ring-2 ring-[#D11149]/20 shadow-md';
+            headerBgClass = 'bg-white dark:bg-slate-800/90 border-2 border-[#D11149] text-slate-900 dark:text-white shadow-xs';
+            dayNameClass = 'text-[#D11149] dark:text-rose-400 font-black';
+            dateNumClass = 'text-slate-900 dark:text-white font-black';
         } else if (isPast) {
             colCardClass = 'bg-slate-100/60 dark:bg-slate-900/50 border-slate-200/60 dark:border-slate-800/60 shadow-2xs opacity-85';
             headerBgClass = 'bg-slate-200/60 dark:bg-slate-800/60 border-slate-300/60 dark:border-slate-700/60 text-slate-500 dark:text-slate-400 hover:bg-slate-300/60';
@@ -2383,9 +2446,9 @@ function renderAdminWeeklyGrid() {
         
         let todayTag = '';
         if (isToday && !isMultiSelected) {
-            todayTag = '<span class="inline-block text-[8px] font-black tracking-widest px-1.5 py-0.2 rounded-full bg-white/20 text-white mb-0.5">HOY</span>';
+            todayTag = '<span class="inline-flex items-center gap-1 text-[8px] font-black tracking-wider px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/60 text-[#D11149] dark:text-rose-300 border border-rose-200 dark:border-rose-800 mb-0.5"><span class="w-1.5 h-1.5 rounded-full bg-[#D11149] animate-pulse"></span>HOY</span>';
         } else if (isPast && !isMultiSelected) {
-            todayTag = '<span class="inline-block text-[8px] font-bold tracking-widest px-1.5 py-0.2 rounded-full bg-slate-300/60 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 mb-0.5 uppercase">Pasado</span>';
+            todayTag = '<span class="inline-block text-[8px] font-bold tracking-widest px-1.5 py-0.2 rounded-full bg-slate-200/60 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 mb-0.5 uppercase">Pasado</span>';
         }
 
         colHeader.innerHTML = `${todayTag}<div class="text-[9px] sm:text-[10px] font-black tracking-wider uppercase ${dayNameClass}">${dayName}</div><div class="text-sm sm:text-base ${dateNumClass}">${date.getDate()}</div>`;
@@ -2640,7 +2703,7 @@ function renderWeeklyCalendar() {
             textClass = 'text-white font-black';
             borderClass = 'border-transparent ring-2 ring-rose-300/40';
         } else if (isToday && !visuallyDisabled) {
-            borderClass = 'border-rose-400 dark:border-rose-500 ring-2 ring-rose-200/80 dark:ring-rose-900/50';
+            borderClass = 'border-[#D11149] ring-2 ring-[#D11149]/20 shadow-xs';
         }
 
         dayDiv.className = `flex flex-col items-center justify-center py-2 px-1 sm:py-3 sm:px-2 rounded-2xl border-2 ${borderClass} ${bgClass} ${textClass} w-full min-w-0 transition-all duration-300 relative overflow-visible shadow-2xs hover:shadow-lg`;
@@ -2653,7 +2716,7 @@ function renderWeeklyCalendar() {
             dayDiv.addEventListener('click', () => selectWeeklyDate(currentIterDate));
         }
         
-        const todayBadge = isToday ? '<span class="glow-badge-today absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 text-[8px] sm:text-[9px] z-20 font-black shadow-md uppercase tracking-wider rounded-full bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white">HOY</span>' : '';
+        const todayBadge = isToday ? '<span class="glow-badge-today absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 text-[8px] sm:text-[9px] z-20 font-black shadow-xs uppercase tracking-wider rounded-full bg-white dark:bg-slate-800 text-[#D11149] dark:text-rose-300 border border-rose-200 dark:border-rose-800 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#D11149] animate-pulse"></span>HOY</span>' : '';
         const activeDot = (!visuallyDisabled && !isSelected) ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 mb-0.5 animate-pulse shadow-2xs"></span>' : (isSelected ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/90 mb-0.5 shadow-2xs"></span>' : '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-transparent mb-0.5"></span>');
         
         dayDiv.innerHTML = `${todayBadge}${activeDot}<span class="text-[9px] sm:text-[11px] font-black tracking-wider uppercase mb-0.5 ${isSelected ? 'text-white/90' : 'text-slate-400 dark:text-slate-400'}">${dayName}</span><span class="text-base sm:text-2xl font-black ${isSelected ? 'text-white' : 'text-slate-900 dark:text-slate-100'}">${date.getDate()}</span>`;
