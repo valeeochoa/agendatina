@@ -2659,91 +2659,101 @@ function renderShowcaseStep(stepIdx, animate = true) {
     const titleEl = document.getElementById('carouselTitle');
     if (!titleEl) return;
 
-    currentShowcaseStep = (stepIdx + showcaseSteps.length) % showcaseSteps.length;
-    const step = showcaseSteps[currentShowcaseStep];
-    const plan = carouselData[step.planIndex];
-    currentCarouselIndex = step.planIndex;
-
-    // Actualizar Textos y Datos del Plan
-    titleEl.textContent = plan.title;
-    
-    const descEl = document.getElementById('carouselDesc');
-    if (descEl) descEl.textContent = plan.desc;
-
-    const featuresEl = document.getElementById('carouselFeatures');
-    if (featuresEl && plan.features) {
-        featuresEl.innerHTML = plan.features.map(f => `
-            <li class="flex items-center gap-4">
-                <span class="material-symbols-outlined text-primary">check_circle</span>
-                <span>${f}</span>
-            </li>
-        `).join('');
-    }
-    
-    const oldPriceEl = document.getElementById('carouselOldPrice');
-    const priceEl = document.getElementById('carouselPrice');
-    if (oldPriceEl) oldPriceEl.textContent = plan.oldPrice;
-    if (priceEl) priceEl.textContent = plan.price;
-        
-    const tagEl = document.getElementById('carouselTagText');
-    if (tagEl) tagEl.textContent = plan.tag;
-
-    // Actualizar Precios y Botón
-    const carouselOldPriceContainer = document.getElementById('carouselOldPriceContainer');
-    if (carouselOldPriceContainer) {
-        if (plan.showOldPrice) {
-            carouselOldPriceContainer.style.display = 'flex';
-            const badge = carouselOldPriceContainer.querySelector('.bg-emerald-100');
-            if (badge) badge.textContent = plan.badgeText;
-        } else {
-            carouselOldPriceContainer.style.display = 'none';
-        }
-        
-        const perPersonEl = document.getElementById('carouselPerPerson');
-        if (perPersonEl) {
-            const planKeys = ['basic', 'inter', 'prem'];
-            let currentCount = (window.numProfessionals && window.numProfessionals[planKeys[step.planIndex]]) ? window.numProfessionals[planKeys[step.planIndex]] : 1;
-            if (currentCount && currentCount > 1) {
-                let numericPrice = parseInt(plan.price.replace(/[^0-9]/g, ''));
-                let perPerson = numericPrice / currentCount;
-                perPersonEl.textContent = `¡Queda en $${perPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} por persona!`;
-                perPersonEl.classList.remove('hidden');
-            } else {
-                perPersonEl.classList.add('hidden');
-            }
-        }
-    }
-
-    const actionBtn = document.getElementById('carouselActionBtn');
-    if (actionBtn) {
-        const planKeys = ['basic', 'inter', 'prem'];
-        actionBtn.onclick = () => selectPlan(plan.title, planKeys[step.planIndex]);
-    }
-
-    // Actualizar Indicadores de puntos (dots)
-    const dotsContainer = document.getElementById('carouselDots');
-    if (dotsContainer) {
-        const dots = dotsContainer.children;
-        for (let i = 0; i < dots.length; i++) {
-            dots[i].className = i === step.planIndex ? 'w-8 h-2.5 rounded-full bg-primary transition-all' : 'w-2.5 h-2.5 rounded-full bg-slate-300 transition-all';
-        }
-    }
-
-    // Actualizar Mockups con animación suave
+    const textContainer = document.getElementById('carouselTextContent');
     const mockupPc = document.getElementById('mockupDesktopImg');
     const mockupCel = document.getElementById('mockupMobileImg');
-    if (mockupPc || mockupCel) {
-        if (animate) {
-            if (mockupPc) mockupPc.style.opacity = '0';
-            if (mockupCel) mockupCel.style.opacity = '0';
-            setTimeout(() => {
-                if (mockupPc) { mockupPc.src = step.mockupDesktop; mockupPc.style.opacity = '1'; }
-                if (mockupCel) { mockupCel.src = step.mockupMobile; mockupCel.style.opacity = '1'; }
-            }, 250);
-        } else {
-            if (mockupPc) { mockupPc.src = step.mockupDesktop; mockupPc.style.opacity = '1'; }
-            if (mockupCel) { mockupCel.src = step.mockupMobile; mockupCel.style.opacity = '1'; }
+
+    const updateContent = () => {
+        currentShowcaseStep = (stepIdx + showcaseSteps.length) % showcaseSteps.length;
+        const step = showcaseSteps[currentShowcaseStep];
+        const plan = carouselData[step.planIndex];
+        currentCarouselIndex = step.planIndex;
+
+        // Actualizar Textos y Datos del Plan
+        titleEl.textContent = plan.title;
+        
+        const descEl = document.getElementById('carouselDesc');
+        if (descEl) descEl.textContent = plan.desc;
+
+        const featuresEl = document.getElementById('carouselFeatures');
+        if (featuresEl && plan.features) {
+            featuresEl.innerHTML = plan.features.map(f => `
+                <li class="flex items-center gap-4 transition-all">
+                    <span class="material-symbols-outlined text-primary">check_circle</span>
+                    <span>${f}</span>
+                </li>
+            `).join('');
         }
+        
+        const oldPriceEl = document.getElementById('carouselOldPrice');
+        const priceEl = document.getElementById('carouselPrice');
+        if (oldPriceEl) oldPriceEl.textContent = plan.oldPrice;
+        if (priceEl) priceEl.textContent = plan.price;
+            
+        const tagEl = document.getElementById('carouselTagText');
+        if (tagEl) tagEl.textContent = plan.tag;
+
+        // Actualizar Precios y Botón
+        const carouselOldPriceContainer = document.getElementById('carouselOldPriceContainer');
+        if (carouselOldPriceContainer) {
+            if (plan.showOldPrice) {
+                carouselOldPriceContainer.style.display = 'flex';
+                const badge = carouselOldPriceContainer.querySelector('.bg-emerald-100');
+                if (badge) badge.textContent = plan.badgeText;
+            } else {
+                carouselOldPriceContainer.style.display = 'none';
+            }
+            
+            const perPersonEl = document.getElementById('carouselPerPerson');
+            if (perPersonEl) {
+                const planKeys = ['basic', 'inter', 'prem'];
+                let currentCount = (window.numProfessionals && window.numProfessionals[planKeys[step.planIndex]]) ? window.numProfessionals[planKeys[step.planIndex]] : 1;
+                if (currentCount && currentCount > 1) {
+                    let numericPrice = parseInt(plan.price.replace(/[^0-9]/g, ''));
+                    let perPerson = numericPrice / currentCount;
+                    perPersonEl.textContent = `¡Queda en $${perPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} por persona!`;
+                    perPersonEl.classList.remove('hidden');
+                } else {
+                    perPersonEl.classList.add('hidden');
+                }
+            }
+        }
+
+        const actionBtn = document.getElementById('carouselActionBtn');
+        if (actionBtn) {
+            const planKeys = ['basic', 'inter', 'prem'];
+            actionBtn.onclick = () => selectPlan(plan.title, planKeys[step.planIndex]);
+        }
+
+        // Actualizar Indicadores de puntos (dots)
+        const dotsContainer = document.getElementById('carouselDots');
+        if (dotsContainer) {
+            const dots = dotsContainer.children;
+            for (let i = 0; i < dots.length; i++) {
+                dots[i].className = i === step.planIndex ? 'w-8 h-2.5 rounded-full bg-primary transition-all scale-105' : 'w-2.5 h-2.5 rounded-full bg-slate-300 transition-all';
+            }
+        }
+
+        if (mockupPc) { mockupPc.src = step.mockupDesktop; mockupPc.style.opacity = '1'; }
+        if (mockupCel) { mockupCel.src = step.mockupMobile; mockupCel.style.opacity = '1'; }
+
+        if (textContainer) {
+            textContainer.style.opacity = '1';
+            textContainer.style.transform = 'translateY(0)';
+        }
+    };
+
+    if (animate) {
+        if (textContainer) {
+            textContainer.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
+            textContainer.style.opacity = '0';
+            textContainer.style.transform = 'translateY(6px)';
+        }
+        if (mockupPc) mockupPc.style.opacity = '0';
+        if (mockupCel) mockupCel.style.opacity = '0';
+        setTimeout(updateContent, 220);
+    } else {
+        updateContent();
     }
 }
 

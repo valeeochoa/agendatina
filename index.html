@@ -72,22 +72,22 @@
 <body class="bg-[#fdfafb] text-slate-900 antialiased selection:bg-[#D11149]/10">
 
     <nav id="mainNav"
-        class="fixed w-full z-50 bg-slate-900/90 backdrop-blur-xl border-b border-slate-800/80 transition-all duration-300 shadow-lg shadow-black/10">
-        <div class="max-w-7xl mx-auto px-6 py-3.5 flex justify-between items-center">
+        class="fixed w-full z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 transition-all duration-300 shadow-sm">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
             <a href="index.html" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
                 <img src="public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
                 <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span
                         class="text-[#fc8712]">tina</span></span>
             </a>
-            <div class="hidden md:flex gap-8 font-semibold text-sm text-slate-300">
-                <a href="#inicio" class="hover:text-[#fc8712] transition-colors">Inicio</a>
-                <a href="#visualizar" class="hover:text-[#fc8712] transition-colors">Demo</a>
-                <a href="#planes" class="hover:text-[#fc8712] transition-colors">Planes</a>
-                <a href="#contacto" onclick="resetForm()" class="hover:text-[#fc8712] transition-colors">Contacto</a>
+            <div class="hidden md:flex gap-8 font-semibold text-sm text-slate-600">
+                <a href="#inicio" class="hover:text-primary transition-colors">Inicio</a>
+                <a href="#visualizar" class="hover:text-primary transition-colors">Demo</a>
+                <a href="#planes" class="hover:text-primary transition-colors">Planes</a>
+                <a href="#contacto" onclick="resetForm()" class="hover:text-primary transition-colors">Contacto</a>
             </div>
             <div class="flex items-center gap-3">
                 <a href="registro.html"
-                    class="bg-[#d11149]/20 text-[#fc8712] border border-[#fc8712]/40 px-4 py-2 rounded-full font-bold text-xs hover:bg-[#d11149]/30 transition-all hidden sm:flex items-center gap-1.5 shadow-sm">
+                    class="bg-[#d11149]/10 text-[#d11149] border border-[#d11149]/20 px-4 py-2 rounded-full font-bold text-xs hover:bg-[#d11149]/20 transition-all hidden sm:flex items-center gap-1.5 shadow-xs">
                     <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Crear Cuenta Gratis
                 </a>
                 <a href="login.html"
@@ -614,14 +614,12 @@
 
                         <li class="flex gap-2 font-semibold text-white">
                             <span class="material-symbols-outlined text-white text-sm">done</span>
-                            Clientes y alumnos ilimitados (por el momento)
-                        </li>
-
-                        <li class="flex gap-2">
+                            Clientes y alumnos ilimit                        <li class="flex gap-2">
                             <span class="material-symbols-outlined text-white text-sm">done</span>
                             Notificaciones automáticas por correo
                         </li>
 
+                        <!-- Notificaciones por WhatsApp temporalmente deshabilitadas
                         <li class="flex gap-2 items-center">
                             <span class="material-symbols-outlined text-emerald-300 text-sm">chat</span>
                             <div class="leading-tight">
@@ -631,9 +629,10 @@
                                     WPP/mes total negocio</strong>
                             </div>
                         </li>
+                        -->
                     </ul>
                     <button onclick="selectPlan('Plan Profesional', 'inter')"
-                        class="w-full py-4 rounded-xl bg-white text-primary font-bold hover:bg-slate-50 transition-all">
+                        class="w-full py-4 rounded-xl bg-white text-primary font-bold hover:bg-slate-50 transition-all shadow-md">
                         Solicitar
                     </button>
                 </div>
@@ -709,6 +708,7 @@
                             Clientes y alumnos ilimitados (por el momento)
                         </li>
 
+                        <!-- Notificaciones por WhatsApp temporalmente deshabilitadas
                         <li class="flex gap-2 items-center">
                             <span class="material-symbols-outlined text-emerald-600 text-sm">chat</span>
                             <div class="leading-tight">
@@ -718,6 +718,7 @@
                                     WPP/mes total negocio</strong>
                             </div>
                         </li>
+                        -->
 
                     </ul>
 
@@ -732,238 +733,242 @@
 
             <!-- Confianza -->
             <p class="text-center text-sm text-slate-500 mt-12">
-                Sin contratos. Podés cancelar cuando quieras.
+                Sin contratos ni ataduras. Podés cambiar o cancelar tu plan cuando quieras.
             </p>
 
+            <!-- TABLA COMPARATIVA MEJORADA -->
             <div id="tabla-comparativa" class="mt-24 max-w-5xl mx-auto reveal-on-scroll scroll-mt-24 font-sans">
                 <div class="text-center mb-10">
-                    <span class="text-[#FC8712] font-extrabold tracking-widest uppercase text-xs mb-2 block">Descubre tu
-                        potencial</span>
-                    <h3 class="text-3xl md:text-4xl font-extrabold text-slate-800 font-display">Comparativa detallada de
-                        funciones</h3>
-                    <p class="text-slate-500 text-sm mt-2 font-medium">Conoce todas las herramientas incluidas en cada
-                        nivel de servicio.</p>
+                    <span class="text-[#FC8712] font-extrabold tracking-widest uppercase text-xs mb-2 block">Transparencia Total</span>
+                    <h3 class="text-3xl md:text-4xl font-extrabold text-slate-900 font-display">Comparativa detallada de funciones</h3>
+                    <p class="text-slate-500 text-sm mt-2 font-medium">Encontrá el nivel de servicio ideal para la escala y objetivos de tu negocio.</p>
                 </div>
-                <div
-                    class="bg-gradient-to-br from-white via-orange-50/40 to-amber-50/30 rounded-[2.5rem] border border-orange-200/80 shadow-xl overflow-hidden relative z-10">
-                    <div class="h-2.5 w-full bg-gradient-to-r from-[#D11149] via-[#FC8712] to-amber-400"></div>
-                    <div class="overflow-x-auto p-4 md:p-6">
+                
+                <div class="bg-white rounded-[2rem] border border-orange-200/80 shadow-2xl overflow-hidden relative z-10">
+                    <div class="h-2 w-full bg-gradient-to-r from-[#D11149] via-[#FC8712] to-amber-400"></div>
+                    
+                    <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse font-sans">
                             <thead>
-                                <tr
-                                    class="bg-gradient-to-r from-orange-100/70 via-amber-50/90 to-orange-100/70 border-b-2 border-orange-200/60">
-                                    <th class="p-4 md:p-5 font-extrabold text-slate-800 text-sm rounded-tl-2xl">
-                                        Funcionalidades y Módulos</th>
-                                    <th class="p-4 md:p-5 font-extrabold text-center text-slate-700 text-sm">Plan Simple
+                                <tr class="bg-gradient-to-b from-slate-50 to-orange-50/40 border-b border-orange-200/70">
+                                    <th class="p-5 md:p-6 font-extrabold text-slate-800 text-sm md:text-base w-2/5">
+                                        Características y Módulos
                                     </th>
-                                    <th class="p-4 md:p-5 font-extrabold text-center text-primary text-sm">Plan
-                                        Profesional</th>
-                                    <th
-                                        class="p-4 md:p-5 font-extrabold text-center text-secondary text-sm rounded-tr-2xl">
-                                        Plan Premium</th>
+                                    <th class="p-4 md:p-5 text-center w-1/5">
+                                        <div class="font-extrabold text-slate-800 text-sm md:text-base mb-1">Plan Simple</div>
+                                        <span class="inline-block bg-slate-100 text-slate-600 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-slate-200">1 Profesional</span>
+                                    </th>
+                                    <th class="p-4 md:p-5 text-center w-1/5 bg-rose-50/50">
+                                        <div class="font-extrabold text-[#D11149] text-sm md:text-base mb-1">Plan Profesional</div>
+                                        <span class="inline-block bg-gradient-to-r from-[#D11149] to-rose-600 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">★ Más Elegido</span>
+                                    </th>
+                                    <th class="p-4 md:p-5 text-center w-1/5 bg-orange-50/40">
+                                        <div class="font-extrabold text-[#FC8712] text-sm md:text-base mb-1">Plan Premium</div>
+                                        <span class="inline-block bg-gradient-to-r from-[#FC8712] to-amber-500 text-white text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-xs">🔥 Todo Incluido</span>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody class="text-xs sm:text-sm text-slate-700 divide-y divide-slate-100">
-                                <!-- 1. Turnero y Solicitud de Turnos -->
-                                <tr class="hover:bg-orange-50/40 transition-colors">
-                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                        <span
-                                            class="material-symbols-outlined text-primary text-[18px]">calendar_month</span>
-                                        <span>Calendario de reservas online 24/7</span>
+                                
+                                <!-- CATEGORÍA 1: TURNOS Y RESERVAS ONLINE -->
+                                <tr class="bg-slate-100/70">
+                                    <td colspan="4" class="px-5 py-2.5 font-black text-xs uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[16px] text-primary">calendar_month</span>
+                                        Gestión de Turnos y Reservas Online
                                     </td>
-                                    <td class="p-4 text-center"><span
-                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                </tr>
+                                <tr class="hover:bg-orange-50/30 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800">
+                                        Calendario de reservas online 24/7
                                     </td>
-                                    <td class="p-4 text-center"><span
-                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    <td class="p-4 text-center">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
                                     </td>
-                                    <td class="p-4 text-center"><span
-                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    <td class="p-4 text-center bg-rose-50/20">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                    </td>
+                                    <td class="p-4 text-center bg-orange-50/20">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-orange-50/30 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800">
+                                        Notificaciones automáticas por Email a clientes y dueños
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                    </td>
+                                    <td class="p-4 text-center bg-rose-50/20">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                    </td>
+                                    <td class="p-4 text-center bg-orange-50/20">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-orange-50/30 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800">
+                                        Bloqueo manual de días feriados, descansos y vacaciones
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                    </td>
+                                    <td class="p-4 text-center bg-rose-50/20">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                    </td>
+                                    <td class="p-4 text-center bg-orange-50/20">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
                                     </td>
                                 </tr>
 
-                                <!-- 2. Notificaciones por Email -->
-                                <tr class="hover:bg-orange-50/40 transition-colors">
-                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-primary text-[18px]">mail</span>
-                                        <span>Notificaciones automáticas por Email</span>
+                                <!-- CATEGORÍA 2: AGENDA Y EQUIPO -->
+                                <tr class="bg-slate-100/70">
+                                    <td colspan="4" class="px-5 py-2.5 font-black text-xs uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[16px] text-purple-600">badge</span>
+                                        Agenda Virtual y Equipo de Trabajo
                                     </td>
-                                    <td class="p-4 text-center"><span
-                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                </tr>
+                                <tr class="hover:bg-orange-50/30 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800">
+                                        Capacidad de Profesionales en el negocio
                                     </td>
-                                    <td class="p-4 text-center"><span
-                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    <td class="p-4 text-center font-bold text-slate-700">1 Profesional</td>
+                                    <td class="p-4 text-center font-bold text-primary bg-rose-50/20">Hasta 20 profesionales</td>
+                                    <td class="p-4 text-center font-extrabold text-secondary bg-orange-50/20">Hasta 20 profesionales</td>
+                                </tr>
+                                <tr class="hover:bg-orange-50/30 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800">
+                                        Agenda Virtual interactiva con listado y filtros de reservas
                                     </td>
-                                    <td class="p-4 text-center"><span
-                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    <td class="p-4 text-center text-slate-300">
+                                        <span class="material-symbols-outlined text-lg">horizontal_rule</span>
+                                    </td>
+                                    <td class="p-4 text-center bg-rose-50/20">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                    </td>
+                                    <td class="p-4 text-center bg-orange-50/20">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-orange-50/30 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800">
+                                        Asignación de Roles y Permisos individuales
+                                    </td>
+                                    <td class="p-4 text-center text-xs text-slate-400 font-medium">Estándar</td>
+                                    <td class="p-4 text-center bg-rose-50/20">
+                                        <span class="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-lg border border-primary/20 inline-block">✓ Permisos Básicos</span>
+                                    </td>
+                                    <td class="p-4 text-center bg-orange-50/20">
+                                        <span class="text-xs font-extrabold text-secondary bg-orange-100 px-2.5 py-1 rounded-lg border border-orange-300 inline-block">✓ Roles Avanzados</span>
                                     </td>
                                 </tr>
 
-                                <!-- 3. Notificaciones por WhatsApp -->
-                                <tr class="hover:bg-orange-50/40 transition-colors bg-emerald-50/30">
-                                    <td class="p-4 md:px-5 font-bold text-slate-900 flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-emerald-600 text-[18px]">chat</span>
-                                        <span>Bolsa Mensual de WhatsApps</span>
-                                    </td>
-                                    <td class="p-4 text-center text-slate-400 text-xs font-medium">Sin WhatsApp (Solo
-                                        Email)</td>
-                                    <td class="p-4 text-center"><span
-                                            class="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-lg border border-primary/20 inline-block">50
-                                            WPP/mes (+10/prof)</span></td>
-                                    <td class="p-4 text-center"><span
-                                            class="text-xs font-extrabold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-300 inline-block">100
-                                            WPP/mes (+10/prof)</span></td>
-                                </tr>
-
-                                <!-- 4. Página Web Pública de Reservas -->
-                                <tr class="hover:bg-orange-50/40 transition-colors">
-                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-primary text-[18px]">language</span>
-                                        <span>Página Web pública de reservas (`mi-web`)</span>
-                                    </td>
-                                    <td class="p-4 text-center text-slate-300"><span
-                                            class="material-symbols-outlined text-slate-300 text-lg">cancel</span></td>
-                                    <td class="p-4 text-center"><span
-                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
-                                    </td>
-                                    <td class="p-4 text-center"><span
-                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                <!-- CATEGORÍA 3: MARCA Y PRESENCIA WEB -->
+                                <tr class="bg-slate-100/70">
+                                    <td colspan="4" class="px-5 py-2.5 font-black text-xs uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[16px] text-emerald-600">language</span>
+                                        Presencia Web y Marca Propia
                                     </td>
                                 </tr>
-
-                                <!-- 5. Personalización Avanzada de Colores -->
-                                <tr class="hover:bg-orange-50/40 transition-colors">
-                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-primary text-[18px]">palette</span>
-                                        <span>Personalización de Colores de Marca</span>
+                                <tr class="hover:bg-orange-50/30 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800">
+                                        Página Web pública de reservas (`mi-web`)
                                     </td>
-                                    <td class="p-4 text-center text-xs font-medium text-slate-600">2 Colores Base</td>
-                                    <td class="p-4 text-center text-xs font-bold text-primary">2 Colores Base + 1 Extra
-                                        (+1)</td>
-                                    <td class="p-4 text-center text-xs font-extrabold text-secondary">2 Colores Base + 3
-                                        Extras (+3)</td>
-                                </tr>
-
-                                <!-- 6. Equipo de Trabajo / Profesionales -->
-                                <tr class="hover:bg-orange-50/40 transition-colors">
-                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-primary text-[18px]">group</span>
-                                        <span>Capacidad del Equipo de Trabajo</span>
+                                    <td class="p-4 text-center text-slate-300">
+                                        <span class="material-symbols-outlined text-lg">horizontal_rule</span>
                                     </td>
-                                    <td class="p-4 text-center text-xs font-medium text-slate-600">Hasta 5 profesionales
-                                        (al solicitar)</td>
-                                    <td class="p-4 text-center text-xs font-bold text-slate-700">Hasta 5 profesionales
-                                        (al solicitar)</td>
-                                    <td class="p-4 text-center text-xs font-extrabold text-slate-800">Hasta 5
-                                        profesionales (al solicitar)</td>
-                                </tr>
-
-                                <!-- 6.b. Asignación de Roles y Permisos -->
-                                <tr class="hover:bg-orange-50/40 transition-colors">
-                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                        <span
-                                            class="material-symbols-outlined text-purple-600 text-[18px]">admin_panel_settings</span>
-                                        <span>Asignación de Roles y Permisos a Profesionales</span>
+                                    <td class="p-4 text-center bg-rose-50/20">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
                                     </td>
-                                    <td class="p-4 text-center text-slate-400 text-xs font-medium">Acceso Estándar (Sin
-                                        personalización)</td>
-                                    <td class="p-4 text-center"><span
-                                            class="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-lg border border-primary/20 inline-block">✓
-                                            Permisos Personalizados</span></td>
-                                    <td class="p-4 text-center"><span
-                                            class="text-xs font-extrabold text-secondary bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-200 inline-block">✓
-                                            Roles y Permisos Avanzados</span></td>
-                                </tr>
-
-                                <!-- 7. Agenda Virtual e Histórico de Reservas -->
-                                <tr class="hover:bg-orange-50/40 transition-colors">
-                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                        <span
-                                            class="material-symbols-outlined text-primary text-[18px]">view_agenda</span>
-                                        <span>Agenda Virtual e Histórico de reservas</span>
-                                    </td>
-                                    <td class="p-4 text-center text-slate-300"><span
-                                            class="material-symbols-outlined text-slate-300 text-lg">cancel</span></td>
-                                    <td class="p-4 text-center"><span
-                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
-                                    </td>
-                                    <td class="p-4 text-center"><span
-                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
+                                    <td class="p-4 text-center bg-orange-50/20">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
                                     </td>
                                 </tr>
-
-                                <!-- 8. Módulo de Estadísticas y Reportes de Facturación -->
-                                <tr class="hover:bg-orange-50/40 transition-colors">
-                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-primary text-[18px]">insights</span>
-                                        <span>Módulo de Estadísticas y Métricas de Facturación</span>
+                                <tr class="hover:bg-orange-50/30 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800">
+                                        Personalización de Colores de Marca
                                     </td>
-                                    <td class="p-4 text-center"><span
-                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
-                                    </td>
-                                    <td class="p-4 text-center"><span
-                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
-                                    </td>
-                                    <td class="p-4 text-center"><span
-                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
-                                    </td>
+                                    <td class="p-4 text-center font-bold text-slate-700 text-xs">2 Colores Base</td>
+                                    <td class="p-4 text-center font-bold text-primary text-xs bg-rose-50/20">3 Colores (+1 adicional)</td>
+                                    <td class="p-4 text-center font-extrabold text-secondary text-xs bg-orange-50/20">5 Colores (+3 adicionales)</td>
                                 </tr>
-
-                                <!-- 8.b. Módulo de Clases por Cupos y Portal de Alumnos -->
-                                <tr class="hover:bg-orange-50/40 transition-colors bg-orange-50/30">
-                                    <td class="p-4 md:px-5 font-bold text-orange-950 flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-secondary text-[18px]">groups</span>
-                                        <span>Clases Grupales por Cupos y Portal de Alumnos</span>
-                                    </td>
-                                    <td class="p-4 text-center text-slate-300"><span
-                                            class="material-symbols-outlined text-slate-300 text-lg">cancel</span></td>
-                                    <td class="p-4 text-center text-slate-300"><span
-                                            class="material-symbols-outlined text-slate-300 text-lg">cancel</span></td>
-                                    <td class="p-4 text-center"><span
-                                            class="text-xs font-extrabold text-secondary bg-orange-100 px-2.5 py-1 rounded-lg border border-orange-300 inline-block">✓
-                                            Exclusivo Premium</span></td>
-                                </tr>
-
-                                <!-- 9. Bloqueo de Días Feriados y Vacaciones -->
-                                <tr class="hover:bg-orange-50/40 transition-colors">
-                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                        <span
-                                            class="material-symbols-outlined text-primary text-[18px]">event_busy</span>
-                                        <span>Bloqueo manual de días feriados y vacaciones</span>
-                                    </td>
-                                    <td class="p-4 text-center"><span
-                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
-                                    </td>
-                                    <td class="p-4 text-center"><span
-                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
-                                    </td>
-                                    <td class="p-4 text-center"><span
-                                            class="material-symbols-outlined text-emerald-500 font-bold text-lg">check_circle</span>
-                                    </td>
-                                </tr>
-
-                                <!-- 10. Soporte Técnico -->
-                                <tr class="hover:bg-orange-50/40 transition-colors">
-                                    <td class="p-4 md:px-5 font-semibold text-slate-800 flex items-center gap-2">
-                                        <span
-                                            class="material-symbols-outlined text-primary text-[18px]">support_agent</span>
-                                        <span>Soporte técnico y atención personalizada</span>
+                                <tr class="hover:bg-orange-50/30 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800">
+                                        Soporte Técnico y Asistencia
                                     </td>
                                     <td class="p-4 text-center text-xs font-medium text-slate-600">Email</td>
-                                    <td class="p-4 text-center text-xs font-bold text-slate-700">Email y WhatsApp</td>
-                                    <td class="p-4 text-center text-xs font-extrabold text-emerald-700">Atención
-                                        Prioritaria 24/7</td>
+                                    <td class="p-4 text-center text-xs font-bold text-slate-700 bg-rose-50/20">Email y Centro de Ayuda</td>
+                                    <td class="p-4 text-center text-xs font-extrabold text-emerald-700 bg-orange-50/20">Atención Prioritaria</td>
+                                </tr>
+
+                                <!-- CATEGORÍA 4: MÓDULOS AVANZADOS Y CUPOS -->
+                                <tr class="bg-slate-100/70">
+                                    <td colspan="4" class="px-5 py-2.5 font-black text-xs uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[16px] text-secondary">stars</span>
+                                        Módulos Avanzados y Fidelización
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-orange-50/30 transition-colors">
+                                    <td class="p-4 md:px-5 font-semibold text-slate-800">
+                                        Módulo de Métricas, Estadísticas y Demanda
+                                    </td>
+                                    <td class="p-4 text-center text-slate-300">
+                                        <span class="material-symbols-outlined text-lg">horizontal_rule</span>
+                                    </td>
+                                    <td class="p-4 text-center bg-rose-50/20">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                    </td>
+                                    <td class="p-4 text-center bg-orange-50/20">
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-orange-50/40 transition-colors bg-gradient-to-r from-orange-50/40 via-amber-50/30 to-orange-50/40">
+                                    <td class="p-4 md:px-5 font-extrabold text-slate-900">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="material-symbols-outlined text-secondary text-[20px]">groups</span>
+                                            <span>Módulo de Clases por Cupos + Portal de Alumnos (`mi-cuenta`)</span>
+                                        </div>
+                                        <span class="block text-[11px] text-slate-500 font-normal mt-0.5">Control de créditos, pases por mes y auto-reserva de alumnos</span>
+                                    </td>
+                                    <td class="p-4 text-center text-slate-300">
+                                        <span class="material-symbols-outlined text-lg">horizontal_rule</span>
+                                    </td>
+                                    <td class="p-4 text-center text-slate-300 bg-rose-50/20">
+                                        <span class="material-symbols-outlined text-lg">horizontal_rule</span>
+                                    </td>
+                                    <td class="p-4 text-center bg-orange-100/50">
+                                        <span class="inline-block bg-gradient-to-r from-[#FC8712] to-amber-500 text-white font-extrabold text-xs px-3 py-1 rounded-xl shadow-xs">
+                                            ✓ Exclusivo Premium
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                <!-- FILA DE ACCIONES -->
+                                <tr class="bg-slate-50 border-t-2 border-slate-200">
+                                    <td class="p-5 font-extrabold text-slate-700 text-sm">
+                                        Comenzar con Agendatina
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        <button onclick="selectPlan('Plan Simple', 'basic')" class="w-full py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs transition-all shadow-xs">
+                                            Elegir Simple
+                                        </button>
+                                    </td>
+                                    <td class="p-4 text-center bg-rose-50/30">
+                                        <button onclick="selectPlan('Plan Profesional', 'inter')" class="w-full py-2.5 px-3 rounded-xl signature-glow text-white font-bold text-xs transition-all shadow-md">
+                                            Elegir Profesional
+                                        </button>
+                                    </td>
+                                    <td class="p-4 text-center bg-orange-50/30">
+                                        <button onclick="selectPlan('Plan Premium', 'prem')" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#FC8712] to-amber-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs transition-all shadow-md">
+                                            Elegir Premium
+                                        </button>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                    <div
-                        class="bg-orange-50/80 border-t border-orange-200/60 p-4 text-center text-xs text-slate-600 font-medium">
-                        💡 <strong>Nota sobre el equipo:</strong> Al solicitar cualquier plan se puede indicar desde 1
-                        hasta 5 profesionales mediante el selector. Si tu negocio requiere más de 5 integrantes, <a
-                            href="#contacto" onclick="resetForm()"
-                            class="text-[#FC8712] font-bold underline hover:text-orange-600">Contáctanos</a> para
-                        coordinar una ampliación especial.
+                    
+                    <div class="bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50 border-t border-orange-200/60 p-4 text-center text-xs text-slate-600 font-medium">
+                        💡 <strong>Todos los planes incluyen 30 días de prueba gratuita.</strong> Si tu negocio requiere funcionalidades a medida, podés contactarnos en cualquier momento.
                     </div>
                 </div>
             </div>
@@ -1221,18 +1226,18 @@
         </div>
     </div>
 
-    <script src="assets/js/script.js?v=1.2.9" defer></script>
+    <script src="assets/js/script.js?v=1.3.0" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // 1. Navbar con efecto cristalino oscuro al hacer scroll
+            // 1. Navbar con efecto cristalino al hacer scroll
             const mainNav = document.getElementById('mainNav');
             window.addEventListener('scroll', () => {
                 if (window.scrollY > 20) {
-                    mainNav.classList.add('shadow-2xl', 'bg-slate-950/98', 'border-slate-800');
-                    mainNav.classList.remove('bg-slate-900/90');
+                    mainNav.classList.add('shadow-md', 'bg-white/95');
+                    mainNav.classList.remove('bg-white/80');
                 } else {
-                    mainNav.classList.remove('shadow-2xl', 'bg-slate-950/98', 'border-slate-800');
-                    mainNav.classList.add('bg-slate-900/90');
+                    mainNav.classList.remove('shadow-md', 'bg-white/95');
+                    mainNav.classList.add('bg-white/80');
                 }
             });
             // 2. Animaciones al aparecer en pantalla (Intersection Observer)
