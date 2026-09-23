@@ -633,13 +633,13 @@
 
         function eliminarEmpresaSuperAdmin(id, nombre) {
             showConfirmModal({
-                title: '❌ Eliminar de la Base de Datos',
-                message: `⚠️ <strong>ATENCIÓN</strong>: Se eliminará automáticamente la empresa <strong>"${nombre}"</strong> y todos sus datos de la <strong>Base de Datos</strong>. Esta acción NO se puede deshacer.`,
-                icon: 'delete_forever',
-                iconBg: 'bg-red-100',
-                iconColor: 'text-red-600',
-                btnText: 'Eliminar de la BD',
-                btnBg: 'bg-red-600 hover:bg-red-700',
+                title: '🗑️ Mover a la Papelera',
+                message: `¿Estás seguro de enviar la empresa <strong>"${nombre}"</strong> a la <strong>Papelera General</strong>?<br><br>Podrás restaurarla o eliminarla definitivamente desde allí.`,
+                icon: 'delete',
+                iconBg: 'bg-rose-100',
+                iconColor: 'text-rose-600',
+                btnText: 'Mover a la Papelera',
+                btnBg: 'bg-rose-600 hover:bg-rose-700',
                 onConfirm: () => {
                     fetch(`../backend/admin_api.php?id=${id}`, {
                         method: 'DELETE'
@@ -647,7 +647,7 @@
                     .then(r => r.json())
                     .then(d => {
                         if (d.success) loadEmpresas();
-                        else alert(d.error || 'Error al eliminar de la base de datos');
+                        else alert(d.error || 'Error al enviar a la papelera');
                     });
                 }
             });

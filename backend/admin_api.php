@@ -41,6 +41,9 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN max_profesiona
 try { $pdo->query("SELECT estado_pago FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN estado_pago VARCHAR(50) DEFAULT 'prueba'"); }
 
+try { $pdo->query("SELECT fecha_eliminado FROM negocios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL"); }
+
 try { $pdo->query("SELECT nombre_completo FROM usuarios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE usuarios ADD COLUMN nombre_completo VARCHAR(255) DEFAULT ''"); }
 
@@ -257,6 +260,8 @@ if ($method === 'GET') {
             WHERE (n.ruta IS NULL OR n.ruta NOT LIKE 'demo%') 
               AND (u.email IS NULL OR u.email NOT LIKE 'demo%') 
               AND (n.nombre_fantasia IS NULL OR n.nombre_fantasia NOT LIKE '%Demo%')
+              AND (n.estado_pago != 'eliminado' OR n.estado_pago IS NULL)
+              AND (n.fecha_eliminado IS NULL)
             ORDER BY n.id DESC
         ");
         $negocios = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -988,40 +993,14 @@ elseif ($method === 'DELETE') {
     }
 
     try {
-        $pdo->beginTransaction();
-
-        // Obtener el ID del usuario dueño antes de borrar los vínculos
-        $stmtUser = $pdo->prepare("SELECT id_usuario FROM personal_negocio WHERE id_negocio = ? AND rol_en_local = 'admin'");
-        $stmtUser->execute([$id_negocio]);
-        $adminIds = $stmtUser->fetchAll(PDO::FETCH_COLUMN);
-
-        // Limpiar todas las dependencias para no dejar datos huérfanos
-        $tablas = ['turnos', 'servicios', 'dias_bloqueados', 'configuracion_web', 'personal_negocio'];
-        foreach ($tablas as $tabla) {
-            try { $pdo->prepare("DELETE FROM $tabla WHERE id_negocio = ?")->execute([$id_negocio]); } 
-            catch (Exception $e) { /* Ignoramos si alguna de las tablas aún no existe */ }
-        }
-        
-        $stmtNeg = $pdo->prepare("DELETE FROM negocios WHERE id = ?");
+        // Enviar el negocio a la Papelera General (Soft-Delete)
+        $stmtNeg = $pdo->prepare("UPDATE negocios SET estado_pago = 'eliminado', fecha_eliminado = NOW() WHERE id = ?");
         $stmtNeg->execute([$id_negocio]);
-        if ($stmtNeg->rowCount() === 0) throw new Exception("El negocio ya no existe o estaba bloqueado por un error interno.");
+        if ($stmtNeg->rowCount() === 0) throw new Exception("El negocio no existe o ya fue enviado a la papelera.");
 
-        // Eliminar también la cuenta del dueño si no administra otros negocios
-        if (!empty($adminIds)) {
-            foreach ($adminIds as $uid) {
-                $checkOther = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_usuario = ?");
-                $checkOther->execute([$uid]);
-                if ($checkOther->fetchColumn() == 0) {
-                    $pdo->prepare("DELETE FROM usuarios WHERE id = ?")->execute([$uid]);
-                }
-            }
-        }
-
-        $pdo->commit();
-        echo json_encode(['success' => true]);
+        echo json_encode(['success' => true, 'message' => 'Negocio enviado a la Papelera General exitosamente.']);
     } catch (Exception $e) {
-        if ($pdo->inTransaction()) { $pdo->rollBack(); }
-        echo json_encode(['success' => false, 'error' => 'Error al eliminar el negocio: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'error' => 'Error al mover el negocio a la papelera: ' . $e->getMessage()]);
     }
 } else {
     http_response_code(405);

@@ -514,17 +514,17 @@
     </div>
 </div>
 
-<!-- Modal Confirmación Eliminar -->
+<!-- Modal Confirmación Eliminar (Papelera) -->
 <div id="confirmDeleteModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
     <div id="confirmDeleteModalContent" class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full p-6 transform scale-95 transition-transform duration-300 text-center">
-        <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span class="material-symbols-outlined text-3xl">warning</span>
+        <div class="w-16 h-16 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span class="material-symbols-outlined text-3xl">delete</span>
         </div>
-        <h3 class="text-xl font-bold text-slate-800 mb-2">Eliminar Negocio</h3>
-        <p class="text-slate-500 text-sm mb-6">¿Deseas eliminar permanentemente este negocio y todos sus datos?<br><br><strong class="text-red-600">Esta acción NO se puede deshacer.</strong></p>
+        <h3 class="text-xl font-bold text-slate-800 mb-2">Mover a la Papelera</h3>
+        <p class="text-slate-500 text-sm mb-6">¿Deseas enviar este negocio a la <strong>Papelera General</strong>?<br><br>Podrás restaurarlo o eliminarlo definitivamente desde allí.</p>
         <div class="flex gap-3 justify-center">
             <button onclick="closeConfirmDelete()" class="px-4 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors flex-1">Cancelar</button>
-            <button id="btnConfirmDelete" onclick="executeDeleteNegocio()" class="px-4 py-2.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors flex-1 flex justify-center items-center gap-1">Eliminar</button>
+            <button id="btnConfirmDelete" onclick="executeDeleteNegocio()" class="px-4 py-2.5 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors flex-1 flex justify-center items-center gap-1">Mover a Papelera</button>
         </div>
     </div>
 </div>
@@ -2417,7 +2417,7 @@ function closeConfirmDelete() {
         negocioToDelete = null;
         const btn = document.getElementById('btnConfirmDelete');
         btn.disabled = false;
-        btn.innerHTML = 'Eliminar';
+        btn.innerHTML = 'Mover a Papelera';
     }, 300);
 }
 
@@ -2431,8 +2431,8 @@ function executeDeleteNegocio() {
     .then(res => res.json())
     .then(data => { 
         if (data.success) { closeConfirmDelete(); fetchClients(); } 
-        else { alert(data.error); btn.disabled = false; btn.innerHTML = 'Eliminar'; }
-    }).catch(err => { alert('Error de conexión.'); btn.disabled = false; btn.innerHTML = 'Eliminar'; });
+        else { alert(data.error); btn.disabled = false; btn.innerHTML = 'Mover a Papelera'; }
+    }).catch(err => { alert('Error de conexión.'); btn.disabled = false; btn.innerHTML = 'Mover a Papelera'; });
 }
 
 function logoutAdmin() {

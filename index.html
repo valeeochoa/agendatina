@@ -66,6 +66,56 @@
         .reveal-on-scroll.is-visible {
             animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
+
+        /* Auras de Colores Animadas para Comparativa (Efecto Lava) */
+        @keyframes auraFloat1 {
+            0% { transform: translate(0px, 0px) scale(1) rotate(0deg); }
+            50% { transform: translate(70px, -45px) scale(1.2) rotate(45deg); }
+            100% { transform: translate(-40px, 60px) scale(0.9) rotate(-30deg); }
+        }
+        @keyframes auraFloat2 {
+            0% { transform: translate(0px, 0px) scale(1.1) rotate(0deg); }
+            50% { transform: translate(-60px, 50px) scale(0.9) rotate(-45deg); }
+            100% { transform: translate(50px, -35px) scale(1.15) rotate(30deg); }
+        }
+        @keyframes auraFloat3 {
+            0% { transform: translate(0px, 0px) scale(0.95); }
+            50% { transform: translate(50px, 40px) scale(1.15); }
+            100% { transform: translate(-50px, -50px) scale(1); }
+        }
+        .comparativa-aura {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.65;
+            mix-blend-mode: multiply;
+            will-change: transform;
+            pointer-events: none;
+        }
+        .comparativa-aura-1 {
+            top: -15%;
+            left: -10%;
+            width: 440px;
+            height: 440px;
+            background: radial-gradient(circle, #D11149 0%, #ff4d79 70%, transparent 100%);
+            animation: auraFloat1 18s ease-in-out infinite alternate;
+        }
+        .comparativa-aura-2 {
+            bottom: -15%;
+            right: -10%;
+            width: 480px;
+            height: 480px;
+            background: radial-gradient(circle, #FC8712 0%, #ffaa43 70%, transparent 100%);
+            animation: auraFloat2 22s ease-in-out infinite alternate;
+        }
+        .comparativa-aura-3 {
+            top: 30%;
+            left: 35%;
+            width: 380px;
+            height: 380px;
+            background: radial-gradient(circle, #e6005c 0%, #FC8712 80%, transparent 100%);
+            animation: auraFloat3 16s ease-in-out infinite alternate;
+        }
     </style>
 </head>
 
@@ -517,11 +567,6 @@
                             Personalización de 2 colores base de marca
                         </li>
 
-                        <li class="flex gap-2 font-semibold text-slate-800">
-                            <span class="material-symbols-outlined text-primary text-sm">done</span>
-                            Clientes y alumnos ilimitados (por el momento)
-                        </li>
-
                         <li class="flex gap-2">
                             <span class="material-symbols-outlined text-primary text-sm">done</span>
                             Configuración de días y horarios disponibles
@@ -745,18 +790,25 @@
             </p>
 
             <!-- CUADRO COMPARATIVO DE PLANES -->
-            <div id="tabla-comparativa" class="mt-20 max-w-5xl mx-auto reveal-on-scroll scroll-mt-24 font-sans">
-                <div class="text-center mb-10">
-                    <span class="text-[#FC8712] font-extrabold tracking-widest uppercase text-xs mb-2 inline-block bg-orange-100/70 border border-orange-200/80 px-3 py-1 rounded-full">Comparativa de Planes</span>
+            <div id="tabla-comparativa" class="mt-24 max-w-5xl mx-auto reveal-on-scroll scroll-mt-24 font-sans relative">
+                <!-- Auras animadas flotantes de fondo -->
+                <div class="absolute -inset-10 md:-inset-16 rounded-[3rem] overflow-hidden pointer-events-none -z-10">
+                    <div class="comparativa-aura comparativa-aura-1"></div>
+                    <div class="comparativa-aura comparativa-aura-2"></div>
+                    <div class="comparativa-aura comparativa-aura-3"></div>
+                </div>
+
+                <div class="text-center mb-10 relative z-10">
+                    <span class="text-[#FC8712] font-extrabold tracking-widest uppercase text-xs mb-2 inline-block bg-orange-100/90 border border-orange-300/80 px-4 py-1.5 rounded-full shadow-xs backdrop-blur-md">Comparativa de Planes</span>
                     <h3 class="text-3xl md:text-4xl font-extrabold text-slate-900 font-display mt-2">Comparativa de funciones por plan</h3>
-                    <p class="text-slate-500 text-sm md:text-base mt-2 max-w-2xl mx-auto">Revisá en detalle las herramientas incluidas en cada plan para tu negocio.</p>
+                    <p class="text-slate-600 text-sm md:text-base mt-2 max-w-2xl mx-auto">Revisá en detalle las herramientas incluidas en cada plan para tu negocio.</p>
                 </div>
                 
-                <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+                <div class="bg-white/85 backdrop-blur-xl rounded-3xl border border-white/80 shadow-2xl overflow-hidden relative z-10">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse font-sans text-xs sm:text-sm">
                             <thead>
-                                <tr class="bg-slate-50 border-b border-slate-200">
+                                <tr class="bg-slate-50/80 border-b border-slate-200/80 backdrop-blur-sm">
                                     <th class="p-4 md:p-5 font-extrabold text-slate-800 text-sm md:text-base w-2/5">
                                         Funcionalidades
                                     </th>
@@ -764,11 +816,11 @@
                                         <div class="font-extrabold text-slate-800 text-sm md:text-base">Plan Simple</div>
                                         <span class="text-[11px] text-slate-500 font-medium">Básico</span>
                                     </th>
-                                    <th class="p-4 text-center w-1/5 bg-rose-50/40 border-x border-rose-100">
+                                    <th class="p-4 text-center w-1/5 bg-rose-50/50 border-x border-rose-100">
                                         <div class="font-extrabold text-primary text-sm md:text-base">Plan Profesional</div>
                                         <span class="inline-block bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5">★ Más Elegido</span>
                                     </th>
-                                    <th class="p-4 text-center w-1/5 bg-orange-50/30">
+                                    <th class="p-4 text-center w-1/5 bg-orange-50/40">
                                         <div class="font-extrabold text-secondary text-sm md:text-base">Plan Premium</div>
                                         <span class="inline-block bg-orange-100 text-secondary text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5">Completo</span>
                                     </th>
@@ -881,9 +933,7 @@
                                 </tr>
                                 <tr class="hover:bg-slate-50/70 transition-colors">
                                     <td class="p-4 font-semibold text-slate-800">Clientes y alumnos ilimitados</td>
-                                    <td class="p-4 text-center">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
+                                    <td class="p-4 text-center text-slate-300 font-bold text-base">—</td>
                                     <td class="p-4 text-center bg-rose-50/20 border-x border-rose-100">
                                         <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
                                     </td>

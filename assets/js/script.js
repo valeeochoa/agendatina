@@ -2597,7 +2597,6 @@ var carouselData = [
             'Notificaciones automáticas por email',
             'Personalización de 2 colores base de marca',
             'Panel de Métricas y Estadísticas de demanda',
-            'Clientes y alumnos ilimitados (por el momento)',
             'Bloqueo manual de días feriados y vacaciones'
         ]
     },
