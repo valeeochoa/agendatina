@@ -153,6 +153,15 @@ try {
         $negocioId, $t_p3, $idServ1
     ]);
 
+    // Cargar alumnos iniciales de prueba (Clientes / Alumnos con pases)
+    try {
+        $pdo->prepare("INSERT INTO clientes_negocio (id_negocio, nombre_completo, email, telefono, pases_disponibles, pases_totales, fecha_vencimiento, notas, estado) VALUES 
+            (?, 'María García', 'maria.demo@agendatina.site', '11 2345 6789', 6, 8, DATE_ADD(CURRENT_DATE, INTERVAL 15 DAY), 'Alumna de Pilates nivel intermedio.', 'activo'),
+            (?, 'Lucas Fernández', 'lucas.demo@agendatina.site', '11 9876 5432', 12, 12, DATE_ADD(CURRENT_DATE, INTERVAL 30 DAY), 'Abonó pase libre mensual.', 'activo'),
+            (?, 'Ana Martínez', 'ana.demo@agendatina.site', '11 5555 4444', 0, 8, DATE_ADD(CURRENT_DATE, INTERVAL 5 DAY), 'Sin clases disponibles. Recargar pase.', 'activo')
+        ")->execute([$negocioId, $negocioId, $negocioId]);
+    } catch(Throwable $eCliDemo) {}
+
     require_once __DIR__ . '/backend/helpers/demo_helper.php';
     asegurarDatosDemo($pdo, $negocioId);
 

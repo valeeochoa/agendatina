@@ -176,6 +176,19 @@ if (!function_exists('asegurarDatosDemo')) {
                     }
                 }
             }
+
+            // 5. Asegurar Alumnos / Clientes de prueba Demo
+            try {
+                $stmtCliCount = $pdo->prepare("SELECT COUNT(*) FROM clientes_negocio WHERE id_negocio = ?");
+                $stmtCliCount->execute([$negocioId]);
+                if ((int)$stmtCliCount->fetchColumn() === 0) {
+                    $pdo->prepare("INSERT INTO clientes_negocio (id_negocio, nombre_completo, email, telefono, pases_disponibles, pases_totales, fecha_vencimiento, notas, estado) VALUES 
+                        (?, 'María García', 'maria.demo@agendatina.site', '11 2345 6789', 6, 8, DATE_ADD(CURRENT_DATE, INTERVAL 15 DAY), 'Alumna de Pilates nivel intermedio.', 'activo'),
+                        (?, 'Lucas Fernández', 'lucas.demo@agendatina.site', '11 9876 5432', 12, 12, DATE_ADD(CURRENT_DATE, INTERVAL 30 DAY), 'Abonó pase libre mensual.', 'activo'),
+                        (?, 'Ana Martínez', 'ana.demo@agendatina.site', '11 5555 4444', 0, 8, DATE_ADD(CURRENT_DATE, INTERVAL 5 DAY), 'Sin clases disponibles. Recargar pase.', 'activo')
+                    ")->execute([$negocioId, $negocioId, $negocioId]);
+                }
+            } catch(Throwable $eCliEnsure) {}
         } catch(Throwable $eDemoData) {
             error_log("Error al asegurar datos demo: " . $eDemoData->getMessage());
         }
