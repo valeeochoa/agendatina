@@ -154,7 +154,7 @@ if ($method === 'GET') {
         // 5. Tareas pendientes
         $tareasCount = 0;
         try {
-            $stmtTar = $pdo->query("SELECT COUNT(*) FROM admin_tareas WHERE completada = 0");
+            $stmtTar = $pdo->query("SELECT COUNT(*) FROM admin_tareas WHERE estado = 'pendiente'");
             $tareasCount = (int)($stmtTar ? $stmtTar->fetchColumn() : 0);
         } catch(\Throwable $eT) {}
 

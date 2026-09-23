@@ -891,18 +891,29 @@ function submitComprobante(e) {
 }
 
 function deleteComprobante(idComp) {
-    if (!confirm('¿Deseas eliminar este comprobante?')) return;
-    fetch('../backend/comprobantes_api.php', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: idComp })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) fetchComprobantesEmpresa();
-        else alert(data.error || 'Error al eliminar');
-    })
-    .catch(() => alert('Error de conexión'));
+    showAdminConfirm(
+        'Eliminar Comprobante',
+        '¿Deseas eliminar este comprobante de pago de los registros?',
+        {
+            icon: 'delete',
+            iconBg: 'w-16 h-16 rounded-3xl bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4',
+            btnText: 'Sí, Eliminar',
+            btnClass: 'flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl text-xs transition-all shadow-lg shadow-red-600/20',
+            onConfirm: () => {
+                fetch('../backend/comprobantes_api.php', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: idComp })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) fetchComprobantesEmpresa();
+                    else alert(data.error || 'Error al eliminar');
+                })
+                .catch(() => alert('Error de conexión'));
+            }
+        }
+    );
 }
 
 function saveNotaInterna() {
@@ -1070,40 +1081,129 @@ function closeReceiptModal() {
     }, 300);
 }
 
+let adminConfirmCallback = null;
+
+function showAdminConfirm(title, message, options = {}) {
+    const modal = document.getElementById('adminConfirmModal');
+    const content = document.getElementById('adminConfirmModalContent');
+    const iconBg = document.getElementById('adminConfirmIconBg');
+    const icon = document.getElementById('adminConfirmIcon');
+    const titleEl = document.getElementById('adminConfirmTitle');
+    const msgEl = document.getElementById('adminConfirmMessage');
+    const btnSubmit = document.getElementById('btnAdminConfirmSubmit');
+
+    if (!modal || !content) return;
+
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+    icon.textContent = options.icon || 'warning';
+    iconBg.className = options.iconBg || 'w-16 h-16 rounded-3xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4 transition-all';
+    btnSubmit.className = options.btnClass || 'flex-1 px-4 py-3 bg-[#d11149] text-white font-bold rounded-2xl text-xs hover:bg-[#d11149]/90 transition-all shadow-lg shadow-[#d11149]/20';
+    btnSubmit.textContent = options.btnText || 'Confirmar';
+
+    adminConfirmCallback = options.onConfirm || null;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+    }, 10);
+}
+
+function closeAdminConfirmModal(confirmed = false) {
+    const modal = document.getElementById('adminConfirmModal');
+    const content = document.getElementById('adminConfirmModalContent');
+    if (!modal || !content) return;
+    modal.classList.add('opacity-0');
+    content.classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        if (confirmed && typeof adminConfirmCallback === 'function') {
+            const cb = adminConfirmCallback;
+            adminConfirmCallback = null;
+            cb();
+        } else {
+            adminConfirmCallback = null;
+        }
+    }, 300);
+}
+
 function darDeBajaEmpresaFicha() {
     const id = new URLSearchParams(window.location.search).get('id');
-    if (confirm('¿Seguro que deseas dar de baja / suspender esta empresa?')) {
-        fetch('../backend/admin_api.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'cambiar_estado', id: id, id_negocio: id, estado_pago: 'suspendido' })
-        })
-        .then(r => r.json())
-        .then(d => {
-            if (d.success) location.reload();
-            else alert(d.error || 'Error al dar de baja');
-        });
-    }
+    showAdminConfirm(
+        'Suspender Empresa',
+        '¿Seguro que deseas dar de baja / suspender esta empresa?',
+        {
+            icon: 'block',
+            iconBg: 'w-16 h-16 rounded-3xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4',
+            btnText: 'Sí, Suspender',
+            btnClass: 'flex-1 px-4 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-2xl text-xs transition-all shadow-lg shadow-amber-600/20',
+            onConfirm: () => {
+                fetch('../backend/admin_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'cambiar_estado', id: id, id_negocio: id, estado_pago: 'suspendido' })
+                })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) location.reload();
+                    else alert(d.error || 'Error al dar de baja');
+                });
+            }
+        }
+    );
 }
 
 function eliminarEmpresaFicha() {
     const id = new URLSearchParams(window.location.search).get('id');
-    if (confirm('⚠️ ATENCIÓN: Se eliminará automáticamente la empresa y todos sus datos de la Base de Datos. ¿Deseas continuar?')) {
-        fetch(`../backend/admin_api.php?id=${id}`, {
-            method: 'DELETE'
-        })
-        .then(r => r.json())
-        .then(d => {
-            if (d.success) window.location.href = 'empresas.html';
-            else alert(d.error || 'Error al eliminar');
-        });
-    }
+    showAdminConfirm(
+        'Eliminar Empresa Permanentemente',
+        '⚠️ ATENCIÓN: Se eliminará automáticamente la empresa y todos sus datos de la Base de Datos. ¿Deseas continuar?',
+        {
+            icon: 'delete_forever',
+            iconBg: 'w-16 h-16 rounded-3xl bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4',
+            btnText: 'Sí, Eliminar',
+            btnClass: 'flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl text-xs transition-all shadow-lg shadow-red-600/20',
+            onConfirm: () => {
+                fetch(`../backend/admin_api.php?id=${id}`, {
+                    method: 'DELETE'
+                })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) window.location.href = 'empresas.html';
+                    else alert(d.error || 'Error al eliminar');
+                });
+            }
+        }
+    );
 }
 
 function logoutAdmin() {
     fetch('../backend/admin_auth.php', { method: 'DELETE' }).then(() => window.location.href = 'login.html');
 }
 </script>
+
+<!-- Modal Confirmación Genérico Visual SuperAdmin -->
+<div id="adminConfirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[120] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+    <div id="adminConfirmModalContent" class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full p-6 sm:p-8 text-center transform scale-95 transition-transform duration-300 relative overflow-hidden">
+        <div id="adminConfirmIconBg" class="w-16 h-16 rounded-3xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4 transition-all">
+            <span class="material-symbols-outlined text-3xl" id="adminConfirmIcon">warning</span>
+        </div>
+        <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display" id="adminConfirmTitle">Confirmar Acción</h3>
+        <p class="text-xs text-slate-500 mb-6 leading-relaxed" id="adminConfirmMessage">¿Estás seguro de realizar esta acción?</p>
+
+        <div class="flex gap-3">
+            <button onclick="closeAdminConfirmModal(false)" class="flex-1 px-4 py-3 bg-slate-100 text-slate-700 font-bold rounded-2xl text-xs hover:bg-slate-200 transition-colors">
+                Cancelar
+            </button>
+            <button id="btnAdminConfirmSubmit" onclick="closeAdminConfirmModal(true)" class="flex-1 px-4 py-3 bg-[#d11149] text-white font-bold rounded-2xl text-xs hover:bg-[#d11149]/90 transition-all shadow-lg shadow-[#d11149]/20">
+                Confirmar
+            </button>
+        </div>
+    </div>
+</div>
 <script src="admin_nav.js?v=2"></script>
 </body>
 </html>

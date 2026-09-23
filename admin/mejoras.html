@@ -120,7 +120,15 @@
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded', loadMejoras);
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('../backend/admin_auth.php')
+                .then(r => r.json())
+                .then(d => {
+                    if (!d.logged_in) window.location.href = 'login.html';
+                    else loadMejoras();
+                })
+                .catch(() => window.location.href = 'login.html');
+        });
 
         function loadMejoras() {
             fetch('../backend/admin_reportes_api.php?t=' + Date.now())

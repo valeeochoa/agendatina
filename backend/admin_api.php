@@ -642,7 +642,13 @@ elseif ($method === 'POST') {
 // ACTUALIZAR PLAN Y ESTADO DE UN NEGOCIO (MÉTODO PUT)
 // =========================================================================
 elseif ($method === 'PUT') {
-    $data = json_decode(file_get_contents('php://input'), true);
+    $rawInput = file_get_contents('php://input');
+    $jsonData = json_decode($rawInput, true);
+    $data = is_array($jsonData) ? $jsonData : $_POST;
+    if (!empty($_GET)) {
+        $data = array_merge($_GET, $data);
+    }
+    $action = trim($data['action'] ?? '');
     
     if ($action === 'create_discount_code') {
         try {
@@ -860,6 +866,23 @@ elseif ($method === 'PUT') {
                 $sql = "UPDATE negocios SET " . implode(', ', $updates) . " WHERE id = :id";
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute($params);
+            }
+
+            if (!empty($data['tipo_calendario'])) {
+                $tipoCal = trim($data['tipo_calendario']);
+                $stmtCw = $pdo->prepare("SELECT id FROM configuracion_web WHERE id_negocio = ? LIMIT 1");
+                $stmtCw->execute([$id_negocio]);
+                if ($stmtCw->fetch()) {
+                    $pdo->prepare("UPDATE configuracion_web SET tipo_calendario = ? WHERE id_negocio = ?")->execute([$tipoCal, $id_negocio]);
+                } else {
+                    $pdo->prepare("INSERT INTO configuracion_web (id_negocio, tipo_calendario) VALUES (?, ?)")->execute([$id_negocio, $tipoCal]);
+                }
+            }
+
+            if ($action === 'registrar_pago' || ($estado_pago === 'activo' || $estado_pago === 'pagado')) {
+                try {
+                    $pdo->prepare("UPDATE comprobantes_pago SET estado = 'aprobado' WHERE id_negocio = ? AND estado != 'aprobado'")->execute([$id_negocio]);
+                } catch (Exception $eComp) {}
             }
         }
 

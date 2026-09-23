@@ -32,12 +32,14 @@ ServerSignature Off
 # 5. Configuración de Redirecciones Dinámicas
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /
 
     # Evitar reescribir si el archivo o directorio existe físicamente
     RewriteCond %{REQUEST_FILENAME} -d [OR]
     RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^ - [L]
+
+    # Regla directa para panel de administración
+    RewriteRule ^admin/?$ admin/index.html [L,QSA]
 
     # D. Corrección para Recursos Estáticos (Preload Scanner)
     # Evita el error 404 si el navegador busca scripts/imágenes asumiendo la ruta del negocio (ej: /demo/backend/...)
@@ -52,7 +54,7 @@ ServerSignature Off
     
     # B. Caso: agendatina.site/tu-negocio
     # (Condición: Evita que confunda rutas del sistema con nombres de negocios)
-    RewriteCond %{REQUEST_URI} !^/(index\.php|web\.html|calendarioMensual|calendarioSemanal|dashboard|login|backend|public|modelos|admin|assets|uploads) [NC]
+    RewriteCond %{REQUEST_URI} !(^|/)(index\.php|web\.html|calendarioMensual|calendarioSemanal|dashboard|login|backend|public|modelos|admin|assets|uploads) [NC]
     RewriteRule ^([a-zA-Z0-9-]+)/?$ index.php?n=$1 [L,QSA]
 
     # C. Evitar error 404 en consola por el Favicon

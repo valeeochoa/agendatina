@@ -1919,21 +1919,32 @@ function toggleDiscountCodeStatus(id) {
 }
 
 function deleteDiscountCode(id) {
-    if (!confirm('¿Estás seguro de eliminar este código de descuento?')) return;
-    fetch('../backend/admin_api.php', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete_discount_code', id: id })
-    })
-    .then(r => r.json())
-    .then(res => {
-        if (res && res.success) {
-            fetchClients();
-            setTimeout(renderDiscountCodesTable, 300);
-        } else {
-            alert(res.error || 'Error al eliminar código.');
+    showAdminConfirm(
+        'Eliminar Código',
+        '¿Estás seguro de eliminar este código de descuento? Los nuevos clientes no podrán utilizarlo.',
+        {
+            confirmText: 'Sí, eliminar',
+            confirmClasses: 'px-5 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-lg shadow-red-600/30 transition-all cursor-pointer',
+            icon: 'delete',
+            iconBg: 'w-16 h-16 rounded-3xl bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4',
+            onConfirm: () => {
+                fetch('../backend/admin_api.php', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete_discount_code', id: id })
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res && res.success) {
+                        fetchClients();
+                        setTimeout(renderDiscountCodesTable, 300);
+                    } else {
+                        alert(res.error || 'Error al eliminar código.');
+                    }
+                });
+            }
         }
-    });
+    );
 }
 
 let adminConfirmCallback = null;
@@ -2079,9 +2090,29 @@ function aprobarComprobante() {
 
 function rechazarComprobante() {
     if(!currentReceiptId) return;
-    if(!confirm('¿Estás seguro de RECHAZAR este comprobante? El negocio quedará suspendido hasta que suba uno nuevo.')) return;
-    const btn = document.getElementById('btnRejectReceipt'); btn.disabled = true; btn.innerHTML = 'Procesando...';
-    fetch('../backend/admin_api.php', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_negocio: currentReceiptId, action: 'rechazar_pago' }) }).then(res => res.json()).then(data => { if (data.success) { fetchClients(); closeReceiptModal(); } else alert(data.error); }).finally(() => { btn.disabled = false; btn.innerHTML = 'Rechazar y Suspender'; });
+    showAdminConfirm(
+        'Rechazar Comprobante',
+        '¿Estás seguro de rechazar este comprobante? El negocio quedará suspendido automáticamente hasta que suba uno nuevo.',
+        {
+            confirmText: 'Sí, rechazar y suspender',
+            confirmClasses: 'px-5 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-lg shadow-red-600/30 transition-all cursor-pointer',
+            icon: 'cancel',
+            iconBg: 'w-16 h-16 rounded-3xl bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4',
+            onConfirm: () => {
+                const btn = document.getElementById('btnRejectReceipt'); 
+                if (btn) { btn.disabled = true; btn.innerHTML = 'Procesando...'; }
+                fetch('../backend/admin_api.php', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_negocio: currentReceiptId, action: 'rechazar_pago' }) })
+                .then(res => res.json())
+                .then(data => { 
+                    if (data.success) { fetchClients(); closeReceiptModal(); } 
+                    else alert(data.error); 
+                })
+                .finally(() => { 
+                    if (btn) { btn.disabled = false; btn.innerHTML = 'Rechazar y Suspender'; } 
+                });
+            }
+        }
+    );
 }
 
 // ==========================================
@@ -2254,19 +2285,30 @@ function submitUploadComprobante(e) {
 }
 
 function deleteComprobanteAdmin(idComprobante) {
-    if (!confirm('¿Seguro que deseas eliminar este comprobante de pago?')) return;
-    fetch('../backend/comprobantes_api.php', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: idComprobante }) })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            fetchClients();
-            if (currentCdClient) {
-                currentCdClient.comprobantes = (currentCdClient.comprobantes || []).filter(c => c.id != idComprobante);
-                renderCdComprobantes(currentCdClient.comprobantes);
-                document.getElementById('cdMetricComprobantes').textContent = currentCdClient.comprobantes.length;
+    showAdminConfirm(
+        'Eliminar Comprobante',
+        '¿Seguro que deseas eliminar este comprobante de pago de los registros?',
+        {
+            confirmText: 'Sí, eliminar',
+            confirmClasses: 'px-5 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-lg shadow-red-600/30 transition-all cursor-pointer',
+            icon: 'delete',
+            iconBg: 'w-16 h-16 rounded-3xl bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4',
+            onConfirm: () => {
+                fetch('../backend/comprobantes_api.php', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: idComprobante }) })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchClients();
+                        if (currentCdClient) {
+                            currentCdClient.comprobantes = (currentCdClient.comprobantes || []).filter(c => c.id != idComprobante);
+                            renderCdComprobantes(currentCdClient.comprobantes);
+                            document.getElementById('cdMetricComprobantes').textContent = currentCdClient.comprobantes.length;
+                        }
+                    } else alert(data.error);
+                });
             }
-        } else alert(data.error);
-    });
+        }
+    );
 }
 
 function saveCdNotaInterna() {

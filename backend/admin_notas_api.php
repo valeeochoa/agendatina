@@ -2,8 +2,13 @@
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
+if ((!isset($_SESSION['is_superadmin']) || $_SESSION['is_superadmin'] !== true) && (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true)) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'error' => 'Acceso denegado. Se requiere sesión de SuperAdmin.']);
+    exit;
+}
+
 require_once __DIR__ . '/conexion.php';
-require_once __DIR__ . '/admin_auth.php';
 
 // Asegurar que la tabla admin_notas existe y tiene la estructura completa
 try {
