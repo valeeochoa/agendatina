@@ -2083,9 +2083,9 @@
                         estado: 'confirmado',
                         negocio: negocioNombre,
                         negocio_ruta: negocioRuta,
-                        fecha_vencimiento: currentNegocio.fecha_vencimiento || '',
-                        cancelaciones_restantes: currentNegocio.cancelaciones_restantes,
-                        cancelaciones_max: currentNegocio.cancelaciones_max || 4
+                        fecha_vencimiento: currentNegocio ? (currentNegocio.fecha_vencimiento || '') : '',
+                        cancelaciones_restantes: currentNegocio ? currentNegocio.cancelaciones_restantes : 4,
+                        cancelaciones_max: currentNegocio ? (currentNegocio.cancelaciones_max || 4) : 4
                     };
                     allStudentClases.unshift(newBooking);
 

@@ -373,7 +373,7 @@ try {
         }
 
         // Buscar en clientes_negocio (alumnos asignados por establecimientos)
-        $stmt = $pdo->prepare("SELECT id, nombre_completo, password, pases_disponibles, estado FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email LIMIT 1");
+        $stmt = $pdo->prepare("SELECT id, nombre_completo, password, pases_disponibles, estado FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email ORDER BY (id_negocio > 0) DESC, id DESC LIMIT 1");
         $stmt->execute(['email' => $email]);
         $cliente = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -402,7 +402,7 @@ try {
         }
 
         echo json_encode([
-            'success' => true,
+            'success' => true, 
             'exists' => true,
             'has_password' => !empty($cliente['password']),
             'nombre' => $cliente['nombre_completo'],
@@ -426,18 +426,60 @@ try {
 
         $hash = password_hash($password, PASSWORD_DEFAULT);
 
-        $stmtCheck = $pdo->prepare("SELECT id, nombre_completo FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email LIMIT 1");
+        // Buscar todos los registros de este alumno en clientes_negocio para actualizar clave
+        $stmtCheck = $pdo->prepare("SELECT id, id_negocio, nombre_completo, pases_disponibles, pases_totales FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email");
         $stmtCheck->execute(['email' => $email]);
-        $c = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+        $rows = $stmtCheck->fetchAll(PDO::FETCH_ASSOC);
 
-        if ($c) {
-            $stmtUp = $pdo->prepare("UPDATE clientes_negocio SET password = :hash, estado = 'activo' WHERE id = :id");
-            $stmtUp->execute(['hash' => $hash, 'id' => $c['id']]);
-            $cId = $c['id'];
-            if (empty($nombre)) $nombre = $c['nombre_completo'];
+        if (!empty($rows)) {
+            $stmtUp = $pdo->prepare("
+                UPDATE clientes_negocio 
+                SET password = :hash, 
+                    estado = 'activo', 
+                    nombre_completo = IF(:nombre != '', :nombre2, nombre_completo),
+                    pases_disponibles = IF(pases_disponibles <= 0, 4, pases_disponibles),
+                    pases_totales = IF(pases_totales <= 0, 4, pases_totales),
+                    cancelaciones_permitidas = IF(cancelaciones_permitidas IS NULL OR cancelaciones_permitidas <= 0, 4, cancelaciones_permitidas),
+                    cancelaciones_restantes = IF(cancelaciones_restantes IS NULL OR cancelaciones_restantes <= 0, 4, cancelaciones_restantes),
+                    fecha_vencimiento = COALESCE(fecha_vencimiento, DATE_ADD(CURRENT_DATE, INTERVAL 1 MONTH))
+                WHERE LOWER(TRIM(email)) = :email
+            ");
+            $stmtUp->execute([
+                'hash' => $hash, 
+                'nombre' => $nombre, 
+                'nombre2' => $nombre, 
+                'email' => $email
+            ]);
+            $cId = $rows[0]['id'];
+            if (empty($nombre)) $nombre = $rows[0]['nombre_completo'];
         } else {
-            $stmtIns = $pdo->prepare("INSERT INTO clientes_negocio (id_negocio, nombre_completo, email, password, estado) VALUES (1, :nombre, :email, :hash, 'activo')");
-            $stmtIns->execute(['nombre' => !empty($nombre) ? $nombre : 'Alumno Registrado', 'email' => $email, 'hash' => $hash]);
+            // Resolver id_negocio desde turnos previos o primer negocio
+            $targetNegId = 1;
+            try {
+                $stTN = $pdo->prepare("SELECT id_negocio FROM turnos WHERE (LOWER(TRIM(cliente_celular)) = :email OR LOWER(TRIM(cliente_nombre)) = :email) AND id_negocio > 0 ORDER BY id DESC LIMIT 1");
+                $stTN->execute(['email' => $email]);
+                $tnRow = $stTN->fetch(PDO::FETCH_ASSOC);
+                if ($tnRow && !empty($tnRow['id_negocio'])) {
+                    $targetNegId = (int)$tnRow['id_negocio'];
+                } else {
+                    $stNeg = $pdo->query("SELECT id FROM negocios ORDER BY id ASC LIMIT 1");
+                    $fNeg = $stNeg ? $stNeg->fetchColumn() : null;
+                    if ($fNeg) $targetNegId = (int)$fNeg;
+                }
+            } catch(\Throwable $e) {}
+
+            $stmtIns = $pdo->prepare("
+                INSERT INTO clientes_negocio 
+                (id_negocio, nombre_completo, email, password, pases_disponibles, pases_totales, fecha_vencimiento, cancelaciones_permitidas, cancelaciones_restantes, estado) 
+                VALUES 
+                (:id_neg, :nombre, :email, :hash, 4, 4, DATE_ADD(CURRENT_DATE, INTERVAL 1 MONTH), 4, 4, 'activo')
+            ");
+            $stmtIns->execute([
+                'id_neg' => $targetNegId, 
+                'nombre' => !empty($nombre) ? $nombre : 'Alumno', 
+                'email' => $email, 
+                'hash' => $hash
+            ]);
             $cId = $pdo->lastInsertId();
         }
 
@@ -483,7 +525,7 @@ try {
         $_SESSION['cliente_nombre'] = $cliente['nombre_completo'];
 
         echo json_encode([
-            'success' => true,
+            'success' => true, 
             'cliente' => [
                 'id' => $cliente['id'],
                 'nombre' => $cliente['nombre_completo'],
@@ -518,7 +560,7 @@ try {
             exit;
         }
 
-        // Obtener la información de los negocios y servicios donde el alumno está registrado
+        // 1. Obtener la información de los negocios donde el alumno tiene pases o está registrado
         $stmtNegocios = $pdo->prepare("
             SELECT cn.id_negocio, cn.id_servicio, cn.servicio AS servicio_nombre, n.nombre_fantasia AS negocio_nombre, n.ruta AS negocio_ruta, n.estado_pago, 
                    cn.pases_disponibles, COALESCE(cn.pases_totales, cn.pases_disponibles) AS pases_totales, 
@@ -526,9 +568,74 @@ try {
             FROM clientes_negocio cn
             JOIN negocios n ON cn.id_negocio = n.id
             WHERE LOWER(TRIM(cn.email)) = :email AND cn.id_negocio > 0
+            ORDER BY cn.id_negocio ASC
         ");
         $stmtNegocios->execute(['email' => $email]);
         $negociosAsociados = $stmtNegocios->fetchAll(PDO::FETCH_ASSOC);
+
+        // Si el cliente tiene un registro con id_negocio = 0, vincularlo al primer negocio disponible
+        $stmtZero = $pdo->prepare("SELECT id, pases_disponibles, pases_totales, fecha_vencimiento, cancelaciones_permitidas, cancelaciones_restantes, telefono, nombre_completo FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email AND id_negocio = 0 ORDER BY id DESC LIMIT 1");
+        $stmtZero->execute(['email' => $email]);
+        $zeroRow = $stmtZero->fetch(PDO::FETCH_ASSOC);
+        if ($zeroRow) {
+            $stmtFirstNeg = $pdo->query("SELECT id, nombre_fantasia, ruta, estado_pago FROM negocios ORDER BY id ASC LIMIT 1");
+            $firstNeg = $stmtFirstNeg ? $stmtFirstNeg->fetch(PDO::FETCH_ASSOC) : null;
+            if ($firstNeg) {
+                $pdo->prepare("UPDATE clientes_negocio SET id_negocio = :id_neg WHERE id = :id")->execute(['id_neg' => $firstNeg['id'], 'id' => $zeroRow['id']]);
+                
+                $already = false;
+                foreach ($negociosAsociados as $na) {
+                    if ($na['id_negocio'] == $firstNeg['id']) { $already = true; break; }
+                }
+                if (!$already) {
+                    $negociosAsociados[] = [
+                        'id_negocio' => $firstNeg['id'],
+                        'id_servicio' => null,
+                        'servicio_nombre' => null,
+                        'negocio_nombre' => $firstNeg['nombre_fantasia'],
+                        'negocio_ruta' => $firstNeg['ruta'],
+                        'estado_pago' => $firstNeg['estado_pago'],
+                        'pases_disponibles' => $zeroRow['pases_disponibles'],
+                        'pases_totales' => $zeroRow['pases_totales'] ?: $zeroRow['pases_disponibles'],
+                        'fecha_vencimiento' => $zeroRow['fecha_vencimiento'],
+                        'cancelaciones_permitidas' => $zeroRow['cancelaciones_permitidas'],
+                        'cancelaciones_restantes' => $zeroRow['cancelaciones_restantes'],
+                        'telefono' => $zeroRow['telefono'],
+                        'nombre_completo' => $zeroRow['nombre_completo']
+                    ];
+                }
+            }
+        }
+
+        // Si aún no tiene negocios asociados pero tiene turnos registrados con este email
+        if (empty($negociosAsociados)) {
+            $stmtTurnoNegs = $pdo->prepare("
+                SELECT DISTINCT t.id_negocio, n.nombre_fantasia AS negocio_nombre, n.ruta AS negocio_ruta, n.estado_pago
+                FROM turnos t
+                JOIN negocios n ON t.id_negocio = n.id
+                WHERE (LOWER(TRIM(t.cliente_celular)) = :email OR LOWER(TRIM(t.cliente_nombre)) = :email_nom OR t.cliente_celular LIKE :email_like OR t.cliente_nombre LIKE :email_like_nom)
+                  AND t.id_negocio > 0
+            ");
+            $stmtTurnoNegs->execute(['email' => $email, 'email_nom' => $email, 'email_like' => '%' . $email . '%', 'email_like_nom' => '%' . $email . '%']);
+            $foundTurnoNegs = $stmtTurnoNegs->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($foundTurnoNegs as $ftn) {
+                $negociosAsociados[] = [
+                    'id_negocio' => $ftn['id_negocio'],
+                    'id_servicio' => null,
+                    'servicio_nombre' => null,
+                    'negocio_nombre' => $ftn['negocio_nombre'],
+                    'negocio_ruta' => $ftn['negocio_ruta'],
+                    'estado_pago' => $ftn['estado_pago'],
+                    'pases_disponibles' => 4,
+                    'pases_totales' => 4,
+                    'fecha_vencimiento' => date('Y-m-d', strtotime('+1 month')),
+                    'cancelaciones_permitidas' => 4,
+                    'cancelaciones_restantes' => 4,
+                    'telefono' => '',
+                    'nombre_completo' => 'Alumno'
+                ];
+            }
+        }
 
         foreach ($negociosAsociados as &$neg) {
             $pDisp = (int)($neg['pases_disponibles'] ?? 0);
@@ -547,7 +654,7 @@ try {
         }
         unset($neg);
 
-        // Obtener perfil del cliente (buscando nombre en cualquier registro incluyendo id_negocio = 0 o turnos)
+        // Obtener perfil del cliente
         $stmtPerfil = $pdo->prepare("SELECT nombre_completo, email, telefono FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email AND nombre_completo IS NOT NULL AND nombre_completo != '' ORDER BY (id_negocio > 0) DESC, id DESC LIMIT 1");
         $stmtPerfil->execute(['email' => $email]);
         $perfil = $stmtPerfil->fetch(PDO::FETCH_ASSOC);
@@ -561,7 +668,7 @@ try {
             }
         }
 
-        // Obtener el historial completo de clases y turnos (matcheando celular/email, telefono y nombre)
+        // Construir condiciones WHERE para turnos
         $phonesToMatch = [];
         $namesToMatch = [];
         foreach ($negociosAsociados as $na) {
@@ -576,11 +683,15 @@ try {
 
         $whereConds = [
             "LOWER(TRIM(t.cliente_celular)) = :email",
-            "LOWER(TRIM(t.cliente_nombre)) = :email_direct"
+            "LOWER(TRIM(t.cliente_nombre)) = :email_direct",
+            "t.cliente_celular LIKE :email_like",
+            "t.cliente_nombre LIKE :email_like_nom"
         ];
         $params = [
             'email' => $email,
-            'email_direct' => $email
+            'email_direct' => $email,
+            'email_like' => '%' . $email . '%',
+            'email_like_nom' => '%' . $email . '%'
         ];
 
         foreach (array_values($phonesToMatch) as $idx => $phone) {
@@ -601,29 +712,25 @@ try {
             $params[$key] = $name;
         }
 
-        $whereClause = "WHERE " . implode(" OR ", $whereConds);
+        $whereClause = "WHERE (" . implode(" OR ", $whereConds) . ")";
 
-        $clases = [];
+        // Consultar turnos de manera segura y limpia (sin joins con conflictos de collation)
+        $rawTurnos = [];
         try {
-            $mainParams = $params;
-            $mainParams['email_cn'] = $email;
             $stmt = $pdo->prepare("
-                SELECT t.id, t.id_negocio, t.id_servicio, COALESCE(n.nombre_fantasia, 'Establecimiento') AS negocio, n.ruta AS negocio_ruta, 
+                SELECT t.id, t.id_negocio, t.id_servicio, COALESCE(n.nombre_fantasia, 'Establecimiento') AS negocio, COALESCE(n.ruta, '') AS negocio_ruta, 
                        t.servicio, t.profesional, t.fecha, t.hora, t.estado,
-                       cn.fecha_vencimiento, cn.cancelaciones_restantes, cn.cancelaciones_permitidas, cn.pases_totales,
                        COALESCE(s.icono, '') AS icono, s.imagen1 AS servicio_imagen
                 FROM turnos t
                 LEFT JOIN negocios n ON t.id_negocio = n.id
-                LEFT JOIN servicios s ON (t.id_servicio = s.id OR (t.id_negocio = s.id_negocio AND LOWER(TRIM(t.servicio)) = LOWER(TRIM(s.nombre_servicio))))
-                LEFT JOIN clientes_negocio cn ON (t.id_negocio = cn.id_negocio AND LOWER(TRIM(cn.email)) = :email_cn)
+                LEFT JOIN servicios s ON t.id_servicio = s.id
                 {$whereClause}
                 ORDER BY t.fecha DESC, t.hora DESC
             ");
-            $stmt->execute($mainParams);
-            $clases = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt->execute($params);
+            $rawTurnos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Throwable $eTurnos) {
-            error_log("Error en query principal de mis_clases: " . $eTurnos->getMessage());
-            // Fallback directo a turnos sin joins complejos que puedan dar conflicto de collation
+            error_log("Error en query de turnos mis_clases: " . $eTurnos->getMessage());
             try {
                 $stmtSimple = $pdo->prepare("
                     SELECT id, id_negocio, id_servicio, servicio, profesional, fecha, hora, estado
@@ -632,63 +739,79 @@ try {
                     ORDER BY fecha DESC, hora DESC
                 ");
                 $stmtSimple->execute($params);
-                $rawClases = $stmtSimple->fetchAll(PDO::FETCH_ASSOC);
-
-                // Reconstruir datos de negocio y servicio de forma segura en PHP
-                $stmtNegs = $pdo->query("SELECT id, nombre_fantasia, ruta FROM negocios");
-                $mapNegs = [];
-                if ($stmtNegs) {
-                    while ($nr = $stmtNegs->fetch(PDO::FETCH_ASSOC)) {
-                        $mapNegs[$nr['id']] = $nr;
-                    }
-                }
-
-                foreach ($rawClases as $rc) {
-                    $nData = $mapNegs[$rc['id_negocio']] ?? null;
-                    $cNegocio = $nData ? $nData['nombre_fantasia'] : 'Establecimiento';
-                    $cRuta = $nData ? $nData['ruta'] : '';
-
-                    // Buscar datos de pase del negocio si existen
-                    $matchingNeg = null;
-                    foreach ($negociosAsociados as $na) {
-                        if ($na['id_negocio'] == $rc['id_negocio']) {
-                            $matchingNeg = $na;
-                            break;
-                        }
-                    }
-
-                    $clases[] = [
-                        'id' => $rc['id'],
-                        'id_negocio' => $rc['id_negocio'],
-                        'id_servicio' => $rc['id_servicio'],
-                        'negocio' => $cNegocio,
-                        'negocio_ruta' => $cRuta,
-                        'servicio' => $rc['servicio'],
-                        'profesional' => $rc['profesional'],
-                        'fecha' => $rc['fecha'],
-                        'hora' => $rc['hora'],
-                        'estado' => $rc['estado'],
-                        'fecha_vencimiento' => $matchingNeg ? $matchingNeg['fecha_vencimiento'] : null,
-                        'cancelaciones_restantes' => $matchingNeg ? $matchingNeg['cancelaciones_restantes'] : null,
-                        'cancelaciones_permitidas' => $matchingNeg ? $matchingNeg['cancelaciones_permitidas'] : null,
-                        'pases_totales' => $matchingNeg ? $matchingNeg['pases_totales'] : null,
-                        'icono' => '',
-                        'servicio_imagen' => null
-                    ];
-                }
+                $rawTurnos = $stmtSimple->fetchAll(PDO::FETCH_ASSOC);
             } catch (\Throwable $eSimple) {
                 error_log("Error en fallback simple de mis_clases: " . $eSimple->getMessage());
             }
         }
 
-        foreach ($clases as &$c) {
-            $pTotales = max(1, (int)($c['pases_totales'] ?? 4));
-            $maxCanc = isset($c['cancelaciones_permitidas']) && $c['cancelaciones_permitidas'] !== null ? (int)$c['cancelaciones_permitidas'] : $pTotales;
-            $restCanc = isset($c['cancelaciones_restantes']) && $c['cancelaciones_restantes'] !== null ? (int)$c['cancelaciones_restantes'] : $maxCanc;
-            $c['cancelaciones_max'] = $maxCanc;
-            $c['cancelaciones_restantes'] = $restCanc;
+        // Cache de negocios y servicios para enriquecer datos en PHP
+        $mapNegs = [];
+        try {
+            $stmtAllNegs = $pdo->query("SELECT id, nombre_fantasia, ruta FROM negocios");
+            if ($stmtAllNegs) {
+                while ($nr = $stmtAllNegs->fetch(PDO::FETCH_ASSOC)) {
+                    $mapNegs[$nr['id']] = $nr;
+                }
+            }
+        } catch (\Throwable $eN) {}
+
+        $mapServs = [];
+        try {
+            $stmtAllServs = $pdo->query("SELECT id, id_negocio, nombre_servicio, COALESCE(icono, '') AS icono, imagen1 AS servicio_imagen FROM servicios");
+            if ($stmtAllServs) {
+                while ($sr = $stmtAllServs->fetch(PDO::FETCH_ASSOC)) {
+                    $mapServs[$sr['id']] = $sr;
+                }
+            }
+        } catch (\Throwable $eS) {}
+
+        $clases = [];
+        foreach ($rawTurnos as $rc) {
+            $nData = $mapNegs[$rc['id_negocio']] ?? null;
+            $cNegocio = !empty($rc['negocio']) && $rc['negocio'] !== 'Establecimiento' ? $rc['negocio'] : ($nData ? $nData['nombre_fantasia'] : 'Establecimiento');
+            $cRuta = !empty($rc['negocio_ruta']) ? $rc['negocio_ruta'] : ($nData ? $nData['ruta'] : '');
+
+            // Buscar datos de pase del negocio si existen
+            $matchingNeg = null;
+            foreach ($negociosAsociados as $na) {
+                if ($na['id_negocio'] == $rc['id_negocio']) {
+                    $matchingNeg = $na;
+                    break;
+                }
+            }
+
+            $icon = $rc['icono'] ?? '';
+            $img = $rc['servicio_imagen'] ?? null;
+            if (empty($icon) && empty($img) && !empty($rc['id_servicio']) && isset($mapServs[$rc['id_servicio']])) {
+                $icon = $mapServs[$rc['id_servicio']]['icono'];
+                $img = $mapServs[$rc['id_servicio']]['servicio_imagen'];
+            }
+
+            $pTotales = $matchingNeg ? max(1, (int)$matchingNeg['pases_totales']) : 4;
+            $cancMax = $matchingNeg && isset($matchingNeg['cancelaciones_max']) ? (int)$matchingNeg['cancelaciones_max'] : $pTotales;
+            $cancRest = $matchingNeg && isset($matchingNeg['cancelaciones_restantes']) ? (int)$matchingNeg['cancelaciones_restantes'] : $cancMax;
+
+            $clases[] = [
+                'id' => (int)$rc['id'],
+                'id_negocio' => (int)$rc['id_negocio'],
+                'id_servicio' => $rc['id_servicio'] ? (int)$rc['id_servicio'] : null,
+                'negocio' => $cNegocio,
+                'negocio_ruta' => $cRuta,
+                'servicio' => $rc['servicio'],
+                'profesional' => $rc['profesional'],
+                'fecha' => $rc['fecha'],
+                'hora' => $rc['hora'],
+                'estado' => $rc['estado'],
+                'fecha_vencimiento' => $matchingNeg ? $matchingNeg['fecha_vencimiento'] : null,
+                'cancelaciones_restantes' => $cancRest,
+                'cancelaciones_permitidas' => $cancMax,
+                'cancelaciones_max' => $cancMax,
+                'pases_totales' => $pTotales,
+                'icono' => $icon,
+                'servicio_imagen' => $img
+            ];
         }
-        unset($c);
 
         echo json_encode([
             'success' => true, 
@@ -745,8 +868,8 @@ try {
             exit;
         }
 
-        $stmtCheck = $pdo->prepare("SELECT id, id_negocio, estado, fecha, hora FROM turnos WHERE id = :id AND (LOWER(TRIM(cliente_celular)) = :email OR LOWER(cliente_nombre) LIKE :emailLike)");
-        $stmtCheck->execute(['id' => $turnoId, 'email' => $email, 'emailLike' => '%' . $email . '%']);
+        $stmtCheck = $pdo->prepare("SELECT id, id_negocio, estado, fecha, hora FROM turnos WHERE id = :id AND (LOWER(TRIM(cliente_celular)) = :email OR LOWER(cliente_nombre) LIKE :emailLike OR LOWER(TRIM(cliente_nombre)) = :emailExact)");
+        $stmtCheck->execute(['id' => $turnoId, 'email' => $email, 'emailLike' => '%' . $email . '%', 'emailExact' => $email]);
         $turno = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
         if (!$turno) {
@@ -817,13 +940,13 @@ try {
         $fecha = trim($_POST['fecha'] ?? '');
         $hora = trim($_POST['hora'] ?? '');
         $servicio = trim($_POST['servicio'] ?? '');
-        $profesional = trim($_POST['profesional'] ?? 'Cualquiera (Sin preferencia)');
+        $profesional = trim($_POST['profesional'] ?? 'Instructor');
         $id_servicio = (int)($_POST['id_servicio'] ?? 0);
 
         // Si id_negocio vino 0 o inválido, intentar resolverlo mediante negocio_ruta
         if ($id_negocio <= 0 && !empty($negocio_ruta)) {
-            $stmtNeg = $pdo->prepare("SELECT id FROM negocios WHERE ruta = :ruta LIMIT 1");
-            $stmtNeg->execute(['ruta' => $negocio_ruta]);
+            $stmtNeg = $pdo->prepare("SELECT id FROM negocios WHERE LOWER(TRIM(ruta)) = :ruta LIMIT 1");
+            $stmtNeg->execute(['ruta' => strtolower($negocio_ruta)]);
             $foundNeg = $stmtNeg->fetch(PDO::FETCH_ASSOC);
             if ($foundNeg) {
                 $id_negocio = (int)$foundNeg['id'];
@@ -868,8 +991,8 @@ try {
             exit;
         }
 
-        // 2. Verificar si el cliente tiene pases disponibles EXCLUSIVAMENTE en este negocio (o cuenta de cliente de negocio)
-        $stmtClient = $pdo->prepare("SELECT id, nombre_completo, pases_disponibles, id_negocio FROM clientes_negocio WHERE (id_negocio = :id_negocio OR id_negocio = 0) AND LOWER(TRIM(email)) = :email ORDER BY (id_negocio = :id_negocio_order) DESC LIMIT 1");
+        // 2. Verificar si el cliente tiene pases disponibles en este negocio (o cuenta de cliente de negocio)
+        $stmtClient = $pdo->prepare("SELECT id, nombre_completo, pases_disponibles, pases_totales, id_negocio, id_servicio, servicio, telefono, password FROM clientes_negocio WHERE (id_negocio = :id_negocio OR id_negocio = 0) AND LOWER(TRIM(email)) = :email ORDER BY (id_negocio = :id_negocio_order) DESC, id DESC LIMIT 1");
         $stmtClient->execute([
             'id_negocio' => $id_negocio,
             'email' => $email,
@@ -877,9 +1000,60 @@ try {
         ]);
         $clientData = $stmtClient->fetch(PDO::FETCH_ASSOC);
 
+        // Si no existe vinculación previa, buscar si el alumno tiene cuenta en el sistema para auto-vincularlo asignando pases
         if (!$clientData) {
-            echo json_encode(['success' => false, 'error' => 'No estás registrado/a como alumno en este establecimiento.']);
-            exit;
+            $stmtAny = $pdo->prepare("SELECT id, nombre_completo, password, telefono FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email AND password IS NOT NULL LIMIT 1");
+            $stmtAny->execute(['email' => $email]);
+            $existingUser = $stmtAny->fetch(PDO::FETCH_ASSOC);
+
+            // Obtener servicio asignado o servicio por defecto del negocio
+            $targetServ = null;
+            if ($id_servicio > 0) {
+                $stmtS = $pdo->prepare("SELECT id, nombre_servicio, COALESCE(cupo_maximo, capacidad, 1) AS cupos FROM servicios WHERE id = :id_serv AND id_negocio = :id_neg LIMIT 1");
+                $stmtS->execute(['id_serv' => $id_servicio, 'id_neg' => $id_negocio]);
+                $targetServ = $stmtS->fetch(PDO::FETCH_ASSOC);
+            }
+            if (!$targetServ) {
+                $stmtSDef = $pdo->prepare("SELECT id, nombre_servicio, COALESCE(cupo_maximo, capacidad, 1) AS cupos FROM servicios WHERE id_negocio = :id_neg ORDER BY orden ASC, id ASC LIMIT 1");
+                $stmtSDef->execute(['id_neg' => $id_negocio]);
+                $targetServ = $stmtSDef->fetch(PDO::FETCH_ASSOC);
+            }
+
+            $initialPases = $targetServ ? (int)$targetServ['cupos'] : 4;
+            $initialServId = $targetServ ? (int)$targetServ['id'] : $id_servicio;
+            $initialServNombre = $targetServ ? $targetServ['nombre_servicio'] : $servicio;
+            $initialVenc = date('Y-m-d', strtotime('+1 month'));
+
+            $nombreCliente = $_SESSION['cliente_nombre'] ?? ($existingUser ? $existingUser['nombre_completo'] : 'Alumno');
+            $telCliente = $existingUser ? ($existingUser['telefono'] ?? '') : '';
+            $passCliente = $existingUser ? $existingUser['password'] : null;
+
+            $stmtInsLink = $pdo->prepare("
+                INSERT INTO clientes_negocio 
+                (id_negocio, id_servicio, servicio, nombre_completo, email, telefono, password, pases_disponibles, pases_totales, fecha_vencimiento, cancelaciones_permitidas, cancelaciones_restantes, estado) 
+                VALUES 
+                (:id_negocio, :id_serv, :serv, :nombre, :email, :telefono, :pass, :pases, :pases, :venc, :pases, :pases, 'activo')
+            ");
+            $stmtInsLink->execute([
+                'id_negocio' => $id_negocio,
+                'id_serv' => $initialServId,
+                'serv' => $initialServNombre,
+                'nombre' => $nombreCliente,
+                'email' => $email,
+                'telefono' => $telCliente,
+                'pass' => $passCliente,
+                'pases' => $initialPases,
+                'venc' => $initialVenc
+            ]);
+            $clientData = [
+                'id' => $pdo->lastInsertId(),
+                'nombre_completo' => $nombreCliente,
+                'pases_disponibles' => $initialPases,
+                'pases_totales' => $initialPases,
+                'id_negocio' => $id_negocio,
+                'id_servicio' => $initialServId,
+                'servicio' => $initialServNombre
+            ];
         }
 
         $pasesDisponibles = (int)($clientData['pases_disponibles'] ?? 0);
@@ -890,8 +1064,24 @@ try {
 
         $nombreCliente = $_SESSION['cliente_nombre'] ?? $clientData['nombre_completo'] ?? 'Alumno';
 
-        // Descontar 1 pase únicamente de la cuenta de ESTE negocio
-        $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = GREATEST(0, pases_disponibles - 1) WHERE id = ?")->execute([$clientData['id']]);
+        // Descontar 1 pase, asegurando id_negocio vinculado y campos de cancelaciones
+        $pdo->prepare("
+            UPDATE clientes_negocio 
+            SET pases_disponibles = GREATEST(0, pases_disponibles - 1),
+                id_negocio = :id_neg,
+                id_servicio = COALESCE(id_servicio, :id_serv),
+                servicio = COALESCE(servicio, :serv),
+                cancelaciones_permitidas = COALESCE(cancelaciones_permitidas, pases_totales, 4),
+                cancelaciones_restantes = COALESCE(cancelaciones_restantes, pases_totales, 4),
+                fecha_vencimiento = COALESCE(fecha_vencimiento, DATE_ADD(CURRENT_DATE, INTERVAL 1 MONTH)),
+                estado = 'activo'
+            WHERE id = :id
+        ")->execute([
+            'id_neg' => $id_negocio,
+            'id_serv' => $id_servicio ?: null,
+            'serv' => $servicio ?: null,
+            'id' => $clientData['id']
+        ]);
 
         // 3. Insertar reserva en la tabla turnos
         $stmtIns = $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, metodo_pago, estado) VALUES (:id_negocio, :nombre, :email, :fecha, :hora, :servicio, :profesional, :id_servicio, 'Pase de Alumno', 'confirmado')");
