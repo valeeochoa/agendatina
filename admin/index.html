@@ -343,8 +343,9 @@
                         <label class="block text-sm font-semibold text-slate-600 mb-1.5">Enlace Personalizado</label>
                         <div class="flex items-center">
                             <span class="bg-slate-100 text-slate-500 border border-r-0 border-slate-200 rounded-l-xl px-4 py-2.5 text-sm font-semibold">agendatina.site/</span>
-                            <input type="text" name="ruta" required class="w-full bg-slate-50 border border-slate-200 rounded-r-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-blue-600" placeholder="estetica-bella">
+                            <input type="text" name="ruta" id="newRutaWeb" oninput="checkNewRutaAvailability()" required class="w-full bg-slate-50 border border-slate-200 rounded-r-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-blue-600" placeholder="estetica-bella">
                         </div>
+                        <div id="newRutaStatus" class="text-xs mt-1.5 font-semibold flex items-center gap-1 transition-all min-h-[18px]"></div>
                     </div>
                         <div>
                             <label class="block text-sm font-semibold text-slate-600 mb-1.5">Plan Contratado</label>
@@ -477,8 +478,9 @@
                     <label class="block text-sm font-semibold text-slate-600 mb-1.5">Enlace Personalizado</label>
                     <div class="flex items-center">
                         <span class="bg-slate-100 text-slate-500 border border-r-0 border-slate-200 rounded-l-xl px-4 py-2.5 text-sm font-semibold">agendatina.site/</span>
-                        <input type="text" id="editRutaWeb" required class="w-full bg-slate-50 border border-slate-200 rounded-r-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-blue-600">
+                        <input type="text" id="editRutaWeb" oninput="checkEditRutaAvailability()" required class="w-full bg-slate-50 border border-slate-200 rounded-r-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-blue-600">
                     </div>
+                    <div id="editRutaStatus" class="text-xs mt-1.5 font-semibold flex items-center gap-1 transition-all min-h-[18px]"></div>
                 </div>
                 <div class="md:col-span-2">
                     <label class="block text-sm font-semibold text-slate-600 mb-1.5">Nueva Contraseña (Opcional)</label>
@@ -1619,6 +1621,79 @@ document.getElementById('newClientForm').addEventListener('submit', function(e) 
     });
 });
 
+let editRutaTimeout = null;
+function checkEditRutaAvailability() {
+    const input = document.getElementById('editRutaWeb');
+    const statusDiv = document.getElementById('editRutaStatus');
+    const idNegocio = document.getElementById('editInfoIdNegocio') ? document.getElementById('editInfoIdNegocio').value : 0;
+    if (!input || !statusDiv) return;
+
+    let rawVal = input.value.toLowerCase().trim().replace(/[^a-z0-9-]/g, '');
+    input.value = rawVal;
+
+    if (!rawVal || rawVal.length < 3) {
+        statusDiv.innerHTML = '<span class="material-symbols-outlined text-[15px] text-amber-500">warning</span> <span class="text-amber-600">Mínimo 3 caracteres (letras, números o guiones)</span>';
+        return;
+    }
+
+    statusDiv.innerHTML = '<span class="material-symbols-outlined animate-spin text-[15px] text-slate-400">refresh</span> <span class="text-slate-400 font-medium">Verificando disponibilidad...</span>';
+
+    clearTimeout(editRutaTimeout);
+    editRutaTimeout = setTimeout(() => {
+        fetch(`../backend/admin_api.php?action=check_ruta&ruta=${encodeURIComponent(rawVal)}&id_negocio=${encodeURIComponent(idNegocio)}&t=${Date.now()}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'own') {
+                    statusDiv.innerHTML = '<span class="material-symbols-outlined text-[15px] text-blue-500">info</span> <span class="text-blue-600 font-bold">Es la URL actual de este negocio (Sin cambios)</span>';
+                } else if (data.status === 'available') {
+                    statusDiv.innerHTML = '<span class="material-symbols-outlined text-[15px] text-emerald-500">check_circle</span> <span class="text-emerald-600 font-bold">✓ URL disponible para asignar</span>';
+                } else if (data.status === 'taken') {
+                    statusDiv.innerHTML = `<span class="material-symbols-outlined text-[15px] text-rose-500">cancel</span> <span class="text-rose-600 font-bold">✕ ${data.message || 'URL en uso por otro negocio'}</span>`;
+                } else {
+                    statusDiv.innerHTML = `<span class="material-symbols-outlined text-[15px] text-amber-500">warning</span> <span class="text-amber-600 font-bold">${data.message || 'URL no válida'}</span>`;
+                }
+            })
+            .catch(() => {
+                statusDiv.innerHTML = '';
+            });
+    }, 200);
+}
+
+let newRutaTimeout = null;
+function checkNewRutaAvailability() {
+    const input = document.getElementById('newRutaWeb');
+    const statusDiv = document.getElementById('newRutaStatus');
+    if (!input || !statusDiv) return;
+
+    let rawVal = input.value.toLowerCase().trim().replace(/[^a-z0-9-]/g, '');
+    input.value = rawVal;
+
+    if (!rawVal || rawVal.length < 3) {
+        statusDiv.innerHTML = '<span class="material-symbols-outlined text-[15px] text-amber-500">warning</span> <span class="text-amber-600">Mínimo 3 caracteres</span>';
+        return;
+    }
+
+    statusDiv.innerHTML = '<span class="material-symbols-outlined animate-spin text-[15px] text-slate-400">refresh</span> <span class="text-slate-400 font-medium">Verificando...</span>';
+
+    clearTimeout(newRutaTimeout);
+    newRutaTimeout = setTimeout(() => {
+        fetch(`../backend/admin_api.php?action=check_ruta&ruta=${encodeURIComponent(rawVal)}&t=${Date.now()}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'available') {
+                    statusDiv.innerHTML = '<span class="material-symbols-outlined text-[15px] text-emerald-500">check_circle</span> <span class="text-emerald-600 font-bold">✓ URL disponible</span>';
+                } else if (data.status === 'taken') {
+                    statusDiv.innerHTML = `<span class="material-symbols-outlined text-[15px] text-rose-500">cancel</span> <span class="text-rose-600 font-bold">✕ ${data.message || 'URL en uso'}</span>`;
+                } else {
+                    statusDiv.innerHTML = `<span class="material-symbols-outlined text-[15px] text-amber-500">warning</span> <span class="text-amber-600 font-bold">${data.message || 'No válida'}</span>`;
+                }
+            })
+            .catch(() => {
+                statusDiv.innerHTML = '';
+            });
+    }, 200);
+}
+
 // ==========================================
 // EDICIÓN DE INFORMACIÓN BÁSICA DEL CLIENTE
 // ==========================================
@@ -1632,6 +1707,9 @@ function openEditInfoModal(index) {
     document.getElementById('editNombreNegocio').value = client.nombre_fantasia || '';
     document.getElementById('editRutaWeb').value = client.ruta || client.subdominio || '';
     document.getElementById('editPassword').value = ''; 
+
+    // Comprobar automáticamente el estado de la URL
+    checkEditRutaAvailability();
 
     const modal = document.getElementById('editInfoModal');
     const content = document.getElementById('editInfoModalContent');
@@ -1650,6 +1728,8 @@ function closeEditInfoModal() {
         modal.classList.remove('flex');
         document.getElementById('editInfoForm').reset();
         document.getElementById('editInfoFormMessage').classList.add('hidden');
+        const st = document.getElementById('editRutaStatus');
+        if (st) st.innerHTML = '';
     }, 300);
 }
 

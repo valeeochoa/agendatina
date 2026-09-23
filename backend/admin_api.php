@@ -224,6 +224,80 @@ if ($method === 'GET') {
     // Liberar la sesión para evitar bloqueos
     session_write_close();
 
+    // Verificación de disponibilidad de URL / Ruta para el Admin
+    if (isset($_GET['action']) && $_GET['action'] === 'check_ruta') {
+        $rutaCheck = preg_replace('/[^a-zA-Z0-9-]/', '', strtolower(trim($_GET['ruta'] ?? '')));
+        $id_negocio = isset($_GET['id_negocio']) ? (int)$_GET['id_negocio'] : 0;
+        
+        if (empty($rutaCheck) || strlen($rutaCheck) < 3) {
+            echo json_encode([
+                'success' => true, 
+                'available' => false, 
+                'status' => 'invalid', 
+                'message' => 'Mínimo 3 caracteres (letras, números o guiones)'
+            ]);
+            exit;
+        }
+
+        // 1. Si id_negocio > 0, verificar si es la propia dirección actual del negocio
+        if ($id_negocio > 0) {
+            try {
+                $pdo->query("SELECT subdominio FROM negocios LIMIT 1");
+                $stmtOwn = $pdo->prepare("SELECT id FROM negocios WHERE id = ? AND (LOWER(TRIM(ruta)) = ? OR (subdominio IS NOT NULL AND LOWER(TRIM(subdominio)) = ?))");
+            } catch(Exception $e) {
+                $stmtOwn = $pdo->prepare("SELECT id FROM negocios WHERE id = ? AND LOWER(TRIM(ruta)) = ?");
+            }
+            $stmtOwn->execute([$id_negocio, $rutaCheck, $rutaCheck]);
+            if ($stmtOwn->fetch()) {
+                echo json_encode([
+                    'success' => true, 
+                    'available' => true, 
+                    'status' => 'own', 
+                    'message' => 'Es la URL actual de este negocio'
+                ]);
+                exit;
+            }
+        }
+
+        // 2. Verificar si está ocupada por OTRO negocio
+        try {
+            $pdo->query("SELECT subdominio FROM negocios LIMIT 1");
+            if ($id_negocio > 0) {
+                $stmtCheck = $pdo->prepare("SELECT id, nombre_fantasia FROM negocios WHERE (LOWER(TRIM(ruta)) = :ruta OR (subdominio IS NOT NULL AND subdominio != '' AND LOWER(TRIM(subdominio)) = :ruta)) AND id != :id LIMIT 1");
+                $stmtCheck->execute(['ruta' => $rutaCheck, 'id' => $id_negocio]);
+            } else {
+                $stmtCheck = $pdo->prepare("SELECT id, nombre_fantasia FROM negocios WHERE LOWER(TRIM(ruta)) = :ruta OR (subdominio IS NOT NULL AND subdominio != '' AND LOWER(TRIM(subdominio)) = :ruta) LIMIT 1");
+                $stmtCheck->execute(['ruta' => $rutaCheck]);
+            }
+        } catch (Exception $e) {
+            if ($id_negocio > 0) {
+                $stmtCheck = $pdo->prepare("SELECT id, nombre_fantasia FROM negocios WHERE LOWER(TRIM(ruta)) = :ruta AND id != :id LIMIT 1");
+                $stmtCheck->execute(['ruta' => $rutaCheck, 'id' => $id_negocio]);
+            } else {
+                $stmtCheck = $pdo->prepare("SELECT id, nombre_fantasia FROM negocios WHERE LOWER(TRIM(ruta)) = :ruta LIMIT 1");
+                $stmtCheck->execute(['ruta' => $rutaCheck]);
+            }
+        }
+
+        $otherBiz = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+        if ($otherBiz) {
+            echo json_encode([
+                'success' => true, 
+                'available' => false, 
+                'status' => 'taken', 
+                'message' => 'En uso por "' . ($otherBiz['nombre_fantasia'] ?? 'otro negocio') . '"'
+            ]);
+        } else {
+            echo json_encode([
+                'success' => true, 
+                'available' => true, 
+                'status' => 'available', 
+                'message' => 'URL disponible'
+            ]);
+        }
+        exit;
+    }
+
     // Ejecutar auto-suspensión silenciosa antes de devolver los datos a la tabla (excluyendo negocios que subieron comprobante 'pendiente_revision')
     try {
         $pdo->exec("UPDATE negocios n 
