@@ -59,7 +59,7 @@ try {
     }
 
     // 2. Turnos Ocupados (Calculando su duración y cupos por servicio)
-    $sqlTurnos = "SELECT t.fecha, t.hora, COALESCE(s.duracion_minutos, 30) as duracion, t.id_servicio, COALESCE(s.cupo_maximo, s.capacidad, 1) as cupo_maximo, t.profesional 
+    $sqlTurnos = "SELECT t.fecha, t.hora, COALESCE(s.duracion_minutos, 30) as duracion, t.id_servicio, COALESCE(s.cupo_maximo, s.capacidad, 1) as cupo_maximo, t.profesional, t.cliente_nombre 
                   FROM turnos t 
                   LEFT JOIN servicios s ON t.id_servicio = s.id 
                   WHERE t.id_negocio = :id_negocio AND t.estado IN ('pendiente', 'confirmado', 'bloqueado')";
@@ -76,6 +76,7 @@ try {
     $conteoTurnosPorSlot = [];
     $maxCupoPorSlot = [];
     $ocupados['_details'] = [];
+    $ocupados['_alumnos'] = [];
 
     // Usar intervalos finos de 15 minutos para cubrir exactamente el tiempo ocupado por la atención
     $sliceStep = 15;
@@ -93,6 +94,7 @@ try {
         $hEnd = date('H:i', $tsEnd);
         $cupo = max(1, (int)$t['cupo_maximo']);
         $prof = $t['profesional'] ?? '';
+        $cliNom = trim($t['cliente_nombre'] ?? '');
 
         list($startH, $startM) = explode(':', $hStart);
         list($endH, $endM) = explode(':', $hEnd);
@@ -107,7 +109,8 @@ try {
             'duracion' => $duracionMin,
             'cupo_maximo' => $cupo,
             'profesional' => $prof,
-            'id_servicio' => $t['id_servicio'] ?? null
+            'id_servicio' => $t['id_servicio'] ?? null,
+            'cliente_nombre' => $cliNom
         ];
 
         // Guardar conteo exacto por servicio y hora para el calendario de clases
@@ -123,6 +126,11 @@ try {
 
         if (!isset($ocupados['_counts_hora'][$keyHoraSlot])) $ocupados['_counts_hora'][$keyHoraSlot] = 0;
         $ocupados['_counts_hora'][$keyHoraSlot]++;
+
+        if (!isset($ocupados['_alumnos'][$keyServSlot])) $ocupados['_alumnos'][$keyServSlot] = [];
+        if (!empty($cliNom) && !in_array($cliNom, $ocupados['_alumnos'][$keyServSlot])) {
+            $ocupados['_alumnos'][$keyServSlot][] = $cliNom;
+        }
         
         // Agregar los cortes de tiempo ocupados durante la atención (sin incluir la hora de finalización exacta)
         for ($subMins = $startMins; $subMins < $endMins; $subMins += $sliceStep) {

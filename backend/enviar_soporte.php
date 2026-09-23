@@ -11,9 +11,10 @@ require_once __DIR__ . '/phpmailer/PHPMailer.php';
 require_once __DIR__ . '/phpmailer/SMTP.php';
 
 $action = $_POST['action'] ?? '';
-$segmento = $_POST['segmento'] ?? 'Soporte';
-$mensaje = $_POST['mensaje'] ?? '';
+$segmento = $_POST['segmento'] ?? ($_POST['reportContextView'] ?? 'Soporte');
+$mensaje = trim($_POST['mensaje'] ?? ($_POST['reportUserMensaje'] ?? ''));
 $id_negocio = $_SESSION['id_negocio'] ?? null;
+$is_demo = !empty($_SESSION['is_demo']);
 
 if (isset($_GET['action']) && $_GET['action'] === 'obtener_hilo' && !empty($_GET['id_reporte'])) {
     $idRep = (int)$_GET['id_reporte'];
@@ -25,26 +26,23 @@ if (isset($_GET['action']) && $_GET['action'] === 'obtener_hilo' && !empty($_GET
     exit;
 }
 
-if (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) {
-    echo json_encode(['success' => false, 'error' => 'Esta función no está disponible desde una cuenta DEMO.']);
-    exit;
-}
-
 if (empty($mensaje)) {
-    echo json_encode(['success' => false, 'error' => 'El mensaje está vacío.']);
+    echo json_encode(['success' => false, 'error' => 'El mensaje no puede estar vacío.']);
     exit;
 }
 
 $id_usuario = $_SESSION['user_id'] ?? null;
-$nombre_usuario = $_SESSION['nombre_completo'] ?? 'Usuario Desconocido';
-$email_usuario = $_SESSION['email'] ?? '';
+$nombre_usuario = $_POST['nombre'] ?? ($_POST['reportUserNombre'] ?? ($_SESSION['nombre_completo'] ?? 'Usuario'));
+$email_usuario = $_POST['email'] ?? ($_POST['reportUserEmail'] ?? ($_SESSION['email'] ?? ''));
 $rol_usuario = $_SESSION['rol_en_local'] ?? 'admin';
-$nombre_negocio = 'Usuario Desconocido';
+$nombre_negocio = 'Usuario Web';
 
-if ($id_negocio) {
+if ($is_demo) {
+    $nombre_negocio = '[DEMO] Negocio de Prueba';
+} elseif ($id_negocio) {
     $stmtN = $pdo->prepare("SELECT nombre_fantasia FROM negocios WHERE id = ? LIMIT 1");
     $stmtN->execute([$id_negocio]);
-    $nombre_negocio = $stmtN->fetchColumn() ?: 'Usuario Desconocido';
+    $nombre_negocio = $stmtN->fetchColumn() ?: 'Negocio #' . $id_negocio;
 }
 
 if ($action === 'responder_cliente' || !empty($_POST['id_reporte'])) {

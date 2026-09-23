@@ -453,18 +453,14 @@ try {
             $cId = $rows[0]['id'];
             if (empty($nombre)) $nombre = $rows[0]['nombre_completo'];
         } else {
-            // Resolver id_negocio desde turnos previos o primer negocio
-            $targetNegId = 1;
+            // Resolver id_negocio desde turnos previos si existen
+            $targetNegId = 0;
             try {
                 $stTN = $pdo->prepare("SELECT id_negocio FROM turnos WHERE (LOWER(TRIM(cliente_celular)) = :email OR LOWER(TRIM(cliente_nombre)) = :email) AND id_negocio > 0 ORDER BY id DESC LIMIT 1");
                 $stTN->execute(['email' => $email]);
                 $tnRow = $stTN->fetch(PDO::FETCH_ASSOC);
                 if ($tnRow && !empty($tnRow['id_negocio'])) {
                     $targetNegId = (int)$tnRow['id_negocio'];
-                } else {
-                    $stNeg = $pdo->query("SELECT id FROM negocios ORDER BY id ASC LIMIT 1");
-                    $fNeg = $stNeg ? $stNeg->fetchColumn() : null;
-                    if ($fNeg) $targetNegId = (int)$fNeg;
                 }
             } catch(\Throwable $e) {}
 
@@ -572,40 +568,6 @@ try {
         ");
         $stmtNegocios->execute(['email' => $email]);
         $negociosAsociados = $stmtNegocios->fetchAll(PDO::FETCH_ASSOC);
-
-        // Si el cliente tiene un registro con id_negocio = 0, vincularlo al primer negocio disponible
-        $stmtZero = $pdo->prepare("SELECT id, pases_disponibles, pases_totales, fecha_vencimiento, cancelaciones_permitidas, cancelaciones_restantes, telefono, nombre_completo FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email AND id_negocio = 0 ORDER BY id DESC LIMIT 1");
-        $stmtZero->execute(['email' => $email]);
-        $zeroRow = $stmtZero->fetch(PDO::FETCH_ASSOC);
-        if ($zeroRow) {
-            $stmtFirstNeg = $pdo->query("SELECT id, nombre_fantasia, ruta, estado_pago FROM negocios ORDER BY id ASC LIMIT 1");
-            $firstNeg = $stmtFirstNeg ? $stmtFirstNeg->fetch(PDO::FETCH_ASSOC) : null;
-            if ($firstNeg) {
-                $pdo->prepare("UPDATE clientes_negocio SET id_negocio = :id_neg WHERE id = :id")->execute(['id_neg' => $firstNeg['id'], 'id' => $zeroRow['id']]);
-                
-                $already = false;
-                foreach ($negociosAsociados as $na) {
-                    if ($na['id_negocio'] == $firstNeg['id']) { $already = true; break; }
-                }
-                if (!$already) {
-                    $negociosAsociados[] = [
-                        'id_negocio' => $firstNeg['id'],
-                        'id_servicio' => null,
-                        'servicio_nombre' => null,
-                        'negocio_nombre' => $firstNeg['nombre_fantasia'],
-                        'negocio_ruta' => $firstNeg['ruta'],
-                        'estado_pago' => $firstNeg['estado_pago'],
-                        'pases_disponibles' => $zeroRow['pases_disponibles'],
-                        'pases_totales' => $zeroRow['pases_totales'] ?: $zeroRow['pases_disponibles'],
-                        'fecha_vencimiento' => $zeroRow['fecha_vencimiento'],
-                        'cancelaciones_permitidas' => $zeroRow['cancelaciones_permitidas'],
-                        'cancelaciones_restantes' => $zeroRow['cancelaciones_restantes'],
-                        'telefono' => $zeroRow['telefono'],
-                        'nombre_completo' => $zeroRow['nombre_completo']
-                    ];
-                }
-            }
-        }
 
         // Si aún no tiene negocios asociados pero tiene turnos registrados con este email
         if (empty($negociosAsociados)) {
@@ -868,7 +830,7 @@ try {
             exit;
         }
 
-        $stmtCheck = $pdo->prepare("SELECT id, id_negocio, estado, fecha, hora FROM turnos WHERE id = :id AND (LOWER(TRIM(cliente_celular)) = :email OR LOWER(cliente_nombre) LIKE :emailLike OR LOWER(TRIM(cliente_nombre)) = :emailExact)");
+        $stmtCheck = $pdo->prepare("SELECT id, id_negocio, servicio, profesional, estado, fecha, hora, cliente_nombre, cliente_celular FROM turnos WHERE id = :id AND (LOWER(TRIM(cliente_celular)) = :email OR LOWER(cliente_nombre) LIKE :emailLike OR LOWER(TRIM(cliente_nombre)) = :emailExact)");
         $stmtCheck->execute(['id' => $turnoId, 'email' => $email, 'emailLike' => '%' . $email . '%', 'emailExact' => $email]);
         $turno = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
@@ -895,7 +857,7 @@ try {
         }
 
         // Obtener el registro del cliente en este establecimiento para controlar el límite de cancelaciones
-        $stmtClient = $pdo->prepare("SELECT id, pases_totales, pases_disponibles, cancelaciones_permitidas, cancelaciones_restantes FROM clientes_negocio WHERE id_negocio = :id_negocio AND LOWER(TRIM(email)) = :email LIMIT 1");
+        $stmtClient = $pdo->prepare("SELECT id, nombre_completo, pases_totales, pases_disponibles, cancelaciones_permitidas, cancelaciones_restantes FROM clientes_negocio WHERE id_negocio = :id_negocio AND LOWER(TRIM(email)) = :email LIMIT 1");
         $stmtClient->execute(['id_negocio' => $turno['id_negocio'], 'email' => $email]);
         $cn = $stmtClient->fetch(PDO::FETCH_ASSOC);
 
@@ -922,6 +884,29 @@ try {
         }
 
         $pdo->prepare("UPDATE turnos SET estado = 'cancelado' WHERE id = ?")->execute([$turnoId]);
+
+        // Notificar al negocio de la cancelación
+        try {
+            try {
+                $pdo->query("SELECT id FROM notificaciones LIMIT 1");
+            } catch (\Throwable $e) {
+                $pdo->exec("CREATE TABLE notificaciones (id INT AUTO_INCREMENT PRIMARY KEY, id_negocio INT NULL, titulo VARCHAR(255), mensaje TEXT, fecha DATETIME DEFAULT CURRENT_TIMESTAMP, leida TINYINT DEFAULT 0)");
+            }
+
+            $nombreAlumno = $_SESSION['cliente_nombre'] ?? ($cn['nombre_completo'] ?? ($turno['cliente_nombre'] ?? 'Un alumno'));
+            $fechaFmt = date('d/m/Y', strtotime($turno['fecha']));
+            $horaFmt = substr($turno['hora'], 0, 5);
+            $servNom = $turno['servicio'] ?? 'Clase';
+
+            $stmtNotif = $pdo->prepare("INSERT INTO notificaciones (id_negocio, titulo, mensaje, fecha) VALUES (:id_negocio, :titulo, :mensaje, NOW())");
+            $stmtNotif->execute([
+                'id_negocio' => $turno['id_negocio'],
+                'titulo' => '🚫 Reserva Cancelada',
+                'mensaje' => "El alumno/a {$nombreAlumno} ({$email}) canceló su reserva para la clase de {$servNom} del {$fechaFmt} a las {$horaFmt} hs. Se ha liberado el cupo y devuelto el pase."
+            ]);
+        } catch (\Throwable $eNotif) {
+            error_log("Error guardando notificacion de cancelacion: " . $eNotif->getMessage());
+        }
 
         echo json_encode([
             'success' => true, 

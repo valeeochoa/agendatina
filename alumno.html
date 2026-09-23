@@ -152,10 +152,12 @@
                 <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
             </a>
             
-            <div id="userHeaderBox" class="hidden flex items-center gap-3">
-                <div onclick="switchTab('perfil')" class="flex items-center gap-2 bg-orange-50 hover:bg-orange-100/80 border border-orange-200/80 px-3 py-1.5 rounded-full shadow-2xs cursor-pointer transition-colors" title="Ver mi Perfil">
-                    <div id="userAvatarPill" class="w-6 h-6 rounded-full bg-gradient-to-tr from-[#FC8712] to-[#FF8A65] text-white flex items-center justify-center text-xs font-black">A</div>
-                    <span id="userNameDisplay" class="text-xs sm:text-sm font-extrabold text-slate-800 max-w-[140px] truncate">Alumno</span>
+            <div id="userHeaderBox" class="hidden flex items-center gap-2 sm:gap-3">
+                <div onclick="switchTab('perfil')" class="flex items-center gap-2 bg-orange-50 hover:bg-orange-100/80 border border-orange-200/80 p-1 sm:px-3 sm:py-1.5 rounded-full shadow-2xs cursor-pointer transition-colors" title="Ver mi Perfil">
+                    <div id="userAvatarPill" class="w-7 h-7 rounded-full bg-gradient-to-tr from-[#FC8712] to-[#FF8A65] text-white flex items-center justify-center text-xs font-black shrink-0">
+                        <span class="material-symbols-outlined text-[18px]">person</span>
+                    </div>
+                    <span id="userNameDisplay" class="hidden md:inline text-xs sm:text-sm font-extrabold text-slate-800 max-w-[140px] truncate">Alumno</span>
                 </div>
                 <button onclick="logoutCliente()" class="p-2 text-slate-500 hover:text-red-600 rounded-xl hover:bg-red-50 transition-colors flex items-center gap-1 text-xs font-bold" title="Cerrar Sesión">
                     <span class="material-symbols-outlined text-[20px]">logout</span>
@@ -1074,7 +1076,7 @@
             document.getElementById('dashClientName').textContent = `¡Hola de nuevo, ${name.split(' ')[0]}!`;
             
             const avatar = document.getElementById('userAvatarPill');
-            if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
+            if (avatar) avatar.innerHTML = '<span class="material-symbols-outlined text-[18px]">person</span>';
 
             document.getElementById('profileEmail').value = cliente.email || sessionStorage.getItem('agendatina_alumno_email') || '';
             document.getElementById('profileNombre').value = cliente.nombre || '';
@@ -1660,6 +1662,21 @@
             return slotsArray.length > 0 ? slotsArray : [(s.hora_apertura || bizConfig?.hora_apertura || '10:00').substring(0, 5)];
         }
 
+        // ALTERNAR DETALLES DESPLEGABLES DE CLASE
+        function toggleStudentClassDetails(cardId) {
+            const details = document.getElementById('details_' + cardId);
+            const chevron = document.getElementById('chevron_' + cardId);
+            if (!details) return;
+            const isHidden = details.classList.contains('hidden');
+            if (isHidden) {
+                details.classList.remove('hidden');
+                if (chevron) chevron.style.transform = 'rotate(180deg)';
+            } else {
+                details.classList.add('hidden');
+                if (chevron) chevron.style.transform = 'rotate(0deg)';
+            }
+        }
+
         // CARGAR CALENDARIO CON CUPOS DISPONIBLES EN TIEMPO REAL (DISCRIMINADO POR NEGOCIO)
         function loadStudentBusinessCalendar(ruta, isSilent = false) {
             if (!ruta) return;
@@ -1882,24 +1899,24 @@
 
                             const cuposLibres = Math.max(0, cupoMax - ocupadosCount);
 
-                            let badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
-                            let badgeText = `🟢 ${cuposLibres} cupos libres`;
-                            
-                            if (isAlreadyEnrolled) {
-                                badgeColor = 'bg-emerald-600 text-white border-emerald-700 font-extrabold shadow-2xs';
-                                badgeText = `✓ CLASE RESERVADA`;
-                            } else if (isPastTime) {
-                                badgeColor = 'bg-slate-200 text-slate-600 border-slate-300 font-bold';
-                                badgeText = `🕒 Horario transcurrido`;
-                            } else if (pasesNegocio <= 0) {
-                                badgeColor = 'bg-red-100 text-red-800 border-red-200 font-extrabold';
-                                badgeText = `🔒 Sin pases en este negocio`;
-                            } else if (cuposLibres === 1) {
-                                badgeColor = 'bg-amber-100 text-amber-800 border-amber-200';
-                                badgeText = `⚠️ 1 cupo libre`;
-                            } else if (cuposLibres <= 0) {
-                                badgeColor = 'bg-red-100 text-red-700 border-red-200';
-                                badgeText = `🔴 COMPLETO`;
+                            // Alumnos inscriptos en este slot
+                            const alumnosInscriptos = (ocupadosData && ocupadosData['_alumnos'] && Array.isArray(ocupadosData['_alumnos'][keyServSlot])) 
+                                ? ocupadosData['_alumnos'][keyServSlot] 
+                                : ((ocupadosData && ocupadosData['_alumnos'] && Array.isArray(ocupadosData['_alumnos'][fechaStr + '_0_' + cleanHoraDef5])) 
+                                    ? ocupadosData['_alumnos'][fechaStr + '_0_' + cleanHoraDef5] 
+                                    : []);
+
+                            let badgeHtml = '';
+                            if (!isAlreadyEnrolled && !isPastTime) {
+                                if (pasesNegocio <= 0) {
+                                    badgeHtml = `<span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full border bg-red-100 text-red-800 border-red-200">🔒 Sin pases</span>`;
+                                } else if (cuposLibres === 1) {
+                                    badgeHtml = `<span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full border bg-amber-100 text-amber-800 border-amber-200">⚠️ 1 cupo libre</span>`;
+                                } else if (cuposLibres <= 0) {
+                                    badgeHtml = `<span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full border bg-red-100 text-red-700 border-red-200">🔴 COMPLETO</span>`;
+                                } else {
+                                    badgeHtml = `<span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full border bg-emerald-100 text-emerald-800 border-emerald-200">🟢 ${cuposLibres} cupos libres</span>`;
+                                }
                             }
 
                             let buttonHtml = '';
@@ -1935,7 +1952,7 @@
                                 const safeSNombre = String(sNombre).replace(/'/g, "\\'");
                                 const safeProf = String(prof).replace(/'/g, "\\'");
                                 buttonHtml = `
-                                    <button onclick="bookStudentClass('${targetBizId}', '${sId}', '${safeSNombre}', '${fechaStr}', '${horaDef5}', '${safeProf}', this)" class="w-full bg-[#FC8712] hover:bg-orange-600 text-white font-extrabold py-3 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md shadow-orange-500/20 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
+                                    <button onclick="event.stopPropagation(); bookStudentClass('${targetBizId}', '${sId}', '${safeSNombre}', '${fechaStr}', '${horaDef5}', '${safeProf}', this)" class="w-full bg-[#FC8712] hover:bg-orange-600 text-white font-extrabold py-3 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md shadow-orange-500/20 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
                                         <span class="material-symbols-outlined text-[18px]">add_task</span>
                                         <span>Agendarme en esta Clase</span>
                                     </button>
@@ -1951,19 +1968,57 @@
                                 cardClass = 'border-slate-200/90 bg-slate-50/60 opacity-85';
                             }
 
+                            const cardSlotId = `slot_${sId}_${fechaStr.replace(/-/g, '')}_${cleanHoraDef5.replace(':', '')}`;
+
                             dayClassesList.push({
                                 time: horaDef5,
                                 html: `
                                     <div class="bg-white border ${cardClass} rounded-2xl p-4 shadow-sm transition-all flex flex-col justify-between gap-3">
-                                        <div>
+                                        <div onclick="toggleStudentClassDetails('${cardSlotId}')" class="cursor-pointer select-none group">
                                             <div class="flex justify-between items-start gap-2 mb-1">
-                                                <h5 class="font-black text-slate-900 text-base">${sNombre}</h5>
-                                                <span class="text-[10px] font-black px-2.5 py-1 rounded-full border ${badgeColor}">${badgeText}</span>
+                                                <div class="flex items-center gap-1.5">
+                                                    <h5 class="font-black text-slate-900 text-base group-hover:text-[#FC8712] transition-colors">${sNombre}</h5>
+                                                    <span id="chevron_${cardSlotId}" class="material-symbols-outlined text-slate-400 group-hover:text-[#FC8712] transition-transform duration-200 text-[20px]">expand_more</span>
+                                                </div>
+                                                ${badgeHtml}
                                             </div>
-                                            <p class="text-xs font-bold text-slate-600 flex items-center gap-2">
+                                            <p class="text-xs font-bold text-slate-600 flex items-center gap-2 flex-wrap">
                                                 <span class="text-[#FC8712] flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">schedule</span> ${horaDef5} hs (${duracionFmt})</span>
                                                 <span class="flex items-center gap-1 text-slate-500"><span class="material-symbols-outlined text-[15px]">person</span> ${prof}</span>
                                             </p>
+
+                                            <!-- Acordeón Desplegable con Información Detallada -->
+                                            <div id="details_${cardSlotId}" class="hidden mt-3 pt-3 border-t border-slate-100/90 text-xs space-y-2 bg-slate-50/80 p-3 rounded-xl cursor-default" onclick="event.stopPropagation()">
+                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
+                                                    <div class="bg-white p-2 rounded-lg border border-slate-200/70">
+                                                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Servicio</span>
+                                                        <span class="font-bold text-slate-800">${sNombre}</span>
+                                                    </div>
+                                                    <div class="bg-white p-2 rounded-lg border border-slate-200/70">
+                                                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Fecha y Hora</span>
+                                                        <span class="font-bold text-slate-800">${dayFormattedFull} · ${horaDef5} hs</span>
+                                                    </div>
+                                                    <div class="bg-white p-2 rounded-lg border border-slate-200/70">
+                                                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Profesor / Instructor</span>
+                                                        <span class="font-bold text-slate-800">${prof}</span>
+                                                    </div>
+                                                    <div class="bg-white p-2 rounded-lg border border-slate-200/70">
+                                                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Disponibilidad</span>
+                                                        <span class="font-bold ${cuposLibres > 0 ? 'text-emerald-700' : 'text-red-600'}">${cuposLibres} libres / ${cupoMax} cupos</span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="bg-white p-2.5 rounded-lg border border-slate-200/70">
+                                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
+                                                        <span class="material-symbols-outlined text-[14px] text-[#FC8712]">group</span>
+                                                        Personas que ya reservaron (${alumnosInscriptos.length}):
+                                                    </span>
+                                                    ${alumnosInscriptos.length > 0 
+                                                        ? `<div class="flex flex-wrap gap-1.5">${alumnosInscriptos.map(al => `<span class="bg-orange-50/80 border border-orange-200/80 text-slate-800 px-2 py-0.5 rounded-md text-[11px] font-bold flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-[#FC8712]">person</span>${al}</span>`).join('')}</div>`
+                                                        : `<span class="text-slate-400 italic text-[11px]">Aún no hay alumnos inscriptos en este horario.</span>`
+                                                    }
+                                                </div>
+                                            </div>
                                         </div>
                                         ${buttonHtml}
                                     </div>
@@ -1999,9 +2054,6 @@
                                         <span class="material-symbols-outlined text-[#FC8712]">calendar_today</span>
                                         <span>${dayFormattedFull}</span>
                                     </h4>
-                                    <span class="bg-orange-50 text-[#FC8712] text-[10px] font-black uppercase px-2.5 py-1 rounded-full border border-orange-200">
-                                        ${countClassesForDay} ${countClassesForDay === 1 ? 'clase disponible' : 'clases disponibles'}
-                                    </span>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
