@@ -285,7 +285,8 @@ if ($method === 'GET') {
                 'success' => true, 
                 'available' => false, 
                 'status' => 'taken', 
-                'message' => 'En uso por "' . ($otherBiz['nombre_fantasia'] ?? 'otro negocio') . '"'
+                'id_empresa' => $otherBiz['id'],
+                'message' => 'En uso por empresa ID #' . $otherBiz['id']
             ]);
         } else {
             echo json_encode([
