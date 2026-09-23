@@ -119,9 +119,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Escuchar cambios en vivo de Hora Apertura y Hora Cierre para sincronizar los tramos
+    // Escuchar cambios en vivo de Hora Apertura, Hora Cierre e Inicio/Fin de Descanso para sincronizar los tramos
     const inpApertura = document.getElementById('configHoraApertura');
     const inpCierre = document.getElementById('configHoraCierre');
+    const inpDescansoInicio = document.getElementById('configHoraDescansoInicio');
+    const inpDescansoFin = document.getElementById('configHoraDescansoFin');
+
     if (inpApertura) {
         inpApertura.addEventListener('change', () => window.handleGeneralHoursChange());
         inpApertura.addEventListener('input', () => window.handleGeneralHoursChange());
@@ -129,6 +132,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inpCierre) {
         inpCierre.addEventListener('change', () => window.handleGeneralHoursChange());
         inpCierre.addEventListener('input', () => window.handleGeneralHoursChange());
+    }
+    if (inpDescansoInicio) {
+        inpDescansoInicio.addEventListener('change', () => window.handleGeneralHoursChange());
+        inpDescansoInicio.addEventListener('input', () => window.handleGeneralHoursChange());
+    }
+    if (inpDescansoFin) {
+        inpDescansoFin.addEventListener('change', () => window.handleGeneralHoursChange());
+        inpDescansoFin.addEventListener('input', () => window.handleGeneralHoursChange());
     }
 
     // Manejar el envío del formulario de configuración del calendario
@@ -227,10 +238,29 @@ window.applyCalendarConfigToForm = function(data) {
         if (selectPrimerDia) selectPrimerDia.value = String(data.primer_dia_semana);
     }
 
-    if (data.hora_apertura) form.querySelector('#configHoraApertura').value = data.hora_apertura;
-    if (data.hora_cierre) form.querySelector('#configHoraCierre').value = data.hora_cierre;
-    if (data.hora_descanso_inicio !== undefined) form.querySelector('#configHoraDescansoInicio').value = data.hora_descanso_inicio || '';
-    if (data.hora_descanso_fin !== undefined) form.querySelector('#configHoraDescansoFin').value = data.hora_descanso_fin || '';
+    const sharedHours = (typeof window.computeSharedHoursFromHorarios === 'function')
+        ? window.computeSharedHoursFromHorarios(data.horarios_detallados_json)
+        : { hasCustom: false, isUniform: false };
+
+    if (sharedHours.hasCustom) {
+        if (sharedHours.isUniform) {
+            if (form.querySelector('#configHoraApertura')) form.querySelector('#configHoraApertura').value = sharedHours.apertura;
+            if (form.querySelector('#configHoraCierre')) form.querySelector('#configHoraCierre').value = sharedHours.cierre;
+            if (form.querySelector('#configHoraDescansoInicio')) form.querySelector('#configHoraDescansoInicio').value = sharedHours.descansoInicio || '';
+            if (form.querySelector('#configHoraDescansoFin')) form.querySelector('#configHoraDescansoFin').value = sharedHours.descansoFin || '';
+        } else {
+            // Si los días activos tienen horarios distintos, se descarta/limpia el horario general
+            if (form.querySelector('#configHoraApertura')) form.querySelector('#configHoraApertura').value = '';
+            if (form.querySelector('#configHoraCierre')) form.querySelector('#configHoraCierre').value = '';
+            if (form.querySelector('#configHoraDescansoInicio')) form.querySelector('#configHoraDescansoInicio').value = '';
+            if (form.querySelector('#configHoraDescansoFin')) form.querySelector('#configHoraDescansoFin').value = '';
+        }
+    } else {
+        if (data.hora_apertura && form.querySelector('#configHoraApertura')) form.querySelector('#configHoraApertura').value = data.hora_apertura;
+        if (data.hora_cierre && form.querySelector('#configHoraCierre')) form.querySelector('#configHoraCierre').value = data.hora_cierre;
+        if (data.hora_descanso_inicio !== undefined && form.querySelector('#configHoraDescansoInicio')) form.querySelector('#configHoraDescansoInicio').value = data.hora_descanso_inicio || '';
+        if (data.hora_descanso_fin !== undefined && form.querySelector('#configHoraDescansoFin')) form.querySelector('#configHoraDescansoFin').value = data.hora_descanso_fin || '';
+    }
 
     if (data.dias_trabajo !== undefined) {
         const diasArr = (typeof data.dias_trabajo === 'string') ? data.dias_trabajo.split(',') : (data.dias_trabajo || []);
@@ -674,11 +704,121 @@ window.removeTramoHorario = function(dayKey, idx) {
     }
 };
 
-window.handleGeneralHoursChange = function() {
-    const newApertura = document.getElementById('configHoraApertura')?.value;
-    const newCierre = document.getElementById('configHoraCierre')?.value;
+window.computeSharedHoursFromHorarios = function(dataJsonOrObj) {
+    if (!dataJsonOrObj) return { hasCustom: false, isUniform: false, apertura: '', cierre: '', descansoInicio: '', descansoFin: '' };
+    let data = dataJsonOrObj;
+    if (typeof data === 'string') {
+        try {
+            data = JSON.parse(dataJsonOrObj);
+        } catch(e) {
+            return { hasCustom: false, isUniform: false, apertura: '', cierre: '', descansoInicio: '', descansoFin: '' };
+        }
+    }
+    if (!data || typeof data !== 'object') return { hasCustom: false, isUniform: false, apertura: '', cierre: '', descansoInicio: '', descansoFin: '' };
 
-    if (!newApertura || !newCierre) return;
+    const keys = Object.keys(data);
+    if (keys.length === 0) return { hasCustom: false, isUniform: false, apertura: '', cierre: '', descansoInicio: '', descansoFin: '' };
+
+    const activeDaysData = [];
+    DIAS_SEMANA_MAP.forEach(dia => {
+        const diaData = data[dia.key];
+        if (diaData && diaData.activo !== false) {
+            activeDaysData.push(diaData);
+        }
+    });
+
+    // Si no hay ningún día activo personalizado
+    if (activeDaysData.length === 0) {
+        return { hasCustom: true, isUniform: false, apertura: '', cierre: '', descansoInicio: '', descansoFin: '' };
+    }
+
+    let sharedApertura = null;
+    let sharedCierre = null;
+    let sharedDescansoInicio = null;
+    let sharedDescansoFin = null;
+    let expectedTramosCount = null;
+    let isUniform = true;
+
+    for (let i = 0; i < activeDaysData.length; i++) {
+        const dia = activeDaysData[i];
+        const tramos = Array.isArray(dia.tramos) ? dia.tramos : [];
+        
+        if (expectedTramosCount === null) {
+            expectedTramosCount = tramos.length;
+            if (expectedTramosCount !== 1 && expectedTramosCount !== 2) {
+                isUniform = false;
+                break;
+            }
+        } else if (tramos.length !== expectedTramosCount) {
+            isUniform = false;
+            break;
+        }
+
+        if (expectedTramosCount === 1) {
+            const t1 = tramos[0];
+            const ap = (t1.inicio || '').trim();
+            const ci = (t1.fin || '').trim();
+            if (!ap || !ci) { isUniform = false; break; }
+            if (sharedApertura === null && sharedCierre === null) {
+                sharedApertura = ap;
+                sharedCierre = ci;
+                sharedDescansoInicio = '';
+                sharedDescansoFin = '';
+            } else if (sharedApertura !== ap || sharedCierre !== ci) {
+                isUniform = false;
+                break;
+            }
+        } else if (expectedTramosCount === 2) {
+            const t1 = tramos[0];
+            const t2 = tramos[1];
+            const ap = (t1.inicio || '').trim();
+            const dInicio = (t1.fin || '').trim();
+            const dFin = (t2.inicio || '').trim();
+            const ci = (t2.fin || '').trim();
+
+            if (!ap || !dInicio || !dFin || !ci) { isUniform = false; break; }
+            if (sharedApertura === null) {
+                sharedApertura = ap;
+                sharedDescansoInicio = dInicio;
+                sharedDescansoFin = dFin;
+                sharedCierre = ci;
+            } else if (sharedApertura !== ap || sharedDescansoInicio !== dInicio || sharedDescansoFin !== dFin || sharedCierre !== ci) {
+                isUniform = false;
+                break;
+            }
+        }
+    }
+
+    if (isUniform && sharedApertura && sharedCierre) {
+        return {
+            hasCustom: true,
+            isUniform: true,
+            apertura: sharedApertura,
+            cierre: sharedCierre,
+            descansoInicio: sharedDescansoInicio || '',
+            descansoFin: sharedDescansoFin || ''
+        };
+    }
+
+    return { hasCustom: true, isUniform: false, apertura: '', cierre: '', descansoInicio: '', descansoFin: '' };
+};
+
+window.handleGeneralHoursChange = function() {
+    const inpAp = document.getElementById('configHoraApertura');
+    const inpCi = document.getElementById('configHoraCierre');
+    const inpDi = document.getElementById('configHoraDescansoInicio');
+    const inpDf = document.getElementById('configHoraDescansoFin');
+
+    let newApertura = inpAp?.value || '';
+    let newCierre = inpCi?.value || '';
+    let newDescansoInicio = inpDi?.value || '';
+    let newDescansoFin = inpDf?.value || '';
+
+    // Si todos los inputs están vacíos, no propagamos cambios
+    if (!newApertura && !newCierre && !newDescansoInicio && !newDescansoFin) return;
+
+    if (!newApertura) newApertura = '09:00';
+    if (!newCierre) newCierre = '18:00';
 
     const rawVal = document.getElementById('horariosDetalladosJsonInput')?.value || '{}';
     try {
@@ -689,18 +829,38 @@ window.handleGeneralHoursChange = function() {
         currentHorariosDetallados = {};
     }
 
+    const hasDescansoCompleto = Boolean(newDescansoInicio && newDescansoFin);
+    const isDescansoValido = hasDescansoCompleto && 
+        (newApertura < newDescansoInicio) && 
+        (newDescansoInicio < newDescansoFin) && 
+        (newDescansoFin < newCierre);
+
+    const isDescansoCompletamenteVacio = (!newDescansoInicio && !newDescansoFin);
+
     const keys = Object.keys(currentHorariosDetallados);
     if (keys.length > 0) {
         DIAS_SEMANA_MAP.forEach(dia => {
             const diaData = currentHorariosDetallados[dia.key];
-            if (diaData && diaData.activo !== false && Array.isArray(diaData.tramos) && diaData.tramos.length > 0) {
-                if (diaData.tramos.length === 1) {
-                    diaData.tramos[0].inicio = newApertura;
-                    diaData.tramos[0].fin = newCierre;
+            if (diaData && diaData.activo !== false) {
+                if (hasDescansoCompleto && isDescansoValido) {
+                    diaData.tramos = [
+                        { inicio: newApertura, fin: newDescansoInicio },
+                        { inicio: newDescansoFin, fin: newCierre }
+                    ];
+                } else if (isDescansoCompletamenteVacio) {
+                    diaData.tramos = [
+                        { inicio: newApertura, fin: newCierre }
+                    ];
                 } else {
-                    diaData.tramos[0].inicio = newApertura;
-                    const lastIdx = diaData.tramos.length - 1;
-                    diaData.tramos[lastIdx].fin = newCierre;
+                    if (!Array.isArray(diaData.tramos) || diaData.tramos.length === 0) {
+                        diaData.tramos = [{ inicio: newApertura, fin: newCierre }];
+                    } else if (diaData.tramos.length === 1) {
+                        if (newApertura) diaData.tramos[0].inicio = newApertura;
+                        if (newCierre) diaData.tramos[0].fin = newCierre;
+                    } else if (diaData.tramos.length === 2 && !hasDescansoCompleto) {
+                        if (newApertura) diaData.tramos[0].inicio = newApertura;
+                        if (newCierre) diaData.tramos[1].fin = newCierre;
+                    }
                 }
             }
         });
@@ -710,12 +870,12 @@ window.handleGeneralHoursChange = function() {
         if (hiddenInp) hiddenInp.value = jsonStr;
 
         if (typeof window.renderHorariosDetalladosResumen === 'function') {
-            window.renderHorariosDetalladosResumen();
+            window.renderHorariosDetalladosResumen(true);
         }
     }
 };
 
-window.renderHorariosDetalladosResumen = function() {
+window.renderHorariosDetalladosResumen = function(skipSyncInputs = false) {
     const hiddenInp = document.getElementById('horariosDetalladosJsonInput');
     const container = document.getElementById('horariosDetalladosResumenContainer');
     if (!hiddenInp || !container) return;
@@ -805,6 +965,29 @@ window.renderHorariosDetalladosResumen = function() {
             cb.checked = activeDaysArr.includes(cb.value);
         });
     }
+
+    // Generalización automática de horarios en inputs de Hora Apertura, Cierre y Descanso
+    if (!skipSyncInputs) {
+        const sharedHours = window.computeSharedHoursFromHorarios(data);
+        const inpApertura = document.getElementById('configHoraApertura');
+        const inpCierre = document.getElementById('configHoraCierre');
+        const inpDescansoInicio = document.getElementById('configHoraDescansoInicio');
+        const inpDescansoFin = document.getElementById('configHoraDescansoFin');
+
+        if (sharedHours.hasCustom) {
+            if (sharedHours.isUniform) {
+                if (inpApertura) inpApertura.value = sharedHours.apertura;
+                if (inpCierre) inpCierre.value = sharedHours.cierre;
+                if (inpDescansoInicio) inpDescansoInicio.value = sharedHours.descansoInicio || '';
+                if (inpDescansoFin) inpDescansoFin.value = sharedHours.descansoFin || '';
+            } else {
+                if (inpApertura) inpApertura.value = '';
+                if (inpCierre) inpCierre.value = '';
+                if (inpDescansoInicio) inpDescansoInicio.value = '';
+                if (inpDescansoFin) inpDescansoFin.value = '';
+            }
+        }
+    }
 };
 
 window.saveHorariosDetalladosModal = function() {
@@ -817,7 +1000,7 @@ window.saveHorariosDetalladosModal = function() {
     if (hiddenInp) hiddenInp.value = jsonStr;
 
     if (typeof window.renderHorariosDetalladosResumen === 'function') {
-        window.renderHorariosDetalladosResumen();
+        window.renderHorariosDetalladosResumen(false);
     }
 
     if (typeof showToast === 'function') showToast('Horarios personalizados validados y listos para guardar.', 'success');
