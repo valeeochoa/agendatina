@@ -53,6 +53,9 @@ En todas las vistas HTML de la plataforma (`index.html`, `login.html`, `registro
   2. **Búsqueda multinivel en `backend/dotenv.php`**: Buscar `.env` en `dirname(__DIR__)` (`pruebas/`), `backend/`, `dirname(dirname(__DIR__))` (`public_html/`) y `DOCUMENT_ROOT`.
   3. **Limpieza de sesión demo**: Limpiar activamente `unset($_SESSION['is_demo'])` cuando se accede al portal de alumnos (`cliente_auth.php`, `alumno.html`) o a cualquier negocio real.
 
+## Actualización Automática de Fecha en Términos y Condiciones (REGLA MEMORIZADA)
+- **REGLA EXPLICITA DEL USUARIO**: Cada vez que se realice cualquier modificación, ajuste o añadido en `terminos.html`, **es obligatorio actualizar automáticamente la fecha de "Última actualización: [Día] de [Mes] de [Año]"** en el subtítulo del encabezado del documento con la fecha en la que se ejecuta el cambio.
+
 
 
 

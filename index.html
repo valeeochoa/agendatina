@@ -67,54 +67,100 @@
             animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* Auras de Colores Animadas para Comparativa (Efecto Lava) */
-        @keyframes auraFloat1 {
-            0% { transform: translate(0px, 0px) scale(1) rotate(0deg); }
-            50% { transform: translate(70px, -45px) scale(1.2) rotate(45deg); }
-            100% { transform: translate(-40px, 60px) scale(0.9) rotate(-30deg); }
+        /* Animación Efecto Lava Agendatina para Sección Comparativa a Ancho Completo */
+        .lava-container-comparativa {
+            position: absolute;
+            top: -20%;
+            left: -20%;
+            right: -20%;
+            bottom: -20%;
+            width: 140%;
+            height: 140%;
+            overflow: hidden;
+            z-index: 1;
+            pointer-events: none;
+            filter: blur(80px);
+            opacity: 0.85;
         }
-        @keyframes auraFloat2 {
-            0% { transform: translate(0px, 0px) scale(1.1) rotate(0deg); }
-            50% { transform: translate(-60px, 50px) scale(0.9) rotate(-45deg); }
-            100% { transform: translate(50px, -35px) scale(1.15) rotate(30deg); }
-        }
-        @keyframes auraFloat3 {
-            0% { transform: translate(0px, 0px) scale(0.95); }
-            50% { transform: translate(50px, 40px) scale(1.15); }
-            100% { transform: translate(-50px, -50px) scale(1); }
-        }
-        .comparativa-aura {
+
+        .lava-container-comparativa .lava-blob {
             position: absolute;
             border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.65;
             mix-blend-mode: multiply;
-            will-change: transform;
-            pointer-events: none;
+            will-change: transform, border-radius;
         }
-        .comparativa-aura-1 {
-            top: -15%;
-            left: -10%;
-            width: 440px;
-            height: 440px;
-            background: radial-gradient(circle, #D11149 0%, #ff4d79 70%, transparent 100%);
-            animation: auraFloat1 18s ease-in-out infinite alternate;
+
+        .lava-container-comparativa .lava-1 {
+            top: 10%;
+            left: 10%;
+            width: 540px;
+            height: 540px;
+            background: radial-gradient(circle, #D11149 0%, #ff4d79 100%);
+            animation: lavaMove1 22s ease-in-out infinite alternate;
         }
-        .comparativa-aura-2 {
-            bottom: -15%;
-            right: -10%;
+
+        .lava-container-comparativa .lava-2 {
+            bottom: 10%;
+            right: 10%;
+            width: 580px;
+            height: 580px;
+            background: radial-gradient(circle, #FC8712 0%, #ffaa43 100%);
+            animation: lavaMove2 26s ease-in-out infinite alternate;
+        }
+
+        .lava-container-comparativa .lava-3 {
+            top: 35%;
+            left: 35%;
             width: 480px;
             height: 480px;
-            background: radial-gradient(circle, #FC8712 0%, #ffaa43 70%, transparent 100%);
-            animation: auraFloat2 22s ease-in-out infinite alternate;
+            background: radial-gradient(circle, #e6005c 0%, #FC8712 100%);
+            animation: lavaMove3 19s ease-in-out infinite alternate;
         }
-        .comparativa-aura-3 {
-            top: 30%;
-            left: 35%;
-            width: 380px;
-            height: 380px;
-            background: radial-gradient(circle, #e6005c 0%, #FC8712 80%, transparent 100%);
-            animation: auraFloat3 16s ease-in-out infinite alternate;
+
+        .lava-container-comparativa .lava-4 {
+            bottom: 20%;
+            left: 5%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, #ff5e36 0%, #D11149 100%);
+            animation: lavaMove4 24s ease-in-out infinite alternate;
+        }
+
+        .lava-container-comparativa .lava-5 {
+            top: 15%;
+            right: 15%;
+            width: 460px;
+            height: 460px;
+            background: radial-gradient(circle, #ff922b 0%, #d11149 100%);
+            animation: lavaMove5 21s ease-in-out infinite alternate;
+        }
+
+        @keyframes lavaMove1 {
+            0% { transform: translate(0px, 0px) scale(1) rotate(0deg); border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%; }
+            33% { transform: translate(140px, -90px) scale(1.25) rotate(110deg); border-radius: 70% 30% 46% 54% / 30% 60% 40% 70%; }
+            66% { transform: translate(-100px, 120px) scale(0.9) rotate(230deg); border-radius: 38% 62% 63% 37% / 60% 35% 65% 40%; }
+            100% { transform: translate(60px, 80px) scale(1.1) rotate(360deg); border-radius: 55% 45% 30% 70% / 50% 60% 40% 50%; }
+        }
+        @keyframes lavaMove2 {
+            0% { transform: translate(0px, 0px) scale(1) rotate(0deg); border-radius: 60% 40% 30% 70% / 50% 30% 70% 50%; }
+            33% { transform: translate(-130px, 110px) scale(1.2) rotate(-130deg); border-radius: 40% 60% 70% 30% / 60% 40% 60% 40%; }
+            66% { transform: translate(120px, -80px) scale(0.85) rotate(-250deg); border-radius: 70% 30% 40% 60% / 35% 65% 35% 65%; }
+            100% { transform: translate(-70px, -90px) scale(1.15) rotate(-360deg); border-radius: 45% 55% 60% 40% / 50% 45% 55% 50%; }
+        }
+        @keyframes lavaMove3 {
+            0% { transform: translate(0px, 0px) scale(0.9) rotate(0deg); border-radius: 50% 50% 60% 40% / 40% 60% 40% 60%; }
+            50% { transform: translate(-150px, -130px) scale(1.3) rotate(180deg); border-radius: 35% 65% 30% 70% / 65% 35% 65% 35%; }
+            100% { transform: translate(110px, 100px) scale(0.95) rotate(360deg); border-radius: 65% 35% 55% 45% / 45% 55% 45% 55%; }
+        }
+        @keyframes lavaMove4 {
+            0% { transform: translate(0px, 0px) scale(1) rotate(0deg); border-radius: 70% 30% 50% 50% / 30% 50% 50% 70%; }
+            50% { transform: translate(130px, -110px) scale(1.25) rotate(-160deg); border-radius: 40% 60% 35% 65% / 65% 35% 65% 35%; }
+            100% { transform: translate(-90px, 120px) scale(0.9) rotate(-320deg); border-radius: 55% 45% 60% 40% / 40% 60% 40% 60%; }
+        }
+        @keyframes lavaMove5 {
+            0% { transform: translate(0px, 0px) scale(1.1) rotate(0deg); border-radius: 40% 60% 55% 45% / 55% 40% 60% 45%; }
+            50% { transform: translate(-120px, 100px) scale(0.85) rotate(140deg); border-radius: 60% 40% 40% 60% / 45% 60% 40% 55%; }
+            100% { transform: translate(100px, -90px) scale(1.2) rotate(280deg); border-radius: 45% 55% 65% 35% / 50% 45% 55% 50%; }
         }
     </style>
 </head>
@@ -789,183 +835,190 @@
                 Sin contratos ni ataduras. Podés cambiar o cancelar tu plan cuando quieras.
             </p>
 
-            <!-- CUADRO COMPARATIVO DE PLANES -->
-            <div id="tabla-comparativa" class="mt-24 max-w-5xl mx-auto reveal-on-scroll scroll-mt-24 font-sans relative">
-                <!-- Auras animadas flotantes de fondo -->
-                <div class="absolute -inset-10 md:-inset-16 rounded-[3rem] overflow-hidden pointer-events-none -z-10">
-                    <div class="comparativa-aura comparativa-aura-1"></div>
-                    <div class="comparativa-aura comparativa-aura-2"></div>
-                    <div class="comparativa-aura comparativa-aura-3"></div>
-                </div>
+        </div>
+    </section>
 
-                <div class="text-center mb-10 relative z-10">
-                    <span class="text-[#FC8712] font-extrabold tracking-widest uppercase text-xs mb-2 inline-block bg-orange-100/90 border border-orange-300/80 px-4 py-1.5 rounded-full shadow-xs backdrop-blur-md">Comparativa de Planes</span>
-                    <h3 class="text-3xl md:text-4xl font-extrabold text-slate-900 font-display mt-2">Comparativa de funciones por plan</h3>
-                    <p class="text-slate-600 text-sm md:text-base mt-2 max-w-2xl mx-auto">Revisá en detalle las herramientas incluidas en cada plan para tu negocio.</p>
-                </div>
-                
-                <div class="bg-white/85 backdrop-blur-xl rounded-3xl border border-white/80 shadow-2xl overflow-hidden relative z-10">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse font-sans text-xs sm:text-sm">
-                            <thead>
-                                <tr class="bg-slate-50/80 border-b border-slate-200/80 backdrop-blur-sm">
-                                    <th class="p-4 md:p-5 font-extrabold text-slate-800 text-sm md:text-base w-2/5">
-                                        Funcionalidades
-                                    </th>
-                                    <th class="p-4 text-center w-1/5">
-                                        <div class="font-extrabold text-slate-800 text-sm md:text-base">Plan Simple</div>
-                                        <span class="text-[11px] text-slate-500 font-medium">Básico</span>
-                                    </th>
-                                    <th class="p-4 text-center w-1/5 bg-rose-50/50 border-x border-rose-100">
-                                        <div class="font-extrabold text-primary text-sm md:text-base">Plan Profesional</div>
-                                        <span class="inline-block bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5">★ Más Elegido</span>
-                                    </th>
-                                    <th class="p-4 text-center w-1/5 bg-orange-50/40">
-                                        <div class="font-extrabold text-secondary text-sm md:text-base">Plan Premium</div>
-                                        <span class="inline-block bg-orange-100 text-secondary text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5">Completo</span>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100 text-slate-700">
-                                <tr class="hover:bg-slate-50/70 transition-colors">
-                                    <td class="p-4 font-semibold text-slate-800">Calendario de reservas online 24/7</td>
-                                    <td class="p-4 text-center">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                    <td class="p-4 text-center bg-rose-50/20 border-x border-rose-100">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                    <td class="p-4 text-center bg-orange-50/10">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-slate-50/70 transition-colors">
-                                    <td class="p-4 font-semibold text-slate-800">Notificaciones automáticas por Email</td>
-                                    <td class="p-4 text-center">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                    <td class="p-4 text-center bg-rose-50/20 border-x border-rose-100">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                    <td class="p-4 text-center bg-orange-50/10">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-slate-50/70 transition-colors">
-                                    <td class="p-4 font-semibold text-slate-800">Bloqueo de feriados y horarios de descanso</td>
-                                    <td class="p-4 text-center">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                    <td class="p-4 text-center bg-rose-50/20 border-x border-rose-100">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                    <td class="p-4 text-center bg-orange-50/10">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-slate-50/70 transition-colors">
-                                    <td class="p-4 font-semibold text-slate-800">Página Web propia del negocio (`mi-web`)</td>
-                                    <td class="p-4 text-center text-slate-300 font-bold text-base">—</td>
-                                    <td class="p-4 text-center bg-rose-50/20 border-x border-rose-100">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                    <td class="p-4 text-center bg-orange-50/10">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-slate-50/70 transition-colors">
-                                    <td class="p-4 font-semibold text-slate-800">Agenda Virtual con filtros y estados de turnos</td>
-                                    <td class="p-4 text-center text-slate-300 font-bold text-base">—</td>
-                                    <td class="p-4 text-center bg-rose-50/20 border-x border-rose-100">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                    <td class="p-4 text-center bg-orange-50/10">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-slate-50/70 transition-colors">
-                                    <td class="p-4 font-semibold text-slate-800">Panel de Métricas y Estadísticas de demanda</td>
-                                    <td class="p-4 text-center">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                    <td class="p-4 text-center bg-rose-50/20 border-x border-rose-100">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                    <td class="p-4 text-center bg-orange-50/10">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-slate-50/70 transition-colors">
-                                    <td class="p-4 font-semibold text-slate-800">Personalización de colores de marca</td>
-                                    <td class="p-4 text-center font-bold text-slate-600 text-xs">2 Colores Base</td>
-                                    <td class="p-4 text-center font-bold text-primary text-xs bg-rose-50/20 border-x border-rose-100">3 Colores (+1 extra)</td>
-                                    <td class="p-4 text-center font-extrabold text-secondary text-xs bg-orange-50/10">5 Colores (+3 extras)</td>
-                                </tr>
-                                <tr class="hover:bg-slate-50/70 transition-colors">
-                                    <td class="p-4 font-semibold text-slate-800">Roles y permisos de profesionales</td>
-                                    <td class="p-4 text-center text-slate-400 text-xs font-medium">Estándar</td>
-                                    <td class="p-4 text-center bg-rose-50/20 border-x border-rose-100 text-xs font-bold text-primary">✓ Permisos Básicos</td>
-                                    <td class="p-4 text-center bg-orange-50/10 text-xs font-extrabold text-secondary">✓ Roles Avanzados</td>
-                                </tr>
-                                <tr class="hover:bg-slate-50/70 transition-colors">
-                                    <td class="p-4 font-semibold text-slate-800">Módulo de Clases por Cupos</td>
-                                    <td class="p-4 text-center text-slate-300 font-bold text-base">—</td>
-                                    <td class="p-4 text-center text-slate-300 font-bold text-base bg-rose-50/20 border-x border-rose-100">—</td>
-                                    <td class="p-4 text-center bg-orange-50/10">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-slate-50/70 transition-colors">
-                                    <td class="p-4 font-semibold text-slate-800">Portal de Alumnos (`mi-cuenta`)</td>
-                                    <td class="p-4 text-center text-slate-300 font-bold text-base">—</td>
-                                    <td class="p-4 text-center text-slate-300 font-bold text-base bg-rose-50/20 border-x border-rose-100">—</td>
-                                    <td class="p-4 text-center bg-orange-50/10">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-slate-50/70 transition-colors">
-                                    <td class="p-4 font-semibold text-slate-800">Control de pases, créditos y asistencias</td>
-                                    <td class="p-4 text-center text-slate-300 font-bold text-base">—</td>
-                                    <td class="p-4 text-center text-slate-300 font-bold text-base bg-rose-50/20 border-x border-rose-100">—</td>
-                                    <td class="p-4 text-center bg-orange-50/10">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-slate-50/70 transition-colors">
-                                    <td class="p-4 font-semibold text-slate-800">Clientes y alumnos ilimitados</td>
-                                    <td class="p-4 text-center text-slate-300 font-bold text-base">—</td>
-                                    <td class="p-4 text-center bg-rose-50/20 border-x border-rose-100">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                    <td class="p-4 text-center bg-orange-50/10">
-                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
-                                    </td>
-                                </tr>
-                                <tr class="bg-slate-50 border-t border-slate-200">
-                                    <td class="p-4 font-bold text-slate-700">Comenzar con este plan</td>
-                                    <td class="p-3 text-center">
-                                        <button onclick="selectPlan('Plan Simple', 'basic')" class="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs transition-all shadow-xs">
-                                            Elegir Simple
-                                        </button>
-                                    </td>
-                                    <td class="p-3 text-center bg-rose-50/40 border-x border-rose-100">
-                                        <button onclick="selectPlan('Plan Profesional', 'inter')" class="w-full py-2 px-3 rounded-xl signature-glow text-white font-bold text-xs transition-all shadow-md">
-                                            Elegir Profesional
-                                        </button>
-                                    </td>
-                                    <td class="p-3 text-center bg-orange-50/30">
-                                        <button onclick="selectPlan('Plan Premium', 'prem')" class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-[#FC8712] to-amber-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs transition-all shadow-md">
-                                            Elegir Premium
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+    <!-- SECCIÓN CUADRO COMPARATIVO CON EFECTO LAVA DE FONDO COMPLETO -->
+    <section id="tabla-comparativa" class="relative w-full py-28 bg-[#fff1eb] overflow-hidden scroll-mt-20">
+        <!-- Lava Container a ancho completo como en login -->
+        <div class="lava-container-comparativa">
+            <div class="lava-blob lava-1"></div>
+            <div class="lava-blob lava-2"></div>
+            <div class="lava-blob lava-3"></div>
+            <div class="lava-blob lava-4"></div>
+            <div class="lava-blob lava-5"></div>
+        </div>
+
+        <!-- Suaves transiciones degradadas arriba y abajo -->
+        <div class="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#fdfafb] to-transparent pointer-events-none z-10"></div>
+        <div class="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-amber-50/30 to-transparent pointer-events-none z-10"></div>
+
+        <div class="max-w-5xl mx-auto px-6 relative z-20 reveal-on-scroll font-sans">
+            <div class="text-center mb-12">
+                <span class="text-[#FC8712] font-extrabold tracking-widest uppercase text-xs mb-3 inline-block bg-white/80 border border-orange-200/80 px-4 py-1.5 rounded-full shadow-xs backdrop-blur-md">Comparativa de Planes</span>
+                <h3 class="text-3xl md:text-4xl font-extrabold text-slate-900 font-display mt-2">Comparativa de funciones por plan</h3>
+                <p class="text-slate-600 text-sm md:text-base mt-2 max-w-2xl mx-auto">Revisá en detalle las herramientas incluidas en cada plan para tu negocio.</p>
+            </div>
+            
+            <div class="bg-white/90 backdrop-blur-2xl rounded-3xl border border-white/80 shadow-2xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse font-sans text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-slate-50/80 border-b border-slate-200/80 backdrop-blur-sm">
+                                <th class="p-4 md:p-5 font-extrabold text-slate-800 text-sm md:text-base w-2/5">
+                                    Funcionalidades
+                                </th>
+                                <th class="p-4 text-center w-1/5">
+                                    <div class="font-extrabold text-slate-800 text-sm md:text-base">Plan Simple</div>
+                                    <span class="text-[11px] text-slate-500 font-medium">Básico</span>
+                                </th>
+                                <th class="p-4 text-center w-1/5 bg-rose-50/50 border-x border-rose-100">
+                                    <div class="font-extrabold text-primary text-sm md:text-base">Plan Profesional</div>
+                                    <span class="inline-block bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5">★ Más Elegido</span>
+                                </th>
+                                <th class="p-4 text-center w-1/5 bg-orange-50/40">
+                                    <div class="font-extrabold text-secondary text-sm md:text-base">Plan Premium</div>
+                                    <span class="inline-block bg-orange-100 text-secondary text-[10px] font-bold px-2 py-0.5 rounded-full mt-0.5">Completo</span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-700">
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                <td class="p-4 font-semibold text-slate-800">Calendario de reservas online 24/7</td>
+                                <td class="p-4 text-center">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                                <td class="p-4 text-center bg-rose-50/20 border-x border-rose-100">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                                <td class="p-4 text-center bg-orange-50/10">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                <td class="p-4 font-semibold text-slate-800">Notificaciones automáticas por Email</td>
+                                <td class="p-4 text-center">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                                <td class="p-4 text-center bg-rose-50/20 border-x border-rose-100">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                                <td class="p-4 text-center bg-orange-50/10">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                <td class="p-4 font-semibold text-slate-800">Bloqueo de feriados y horarios de descanso</td>
+                                <td class="p-4 text-center">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                                <td class="p-4 text-center bg-rose-50/20 border-x border-rose-100">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                                <td class="p-4 text-center bg-orange-50/10">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                <td class="p-4 font-semibold text-slate-800">Página Web propia del negocio (`mi-web`)</td>
+                                <td class="p-4 text-center text-slate-300 font-bold text-base">—</td>
+                                <td class="p-4 text-center bg-rose-50/20 border-x border-rose-100">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                                <td class="p-4 text-center bg-orange-50/10">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                <td class="p-4 font-semibold text-slate-800">Agenda Virtual con filtros y estados de turnos</td>
+                                <td class="p-4 text-center text-slate-300 font-bold text-base">—</td>
+                                <td class="p-4 text-center bg-rose-50/20 border-x border-rose-100">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                                <td class="p-4 text-center bg-orange-50/10">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                <td class="p-4 font-semibold text-slate-800">Panel de Métricas y Estadísticas de demanda</td>
+                                <td class="p-4 text-center">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                                <td class="p-4 text-center bg-rose-50/20 border-x border-rose-100">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                                <td class="p-4 text-center bg-orange-50/10">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                <td class="p-4 font-semibold text-slate-800">Personalización de colores de marca</td>
+                                <td class="p-4 text-center font-bold text-slate-600 text-xs">2 Colores Base</td>
+                                <td class="p-4 text-center font-bold text-primary text-xs bg-rose-50/20 border-x border-rose-100">3 Colores (+1 extra)</td>
+                                <td class="p-4 text-center font-extrabold text-secondary text-xs bg-orange-50/10">5 Colores (+3 extras)</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                <td class="p-4 font-semibold text-slate-800">Roles y permisos de profesionales</td>
+                                <td class="p-4 text-center text-slate-400 text-xs font-medium">Estándar</td>
+                                <td class="p-4 text-center bg-rose-50/20 border-x border-rose-100 text-xs font-bold text-primary">✓ Permisos Básicos</td>
+                                <td class="p-4 text-center bg-orange-50/10 text-xs font-extrabold text-secondary">✓ Roles Avanzados</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                <td class="p-4 font-semibold text-slate-800">Módulo de Clases por Cupos</td>
+                                <td class="p-4 text-center text-slate-300 font-bold text-base">—</td>
+                                <td class="p-4 text-center text-slate-300 font-bold text-base bg-rose-50/20 border-x border-rose-100">—</td>
+                                <td class="p-4 text-center bg-orange-50/10">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                <td class="p-4 font-semibold text-slate-800">Portal de Alumnos (`mi-cuenta`)</td>
+                                <td class="p-4 text-center text-slate-300 font-bold text-base">—</td>
+                                <td class="p-4 text-center text-slate-300 font-bold text-base bg-rose-50/20 border-x border-rose-100">—</td>
+                                <td class="p-4 text-center bg-orange-50/10">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                <td class="p-4 font-semibold text-slate-800">Control de pases, créditos y asistencias</td>
+                                <td class="p-4 text-center text-slate-300 font-bold text-base">—</td>
+                                <td class="p-4 text-center text-slate-300 font-bold text-base bg-rose-50/20 border-x border-rose-100">—</td>
+                                <td class="p-4 text-center bg-orange-50/10">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                <td class="p-4 font-semibold text-slate-800">Clientes y alumnos ilimitados</td>
+                                <td class="p-4 text-center text-slate-300 font-bold text-base">—</td>
+                                <td class="p-4 text-center bg-rose-50/20 border-x border-rose-100">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                                <td class="p-4 text-center bg-orange-50/10">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-100 text-emerald-600"><span class="material-symbols-outlined text-sm font-bold">check</span></span>
+                                </td>
+                            </tr>
+                            <tr class="bg-slate-50 border-t border-slate-200">
+                                <td class="p-4 font-bold text-slate-700">Comenzar con este plan</td>
+                                <td class="p-3 text-center">
+                                    <button onclick="selectPlan('Plan Simple', 'basic')" class="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs transition-all shadow-xs">
+                                        Elegir Simple
+                                    </button>
+                                </td>
+                                <td class="p-3 text-center bg-rose-50/40 border-x border-rose-100">
+                                    <button onclick="selectPlan('Plan Profesional', 'inter')" class="w-full py-2 px-3 rounded-xl signature-glow text-white font-bold text-xs transition-all shadow-md">
+                                        Elegir Profesional
+                                    </button>
+                                </td>
+                                <td class="p-3 text-center bg-orange-50/30">
+                                    <button onclick="selectPlan('Plan Premium', 'prem')" class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-[#FC8712] to-amber-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs transition-all shadow-md">
+                                        Elegir Premium
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <!-- Extras -->
-
         </div>
     </section>
     <!-- Formulario de Contacto -->

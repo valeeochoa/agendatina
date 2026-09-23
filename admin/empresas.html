@@ -706,9 +706,27 @@
             if (isHidden) {
                 const btn = event.currentTarget;
                 const rect = btn.getBoundingClientRect();
-                menu.style.top = `${rect.bottom + window.scrollY + 4}px`;
-                menu.style.left = `${Math.max(10, rect.right - 208 + window.scrollX)}px`;
+                
                 menu.classList.remove('hidden');
+                const menuHeight = menu.offsetHeight || 160;
+                const menuWidth = menu.offsetWidth || 208;
+                
+                const spaceBelow = window.innerHeight - rect.bottom;
+                const spaceAbove = rect.top;
+                
+                // Si abajo no hay espacio suficiente (menos de la altura del menú) y arriba hay más lugar, abrir hacia arriba
+                if (spaceBelow < (menuHeight + 12) && spaceAbove > spaceBelow) {
+                    menu.style.top = `${Math.max(10, rect.top - menuHeight - 6)}px`;
+                } else {
+                    menu.style.top = `${rect.bottom + 6}px`;
+                }
+                
+                let leftPos = rect.right - menuWidth;
+                if (leftPos < 10) leftPos = 10;
+                if (leftPos + menuWidth > window.innerWidth - 10) {
+                    leftPos = window.innerWidth - menuWidth - 10;
+                }
+                menu.style.left = `${leftPos}px`;
             }
         }
 
