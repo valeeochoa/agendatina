@@ -398,20 +398,48 @@ window.updateModoReservasVisibility = function(planName) {
     }
 };
 
+window.closeSwitchModoReservaModal = function() {
+    const modal = document.getElementById('modalConfirmSwitchModoReserva');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.confirmSwitchModoReservaLibre = function() {
+    window.closeSwitchModoReservaModal();
+    window.applyModoReservaUI('libre');
+    if (typeof showToast === 'function') {
+        showToast('Modalidad cambiada a Reserva Libre (Público General). Recuerda presionar "Guardar Configuración".', 'info');
+    }
+};
+
 window.setModoReserva = function(val, isUserAction = false) {
     const plan = (window.currentBusinessPlan || window.businessWebConfig?.plan || '').toLowerCase();
     const isPremium = plan.includes('premium') || plan.includes('completo');
+
+    // Si el usuario intenta pasar de 'cupos_alumnos' a 'libre', mostrar modal de advertencia
+    const currentVal = document.getElementById('selectModoReservas')?.value;
+    if (isUserAction && val === 'libre' && currentVal === 'cupos_alumnos') {
+        const modal = document.getElementById('modalConfirmSwitchModoReserva');
+        if (modal) {
+            modal.classList.remove('hidden');
+            return;
+        }
+    }
 
     if (val === 'cupos_alumnos' && !isPremium) {
         if (isUserAction) {
             if (typeof showToast === 'function') {
                 showToast('🔒 El Módulo de Cupos y Portal de Alumnos es exclusivo del Plan Premium. Podés mejorar tu plan en la sección Perfil.', 'warning');
-            } else {
-                alert('🔒 El Módulo de Cupos y Portal de Alumnos es exclusivo del Plan Premium. Podés mejorar tu plan en cualquier momento desde la sección Perfil.');
             }
         }
         val = 'libre';
     }
+
+    window.applyModoReservaUI(val);
+};
+
+window.applyModoReservaUI = function(val) {
+    const plan = (window.currentBusinessPlan || window.businessWebConfig?.plan || '').toLowerCase();
+    const isPremium = plan.includes('premium') || plan.includes('completo');
 
     const hiddenInput = document.getElementById('selectModoReservas');
     if (hiddenInput) hiddenInput.value = val;

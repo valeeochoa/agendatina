@@ -525,6 +525,36 @@
                     <span class="material-symbols-outlined text-[18px]">check_circle</span> Guardar Horarios Personalizados
                 </button>
             </div>
+    <!-- Modal de Advertencia al cambiar a Modo Reserva Libre (Desactivar Cupos/Alumnos) -->
+    <div id="modalConfirmSwitchModoReserva" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl relative border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            <div class="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4 shadow-inner">
+                <span class="material-symbols-outlined text-3xl">warning</span>
+            </div>
+            <h3 class="text-xl sm:text-2xl font-black text-slate-900 text-center font-display mb-2">¿Cambiar a Modalidad Reserva Libre?</h3>
+            <p class="text-xs sm:text-sm text-slate-600 text-center leading-relaxed mb-4">
+                Estás a punto de cambiar la modalidad de tu negocio a <strong>Reserva Libre (Público General)</strong>.
+            </p>
+            
+            <div class="p-4 bg-amber-50/90 border border-amber-200 rounded-2xl text-xs text-amber-950 space-y-2 mb-6">
+                <p class="font-extrabold flex items-center gap-1.5 text-amber-900">
+                    <span class="material-symbols-outlined text-[18px] text-amber-600">info</span> Importante sobre tus Alumnos y Cupos:
+                </p>
+                <ul class="list-disc list-inside space-y-1 text-amber-900/90 leading-relaxed font-medium">
+                    <li>El <strong>Portal del Alumno</strong> y la reserva mediante pases/créditos quedarán <strong>suspendidos</strong>.</li>
+                    <li>Tu página web pública volverá a mostrar el calendario tradicional de turnos individuales (1 a 1).</li>
+                    <li>Los cupos e inscripciones grupales quedarán inactivos, y pasado un tiempo de inactividad podrían desactivarse permanentemente.</li>
+                </ul>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="closeSwitchModoReservaModal()" class="flex-1 py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs sm:text-sm transition-all cursor-pointer">
+                    Cancelar
+                </button>
+                <button type="button" onclick="confirmSwitchModoReservaLibre()" class="flex-1 py-3 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs sm:text-sm shadow-md shadow-amber-600/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-base">swap_horiz</span> Confirmar Cambio
+                </button>
+            </div>
         </div>
     </div>
 
