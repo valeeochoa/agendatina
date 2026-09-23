@@ -492,7 +492,7 @@ function showNotFound() {
     document.getElementById('notFoundState').classList.remove('hidden');
 }
 
-function getSubscriptionDetails(c, trialDays = 15) {
+function getSubscriptionDetails(c, trialDays = 30) {
     const estado = c.estado_pago || 'prueba';
     const hoy = new Date();
     const today = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
@@ -520,7 +520,8 @@ function getSubscriptionDetails(c, trialDays = 15) {
     }
 
     if (estado === 'prueba' || estado === 'trial') {
-        const trialLimit = (c && c.dias_prueba !== undefined && c.dias_prueba !== null && parseInt(c.dias_prueba) > 0) ? parseInt(c.dias_prueba) : (parseInt(trialDays) || 15);
+        const rawTrial = (c && c.dias_prueba !== undefined && c.dias_prueba !== null && parseInt(c.dias_prueba) > 0) ? parseInt(c.dias_prueba) : null;
+        const trialLimit = (rawTrial && rawTrial !== 15) ? rawTrial : (parseInt(trialDays) || 30);
         const trialEndDate = new Date(fechaAltaZero);
         trialEndDate.setDate(trialEndDate.getDate() + trialLimit);
 

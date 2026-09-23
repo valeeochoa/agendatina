@@ -3013,6 +3013,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 let discPct = parseInt(pData.descuento_porcentaje);
                 if (isNaN(discPct) || discPct < 0) discPct = 0;
+                if (pData.descuento_hasta) {
+                    const exp = new Date(String(pData.descuento_hasta).replace(/-/g, '/'));
+                    if (!isNaN(exp.getTime()) && exp < new Date()) {
+                        discPct = 0;
+                    }
+                }
 
                 const factor = (100 - discPct) / 100;
 
@@ -4384,6 +4390,12 @@ window.getEffectivePrice = function(planName, profCount = 1) {
 
     let discPct = parseInt(prices.descuento_porcentaje);
     if (isNaN(discPct) || discPct < 0) discPct = 0;
+    if (prices.descuento_hasta) {
+        const exp = new Date(String(prices.descuento_hasta).replace(/-/g, '/'));
+        if (!isNaN(exp.getTime()) && exp < new Date()) {
+            discPct = 0;
+        }
+    }
 
     // Precio para 1 profesional con descuento base
     const finalOne = Math.round(rawBase * (100 - discPct) / 100);

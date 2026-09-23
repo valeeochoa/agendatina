@@ -196,7 +196,7 @@
 
     <script>
         let clientsData = [];
-        let globalTrialDays = 15;
+        let globalTrialDays = 30;
 
         document.addEventListener('DOMContentLoaded', () => {
             fetch('../backend/admin_auth.php')
@@ -243,7 +243,8 @@
             }
 
             if (estado === 'prueba' || estado === 'trial') {
-                const trialLimit = (c && c.dias_prueba !== undefined && c.dias_prueba !== null && parseInt(c.dias_prueba) > 0) ? parseInt(c.dias_prueba) : (parseInt(trialDays) || 15);
+                const rawTrial = (c && c.dias_prueba !== undefined && c.dias_prueba !== null && parseInt(c.dias_prueba) > 0) ? parseInt(c.dias_prueba) : null;
+                const trialLimit = (rawTrial && rawTrial !== 15) ? rawTrial : (parseInt(trialDays) || 30);
                 const trialEndDate = new Date(fechaAltaZero);
                 trialEndDate.setDate(trialEndDate.getDate() + trialLimit);
 
@@ -371,7 +372,7 @@
                     if (data.success && list) {
                         clientsData = list;
                         if (data.config_global && data.config_global.dias_prueba_defecto) {
-                            globalTrialDays = parseInt(data.config_global.dias_prueba_defecto) || 15;
+                            globalTrialDays = parseInt(data.config_global.dias_prueba_defecto) || 30;
                         }
                         
                         const total = clientsData.length;

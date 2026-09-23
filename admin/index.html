@@ -885,7 +885,7 @@ function updateChartTab(tab) {
     filterClients(); 
 }
 
-function getSubscriptionDetails(c, trialDays = 15) {
+function getSubscriptionDetails(c, trialDays = 30) {
     const estado = c.estado_pago || 'prueba';
     const hoy = new Date();
     const today = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
@@ -921,7 +921,8 @@ function getSubscriptionDetails(c, trialDays = 15) {
     }
 
     if (estado === 'prueba' || estado === 'trial') {
-        const trialLimit = (c && c.dias_prueba !== undefined && c.dias_prueba !== null && parseInt(c.dias_prueba) > 0) ? parseInt(c.dias_prueba) : (parseInt(trialDays) || 15);
+        const rawTrial = (c && c.dias_prueba !== undefined && c.dias_prueba !== null && parseInt(c.dias_prueba) > 0) ? parseInt(c.dias_prueba) : null;
+        const trialLimit = (rawTrial && rawTrial !== 15) ? rawTrial : (parseInt(trialDays) || 30);
         const trialEndDate = new Date(fechaAltaZero);
         trialEndDate.setDate(trialEndDate.getDate() + trialLimit);
 
@@ -1046,7 +1047,7 @@ function updateChart(data) {
     let chartData = [];
     let bgColors = [];
 
-    const currentTrialDays = (window.globalConfig && window.globalConfig.dias_prueba_defecto) ? parseInt(window.globalConfig.dias_prueba_defecto) : 15;
+    const currentTrialDays = (window.globalConfig && window.globalConfig.dias_prueba_defecto) ? parseInt(window.globalConfig.dias_prueba_defecto) : 30;
 
     if (currentChartTab === 'estados') {
         let countActivo = 0, countPrueba = 0, countRevision = 0, countVencido = 0;
@@ -1134,7 +1135,7 @@ function renderTable(dataToRender) {
     }
 
     let rowsHtml = '';
-    const currentTrialDays = (window.globalConfig && window.globalConfig.dias_prueba_defecto) ? parseInt(window.globalConfig.dias_prueba_defecto) : 15;
+    const currentTrialDays = (window.globalConfig && window.globalConfig.dias_prueba_defecto) ? parseInt(window.globalConfig.dias_prueba_defecto) : 30;
     
     if (dataToRender.length > 0) {
         dataToRender.forEach((client) => {
@@ -1175,7 +1176,7 @@ function renderTable(dataToRender) {
                     <button onclick="openNoteModal(${originalIndex})" class="p-2 rounded-lg transition-colors border ml-1 ${noteBtnColor}" title="Notas Internas"><span class="material-symbols-outlined text-[20px]">${noteIcon}</span></button>
                 `;
                 
-                if (client.estado_pago === 'pendiente_revision' || client.estado_pago === 'suspendido' || client.estado_pago === 'vencido' || diasRestantes < 0) {
+                if (client.estado_pago === 'pendiente_revision' || client.estado_pago === 'suspendido' || client.estado_pago === 'vencido' || subInfo.isOverdue) {
                      actionsHtml += `<button onclick="registrarPago(${client.id})" class="text-slate-400 hover:text-green-600 bg-slate-50 hover:bg-green-50 p-2 rounded-lg transition-colors border border-slate-100 ml-1" title="Registrar Pago (Desbloquear)"><span class="material-symbols-outlined text-[20px]">check_circle</span></button>`;
                 }
                 if (client.estado_pago === 'activo') {
@@ -1219,6 +1220,67 @@ function renderTable(dataToRender) {
     }
 }
 
+function updatePricesCardSummary(config) {
+    if (!config) return;
+    const descRaw = parseInt(config.descuento_porcentaje);
+    let desc = isNaN(descRaw) ? 0 : descRaw;
+
+    // Si el descuento tiene fecha de vencimiento y ya pasó, mostrar 0% OFF
+    if (config.descuento_hasta) {
+        try {
+            const exp = new Date(String(config.descuento_hasta).replace(/-/g, '/')).getTime();
+            if (exp && exp < Date.now()) {
+                desc = 0;
+            }
+        } catch(e) {}
+    }
+
+    const factor = (100 - desc) / 100;
+    
+    const pSimpleBase = Math.round(parseFloat(config.precio_basico) || 8889);
+    const pSimpleFinal = Math.round(pSimpleBase * factor);
+    
+    const pProBase = Math.round(parseFloat(config.precio_intermedio) || 11111);
+    const pProFinal = Math.round(pProBase * factor);
+    
+    const pPremBase = Math.round(parseFloat(config.precio_premium) || 16667);
+    const pPremFinal = Math.round(pPremBase * factor);
+
+    const elSimpleOld = document.getElementById('cardPriceSimpleOld');
+    const elSimpleBox = document.getElementById('cardPriceSimpleBox');
+    const elProOld = document.getElementById('cardPriceProOld');
+    const elProBox = document.getElementById('cardPriceProBox');
+    const elPremOld = document.getElementById('cardPricePremOld');
+    const elPremBox = document.getElementById('cardPricePremBox');
+
+    const elSimpleBadge = document.getElementById('cardDiscountSimpleBadge');
+    const elProBadge = document.getElementById('cardDiscountProBadge');
+    const elPremBadge = document.getElementById('cardDiscountPremBadge');
+
+    if (elSimpleOld) elSimpleOld.textContent = '$' + pSimpleBase.toLocaleString('es-AR');
+    if (elSimpleBox) elSimpleBox.textContent = '$' + pSimpleFinal.toLocaleString('es-AR');
+    if (elProOld) elProOld.textContent = '$' + pProBase.toLocaleString('es-AR');
+    if (elProBox) elProBox.textContent = '$' + pProFinal.toLocaleString('es-AR');
+    if (elPremOld) elPremOld.textContent = '$' + pPremBase.toLocaleString('es-AR');
+    if (elPremBox) elPremBox.textContent = '$' + pPremFinal.toLocaleString('es-AR');
+
+    if (desc > 0) {
+        if (elSimpleBadge) { elSimpleBadge.textContent = desc + '% OFF'; elSimpleBadge.classList.remove('hidden'); }
+        if (elProBadge) { elProBadge.textContent = 'Popular • ' + desc + '% OFF'; elProBadge.classList.remove('hidden'); }
+        if (elPremBadge) { elPremBadge.textContent = desc + '% OFF'; elPremBadge.classList.remove('hidden'); }
+        if (elSimpleOld) elSimpleOld.classList.remove('hidden');
+        if (elProOld) elProOld.classList.remove('hidden');
+        if (elPremOld) elPremOld.classList.remove('hidden');
+    } else {
+        if (elSimpleBadge) elSimpleBadge.classList.add('hidden');
+        if (elProBadge) elProBadge.textContent = 'Popular';
+        if (elPremBadge) elPremBadge.classList.add('hidden');
+        if (elSimpleOld) elSimpleOld.classList.add('hidden');
+        if (elProOld) elProOld.classList.add('hidden');
+        if (elPremOld) elPremOld.classList.add('hidden');
+    }
+}
+
 function fetchClients() {
     fetch('../backend/admin_api.php')
     .then(res => res.json())
@@ -1228,12 +1290,6 @@ function fetchClients() {
                 window.discountCodesList = data.codigos_descuento;
                 const badgeCount = document.getElementById('discountCodesCountBadge');
                 if (badgeCount) badgeCount.textContent = data.codigos_descuento.length;
-            }
-            if (data.data.length > 0) {
-                clientsData = data.data;
-                filterClients(); // Preservar filtros y búsquedas activas
-            } else {
-                document.getElementById('clientsList').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500 font-medium">Aún no hay clientes registrados en el sistema.</td></tr>';
             }
             if (data.config_global) {
                 window.globalConfig = data.config_global;
@@ -1256,53 +1312,16 @@ function fetchClients() {
                 }
 
                 // Actualizar tarjeta de precios resumen en vivo
-                const descRaw = parseInt(data.config_global.descuento_porcentaje);
-                const desc = isNaN(descRaw) ? 0 : descRaw;
-                const factor = (100 - desc) / 100;
-                
-                const pSimpleBase = Math.round(data.config_global.precio_basico || 8889);
-                const pSimpleFinal = Math.round(pSimpleBase * factor);
-                
-                const pProBase = Math.round(data.config_global.precio_intermedio || 11111);
-                const pProFinal = Math.round(pProBase * factor);
-                
-                const pPremBase = Math.round(data.config_global.precio_premium || 16667);
-                const pPremFinal = Math.round(pPremBase * factor);
-
-                const elSimpleOld = document.getElementById('cardPriceSimpleOld');
-                const elSimpleBox = document.getElementById('cardPriceSimpleBox');
-                const elProOld = document.getElementById('cardPriceProOld');
-                const elProBox = document.getElementById('cardPriceProBox');
-                const elPremOld = document.getElementById('cardPricePremOld');
-                const elPremBox = document.getElementById('cardPricePremBox');
-
-                const elSimpleBadge = document.getElementById('cardDiscountSimpleBadge');
-                const elProBadge = document.getElementById('cardDiscountProBadge');
-                const elPremBadge = document.getElementById('cardDiscountPremBadge');
-
-                if (elSimpleOld) elSimpleOld.textContent = '$' + pSimpleBase.toLocaleString('es-AR');
-                if (elSimpleBox) elSimpleBox.textContent = '$' + pSimpleFinal.toLocaleString('es-AR');
-                if (elProOld) elProOld.textContent = '$' + pProBase.toLocaleString('es-AR');
-                if (elProBox) elProBox.textContent = '$' + pProFinal.toLocaleString('es-AR');
-                if (elPremOld) elPremOld.textContent = '$' + pPremBase.toLocaleString('es-AR');
-                if (elPremBox) elPremBox.textContent = '$' + pPremFinal.toLocaleString('es-AR');
-
-                if (desc > 0) {
-                    if (elSimpleBadge) { elSimpleBadge.textContent = desc + '% OFF'; elSimpleBadge.classList.remove('hidden'); }
-                    if (elProBadge) { elProBadge.textContent = 'Popular • ' + desc + '% OFF'; elProBadge.classList.remove('hidden'); }
-                    if (elPremBadge) { elPremBadge.textContent = desc + '% OFF'; elPremBadge.classList.remove('hidden'); }
-                    if (elSimpleOld) elSimpleOld.classList.remove('hidden');
-                    if (elProOld) elProOld.classList.remove('hidden');
-                    if (elPremOld) elPremOld.classList.remove('hidden');
-                } else {
-                    if (elSimpleBadge) elSimpleBadge.classList.add('hidden');
-                    if (elProBadge) elProBadge.textContent = 'Popular';
-                    if (elPremBadge) elPremBadge.classList.add('hidden');
-                    if (elSimpleOld) elSimpleOld.classList.add('hidden');
-                    if (elProOld) elProOld.classList.add('hidden');
-                    if (elPremOld) elPremOld.classList.add('hidden');
-                }
+                updatePricesCardSummary(data.config_global);
             }
+
+            if (data.data && data.data.length > 0) {
+                clientsData = data.data;
+                filterClients(); // Preservar filtros y búsquedas activas
+            } else {
+                document.getElementById('clientsList').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500 font-medium">Aún no hay clientes registrados en el sistema.</td></tr>';
+            }
+
             // Renderizar los reportes de error que devuelve la API
             renderAdminReports(data.notificaciones || []);
             // Renderizar las notas recientes
@@ -1314,6 +1333,7 @@ function fetchClients() {
         }
     })
     .catch(err => {
+        console.error('Error in fetchClients:', err);
         document.getElementById('clientsList').innerHTML = '<tr><td colspan="6" class="p-8 text-center text-red-500 font-medium flex items-center justify-center gap-2"><span class="material-symbols-outlined">warning</span> Error al cargar los datos desde la BD.</td></tr>';
         renderAdminReports([]);
         renderAdminNotes([]);
@@ -1324,24 +1344,33 @@ function renderAdminNotes(notes) {
     const listEl = document.getElementById('adminNotesList');
     if (!listEl) return;
     if (!notes || notes.length === 0) {
-        listEl.innerHTML = '<div class="p-6 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-100"><p class="font-medium text-sm">No hay notas recientes registradas.</p></div>';
+        listEl.innerHTML = '<div class="p-6 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200"><span class="material-symbols-outlined text-4xl mb-2 text-slate-300">sticky_note_2</span><p class="font-medium text-sm">No hay notas internas recientes.</p></div>';
         return;
     }
     listEl.innerHTML = notes.slice(0, 5).map(n => {
         const dateRaw = n.fecha || n.fecha_actualizacion || n.created_at || '';
-        const f = dateRaw ? new Date(String(dateRaw).replace(/-/g, '/')).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'Reciente';
+        let f = 'Reciente';
+        if (dateRaw) {
+            try {
+                const dateObj = new Date(String(dateRaw).replace(/-/g, '/'));
+                if (!isNaN(dateObj.getTime())) {
+                    f = dateObj.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) + ' hs';
+                }
+            } catch(e) {}
+        }
         const notaText = n.nota || n.nota_interna || '';
         const bizName = n.nombre_fantasia || n.nombre_negocio || (n.id_negocio ? 'Empresa #' + n.id_negocio : 'General');
+        const idNegocio = n.id_negocio || 0;
         return `
-            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 hover:border-slate-300 transition-all flex justify-between items-start gap-3">
-                <div class="space-y-1">
+            <div class="p-4 bg-yellow-50/70 border-l-4 border-yellow-400 rounded-2xl border border-yellow-200/80 hover:border-yellow-300 transition-all flex justify-between items-start gap-3 cursor-pointer hover:bg-yellow-100/50" onclick="openNoteModalById(${idNegocio})">
+                <div class="space-y-1 w-full min-w-0">
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span class="px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-extrabold text-[10px] uppercase border border-emerald-200">🏢 ${bizName}</span>
-                        <span class="text-[11px] text-slate-400 font-medium">${f} hs</span>
+                        <span class="px-2.5 py-0.5 rounded-md bg-yellow-200/80 text-yellow-800 font-extrabold text-[10px] uppercase border border-yellow-300 truncate max-w-[70%]">🏢 #${idNegocio} - ${bizName}</span>
+                        <span class="text-[11px] text-slate-400 font-medium">${f}</span>
                     </div>
-                    <p class="text-xs text-slate-700 font-medium leading-relaxed">${notaText}</p>
+                    <p class="text-xs text-slate-700 font-medium leading-relaxed italic line-clamp-3 mt-1">"${notaText}"</p>
                 </div>
-                <a href="notas.html" class="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors shrink-0" title="Ver todas las notas">
+                <a href="notas.html" onclick="event.stopPropagation();" class="p-1.5 text-slate-400 hover:text-yellow-700 rounded-lg hover:bg-yellow-200/50 transition-colors shrink-0" title="Ver todas las notas">
                     <span class="material-symbols-outlined text-[18px]">open_in_new</span>
                 </a>
             </div>
@@ -1720,9 +1749,9 @@ document.getElementById('noteForm').addEventListener('submit', function(e) {
 // ==========================================
 function openPricesModal() {
     if (window.globalConfig) {
-        document.getElementById('precioBasico').value = window.globalConfig.precio_basico !== undefined ? window.globalConfig.precio_basico : '';
-        document.getElementById('precioIntermedio').value = window.globalConfig.precio_intermedio !== undefined ? window.globalConfig.precio_intermedio : '';
-        document.getElementById('precioPremium').value = window.globalConfig.precio_premium !== undefined ? window.globalConfig.precio_premium : '';
+        document.getElementById('precioBasico').value = window.globalConfig.precio_basico !== undefined ? window.globalConfig.precio_basico : 8889;
+        document.getElementById('precioIntermedio').value = window.globalConfig.precio_intermedio !== undefined ? window.globalConfig.precio_intermedio : 11111;
+        document.getElementById('precioPremium').value = window.globalConfig.precio_premium !== undefined ? window.globalConfig.precio_premium : 16667;
         document.getElementById('descuentoPorcentaje').value = window.globalConfig.descuento_porcentaje !== undefined ? window.globalConfig.descuento_porcentaje : 0;
         document.getElementById('diasPruebaDefecto').value = window.globalConfig.dias_prueba_defecto !== undefined ? window.globalConfig.dias_prueba_defecto : 30;
         if (window.globalConfig.descuento_hasta) {
@@ -1730,6 +1759,12 @@ function openPricesModal() {
         } else {
             document.getElementById('descuentoHasta').value = '';
         }
+    } else {
+        if (!document.getElementById('precioBasico').value) document.getElementById('precioBasico').value = 8889;
+        if (!document.getElementById('precioIntermedio').value) document.getElementById('precioIntermedio').value = 11111;
+        if (!document.getElementById('precioPremium').value) document.getElementById('precioPremium').value = 16667;
+        if (!document.getElementById('descuentoPorcentaje').value) document.getElementById('descuentoPorcentaje').value = 0;
+        if (!document.getElementById('diasPruebaDefecto').value) document.getElementById('diasPruebaDefecto').value = 30;
     }
     const modal = document.getElementById('pricesModal');
     const content = document.getElementById('pricesModalContent');
@@ -1746,9 +1781,41 @@ document.getElementById('pricesForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const btn = document.getElementById('btnPricesSubmit'); const orig = btn.innerHTML;
     btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span> Guardando...';
-    fetch('../backend/admin_api.php', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ action: 'update_prices', precio_basico: document.getElementById('precioBasico').value, precio_intermedio: document.getElementById('precioIntermedio').value, precio_premium: document.getElementById('precioPremium').value, descuento_porcentaje: document.getElementById('descuentoPorcentaje').value, descuento_hasta: document.getElementById('descuentoHasta').value, dias_prueba_defecto: document.getElementById('diasPruebaDefecto').value }) })
+
+    const pBasico = parseFloat(document.getElementById('precioBasico').value) || 8889;
+    const pInter = parseFloat(document.getElementById('precioIntermedio').value) || 11111;
+    const pPrem = parseFloat(document.getElementById('precioPremium').value) || 16667;
+    const pDesc = parseInt(document.getElementById('descuentoPorcentaje').value) || 0;
+    const pDescHasta = document.getElementById('descuentoHasta').value || null;
+    const pDiasPrueba = parseInt(document.getElementById('diasPruebaDefecto').value) || 30;
+
+    const payload = {
+        action: 'update_prices',
+        precio_basico: pBasico,
+        precio_intermedio: pInter,
+        precio_premium: pPrem,
+        descuento_porcentaje: pDesc,
+        descuento_hasta: pDescHasta,
+        dias_prueba_defecto: pDiasPrueba
+    };
+
+    fetch('../backend/admin_api.php', {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    })
     .then(res => res.json()).then(data => {
         if(data.success) {
+            window.globalConfig = {
+                ...(window.globalConfig || {}),
+                precio_basico: pBasico,
+                precio_intermedio: pInter,
+                precio_premium: pPrem,
+                descuento_porcentaje: pDesc,
+                descuento_hasta: pDescHasta,
+                dias_prueba_defecto: pDiasPrueba
+            };
+            updatePricesCardSummary(window.globalConfig);
             closePricesModal(); 
             fetchClients(); 
             showAdminNotice('¡Precios Actualizados!', 'Los precios oficiales de los planes, descuentos y días de prueba se actualizaron correctamente.', 'prices');
@@ -2636,37 +2703,6 @@ function executeDeleteReport() {
     })
     .catch(() => alert('Error de conexión al eliminar.'))
     .finally(() => { btn.disabled = false; btn.textContent = 'Sí, Eliminar'; });
-}
-
-// ==========================================
-// RENDERIZADO DE NOTAS RECIENTES
-// ==========================================
-function renderAdminNotes(notas) {
-    const listContainer = document.getElementById('adminNotesList');
-    if (!listContainer) return;
-    
-    let notesHtml = '';
-    if (!notas || notas.length === 0) {
-        notesHtml = `<div class="p-6 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-300"><span class="material-symbols-outlined text-4xl mb-2 text-slate-300">note_stack</span><p class="font-medium text-sm">No hay notas internas registradas.</p></div>`;
-    } else {
-        notas.forEach(nota => {
-            const dateObj = new Date(nota.fecha_actualizacion.replace(/-/g, '/')); 
-            const fechaFormat = dateObj.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
-            const horaFormat = dateObj.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-
-            notesHtml += `
-            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 sm:p-5 rounded-xl shadow-sm hover:shadow-md transition-all relative mb-4 w-full cursor-pointer hover:bg-yellow-100/50" onclick="openNoteModalById(${nota.id_negocio})">
-                <div class="flex justify-between items-start gap-3 mb-2">
-                    <span class="text-[11px] font-bold text-yellow-800 bg-yellow-200/60 px-2.5 py-1 rounded-md tracking-wider truncate max-w-[70%]">📍 #${nota.id_negocio} - ${nota.nombre_fantasia}</span>
-                    <span class="text-[11px] sm:text-xs font-semibold text-slate-500 bg-white px-2 py-1 rounded-md border border-yellow-200 whitespace-nowrap">${fechaFormat} - ${horaFormat}</span>
-                </div>
-                <div class="bg-white p-3 rounded-lg border border-yellow-200 text-sm text-slate-700 relative overflow-hidden mt-3">
-                    <p class="relative z-10 italic break-words line-clamp-3">"${nota.nota}"</p>
-                </div>
-            </div>`;
-        });
-    }
-    listContainer.innerHTML = notesHtml;
 }
 
 function openNoteModalById(idNegocio) {

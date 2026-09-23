@@ -60,7 +60,9 @@ try { $pdo->query("SELECT ultimo_pago FROM negocios LIMIT 1"); }
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN ultimo_pago DATETIME DEFAULT NULL"); }
 
 try { $pdo->query("SELECT dias_prueba FROM negocios LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN dias_prueba INT DEFAULT 15"); }
+catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN dias_prueba INT DEFAULT 30"); }
+try { $pdo->exec("ALTER TABLE negocios MODIFY COLUMN dias_prueba INT DEFAULT 30"); } catch(Exception $e) {}
+try { $pdo->exec("UPDATE negocios SET dias_prueba = 30 WHERE (dias_prueba = 15 OR dias_prueba IS NULL OR dias_prueba = 0) AND (ruta NOT LIKE 'demo%')"); } catch(Exception $e) {}
 
 try { $pdo->query("SELECT codigo_descuento FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN codigo_descuento VARCHAR(50) DEFAULT NULL"); }
@@ -350,6 +352,13 @@ if ($method === 'GET') {
         $config_global = $stmtConfig ? $stmtConfig->fetch(PDO::FETCH_ASSOC) : null;
         if (!$config_global) {
             $config_global = ['precio_basico' => 8889, 'precio_intermedio' => 11111, 'precio_premium' => 16667, 'descuento_porcentaje' => 10, 'descuento_hasta' => null, 'dias_prueba_defecto' => 30];
+        } else {
+            if (!empty($config_global['descuento_hasta'])) {
+                $expTime = strtotime($config_global['descuento_hasta']);
+                if ($expTime && $expTime < time()) {
+                    $config_global['descuento_expirado'] = true;
+                }
+            }
         }
         
         // Auto-limpieza: Purga automática de reportes resueltos o eliminados hace más de 30 días

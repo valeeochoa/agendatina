@@ -32,6 +32,14 @@ try {
             'descuento_hasta' => null,
             'dias_prueba_defecto' => 30
         ];
+    } else {
+        if (!empty($precios['descuento_hasta'])) {
+            $expTime = strtotime($precios['descuento_hasta']);
+            if ($expTime && $expTime < time()) {
+                $precios['descuento_porcentaje'] = 0;
+                $precios['descuento_expirado'] = true;
+            }
+        }
     }
     echo json_encode(['success' => true, 'data' => $precios]);
 } catch(Exception $e) {
