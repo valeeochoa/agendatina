@@ -976,6 +976,67 @@ try {
             exit;
         }
 
+        // 1b. Verificar si el alumno ya tiene OTRA clase reservada en este mismo horario
+        $stmtCheckConflict = $pdo->prepare("SELECT id, servicio FROM turnos WHERE id_negocio = :id_negocio AND (LOWER(TRIM(cliente_celular)) = :email OR LOWER(TRIM(cliente_nombre)) = :email) AND fecha = :fecha AND hora LIKE :hora AND estado NOT IN ('cancelado', 'rechazado') LIMIT 1");
+        $stmtCheckConflict->execute([
+            'id_negocio' => $id_negocio,
+            'email' => $email,
+            'fecha' => $fecha,
+            'hora' => substr($hora, 0, 5) . '%'
+        ]);
+        $conflictTurno = $stmtCheckConflict->fetch(PDO::FETCH_ASSOC);
+        if ($conflictTurno) {
+            $prevServ = $conflictTurno['servicio'] ?: 'otra clase';
+            echo json_encode([
+                'success' => false, 
+                'error' => "Ya tenés una clase reservada en este mismo horario ({$prevServ} a las " . substr($hora, 0, 5) . " hs). Para agendarte en esta clase, primero debés cancelar tu reserva anterior en la pestaña Mis Clases."
+            ]);
+            exit;
+        }
+
+        // 1c. Respetar la configuración del negocio si no permite turnos simultáneos
+        $stmtSim = $pdo->prepare("SELECT turnos_simultaneos, modo_reservas FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
+        $stmtSim->execute(['id' => $id_negocio]);
+        $confWeb = $stmtSim->fetch(PDO::FETCH_ASSOC);
+        $permiteSimultaneos = ($confWeb && (($confWeb['turnos_simultaneos'] ?? 'no') === 'si' || ($confWeb['modo_reservas'] ?? '') === 'cupos_alumnos'));
+
+        if (!$permiteSimultaneos) {
+            // Si el negocio no admite simultáneos, solo puede haber 1 turno a esa hora en todo el negocio
+            $stmtCheckOther = $pdo->prepare("SELECT id FROM turnos WHERE id_negocio = :id AND fecha = :fecha AND hora LIKE :hora AND estado IN ('confirmado', 'pendiente', 'bloqueado') LIMIT 1");
+            $stmtCheckOther->execute([
+                'id' => $id_negocio,
+                'fecha' => $fecha,
+                'hora' => substr($hora, 0, 5) . '%'
+            ]);
+            if ($stmtCheckOther->fetch()) {
+                echo json_encode(['success' => false, 'error' => 'Este horario ya se encuentra ocupado por otro turno en este establecimiento.']);
+                exit;
+            }
+        } else {
+            // Si el negocio SÍ permite simultáneos, validar cupo específico de este servicio
+            $stmtCheckCupo = $pdo->prepare("SELECT COUNT(*) FROM turnos WHERE id_negocio = :id AND fecha = :fecha AND hora LIKE :hora AND (id_servicio = :id_s OR servicio = :serv) AND estado IN ('confirmado', 'pendiente', 'bloqueado')");
+            $stmtCheckCupo->execute([
+                'id' => $id_negocio,
+                'fecha' => $fecha,
+                'hora' => substr($hora, 0, 5) . '%',
+                'id_s' => $id_servicio ?: 0,
+                'serv' => $servicio
+            ]);
+            $currentEnrolled = (int)$stmtCheckCupo->fetchColumn();
+
+            $cupoMax = 1;
+            if ($id_servicio > 0) {
+                $stmtSrv = $pdo->prepare("SELECT COALESCE(cupo_maximo, capacidad, 1) FROM servicios WHERE id = :id LIMIT 1");
+                $stmtSrv->execute(['id' => $id_servicio]);
+                $cupoMax = (int)$stmtSrv->fetchColumn() ?: 1;
+            }
+
+            if ($currentEnrolled >= $cupoMax) {
+                echo json_encode(['success' => false, 'error' => 'No quedan cupos disponibles en esta clase para el horario seleccionado.']);
+                exit;
+            }
+        }
+
         // 2. Verificar si el cliente tiene pases disponibles en este negocio (o cuenta de cliente de negocio)
         $stmtClient = $pdo->prepare("SELECT id, nombre_completo, pases_disponibles, pases_totales, id_negocio, id_servicio, servicio, telefono, password FROM clientes_negocio WHERE (id_negocio = :id_negocio OR id_negocio = 0) AND LOWER(TRIM(email)) = :email ORDER BY (id_negocio = :id_negocio_order) DESC, id DESC LIMIT 1");
         $stmtClient->execute([

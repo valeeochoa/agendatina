@@ -30,9 +30,11 @@ try {
     $ocupados = [];
 
    // Obtener configuración web del negocio (horarios, días laborables, etc.)
-    $stmtConf = $pdo->prepare("SELECT hora_apertura, hora_cierre, dias_trabajo, horarios_detallados_json, intervalo_turnos, primer_dia_semana FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");
+    $stmtConf = $pdo->prepare("SELECT hora_apertura, hora_cierre, dias_trabajo, horarios_detallados_json, intervalo_turnos, primer_dia_semana, turnos_simultaneos, modo_reservas FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");
     $stmtConf->execute(['id_negocio' => $id_negocio]);
     $conf = $stmtConf->fetch(PDO::FETCH_ASSOC);
+
+    $permiteSimultaneos = ($conf && (($conf['turnos_simultaneos'] ?? 'no') === 'si' || ($conf['modo_reservas'] ?? '') === 'cupos_alumnos'));
 
     if ($conf) {
         $ocupados['_config'] = [
@@ -41,7 +43,9 @@ try {
             'dias_trabajo' => $conf['dias_trabajo'] ?? '1,2,3,4,5,6',
             'horarios_detallados_json' => $conf['horarios_detallados_json'] ?? '{}',
             'intervalo_turnos' => $conf['intervalo_turnos'] ?? '30',
-            'primer_dia_semana' => (int)($conf['primer_dia_semana'] ?? 1)
+            'primer_dia_semana' => (int)($conf['primer_dia_semana'] ?? 1),
+            'turnos_simultaneos' => $permiteSimultaneos ? 'si' : 'no',
+            'modo_reservas' => $conf['modo_reservas'] ?? 'libre'
         ];
     }
     
@@ -59,7 +63,7 @@ try {
     }
 
     // 2. Turnos Ocupados (Calculando su duración y cupos por servicio)
-    $sqlTurnos = "SELECT t.fecha, t.hora, COALESCE(s.duracion_minutos, 30) as duracion, t.id_servicio, COALESCE(s.cupo_maximo, s.capacidad, 1) as cupo_maximo, t.profesional, t.cliente_nombre 
+    $sqlTurnos = "SELECT t.fecha, t.hora, COALESCE(s.duracion_minutos, 30) as duracion, t.id_servicio, COALESCE(s.cupo_maximo, s.capacidad, 1) as cupo_maximo, t.profesional, t.cliente_nombre, t.servicio 
                   FROM turnos t 
                   LEFT JOIN servicios s ON t.id_servicio = s.id 
                   WHERE t.id_negocio = :id_negocio AND t.estado IN ('pendiente', 'confirmado', 'bloqueado')";
@@ -77,6 +81,7 @@ try {
     $maxCupoPorSlot = [];
     $ocupados['_details'] = [];
     $ocupados['_alumnos'] = [];
+    $ocupados['_by_service'] = [];
 
     // Usar intervalos finos de 15 minutos para cubrir exactamente el tiempo ocupado por la atención
     $sliceStep = 15;
@@ -110,6 +115,7 @@ try {
             'cupo_maximo' => $cupo,
             'profesional' => $prof,
             'id_servicio' => $t['id_servicio'] ?? null,
+            'servicio' => $t['servicio'] ?? null,
             'cliente_nombre' => $cliNom
         ];
 
@@ -132,23 +138,46 @@ try {
             $ocupados['_alumnos'][$keyServSlot][] = $cliNom;
         }
         
-        // Agregar los cortes de tiempo ocupados durante la atención (sin incluir la hora de finalización exacta)
-        for ($subMins = $startMins; $subMins < $endMins; $subMins += $sliceStep) {
-            $curH = str_pad((string)floor($subMins / 60), 2, '0', STR_PAD_LEFT);
-            $curM = str_pad((string)($subMins % 60), 2, '0', STR_PAD_LEFT);
-            $slotHora = "{$curH}:{$curM}";
-            $keySlot = $f . '_' . $slotHora;
-            
-            if ($cupo > 1) {
-                if (!isset($conteoTurnosPorSlot[$keySlot])) $conteoTurnosPorSlot[$keySlot] = 0;
-                $conteoTurnosPorSlot[$keySlot]++;
-                $maxCupoPorSlot[$keySlot] = $cupo;
+        // Agregar los cortes de tiempo ocupados durante la atención
+        if (!$permiteSimultaneos) {
+            // El negocio NO permite simultáneos: admite una sola persona por horario en todo el negocio
+            for ($subMins = $startMins; $subMins < $endMins; $subMins += $sliceStep) {
+                $curH = str_pad((string)floor($subMins / 60), 2, '0', STR_PAD_LEFT);
+                $curM = str_pad((string)($subMins % 60), 2, '0', STR_PAD_LEFT);
+                $slotHora = "{$curH}:{$curM}";
+                $keySlot = $f . '_' . $slotHora;
                 
-                if ($conteoTurnosPorSlot[$keySlot] >= $maxCupoPorSlot[$keySlot]) {
+                if ($cupo > 1) {
+                    if (!isset($conteoTurnosPorSlot[$keySlot])) $conteoTurnosPorSlot[$keySlot] = 0;
+                    $conteoTurnosPorSlot[$keySlot]++;
+                    $maxCupoPorSlot[$keySlot] = $cupo;
+                    
+                    if ($conteoTurnosPorSlot[$keySlot] >= $maxCupoPorSlot[$keySlot]) {
+                        if (!in_array($slotHora, $ocupados[$f])) $ocupados[$f][] = $slotHora;
+                    }
+                } else {
                     if (!in_array($slotHora, $ocupados[$f])) $ocupados[$f][] = $slotHora;
                 }
-            } else {
-                if (!in_array($slotHora, $ocupados[$f])) $ocupados[$f][] = $slotHora;
+            }
+        } else {
+            // El negocio SÍ permite simultáneos: cada servicio tiene su propio calendario y cupos independientes.
+            if (!isset($ocupados['_by_service'][$servId])) $ocupados['_by_service'][$servId] = [];
+            if (!isset($ocupados['_by_service'][$servId][$f])) $ocupados['_by_service'][$servId][$f] = [];
+
+            for ($subMins = $startMins; $subMins < $endMins; $subMins += $sliceStep) {
+                $curH = str_pad((string)floor($subMins / 60), 2, '0', STR_PAD_LEFT);
+                $curM = str_pad((string)($subMins % 60), 2, '0', STR_PAD_LEFT);
+                $slotHora = "{$curH}:{$curM}";
+                $keySlotServ = $f . '_' . $servId . '_' . $slotHora;
+
+                if (!isset($conteoTurnosPorSlot[$keySlotServ])) $conteoTurnosPorSlot[$keySlotServ] = 0;
+                $conteoTurnosPorSlot[$keySlotServ]++;
+
+                if ($conteoTurnosPorSlot[$keySlotServ] >= $cupo) {
+                    if (!in_array($slotHora, $ocupados['_by_service'][$servId][$f])) {
+                        $ocupados['_by_service'][$servId][$f][] = $slotHora;
+                    }
+                }
             }
         }
     }

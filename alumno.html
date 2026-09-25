@@ -625,6 +625,51 @@
         </div>
     </div>
 
+    <!-- Modal Visual de Conflicto de Horario (Ya tenés clase a esta hora) -->
+    <div id="studentClassConflictModalOverlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[99999] flex items-center justify-center p-4 hidden transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full text-center shadow-2xl relative border border-amber-100 transform transition-all">
+            <button type="button" onclick="closeStudentClassConflictModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+
+            <div class="w-16 h-16 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4 border border-amber-200 shadow-xs">
+                <span class="material-symbols-outlined text-4xl">event_busy</span>
+            </div>
+
+            <h3 class="text-xl sm:text-2xl font-black text-slate-900 mb-1">Ya tenés clase a esta hora</h3>
+            <p class="text-xs sm:text-sm text-slate-500 font-medium mb-4">No podés anotarte a dos clases en el mismo horario.</p>
+
+            <div class="bg-amber-50/70 rounded-2xl p-4 border border-amber-200/80 text-left space-y-2 mb-5">
+                <div class="flex items-center justify-between border-b border-amber-200/50 pb-2">
+                    <span class="text-xs text-slate-500 font-medium">Clase ya reservada:</span>
+                    <span id="conflictModalCurrentServ" class="text-xs font-black text-slate-900 truncate max-w-[190px]"></span>
+                </div>
+                <div class="flex items-center justify-between border-b border-amber-200/50 pb-2">
+                    <span class="text-xs text-slate-500 font-medium">Horario:</span>
+                    <span id="conflictModalHora" class="text-xs font-black text-amber-700"></span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-slate-500 font-medium">Querés anotarte en:</span>
+                    <span id="conflictModalTargetServ" class="text-xs font-black text-[#FC8712] truncate max-w-[190px]"></span>
+                </div>
+            </div>
+
+            <p class="text-xs text-slate-600 font-medium mb-5 bg-slate-50 p-3 rounded-xl border border-slate-200/80 text-left leading-relaxed">
+                💡 Para agendarte en esta nueva clase, primero debés ir a <strong>Mis Clases</strong> y <strong>cancelar la clase anterior</strong> para recuperar tu pase y liberar tu horario.
+            </p>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" onclick="closeStudentClassConflictModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-2xl text-xs transition-colors cursor-pointer">
+                    Entendido, volver
+                </button>
+                <button type="button" onclick="goToMisClasesFromConflict()" class="w-full bg-[#FC8712] hover:bg-orange-600 text-white font-extrabold py-3 rounded-2xl text-xs shadow-md shadow-orange-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
+                    <span class="material-symbols-outlined text-[17px]">event_repeat</span>
+                    <span>Ir a Mis Clases</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- TOAST NOTIFICATION CONTAINER -->
     <div id="toastContainer" class="fixed bottom-6 right-6 z-[99999] flex flex-col gap-2 pointer-events-none"></div>
 
@@ -1500,6 +1545,36 @@
             if (overlay) overlay.classList.add('hidden');
         }
 
+        function showStudentClassConflictModal(currentServ, targetServ, hora, fecha) {
+            const elCurr = document.getElementById('conflictModalCurrentServ');
+            const elTarg = document.getElementById('conflictModalTargetServ');
+            const elHora = document.getElementById('conflictModalHora');
+            if (elCurr) elCurr.textContent = currentServ || 'Otra clase';
+            if (elTarg) elTarg.textContent = targetServ || 'Nueva clase';
+            
+            let fechaFmt = fecha;
+            if (fecha && fecha.includes('-')) {
+                const parts = fecha.split('-');
+                if (parts.length === 3) fechaFmt = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            if (elHora) elHora.textContent = `${fechaFmt} a las ${hora} hs`;
+
+            const overlay = document.getElementById('studentClassConflictModalOverlay');
+            if (overlay) overlay.classList.remove('hidden');
+        }
+
+        function closeStudentClassConflictModal() {
+            const overlay = document.getElementById('studentClassConflictModalOverlay');
+            if (overlay) overlay.classList.add('hidden');
+        }
+
+        function goToMisClasesFromConflict() {
+            closeStudentClassConflictModal();
+            if (typeof switchTab === 'function') {
+                switchTab('clases');
+            }
+        }
+
         // CARGAR CALENDARIO CON CUPOS DISPONIBLES EN TIEMPO REAL (DISCRIMINADO POR NEGOCIO)
         let studentWeekOffset = 0;
 
@@ -1873,27 +1948,73 @@
                                 return matchServ;
                             });
 
-                            // 2. Calcular conteo de cupos ocupados de forma exacta para este servicio y horario
+                            // 1b. Verificar si el alumno ya tiene OTRA clase a esta misma fecha y hora (en otro servicio)
+                            const otherEnrolledClass = allStudentClases.find(c => {
+                                if (!c || c.estado === 'cancelado') return false;
+
+                                let cFecha = '';
+                                if (c.fecha) {
+                                    const rawF = String(c.fecha).trim().substring(0, 10);
+                                    if (rawF.includes('-')) {
+                                        const p = rawF.split('-');
+                                        cFecha = p[0].length === 4 ? `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}` : `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+                                    } else if (rawF.includes('/')) {
+                                        const p = rawF.split('/');
+                                        cFecha = p[0].length === 4 ? `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}` : `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+                                    }
+                                }
+                                if (cFecha && cFecha !== cleanFechaSlot) return false;
+
+                                const cHora = String(c.hora || '').trim().substring(0, 5);
+                                if (cHora && cHora !== cleanHoraDef5) return false;
+
+                                const cIdNeg = parseInt(c.id_negocio, 10) || 0;
+                                const targetIdNeg = parseInt(s.id_negocio || currentNegocio.id_negocio, 10) || 0;
+                                const matchNeg = (cIdNeg > 0 && targetIdNeg > 0 && cIdNeg === targetIdNeg) ||
+                                                 (c.negocio_ruta && ruta && c.negocio_ruta === ruta) ||
+                                                 (!cIdNeg || !targetIdNeg);
+                                if (!matchNeg) return false;
+
+                                const cServ = String(c.servicio || '').trim().toLowerCase();
+                                const targetServ = String(sNombre).trim().toLowerCase();
+                                const cIdServ = parseInt(c.id_servicio, 10) || 0;
+                                const targetIdServ = parseInt(sId, 10) || 0;
+
+                                const isSameServ = (cIdServ > 0 && targetIdServ > 0 && cIdServ === targetIdServ) ||
+                                                   (cServ && targetServ && (cServ === targetServ || cServ.includes(targetServ) || targetServ.includes(cServ)));
+
+                                return !isSameServ;
+                            });
+
+                            // 2. Calcular conteo de cupos ocupados respetando si el negocio permite simultáneos o no
+                            const permiteSimultaneos = !!(bizConfig && (bizConfig.turnos_simultaneos === 'si' || bizConfig.modo_reservas === 'cupos_alumnos' || bizConfig.permite_simultaneos === true));
                             const keyServSlot = fechaStr + '_' + sId + '_' + cleanHoraDef5;
                             const keyHoraSlot = fechaStr + '_' + cleanHoraDef5;
                             let ocupadosCount = 0;
-                            if (ocupadosData && ocupadosData['_counts'] && ocupadosData['_counts'][keyServSlot] !== undefined) {
-                                ocupadosCount = parseInt(ocupadosData['_counts'][keyServSlot], 10);
-                            } else if (ocupadosData && ocupadosData['_counts'] && ocupadosData['_counts'][fechaStr + '_0_' + cleanHoraDef5] !== undefined) {
-                                ocupadosCount = parseInt(ocupadosData['_counts'][fechaStr + '_0_' + cleanHoraDef5], 10);
-                            } else if (ocupadosData && ocupadosData['_counts_hora'] && ocupadosData['_counts_hora'][keyHoraSlot] !== undefined) {
-                                ocupadosCount = parseInt(ocupadosData['_counts_hora'][keyHoraSlot], 10);
-                            } else if (ocupadosData && ocupadosData['_details'] && Array.isArray(ocupadosData['_details'][fechaStr])) {
-                                // Conteo exacto por details si no viene _counts
-                                ocupadosCount = ocupadosData['_details'][fechaStr].filter(d => {
-                                    const matchHora = String(d.start).trim().substring(0, 5) === cleanHoraDef5;
-                                    const matchServ = !d.id_servicio || parseInt(d.id_servicio, 10) === parseInt(sId, 10);
-                                    return matchHora && matchServ;
-                                }).length;
-                            } else if (ocupadosData && Array.isArray(ocupadosData[fechaStr])) {
-                                // Solo si cupo es 1 y está en la lista de horas completas
-                                if (ocupadosData[fechaStr].includes(cleanHoraDef5)) {
+
+                            if (permiteSimultaneos) {
+                                // Cada servicio tiene sus propios cupos independientes
+                                if (ocupadosData && ocupadosData['_counts'] && ocupadosData['_counts'][keyServSlot] !== undefined) {
+                                    ocupadosCount = parseInt(ocupadosData['_counts'][keyServSlot], 10);
+                                } else if (ocupadosData && ocupadosData['_counts'] && ocupadosData['_counts'][fechaStr + '_0_' + cleanHoraDef5] !== undefined && servicios.length === 1) {
+                                    ocupadosCount = parseInt(ocupadosData['_counts'][fechaStr + '_0_' + cleanHoraDef5], 10);
+                                } else if (ocupadosData && ocupadosData['_details'] && Array.isArray(ocupadosData['_details'][fechaStr])) {
+                                    ocupadosCount = ocupadosData['_details'][fechaStr].filter(d => {
+                                        const matchHora = String(d.start).trim().substring(0, 5) === cleanHoraDef5;
+                                        const matchServ = (d.id_servicio && parseInt(d.id_servicio, 10) === parseInt(sId, 10)) ||
+                                                          (d.servicio && String(d.servicio).trim().toLowerCase() === String(sNombre).trim().toLowerCase());
+                                        return matchHora && matchServ;
+                                    }).length;
+                                }
+                            } else {
+                                // Turnos se superponen (1 persona a la vez en todo el negocio)
+                                if (ocupadosData && ocupadosData['_counts_hora'] && ocupadosData['_counts_hora'][keyHoraSlot] !== undefined && parseInt(ocupadosData['_counts_hora'][keyHoraSlot], 10) > 0) {
                                     ocupadosCount = cupoMax;
+                                } else if (ocupadosData && Array.isArray(ocupadosData[fechaStr]) && ocupadosData[fechaStr].includes(cleanHoraDef5)) {
+                                    ocupadosCount = cupoMax;
+                                } else if (ocupadosData && ocupadosData['_details'] && Array.isArray(ocupadosData['_details'][fechaStr])) {
+                                    const hasAny = ocupadosData['_details'][fechaStr].some(d => String(d.start).trim().substring(0, 5) === cleanHoraDef5);
+                                    if (hasAny) ocupadosCount = cupoMax;
                                 }
                             }
 
@@ -1902,7 +2023,7 @@
                             // Alumnos inscriptos en este slot
                             const alumnosInscriptos = (ocupadosData && ocupadosData['_alumnos'] && Array.isArray(ocupadosData['_alumnos'][keyServSlot])) 
                                 ? ocupadosData['_alumnos'][keyServSlot] 
-                                : ((ocupadosData && ocupadosData['_alumnos'] && Array.isArray(ocupadosData['_alumnos'][fechaStr + '_0_' + cleanHoraDef5])) 
+                                : ((ocupadosData && ocupadosData['_alumnos'] && Array.isArray(ocupadosData['_alumnos'][fechaStr + '_0_' + cleanHoraDef5]) && servicios.length === 1) 
                                     ? ocupadosData['_alumnos'][fechaStr + '_0_' + cleanHoraDef5] 
                                     : []);
 
@@ -1947,6 +2068,15 @@
                                         COMPLETO (Sin cupos)
                                     </button>
                                 `;
+                            } else if (otherEnrolledClass) {
+                                const safeOtherServ = String(otherEnrolledClass.servicio || 'otra clase').replace(/'/g, "\\'");
+                                const safeSNombre = String(sNombre).replace(/'/g, "\\'");
+                                buttonHtml = `
+                                    <button onclick="event.stopPropagation(); showStudentClassConflictModal('${safeOtherServ}', '${safeSNombre}', '${cleanHoraDef5}', '${fechaStr}')" class="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-extrabold py-3 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
+                                        <span class="material-symbols-outlined text-[18px]">schedule</span>
+                                        <span>Tenés otra clase a esta hora</span>
+                                    </button>
+                                `;
                             } else {
                                 const targetBizId = s.id_negocio || currentNegocio.id_negocio || '';
                                 const safeSNombre = String(sNombre).replace(/'/g, "\\'");
@@ -1966,6 +2096,8 @@
                                 cardClass = 'border-slate-200 bg-slate-50/50 opacity-60';
                             } else if (pasesNegocio <= 0) {
                                 cardClass = 'border-slate-200/90 bg-slate-50/60 opacity-85';
+                            } else if (otherEnrolledClass) {
+                                cardClass = 'border-2 border-amber-300 bg-amber-50/40 shadow-xs';
                             }
 
                             const cardSlotId = `slot_${sId}_${fechaStr.replace(/-/g, '')}_${cleanHoraDef5.replace(':', '')}`;
@@ -2098,6 +2230,31 @@
             const pasesDisp = parseInt(currentNegocio.pases_disponibles) || 0;
             if (pasesDisp <= 0) {
                 return showStudentToast(`No tenés pases disponibles en ${negocioNombre || 'este negocio'} para agendarte.`, 'error');
+            }
+
+            // Validar si el alumno ya tiene otra clase agendada en la misma fecha y hora
+            const cleanHora = String(hora).trim().substring(0, 5);
+            const cleanFecha = String(fecha).trim();
+            const conflictClass = allStudentClases.find(c => {
+                if (!c || c.estado === 'cancelado') return false;
+                let cFecha = '';
+                if (c.fecha) {
+                    const rawF = String(c.fecha).trim().substring(0, 10);
+                    if (rawF.includes('-')) {
+                        const p = rawF.split('-');
+                        cFecha = p[0].length === 4 ? `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}` : `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+                    } else if (rawF.includes('/')) {
+                        const p = rawF.split('/');
+                        cFecha = p[0].length === 4 ? `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}` : `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+                    }
+                }
+                const cHora = String(c.hora || '').trim().substring(0, 5);
+                return cFecha === cleanFecha && cHora === cleanHora;
+            });
+
+            if (conflictClass) {
+                showStudentClassConflictModal(conflictClass.servicio || 'otra clase', servicioNombre, cleanHora, fecha);
+                return;
             }
 
             if (btnElem) {
