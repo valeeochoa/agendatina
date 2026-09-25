@@ -143,12 +143,36 @@ if ($method === 'GET') {
             echo json_encode(['success' => true, 'message' => 'Empresa restaurada exitosamente.']);
 
         } elseif ($action === 'purge_empresa' && $id > 0) {
+            // Obtener usuarios vinculados antes de borrar personal_negocio
+            $stmtUserIds = $pdo->prepare("SELECT DISTINCT id_usuario FROM personal_negocio WHERE id_negocio = ?");
+            $stmtUserIds->execute([$id]);
+            $associatedUserIds = $stmtUserIds->fetchAll(PDO::FETCH_COLUMN) ?: [];
+
             $pdo->prepare("DELETE FROM turnos WHERE id_negocio = ?")->execute([$id]);
             $pdo->prepare("DELETE FROM servicios WHERE id_negocio = ?")->execute([$id]);
             $pdo->prepare("DELETE FROM configuracion_web WHERE id_negocio = ?")->execute([$id]);
             $pdo->prepare("DELETE FROM personal_negocio WHERE id_negocio = ?")->execute([$id]);
+            try { $pdo->prepare("DELETE FROM clientes_negocio WHERE id_negocio = ?")->execute([$id]); } catch(Throwable $eCn) {}
+            try { $pdo->prepare("DELETE FROM comprobantes_pago WHERE id_negocio = ?")->execute([$id]); } catch(Throwable $eCp) {}
+            try { $pdo->prepare("DELETE FROM dias_bloqueados WHERE id_negocio = ?")->execute([$id]); } catch(Throwable $eDb) {}
+            try { $pdo->prepare("DELETE FROM notificaciones WHERE id_negocio = ?")->execute([$id]); } catch(Throwable $eNot) {}
+            try { $pdo->prepare("DELETE FROM notificaciones_admin WHERE id_negocio = ?")->execute([$id]); } catch(Throwable $eNa) {}
             $pdo->prepare("DELETE FROM negocios WHERE id = ?")->execute([$id]);
-            echo json_encode(['success' => true, 'message' => 'Empresa eliminada definitivamente.']);
+
+            // Eliminar usuarios huérfanos que ya no pertenezcan a ningún otro negocio ni sean superadmin
+            foreach ($associatedUserIds as $uId) {
+                if ($uId > 0) {
+                    $stmtCheckOther = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_usuario = ?");
+                    $stmtCheckOther->execute([$uId]);
+                    if ((int)$stmtCheckOther->fetchColumn() === 0) {
+                        try {
+                            $pdo->prepare("DELETE FROM usuarios WHERE id = ? AND (role IS NULL OR role != 'superadmin')")->execute([$uId]);
+                        } catch(Throwable $eDu) {}
+                    }
+                }
+            }
+
+            echo json_encode(['success' => true, 'message' => 'Empresa y cuentas asociadas eliminadas definitivamente.']);
 
         } elseif ($action === 'restore_reporte' && $id > 0) {
             $pdo->prepare("UPDATE reportes_error SET estado = 'pendiente', fecha_eliminado = NULL WHERE id = ?")->execute([$id]);
@@ -177,13 +201,38 @@ if ($method === 'GET') {
         } elseif ($action === 'empty_all_trash') {
             // 1. Eliminar empresas en papelera
             $stmtElim = $pdo->query("SELECT id FROM negocios WHERE estado_pago = 'eliminado' OR fecha_eliminado IS NOT NULL");
-            $ids = $stmtElim->fetchAll(PDO::FETCH_COLUMN);
+            $ids = $stmtElim->fetchAll(PDO::FETCH_COLUMN) ?: [];
+            $allAssociatedUserIds = [];
+
             foreach ($ids as $nId) {
+                try {
+                    $uStmt = $pdo->prepare("SELECT DISTINCT id_usuario FROM personal_negocio WHERE id_negocio = ?");
+                    $uStmt->execute([$nId]);
+                    $allAssociatedUserIds = array_merge($allAssociatedUserIds, $uStmt->fetchAll(PDO::FETCH_COLUMN) ?: []);
+                } catch(Throwable $eGetU) {}
+
                 $pdo->prepare("DELETE FROM turnos WHERE id_negocio = ?")->execute([$nId]);
                 $pdo->prepare("DELETE FROM servicios WHERE id_negocio = ?")->execute([$nId]);
                 $pdo->prepare("DELETE FROM configuracion_web WHERE id_negocio = ?")->execute([$nId]);
                 $pdo->prepare("DELETE FROM personal_negocio WHERE id_negocio = ?")->execute([$nId]);
+                try { $pdo->prepare("DELETE FROM clientes_negocio WHERE id_negocio = ?")->execute([$nId]); } catch(Throwable $eCn) {}
+                try { $pdo->prepare("DELETE FROM comprobantes_pago WHERE id_negocio = ?")->execute([$nId]); } catch(Throwable $eCp) {}
+                try { $pdo->prepare("DELETE FROM dias_bloqueados WHERE id_negocio = ?")->execute([$nId]); } catch(Throwable $eDb) {}
+                try { $pdo->prepare("DELETE FROM notificaciones WHERE id_negocio = ?")->execute([$nId]); } catch(Throwable $eNot) {}
+                try { $pdo->prepare("DELETE FROM notificaciones_admin WHERE id_negocio = ?")->execute([$nId]); } catch(Throwable $eNa) {}
                 $pdo->prepare("DELETE FROM negocios WHERE id = ?")->execute([$nId]);
+            }
+
+            // Eliminar usuarios huérfanos que ya no pertenezcan a ningún negocio
+            $allAssociatedUserIds = array_unique(array_filter($allAssociatedUserIds));
+            foreach ($allAssociatedUserIds as $uId) {
+                $stmtCheckOther = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_usuario = ?");
+                $stmtCheckOther->execute([$uId]);
+                if ((int)$stmtCheckOther->fetchColumn() === 0) {
+                    try {
+                        $pdo->prepare("DELETE FROM usuarios WHERE id = ? AND (role IS NULL OR role != 'superadmin')")->execute([$uId]);
+                    } catch(Throwable $eDu) {}
+                }
             }
 
             // 2. Eliminar reportes en papelera

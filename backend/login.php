@@ -175,7 +175,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
             exit;
         } else {
-            // Un solo negocio o por defecto
+            // Si el usuario no tiene ningún negocio activo asociado (por ejemplo fue eliminado de la base de datos o está en papelera)
+            if (empty($allBiz) && (empty($validUser['id_negocio']) || $validUser['rol_en_local'] === null)) {
+                echo json_encode([
+                    'success' => false, 
+                    'error' => 'Tu cuenta o negocio no se encuentra registrado o fue eliminado del sistema.'
+                ]);
+                exit;
+            }
+
+            // Un solo negocio
             $bizTarget = $allBiz[0] ?? $validUser;
             
             $_SESSION['user_id'] = $validUser['id']; 

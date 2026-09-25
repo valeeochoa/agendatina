@@ -56,11 +56,26 @@ $dias_trabajo = trim($_POST['dias_trabajo'] ?? '1,2,3,4,5,6');
 
 try {
     // 1. Verificar si el email ya existe
-    $stmtCheck = $pdo->prepare("SELECT id FROM usuarios WHERE LOWER(email) = LOWER(:email) LIMIT 1");
+    $stmtCheck = $pdo->prepare("SELECT id, role FROM usuarios WHERE LOWER(TRIM(email)) = LOWER(TRIM(:email)) LIMIT 1");
     $stmtCheck->execute(['email' => $email]);
-    if ($stmtCheck->fetch()) {
-        echo json_encode(['success' => false, 'error' => 'El correo electrónico ya se encuentra registrado. Por el momento, un emprendedor puede registrar únicamente 1 negocio como dueño.']);
-        exit;
+    $existingUser = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+    if ($existingUser) {
+        $uId = (int)$existingUser['id'];
+        $stmtBizCount = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio pn JOIN negocios n ON pn.id_negocio = n.id WHERE pn.id_usuario = ? AND (n.estado_pago != 'eliminado' AND n.fecha_eliminado IS NULL)");
+        $stmtBizCount->execute([$uId]);
+        $activeBizCount = (int)$stmtBizCount->fetchColumn();
+
+        if ($activeBizCount > 0) {
+            echo json_encode(['success' => false, 'error' => 'El correo electrónico ya se encuentra registrado. Por el momento, un emprendedor puede registrar únicamente 1 negocio como dueño.']);
+            exit;
+        } else {
+            // El usuario anterior quedó huérfano porque su negocio fue purgado/eliminado
+            try {
+                $pdo->prepare("DELETE FROM personal_negocio WHERE id_usuario = ?")->execute([$uId]);
+                $pdo->prepare("DELETE FROM usuarios WHERE id = ? AND (role IS NULL OR role != 'superadmin')")->execute([$uId]);
+            } catch(Throwable $eClean) {}
+        }
     }
 
     // 2. Generar slug único para la web del negocio
@@ -270,6 +285,31 @@ try {
 
     // 7. Crear configuración inicial del negocio
     $horarios_detallados_json = isset($_POST['horarios_detallados_json']) ? trim($_POST['horarios_detallados_json']) : null;
+    if ((empty($horarios_detallados_json) || $horarios_detallados_json === '{}') && !empty($hora_descanso_inicio) && !empty($hora_descanso_fin) && ($hora_apertura < $hora_descanso_inicio) && ($hora_descanso_inicio < $hora_descanso_fin) && ($hora_descanso_fin < $hora_cierre)) {
+        $diasArr = explode(',', $dias_trabajo);
+        $diasMap = [
+            '1' => 'lunes',
+            '2' => 'martes',
+            '3' => 'miercoles',
+            '4' => 'jueves',
+            '5' => 'viernes',
+            '6' => 'sabado',
+            '0' => 'domingo'
+        ];
+        $autoDetallados = [];
+        foreach ($diasMap as $num => $key) {
+            $activo = in_array((string)$num, $diasArr, true);
+            $autoDetallados[$key] = [
+                'activo' => $activo,
+                'tramos' => [
+                    ['inicio' => $hora_apertura, 'fin' => $hora_descanso_inicio],
+                    ['inicio' => $hora_descanso_fin, 'fin' => $hora_cierre]
+                ]
+            ];
+        }
+        $horarios_detallados_json = json_encode($autoDetallados, JSON_UNESCAPED_UNICODE);
+    }
+
     try {
         $stmtConfigWeb = $pdo->prepare("INSERT IGNORE INTO configuracion_web (id_negocio, titulo_banner, subtitulo_banner, color_primario, limite_eliminacion_dias, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json) VALUES (:id_n, :titulo, 'Bienvenido a nuestra agenda online', '#d11149', 30, :h_ap, :h_ci, :h_di, :h_df, :dias, :h_detallados)");
         $stmtConfigWeb->execute([
