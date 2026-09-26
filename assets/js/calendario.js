@@ -70,64 +70,189 @@ let weeklySelectedProf = null;
 let cal2_selectedDate = null;
 let cal2_selectedTime = null;
 
-window.getBreakTimes = function() {
+window.getDayScheduleTramos = function(dateOrDateStr) {
+    if (!dateOrDateStr) {
+        let openStr = window.businessWebConfig?.hora_apertura || '09:00';
+        let closeStr = window.businessWebConfig?.hora_cierre || '18:00';
+        let [oH, oM] = openStr.split(':').map(Number);
+        let [cH, cM] = closeStr.split(':').map(Number);
+        if (isNaN(oH)) oH = 9; if (isNaN(oM)) oM = 0;
+        if (isNaN(cH)) cH = 18; if (isNaN(cM)) cM = 0;
+        return { isClosed: false, tramos: [{ start: oH * 60 + oM, end: cH * 60 + cM }] };
+    }
+
+    let dObj = null;
+    if (typeof dateOrDateStr === 'string') {
+        const cleanDateStr = dateOrDateStr.includes('T') ? dateOrDateStr.split('T')[0] : dateOrDateStr;
+        dObj = new Date(cleanDateStr + 'T00:00:00');
+    } else if (dateOrDateStr instanceof Date) {
+        dObj = dateOrDateStr;
+    }
+
+    if (!dObj || isNaN(dObj.getTime())) {
+        let openStr = window.businessWebConfig?.hora_apertura || '09:00';
+        let closeStr = window.businessWebConfig?.hora_cierre || '18:00';
+        let [oH, oM] = openStr.split(':').map(Number);
+        let [cH, cM] = closeStr.split(':').map(Number);
+        if (isNaN(oH)) oH = 9; if (isNaN(oM)) oM = 0;
+        if (isNaN(cH)) cH = 18; if (isNaN(cM)) cM = 0;
+        return { isClosed: false, tramos: [{ start: oH * 60 + oM, end: cH * 60 + cM }] };
+    }
+
+    const dayOfWeek = dObj.getDay(); // 0: Dom, 1: Lun, ..., 6: Sab
+    const numKey = String(dayOfWeek);
+    const dayNames = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+    const dayNamesAcc = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+    const dayShorts = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab'];
+
+    let hDet = {};
+    if (window.businessWebConfig?.horarios_detallados_json) {
+        try {
+            hDet = typeof window.businessWebConfig.horarios_detallados_json === 'string'
+                ? JSON.parse(window.businessWebConfig.horarios_detallados_json)
+                : window.businessWebConfig.horarios_detallados_json;
+        } catch(e) { hDet = {}; }
+    }
+
+    let diaData = null;
+    if (hDet && typeof hDet === 'object' && Object.keys(hDet).length > 0) {
+        if (hDet[numKey] !== undefined) diaData = hDet[numKey];
+        else if (dayNames[dayOfWeek] && hDet[dayNames[dayOfWeek]] !== undefined) diaData = hDet[dayNames[dayOfWeek]];
+        else if (dayNamesAcc[dayOfWeek] && hDet[dayNamesAcc[dayOfWeek]] !== undefined) diaData = hDet[dayNamesAcc[dayOfWeek]];
+        else if (dayShorts[dayOfWeek] && hDet[dayShorts[dayOfWeek]] !== undefined) diaData = hDet[dayShorts[dayOfWeek]];
+    }
+
+    // 1. Si el día está definido explícitamente en horarios detallados
+    if (diaData !== null && diaData !== undefined) {
+        if (diaData.activo === false) {
+            return { isClosed: true, tramos: [] };
+        }
+        if (Array.isArray(diaData.tramos) && diaData.tramos.length > 0) {
+            const parsedTramos = diaData.tramos.map(t => {
+                let [sh, sm] = (t.inicio || '09:00').split(':').map(Number);
+                let [eh, em] = (t.fin || '18:00').split(':').map(Number);
+                if (isNaN(sh)) sh = 9; if (isNaN(sm)) sm = 0;
+                if (isNaN(eh)) eh = 18; if (isNaN(em)) em = 0;
+                return { start: sh * 60 + sm, end: eh * 60 + em };
+            }).filter(t => t.start < t.end);
+
+            if (parsedTramos.length > 0) {
+                return { isClosed: false, tramos: parsedTramos };
+            }
+        }
+    }
+
+    // 2. Si no está en horarios detallados, comprobar días de trabajo configurados
+    let diasTrabajo = window.businessWebConfig?.dias_trabajo;
+    if (diasTrabajo === undefined || diasTrabajo === null || diasTrabajo === '') diasTrabajo = '1,2,3,4,5,6';
+    const workingDays = String(diasTrabajo).split(',').map(Number);
+    if (!workingDays.includes(dayOfWeek)) {
+        return { isClosed: true, tramos: [] };
+    }
+
+    // 3. Obtener horarios de apertura y cierre generales
+    let openStr = window.businessWebConfig?.hora_apertura || '09:00';
+    let closeStr = window.businessWebConfig?.hora_cierre || '18:00';
+    let [oH, oM] = openStr.split(':').map(Number);
+    let [cH, cM] = closeStr.split(':').map(Number);
+    if (isNaN(oH)) oH = 9; if (isNaN(oM)) oM = 0;
+    if (isNaN(cH)) cH = 18; if (isNaN(cM)) cM = 0;
+    const startMins = oH * 60 + oM;
+    const endMins = cH * 60 + cM;
+
+    let bStartStr = window.businessWebConfig?.hora_descanso_inicio || '';
+    let bEndStr = window.businessWebConfig?.hora_descanso_fin || '';
+    let bStartMins = -1, bEndMins = -1;
+    if (bStartStr && bEndStr) {
+        let [bSH, bSM] = bStartStr.split(':').map(Number);
+        let [bEH, bEM] = bEndStr.split(':').map(Number);
+        if (!isNaN(bSH) && !isNaN(bEH)) {
+            bStartMins = bSH * 60 + bSM;
+            bEndMins = bEH * 60 + bEM;
+        }
+    }
+
+    // Si tiene descanso válido entre la apertura y el cierre
+    if (bStartMins > startMins && bEndMins < endMins && bStartMins < bEndMins) {
+        return {
+            isClosed: false,
+            tramos: [
+                { start: startMins, end: bStartMins },
+                { start: bEndMins, end: endMins }
+            ]
+        };
+    }
+
+    return { isClosed: false, tramos: [{ start: startMins, end: endMins }] };
+};
+
+window.getBreakTimes = function(dateOrDateStr = null) {
+    let breaks = [];
+    if (dateOrDateStr) {
+        const sched = window.getDayScheduleTramos(dateOrDateStr);
+        if (sched.tramos && sched.tramos.length > 1) {
+            for (let i = 0; i < sched.tramos.length - 1; i++) {
+                let cur = sched.tramos[i].end;
+                let nextStart = sched.tramos[i + 1].start;
+                while (cur < nextStart) {
+                    let h = Math.floor(cur / 60).toString().padStart(2, '0');
+                    let m = (cur % 60).toString().padStart(2, '0');
+                    breaks.push(`${h}:${m}`);
+                    cur += 5;
+                }
+            }
+            return breaks;
+        }
+    }
+
     let breakStart = window.businessWebConfig?.hora_descanso_inicio || '';
     let breakEnd = window.businessWebConfig?.hora_descanso_fin || '';
-    let breaks = [];
     if (breakStart && breakEnd) {
-        let current = new Date();
         let [bSH, bSM] = breakStart.split(':').map(Number);
         let [bEH, bEM] = breakEnd.split(':').map(Number);
-        current.setHours(bSH, bSM, 0, 0);
-        let bEndObj = new Date();
-        bEndObj.setHours(bEH, bEM, 0, 0);
-        while (current < bEndObj) {
-            let h = current.getHours().toString().padStart(2, '0');
-            let m = current.getMinutes().toString().padStart(2, '0');
-            breaks.push(`${h}:${m}`);
-            current.setMinutes(current.getMinutes() + 5);
+        if (!isNaN(bSH) && !isNaN(bEH) && (bSH * 60 + bSM < bEH * 60 + bEM)) {
+            let cur = bSH * 60 + bSM;
+            let end = bEH * 60 + bEM;
+            while (cur < end) {
+                let h = Math.floor(cur / 60).toString().padStart(2, '0');
+                let m = (cur % 60).toString().padStart(2, '0');
+                breaks.push(`${h}:${m}`);
+                cur += 5;
+            }
         }
     }
     return breaks;
 };
 
-window.isTimeInBreak = function(timeStr) {
+window.isTimeInBreak = function(timeStr, dateOrDateStr = null) {
+    if (!timeStr) return false;
+    const [h, m] = timeStr.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return false;
+    const curMins = h * 60 + m;
+
+    if (dateOrDateStr) {
+        const sched = window.getDayScheduleTramos(dateOrDateStr);
+        if (sched.isClosed) return true;
+        if (sched.tramos && sched.tramos.length > 0) {
+            const inAnyTramo = sched.tramos.some(t => curMins >= t.start && curMins < t.end);
+            return !inAnyTramo;
+        }
+    }
+
     let breakStart = window.businessWebConfig?.hora_descanso_inicio || '';
     let breakEnd = window.businessWebConfig?.hora_descanso_fin || '';
     if (!breakStart || !breakEnd) return false;
-    let t = new Date(); let [tH, tM] = timeStr.split(':').map(Number); t.setHours(tH, tM, 0, 0);
-    let bS = new Date(); let [sH, sM] = breakStart.split(':').map(Number); bS.setHours(sH, sM, 0, 0);
-    let bE = new Date(); let [eH, eM] = breakEnd.split(':').map(Number); bE.setHours(eH, eM, 0, 0);
-    return t >= bS && t < bE;
+    let [sH, sM] = breakStart.split(':').map(Number);
+    let [eH, eM] = breakEnd.split(':').map(Number);
+    if (isNaN(sH) || isNaN(eH)) return false;
+    let bS = sH * 60 + sM;
+    let bE = eH * 60 + eM;
+    return curMins >= bS && curMins < bE;
 };
 
 window.isWorkingDay = function(date) {
-    let horariosDetallados = {};
-    if (window.businessWebConfig?.horarios_detallados_json) {
-        try {
-            horariosDetallados = typeof window.businessWebConfig.horarios_detallados_json === 'string'
-                ? JSON.parse(window.businessWebConfig.horarios_detallados_json)
-                : window.businessWebConfig.horarios_detallados_json;
-        } catch(e) {}
-    }
-    const dayKeyMap = { 1: 'lun', 2: 'mar', 3: 'mie', 4: 'jue', 5: 'vie', 6: 'sab', 0: 'dom' };
-    const textKey = dayKeyMap[date.getDay()];
-    const numKey = String(date.getDay());
-
-    let diaData = null;
-    if (horariosDetallados && Object.keys(horariosDetallados).length > 0) {
-        if (horariosDetallados[numKey] !== undefined) diaData = horariosDetallados[numKey];
-        else if (textKey && horariosDetallados[textKey] !== undefined) diaData = horariosDetallados[textKey];
-    }
-
-    if (diaData !== null && diaData !== undefined) {
-        return diaData.activo !== false;
-    }
-
-    let diasTrabajo = window.businessWebConfig?.dias_trabajo;
-    if (diasTrabajo === undefined || diasTrabajo === null || diasTrabajo === '') diasTrabajo = '1,2,3,4,5,6';
-    const workingDays = String(diasTrabajo).split(',').map(Number);
-    return workingDays.includes(date.getDay());
+    const sched = window.getDayScheduleTramos(date);
+    return !sched.isClosed && sched.tramos.length > 0;
 };
 
 function getServiceDuration(serviceName = null, profName = null) {
@@ -161,7 +286,11 @@ function getServiceDuration(serviceName = null, profName = null) {
 
 function isSlotAvailableForDuration(dateString, timeStr, durationMin, capacity, baseOcupadas, isToday, slotDate) {
     if (!timeStr) return false;
-    if (window.isTimeInBreak(timeStr)) return false;
+    
+    // 1. Obtener los tramos de apertura para este día específico
+    const sched = window.getDayScheduleTramos(dateString || slotDate);
+    if (sched.isClosed || !sched.tramos || sched.tramos.length === 0) return false;
+
     if (baseOcupadas.includes('blocked_day')) return false;
     
     // Si hay un profesional específico filtrado y ese profesional tiene el día bloqueado
@@ -177,38 +306,25 @@ function isSlotAvailableForDuration(dateString, timeStr, durationMin, capacity, 
     const [h, m] = timeStr.split(':').map(Number);
     if (isNaN(h) || isNaN(m)) return false;
     const startMins = h * 60 + m;
-    const endMins = startMins + (parseInt(durationMin, 10) || 30);
-    
-    let endStr = window.businessWebConfig?.hora_cierre || '18:00';
-    let [closeH, closeM] = endStr.split(':').map(Number);
-    if (isNaN(closeH)) closeH = 18;
-    if (isNaN(closeM)) closeM = 0;
-    const closeMins = closeH * 60 + closeM;
-    
-    if (endMins > closeMins) return false;
-    
-    // Comprobar descanso en el rango del turno
-    for (let curMins = startMins; curMins < endMins; curMins += 15) {
-        const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
-        const curM = (curMins % 60).toString().padStart(2, '0');
-        const subSlotStr = `${curH}:${curM}`;
-        if (window.getBreakTimes().includes(subSlotStr)) return false;
-    }
+    const dur = Math.max(15, parseInt(durationMin, 10) || 30);
+    const endMins = startMins + dur;
+
+    // VALIDACIÓN CLAVE: El servicio debe entrar completamente dentro de al menos un tramo de atención de este día
+    const fitsInTramo = sched.tramos.some(t => startMins >= t.start && endMins <= t.end);
+    if (!fitsInTramo) return false;
     
     // MODO UNIÓN DE PROFESIONALES: Si no hay profesional específico seleccionado (Todos los profesionales o Cualquiera)
-    // El horario está disponible si AL MENOS UN profesional del equipo está libre en ese tramo (o si no hay profesionales, disponibilidad estándar)
     const bookedDetails = (dateString && cal_bookedSlots['_details'] && cal_bookedSlots['_details'][dateString]) ? cal_bookedSlots['_details'][dateString] : null;
     const uniqueProfs = typeof getUniqueProfessionals === 'function' ? getUniqueProfessionals() : [];
     
     if (!isSpecificProf && uniqueProfs && uniqueProfs.length > 1 && bookedDetails) {
-        // Buscamos si existe al menos un profesional P que esté libre en [startMins, endMins)
         const hasAnyProfAvailable = uniqueProfs.some(profName => {
             const cleanP = String(profName).trim().toLowerCase();
             const profBookings = bookedDetails.filter(b => {
+                if (b.cupo_maximo > 1) return false;
                 if (!b.profesional || b.profesional === 'Cualquiera (Sin preferencia)' || b.profesional === '') return true;
                 return String(b.profesional).trim().toLowerCase() === cleanP;
             });
-            // Comprobar si este profesional tiene alguna superposición en el tramo
             const overlaps = profBookings.some(b => {
                 const bStart = b.startMins;
                 const bEnd = b.endMins;
@@ -218,7 +334,6 @@ function isSlotAvailableForDuration(dateString, timeStr, durationMin, capacity, 
         });
         
         if (hasAnyProfAvailable) return true;
-        // Si ninguno individual está libre, verificar capacidad si es servicio con cupo grupal
         const cap = parseInt(capacity, 10) || 1;
         if (cap <= 1) return false;
     }
@@ -247,37 +362,14 @@ function formatDuracionText(minutosRaw) {
 }
 
 function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration = 30, servCapacidad = 1, startStr = null, endStr = null) {
-    if (!startStr) startStr = window.businessWebConfig?.hora_apertura || '09:00';
-    if (!endStr) endStr = window.businessWebConfig?.hora_cierre || '18:00';
-
-    let [startH, startM] = startStr.split(':').map(Number);
-    let [endH, endM] = endStr.split(':').map(Number);
-    if (isNaN(startH)) startH = 9; if (isNaN(startM)) startM = 0;
-    if (isNaN(endH)) endH = 18; if (isNaN(endM)) endM = 0;
-
-    const startMins = startH * 60 + startM;
-    const endMins = endH * 60 + endM;
-
-    let tramos = [{ start: startMins, end: endMins }];
-    if (dateStr && window.businessWebConfig?.horarios_detallados_json) {
-        try {
-            const hDet = typeof window.businessWebConfig.horarios_detallados_json === 'string'
-                ? JSON.parse(window.businessWebConfig.horarios_detallados_json)
-                : window.businessWebConfig.horarios_detallados_json;
-            const dObj = new Date(dateStr + 'T00:00:00');
-            const dayKeyMap = { 1: 'lun', 2: 'mar', 3: 'mie', 4: 'jue', 5: 'vie', 6: 'sab', 0: 'dom' };
-            const dKey = dayKeyMap[dObj.getDay()];
-            const numKey = String(dObj.getDay());
-            const diaData = hDet[numKey] || (dKey ? hDet[dKey] : null);
-            if (diaData && diaData.activo !== false && Array.isArray(diaData.tramos) && diaData.tramos.length > 0) {
-                tramos = diaData.tramos.map(t => {
-                    let [sh, sm] = (t.inicio || '09:00').split(':').map(Number);
-                    let [eh, em] = (t.fin || '18:00').split(':').map(Number);
-                    return { start: sh * 60 + sm, end: eh * 60 + em };
-                });
-            }
-        } catch(e) {}
+    const sched = window.getDayScheduleTramos(dateStr);
+    if (sched.isClosed || !sched.tramos || sched.tramos.length === 0) {
+        return [];
     }
+
+    const tramos = sched.tramos;
+    const dur = Math.max(15, parseInt(servDuration, 10) || 30);
+    const cap = Math.max(1, parseInt(servCapacidad, 10) || 1);
 
     const isServMode = (window.businessWebConfig?.intervalo_turnos === 'servicio' || !window.businessWebConfig?.intervalo_turnos);
     const modoReservas = window.businessWebConfig?.modo_reservas || 'libre';
@@ -285,11 +377,14 @@ function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration =
     if (modoReservas === 'cupos_alumnos') {
         turnosSimultaneos = 'si';
     }
-    const isSingleSlotMode = (turnosSimultaneos === 'no' && servCapacidad <= 1);
+    const isSingleSlotMode = (turnosSimultaneos === 'no' && cap <= 1);
 
     const bookedDetails = (dateStr && cal_bookedSlots['_details'] && cal_bookedSlots['_details'][dateStr]) ? cal_bookedSlots['_details'][dateStr] : [];
     
     const activeProf = profName || (typeof globalSelectedProfessional !== 'undefined' ? globalSelectedProfessional : '');
+    const isUnionMode = (!activeProf || activeProf === 'Cualquiera (Sin preferencia)' || activeProf === 'Cualquiera' || activeProf === 'columnas') && (typeof getUniqueProfessionals === 'function' && getUniqueProfessionals().length > 1);
+    const teamProfs = isUnionMode ? getUniqueProfessionals() : [];
+
     const relevantBookings = bookedDetails.filter(b => {
         if (b.cupo_maximo > 1) return false;
         if (!activeProf || activeProf === 'Cualquiera (Sin preferencia)' || activeProf === 'Cualquiera' || activeProf === 'columnas') return true;
@@ -297,40 +392,17 @@ function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration =
         return String(b.profesional).trim().toLowerCase() === String(activeProf).trim().toLowerCase();
     }).sort((a, b) => a.startMins - b.startMins);
 
-    let breakStartMins = -1, breakEndMins = -1;
-    if (window.businessWebConfig?.hora_descanso_inicio && window.businessWebConfig?.hora_descanso_fin) {
-        let [bsh, bsm] = window.businessWebConfig.hora_descanso_inicio.split(':').map(Number);
-        let [beh, bem] = window.businessWebConfig.hora_descanso_fin.split(':').map(Number);
-        if (!isNaN(bsh) && !isNaN(beh)) {
-            breakStartMins = bsh * 60 + bsm;
-            breakEndMins = beh * 60 + bem;
-        }
-    }
-
     const availableSlots = [];
+    const step = isServMode ? dur : (parseInt(window.businessWebConfig?.intervalo_turnos, 10) || 30);
 
     tramos.forEach(tramo => {
         let curMins = tramo.start;
-        const step = isServMode ? servDuration : (parseInt(window.businessWebConfig?.intervalo_turnos) || 30);
 
-        if (isSingleSlotMode && isServMode && dateStr) {
-            const isUnionMode = (!activeProf || activeProf === 'Cualquiera (Sin preferencia)' || activeProf === 'Cualquiera' || activeProf === 'columnas') && (typeof getUniqueProfessionals === 'function' && getUniqueProfessionals().length > 1);
-            const teamProfs = isUnionMode ? getUniqueProfessionals() : [];
+        while (curMins + dur <= tramo.end) {
+            const slotEndMins = curMins + dur;
 
-            while (curMins + servDuration <= tramo.end) {
-                if (breakStartMins > -1 && curMins >= breakStartMins && curMins < breakEndMins) {
-                    curMins = breakEndMins;
-                    continue;
-                }
-
-                const slotEndMins = curMins + servDuration;
-                if (breakStartMins > -1 && curMins < breakStartMins && slotEndMins > breakStartMins) {
-                    curMins = breakEndMins;
-                    continue;
-                }
-
+            if (isSingleSlotMode && isServMode && dateStr) {
                 if (isUnionMode) {
-                    // Modo Unión: El horario curMins está disponible si AL MENOS UN profesional del equipo está libre en [curMins, slotEndMins)
                     const hasFreeProf = teamProfs.some(pName => {
                         const cleanP = String(pName).trim().toLowerCase();
                         const pBookings = bookedDetails.filter(b => {
@@ -349,10 +421,11 @@ function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration =
                             availableSlots.push(timeSlot);
                         }
                     }
-                    curMins += servDuration;
+                    curMins += step;
                     continue;
                 }
 
+                // Profesional específico
                 const activeBooking = relevantBookings.find(b => curMins >= b.startMins && curMins < b.endMins);
                 if (activeBooking) {
                     curMins = activeBooking.endMins;
@@ -373,20 +446,13 @@ function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration =
                     availableSlots.push(timeSlot);
                 }
 
-                curMins += servDuration;
-            }
-        } else {
-            while (curMins + step <= tramo.end) {
+                curMins += step;
+            } else {
                 const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
                 const curM = (curMins % 60).toString().padStart(2, '0');
                 const timeSlot = `${curH}:${curM}`;
 
-                let overlapsBreak = false;
-                if (breakStartMins > -1 && curMins >= breakStartMins && curMins < breakEndMins) {
-                    overlapsBreak = true;
-                }
-
-                if (!overlapsBreak && !availableSlots.includes(timeSlot)) {
+                if (!availableSlots.includes(timeSlot)) {
                     availableSlots.push(timeSlot);
                 }
                 curMins += step;
@@ -398,9 +464,6 @@ function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration =
 }
 
 function generateTimeSlots(startStr = null, endStr = null, interval = null, targetDateStr = null, targetProfName = null) {
-    if (!startStr) startStr = window.businessWebConfig?.hora_apertura || '09:00';
-    if (!endStr) endStr = window.businessWebConfig?.hora_cierre || '18:00';
-    
     const dateStr = targetDateStr || (typeof cal_selectedDate !== 'undefined' && cal_selectedDate ? toYYYYMMDD(cal_selectedDate) : (typeof cal2_selectedDate !== 'undefined' && cal2_selectedDate ? toYYYYMMDD(cal2_selectedDate) : null));
     const profName = targetProfName || (typeof adminWeeklySelectedProf !== 'undefined' && adminWeeklySelectedProf) || (typeof globalSelectedProfessional !== 'undefined' && globalSelectedProfessional) || null;
 
@@ -424,6 +487,9 @@ function generateTimeSlots(startStr = null, endStr = null, interval = null, targ
         if (matchingService) {
             selectedCapacidad = parseInt(matchingService.capacidad || matchingService.cupo_maximo) || 1;
         }
+    } else if (services && services.length > 0) {
+        selectedDuration = getServiceDuration(services[0].nombre, profName);
+        selectedCapacidad = parseInt(services[0].capacidad || services[0].cupo_maximo) || 1;
     } else if (window.businessWebConfig?.intervalo_turnos === 'servicio' || !window.businessWebConfig?.intervalo_turnos) {
         selectedDuration = getServiceDuration(null, null);
     } else if (interval && typeof interval === 'number' && interval > 0) {
@@ -480,6 +546,9 @@ function cal_fetchBookedTimes() {
     .then(res => res.json())
     .then(data => {
         cal_bookedSlots = data;
+        if (data && data._config) {
+            window.businessWebConfig = Object.assign(window.businessWebConfig || {}, data._config);
+        }
         if (cal_selectedDate) cal_renderTimeSlots();
         cal_renderCalendar();
 
@@ -632,8 +701,13 @@ function cal_renderTimeSlots() {
             matchingService = services.find(s => s.nombre === sName && s.profesional === globalSelectedProfessional);
         }
         if (!matchingService) matchingService = services.find(s => s.nombre === sName);
-        if (matchingService && matchingService.duracion) selectedDuration = parseInt(matchingService.duracion);
-        if (matchingService && matchingService.capacidad) selectedCapacidad = parseInt(matchingService.capacidad) || 1;
+        if (matchingService) {
+            selectedDuration = parseInt(matchingService.duracion || matchingService.duracion_minutos) || 30;
+            selectedCapacidad = parseInt(matchingService.capacidad || matchingService.cupo_maximo) || 1;
+        }
+    } else if (services && services.length > 0) {
+        selectedDuration = parseInt(services[0].duracion || services[0].duracion_minutos) || 30;
+        selectedCapacidad = parseInt(services[0].capacidad || services[0].cupo_maximo) || 1;
     }
     
     let interval = 30;
@@ -645,20 +719,7 @@ function cal_renderTimeSlots() {
         }
     }
     
-    let horariosDetallados = {};
-    if (window.businessWebConfig?.horarios_detallados_json) {
-        try {
-            horariosDetallados = typeof window.businessWebConfig.horarios_detallados_json === 'string'
-                ? JSON.parse(window.businessWebConfig.horarios_detallados_json)
-                : window.businessWebConfig.horarios_detallados_json;
-        } catch(e) {}
-    }
-    const dayKeyMap = { 1: 'lun', 2: 'mar', 3: 'mie', 4: 'jue', 5: 'vie', 6: 'sab', 0: 'dom' };
-    const textKey = dayKeyMap[cal_selectedDate.getDay()];
-    const numKey = String(cal_selectedDate.getDay());
-    const diaData = (horariosDetallados && (horariosDetallados[numKey] !== undefined ? horariosDetallados[numKey] : (textKey ? horariosDetallados[textKey] : null)));
-
-    generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval, fechaActual, globalSelectedProfessional);
+    generateTimeSlots(null, null, interval, fechaActual, globalSelectedProfessional);
 
     const effectiveIsAdmin = isAdmin && !isPreviewMode;
 
@@ -2382,6 +2443,9 @@ function cal_fetchBookedTimesWeeklyAdmin() {
         fetchAllAppointments() // Asegura que los detalles de los turnos estén listos
     ]).then(([bookedData]) => { 
         cal_bookedSlots = bookedData; 
+        if (bookedData && bookedData._config) {
+            window.businessWebConfig = Object.assign(window.businessWebConfig || {}, bookedData._config);
+        }
         renderAdminWeeklyGrid(); 
         
         const gl = document.getElementById('globalLoader');
@@ -2650,6 +2714,9 @@ function cal_fetchBookedTimesWeekly() {
 
     fetch(url).then(res => res.json()).then(data => {
         cal_bookedSlots = data;
+        if (data && data._config) {
+            window.businessWebConfig = Object.assign(window.businessWebConfig || {}, data._config);
+        }
         renderWeeklyCalendar();
         findNextAvailableSlot();
 
@@ -2803,6 +2870,9 @@ function checkDayHasAvailableSlots(date) {
     const matchingService = services.find(s => String(s.nombre || '').trim().toLowerCase() === String(sName || '').trim().toLowerCase());
     if (matchingService) {
         selectedCapacidad = parseInt(matchingService.capacidad || matchingService.cupo_maximo) || 1;
+        if (matchingService.duracion || matchingService.duracion_minutos) {
+            selectedDuration = parseInt(matchingService.duracion || matchingService.duracion_minutos) || 30;
+        }
     }
     
     let interval = 30;
@@ -2814,7 +2884,7 @@ function checkDayHasAvailableSlots(date) {
         }
     }
     const dayStr1 = toYYYYMMDD(date);
-    const availableTimes1 = generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval, dayStr1, globalSelectedProfessional);
+    const availableTimes1 = generateTimeSlots(null, null, interval, dayStr1, globalSelectedProfessional);
 
     const now = new Date();
     const isToday = date.getTime() === new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -2848,6 +2918,9 @@ function selectWeeklyDate(date) {
     const matchingService = services.find(s => String(s.nombre || '').trim().toLowerCase() === String(sName || '').trim().toLowerCase());
     if (matchingService) {
         selectedCapacidad = parseInt(matchingService.capacidad || matchingService.cupo_maximo) || 1;
+        if (matchingService.duracion || matchingService.duracion_minutos) {
+            selectedDuration = parseInt(matchingService.duracion || matchingService.duracion_minutos) || 30;
+        }
     }
     
     let interval = 30;
@@ -2859,7 +2932,7 @@ function selectWeeklyDate(date) {
         }
     }
     const dayStr2 = toYYYYMMDD(date);
-    generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval, dayStr2, globalSelectedProfessional);
+    generateTimeSlots(null, null, interval, dayStr2, globalSelectedProfessional);
 
     let slotsGenerated = 0;
     let firstAvailableTime = null;

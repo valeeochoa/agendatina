@@ -30,7 +30,7 @@ try {
     $ocupados = [];
 
    // Obtener configuración web del negocio (horarios, días laborables, etc.)
-    $stmtConf = $pdo->prepare("SELECT hora_apertura, hora_cierre, dias_trabajo, horarios_detallados_json, intervalo_turnos, primer_dia_semana, turnos_simultaneos, modo_reservas FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");
+    $stmtConf = $pdo->prepare("SELECT hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json, intervalo_turnos, primer_dia_semana, turnos_simultaneos, modo_reservas FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");
     $stmtConf->execute(['id_negocio' => $id_negocio]);
     $conf = $stmtConf->fetch(PDO::FETCH_ASSOC);
 
@@ -40,6 +40,8 @@ try {
         $ocupados['_config'] = [
             'hora_apertura' => $conf['hora_apertura'] ?? '09:00',
             'hora_cierre' => $conf['hora_cierre'] ?? '18:00',
+            'hora_descanso_inicio' => $conf['hora_descanso_inicio'] ?? '',
+            'hora_descanso_fin' => $conf['hora_descanso_fin'] ?? '',
             'dias_trabajo' => $conf['dias_trabajo'] ?? '1,2,3,4,5,6',
             'horarios_detallados_json' => $conf['horarios_detallados_json'] ?? '{}',
             'intervalo_turnos' => $conf['intervalo_turnos'] ?? '30',
