@@ -16,7 +16,34 @@ var globalSelectedProfessional = '';
 var isPreviewMode = false;
 var services = [];
 var allAppointments = [];
+var teamProfessionals = [];
 var isAdmin = sessionStorage.getItem('agendatina_session') === 'active' || (negocioSlug === '');
+
+window.normalizeProfName = function(name) {
+    if (!name || typeof name !== 'string') return '';
+    return name.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+};
+
+window.isSameProf = function(profA, profB) {
+    if (!profA || !profB) return false;
+    const a = window.normalizeProfName(profA);
+    const b = window.normalizeProfName(profB);
+    if (!a || !b) return false;
+    if (a === b) return true;
+    
+    const aParts = a.split(/\s+/).filter(Boolean);
+    const bParts = b.split(/\s+/).filter(Boolean);
+    if (aParts.length === 0 || bParts.length === 0) return false;
+    
+    // Si tienen el mismo primer nombre:
+    if (aParts[0] === bParts[0]) {
+        // Si al menos uno solo tiene el primer nombre (ej: "Marcos" y "Marcos Gómez"), son la misma persona
+        if (aParts.length === 1 || bParts.length === 1) return true;
+        // Si ambos tienen apellido(s), deben coincidir
+        return aParts.slice(1).join(' ') === bParts.slice(1).join(' ');
+    }
+    return false;
+};
 
 let cal_currentDate = new Date();
 let cal_selectedDate = null;
@@ -1404,8 +1431,6 @@ function setManualModalMode(mode) {
     }
 }
 
-let teamProfessionals = [];
-
 function fetchTeamProfessionals() {
     const queryParam = negocioSlug ? `?n=${negocioSlug}` : '';
     return fetch('backend/gestionar_profesionales.php' + queryParam)
@@ -1419,32 +1444,6 @@ function fetchTeamProfessionals() {
         })
         .catch(() => {});
 }
-
-window.normalizeProfName = function(name) {
-    if (!name || typeof name !== 'string') return '';
-    return name.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
-};
-
-window.isSameProf = function(profA, profB) {
-    if (!profA || !profB) return false;
-    const a = window.normalizeProfName(profA);
-    const b = window.normalizeProfName(profB);
-    if (!a || !b) return false;
-    if (a === b) return true;
-    
-    const aParts = a.split(/\s+/).filter(Boolean);
-    const bParts = b.split(/\s+/).filter(Boolean);
-    if (aParts.length === 0 || bParts.length === 0) return false;
-    
-    // Si tienen el mismo primer nombre:
-    if (aParts[0] === bParts[0]) {
-        // Si al menos uno solo tiene el primer nombre (ej: "Marcos" y "Marcos Gómez"), son la misma persona
-        if (aParts.length === 1 || bParts.length === 1) return true;
-        // Si ambos tienen apellido(s), deben coincidir
-        return aParts.slice(1).join(' ') === bParts.slice(1).join(' ');
-    }
-    return false;
-};
 
 window.formatProfDisplayNames = function(profsList) {
     if (!Array.isArray(profsList)) return {};
