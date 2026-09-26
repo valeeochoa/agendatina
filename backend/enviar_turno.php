@@ -186,36 +186,73 @@ try {
         exit;
     }
 
-    $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
+    $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
     $stmtConfig->execute(['id' => $id_negocio]);
     $configWeb = $stmtConfig->fetch(PDO::FETCH_ASSOC);
 
     if ($configWeb) {
-        // Validar día de la semana laborable
-        $diasTrabajoStr = isset($configWeb['dias_trabajo']) ? $configWeb['dias_trabajo'] : '1,2,3,4,5,6';
-        if (!empty($diasTrabajoStr)) {
-            $diasArray = array_map('intval', explode(',', $diasTrabajoStr));
-            $dayOfWeek = (int)date('w', strtotime($fecha)); // 0 = Domingo, 1 = Lunes...
-            if (!in_array($dayOfWeek, $diasArray)) {
-                $pdo->rollBack();
-                http_response_code(400);
-                echo json_encode(['success' => false, 'error' => 'El establecimiento no realiza atenciones en el día de la semana seleccionado.']);
-                exit;
-            }
+        $dayOfWeek = (int)date('w', strtotime($fecha)); // 0 = Domingo, 1 = Lunes...
+        $hDet = !empty($configWeb['horarios_detallados_json']) ? json_decode($configWeb['horarios_detallados_json'], true) : null;
+        $dayData = null;
+        if (is_array($hDet)) {
+            $numKey = (string)$dayOfWeek;
+            $dayNames = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+            if (isset($hDet[$numKey])) $dayData = $hDet[$numKey];
+            elseif (isset($dayNames[$dayOfWeek]) && isset($hDet[$dayNames[$dayOfWeek]])) $dayData = $hDet[$dayNames[$dayOfWeek]];
         }
 
-        // Validar horario de descanso
-        $hDescInicio = !empty($configWeb['hora_descanso_inicio']) ? $configWeb['hora_descanso_inicio'] : '';
-        $hDescFin = !empty($configWeb['hora_descanso_fin']) ? $configWeb['hora_descanso_fin'] : '';
-        if ($hDescInicio && $hDescFin) {
-            $tHora = strtotime("$fecha $hora:00");
-            $tDescInicio = strtotime("$fecha $hDescInicio:00");
-            $tDescFin = strtotime("$fecha $hDescFin:00");
-            if ($tHora >= $tDescInicio && $tHora < $tDescFin) {
+        if (is_array($dayData)) {
+            if (isset($dayData['activo']) && $dayData['activo'] === false) {
                 $pdo->rollBack();
                 http_response_code(400);
-                echo json_encode(['success' => false, 'error' => 'El horario seleccionado coincide con el tiempo de descanso del establecimiento.']);
+                echo json_encode(['success' => false, 'error' => 'El establecimiento no realiza atenciones en el día seleccionado.']);
                 exit;
+            }
+            if (!empty($dayData['tramos']) && is_array($dayData['tramos'])) {
+                $tHora = strtotime("$fecha $hora:00");
+                $tFin = $tHora + ($duracion_nuevo * 60);
+                $fitsInTramo = false;
+                foreach ($dayData['tramos'] as $tramo) {
+                    $trStart = strtotime("$fecha " . ($tramo['inicio'] ?? '09:00') . ":00");
+                    $trEnd = strtotime("$fecha " . ($tramo['fin'] ?? '18:00') . ":00");
+                    if ($tHora >= $trStart && $tFin <= $trEnd) {
+                        $fitsInTramo = true;
+                        break;
+                    }
+                }
+                if (!$fitsInTramo) {
+                    $pdo->rollBack();
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'error' => 'El horario seleccionado no coincide con los turnos de atención del establecimiento.']);
+                    exit;
+                }
+            }
+        } else {
+            // Validar día de la semana laborable tradicional
+            $diasTrabajoStr = isset($configWeb['dias_trabajo']) ? $configWeb['dias_trabajo'] : '1,2,3,4,5,6';
+            if (!empty($diasTrabajoStr)) {
+                $diasArray = array_map('intval', explode(',', $diasTrabajoStr));
+                if (!in_array($dayOfWeek, $diasArray)) {
+                    $pdo->rollBack();
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'error' => 'El establecimiento no realiza atenciones en el día de la semana seleccionado.']);
+                    exit;
+                }
+            }
+
+            // Validar horario de descanso tradicional
+            $hDescInicio = !empty($configWeb['hora_descanso_inicio']) ? $configWeb['hora_descanso_inicio'] : '';
+            $hDescFin = !empty($configWeb['hora_descanso_fin']) ? $configWeb['hora_descanso_fin'] : '';
+            if ($hDescInicio && $hDescFin) {
+                $tHora = strtotime("$fecha $hora:00");
+                $tDescInicio = strtotime("$fecha $hDescInicio:00");
+                $tDescFin = strtotime("$fecha $hDescFin:00");
+                if ($tHora >= $tDescInicio && $tHora < $tDescFin) {
+                    $pdo->rollBack();
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'error' => 'El horario seleccionado coincide con el tiempo de descanso del establecimiento.']);
+                    exit;
+                }
             }
         }
     }

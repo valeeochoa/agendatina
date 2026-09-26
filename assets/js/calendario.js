@@ -164,7 +164,8 @@ window.getDayScheduleTramos = function(dateOrDateStr) {
             }).filter(t => t.start < t.end);
 
             if (parsedTramos.length > 0) {
-                return { isClosed: false, tramos: parsedTramos };
+                parsedTramos.sort((a, b) => a.start - b.start);
+                return { isClosed: false, tramos: parsedTramos, hasCustomTramos: true };
             }
         }
     }
@@ -174,7 +175,7 @@ window.getDayScheduleTramos = function(dateOrDateStr) {
     if (diasTrabajo === undefined || diasTrabajo === null || diasTrabajo === '') diasTrabajo = '1,2,3,4,5,6';
     const workingDays = String(diasTrabajo).split(',').map(Number);
     if (!workingDays.includes(dayOfWeek)) {
-        return { isClosed: true, tramos: [] };
+        return { isClosed: true, tramos: [], hasCustomTramos: false };
     }
 
     // 3. Obtener horarios de apertura y cierre generales
@@ -206,28 +207,43 @@ window.getDayScheduleTramos = function(dateOrDateStr) {
             tramos: [
                 { start: startMins, end: bStartMins },
                 { start: bEndMins, end: endMins }
-            ]
+            ],
+            hasCustomTramos: false
         };
     }
 
-    return { isClosed: false, tramos: [{ start: startMins, end: endMins }] };
+    return { isClosed: false, tramos: [{ start: startMins, end: endMins }], hasCustomTramos: false };
 };
 
 window.getBreakTimes = function(dateOrDateStr = null) {
     let breaks = [];
-    if (dateOrDateStr) {
-        const sched = window.getDayScheduleTramos(dateOrDateStr);
-        if (sched.tramos && sched.tramos.length > 1) {
-            for (let i = 0; i < sched.tramos.length - 1; i++) {
-                let cur = sched.tramos[i].end;
-                let nextStart = sched.tramos[i + 1].start;
-                while (cur < nextStart) {
-                    let h = Math.floor(cur / 60).toString().padStart(2, '0');
-                    let m = (cur % 60).toString().padStart(2, '0');
-                    breaks.push(`${h}:${m}`);
-                    cur += 5;
+    let resolvedDate = dateOrDateStr;
+    if (!resolvedDate) {
+        if (typeof cal_selectedDate !== 'undefined' && cal_selectedDate) {
+            resolvedDate = (typeof toYYYYMMDD === 'function') ? toYYYYMMDD(cal_selectedDate) : cal_selectedDate;
+        } else if (typeof cal2_selectedDate !== 'undefined' && cal2_selectedDate) {
+            resolvedDate = (typeof toYYYYMMDD === 'function') ? toYYYYMMDD(cal2_selectedDate) : cal2_selectedDate;
+        }
+    }
+
+    if (resolvedDate) {
+        const sched = window.getDayScheduleTramos(resolvedDate);
+        // Si el día tiene tramos configurados específicamente en horarios_detallados_json:
+        if (sched.hasCustomTramos) {
+            // Los descansos son ÚNICAMENTE los intervalos libres entre tramos de atención
+            if (sched.tramos && sched.tramos.length > 1) {
+                for (let i = 0; i < sched.tramos.length - 1; i++) {
+                    let cur = sched.tramos[i].end;
+                    let nextStart = sched.tramos[i + 1].start;
+                    while (cur < nextStart) {
+                        let h = Math.floor(cur / 60).toString().padStart(2, '0');
+                        let m = (cur % 60).toString().padStart(2, '0');
+                        breaks.push(`${h}:${m}`);
+                        cur += 5;
+                    }
                 }
             }
+            // NO evaluar descanso general si el día tiene sus propios tramos
             return breaks;
         }
     }
@@ -257,15 +273,28 @@ window.isTimeInBreak = function(timeStr, dateOrDateStr = null) {
     if (isNaN(h) || isNaN(m)) return false;
     const curMins = h * 60 + m;
 
-    if (dateOrDateStr) {
-        const sched = window.getDayScheduleTramos(dateOrDateStr);
-        if (sched.isClosed) return true;
-        if (sched.tramos && sched.tramos.length > 0) {
-            const inAnyTramo = sched.tramos.some(t => curMins >= t.start && curMins < t.end);
-            return !inAnyTramo;
+    let resolvedDate = dateOrDateStr;
+    if (!resolvedDate) {
+        if (typeof cal_selectedDate !== 'undefined' && cal_selectedDate) {
+            resolvedDate = (typeof toYYYYMMDD === 'function') ? toYYYYMMDD(cal_selectedDate) : cal_selectedDate;
+        } else if (typeof cal2_selectedDate !== 'undefined' && cal2_selectedDate) {
+            resolvedDate = (typeof toYYYYMMDD === 'function') ? toYYYYMMDD(cal2_selectedDate) : cal2_selectedDate;
         }
     }
 
+    if (resolvedDate) {
+        const sched = window.getDayScheduleTramos(resolvedDate);
+        if (sched.isClosed) return true;
+        if (sched.tramos && sched.tramos.length > 0) {
+            // Si el horario cae dentro de CUALQUIERA de los tramos de atención abiertos, NUNCA es descanso
+            const inAnyTramo = sched.tramos.some(t => curMins >= t.start && curMins < t.end);
+            if (inAnyTramo) return false;
+            // Si tiene tramos personalizados y cae fuera de todos, está fuera del horario de atención
+            if (sched.hasCustomTramos) return true;
+        }
+    }
+
+    // Solo si el negocio no tiene tramos configurados para ese día, evaluar el descanso general tradicional
     let breakStart = window.businessWebConfig?.hora_descanso_inicio || '';
     let breakEnd = window.businessWebConfig?.hora_descanso_fin || '';
     if (!breakStart || !breakEnd) return false;
@@ -711,7 +740,7 @@ function cal_renderTimeSlots() {
     
     const fechaActual = toYYYYMMDD(cal_selectedDate);
     const baseOcupadas = cal_bookedSlots[fechaActual] || [];
-    const horasOcupadas = [...baseOcupadas, ...window.getBreakTimes()];
+    const horasOcupadas = [...baseOcupadas, ...window.getBreakTimes(fechaActual)];
     const now = new Date();
     const selectedAtMidnight = new Date(cal_selectedDate.getFullYear(), cal_selectedDate.getMonth(), cal_selectedDate.getDate());
     const todayAtMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -751,7 +780,7 @@ function cal_renderTimeSlots() {
     const effectiveIsAdmin = isAdmin && !isPreviewMode;
 
     cal_availableTimes.forEach((time) => {
-        if (window.isTimeInBreak(time)) return; 
+        if (window.isTimeInBreak(time, fechaActual)) return; 
         const slot = document.createElement('div');
         const [hh, mm] = time.split(':').map(Number);
         const slotDate = new Date(cal_selectedDate.getFullYear(), cal_selectedDate.getMonth(), cal_selectedDate.getDate(), hh, mm, 0, 0);
@@ -869,7 +898,7 @@ function renderAdminDayView(dateString) {
     adminTimeSlots.innerHTML = '';
     if (adminAppointmentsList) adminAppointmentsList.innerHTML = '';
 
-    const horasOcupadas = [...(cal_bookedSlots[dateString] || []), ...window.getBreakTimes()];
+    const horasOcupadas = [...(cal_bookedSlots[dateString] || []), ...window.getBreakTimes(dateString)];
     const now = new Date();
     const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const selectedDateObj = new Date(dateString + 'T00:00:00');
@@ -966,7 +995,7 @@ function renderAdminDayView(dateString) {
             });
 
             profAvailableTimes.forEach(time => {
-                if (window.isTimeInBreak(time)) return;
+                if (window.isTimeInBreak(time, dateString)) return;
                 const timeKey = time.substring(0, 5);
                 const apt = profSlotOwnership[timeKey];
                 const isBooked = horasOcupadas.includes('blocked_day') || (!apt && horasOcupadas.includes(timeKey));
@@ -1125,7 +1154,7 @@ function renderAdminDayView(dateString) {
 
     // --- PARTE A: GRILLA DE HORARIOS (Uno debajo del otro) ---
     cal_availableTimes.forEach(time => {
-        if (window.isTimeInBreak(time)) return;
+        if (window.isTimeInBreak(time, dateString)) return;
         const timeKey = time.substring(0, 5);
         const isBooked = horasOcupadas.includes(timeKey);
         const apt = slotOwnership[timeKey];
@@ -1351,7 +1380,7 @@ function openManualTurnoModal(preselectedTime = null, preselectedProf = null) {
     const profToSelect = preselectedProf || globalSelectedProfessional;
     generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, adminInterval, fechaActual, profToSelect);
     
-    const horasOcupadas = [...(cal_bookedSlots[fechaActual] || []), ...window.getBreakTimes()];
+    const horasOcupadas = [...(cal_bookedSlots[fechaActual] || []), ...window.getBreakTimes(fechaActual)];
     const simultaneos = window.businessWebConfig?.turnos_simultaneos === 'si';
 
     const now = new Date();
@@ -1363,7 +1392,7 @@ function openManualTurnoModal(preselectedTime = null, preselectedProf = null) {
     const horaSelect = document.getElementById('manualHora');
     horaSelect.innerHTML = '';
     cal_availableTimes.forEach(t => {
-        if (window.isTimeInBreak(t)) return;
+        if (window.isTimeInBreak(t, fechaActual)) return;
         const timeKey = t.substring(0, 5);
         const isOccupied = horasOcupadas.includes(timeKey);
         const [hh, mm] = timeKey.split(':').map(Number);
@@ -2562,7 +2591,7 @@ function renderAdminWeeklyGrid() {
         
         const slotsContainer = document.createElement('div'); slotsContainer.className = 'flex flex-col gap-1.5 max-h-[460px] overflow-y-auto pr-0.5 custom-scrollbar w-full flex-1';
         
-        const horasOcupadas = [...(cal_bookedSlots[dateString] || []), ...window.getBreakTimes()];
+        const horasOcupadas = [...(cal_bookedSlots[dateString] || []), ...window.getBreakTimes(dateString)];
         const isGeneralBlock = horasOcupadas.includes('blocked_day');
         let isProfBlock = horasOcupadas.includes('blocked_day_prof');
         if (isTodos || adminWeeklySelectedProf === 'columnas' || adminWeeklySelectedProf === 'Cualquiera (Sin preferencia)') isProfBlock = false;
@@ -2578,7 +2607,7 @@ function renderAdminWeeklyGrid() {
         } else {
             const availableTimesForDay = generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval, dateString, isTodos ? null : adminWeeklySelectedProf);
             availableTimesForDay.forEach((time, idx) => {
-                if (window.isTimeInBreak(time)) return;
+                if (window.isTimeInBreak(time, dateString)) return;
                 const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), ...time.split(':').map(Number), 0, 0);
                 const baseOcupadas = cal_bookedSlots[dateString] || [];
                 const isAvailable = isSlotAvailableForDuration(dateString, time, selectedDuration, selectedCapacidad, baseOcupadas, isToday, slotDate);
@@ -2891,7 +2920,7 @@ function checkDayHasAvailableSlots(date) {
 
     for (let i = 0; i < availableTimes1.length; i++) {
         const time = availableTimes1[i];
-        if (window.isTimeInBreak(time)) continue;
+        if (window.isTimeInBreak(time, dayStr1)) continue;
         const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), ...time.split(':').map(Number), 0, 0);
         if (isSlotAvailableForDuration(dayStr1, time, selectedDuration, selectedCapacidad, baseOcupadas, isToday, slotDate)) {
             return true;
@@ -2940,7 +2969,7 @@ function selectWeeklyDate(date) {
     const baseOcupadas = cal_bookedSlots[toYYYYMMDD(date)] || [];
 
     cal_availableTimes.forEach((time) => {
-        if (window.isTimeInBreak(time)) return;
+        if (window.isTimeInBreak(time, dayStr2)) return;
         const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), ...time.split(':').map(Number), 0, 0);
         
         const isAvailable = isSlotAvailableForDuration(toYYYYMMDD(date), time, selectedDuration, selectedCapacidad, baseOcupadas, isToday, slotDate);
