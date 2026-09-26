@@ -558,7 +558,7 @@ try {
 
         // 1. Obtener la información de los negocios donde el alumno tiene pases o está registrado
         $stmtNegocios = $pdo->prepare("
-            SELECT cn.id_negocio, cn.id_servicio, cn.servicio AS servicio_nombre, n.nombre_fantasia AS negocio_nombre, n.ruta AS negocio_ruta, n.estado_pago, 
+            SELECT cn.id_negocio, cn.id_servicio, cn.servicio AS servicio_nombre, cn.servicios_pases_json, n.nombre_fantasia AS negocio_nombre, n.ruta AS negocio_ruta, n.estado_pago, 
                    cn.pases_disponibles, COALESCE(cn.pases_totales, cn.pases_disponibles) AS pases_totales, 
                    cn.fecha_vencimiento, cn.cancelaciones_permitidas, cn.cancelaciones_restantes, cn.telefono, cn.nombre_completo
             FROM clientes_negocio cn
@@ -613,6 +613,17 @@ try {
 
             $neg['cancelaciones_max'] = $maxCanc;
             $neg['cancelaciones_restantes'] = $restCanc;
+
+            // Decodificar servicios_pases_json para exponer desglose de servicios
+            $neg['servicios_pases'] = [];
+            if (!empty($neg['servicios_pases_json'])) {
+                try {
+                    $parsedS = json_decode($neg['servicios_pases_json'], true);
+                    if (is_array($parsedS)) {
+                        $neg['servicios_pases'] = $parsedS;
+                    }
+                } catch (Exception $eJson) {}
+            }
         }
         unset($neg);
 
@@ -1038,7 +1049,7 @@ try {
         }
 
         // 2. Verificar si el cliente tiene pases disponibles en este negocio (o cuenta de cliente de negocio)
-        $stmtClient = $pdo->prepare("SELECT id, nombre_completo, pases_disponibles, pases_totales, id_negocio, id_servicio, servicio, telefono, password FROM clientes_negocio WHERE (id_negocio = :id_negocio OR id_negocio = 0) AND LOWER(TRIM(email)) = :email ORDER BY (id_negocio = :id_negocio_order) DESC, id DESC LIMIT 1");
+        $stmtClient = $pdo->prepare("SELECT id, nombre_completo, pases_disponibles, pases_totales, id_negocio, id_servicio, servicio, telefono, password, servicios_pases_json FROM clientes_negocio WHERE (id_negocio = :id_negocio OR id_negocio = 0) AND LOWER(TRIM(email)) = :email ORDER BY (id_negocio = :id_negocio_order) DESC, id DESC LIMIT 1");
         $stmtClient->execute([
             'id_negocio' => $id_negocio,
             'email' => $email,
@@ -1074,11 +1085,22 @@ try {
             $telCliente = $existingUser ? ($existingUser['telefono'] ?? '') : '';
             $passCliente = $existingUser ? $existingUser['password'] : null;
 
+            $initialServList = [
+                [
+                    'id_servicio' => $initialServId,
+                    'servicio' => $initialServNombre,
+                    'etiqueta_pase' => "Pase {$initialPases} Clases",
+                    'pases_disponibles' => $initialPases,
+                    'pases_totales' => $initialPases,
+                    'fecha_vencimiento' => $initialVenc
+                ]
+            ];
+
             $stmtInsLink = $pdo->prepare("
                 INSERT INTO clientes_negocio 
-                (id_negocio, id_servicio, servicio, nombre_completo, email, telefono, password, pases_disponibles, pases_totales, fecha_vencimiento, cancelaciones_permitidas, cancelaciones_restantes, estado) 
+                (id_negocio, id_servicio, servicio, nombre_completo, email, telefono, password, pases_disponibles, pases_totales, fecha_vencimiento, cancelaciones_permitidas, cancelaciones_restantes, estado, servicios_pases_json) 
                 VALUES 
-                (:id_negocio, :id_serv, :serv, :nombre, :email, :telefono, :pass, :pases, :pases, :venc, :pases, :pases, 'activo')
+                (:id_negocio, :id_serv, :serv, :nombre, :email, :telefono, :pass, :pases, :pases, :venc, :pases, :pases, 'activo', :serv_json)
             ");
             $stmtInsLink->execute([
                 'id_negocio' => $id_negocio,
@@ -1089,7 +1111,8 @@ try {
                 'telefono' => $telCliente,
                 'pass' => $passCliente,
                 'pases' => $initialPases,
-                'venc' => $initialVenc
+                'venc' => $initialVenc,
+                'serv_json' => json_encode($initialServList, JSON_UNESCAPED_UNICODE)
             ]);
             $clientData = [
                 'id' => $pdo->lastInsertId(),
@@ -1098,7 +1121,8 @@ try {
                 'pases_totales' => $initialPases,
                 'id_negocio' => $id_negocio,
                 'id_servicio' => $initialServId,
-                'servicio' => $initialServNombre
+                'servicio' => $initialServNombre,
+                'servicios_pases_json' => json_encode($initialServList, JSON_UNESCAPED_UNICODE)
             ];
         }
 
@@ -1110,24 +1134,92 @@ try {
 
         $nombreCliente = $_SESSION['cliente_nombre'] ?? $clientData['nombre_completo'] ?? 'Alumno';
 
-        // Descontar 1 pase, asegurando id_negocio vinculado y campos de cancelaciones
-        $pdo->prepare("
-            UPDATE clientes_negocio 
-            SET pases_disponibles = GREATEST(0, pases_disponibles - 1),
-                id_negocio = :id_neg,
-                id_servicio = COALESCE(id_servicio, :id_serv),
-                servicio = COALESCE(servicio, :serv),
-                cancelaciones_permitidas = COALESCE(cancelaciones_permitidas, pases_totales, 4),
-                cancelaciones_restantes = COALESCE(cancelaciones_restantes, pases_totales, 4),
-                fecha_vencimiento = COALESCE(fecha_vencimiento, DATE_ADD(CURRENT_DATE, INTERVAL 1 MONTH)),
-                estado = 'activo'
-            WHERE id = :id
-        ")->execute([
-            'id_neg' => $id_negocio,
-            'id_serv' => $id_servicio ?: null,
-            'serv' => $servicio ?: null,
-            'id' => $clientData['id']
-        ]);
+        // Descontar pase del servicio correspondiente si existe servicios_pases_json
+        $serviciosJson = $clientData['servicios_pases_json'] ?? null;
+        $serviciosList = $serviciosJson ? json_decode($serviciosJson, true) : null;
+
+        if (is_array($serviciosList) && count($serviciosList) > 0) {
+            $targetIndex = 0;
+            $foundMatch = false;
+
+            if ($id_servicio > 0) {
+                foreach ($serviciosList as $idx => $sItem) {
+                    if ((int)($sItem['id_servicio'] ?? 0) === (int)$id_servicio) {
+                        $targetIndex = $idx;
+                        $foundMatch = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!$foundMatch && !empty($servicio)) {
+                $servLower = strtolower(trim($servicio));
+                foreach ($serviciosList as $idx => $sItem) {
+                    if (strtolower(trim($sItem['servicio'] ?? '')) === $servLower) {
+                        $targetIndex = $idx;
+                        $foundMatch = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!$foundMatch) {
+                foreach ($serviciosList as $idx => $sItem) {
+                    if ((int)($sItem['pases_disponibles'] ?? 0) > 0) {
+                        $targetIndex = $idx;
+                        $foundMatch = true;
+                        break;
+                    }
+                }
+            }
+
+            $curDisp = (int)($serviciosList[$targetIndex]['pases_disponibles'] ?? 0);
+            if ($curDisp <= 0) {
+                $servNameLabel = $serviciosList[$targetIndex]['servicio'] ?? 'este servicio';
+                echo json_encode(['success' => false, 'error' => "No tenés pases disponibles para {$servNameLabel}."]);
+                exit;
+            }
+
+            $serviciosList[$targetIndex]['pases_disponibles'] = max(0, $curDisp - 1);
+
+            $nuevoTotalDisponibles = 0;
+            foreach ($serviciosList as $sItem) {
+                $nuevoTotalDisponibles += (int)($sItem['pases_disponibles'] ?? 0);
+            }
+
+            $pdo->prepare("
+                UPDATE clientes_negocio 
+                SET pases_disponibles = :disp,
+                    servicios_pases_json = :json,
+                    id_negocio = :id_neg,
+                    estado = 'activo'
+                WHERE id = :id
+            ")->execute([
+                'disp' => $nuevoTotalDisponibles,
+                'json' => json_encode($serviciosList, JSON_UNESCAPED_UNICODE),
+                'id_neg' => $id_negocio,
+                'id' => $clientData['id']
+            ]);
+        } else {
+            // Descontar 1 pase tradicional
+            $pdo->prepare("
+                UPDATE clientes_negocio 
+                SET pases_disponibles = GREATEST(0, pases_disponibles - 1),
+                    id_negocio = :id_neg,
+                    id_servicio = COALESCE(id_servicio, :id_serv),
+                    servicio = COALESCE(servicio, :serv),
+                    cancelaciones_permitidas = COALESCE(cancelaciones_permitidas, pases_totales, 4),
+                    cancelaciones_restantes = COALESCE(cancelaciones_restantes, pases_totales, 4),
+                    fecha_vencimiento = COALESCE(fecha_vencimiento, DATE_ADD(CURRENT_DATE, INTERVAL 1 MONTH)),
+                    estado = 'activo'
+                WHERE id = :id
+            ")->execute([
+                'id_neg' => $id_negocio,
+                'id_serv' => $id_servicio ?: null,
+                'serv' => $servicio ?: null,
+                'id' => $clientData['id']
+            ]);
+        }
 
         // 3. Insertar reserva en la tabla turnos
         $stmtIns = $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, metodo_pago, estado) VALUES (:id_negocio, :nombre, :email, :fecha, :hora, :servicio, :profesional, :id_servicio, 'Pase de Alumno', 'confirmado')");

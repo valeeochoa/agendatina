@@ -100,6 +100,8 @@ function actualizarMetricas() {
     if (document.getElementById('statAlumnosVencidos')) document.getElementById('statAlumnosVencidos').textContent = vencidos;
 }
 
+let serviciosAlumnoEnEdicion = [];
+
 function renderTablaAlumnos() {
     const tbody = document.getElementById('tablaAlumnosBody');
     if (!tbody) return;
@@ -142,20 +144,65 @@ function renderTablaAlumnos() {
             badgeHtml = `<span class="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 px-2.5 py-1 rounded-full text-[10px] font-extrabold"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Activo</span>`;
         }
 
+        // Obtener lista de servicios asignados (soporte para múltiples servicios o legado)
+        let sList = [];
+        try {
+            if (typeof c.servicios_pases_json === 'string' && c.servicios_pases_json.trim()) {
+                sList = JSON.parse(c.servicios_pases_json || '[]');
+            } else if (Array.isArray(c.servicios_pases_json)) {
+                sList = c.servicios_pases_json;
+            }
+        } catch(e) { sList = []; }
+
+        if (!Array.isArray(sList) || sList.length === 0) {
+            const legNombre = c.servicio || (c.id_servicio ? (allServicios.find(s => s.id == c.id_servicio)?.nombre || '') : '');
+            if (legNombre || c.id_servicio) {
+                sList = [{
+                    id_servicio: c.id_servicio,
+                    servicio: legNombre,
+                    etiqueta_pase: '',
+                    pases_disponibles: c.pases_disponibles,
+                    pases_totales: c.pases_totales || c.pases_disponibles,
+                    fecha_vencimiento: c.fecha_vencimiento
+                }];
+            }
+        }
+
+        let serviciosBadgesHtml = '';
+        if (sList.length > 0) {
+            serviciosBadgesHtml = sList.map(s => {
+                const sNom = s.servicio || (allServicios.find(x => x.id == s.id_servicio)?.nombre || 'Servicio');
+                const tag = s.etiqueta_pase ? `<span class="text-orange-600 font-bold ml-1">🏷️ ${escapeHtml(s.etiqueta_pase)}</span>` : '';
+                const pDisp = s.pases_disponibles ?? 0;
+                const pTot = s.pases_totales ?? pDisp;
+                return `
+                    <div class="inline-flex items-center gap-1.5 bg-orange-50/90 text-orange-950 border border-orange-200/80 px-2.5 py-1 rounded-lg text-[10px] font-extrabold mr-1.5 mb-1 shadow-2xs">
+                        <span class="material-symbols-outlined text-[13px] text-orange-600 shrink-0">fitness_center</span>
+                        <span>${escapeHtml(sNom)}</span>
+                        ${tag}
+                        <span class="bg-white/80 border border-orange-200 text-orange-800 px-1.5 py-0.2 rounded-md font-black">${pDisp}/${pTot}</span>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            serviciosBadgesHtml = `<button type="button" onclick="editarCliente(${c.id})" class="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300/80 px-2 py-0.5 rounded-md text-[10px] font-extrabold mt-0.5 transition-colors" title="Haz click para asignarle un servicio"><span class="material-symbols-outlined text-[12px]">add_link</span> Sin servicio (Asignar)</button>`;
+        }
+
         const vencText = c.fecha_vencimiento ? formatearFecha(c.fecha_vencimiento) : 'Sin Vencimiento';
-        const sNombre = c.servicio || (c.id_servicio ? (allServicios.find(s => s.id == c.id_servicio)?.nombre || '') : '');
 
         return `
             <tr class="hover:bg-slate-50/80 transition-colors">
                 <td class="py-4 px-6">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-orange-100 text-orange-700 font-extrabold flex items-center justify-center text-sm shrink-0">
+                    <div class="flex items-start gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-orange-100 text-orange-700 font-extrabold flex items-center justify-center text-sm shrink-0 mt-0.5">
                             ${c.nombre_completo.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                            <strong class="text-slate-900 font-bold block text-xs sm:text-sm">${c.nombre_completo}</strong>
-                            ${sNombre ? `<span class="inline-flex items-center gap-1 bg-orange-50 text-orange-700 border border-orange-200/60 px-2 py-0.5 rounded-md text-[10px] font-extrabold mt-0.5"><span class="material-symbols-outlined text-[12px]">fitness_center</span> ${escapeHtml(sNombre)}</span>` : `<button type="button" onclick="editarCliente(${c.id})" class="inline-flex items-center gap-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300/80 px-2 py-0.5 rounded-md text-[10px] font-extrabold mt-0.5 transition-colors" title="Haz click para asignarle un servicio"><span class="material-symbols-outlined text-[12px]">add_link</span> Sin servicio (Asignar)</button>`}
-                            ${c.notas ? `<span class="text-[11px] text-slate-400 block line-clamp-1 mt-0.5">${c.notas}</span>` : ''}
+                            <strong class="text-slate-900 font-bold block text-xs sm:text-sm mb-1">${c.nombre_completo}</strong>
+                            <div class="flex flex-wrap items-center">
+                                ${serviciosBadgesHtml}
+                            </div>
+                            ${c.notas ? `<span class="text-[11px] text-slate-400 block line-clamp-1 mt-0.5">${escapeHtml(c.notas)}</span>` : ''}
                         </div>
                     </div>
                 </td>
@@ -167,10 +214,11 @@ function renderTablaAlumnos() {
                     <div class="flex items-center gap-2">
                         <span class="text-sm font-extrabold text-slate-900">${c.pases_disponibles}</span>
                         <span class="text-[11px] text-slate-400 font-semibold">de ${c.pases_totales || c.pases_disponibles} clases</span>
-                        <button onclick="openModalAddPases(${c.id})" class="ml-1 text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 p-1 rounded-lg transition-colors" title="Añadir clases o renovar pases">
+                        <button onclick="openModalAddPases(${c.id})" class="ml-1 text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 p-1 rounded-lg transition-colors cursor-pointer" title="Añadir clases o renovar pases">
                             <span class="material-symbols-outlined text-[16px]">add_circle</span>
                         </button>
                     </div>
+                    ${sList.length > 1 ? `<span class="text-[10px] text-slate-400 font-bold block mt-0.5">${sList.length} servicios asignados</span>` : ''}
                 </td>
                 <td class="py-4 px-6 font-medium text-slate-600">
                     ${vencText}
@@ -180,10 +228,10 @@ function renderTablaAlumnos() {
                 </td>
                 <td class="py-4 px-6 text-right">
                     <div class="flex items-center justify-end gap-1.5">
-                        <button onclick="editarCliente(${c.id})" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors" title="Editar Alumno">
+                        <button onclick="editarCliente(${c.id})" class="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer" title="Editar Alumno">
                             <span class="material-symbols-outlined text-[18px]">edit</span>
                         </button>
-                        <button onclick="eliminarCliente(${c.id}, '${escapeHtml(c.nombre_completo)}')" class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors" title="Eliminar Alumno">
+                        <button onclick="eliminarCliente(${c.id}, '${escapeHtml(c.nombre_completo)}')" class="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer" title="Eliminar Alumno">
                             <span class="material-symbols-outlined text-[18px]">delete</span>
                         </button>
                     </div>
@@ -194,18 +242,6 @@ function renderTablaAlumnos() {
 }
 
 function poblarServiciosDropdowns() {
-    const selCliente = document.getElementById('clienteServicio');
-    if (selCliente) {
-        const currentVal = selCliente.value;
-        let html = '<option value="">-- Seleccionar Servicio --</option>';
-        allServicios.forEach(s => {
-            const cupoText = s.cupo_maximo ? `${s.cupo_maximo} cupos` : '1 cupo';
-            html += `<option value="${s.id}">${escapeHtml(s.nombre)} (${cupoText})</option>`;
-        });
-        selCliente.innerHTML = html;
-        if (currentVal) selCliente.value = currentVal;
-    }
-
     const selInvite = document.getElementById('inviteModalServicio');
     if (selInvite) {
         const currentVal = selInvite.value;
@@ -222,26 +258,11 @@ function poblarServiciosDropdowns() {
     }
 }
 
-function onClienteServicioChange(selectedCupos = null) {
-    const sel = document.getElementById('clienteServicio');
-    const containerPaq = document.getElementById('containerClientePaquete');
-    const selectPaq = document.getElementById('clientePaqueteSelect');
-    const pasesInput = document.getElementById('clientePases');
-    const vencInput = document.getElementById('clienteVencimiento');
-    const infoBanner = document.getElementById('clientePasesInfoBanner');
-    const infoText = document.getElementById('clientePasesInfoText');
-
-    if (!sel || !sel.value) {
-        if (containerPaq) containerPaq.classList.add('hidden');
-        if (infoBanner) infoBanner.classList.add('hidden');
-        return;
-    }
-
-    const servId = sel.value;
+function obtenerPaquetesDeServicio(servId) {
+    if (!servId) return [];
     const serv = allServicios.find(s => s.id == servId);
-    if (!serv) return;
+    if (!serv) return [];
 
-    // Parsear paquetes de precios configurados para este servicio por el negocio
     let pkgs = [];
     try {
         if (typeof serv.precios_paquetes_json === 'string') {
@@ -251,116 +272,236 @@ function onClienteServicioChange(selectedCupos = null) {
         }
     } catch(e) { pkgs = []; }
 
-    // Filtrar paquetes válidos con cupos definidos
-    pkgs = Array.isArray(pkgs) ? pkgs.filter(p => parseInt(p.cupos, 10) > 0) : [];
+    return Array.isArray(pkgs) ? pkgs.filter(p => parseInt(p.cupos, 10) > 0) : [];
+}
 
-    // Poblar selector de tipos de pase
-    if (selectPaq && containerPaq) {
-        let paqHtml = `<option value="">-- Seleccionar Paquete del Negocio --</option>`;
+// -------------------------------------------------------------
+// MANEJO DE FILAS DINÁMICAS DE SERVICIOS Y PASES EN EL MODAL
+// -------------------------------------------------------------
+function renderServiciosAlumnoRows() {
+    const container = document.getElementById('serviciosAlumnoLista');
+    if (!container) return;
+
+    if (serviciosAlumnoEnEdicion.length === 0) {
+        container.innerHTML = `
+            <div class="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl text-center">
+                <span class="material-symbols-outlined text-amber-600 text-2xl mb-1">warning</span>
+                <p class="text-xs font-bold text-amber-900">No se ha asignado ningún servicio al alumno.</p>
+                <p class="text-[11px] text-amber-700 mt-0.5">Haz click en "+ Asignar Servicio" para configurar sus clases.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const defaultVencDate = new Date();
+    defaultVencDate.setDate(defaultVencDate.getDate() + 30);
+    const defaultVencIso = defaultVencDate.toISOString().split('T')[0];
+
+    container.innerHTML = serviciosAlumnoEnEdicion.map((item, idx) => {
+        const pkgs = obtenerPaquetesDeServicio(item.id_servicio);
+        const totalRows = serviciosAlumnoEnEdicion.length;
+
+        // Opciones del selector de servicios
+        let servOptionsHtml = `<option value="">-- Seleccionar Servicio --</option>`;
+        allServicios.forEach(s => {
+            const isSel = s.id == item.id_servicio ? 'selected' : '';
+            const cupoText = s.cupo_maximo ? `${s.cupo_maximo} cupos` : '1 cupo';
+            servOptionsHtml += `<option value="${s.id}" ${isSel}>${escapeHtml(s.nombre)} (${cupoText})</option>`;
+        });
+
+        // Opciones del selector de paquetes con etiquetas configuradas por el negocio
+        let paqOptionsHtml = `<option value="">-- Seleccionar Paquete / Pase --</option>`;
+        let matchedPkg = false;
 
         if (pkgs.length > 0) {
             pkgs.forEach(p => {
                 const cupos = parseInt(p.cupos, 10);
                 const precio = parseFloat(p.precio || 0);
                 const precioFmt = precio > 0 ? ` - $${precio.toLocaleString('es-AR')}` : '';
-                paqHtml += `<option value="${cupos}" data-tipo="paquete">📦 Paquete ${cupos} clases${precioFmt}</option>`;
+                
+                // Si el negocio configuró una etiqueta personalizada para el pase (ej: "Pase 8 Clases", "Plan Mensual 12 Clases")
+                let textoOpcion = '';
+                if (p.etiqueta && p.etiqueta.trim()) {
+                    textoOpcion = `🏷️ ${escapeHtml(p.etiqueta)} (${cupos} clases${precioFmt})`;
+                } else {
+                    textoOpcion = `📦 Paquete ${cupos} clases${precioFmt}`;
+                }
+
+                // Identificar si coincide con la opción seleccionada
+                const isSelected = (!item.es_manual && (
+                    (item.etiqueta_pase && item.etiqueta_pase === p.etiqueta) || 
+                    (!item.etiqueta_pase && parseInt(item.pases_disponibles, 10) === cupos)
+                ));
+
+                if (isSelected) matchedPkg = true;
+
+                paqOptionsHtml += `<option value="${cupos}" data-etiqueta="${escapeHtml(p.etiqueta || '')}" data-precio="${precio}" ${isSelected ? 'selected' : ''}>${textoOpcion}</option>`;
             });
         }
-        paqHtml += `<option value="manual" data-tipo="manual">✍️ Carga Manual / Personalizada</option>`;
-        selectPaq.innerHTML = paqHtml;
-        containerPaq.classList.remove('hidden');
 
-        // Seleccionar cupo indicado o el primer paquete establecido por el negocio
-        if (selectedCupos !== null) {
-            const matchesPkg = pkgs.some(p => parseInt(p.cupos, 10) === parseInt(selectedCupos, 10));
-            if (matchesPkg) {
-                selectPaq.value = selectedCupos;
-                if (pasesInput) pasesInput.value = selectedCupos;
-            } else {
-                selectPaq.value = 'manual';
-                if (pasesInput) pasesInput.value = selectedCupos;
-            }
-        } else if (pkgs.length > 0) {
-            selectPaq.value = pkgs[0].cupos;
-            if (pasesInput) pasesInput.value = pkgs[0].cupos;
-        } else {
-            selectPaq.value = 'manual';
-            if (pasesInput && !pasesInput.value) pasesInput.value = 4;
+        const isManualSelected = item.es_manual || (!matchedPkg && item.pases_disponibles !== undefined && item.pases_disponibles !== null);
+        paqOptionsHtml += `<option value="manual" ${isManualSelected ? 'selected' : ''}>✍️ Carga Manual / Personalizada</option>`;
+
+        const pasesDisp = item.pases_disponibles !== undefined && item.pases_disponibles !== null ? item.pases_disponibles : 4;
+        const vencVal = item.fecha_vencimiento || defaultVencIso;
+
+        return `
+            <div class="p-3.5 bg-white border border-orange-200/90 rounded-2xl shadow-2xs space-y-3 relative group" id="filaServicioAlumno_${idx}">
+                <!-- Encabezado de la Fila -->
+                <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-orange-100 text-orange-700 text-[11px] font-black flex items-center justify-center shrink-0">${idx + 1}</span>
+                        <span class="text-xs font-extrabold text-slate-800">Servicio y Pases</span>
+                        ${item.etiqueta_pase ? `<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full truncate max-w-[170px]">🏷️ ${escapeHtml(item.etiqueta_pase)}</span>` : ''}
+                    </div>
+
+                    ${totalRows > 1 ? `
+                        <button type="button" onclick="eliminarFilaServicioAlumno(${idx})" class="text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-2 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer" title="Quitar este servicio">
+                            <span class="material-symbols-outlined text-[14px]">delete</span> Quitar
+                        </button>
+                    ` : ''}
+                </div>
+
+                <!-- Selector de Servicio -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Servicio Asignado *</label>
+                    <select onchange="onServicioRowChange(${idx}, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-extrabold text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none">
+                        ${servOptionsHtml}
+                    </select>
+                </div>
+
+                <!-- Selector de Paquetes / Pases con Etiquetas -->
+                ${item.id_servicio ? `
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Pase / Paquete Configurado del Servicio</label>
+                        <select onchange="onPaqueteRowChange(${idx}, this)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-extrabold text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none">
+                            ${paqOptionsHtml}
+                        </select>
+                        <span class="text-[10px] text-slate-400 mt-1 block">Muestra los pases y etiquetas comerciales que definiste en la configuración de este servicio.</span>
+                    </div>
+                ` : ''}
+
+                <!-- Grilla de Clases y Vencimiento -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Clases / Créditos Acreditados *</label>
+                        <div class="relative">
+                            <input type="number" min="0" value="${pasesDisp}" oninput="onManualPasesRowInput(${idx}, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-3.5 pr-12 py-2 text-xs font-extrabold text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none" required>
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">clases</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Fecha de Vencimiento del Pase</label>
+                        <input type="date" value="${vencVal}" onchange="onVencimientoRowInput(${idx}, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-orange-500 outline-none">
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function agregarFilaServicioAlumno(data = null) {
+    if (data) {
+        serviciosAlumnoEnEdicion.push(data);
+    } else {
+        // Encontrar un servicio no asignado todavía o el primero disponible
+        let nuevoServId = '';
+        let nuevoServNombre = '';
+        if (allServicios.length > 0) {
+            const yaAsignados = serviciosAlumnoEnEdicion.map(s => String(s.id_servicio));
+            const disponible = allServicios.find(s => !yaAsignados.includes(String(s.id)));
+            const selServ = disponible || allServicios[0];
+            nuevoServId = selServ.id;
+            nuevoServNombre = selServ.nombre;
         }
 
-        // Si es un paquete del negocio, ocultar inputs manuales de cupos y vencimiento
-        const contManual = document.getElementById('containerCamposManuales');
-        if (contManual) {
-            if (selectPaq.value === 'manual') {
-                contManual.classList.remove('hidden');
-            } else {
-                contManual.classList.add('hidden');
-            }
+        const pkgs = obtenerPaquetesDeServicio(nuevoServId);
+        let cuposIni = 8;
+        let etiquetaIni = '';
+        if (pkgs.length > 0) {
+            cuposIni = parseInt(pkgs[0].cupos, 10);
+            etiquetaIni = pkgs[0].etiqueta || `Pase ${cuposIni} Clases`;
         }
-    }
 
-    if (vencInput && !vencInput.value) {
         const defaultDate = new Date();
         defaultDate.setDate(defaultDate.getDate() + 30);
-        vencInput.value = defaultDate.toISOString().split('T')[0];
+
+        serviciosAlumnoEnEdicion.push({
+            id_servicio: nuevoServId,
+            servicio: nuevoServNombre,
+            etiqueta_pase: etiquetaIni,
+            pases_disponibles: cuposIni,
+            pases_totales: cuposIni,
+            fecha_vencimiento: defaultDate.toISOString().split('T')[0],
+            es_manual: false
+        });
     }
 
-    actualizarBannerInfoPases();
+    renderServiciosAlumnoRows();
 }
 
-function onClientePaqueteChange() {
-    const selectPaq = document.getElementById('clientePaqueteSelect');
-    const pasesInput = document.getElementById('clientePases');
-    const contManual = document.getElementById('containerCamposManuales');
-    if (!selectPaq || !pasesInput) return;
-
-    const val = selectPaq.value;
-    if (val && val !== 'manual') {
-        pasesInput.value = parseInt(val, 10);
-        if (contManual) contManual.classList.add('hidden');
-    } else if (val === 'manual') {
-        if (contManual) contManual.classList.remove('hidden');
-        pasesInput.focus();
-    }
-    actualizarBannerInfoPases();
+function eliminarFilaServicioAlumno(idx) {
+    if (serviciosAlumnoEnEdicion.length <= 1) return;
+    serviciosAlumnoEnEdicion.splice(idx, 1);
+    renderServiciosAlumnoRows();
 }
 
-function actualizarBannerInfoPases() {
-    const sel = document.getElementById('clienteServicio');
-    const pasesInput = document.getElementById('clientePases');
-    const infoBanner = document.getElementById('clientePasesInfoBanner');
-    const infoText = document.getElementById('clientePasesInfoText');
+function onServicioRowChange(idx, newServId) {
+    if (!serviciosAlumnoEnEdicion[idx]) return;
 
-    if (!sel || !sel.value || !pasesInput || !infoBanner || !infoText) return;
+    const serv = allServicios.find(s => s.id == newServId);
+    serviciosAlumnoEnEdicion[idx].id_servicio = newServId ? parseInt(newServId, 10) : null;
+    serviciosAlumnoEnEdicion[idx].servicio = serv ? serv.nombre : '';
 
-    const serv = allServicios.find(s => s.id == sel.value);
-    const cant = parseInt(pasesInput.value || 0, 10);
-
-    if (serv) {
-        infoText.innerHTML = `Asignado a <strong>${escapeHtml(serv.nombre)}</strong> con <strong>${cant} pases/clases</strong>.`;
-        infoBanner.classList.remove('hidden');
+    const pkgs = obtenerPaquetesDeServicio(newServId);
+    if (pkgs.length > 0) {
+        const p0 = pkgs[0];
+        const c = parseInt(p0.cupos, 10);
+        serviciosAlumnoEnEdicion[idx].pases_disponibles = c;
+        serviciosAlumnoEnEdicion[idx].pases_totales = c;
+        serviciosAlumnoEnEdicion[idx].etiqueta_pase = p0.etiqueta || `Pase ${c} Clases`;
+        serviciosAlumnoEnEdicion[idx].es_manual = false;
     } else {
-        infoBanner.classList.add('hidden');
+        serviciosAlumnoEnEdicion[idx].pases_disponibles = 4;
+        serviciosAlumnoEnEdicion[idx].pases_totales = 4;
+        serviciosAlumnoEnEdicion[idx].etiqueta_pase = 'Manual';
+        serviciosAlumnoEnEdicion[idx].es_manual = true;
+    }
+
+    renderServiciosAlumnoRows();
+}
+
+function onPaqueteRowChange(idx, selectEl) {
+    if (!serviciosAlumnoEnEdicion[idx] || !selectEl) return;
+
+    const val = selectEl.value;
+    if (val === 'manual') {
+        serviciosAlumnoEnEdicion[idx].es_manual = true;
+        serviciosAlumnoEnEdicion[idx].etiqueta_pase = 'Manual';
+        renderServiciosAlumnoRows();
+    } else if (val) {
+        const selectedOpt = selectEl.options[selectEl.selectedIndex];
+        const etq = selectedOpt ? selectedOpt.getAttribute('data-etiqueta') : '';
+        const cupos = parseInt(val, 10);
+
+        serviciosAlumnoEnEdicion[idx].es_manual = false;
+        serviciosAlumnoEnEdicion[idx].pases_disponibles = cupos;
+        serviciosAlumnoEnEdicion[idx].pases_totales = cupos;
+        serviciosAlumnoEnEdicion[idx].etiqueta_pase = etq || `Pase ${cupos} Clases`;
+        renderServiciosAlumnoRows();
     }
 }
 
-function filtrarAlumnos() {
-    renderTablaAlumnos();
+function onManualPasesRowInput(idx, val) {
+    if (!serviciosAlumnoEnEdicion[idx]) return;
+    const num = Math.max(0, parseInt(val || 0, 10));
+    serviciosAlumnoEnEdicion[idx].pases_disponibles = num;
+    serviciosAlumnoEnEdicion[idx].pases_totales = num;
 }
 
-function filtrarEstado(estado) {
-    filtroActual = estado;
-    ['btnFiltroTodos', 'btnFiltroActivos', 'btnFiltroSinPases', 'btnFiltroVencidos'].forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) btn.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all';
-    });
-
-    if (estado === 'todos') document.getElementById('btnFiltroTodos').className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold bg-slate-900 text-white shadow-sm transition-all';
-    if (estado === 'activo') document.getElementById('btnFiltroActivos').className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 text-white shadow-sm transition-all';
-    if (estado === 'sin_pases') document.getElementById('btnFiltroSinPases').className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold bg-amber-600 text-white shadow-sm transition-all';
-    if (estado === 'vencido') document.getElementById('btnFiltroVencidos').className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold bg-rose-600 text-white shadow-sm transition-all';
-
-    renderTablaAlumnos();
+function onVencimientoRowInput(idx, val) {
+    if (!serviciosAlumnoEnEdicion[idx]) return;
+    serviciosAlumnoEnEdicion[idx].fecha_vencimiento = val || null;
 }
 
 function openModalCliente(cliente = null) {
@@ -372,6 +513,11 @@ function openModalCliente(cliente = null) {
     if (form) form.reset();
 
     poblarServiciosDropdowns();
+    serviciosAlumnoEnEdicion = [];
+
+    const defaultDate = new Date();
+    defaultDate.setDate(defaultDate.getDate() + 30);
+    const defaultDateStr = defaultDate.toISOString().split('T')[0];
 
     if (cliente) {
         document.getElementById('modalClienteTitle').textContent = 'Editar Alumno';
@@ -379,55 +525,54 @@ function openModalCliente(cliente = null) {
         document.getElementById('clienteNombre').value = cliente.nombre_completo || '';
         document.getElementById('clienteEmail').value = cliente.email || '';
         document.getElementById('clienteTelefono').value = cliente.telefono || '';
-        document.getElementById('clientePases').value = cliente.pases_disponibles || 0;
-        document.getElementById('clienteVencimiento').value = cliente.fecha_vencimiento || '';
         document.getElementById('clienteNotas').value = cliente.notas || '';
-        
-        const selServ = document.getElementById('clienteServicio');
-        if (selServ) {
-            // Resolver ID del servicio (directo o por nombre coincidente)
+
+        // Cargar múltiples servicios del alumno si existen en servicios_pases_json
+        let sList = [];
+        try {
+            if (typeof cliente.servicios_pases_json === 'string' && cliente.servicios_pases_json.trim()) {
+                sList = JSON.parse(cliente.servicios_pases_json || '[]');
+            } else if (Array.isArray(cliente.servicios_pases_json)) {
+                sList = cliente.servicios_pases_json;
+            }
+        } catch(e) { sList = []; }
+
+        if (Array.isArray(sList) && sList.length > 0) {
+            serviciosAlumnoEnEdicion = sList.map(s => ({
+                id_servicio: s.id_servicio,
+                servicio: s.servicio || (allServicios.find(x => x.id == s.id_servicio)?.nombre || ''),
+                etiqueta_pase: s.etiqueta_pase || '',
+                pases_disponibles: s.pases_disponibles !== undefined ? parseInt(s.pases_disponibles, 10) : 0,
+                pases_totales: s.pases_totales !== undefined ? parseInt(s.pases_totales, 10) : (s.pases_disponibles || 0),
+                fecha_vencimiento: s.fecha_vencimiento || cliente.fecha_vencimiento || defaultDateStr,
+                es_manual: false
+            }));
+        } else if (cliente.id_servicio || cliente.servicio) {
             let sId = cliente.id_servicio || '';
             if (!sId && cliente.servicio) {
                 const found = allServicios.find(s => s.nombre.toLowerCase().trim() === cliente.servicio.toLowerCase().trim());
                 if (found) sId = found.id;
             }
-            selServ.value = sId;
-
-            if (sId) {
-                onClienteServicioChange(cliente.pases_totales || cliente.pases_disponibles);
-            } else {
-                // Alumno sin servicio asignado previamente: permitir asignarlo libremente
-                const containerPaq = document.getElementById('containerClientePaquete');
-                if (containerPaq) containerPaq.classList.add('hidden');
-                const infoBanner = document.getElementById('clientePasesInfoBanner');
-                const infoText = document.getElementById('clientePasesInfoText');
-                if (infoBanner && infoText) {
-                    infoText.innerHTML = `⚠️ <strong class="text-amber-700">Sin servicio asignado:</strong> Elegí un servicio arriba para vincular las clases del alumno.`;
-                    infoBanner.classList.remove('hidden');
-                }
-            }
+            serviciosAlumnoEnEdicion = [{
+                id_servicio: sId ? parseInt(sId, 10) : null,
+                servicio: cliente.servicio || (allServicios.find(x => x.id == sId)?.nombre || ''),
+                etiqueta_pase: '',
+                pases_disponibles: cliente.pases_disponibles !== undefined ? parseInt(cliente.pases_disponibles, 10) : 0,
+                pases_totales: cliente.pases_totales !== undefined ? parseInt(cliente.pases_totales, 10) : (cliente.pases_disponibles || 0),
+                fecha_vencimiento: cliente.fecha_vencimiento || defaultDateStr,
+                es_manual: false
+            }];
+        } else {
+            // Sin servicio previo: crear una fila limpia
+            agregarFilaServicioAlumno();
         }
     } else {
         document.getElementById('modalClienteTitle').textContent = 'Cargar Nuevo Alumno';
         document.getElementById('clienteId').value = '';
-        const selServ = document.getElementById('clienteServicio');
-        if (selServ && allServicios.length === 1) {
-            selServ.value = allServicios[0].id;
-            onClienteServicioChange();
-        } else {
-            if (selServ) selServ.value = '';
-            document.getElementById('clientePases').value = 8;
-            const defaultDate = new Date();
-            defaultDate.setDate(defaultDate.getDate() + 30);
-            document.getElementById('clienteVencimiento').value = defaultDate.toISOString().split('T')[0];
-            const containerPaq = document.getElementById('containerClientePaquete');
-            if (containerPaq) containerPaq.classList.add('hidden');
-            const contManual = document.getElementById('containerCamposManuales');
-            if (contManual) contManual.classList.add('hidden');
-            const infoBanner = document.getElementById('clientePasesInfoBanner');
-            if (infoBanner) infoBanner.classList.add('hidden');
-        }
+        agregarFilaServicioAlumno();
     }
+
+    renderServiciosAlumnoRows();
 
     const modal = document.getElementById('modalCliente');
     if (modal) modal.classList.remove('hidden');
@@ -436,6 +581,7 @@ function openModalCliente(cliente = null) {
 function closeModalCliente() {
     const modal = document.getElementById('modalCliente');
     if (modal) modal.classList.add('hidden');
+    serviciosAlumnoEnEdicion = [];
 }
 
 function guardarCliente(e) {
@@ -447,24 +593,26 @@ function guardarCliente(e) {
     const btn = document.getElementById('btnGuardarCliente');
     if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
 
-    const selectedServId = document.getElementById('clienteServicio')?.value || null;
-    const selectedServObj = allServicios.find(s => s.id == selectedServId);
-    const selPaq = document.getElementById('clientePaqueteSelect');
-    let pasesVal = parseInt(document.getElementById('clientePases')?.value || 0, 10);
-    if (selPaq && selPaq.value && selPaq.value !== 'manual') {
-        pasesVal = parseInt(selPaq.value, 10);
+    // Asegurar que al menos un servicio tenga id_servicio seleccionado si hay servicios en la cuenta
+    if (allServicios.length > 0) {
+        const algunValido = serviciosAlumnoEnEdicion.some(s => s.id_servicio);
+        if (!algunValido) {
+            if (btn) { btn.disabled = false; btn.textContent = 'Guardar Alumno'; }
+            if (typeof showToast === 'function') showToast('Debes seleccionar al menos un servicio para asignar al alumno.', 'error');
+            return;
+        }
     }
+
+    // Filtrar servicios vacíos sin servicio seleccionado si hay más de 1
+    const serviciosFiltrados = serviciosAlumnoEnEdicion.filter(s => s.id_servicio || serviciosAlumnoEnEdicion.length === 1);
 
     const payload = {
         id: document.getElementById('clienteId')?.value || null,
         nombre_completo: document.getElementById('clienteNombre')?.value || '',
         email: document.getElementById('clienteEmail')?.value || '',
         telefono: document.getElementById('clienteTelefono')?.value || '',
-        id_servicio: selectedServId,
-        servicio: selectedServObj ? selectedServObj.nombre : '',
-        pases_disponibles: pasesVal,
-        fecha_vencimiento: document.getElementById('clienteVencimiento')?.value || null,
-        notas: document.getElementById('clienteNotas')?.value || ''
+        notas: document.getElementById('clienteNotas')?.value || '',
+        servicios_asignados: serviciosFiltrados
     };
 
     fetch('backend/gestionar_clientes.php', {
@@ -487,6 +635,25 @@ function guardarCliente(e) {
         if (btn) { btn.disabled = false; btn.textContent = 'Guardar Alumno'; }
         console.error('Error:', err);
     });
+}
+
+function filtrarAlumnos() {
+    renderTablaAlumnos();
+}
+
+function filtrarEstado(estado) {
+    filtroActual = estado;
+    ['btnFiltroTodos', 'btnFiltroActivos', 'btnFiltroSinPases', 'btnFiltroVencidos'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all';
+    });
+
+    if (estado === 'todos') document.getElementById('btnFiltroTodos').className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold bg-slate-900 text-white shadow-sm transition-all';
+    if (estado === 'activo') document.getElementById('btnFiltroActivos').className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 text-white shadow-sm transition-all';
+    if (estado === 'sin_pases') document.getElementById('btnFiltroSinPases').className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold bg-amber-600 text-white shadow-sm transition-all';
+    if (estado === 'vencido') document.getElementById('btnFiltroVencidos').className = 'px-3.5 py-2 rounded-xl text-xs font-extrabold bg-rose-600 text-white shadow-sm transition-all';
+
+    renderTablaAlumnos();
 }
 
 function editarCliente(id) {
@@ -562,7 +729,11 @@ function ejecutarEliminarAlumno(idOverride = null) {
     });
 }
 
-// Modal Cargar Más Pases Rápidos / Asociados al Servicio
+// -------------------------------------------------------------
+// MODAL RECARGA RÁPIDA DE PASES (CON SOPORTE MULTI-SERVICIO)
+// -------------------------------------------------------------
+let currentAddPasesCliente = null;
+
 function openModalAddPases(id, nombreOverride = null) {
     if (!isPremiumAccount) {
         showPremiumModalNotice();
@@ -570,15 +741,88 @@ function openModalAddPases(id, nombreOverride = null) {
     }
 
     const cliente = allClientes.find(c => c.id == id);
-    const alumnoNombre = cliente ? cliente.nombre_completo : (nombreOverride || '');
-    
+    if (!cliente) return;
+    currentAddPasesCliente = cliente;
+
+    const alumnoNombre = cliente.nombre_completo || (nombreOverride || '');
     document.getElementById('addPasesClienteId').value = id;
     document.getElementById('addPasesNombreAlumno').textContent = `Alumno: ${alumnoNombre}`;
-    
-    // Identificar servicio del alumno
-    const servId = cliente ? (cliente.id_servicio || null) : null;
-    let serv = servId ? allServicios.find(s => s.id == servId) : null;
-    if (!serv && cliente && cliente.servicio) {
+
+    // Obtener servicios asignados al alumno
+    let sList = [];
+    try {
+        if (typeof cliente.servicios_pases_json === 'string' && cliente.servicios_pases_json.trim()) {
+            sList = JSON.parse(cliente.servicios_pases_json || '[]');
+        } else if (Array.isArray(cliente.servicios_pases_json)) {
+            sList = cliente.servicios_pases_json;
+        }
+    } catch(e) { sList = []; }
+
+    const selectorContainer = document.getElementById('addPasesSelectorServicioContainer');
+    const selectServ = document.getElementById('addPasesServicioSelect');
+
+    let targetServId = null;
+
+    if (Array.isArray(sList) && sList.length > 1) {
+        // Alumno con múltiples servicios asignados: mostrar selector de servicio
+        if (selectorContainer && selectServ) {
+            let optsHtml = '';
+            sList.forEach((s, idx) => {
+                const sNom = s.servicio || (allServicios.find(x => x.id == s.id_servicio)?.nombre || `Servicio ${idx + 1}`);
+                const pDisp = s.pases_disponibles ?? 0;
+                const pTot = s.pases_totales ?? pDisp;
+                optsHtml += `<option value="${s.id_servicio}">${escapeHtml(sNom)} (${pDisp}/${pTot} clases)</option>`;
+            });
+            selectServ.innerHTML = optsHtml;
+            selectorContainer.classList.remove('hidden');
+            targetServId = sList[0].id_servicio;
+        }
+    } else {
+        if (selectorContainer) selectorContainer.classList.add('hidden');
+        if (sList.length === 1 && sList[0].id_servicio) {
+            targetServId = sList[0].id_servicio;
+        } else {
+            targetServId = cliente.id_servicio || null;
+        }
+    }
+
+    renderAddPasesUI(cliente, targetServId);
+
+    // Reset sección manual
+    const sec = document.getElementById('sectionCustomPases');
+    if (sec) sec.classList.add('hidden');
+    const inp = document.getElementById('inputCustomPases');
+    if (inp) inp.value = '';
+
+    const modal = document.getElementById('modalAddPases');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function onAddPasesServicioSelectedChange() {
+    const selectServ = document.getElementById('addPasesServicioSelect');
+    const targetServId = selectServ ? selectServ.value : null;
+    if (currentAddPasesCliente) {
+        renderAddPasesUI(currentAddPasesCliente, targetServId);
+    }
+}
+
+function renderAddPasesUI(cliente, targetServId) {
+    // Buscar datos del servicio seleccionado dentro del alumno o de allServicios
+    let servItemInAlumno = null;
+    try {
+        let sList = [];
+        if (typeof cliente.servicios_pases_json === 'string' && cliente.servicios_pases_json.trim()) {
+            sList = JSON.parse(cliente.servicios_pases_json || '[]');
+        } else if (Array.isArray(cliente.servicios_pases_json)) {
+            sList = cliente.servicios_pases_json;
+        }
+        if (Array.isArray(sList) && sList.length > 0) {
+            servItemInAlumno = sList.find(s => String(s.id_servicio) === String(targetServId)) || sList[0];
+        }
+    } catch(e) {}
+
+    let serv = targetServId ? allServicios.find(s => String(s.id) === String(targetServId)) : null;
+    if (!serv && cliente.servicio) {
         serv = allServicios.find(s => s.nombre.toLowerCase().trim() === cliente.servicio.toLowerCase().trim());
     }
 
@@ -586,32 +830,34 @@ function openModalAddPases(id, nombreOverride = null) {
     if (elServicio) {
         if (serv) {
             elServicio.innerHTML = `Servicio: <strong class="text-slate-700">${escapeHtml(serv.nombre)}</strong>`;
-        } else if (cliente && cliente.servicio) {
+        } else if (servItemInAlumno && servItemInAlumno.servicio) {
+            elServicio.innerHTML = `Servicio: <strong class="text-slate-700">${escapeHtml(servItemInAlumno.servicio)}</strong>`;
+        } else if (cliente.servicio) {
             elServicio.innerHTML = `Servicio: <strong class="text-slate-700">${escapeHtml(cliente.servicio)}</strong>`;
         } else {
             elServicio.innerHTML = `Servicio: <span class="text-slate-400 italic">General / No asignado</span>`;
         }
     }
 
-    // Mostrar estado y balance actual
+    // Mostrar estado y balance actual del servicio seleccionado o general
     const elBalance = document.getElementById('addPasesBalanceActualText');
     if (elBalance) {
-        const disp = cliente ? cliente.pases_disponibles : 0;
-        const tot = cliente ? (cliente.pases_totales || cliente.pases_disponibles) : 0;
+        const disp = servItemInAlumno ? servItemInAlumno.pases_disponibles : cliente.pases_disponibles;
+        const tot = servItemInAlumno ? (servItemInAlumno.pases_totales || servItemInAlumno.pases_disponibles) : (cliente.pases_totales || cliente.pases_disponibles);
         elBalance.innerHTML = `${disp} <span class="text-xs font-semibold text-slate-400">de ${tot} clases</span>`;
     }
 
     const elVenc = document.getElementById('addPasesVencimientoActualText');
     if (elVenc) {
-        elVenc.textContent = cliente && cliente.fecha_vencimiento ? formatearFecha(cliente.fecha_vencimiento) : 'Sin vencimiento';
+        const venc = servItemInAlumno && servItemInAlumno.fecha_vencimiento ? servItemInAlumno.fecha_vencimiento : cliente.fecha_vencimiento;
+        elVenc.textContent = venc ? formatearFecha(venc) : 'Sin vencimiento';
     }
 
-    // Poblar botones dinámicos de pases
+    // Poblar botones dinámicos de pases del servicio
     const containerBotones = document.getElementById('addPasesBotonesContainer');
     if (containerBotones) {
         let botones = [];
 
-        // 1. Obtener únicamente los paquetes comerciales configurados del servicio por el negocio
         if (serv) {
             let pkgs = [];
             try {
@@ -626,11 +872,12 @@ function openModalAddPases(id, nombreOverride = null) {
                 pkgs.forEach(p => {
                     const c = parseInt(p.cupos, 10);
                     if (c > 0 && !botones.some(b => b.cupos === c)) {
-                        const precioFmt = p.precio ? `$${parseFloat(p.precio).toLocaleString('es-AR')}` : 'Paquete';
+                        const precioFmt = p.precio ? `$${parseFloat(p.precio).toLocaleString('es-AR')}` : '';
+                        const etqFmt = p.etiqueta ? p.etiqueta : (precioFmt ? precioFmt : 'Paquete');
                         botones.push({
                             cupos: c,
                             label: `+${c}`,
-                            sub: precioFmt,
+                            sub: etqFmt,
                             color: 'purple'
                         });
                     }
@@ -640,39 +887,37 @@ function openModalAddPases(id, nombreOverride = null) {
 
         let botonesHtml = '';
 
-        if (!serv) {
-            // Si el alumno no tiene servicio asignado, advertir y permitir asignarlo directamente
+        if (!serv && !servItemInAlumno) {
             botonesHtml += `
                 <div class="col-span-2 p-3 bg-amber-50 border border-amber-200 rounded-xl mb-1 text-center">
                     <p class="text-xs text-amber-800 font-bold mb-1">Este alumno no tiene servicio asignado.</p>
-                    <button type="button" onclick="closeModalAddPases(); editarCliente(${id});" class="text-xs text-orange-600 hover:text-orange-700 font-extrabold underline inline-flex items-center gap-1">
+                    <button type="button" onclick="closeModalAddPases(); editarCliente(${cliente.id});" class="text-xs text-orange-600 hover:text-orange-700 font-extrabold underline inline-flex items-center gap-1 cursor-pointer">
                         <span class="material-symbols-outlined text-[14px]">edit</span> Asignar servicio ahora
                     </button>
                 </div>
             `;
         } else if (botones.length === 0) {
-            // Si el servicio no tiene paquetes cargados por el negocio
             botonesHtml += `
                 <div class="col-span-2 p-3 bg-slate-50 border border-slate-200 rounded-xl mb-1 text-center">
                     <p class="text-xs text-slate-500 font-medium">El servicio no tiene paquetes de clases configurados.</p>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Podés ingresar la cantidad deseada con el botón Manual.</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Podés ingresar la cantidad deseada con el botón Carga Manual.</p>
                 </div>
             `;
         }
 
         if (botones.length > 0) {
             botonesHtml += botones.map(b => `
-                <button type="button" onclick="confirmAddPases(${b.cupos})" class="p-3 rounded-2xl border-2 border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 text-slate-800 font-extrabold text-sm transition-all flex flex-col items-center gap-0.5 group">
+                <button type="button" onclick="confirmAddPases(${b.cupos})" class="p-3 rounded-2xl border-2 border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 text-slate-800 font-extrabold text-sm transition-all flex flex-col items-center gap-0.5 group cursor-pointer">
                     <span class="text-base text-emerald-600 group-hover:scale-110 transition-transform">${b.label}</span>
                     <span class="text-[10px] font-bold text-slate-500 truncate max-w-full">${escapeHtml(b.sub)}</span>
                 </button>
             `).join('');
         }
 
-        // Botón Otro (manual)
+        // Botón Carga Manual
         const colSpanClass = (botones.length === 0) ? 'col-span-2' : '';
         botonesHtml += `
-            <button type="button" onclick="toggleCustomPasesInput()" id="btnToggleCustomPases" class="${colSpanClass} p-3 rounded-2xl border-2 border-slate-200 hover:border-orange-500 hover:bg-orange-50 text-slate-800 font-extrabold text-sm transition-all flex flex-col items-center justify-center gap-0.5 group">
+            <button type="button" onclick="toggleCustomPasesInput()" id="btnToggleCustomPases" class="${colSpanClass} p-3 rounded-2xl border-2 border-slate-200 hover:border-orange-500 hover:bg-orange-50 text-slate-800 font-extrabold text-sm transition-all flex flex-col items-center justify-center gap-0.5 group cursor-pointer">
                 <span class="text-base text-orange-600 group-hover:scale-110 transition-transform">+Otro</span>
                 <span class="text-[10px] font-bold text-slate-500 uppercase">Carga Manual</span>
             </button>
@@ -680,18 +925,10 @@ function openModalAddPases(id, nombreOverride = null) {
 
         containerBotones.innerHTML = botonesHtml;
     }
-
-    // Reset sección manual
-    const sec = document.getElementById('sectionCustomPases');
-    if (sec) sec.classList.add('hidden');
-    const inp = document.getElementById('inputCustomPases');
-    if (inp) inp.value = '';
-
-    const modal = document.getElementById('modalAddPases');
-    if (modal) modal.classList.remove('hidden');
 }
 
 function closeModalAddPases() {
+    currentAddPasesCliente = null;
     const modal = document.getElementById('modalAddPases');
     if (modal) modal.classList.add('hidden');
     const sec = document.getElementById('sectionCustomPases');
@@ -723,13 +960,16 @@ function submitCustomPases() {
 }
 
 function confirmAddPases(cant) {
-    const id = document.getElementById('addPasesClienteId').value;
+    const id = document.getElementById('addPasesClienteId')?.value;
     if (!id || !cant) return;
+
+    const selectServ = document.getElementById('addPasesServicioSelect');
+    const targetServId = selectServ && !selectServ.closest('#addPasesSelectorServicioContainer')?.classList.contains('hidden') ? selectServ.value : null;
 
     fetch('backend/gestionar_clientes.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'add_pases', id: id, cantidad: cant })
+        body: JSON.stringify({ action: 'add_pases', id: id, cantidad: cant, id_servicio: targetServId })
     })
     .then(r => r.json())
     .then(d => {

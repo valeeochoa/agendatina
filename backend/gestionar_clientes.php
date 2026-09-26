@@ -48,6 +48,9 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN id_ser
 try { $pdo->query("SELECT servicio FROM clientes_negocio LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN servicio VARCHAR(255) DEFAULT NULL"); }
 
+try { $pdo->query("SELECT servicios_pases_json FROM clientes_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN servicios_pases_json LONGTEXT DEFAULT NULL"); }
+
 
 
 
@@ -105,7 +108,7 @@ try {
 
         try {
             $stmt = $pdo->prepare("
-                SELECT c.id, c.nombre_completo, c.email, c.telefono, c.pases_disponibles, c.pases_totales, c.fecha_vencimiento, c.notas, c.estado, c.fecha_alta, c.id_servicio, c.servicio,
+                SELECT c.id, c.nombre_completo, c.email, c.telefono, c.pases_disponibles, c.pases_totales, c.fecha_vencimiento, c.notas, c.estado, c.fecha_alta, c.id_servicio, c.servicio, c.servicios_pases_json,
                        (SELECT COUNT(*) FROM turnos t WHERE t.id_negocio = c.id_negocio AND (t.cliente_celular COLLATE utf8mb4_general_ci = c.email COLLATE utf8mb4_general_ci OR t.cliente_nombre COLLATE utf8mb4_general_ci = c.nombre_completo COLLATE utf8mb4_general_ci) AND t.estado IN ('pendiente', 'confirmado')) AS clases_reservadas
                 FROM clientes_negocio c
                 WHERE c.id_negocio = :id_negocio
@@ -116,7 +119,7 @@ try {
         } catch (Exception $eCollation) {
             // Fallback 100% seguro si hay conflicto de collation entre tablas
             $stmt = $pdo->prepare("
-                SELECT c.id, c.nombre_completo, c.email, c.telefono, c.pases_disponibles, c.pases_totales, c.fecha_vencimiento, c.notas, c.estado, c.fecha_alta, c.id_servicio, c.servicio,
+                SELECT c.id, c.nombre_completo, c.email, c.telefono, c.pases_disponibles, c.pases_totales, c.fecha_vencimiento, c.notas, c.estado, c.fecha_alta, c.id_servicio, c.servicio, c.servicios_pases_json,
                        0 AS clases_reservadas
                 FROM clientes_negocio c
                 WHERE c.id_negocio = :id_negocio
@@ -241,44 +244,96 @@ try {
         // Acción especial: Cargar / Renovar pases a un alumno
         if ($action === 'add_pases' && $id) {
             $cantAdd = max(1, (int)($data['cantidad'] ?? 0));
+            $targetServId = !empty($data['id_servicio']) ? (int)$data['id_servicio'] : null;
             
             // Consultar datos actuales del alumno para saber si tiene pases restantes
-            $stmtCurr = $pdo->prepare("SELECT pases_disponibles, pases_totales, fecha_vencimiento, cancelaciones_restantes, cancelaciones_permitidas FROM clientes_negocio WHERE id = :id AND id_negocio = :id_negocio LIMIT 1");
+            $stmtCurr = $pdo->prepare("SELECT pases_disponibles, pases_totales, fecha_vencimiento, cancelaciones_restantes, cancelaciones_permitidas, servicios_pases_json, id_servicio, servicio FROM clientes_negocio WHERE id = :id AND id_negocio = :id_negocio LIMIT 1");
             $stmtCurr->execute(['id' => $id, 'id_negocio' => $id_negocio]);
             $currCliente = $stmtCurr->fetch(PDO::FETCH_ASSOC);
 
             $pasesDispActual = $currCliente ? max(0, (int)$currCliente['pases_disponibles']) : 0;
             $pasesTotActual = $currCliente ? max(0, (int)$currCliente['pases_totales']) : 0;
+            $serviciosJson = $currCliente ? ($currCliente['servicios_pases_json'] ?? null) : null;
+            $serviciosList = $serviciosJson ? json_decode($serviciosJson, true) : null;
 
             // Calcular nuevo vencimiento: renovar a 1 mes desde hoy
             $newVenc = date('Y-m-d', strtotime('+1 month'));
 
-            if ($pasesDispActual > 0) {
-                // Caso A: El alumno todavía tenía pases (ej: 2 de 4). Si se le cargan 8, pasa a valer 10 de 12 (2+8 de 4+8)
-                $nuevoDisponibles = $pasesDispActual + $cantAdd;
-                $nuevoTotales = ($pasesTotActual > 0 ? $pasesTotActual : $pasesDispActual) + $cantAdd;
-            } else {
-                // Caso B: El alumno agotó sus pases (0 de 4). Se restablece el ciclo completo a la nueva cantidad (ej: 8 de 8)
-                $nuevoDisponibles = $cantAdd;
-                $nuevoTotales = $cantAdd;
-            }
+            if (is_array($serviciosList) && count($serviciosList) > 0) {
+                $targetIndex = 0;
+                if ($targetServId) {
+                    foreach ($serviciosList as $idx => $sItem) {
+                        if ((int)($sItem['id_servicio'] ?? 0) === $targetServId) {
+                            $targetIndex = $idx;
+                            break;
+                        }
+                    }
+                }
+                
+                $curServDisp = (int)($serviciosList[$targetIndex]['pases_disponibles'] ?? 0);
+                $curServTot = (int)($serviciosList[$targetIndex]['pases_totales'] ?? $curServDisp);
 
-            $stmtAdd = $pdo->prepare("
-                UPDATE clientes_negocio 
-                SET pases_disponibles = :disp, 
-                    pases_totales = :tot, 
-                    fecha_vencimiento = :newVenc, 
-                    cancelaciones_permitidas = :tot, 
-                    cancelaciones_restantes = :disp 
-                WHERE id = :id AND id_negocio = :id_negocio
-            ");
-            $stmtAdd->execute([
-                'disp' => $nuevoDisponibles, 
-                'tot' => $nuevoTotales, 
-                'newVenc' => $newVenc, 
-                'id' => $id, 
-                'id_negocio' => $id_negocio
-            ]);
+                if ($curServDisp > 0) {
+                    $serviciosList[$targetIndex]['pases_disponibles'] = $curServDisp + $cantAdd;
+                    $serviciosList[$targetIndex]['pases_totales'] = ($curServTot > 0 ? $curServTot : $curServDisp) + $cantAdd;
+                } else {
+                    $serviciosList[$targetIndex]['pases_disponibles'] = $cantAdd;
+                    $serviciosList[$targetIndex]['pases_totales'] = $cantAdd;
+                }
+                $serviciosList[$targetIndex]['fecha_vencimiento'] = $newVenc;
+
+                // Recalcular totales generales
+                $nuevoDisponibles = 0;
+                $nuevoTotales = 0;
+                foreach ($serviciosList as $sItem) {
+                    $nuevoDisponibles += (int)($sItem['pases_disponibles'] ?? 0);
+                    $nuevoTotales += (int)($sItem['pases_totales'] ?? 0);
+                }
+
+                $stmtAdd = $pdo->prepare("
+                    UPDATE clientes_negocio 
+                    SET pases_disponibles = :disp, 
+                        pases_totales = :tot, 
+                        fecha_vencimiento = :newVenc, 
+                        cancelaciones_permitidas = :tot, 
+                        cancelaciones_restantes = :disp,
+                        servicios_pases_json = :json
+                    WHERE id = :id AND id_negocio = :id_negocio
+                ");
+                $stmtAdd->execute([
+                    'disp' => $nuevoDisponibles, 
+                    'tot' => $nuevoTotales, 
+                    'newVenc' => $newVenc, 
+                    'json' => json_encode($serviciosList, JSON_UNESCAPED_UNICODE),
+                    'id' => $id, 
+                    'id_negocio' => $id_negocio
+                ]);
+            } else {
+                if ($pasesDispActual > 0) {
+                    $nuevoDisponibles = $pasesDispActual + $cantAdd;
+                    $nuevoTotales = ($pasesTotActual > 0 ? $pasesTotActual : $pasesDispActual) + $cantAdd;
+                } else {
+                    $nuevoDisponibles = $cantAdd;
+                    $nuevoTotales = $cantAdd;
+                }
+
+                $stmtAdd = $pdo->prepare("
+                    UPDATE clientes_negocio 
+                    SET pases_disponibles = :disp, 
+                        pases_totales = :tot, 
+                        fecha_vencimiento = :newVenc, 
+                        cancelaciones_permitidas = :tot, 
+                        cancelaciones_restantes = :disp 
+                    WHERE id = :id AND id_negocio = :id_negocio
+                ");
+                $stmtAdd->execute([
+                    'disp' => $nuevoDisponibles, 
+                    'tot' => $nuevoTotales, 
+                    'newVenc' => $newVenc, 
+                    'id' => $id, 
+                    'id_negocio' => $id_negocio
+                ]);
+            }
 
             echo json_encode([
                 'success' => true, 
@@ -287,30 +342,89 @@ try {
             exit;
         }
 
-        $id_servicio = !empty($data['id_servicio']) ? (int)$data['id_servicio'] : (!empty($_POST['id_servicio']) ? (int)$_POST['id_servicio'] : null);
-        $servicio = trim($data['servicio'] ?? $_POST['servicio'] ?? '');
-
-        if ($id_servicio && empty($servicio)) {
-            try {
-                $stmtSName = $pdo->prepare("SELECT nombre_servicio FROM servicios WHERE id = :id_serv AND id_negocio = :id_neg LIMIT 1");
-                $stmtSName->execute(['id_serv' => $id_servicio, 'id_neg' => $id_negocio]);
-                $sName = $stmtSName->fetchColumn();
-                if ($sName) $servicio = $sName;
-            } catch (Exception $eSName) {}
-        }
-
         $nombre = trim($data['nombre_completo'] ?? $data['nombre'] ?? '');
         $email = trim($data['email'] ?? '');
         $telefono = trim($data['telefono'] ?? '');
-        $pases = max(0, (int)($data['pases_disponibles'] ?? $data['pases'] ?? 0));
-        $pases_totales = $pases;
-        $fecha_vencimiento = !empty($data['fecha_vencimiento']) ? $data['fecha_vencimiento'] : ($autoRenovarVenc ? date('Y-m-d', strtotime('+1 month')) : null);
         $notas = trim($data['notas'] ?? '');
 
         if (empty($nombre) || empty($email)) {
             echo json_encode(['success' => false, 'error' => 'El nombre y correo electrónico son obligatorios.']);
             exit;
         }
+
+        // Procesar múltiples servicios asignados al alumno
+        $servicios_asignados = $data['servicios_asignados'] ?? null;
+        if (is_string($servicios_asignados)) {
+            $servicios_asignados = json_decode($servicios_asignados, true);
+        }
+
+        $parsedServicios = [];
+        $totalDisp = 0;
+        $totalTot = 0;
+        $maxVenc = null;
+
+        if (is_array($servicios_asignados) && count($servicios_asignados) > 0) {
+            foreach ($servicios_asignados as $sa) {
+                $sId = !empty($sa['id_servicio']) ? (int)$sa['id_servicio'] : null;
+                $sNom = trim($sa['servicio'] ?? '');
+                if ($sId && empty($sNom)) {
+                    $stmtSName = $pdo->prepare("SELECT nombre_servicio FROM servicios WHERE id = :id_serv AND id_negocio = :id_neg LIMIT 1");
+                    $stmtSName->execute(['id_serv' => $sId, 'id_neg' => $id_negocio]);
+                    $sNom = $stmtSName->fetchColumn() ?: 'Servicio';
+                }
+                $pDisp = max(0, (int)($sa['pases_disponibles'] ?? 0));
+                $pTot = max($pDisp, (int)($sa['pases_totales'] ?? $pDisp));
+                $pVenc = !empty($sa['fecha_vencimiento']) ? $sa['fecha_vencimiento'] : ($autoRenovarVenc ? date('Y-m-d', strtotime('+1 month')) : null);
+                $pEtiqueta = trim($sa['etiqueta_pase'] ?? '');
+
+                $totalDisp += $pDisp;
+                $totalTot += $pTot;
+                if ($pVenc && (!$maxVenc || $pVenc > $maxVenc)) {
+                    $maxVenc = $pVenc;
+                }
+
+                $parsedServicios[] = [
+                    'id_servicio' => $sId,
+                    'servicio' => $sNom,
+                    'etiqueta_pase' => $pEtiqueta,
+                    'pases_disponibles' => $pDisp,
+                    'pases_totales' => $pTot,
+                    'fecha_vencimiento' => $pVenc
+                ];
+            }
+        }
+
+        // Fallback para formulario simple / anterior
+        if (empty($parsedServicios)) {
+            $id_servicio = !empty($data['id_servicio']) ? (int)$data['id_servicio'] : (!empty($_POST['id_servicio']) ? (int)$_POST['id_servicio'] : null);
+            $servicio = trim($data['servicio'] ?? $_POST['servicio'] ?? '');
+            if ($id_servicio && empty($servicio)) {
+                $stmtSName = $pdo->prepare("SELECT nombre_servicio FROM servicios WHERE id = :id_serv AND id_negocio = :id_neg LIMIT 1");
+                $stmtSName->execute(['id_serv' => $id_servicio, 'id_neg' => $id_negocio]);
+                $servicio = $stmtSName->fetchColumn() ?: 'Servicio';
+            }
+            $pases = max(0, (int)($data['pases_disponibles'] ?? $data['pases'] ?? 0));
+            $pases_totales = $pases;
+            $fecha_vencimiento = !empty($data['fecha_vencimiento']) ? $data['fecha_vencimiento'] : ($autoRenovarVenc ? date('Y-m-d', strtotime('+1 month')) : null);
+            $parsedServicios[] = [
+                'id_servicio' => $id_servicio,
+                'servicio' => $servicio,
+                'etiqueta_pase' => trim($data['etiqueta_pase'] ?? ''),
+                'pases_disponibles' => $pases,
+                'pases_totales' => $pases_totales,
+                'fecha_vencimiento' => $fecha_vencimiento
+            ];
+            $totalDisp = $pases;
+            $totalTot = $pases_totales;
+            $maxVenc = $fecha_vencimiento;
+        }
+
+        $id_servicio = $parsedServicios[0]['id_servicio'] ?? null;
+        $servicio = $parsedServicios[0]['servicio'] ?? '';
+        $pases = $totalDisp;
+        $pases_totales = $totalTot;
+        $fecha_vencimiento = $maxVenc ?: ($autoRenovarVenc ? date('Y-m-d', strtotime('+1 month')) : null);
+        $servicios_pases_json = json_encode($parsedServicios, JSON_UNESCAPED_UNICODE);
 
         if ($id) {
             // Si la fecha de vencimiento es vacía o anterior a hoy y autoRenovarVenc está activo, renovar a +1 mes
@@ -330,7 +444,8 @@ try {
                     fecha_vencimiento = :venc, 
                     notas = :notas,
                     cancelaciones_permitidas = :pases_totales,
-                    cancelaciones_restantes = :pases_totales
+                    cancelaciones_restantes = :pases_totales,
+                    servicios_pases_json = :servs_json
                 WHERE id = :id AND id_negocio = :id_negocio
             ");
             $stmt->execute([
@@ -343,6 +458,7 @@ try {
                 'pases_totales' => $pases_totales,
                 'venc' => $fecha_vencimiento,
                 'notas' => $notas,
+                'servs_json' => $servicios_pases_json,
                 'id' => $id,
                 'id_negocio' => $id_negocio
             ]);
@@ -356,8 +472,8 @@ try {
             }
 
             $stmt = $pdo->prepare("
-                INSERT INTO clientes_negocio (id_negocio, id_servicio, servicio, nombre_completo, email, telefono, pases_disponibles, pases_totales, fecha_vencimiento, notas, cancelaciones_permitidas, cancelaciones_restantes, estado)
-                VALUES (:id_negocio, :id_servicio, :servicio, :nombre, :email, :telefono, :pases, :pases_totales, :venc, :notas, :canc_perm, :canc_rest, 'pendiente_activacion')
+                INSERT INTO clientes_negocio (id_negocio, id_servicio, servicio, nombre_completo, email, telefono, pases_disponibles, pases_totales, fecha_vencimiento, notas, cancelaciones_permitidas, cancelaciones_restantes, estado, servicios_pases_json)
+                VALUES (:id_negocio, :id_servicio, :servicio, :nombre, :email, :telefono, :pases, :pases_totales, :venc, :notas, :canc_perm, :canc_rest, 'pendiente_activacion', :servs_json)
             ");
             $stmt->execute([
                 'id_negocio' => $id_negocio,
@@ -371,7 +487,8 @@ try {
                 'venc' => $fecha_vencimiento,
                 'notas' => $notas,
                 'canc_perm' => $pases_totales,
-                'canc_rest' => $pases_totales
+                'canc_rest' => $pases_totales,
+                'servs_json' => $servicios_pases_json
             ]);
         }
 
