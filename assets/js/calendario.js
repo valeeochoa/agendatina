@@ -3346,10 +3346,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const prevMonthBtn = document.getElementById('prevMonth');
-        if (prevMonthBtn) prevMonthBtn.addEventListener('click', () => { window.cal_changeMonth(-1); });
+        if (prevMonthBtn) prevMonthBtn.onclick = (e) => { e.preventDefault(); window.cal_changeMonth(-1); };
         
         const nextMonthBtn = document.getElementById('nextMonth');
-        if (nextMonthBtn) nextMonthBtn.addEventListener('click', () => { window.cal_changeMonth(1); });
+        if (nextMonthBtn) nextMonthBtn.onclick = (e) => { e.preventDefault(); window.cal_changeMonth(1); };
 
         bookingForm.addEventListener('submit', function(e) {
             e.preventDefault();
