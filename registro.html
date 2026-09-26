@@ -485,6 +485,15 @@
         }
 
         const csrfToken = getCookie('csrf_token');
+
+        // Asegurar que los horarios detallados estén sincronizados con los inputs
+        const currentDetVal = document.getElementById('regHorariosDetalladosJsonInput')?.value || '{}';
+        if (currentDetVal === '{}' || !currentDetVal) {
+            if (typeof window.handleRegGeneralHoursChange === 'function') {
+                window.handleRegGeneralHoursChange();
+            }
+        }
+
         const formData = new URLSearchParams({
             nombre_completo: document.getElementById('regNombre').value,
             nombre_fantasia: document.getElementById('regNegocio').value,
@@ -530,13 +539,13 @@
     }
 
     const REG_DIAS_SEMANA_MAP = [
-        { key: 'lunes', nombre: 'Lunes', num: '1' },
-        { key: 'martes', nombre: 'Martes', num: '2' },
-        { key: 'miercoles', nombre: 'Miércoles', num: '3' },
-        { key: 'jueves', nombre: 'Jueves', num: '4' },
-        { key: 'viernes', nombre: 'Viernes', num: '5' },
-        { key: 'sabado', nombre: 'Sábado', num: '6' },
-        { key: 'domingo', nombre: 'Domingo', num: '0' }
+        { key: '1', nombre: 'Lunes', num: '1', altKey: 'lunes' },
+        { key: '2', nombre: 'Martes', num: '2', altKey: 'martes' },
+        { key: '3', nombre: 'Miércoles', num: '3', altKey: 'miercoles' },
+        { key: '4', nombre: 'Jueves', num: '4', altKey: 'jueves' },
+        { key: '5', nombre: 'Viernes', num: '5', altKey: 'viernes' },
+        { key: '6', nombre: 'Sábado', num: '6', altKey: 'sabado' },
+        { key: '0', nombre: 'Domingo', num: '0', altKey: 'domingo' }
     ];
 
     let regCurrentHorariosDetallados = {};
@@ -547,7 +556,7 @@
         const saveBtn = document.getElementById('btnSaveRegCustomSchedule');
 
         for (const dia of REG_DIAS_SEMANA_MAP) {
-            const diaData = regCurrentHorariosDetallados[dia.key];
+            const diaData = regCurrentHorariosDetallados[dia.key] || regCurrentHorariosDetallados[dia.altKey];
             if (diaData && diaData.activo !== false && diaData.tramos && diaData.tramos.length > 0) {
                 for (let i = 0; i < diaData.tramos.length; i++) {
                     const t = diaData.tramos[i];
@@ -603,10 +612,10 @@
 
         const checkedDays = Array.from(document.querySelectorAll('input[name="reg_dias"]:checked')).map(cb => cb.value);
 
-        // Si no ha sido personalizado manualmente o se actualiza horario general
+        // Actualizar horarios detallados con clave numérica estándar
         REG_DIAS_SEMANA_MAP.forEach(dia => {
             const isChecked = checkedDays.includes(dia.num);
-            const currentDia = regCurrentHorariosDetallados[dia.key];
+            const currentDia = regCurrentHorariosDetallados[dia.key] || regCurrentHorariosDetallados[dia.altKey];
             const activo = (currentDia && currentDia.activo !== undefined) ? currentDia.activo : isChecked;
 
             if (hasDescansoCompleto && isDescansoValido) {
@@ -641,7 +650,14 @@
     window.openRegCustomScheduleModal = function() {
         const rawVal = document.getElementById('regHorariosDetalladosJsonInput').value || '{}';
         try {
-            regCurrentHorariosDetallados = JSON.parse(rawVal);
+            const parsed = JSON.parse(rawVal);
+            regCurrentHorariosDetallados = {};
+            if (parsed && typeof parsed === 'object') {
+                REG_DIAS_SEMANA_MAP.forEach(d => {
+                    const item = parsed[d.key] || parsed[d.altKey];
+                    if (item) regCurrentHorariosDetallados[d.key] = item;
+                });
+            }
         } catch(e) {
             regCurrentHorariosDetallados = {};
         }

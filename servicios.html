@@ -122,95 +122,147 @@
 
     </div>
 
-    <!-- MODAL CREAR / EDITAR SERVICIO -->
-    <div id="serviceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-        <div class="bg-white rounded-3xl p-4 sm:p-6 md:p-8 max-w-md w-full shadow-2xl relative max-h-[90vh] my-auto overflow-y-auto custom-scrollbar">
-            <button onclick="closeServiceModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5"><span class="material-symbols-outlined">close</span></button>
+    <!-- MODAL CREAR / EDITAR SERVICIO (AMPLIO Y CON COLORES DEL NEGOCIO) -->
+    <div id="serviceModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+        <div class="bg-white rounded-3xl p-5 sm:p-7 md:p-9 max-w-3xl sm:max-w-4xl w-full shadow-2xl relative max-h-[92vh] my-auto overflow-y-auto custom-scrollbar border border-slate-100">
+            <!-- Botón Cerrar -->
+            <button type="button" onclick="closeServiceModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-700 bg-slate-100/80 hover:bg-slate-200/80 p-2 rounded-full transition-colors cursor-pointer" title="Cerrar ventana">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
 
-            <h3 class="text-xl font-bold text-slate-900 mb-1 flex items-center gap-2" id="serviceModalTitle">
-                <span class="material-symbols-outlined text-primary">add_task</span> Nuevo Servicio
-            </h3>
-            <p class="text-xs text-slate-500 mb-6">Configura el nombre, duración, precio y profesional a cargo.</p>
+            <!-- Encabezado del Modal con Identidad del Negocio -->
+            <div class="flex items-center gap-3.5 mb-6 pb-4 border-b border-slate-100">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-xs shrink-0" style="background-color: color-mix(in srgb, var(--color-primario, #d11149) 15%, transparent); color: var(--color-primario, #d11149);">
+                    <span class="material-symbols-outlined text-[26px]">design_services</span>
+                </div>
+                <div>
+                    <h3 class="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2" id="serviceModalTitle">
+                        <span class="material-symbols-outlined" style="color: var(--color-primario, #d11149);">add_task</span>
+                        <span>Nuevo Servicio</span>
+                    </h3>
+                    <p class="text-xs sm:text-sm text-slate-500 font-medium">Configura el nombre, duración, precio, cupos y profesional a cargo.</p>
+                </div>
+            </div>
 
-            <form id="serviceForm" class="space-y-4">
+            <form id="serviceForm" class="space-y-5">
                 <input type="hidden" name="id" id="svcId">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre del Servicio</label>
-                    <input type="text" name="nombre" id="svcNombre" required placeholder="Ej: Corte de Cabello & Peinado" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none">
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Duración del Servicio</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-                                <input type="number" id="svcHoras" min="0" max="12" value="0" placeholder="0" class="w-full bg-transparent text-sm font-bold text-slate-800 outline-none" oninput="calcTotalDuracion()">
-                                <span class="text-xs font-bold text-slate-400">hs</span>
+
+                <!-- Grid de 2 Columnas para información principal -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                    <!-- Columna Izquierda: Datos Principales de Turno -->
+                    <div class="space-y-4 bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200/80">
+                        <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[16px]" style="color: var(--color-primario, #d11149);">info</span>
+                            Información Principal
+                        </h4>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Nombre del Servicio *</label>
+                            <input type="text" name="nombre" id="svcNombre" required placeholder="Ej: Corte de Cabello & Peinado" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:ring-2 outline-none transition-all shadow-xs" style="--tw-ring-color: var(--color-primario, #d11149);">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Precio ($) *</label>
+                                <div class="relative">
+                                    <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">$</span>
+                                    <input type="number" name="precio" id="svcPrecio" min="0" step="100" placeholder="5000" required class="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-3 py-3 text-sm font-black text-slate-900 focus:ring-2 outline-none transition-all shadow-xs" style="--tw-ring-color: var(--color-primario, #d11149);">
+                                </div>
                             </div>
-                            <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-                                <input type="number" id="svcMinutos" min="0" max="59" step="5" value="45" placeholder="45" class="w-full bg-transparent text-sm font-bold text-slate-800 outline-none" oninput="calcTotalDuracion()">
-                                <span class="text-xs font-bold text-slate-400">min</span>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Cupo Máximo *</label>
+                                <div class="relative flex items-center">
+                                    <input type="number" name="capacidad" id="svcCapacidad" min="1" max="100" value="1" placeholder="1" required class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-black text-slate-900 focus:ring-2 outline-none transition-all shadow-xs pr-14" style="--tw-ring-color: var(--color-primario, #d11149);">
+                                    <span class="absolute right-3 text-xs font-bold text-slate-400 pointer-events-none">cupos</span>
+                                </div>
                             </div>
                         </div>
-                        <input type="hidden" name="duracion" id="svcDuracion" value="45">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Precio ($)</label>
-                        <input type="number" name="precio" id="svcPrecio" min="0" step="100" placeholder="5000" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none font-medium">
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Capacidad / Cupo Máximo</label>
-                        <div class="relative flex items-center">
-                            <input type="number" name="capacidad" id="svcCapacidad" min="1" max="100" value="1" placeholder="1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none font-medium pr-14">
-                            <span class="absolute right-3 text-xs font-bold text-slate-400">cupos</span>
-                        </div>
-                        <p class="text-[10px] text-slate-400 mt-1">Coloca <strong>1</strong> para turnos individuales o más para clases grupales.</p>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Profesional Asignado</label>
-                        <select name="profesional" id="svcProfesional" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none font-medium">
-                        </select>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Ícono o Imagen del Servicio</label>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <input type="hidden" name="icono" id="svcIcono" value="local_florist">
-                        <button type="button" onclick="window.openIconPicker('svcIcono')" class="w-full flex items-center justify-between bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 transition-colors cursor-pointer text-left">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <span id="svcIconoPreview" class="material-symbols-outlined text-primary text-[22px] shrink-0">local_florist</span>
-                                <span id="svcIconoLabel" class="text-xs font-semibold text-slate-700 truncate">Flor</span>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Profesional Asignado *</label>
+                            <div class="relative">
+                                <select name="profesional" id="svcProfesional" required class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-800 focus:ring-2 outline-none transition-all shadow-xs appearance-none pr-10" style="--tw-ring-color: var(--color-primario, #d11149);">
+                                </select>
+                                <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[20px]">expand_more</span>
                             </div>
-                            <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0">expand_more</span>
-                        </button>
-                        <input type="text" name="imagen1" id="svcImagen1" placeholder="URL Imagen (Opcional)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold focus:ring-2 focus:ring-primary outline-none">
+                        </div>
+
+                        <p class="text-[11px] text-slate-500 leading-snug">
+                            💡 Usa <strong>1 cupo</strong> para citas individuales (barbería, estética) o <strong>más de 1</strong> para clases o actividades grupales (pilates, yoga, talleres).
+                        </p>
                     </div>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Descripción corta (Opcional)</label>
-                    <textarea name="descripcion" id="svcDescripcion" rows="2" placeholder="Detalles de lo que incluye el servicio..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"></textarea>
+
+                    <!-- Columna Derecha: Duración, Imagen y Visual -->
+                    <div class="space-y-4 bg-slate-50/70 p-4 sm:p-5 rounded-2xl border border-slate-200/80">
+                        <h4 class="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[16px]" style="color: var(--color-primario, #d11149);">schedule</span>
+                            Duración y Presentación
+                        </h4>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Duración Estimada</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 shadow-xs">
+                                    <input type="number" id="svcHoras" min="0" max="12" value="0" placeholder="0" class="w-full bg-transparent text-sm font-black text-slate-800 outline-none" oninput="calcTotalDuracion()">
+                                    <span class="text-xs font-bold text-slate-400">hs</span>
+                                </div>
+                                <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 shadow-xs">
+                                    <input type="number" id="svcMinutos" min="0" max="59" step="5" value="45" placeholder="45" class="w-full bg-transparent text-sm font-black text-slate-800 outline-none" oninput="calcTotalDuracion()">
+                                    <span class="text-xs font-bold text-slate-400">min</span>
+                                </div>
+                            </div>
+                            <input type="hidden" name="duracion" id="svcDuracion" value="45">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Ícono e Imagen Representativa</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                <input type="hidden" name="icono" id="svcIcono" value="local_florist">
+                                <button type="button" onclick="window.openIconPicker('svcIcono')" class="w-full flex items-center justify-between bg-white hover:bg-slate-100/80 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-700 transition-colors cursor-pointer text-left shadow-xs">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span id="svcIconoPreview" class="material-symbols-outlined text-[22px] shrink-0" style="color: var(--color-primario, #d11149);">local_florist</span>
+                                        <span id="svcIconoLabel" class="text-xs font-bold text-slate-700 truncate">Flor</span>
+                                    </div>
+                                    <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0">expand_more</span>
+                                </button>
+                                <input type="text" name="imagen1" id="svcImagen1" placeholder="URL Foto (opcional)" class="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-medium text-slate-800 placeholder-slate-400 focus:ring-2 outline-none shadow-xs" style="--tw-ring-color: var(--color-primario, #d11149);">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Descripción del Servicio (Opcional)</label>
+                            <textarea name="descripcion" id="svcDescripcion" rows="2" placeholder="Detalles de lo que incluye, recomendaciones o requisitos..." class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-medium text-slate-800 placeholder-slate-400 focus:ring-2 outline-none resize-none shadow-xs" style="--tw-ring-color: var(--color-primario, #d11149);"></textarea>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Seccion Especial: Paquetes de Pases / Tarifas por Cantidad de Cupos -->
-                <div class="border-t border-slate-100 pt-3">
-                    <div class="flex items-center justify-between mb-1">
-                        <label class="block text-xs font-extrabold text-slate-800 flex items-center gap-1">
-                            <span class="material-symbols-outlined text-[#FC8712] text-[16px]">inventory_2</span>
-                            Paquetes de Pases / Tarifas por Cupos (Opcional)
+                <!-- Sección Especial: Paquetes de Pases / Tarifas por Cantidad de Cupos -->
+                <div class="bg-gradient-to-br from-amber-50/60 to-orange-50/40 border border-amber-200/80 rounded-2xl p-4 sm:p-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                        <label class="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-amber-600 text-[18px]">inventory_2</span>
+                            <span>Paquetes de Pases / Tarifas por Cupos (Opcional)</span>
                         </label>
-                        <button type="button" onclick="addCupoPricingRow()" class="text-[11px] font-black text-primary hover:underline flex items-center gap-0.5 cursor-pointer">
-                            <span class="material-symbols-outlined text-[14px]">add_circle</span> ➕ Agregar Paquete
+                        <button type="button" onclick="addCupoPricingRow()" class="text-xs font-black px-3 py-1.5 rounded-xl bg-white hover:bg-amber-100/80 border border-amber-300 text-amber-800 flex items-center gap-1 cursor-pointer transition-all shadow-xs w-fit">
+                            <span class="material-symbols-outlined text-[16px] text-amber-600">add_circle</span>
+                            <span>Agregar Paquete</span>
                         </button>
                     </div>
-                    <p class="text-[10px] text-slate-400 mb-2">Definí precios por cantidad de clases (ej: 4 clases = $55.000, 8 clases = $99.000).</p>
-                    <div id="cupoPricingContainer" class="space-y-2"></div>
+                    <p class="text-[11px] text-slate-500 mb-3">Definí precios promocionales por cantidad de clases (ej: 4 clases = $55.000, 8 clases = $99.000).</p>
+                    <div id="cupoPricingContainer" class="space-y-2.5"></div>
                     <input type="hidden" name="precios_paquetes_json" id="svcPreciosPaquetesJson" value="[]">
                 </div>
 
-                <button type="submit" id="btnSvcSubmit" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary/20 text-sm transition-all mt-2">
-                    Guardar Servicio
-                </button>
+                <!-- Botones de Acción -->
+                <div class="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                    <button type="button" onclick="closeServiceModal()" class="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="btnSvcSubmit" class="w-full sm:w-auto px-8 py-3.5 rounded-2xl text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg hover:opacity-95 hover:scale-[1.01] active:scale-98 flex items-center justify-center gap-2 cursor-pointer" style="background-color: var(--color-botones, var(--color-primario, #d11149));">
+                        <span class="material-symbols-outlined text-[18px]">save</span>
+                        <span>Guardar Servicio</span>
+                    </button>
+                </div>
             </form>
         </div>
     </div>
@@ -257,6 +309,9 @@
                 .then(r => r.json())
                 .then(d => {
                     if (d && d.success) {
+                        if (typeof window.applyUserCustomColors === 'function') {
+                            window.applyUserCustomColors(d.color_primario, d.color_secundario, d.colores_extra_json, d.color_fondo);
+                        }
                         currentOwnerName = (d.nombre_completo && d.nombre_completo !== 'Dueño Principal') ? d.nombre_completo : (d.nombre_fantasia || '');
                         loadServices();
                         loadTeam();
@@ -505,7 +560,7 @@
             document.getElementById('cupoPricingContainer').innerHTML = '';
             document.getElementById('svcPreciosPaquetesJson').value = '[]';
             populateProfSelect(professionalsData);
-            document.getElementById('serviceModalTitle').innerHTML = '<span class="material-symbols-outlined text-primary">add_task</span> Nuevo Servicio';
+            document.getElementById('serviceModalTitle').innerHTML = '<span class="material-symbols-outlined text-[24px]" style="color: var(--color-primario, #d11149);">add_task</span> <span>Nuevo Servicio</span>';
             document.getElementById('serviceModal').classList.remove('hidden');
         }
 
@@ -552,7 +607,7 @@
                 }
             }
 
-            document.getElementById('serviceModalTitle').innerHTML = '<span class="material-symbols-outlined text-primary">edit</span> Editar Servicio';
+            document.getElementById('serviceModalTitle').innerHTML = '<span class="material-symbols-outlined text-[24px]" style="color: var(--color-primario, #d11149);">edit</span> <span>Editar Servicio</span>';
             document.getElementById('serviceModal').classList.remove('hidden');
         }
 

@@ -284,43 +284,80 @@ try {
     $stmtPersonal->execute(['id_u' => $idUsuario, 'id_n' => $idNegocio]);
 
     // 7. Crear configuración inicial del negocio
-    $horarios_detallados_json = isset($_POST['horarios_detallados_json']) ? trim($_POST['horarios_detallados_json']) : null;
-    if ((empty($horarios_detallados_json) || $horarios_detallados_json === '{}') && !empty($hora_descanso_inicio) && !empty($hora_descanso_fin) && ($hora_apertura < $hora_descanso_inicio) && ($hora_descanso_inicio < $hora_descanso_fin) && ($hora_descanso_fin < $hora_cierre)) {
-        $diasArr = explode(',', $dias_trabajo);
-        $diasMap = [
-            '1' => 'lunes',
-            '2' => 'martes',
-            '3' => 'miercoles',
-            '4' => 'jueves',
-            '5' => 'viernes',
-            '6' => 'sabado',
-            '0' => 'domingo'
-        ];
-        $autoDetallados = [];
-        foreach ($diasMap as $num => $key) {
-            $activo = in_array((string)$num, $diasArr, true);
-            $autoDetallados[$key] = [
-                'activo' => $activo,
-                'tramos' => [
-                    ['inicio' => $hora_apertura, 'fin' => $hora_descanso_inicio],
-                    ['inicio' => $hora_descanso_fin, 'fin' => $hora_cierre]
-                ]
-            ];
+    $horarios_detallados_raw = isset($_POST['horarios_detallados_json']) ? trim($_POST['horarios_detallados_json']) : null;
+    
+    // Mapeo exhaustivo de texto a clave numérica estándar (1=Lunes .. 6=Sábado, 0=Domingo)
+    $diasMapTextToNum = [
+        'lunes' => '1', 'martes' => '2', 'miercoles' => '3', 'miércoles' => '3',
+        'jueves' => '4', 'viernes' => '5', 'sabado' => '6', 'sábado' => '6',
+        'domingo' => '0',
+        'lun' => '1', 'mar' => '2', 'mie' => '3', 'jue' => '4', 'vie' => '5', 'sab' => '6', 'dom' => '0',
+        '1' => '1', '2' => '2', '3' => '3', '4' => '4', '5' => '5', '6' => '6', '0' => '0'
+    ];
+
+    $normDetallados = [];
+    if (!empty($horarios_detallados_raw) && $horarios_detallados_raw !== '{}') {
+        $parsed = json_decode($horarios_detallados_raw, true);
+        if (is_array($parsed)) {
+            foreach ($parsed as $k => $val) {
+                $targetKey = $diasMapTextToNum[strtolower(trim((string)$k))] ?? (string)$k;
+                $normDetallados[$targetKey] = $val;
+            }
         }
-        $horarios_detallados_json = json_encode($autoDetallados, JSON_UNESCAPED_UNICODE);
     }
 
+    $diasArr = explode(',', $dias_trabajo);
+    $hasDescansoValido = !empty($hora_descanso_inicio) && !empty($hora_descanso_fin) && 
+                         ($hora_apertura < $hora_descanso_inicio) && 
+                         ($hora_descanso_inicio < $hora_descanso_fin) && 
+                         ($hora_descanso_fin < $hora_cierre);
+
+    // Si no vino personalizado o faltan días, autogenerar la estructura completa con las claves numéricas
+    if (empty($normDetallados)) {
+        foreach (['1', '2', '3', '4', '5', '6', '0'] as $num) {
+            $activo = in_array((string)$num, $diasArr, true);
+            if ($hasDescansoValido) {
+                $normDetallados[$num] = [
+                    'activo' => $activo,
+                    'tramos' => [
+                        ['inicio' => $hora_apertura, 'fin' => $hora_descanso_inicio],
+                        ['inicio' => $hora_descanso_fin, 'fin' => $hora_cierre]
+                    ]
+                ];
+            } else {
+                $normDetallados[$num] = [
+                    'activo' => $activo,
+                    'tramos' => [
+                        ['inicio' => $hora_apertura, 'fin' => $hora_cierre]
+                    ]
+                ];
+            }
+        }
+    }
+
+    $horarios_detallados_json = (!empty($normDetallados)) ? json_encode($normDetallados, JSON_UNESCAPED_UNICODE) : null;
+
     try {
-        $stmtConfigWeb = $pdo->prepare("INSERT IGNORE INTO configuracion_web (id_negocio, titulo_banner, subtitulo_banner, color_primario, limite_eliminacion_dias, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json) VALUES (:id_n, :titulo, 'Bienvenido a nuestra agenda online', '#d11149', 30, :h_ap, :h_ci, :h_di, :h_df, :dias, :h_detallados)");
+        $stmtConfigWeb = $pdo->prepare("INSERT INTO configuracion_web 
+            (id_negocio, titulo_banner, subtitulo_banner, color_primario, limite_eliminacion_dias, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json) 
+            VALUES (:id_n, :titulo, 'Bienvenido a nuestra agenda online', '#d11149', 30, :h_ap, :h_ci, :h_di, :h_df, :dias, :h_detallados)
+            ON DUPLICATE KEY UPDATE 
+            titulo_banner = COALESCE(VALUES(titulo_banner), titulo_banner),
+            hora_apertura = VALUES(hora_apertura),
+            hora_cierre = VALUES(hora_cierre),
+            hora_descanso_inicio = VALUES(hora_descanso_inicio),
+            hora_descanso_fin = VALUES(hora_descanso_fin),
+            dias_trabajo = VALUES(dias_trabajo),
+            horarios_detallados_json = VALUES(horarios_detallados_json)");
         $stmtConfigWeb->execute([
             'id_n' => $idNegocio,
             'titulo' => $nombre_fantasia,
             'h_ap' => $hora_apertura,
             'h_ci' => $hora_cierre,
-            'h_di' => $hora_descanso_inicio,
-            'h_df' => $hora_descanso_fin,
+            'h_di' => $hora_descanso_inicio ?: null,
+            'h_df' => $hora_descanso_fin ?: null,
             'dias' => $dias_trabajo,
-            'h_detallados' => (!empty($horarios_detallados_json) && $horarios_detallados_json !== '{}') ? $horarios_detallados_json : null
+            'h_detallados' => $horarios_detallados_json
         ]);
     } catch (Exception $eConfig) {
         error_log("Aviso config web no crítica: " . $eConfig->getMessage());

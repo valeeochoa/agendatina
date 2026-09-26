@@ -75,7 +75,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             window.location.href = 'dashboard.html';
                         }
                     } else {
-                        msgDiv.textContent = data.error || 'Credenciales incorrectas.';
+                        const errMsg = data.error || 'Credenciales incorrectas.';
+                        const notFound = errMsg.toLowerCase().includes('no existe') || errMsg.toLowerCase().includes('no está registrado') || errMsg.toLowerCase().includes('incorrectas');
+                        if (notFound) {
+                            msgDiv.innerHTML = `<span>${errMsg}</span> <span class="block mt-1 text-xs">¿No tenés una cuenta? <a href="registro.html" class="underline font-bold text-primary hover:text-secondary">Creala acá gratis</a></span>`;
+                        } else {
+                            msgDiv.textContent = errMsg;
+                        }
                         msgDiv.classList.remove('hidden');
                         btnSubmit.disabled = false;
                         btnSubmit.innerHTML = '<span>Ingresar al sistema</span><span class="material-symbols-outlined text-xl">arrow_forward</span>';

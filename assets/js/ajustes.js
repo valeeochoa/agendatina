@@ -198,6 +198,22 @@ window.updateConfirmacionHelpText = function() {
     } else {
         helpText.innerHTML = `<strong>⌛ Aprobación Manual desde la Web:</strong> La solicitud del cliente ingresa en estado <span class="text-amber-700 font-bold">Pendiente</span>. Recibirás la notificación en tu panel para que hagas clic en <strong>Aprobar</strong> o <strong>Rechazar</strong>.`;
     }
+window.normalizeHorariosDetalladosKeys = function(obj) {
+    if (!obj || typeof obj !== 'object') return {};
+    const textToNumMap = {
+        'lunes': '1', 'martes': '2', 'miercoles': '3', 'miércoles': '3',
+        'jueves': '4', 'viernes': '5', 'sabado': '6', 'sábado': '6',
+        'domingo': '0',
+        'lun': '1', 'mar': '2', 'mie': '3', 'jue': '4', 'vie': '5', 'sab': '6', 'dom': '0',
+        '1': '1', '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '0': '0'
+    };
+    const res = {};
+    for (const [k, v] of Object.entries(obj)) {
+        const cleanK = String(k).trim().toLowerCase();
+        const numK = textToNumMap[cleanK] || cleanK;
+        res[numK] = v;
+    }
+    return res;
 };
 
 window.applyCalendarConfigToForm = function(data) {
@@ -238,23 +254,22 @@ window.applyCalendarConfigToForm = function(data) {
         if (selectPrimerDia) selectPrimerDia.value = String(data.primer_dia_semana);
     }
 
+    const rawHDet = data.horarios_detallados_json;
+    let parsedHDet = {};
+    try {
+        parsedHDet = typeof rawHDet === 'string' ? JSON.parse(rawHDet || '{}') : (rawHDet || {});
+    } catch(e) { parsedHDet = {}; }
+    const normalizedHDet = window.normalizeHorariosDetalladosKeys(parsedHDet);
+
     const sharedHours = (typeof window.computeSharedHoursFromHorarios === 'function')
-        ? window.computeSharedHoursFromHorarios(data.horarios_detallados_json)
+        ? window.computeSharedHoursFromHorarios(normalizedHDet)
         : { hasCustom: false, isUniform: false };
 
-    if (sharedHours.hasCustom) {
-        if (sharedHours.isUniform) {
-            if (form.querySelector('#configHoraApertura')) form.querySelector('#configHoraApertura').value = sharedHours.apertura;
-            if (form.querySelector('#configHoraCierre')) form.querySelector('#configHoraCierre').value = sharedHours.cierre;
-            if (form.querySelector('#configHoraDescansoInicio')) form.querySelector('#configHoraDescansoInicio').value = sharedHours.descansoInicio || '';
-            if (form.querySelector('#configHoraDescansoFin')) form.querySelector('#configHoraDescansoFin').value = sharedHours.descansoFin || '';
-        } else {
-            // Si los días activos tienen horarios distintos, se descarta/limpia el horario general
-            if (form.querySelector('#configHoraApertura')) form.querySelector('#configHoraApertura').value = '';
-            if (form.querySelector('#configHoraCierre')) form.querySelector('#configHoraCierre').value = '';
-            if (form.querySelector('#configHoraDescansoInicio')) form.querySelector('#configHoraDescansoInicio').value = '';
-            if (form.querySelector('#configHoraDescansoFin')) form.querySelector('#configHoraDescansoFin').value = '';
-        }
+    if (sharedHours.hasCustom && sharedHours.isUniform && sharedHours.apertura && sharedHours.cierre) {
+        if (form.querySelector('#configHoraApertura')) form.querySelector('#configHoraApertura').value = sharedHours.apertura;
+        if (form.querySelector('#configHoraCierre')) form.querySelector('#configHoraCierre').value = sharedHours.cierre;
+        if (form.querySelector('#configHoraDescansoInicio')) form.querySelector('#configHoraDescansoInicio').value = sharedHours.descansoInicio || '';
+        if (form.querySelector('#configHoraDescansoFin')) form.querySelector('#configHoraDescansoFin').value = sharedHours.descansoFin || '';
     } else {
         if (data.hora_apertura && form.querySelector('#configHoraApertura')) form.querySelector('#configHoraApertura').value = data.hora_apertura;
         if (data.hora_cierre && form.querySelector('#configHoraCierre')) form.querySelector('#configHoraCierre').value = data.hora_cierre;
@@ -563,7 +578,10 @@ window.openHorariosDetalladosModal = function() {
     clearModalHorariosErrorMsg();
     const rawVal = document.getElementById('horariosDetalladosJsonInput')?.value || '{}';
     try {
-        currentHorariosDetallados = JSON.parse(rawVal);
+        const parsed = JSON.parse(rawVal);
+        currentHorariosDetallados = typeof window.normalizeHorariosDetalladosKeys === 'function'
+            ? window.normalizeHorariosDetalladosKeys(parsed)
+            : parsed;
     } catch(e) {
         currentHorariosDetallados = {};
     }
@@ -744,6 +762,10 @@ window.computeSharedHoursFromHorarios = function(dataJsonOrObj) {
     }
     if (!data || typeof data !== 'object') return { hasCustom: false, isUniform: false, apertura: '', cierre: '', descansoInicio: '', descansoFin: '' };
 
+    if (typeof window.normalizeHorariosDetalladosKeys === 'function') {
+        data = window.normalizeHorariosDetalladosKeys(data);
+    }
+
     const keys = Object.keys(data);
     if (keys.length === 0) return { hasCustom: false, isUniform: false, apertura: '', cierre: '', descansoInicio: '', descansoFin: '' };
 
@@ -913,6 +935,10 @@ window.renderHorariosDetalladosResumen = function(skipSyncInputs = false) {
         data = JSON.parse(hiddenInp.value || '{}');
     } catch(e) {
         data = {};
+    }
+
+    if (typeof window.normalizeHorariosDetalladosKeys === 'function') {
+        data = window.normalizeHorariosDetalladosKeys(data);
     }
 
     const dayKeys = Object.keys(data);
