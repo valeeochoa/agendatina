@@ -198,6 +198,8 @@ window.updateConfirmacionHelpText = function() {
     } else {
         helpText.innerHTML = `<strong>⌛ Aprobación Manual desde la Web:</strong> La solicitud del cliente ingresa en estado <span class="text-amber-700 font-bold">Pendiente</span>. Recibirás la notificación en tu panel para que hagas clic en <strong>Aprobar</strong> o <strong>Rechazar</strong>.`;
     }
+};
+
 window.normalizeHorariosDetalladosKeys = function(obj) {
     if (!obj || typeof obj !== 'object') return {};
     const textToNumMap = {
