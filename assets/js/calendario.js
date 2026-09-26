@@ -407,6 +407,45 @@ function isSlotAvailableForDuration(dateString, timeStr, durationMin, capacity, 
     return true;
 }
 
+function getSlotStatus(dateString, timeStr, durationMin, capacity, baseOcupadas, isToday, slotDate, isPastDay) {
+    const now = new Date();
+    const minAdvance = parseInt(window.businessWebConfig?.anticipacion_turno_min || 0, 10) || 0;
+    
+    // 1. Determinar si el horario es viejo / pasado
+    const isPastSlot = isPastDay || (isToday && slotDate && slotDate.getTime() <= now.getTime()) || (minAdvance > 0 && slotDate && slotDate.getTime() < (now.getTime() + (minAdvance * 60000)));
+
+    // 2. Determinar si tiene cupo disponible (ignorando hora actual)
+    const hasCapacity = isSlotAvailableForDuration(dateString, timeStr, durationMin, capacity, baseOcupadas, false, null);
+
+    if (isPastSlot) {
+        return {
+            available: false,
+            isPast: true,
+            isFull: !hasCapacity,
+            status: 'pasado',
+            label: 'Pasado'
+        };
+    }
+
+    if (!hasCapacity) {
+        return {
+            available: false,
+            isPast: false,
+            isFull: true,
+            status: 'sin_cupo',
+            label: 'Sin cupo'
+        };
+    }
+
+    return {
+        available: true,
+        isPast: false,
+        isFull: false,
+        status: 'disponible',
+        label: 'Disponible'
+    };
+}
+
 function formatDuracionText(minutosRaw) {
     const min = parseInt(minutosRaw, 10) || 0;
     if (min <= 0) return '15 min';
@@ -664,8 +703,9 @@ function cal_renderCalendar() {
         const isNotWorkingDay = !window.isWorkingDay(date);
         
         const effectiveIsAdmin = isAdmin && !isPreviewMode;
-        const visuallyDisabled = isPast || isNotWorkingDay || isDayBlocked;
-        const isClickable = effectiveIsAdmin ? true : !visuallyDisabled;
+        const isClosedDay = isNotWorkingDay;
+        const visuallyDisabled = isPast || isDayBlocked || isClosedDay;
+        const isClickable = effectiveIsAdmin ? true : !isClosedDay;
 
         const isToday = date.getTime() === today.getTime();
         const dayDiv = document.createElement('div');
@@ -676,15 +716,22 @@ function cal_renderCalendar() {
         }
 
         if (visuallyDisabled) {
-            dayDiv.classList.add('disabled');
-            dayDiv.innerHTML = `<span class="opacity-50">${i}</span>`;
-            if (effectiveIsAdmin && isDayBlocked && !(isPast || isNotWorkingDay)) {
+            dayDiv.classList.add(isClosedDay ? 'disabled' : 'calendar-day');
+            if (isClosedDay) {
+                dayDiv.innerHTML = `<span class="opacity-35">${i}</span>`;
+                dayDiv.title = 'Establecimiento cerrado';
+            } else if (isPast) {
+                dayDiv.innerHTML = `<span class="opacity-55">${i}</span>`;
+                dayDiv.title = 'Día pasado (Click para ver horarios)';
+            } else {
+                dayDiv.innerHTML = `<span class="opacity-65">${i}</span>`;
+                dayDiv.title = 'Sin cupos disponibles (Click para ver horarios)';
+            }
+            if (effectiveIsAdmin && isDayBlocked && !(isPast || isClosedDay)) {
                 dayDiv.style.border = '2px solid #ef4444';
                 dayDiv.style.color = '#ef4444';
                 dayDiv.style.cursor = 'pointer';
                 dayDiv.title = 'Día bloqueado (Click para gestionar)';
-            } else if (!effectiveIsAdmin) {
-                dayDiv.title = 'Día no disponible';
             }
         } else {
             dayDiv.classList.add('calendar-day');
@@ -778,6 +825,7 @@ function cal_renderTimeSlots() {
     generateTimeSlots(null, null, interval, fechaActual, globalSelectedProfessional);
 
     const effectiveIsAdmin = isAdmin && !isPreviewMode;
+    const isPastDay = selectedAtMidnight.getTime() < todayAtMidnight.getTime();
 
     cal_availableTimes.forEach((time) => {
         if (window.isTimeInBreak(time, fechaActual)) return; 
@@ -785,37 +833,44 @@ function cal_renderTimeSlots() {
         const [hh, mm] = time.split(':').map(Number);
         const slotDate = new Date(cal_selectedDate.getFullYear(), cal_selectedDate.getMonth(), cal_selectedDate.getDate(), hh, mm, 0, 0);
         
-        const isAvailable = isSlotAvailableForDuration(fechaActual, time, selectedDuration, selectedCapacidad, baseOcupadas, isTodaySelected, slotDate);
-        const isBooked = !isAvailable;
         const countTaken = baseOcupadas.filter(t => t.substring(0, 5) === time).length;
-        
-        // Si es la vista del cliente público y el horario está reservado u ocupado, no mostrar la opción
-        if (isBooked && (!effectiveIsAdmin || isPreviewMode)) {
-            return;
-        }
+        const slotStatus = getSlotStatus(fechaActual, time, selectedDuration, selectedCapacidad, baseOcupadas, isTodaySelected, slotDate, isPastDay);
+        const isAvailable = slotStatus.available;
 
-        let spotsText = '';
-        if (!isBooked && selectedCapacidad > 1) {
-            const spotsLeft = Math.max(0, selectedCapacidad - countTaken);
-            spotsText = `<span class="block text-[10px] font-semibold opacity-85 leading-none mt-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full">${spotsLeft} lugares</span>`;
-        }
+        if (isAvailable) {
+            let spotsText = '';
+            if (selectedCapacidad > 1) {
+                const spotsLeft = Math.max(0, selectedCapacidad - countTaken);
+                spotsText = `<span class="block text-[10px] font-semibold opacity-85 leading-none mt-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full">${spotsLeft} lugares</span>`;
+            }
 
-        const clockIcon = !isBooked ? '<span class="material-symbols-outlined text-[13px] opacity-70 inline-flex shrink-0">schedule</span>' : '';
-        slot.innerHTML = isBooked 
-            ? `<div class="flex items-center justify-center gap-1 w-full min-w-0"><span class="whitespace-nowrap font-extrabold text-xs leading-tight">${time}&nbsp;hs</span> <span class="text-[10px] font-medium opacity-70 leading-tight">(Agotado)</span></div>` 
-            : `<div class="flex items-center justify-center gap-1 w-full min-w-0">${clockIcon}<span class="whitespace-nowrap font-extrabold text-xs sm:text-[13px] tracking-tight leading-tight">${time}&nbsp;hs</span></div>${spotsText}`;
-        slot.className = isBooked 
-            ? 'time-slot booked flex flex-col justify-center items-center py-2 px-1.5 rounded-2xl text-xs font-extrabold opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700 min-h-[38px] w-full' 
-            : 'time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-900 py-2 px-1.5 rounded-2xl text-xs sm:text-[13px] font-extrabold border-1.5 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 hover:-translate-y-0.5 hover:shadow-md cursor-pointer transition-all shadow-xs min-h-[38px] w-full';
-        
-        if (!isBooked) {
+            const clockIcon = '<span class="material-symbols-outlined text-[13px] opacity-70 inline-flex shrink-0">schedule</span>';
+            slot.innerHTML = `<div class="flex items-center justify-center gap-1 w-full min-w-0">${clockIcon}<span class="whitespace-nowrap font-extrabold text-xs sm:text-[13px] tracking-tight leading-tight">${time}&nbsp;hs</span></div>${spotsText}`;
+            slot.className = 'time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-900 py-2 px-1.5 rounded-2xl text-xs sm:text-[13px] font-extrabold border-1.5 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 hover:-translate-y-0.5 hover:shadow-md cursor-pointer transition-all shadow-xs min-h-[38px] w-full';
+            
             slot.addEventListener('click', () => {
                 document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('selected'));
                 slot.classList.add('selected');
                 cal_selectedTime = time;
                 document.getElementById('horaSeleccionada').value = time;
             });
+        } else {
+            // NO DISPONIBLE: Se muestra el horario con su etiqueta (Pasado o Sin cupo) y NO se permite reservar
+            const isPast = slotStatus.isPast;
+            const badgeText = isPast ? 'Pasado' : 'Sin cupo';
+            const badgeClass = isPast 
+                ? 'bg-slate-200/80 dark:bg-slate-700/70 text-slate-500 dark:text-slate-400' 
+                : 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400';
+            
+            slot.innerHTML = `
+                <div class="flex items-center justify-center gap-1.5 w-full min-w-0">
+                    <span class="whitespace-nowrap font-bold text-xs leading-tight text-slate-400 dark:text-slate-500">${time}&nbsp;hs</span>
+                    <span class="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${badgeClass} leading-tight">${badgeText}</span>
+                </div>
+            `;
+            slot.className = 'time-slot unavailable flex flex-col justify-center items-center py-2 px-1.5 rounded-2xl text-xs font-bold opacity-60 cursor-not-allowed bg-slate-100/70 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 border border-dashed border-slate-200 dark:border-slate-700 min-h-[38px] w-full select-none';
         }
+
         timeSlotsContainer.appendChild(slot);
     });
 }
@@ -2794,8 +2849,9 @@ function renderWeeklyCalendar() {
         
         const isDayBlocked = isGeneralBlock || isProfBlock;
         const isNotWorkingDay = !window.isWorkingDay(date);
+        const isClosedDay = isNotWorkingDay;
         let hasAvailableSlots = (!isPast && !isNotWorkingDay && !isDayBlocked) ? checkDayHasAvailableSlots(date) : false;
-        const visuallyDisabled = isPast || isNotWorkingDay || isDayBlocked || (!hasAvailableSlots && !isPast && !isNotWorkingDay);
+        const visuallyDisabled = isPast || isDayBlocked || isClosedDay || (!hasAvailableSlots && !isPast && !isClosedDay);
         
         const isToday = date.getTime() === today.getTime();
         const isSelected = selectedTimeValue === date.getTime();
@@ -2829,12 +2885,15 @@ function renderWeeklyCalendar() {
 
         dayDiv.className = `flex flex-col items-center justify-center py-2 px-1 sm:py-3 sm:px-2 rounded-2xl border-2 ${borderClass} ${bgClass} ${textClass} w-full min-w-0 transition-all duration-300 relative overflow-visible shadow-2xs hover:shadow-lg`;
         
-        if (visuallyDisabled) {
-            dayDiv.classList.add('opacity-50', 'cursor-not-allowed');
+        if (isClosedDay) {
+            dayDiv.classList.add('opacity-40', 'cursor-not-allowed');
+            dayDiv.title = 'Establecimiento cerrado';
         } else {
             dayDiv.classList.add('cursor-pointer');
             const currentIterDate = new Date(date);
             dayDiv.addEventListener('click', () => selectWeeklyDate(currentIterDate));
+            if (isPast) dayDiv.title = 'Día pasado (Click para ver horarios)';
+            else if (visuallyDisabled) dayDiv.title = 'Sin cupos disponibles (Click para ver horarios)';
         }
         
         const activeDot = (!visuallyDisabled && !isSelected && !isToday) ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 mb-0.5 animate-pulse shadow-2xs"></span>' : (isSelected ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/90 mb-0.5 shadow-2xs"></span>' : '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-transparent mb-0.5"></span>');
@@ -2965,20 +3024,24 @@ function selectWeeklyDate(date) {
     let slotsGenerated = 0;
     let firstAvailableTime = null;
     const now = new Date();
-    const isToday = date.getTime() === new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const selectedDateObj = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const isToday = selectedDateObj.getTime() === todayZero.getTime();
+    const isPastDay = selectedDateObj.getTime() < todayZero.getTime();
     const baseOcupadas = cal_bookedSlots[toYYYYMMDD(date)] || [];
 
     cal_availableTimes.forEach((time) => {
         if (window.isTimeInBreak(time, dayStr2)) return;
         const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), ...time.split(':').map(Number), 0, 0);
         
-        const isAvailable = isSlotAvailableForDuration(toYYYYMMDD(date), time, selectedDuration, selectedCapacidad, baseOcupadas, isToday, slotDate);
+        const slotStatus = getSlotStatus(toYYYYMMDD(date), time, selectedDuration, selectedCapacidad, baseOcupadas, isToday, slotDate, isPastDay);
+        const isAvailable = slotStatus.available;
+        slotsGenerated++;
+
+        const slot = document.createElement('div');
 
         if (isAvailable) {
             if (!firstAvailableTime) firstAvailableTime = time;
-            slotsGenerated++;
-            const slot = document.createElement('div');
-            
             let spotsText = '';
             if (selectedCapacidad > 1) {
                 let maxSpotsTaken = 0;
@@ -2992,12 +3055,12 @@ function selectWeeklyDate(date) {
                     const countTaken = baseOcupadas.filter(t => t.substring(0, 5) === subSlotStr).length;
                     if (countTaken > maxSpotsTaken) maxSpotsTaken = countTaken;
                 }
-                const spotsLeft = selectedCapacidad - maxSpotsTaken;
+                const spotsLeft = Math.max(0, selectedCapacidad - maxSpotsTaken);
                 spotsText = `<span class="block text-[10px] font-semibold opacity-85 leading-none mt-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full">${spotsLeft} lugares</span>`;
             }
             
             const clockIcon = '<span class="material-symbols-outlined text-[13px] sm:text-[14px] opacity-75 inline-flex shrink-0">schedule</span>';
-            slot.innerHTML = `<div class="flex items-center justify-center gap-1 sm:gap-1.5 w-full min-w-0"><span class="whitespace-nowrap font-extrabold text-xs sm:text-sm tracking-tight leading-tight">${time}&nbsp;hs</span></div>${spotsText}`;
+            slot.innerHTML = `<div class="flex items-center justify-center gap-1 sm:gap-1.5 w-full min-w-0">${clockIcon}<span class="whitespace-nowrap font-extrabold text-xs sm:text-sm tracking-tight leading-tight">${time}&nbsp;hs</span></div>${spotsText}`;
             slot.className = 'time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-800/90 py-2 sm:py-2.5 px-2 sm:px-3 rounded-2xl text-xs sm:text-sm font-extrabold border-1.5 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 shadow-xs min-h-[40px] w-full';
             slot.addEventListener('click', () => {
                 document.querySelectorAll('#weeklyTimeSlots .time-slot').forEach(el => {
@@ -3007,21 +3070,37 @@ function selectWeeklyDate(date) {
                 cal2_selectedTime = time;
                 document.getElementById('weeklyHora').value = time;
             });
-            container.appendChild(slot);
+        } else {
+            // NO DISPONIBLE: Se muestra horario con su etiqueta (Pasado o Sin cupo) y NO permite click/reserva
+            const isPast = slotStatus.isPast;
+            const badgeText = isPast ? 'Pasado' : 'Sin cupo';
+            const badgeClass = isPast 
+                ? 'bg-slate-200/80 dark:bg-slate-700/70 text-slate-500 dark:text-slate-400' 
+                : 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400';
+            
+            slot.innerHTML = `
+                <div class="flex items-center justify-center gap-1.5 w-full min-w-0">
+                    <span class="whitespace-nowrap font-bold text-xs sm:text-sm leading-tight text-slate-400 dark:text-slate-500">${time}&nbsp;hs</span>
+                    <span class="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${badgeClass} leading-tight">${badgeText}</span>
+                </div>
+            `;
+            slot.className = 'time-slot unavailable flex flex-col justify-center items-center py-2 sm:py-2.5 px-2 sm:px-3 rounded-2xl text-xs sm:text-sm font-bold opacity-60 cursor-not-allowed bg-slate-100/70 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 border border-dashed border-slate-200 dark:border-slate-700 min-h-[40px] w-full select-none';
         }
+
+        container.appendChild(slot);
     });
     
     if (firstAvailableTime && !cal2_selectedTime) {
-        const slots = container.querySelectorAll('.time-slot');
+        const slots = container.querySelectorAll('.time-slot:not(.unavailable)');
         for(let slot of slots) {
-            if (slot.textContent === firstAvailableTime) {
+            if (slot.textContent.includes(firstAvailableTime)) {
                 slot.click();
                 break;
             }
         }
     }
     
-    if (slotsGenerated === 0) container.innerHTML = '<div class="col-span-full p-6 text-center text-red-500 bg-red-50 rounded-xl font-bold">No hay horarios disponibles para este día.</div>';
+    if (slotsGenerated === 0) container.innerHTML = '<div class="col-span-full p-6 text-center text-slate-400 bg-slate-50 dark:bg-slate-800/40 rounded-xl font-bold">No hay horarios configurados para este día.</div>';
 }
 
 function findNextAvailableSlot() {
