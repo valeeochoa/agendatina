@@ -163,11 +163,12 @@
 
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-xs font-bold text-slate-700 mb-1.5">Precio ($) *</label>
+                                <label id="lblSvcPrecio" class="block text-xs font-bold text-slate-700 mb-1.5">Precio ($) *</label>
                                 <div class="relative">
                                     <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">$</span>
                                     <input type="number" name="precio" id="svcPrecio" min="0" step="100" placeholder="5000" required class="w-full bg-white border border-slate-200 rounded-xl pl-8 pr-3 py-3 text-sm font-black text-slate-900 focus:ring-2 outline-none transition-all shadow-xs" style="--tw-ring-color: var(--color-primario, #d11149);">
                                 </div>
+                                <span id="hintSvcPrecio" class="text-[10px] text-slate-400 block mt-1">Obligatorio si no se configuran pases.</span>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 mb-1.5">Cupo Máximo *</label>
@@ -431,6 +432,31 @@
             collectCupoPricingRows();
         }
 
+        function actualizarRequisitoPrecio(tienePaquetes) {
+            const input = document.getElementById('svcPrecio');
+            const label = document.getElementById('lblSvcPrecio');
+            const hint = document.getElementById('hintSvcPrecio');
+            if (!input || !label) return;
+
+            if (tienePaquetes) {
+                input.required = false;
+                label.innerHTML = 'Precio Clase Suelta ($) <span class="text-[11px] font-normal text-slate-400">(Opcional si usas pases)</span>';
+                input.placeholder = 'Dejar vacío si cobras con pases';
+                if (hint) {
+                    hint.innerHTML = '💡 Al dejarlo vacío o en 0, no se mostrará como gratis sino que se mostrarán las tarifas de los pases configurados abajo.';
+                    hint.className = 'text-[10px] text-amber-700 font-bold block mt-1';
+                }
+            } else {
+                input.required = true;
+                label.innerHTML = 'Precio ($) *';
+                input.placeholder = '5000';
+                if (hint) {
+                    hint.innerHTML = 'Obligatorio si no se configuran pases.';
+                    hint.className = 'text-[10px] text-slate-400 block mt-1';
+                }
+            }
+        }
+
         function collectCupoPricingRows() {
             const container = document.getElementById('cupoPricingContainer');
             if (!container) return;
@@ -445,6 +471,7 @@
                 }
             });
             document.getElementById('svcPreciosPaquetesJson').value = JSON.stringify(result);
+            actualizarRequisitoPrecio(result.length > 0);
         }
 
         function renderServicesList(list) {
@@ -456,7 +483,6 @@
             }
             let html = '';
             list.forEach(s => {
-                const precioFmt = parseFloat(s.precio || 0).toLocaleString('es-AR');
                 const duracionFmt = formatDuracionText(s.duracion || 45);
                 const cuposCount = parseInt(s.cupo_maximo || s.capacidad || 1);
                 const cuposBadge = cuposCount > 1 
@@ -464,14 +490,27 @@
                     : `<span class="text-slate-500 text-xs font-medium">👤 Individual (1 cupo)</span>`;
 
                 let paquetesBadges = '';
+                let pkgs = [];
                 try {
-                    const pkgs = typeof s.precios_paquetes_json === 'string' ? JSON.parse(s.precios_paquetes_json || '[]') : (s.precios_paquetes_json || []);
+                    pkgs = typeof s.precios_paquetes_json === 'string' ? JSON.parse(s.precios_paquetes_json || '[]') : (s.precios_paquetes_json || []);
                     if (Array.isArray(pkgs) && pkgs.length > 0) {
                         paquetesBadges = '<div class="flex flex-wrap items-center gap-1.5 mt-2">' + pkgs.map(p => 
-                            `<span class="bg-purple-50 text-purple-800 text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-purple-200/80 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">inventory_2</span> ${p.cupos} clases x $${parseFloat(p.precio).toLocaleString('es-AR')}</span>`
+                            `<span class="bg-purple-50 text-purple-800 text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-purple-200/80 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">inventory_2</span> ${p.etiqueta ? escapeHtml(p.etiqueta) + ' (' + p.cupos + ' cl.)' : p.cupos + ' clases'} x $${parseFloat(p.precio).toLocaleString('es-AR')}</span>`
                         ).join('') + '</div>';
                     }
                 } catch(e) {}
+
+                const tienePases = Array.isArray(pkgs) && pkgs.length > 0;
+                const numPrecio = parseFloat(s.precio || 0);
+
+                let precioBadgeHtml = '';
+                if (numPrecio > 0) {
+                    precioBadgeHtml = `<span class="font-bold text-emerald-700">💲 $${numPrecio.toLocaleString('es-AR')}</span>`;
+                } else if (tienePases) {
+                    precioBadgeHtml = `<span class="font-extrabold text-orange-700 bg-orange-100/90 border border-orange-200 px-2 py-0.5 rounded-md text-[11px] inline-flex items-center gap-1 shadow-2xs"><span class="material-symbols-outlined text-[13px]">inventory_2</span> Tarifas por Pases</span>`;
+                } else {
+                    precioBadgeHtml = `<span class="font-bold text-slate-500">Gratis / Sin costo</span>`;
+                }
 
                 const iconToUse = s.icono || 'local_florist';
                 const img = s.imagen1;
@@ -490,15 +529,15 @@
                                 </div>
                                 <p class="text-xs text-slate-500 font-medium mt-0.5 flex flex-wrap items-center gap-2">
                                     <span>⏱️ ${duracionFmt}</span>
-                                    <span class="font-bold text-emerald-700">💲 $${precioFmt}</span>
+                                    ${precioBadgeHtml}
                                     <span>👨‍⚕️ ${s.profesional || 'Cualquiera'}</span>
                                 </p>
                                 ${paquetesBadges}
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button onclick="editService(${s.id})" class="p-2 rounded-xl bg-white text-slate-600 hover:text-primary border border-slate-200 transition-colors" title="Editar Servicio"><span class="material-symbols-outlined text-[18px]">edit</span></button>
-                            <button onclick="deleteService(${s.id})" class="p-2 rounded-xl bg-white text-slate-600 hover:text-red-600 border border-slate-200 transition-colors" title="Eliminar Servicio"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                            <button onclick="editService(${s.id})" class="p-2 rounded-xl bg-white text-slate-600 hover:text-primary border border-slate-200 transition-colors cursor-pointer" title="Editar Servicio"><span class="material-symbols-outlined text-[18px]">edit</span></button>
+                            <button onclick="deleteService(${s.id})" class="p-2 rounded-xl bg-white text-slate-600 hover:text-red-600 border border-slate-200 transition-colors cursor-pointer" title="Eliminar Servicio"><span class="material-symbols-outlined text-[18px]">delete</span></button>
                         </div>
                     </div>
                 `;
@@ -559,6 +598,7 @@
             if (document.getElementById('svcImagen1')) document.getElementById('svcImagen1').value = '';
             document.getElementById('cupoPricingContainer').innerHTML = '';
             document.getElementById('svcPreciosPaquetesJson').value = '[]';
+            actualizarRequisitoPrecio(false);
             populateProfSelect(professionalsData);
             document.getElementById('serviceModalTitle').innerHTML = '<span class="material-symbols-outlined text-[24px]" style="color: var(--color-primario, #d11149);">add_task</span> <span>Nuevo Servicio</span>';
             document.getElementById('serviceModal').classList.remove('hidden');
@@ -588,7 +628,7 @@
             document.getElementById('svcDuracion').value = totalMin;
 
             document.getElementById('svcCapacidad').value = s.cupo_maximo || s.capacidad || 1;
-            document.getElementById('svcPrecio').value = s.precio;
+            
             if (s.profesional) {
                 document.getElementById('svcProfesional').value = s.profesional;
             }
@@ -596,15 +636,25 @@
 
             // Cargar Paquetes de Pases configurados
             const cupoContainer = document.getElementById('cupoPricingContainer');
+            let paquetes = [];
             if (cupoContainer) {
                 cupoContainer.innerHTML = '';
-                let paquetes = [];
                 try {
                     paquetes = typeof s.precios_paquetes_json === 'string' ? JSON.parse(s.precios_paquetes_json || '[]') : (s.precios_paquetes_json || []);
                 } catch(e) {}
                 if (Array.isArray(paquetes) && paquetes.length > 0) {
                     paquetes.forEach(p => addCupoPricingRow(p.cupos, p.precio, p.etiqueta));
                 }
+            }
+
+            const tienePaquetes = Array.isArray(paquetes) && paquetes.length > 0;
+            actualizarRequisitoPrecio(tienePaquetes);
+
+            const numPrecio = parseFloat(s.precio || 0);
+            if (numPrecio > 0) {
+                document.getElementById('svcPrecio').value = s.precio;
+            } else {
+                document.getElementById('svcPrecio').value = '';
             }
 
             document.getElementById('serviceModalTitle').innerHTML = '<span class="material-symbols-outlined text-[24px]" style="color: var(--color-primario, #d11149);">edit</span> <span>Editar Servicio</span>';
@@ -640,6 +690,29 @@
         document.getElementById('serviceForm').addEventListener('submit', function(e) {
             e.preventDefault();
             collectCupoPricingRows();
+
+            const inputPrecio = document.getElementById('svcPrecio');
+            const rawPrecio = inputPrecio ? inputPrecio.value.trim() : '';
+            const numPrecio = parseFloat(rawPrecio);
+            const pkgsRaw = document.getElementById('svcPreciosPaquetesJson')?.value || '[]';
+            let pkgsList = [];
+            try { pkgsList = JSON.parse(pkgsRaw); } catch(err) {}
+
+            const tienePases = Array.isArray(pkgsList) && pkgsList.length > 0;
+
+            // Si NO tiene pases configurados, el precio debe ser obligatorio y mayor a 0
+            if (!tienePases) {
+                if (!rawPrecio || isNaN(numPrecio) || numPrecio <= 0) {
+                    if (typeof showToast === 'function') {
+                        showToast('Debes ingresar un precio para el servicio, o configurar al menos un paquete de pases si el valor depende de los cupos.', 'error');
+                    } else {
+                        alert('Debes ingresar un precio para el servicio, o configurar al menos un paquete de pases si el valor depende de los cupos.');
+                    }
+                    if (inputPrecio) inputPrecio.focus();
+                    return;
+                }
+            }
+
             const btn = document.getElementById('btnSvcSubmit');
             btn.disabled = true;
             btn.textContent = 'Guardando...';

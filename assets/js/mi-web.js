@@ -81,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof window.applyServiceAlignmentCSS === 'function') {
                 window.applyServiceAlignmentCSS(alignVal);
             } else {
-                const flexAlign = alignVal === 'center' ? 'center' : (alignVal === 'right' ? 'flex-end' : 'flex-start');
                 const flexJustify = alignVal === 'center' ? 'center' : (alignVal === 'right' ? 'flex-end' : 'flex-start');
                 let styleAlign = document.getElementById('agendatina-service-alignment');
                 if (!styleAlign) {
@@ -90,9 +89,38 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.head.appendChild(styleAlign);
                 }
                 styleAlign.innerHTML = `
-                    .service-card .p-6, .card-servicio .p-6 { align-items: ${flexAlign} !important; text-align: ${alignVal} !important; }
-                    .service-card h3, .card-servicio h3, .service-card p, .card-servicio p, .service-card .line-clamp-3 { text-align: ${alignVal} !important; width: 100% !important; }
-                    .service-card .service-duration-badge, .card-servicio .service-duration-badge { justify-content: ${flexJustify} !important; }
+                    #servicesGrid, #publicProfesionalesList, #publicCursosList {
+                        display: flex !important;
+                        flex-wrap: wrap !important;
+                        justify-content: ${flexJustify} !important;
+                        gap: 2rem !important;
+                    }
+                    #servicesGrid > div, 
+                    #publicProfesionalesList > div, 
+                    #publicCursosList > div,
+                    .service-card, 
+                    .card-servicio {
+                        flex: 0 1 360px !important;
+                        max-width: 100% !important;
+                        width: 100% !important;
+                    }
+                    @media (min-width: 768px) {
+                        #servicesGrid > div, 
+                        #publicProfesionalesList > div, 
+                        #publicCursosList > div,
+                        .service-card, 
+                        .card-servicio {
+                            width: 360px !important;
+                        }
+                    }
+                    .service-card .p-6, .card-servicio .p-6 {
+                        text-align: left !important;
+                    }
+                    .service-card h3, .card-servicio h3,
+                    .service-card p, .card-servicio p,
+                    .service-card .line-clamp-3, .card-servicio .line-clamp-3 {
+                        text-align: left !important;
+                    }
                 `;
             }
         });

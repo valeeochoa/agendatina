@@ -1822,8 +1822,16 @@ function updateSelectedServicePriceDisplay() {
     const p = parseFloat(match.precio || 0);
     const sena = parseFloat(match.precio_sena || 0);
 
+    let pkgs = [];
+    try {
+        pkgs = typeof match.precios_paquetes_json === 'string' ? JSON.parse(match.precios_paquetes_json || '[]') : (match.precios_paquetes_json || []);
+    } catch(e) {}
+    const tienePaquetes = Array.isArray(pkgs) && pkgs.length > 0;
+
     if (p > 0) {
         priceVal.textContent = `$${p.toLocaleString('es-AR')}`;
+    } else if (tienePaquetes) {
+        priceVal.textContent = 'Tarifas por Pases';
     } else {
         priceVal.textContent = 'Gratis';
     }
@@ -1907,7 +1915,16 @@ function renderServicesList() {
         return;
     }
     services.forEach(service => {
-        const precioText = service.precio ? ` • $${service.precio}` : '';
+        let pkgs = [];
+        try { pkgs = typeof service.precios_paquetes_json === 'string' ? JSON.parse(service.precios_paquetes_json || '[]') : (service.precios_paquetes_json || []); } catch(e) {}
+        const tienePases = Array.isArray(pkgs) && pkgs.length > 0;
+        const numP = parseFloat(service.precio || 0);
+        let precioText = '';
+        if (numP > 0) {
+            precioText = ` • $${numP.toLocaleString('es-AR')}`;
+        } else if (tienePases) {
+            precioText = ' • Tarifas por pases';
+        }
         const defaultIcon = `<div class="w-4 h-4 rounded-full bg-purple-200 text-purple-700 flex items-center justify-center shrink-0"><span class="material-symbols-outlined" style="font-size: 12px;">person</span></div>`;
         const profIcon = service.foto_profesional ? `<img src="${service.foto_profesional}" class="w-4 h-4 rounded-full object-cover border border-purple-200 shrink-0">` : defaultIcon;
         const linkBtn = service.enlace_agenda ? `<button type="button" onclick="copyProfLink(event, '${service.enlace_agenda}')" class="text-emerald-600 hover:text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md transition-colors inline-flex items-center gap-1 text-[10px] font-bold ml-2 uppercase tracking-wide" title="Copiar enlace"><span class="material-symbols-outlined text-[12px]">link</span> Obtener Enlace de Agenda</button>` : '';
@@ -2161,9 +2178,20 @@ function initWizard() {
     }
 
     uniqueServices.forEach(sName => {
-        const sMatches = services.filter(s => s.nombre === sName);
-        const minPrice = Math.min(...sMatches.map(s => parseFloat(s.precio) || 0));
-        const priceDisplay = minPrice > 0 ? `Desde $${minPrice.toLocaleString('es-AR')}` : '';
+        const validPrices = sMatches.map(s => parseFloat(s.precio) || 0).filter(pr => pr > 0);
+        let minPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+        let priceDisplay = minPrice > 0 ? `Desde $${minPrice.toLocaleString('es-AR')}` : '';
+        if (!priceDisplay) {
+            const hasPkgs = sMatches.some(s => {
+                try {
+                    const pk = typeof s.precios_paquetes_json === 'string' ? JSON.parse(s.precios_paquetes_json || '[]') : (s.precios_paquetes_json || []);
+                    return Array.isArray(pk) && pk.length > 0;
+                } catch(e) { return false; }
+            });
+            if (hasPkgs) {
+                priceDisplay = 'Tarifas por Pases';
+            }
+        }
         const dur = sMatches[0].duracion;
         const formattedDur = formatDuracionText(dur);
         const img = sMatches[0].imagen1 || sMatches[0].foto_profesional;
@@ -3534,6 +3562,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (logoImg) logoImg.classList.add('hidden');
                     }
 
+                    // Botón para ver la Página Web del negocio
+                    const navVerWebBtn = document.getElementById('navVerWebBtn');
+                    if (navVerWebBtn) {
+                        const webSlug = negocioSlug || (config ? config.ruta || config.subdominio : '') || '';
+                        const webRuta = webSlug ? `web.html?n=${webSlug}` : 'web.html';
+                        navVerWebBtn.href = webRuta;
+                        navVerWebBtn.classList.remove('hidden');
+                        navVerWebBtn.style.display = 'inline-flex';
+                    }
+
                     let interval = config.intervalo_turnos;
                     generateTimeSlots(config.hora_apertura, config.hora_cierre, interval);
                     checkAdminCalendarSession(config);
@@ -3705,21 +3743,26 @@ function checkAdminCalendarSession(config = null) {
             const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
             const currentRuta = (negocioSlug || (config ? config.ruta || config.subdominio : '') || '').toLowerCase().trim();
 
-            if (isDemo || !currentRuta || loggedRuta === currentRuta || (config && data.business.id == config.id_negocio)) {
+            if (isDemo || (currentRuta && loggedRuta === currentRuta) || (config && data.business.id == config.id_negocio)) {
                 isUserAdmin = true;
             }
 
-            if (bizText && data.business.nombre_fantasia) bizText.textContent = data.business.nombre_fantasia;
-            if (bizLogo && data.config && data.config.url_logo) {
-                bizLogo.src = data.config.url_logo;
-                bizLogo.classList.remove('hidden');
+            if (isUserAdmin) {
+                if (bizText && data.business.nombre_fantasia) bizText.textContent = data.business.nombre_fantasia;
+                if (bizLogo && data.config && data.config.url_logo) {
+                    bizLogo.src = data.config.url_logo;
+                    bizLogo.classList.remove('hidden');
+                }
             }
         }
+
+        const bizSep = document.getElementById('navBizSeparator');
 
         if (isUserAdmin) {
             // Usuario es Administrador de la cuenta: Mostrar marca Agendatina y controles administrativos
             if (brand) { brand.classList.remove('hidden'); brand.style.display = 'flex'; }
             if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
+            if (bizSep) { bizSep.classList.remove('hidden'); bizSep.style.display = 'inline'; }
             if (btnVolver) { btnVolver.classList.remove('hidden'); btnVolver.style.display = 'inline-flex'; }
             if (logoutBtn) { logoutBtn.classList.remove('hidden'); logoutBtn.style.display = 'inline-flex'; }
 
@@ -3752,6 +3795,7 @@ function checkAdminCalendarSession(config = null) {
             // Usuario es Cliente / Visitante: OCULTAR marca Agendatina del header y todos los botones administrativos
             if (brand) { brand.classList.add('hidden'); brand.style.display = 'none'; }
             if (sep) { sep.classList.add('hidden'); sep.style.display = 'none'; }
+            if (bizSep) { bizSep.classList.add('hidden'); bizSep.style.display = 'none'; }
             if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
             if (logoutBtn) { logoutBtn.classList.add('hidden'); logoutBtn.style.display = 'none'; }
             if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
@@ -3767,6 +3811,8 @@ function checkAdminCalendarSession(config = null) {
         // En caso de error o sesión cerrada en vista pública, ocultar marca Agendatina del header y botones de administración
         if (brand) { brand.classList.add('hidden'); brand.style.display = 'none'; }
         if (sep) { sep.classList.add('hidden'); sep.style.display = 'none'; }
+        const bizSep = document.getElementById('navBizSeparator');
+        if (bizSep) { bizSep.classList.add('hidden'); bizSep.style.display = 'none'; }
         if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
         if (logoutBtn) { logoutBtn.classList.add('hidden'); logoutBtn.style.display = 'none'; }
         if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }

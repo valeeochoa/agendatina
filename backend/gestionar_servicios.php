@@ -167,8 +167,13 @@ if ($method === 'POST') {
     $id = !empty($_POST['id']) ? $_POST['id'] : (!empty($data['id']) ? $data['id'] : null);
     $nombre = $data['nombre'] ?? '';
     $duracion = $data['duracion'] ?? 0;
-    $precio = $data['precio'] ?? 0;
-    $precio_sena = $data['precio_sena'] ?? 0;
+    $precioRaw = $data['precio'] ?? $_POST['precio'] ?? 0;
+    if ($precioRaw === '' || $precioRaw === '-' || !is_numeric($precioRaw)) {
+        $precio = 0;
+    } else {
+        $precio = max(0, (float)$precioRaw);
+    }
+    $precio_sena = !empty($data['precio_sena']) && is_numeric($data['precio_sena']) ? (float)$data['precio_sena'] : 0;
     $capacidad = isset($data['capacidad']) ? (int)$data['capacidad'] : (isset($data['cupo_maximo']) ? (int)$data['cupo_maximo'] : 1);
     $cupo_maximo = max(1, $capacidad);
     $descripcion = $data['descripcion'] ?? '';
@@ -186,6 +191,18 @@ if ($method === 'POST') {
         $precios_paquetes_json = json_encode($precios_paquetes_json, JSON_UNESCAPED_UNICODE);
     } elseif (empty($precios_paquetes_json) || json_decode($precios_paquetes_json) === null) {
         $precios_paquetes_json = '[]';
+    }
+
+    $pkgsArray = json_decode($precios_paquetes_json, true);
+    $tienePases = is_array($pkgsArray) && count($pkgsArray) > 0;
+
+    // Si no tiene pases asignados, se le debe obligar que ponga el precio
+    if (!$tienePases && $precio <= 0) {
+        echo json_encode([
+            'success' => false, 
+            'error' => 'Debes ingresar un precio para el servicio, o configurar al menos un paquete de pases si el valor depende de los cupos.'
+        ]);
+        exit;
     }
 
     // =========================================================================

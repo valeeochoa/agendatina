@@ -67,32 +67,98 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (document.getElementById('heroReservarBtn')) document.getElementById('heroReservarBtn').href = cleanLink;
                 }
 
-                // Configurar botón Volver si proviene del Editor Web (mi-web.html)
+                // Verificar sesión del administrador: solo mostrar controles si es el dueño de ESTE negocio
                 const btnVolverPanel = document.getElementById('btnVolverPanel');
-                if (btnVolverPanel) {
-                    const fromEditor = urlParams.get('from') === 'mi-web' || 
-                                       urlParams.get('from') === 'editor' || 
-                                       (document.referrer && document.referrer.includes('mi-web.html')) ||
-                                       sessionStorage.getItem('agendatina_nav_from') === 'mi-web';
-                    if (fromEditor) {
-                        btnVolverPanel.href = 'mi-web.html';
-                        btnVolverPanel.title = 'Volver al Editor Web';
-                        const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
-                        if (textSpan) textSpan.textContent = 'Volver';
-                    }
-                }
+                const navAgendatinaBrand = document.getElementById('navAgendatinaBrand');
+                const navBrandSeparator = document.getElementById('navBrandSeparator');
+                const navBizSeparator = document.getElementById('navBizSeparator');
+                const adminSessionBadge = document.getElementById('adminSessionBadge');
 
-                const title = data.titulo || 'Mi Negocio';
-                document.title = title;
-                
-                const navTitle = document.getElementById('navBusinessNameText') || document.getElementById('navTitle');
-                if (navTitle) navTitle.textContent = title;
-                
-                const heroTitle = document.getElementById('heroTitle');
-                if (heroTitle) heroTitle.textContent = title;
-                
-                const footerName = document.getElementById('footerName');
-                if (footerName) footerName.textContent = title;
+                fetch('backend/perfil.php')
+                .then(r => r.json())
+                .then(perfilData => {
+                    let isOwner = false;
+                    let isDemo = false;
+                    if (perfilData && perfilData.success && perfilData.business) {
+                        const loggedRuta = (perfilData.business.ruta || '').toLowerCase().trim();
+                        const currentRuta = (negocioSlug || data.ruta || '').toLowerCase().trim();
+                        
+                        isDemo = (perfilData.business.is_demo === true) || 
+                                 (perfilData.user && perfilData.user.email === 'demo@agendatina.site') || 
+                                 (data.is_demo === true);
+
+                        if (isDemo || (currentRuta && loggedRuta === currentRuta) || (data.id_negocio && perfilData.business.id == data.id_negocio)) {
+                            isOwner = true;
+                        }
+                    }
+
+                    if (isOwner) {
+                        if (btnVolverPanel) {
+                            btnVolverPanel.classList.remove('hidden');
+                            btnVolverPanel.style.display = 'inline-flex';
+                            
+                            const fromEditor = urlParams.get('from') === 'mi-web' || 
+                                               urlParams.get('from') === 'editor' || 
+                                               (document.referrer && document.referrer.includes('mi-web.html')) ||
+                                               sessionStorage.getItem('agendatina_nav_from') === 'mi-web';
+                            if (fromEditor) {
+                                btnVolverPanel.href = 'mi-web.html';
+                                btnVolverPanel.title = 'Volver al Editor Web';
+                                const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
+                                if (textSpan) textSpan.textContent = 'Volver al Editor';
+                            } else {
+                                btnVolverPanel.href = 'dashboard.html';
+                                btnVolverPanel.title = 'Volver al Panel';
+                                const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
+                                if (textSpan) textSpan.textContent = 'Volver al panel';
+                            }
+                        }
+                        if (navAgendatinaBrand) {
+                            navAgendatinaBrand.classList.remove('hidden');
+                            navAgendatinaBrand.style.display = 'inline-flex';
+                        }
+                        if (navBrandSeparator) {
+                            navBrandSeparator.classList.remove('hidden');
+                            navBrandSeparator.style.display = 'inline';
+                        }
+                        if (navBizSeparator) {
+                            navBizSeparator.classList.remove('hidden');
+                            navBizSeparator.style.display = 'inline';
+                        }
+                        if (isDemo && adminSessionBadge) {
+                            adminSessionBadge.classList.remove('hidden');
+                            adminSessionBadge.style.display = 'inline-flex';
+                        }
+                    } else {
+                        // Visitante / Cliente / Dueño de otro negocio viendo este negocio:
+                        // Ocultar TODO control administrativo y de Agendatina del navbar superior
+                        if (btnVolverPanel) { btnVolverPanel.classList.add('hidden'); btnVolverPanel.style.display = 'none'; }
+                        if (navAgendatinaBrand) { navAgendatinaBrand.classList.add('hidden'); navAgendatinaBrand.style.display = 'none'; }
+                        if (navBrandSeparator) { navBrandSeparator.classList.add('hidden'); navBrandSeparator.style.display = 'none'; }
+                        if (navBizSeparator) { navBizSeparator.classList.add('hidden'); navBizSeparator.style.display = 'none'; }
+                        if (adminSessionBadge) { adminSessionBadge.classList.add('hidden'); adminSessionBadge.style.display = 'none'; }
+                    }
+                })
+                .catch(() => {
+                    if (btnVolverPanel) { btnVolverPanel.classList.add('hidden'); btnVolverPanel.style.display = 'none'; }
+                    if (navAgendatinaBrand) { navAgendatinaBrand.classList.add('hidden'); navAgendatinaBrand.style.display = 'none'; }
+                    if (navBrandSeparator) { navBrandSeparator.classList.add('hidden'); navBrandSeparator.style.display = 'none'; }
+                    if (navBizSeparator) { navBizSeparator.classList.add('hidden'); navBizSeparator.style.display = 'none'; }
+                    if (adminSessionBadge) { adminSessionBadge.classList.add('hidden'); adminSessionBadge.style.display = 'none'; }
+                });
+
+                const title = data.titulo || data.nombre_fantasia || '';
+                if (title) {
+                    document.title = title;
+                    const navTitle = document.getElementById('navBusinessNameText') || document.getElementById('navTitle');
+                    if (navTitle) navTitle.textContent = title;
+                    
+                    const heroTitle = document.getElementById('heroTitle');
+                    if (heroTitle) heroTitle.textContent = title;
+                    
+                    const footerName = document.getElementById('footerName');
+                    if (footerName) footerName.textContent = title;
+                }
 
                 if (data.subtitulo && document.getElementById('heroSubtitle')) {
                     document.getElementById('heroSubtitle').textContent = data.subtitulo;
@@ -104,17 +170,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('heroBackground').classList.add('opacity-50');
                 }
 
+                const navIcon = document.getElementById('navBusinessIcon') || document.getElementById('navIcon');
+                const navLogo = document.getElementById('navBusinessLogoImg') || document.getElementById('navLogo');
                 if (data.logo) {
-                    const navIcon = document.getElementById('navBusinessIcon') || document.getElementById('navIcon');
                     if (navIcon) navIcon.classList.add('hidden');
-                    const navLogo = document.getElementById('navBusinessLogoImg') || document.getElementById('navLogo');
                     if (navLogo) {
                         navLogo.src = data.logo;
                         navLogo.classList.remove('hidden');
                     }
-
                     const favicon = document.querySelector('link[rel="icon"]');
                     if (favicon) favicon.href = data.logo;
+                } else if (title) {
+                    if (navIcon) navIcon.classList.remove('hidden');
+                    if (navLogo) navLogo.classList.add('hidden');
                 }
 
                 // Aplicar colores personalizados
@@ -139,9 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 window.applyServiceAlignmentCSS = function(alignVal) {
                     if (!alignVal) alignVal = 'left';
-                    const flexAlign = alignVal === 'center' ? 'center' : (alignVal === 'right' ? 'flex-end' : 'flex-start');
                     const flexJustify = alignVal === 'center' ? 'center' : (alignVal === 'right' ? 'flex-end' : 'flex-start');
-                    const textAlign = alignVal;
                     
                     let styleAlign = document.getElementById('agendatina-service-alignment');
                     if (!styleAlign) {
@@ -150,18 +216,37 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.head.appendChild(styleAlign);
                     }
                     styleAlign.innerHTML = `
+                        #servicesGrid, #publicProfesionalesList, #publicCursosList {
+                            display: flex !important;
+                            flex-wrap: wrap !important;
+                            justify-content: ${flexJustify} !important;
+                            gap: 2rem !important;
+                        }
+                        #servicesGrid > div, 
+                        #publicProfesionalesList > div, 
+                        #publicCursosList > div,
+                        .service-card, 
+                        .card-servicio {
+                            flex: 0 1 360px !important;
+                            max-width: 100% !important;
+                            width: 100% !important;
+                        }
+                        @media (min-width: 768px) {
+                            #servicesGrid > div, 
+                            #publicProfesionalesList > div, 
+                            #publicCursosList > div,
+                            .service-card, 
+                            .card-servicio {
+                                width: 360px !important;
+                            }
+                        }
                         .service-card .p-6, .card-servicio .p-6 {
-                            align-items: ${flexAlign} !important;
-                            text-align: ${textAlign} !important;
+                            text-align: left !important;
                         }
                         .service-card h3, .card-servicio h3,
                         .service-card p, .card-servicio p,
                         .service-card .line-clamp-3, .card-servicio .line-clamp-3 {
-                            text-align: ${textAlign} !important;
-                            width: 100% !important;
-                        }
-                        .service-card .service-duration-badge, .card-servicio .service-duration-badge {
-                            justify-content: ${flexJustify} !important;
+                            text-align: left !important;
                         }
                     `;
                 };
@@ -296,7 +381,22 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 window.webServicesData = servicesData;
                 servicesData.forEach(service => {
-                const precio = service.precio ? `<span class="font-bold text-lg text-primary">$${service.precio}</span>` : '';
+                let pkgs = [];
+                try {
+                    pkgs = typeof service.precios_paquetes_json === 'string' ? JSON.parse(service.precios_paquetes_json || '[]') : (service.precios_paquetes_json || []);
+                } catch(e) {}
+                const tienePases = Array.isArray(pkgs) && pkgs.length > 0;
+                const numPrecio = parseFloat(service.precio || 0);
+
+                let precio = '';
+                if (numPrecio > 0) {
+                    precio = `<span class="font-bold text-lg text-primary">$${numPrecio.toLocaleString('es-AR')}</span>`;
+                } else if (tienePases) {
+                    const preciosValidos = pkgs.map(p => parseFloat(p.precio || 0)).filter(p => p > 0);
+                    const minP = preciosValidos.length > 0 ? Math.min(...preciosValidos) : 0;
+                    const txtPase = minP > 0 ? `Desde $${minP.toLocaleString('es-AR')} (Pases)` : 'Tarifas por Pases';
+                    precio = `<span class="font-extrabold text-xs text-[#FC8712] bg-orange-50 border border-orange-200/80 px-2.5 py-1 rounded-xl inline-flex items-center gap-1 shadow-2xs"><span class="material-symbols-outlined text-[14px]">inventory_2</span> ${txtPase}</span>`;
+                }
                 const imgs = [service.imagen1, service.imagen2, service.imagen3].filter(Boolean);
                 const svcIcon = service.icono || 'local_florist';
                 let imagesHtml = `<div class="h-48 w-full bg-primary/10 flex items-center justify-center text-primary border-b border-primary/10"><span class="material-symbols-outlined text-6xl">${svcIcon}</span></div>`;

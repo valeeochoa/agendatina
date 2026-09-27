@@ -3609,26 +3609,29 @@ function checkAdminGlobalSession(config = null) {
 
             const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
             const urlParams = new URLSearchParams(window.location.search);
-            const negocioSlug = urlParams.get('n') || window.location.pathname.split('/')[1] || '';
+            const negocioSlug = urlParams.get('n') || (window.location.pathname.split('/').filter(p => p && !p.includes('.html') && !p.includes('.php')).pop() || '');
             const currentRuta = (negocioSlug || (config ? config.ruta || config.subdominio : '') || '').toLowerCase().trim();
             
-            const adminPages = ['dashboard', 'ajustes', 'estadisticas', 'servicios', 'equipo', 'mi-web', 'agenda', 'manual', 'consultas', 'perfil', 'pago', 'clientes', 'calendario', 'mi-cuenta'];
+            const adminPages = ['dashboard', 'ajustes', 'estadisticas', 'servicios', 'equipo', 'mi-web', 'agenda', 'manual', 'consultas', 'perfil', 'pago', 'clientes', 'mi-cuenta'];
             const currentPath = window.location.pathname.toLowerCase();
-            const isAdminPage = adminPages.some(page => currentPath.includes(page)) || !currentRuta;
+            const isPublicPage = currentPath.includes('web.html') || currentPath.includes('calendario');
+            const isStrictAdminPage = adminPages.some(page => currentPath.includes(page));
 
-            if (isDemo || isAdminPage || loggedRuta === currentRuta || (config && data.business.id == config.id_negocio)) {
+            if (isDemo || (!isPublicPage && isStrictAdminPage) || (currentRuta && loggedRuta === currentRuta) || (config && data.business.id == config.id_negocio)) {
                 isUserAdmin = true;
+            } else {
+                isUserAdmin = false;
             }
 
-            // Actualizar nombre del negocio e imagen del logo en el Header
+            // Actualizar nombre del negocio e imagen del logo en el Header SOLAMENTE si es admin del negocio actual
             const bizNameText = document.getElementById('navBusinessNameText');
             const bizLogoImg = document.getElementById('navBusinessLogoImg');
             const bizIcon = document.getElementById('navBusinessIcon');
             
-            if (bizNameText) {
+            if (bizNameText && (isUserAdmin || !isPublicPage)) {
                 bizNameText.textContent = data.business.nombre_fantasia || (isDemo ? 'Agendatina' : 'Mi Negocio');
             }
-            if (bizLogoImg && (data.business.logo || data.business.url_logo)) {
+            if (bizLogoImg && (isUserAdmin || !isPublicPage) && (data.business.logo || data.business.url_logo)) {
                 const logoUrl = data.business.logo || data.business.url_logo;
                 if (logoUrl && logoUrl !== 'null' && logoUrl !== 'undefined' && logoUrl.trim() !== '') {
                     bizLogoImg.src = logoUrl;
@@ -3656,8 +3659,16 @@ function checkAdminGlobalSession(config = null) {
         const sessionBadgeText = document.getElementById('adminSessionBadgeText');
         const btnVolverPanel = document.getElementById('btnVolverPanel');
         const navLogoutBtn = document.getElementById('navLogoutBtn');
+        const brand = document.getElementById('navAgendatinaBrand');
+        const sep = document.getElementById('navBrandSeparator');
+        const bizSep = document.getElementById('navBizSeparator');
+        const currentPath = window.location.pathname.toLowerCase();
+        const isPublicPage = currentPath.includes('web.html') || currentPath.includes('calendario');
 
         if (isUserAdmin) {
+            if (brand) { brand.classList.remove('hidden'); brand.style.display = 'inline-flex'; }
+            if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
+            if (bizSep) { bizSep.classList.remove('hidden'); bizSep.style.display = 'inline'; }
             if (adminMenu) {
                 adminMenu.classList.remove('hidden');
                 adminMenu.style.display = 'flex';
@@ -3709,6 +3720,9 @@ function checkAdminGlobalSession(config = null) {
             }
         } else {
             // Usuario es cliente / visitante sin sesión de admin en este local: OCULTAR TODOS LOS BOTONES DE ADMIN
+            if (brand && isPublicPage) { brand.classList.add('hidden'); brand.style.display = 'none'; }
+            if (sep && isPublicPage) { sep.classList.add('hidden'); sep.style.display = 'none'; }
+            if (bizSep && isPublicPage) { bizSep.classList.add('hidden'); bizSep.style.display = 'none'; }
             if (adminMenu) { adminMenu.classList.add('hidden'); adminMenu.style.display = 'none'; }
             if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
             if (btnVolverPanel) {
