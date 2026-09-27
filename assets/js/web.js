@@ -54,17 +54,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const navBtn = document.getElementById('navReservarBtn');
                     const heroBtn = document.getElementById('heroReservarBtn');
-                    if (navBtn) {
-                        navBtn.href = isAlumnoLoggedIn ? cleanLink : 'javascript:void(0)';
-                        navBtn.addEventListener('click', handleCuposClick);
-                    }
-                    if (heroBtn) {
-                        heroBtn.href = isAlumnoLoggedIn ? cleanLink : 'javascript:void(0)';
-                        heroBtn.addEventListener('click', handleCuposClick);
-                    }
+                    const comoFuncionaBtn = document.getElementById('btnComoFuncionaReservar');
+                    const stickyMobileBtn = document.getElementById('stickyMobileReservarBtn');
+
+                    [navBtn, heroBtn, comoFuncionaBtn, stickyMobileBtn].forEach(btn => {
+                        if (btn) {
+                            btn.href = isAlumnoLoggedIn ? cleanLink : 'javascript:void(0)';
+                            btn.addEventListener('click', handleCuposClick);
+                        }
+                    });
                 } else {
-                    if (document.getElementById('navReservarBtn')) document.getElementById('navReservarBtn').href = cleanLink;
-                    if (document.getElementById('heroReservarBtn')) document.getElementById('heroReservarBtn').href = cleanLink;
+                    const navBtn = document.getElementById('navReservarBtn');
+                    const heroBtn = document.getElementById('heroReservarBtn');
+                    const comoFuncionaBtn = document.getElementById('btnComoFuncionaReservar');
+                    const stickyMobileBtn = document.getElementById('stickyMobileReservarBtn');
+
+                    [navBtn, heroBtn, comoFuncionaBtn, stickyMobileBtn].forEach(btn => {
+                        if (btn) btn.href = cleanLink;
+                    });
                 }
 
                 // Verificar sesión del administrador: solo mostrar controles si es el dueño de ESTE negocio
@@ -183,6 +190,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (title) {
                     if (navIcon) navIcon.classList.remove('hidden');
                     if (navLogo) navLogo.classList.add('hidden');
+                }
+
+                // Cargar datos dinámicos en la Barra de Atajos
+                const infoStripHorarios = document.getElementById('infoStripHorarios');
+                if (infoStripHorarios) {
+                    if (data.hora_apertura && data.hora_cierre) {
+                        infoStripHorarios.textContent = `${data.hora_apertura} a ${data.hora_cierre} hs`;
+                    } else {
+                        infoStripHorarios.textContent = 'Horarios Flexibles';
+                    }
+                }
+                const infoStripWhatsApp = document.getElementById('infoStripWhatsApp');
+                const floatingWpp = document.getElementById('btnFloatingWhatsApp');
+                if (data.whatsapp_contacto) {
+                    const waNum = data.whatsapp_contacto.replace(/\D/g, '');
+                    const waUrl = `https://wa.me/${waNum}?text=Hola!%20Quisiera%20hacer%20una%20consulta.`;
+                    if (infoStripWhatsApp) {
+                        infoStripWhatsApp.href = waUrl;
+                        infoStripWhatsApp.target = '_blank';
+                        infoStripWhatsApp.textContent = data.whatsapp_contacto;
+                    }
+                    if (floatingWpp) {
+                        floatingWpp.href = waUrl;
+                        floatingWpp.classList.remove('hidden');
+                        floatingWpp.style.display = 'inline-flex';
+                    }
+                } else {
+                    if (infoStripWhatsApp) infoStripWhatsApp.textContent = 'Atención Online';
+                }
+
+                // Barra Móvil Flotante para Reservas en Scroll
+                const stickyMobileBar = document.getElementById('stickyMobileBar');
+                const stickyMobileBizName = document.getElementById('stickyMobileBizName');
+                if (stickyMobileBizName) {
+                    stickyMobileBizName.textContent = title || 'Reservá tu Turno';
+                }
+                if (stickyMobileBar) {
+                    window.addEventListener('scroll', () => {
+                        if (window.scrollY > 280) {
+                            stickyMobileBar.classList.remove('translate-y-full');
+                        } else {
+                            stickyMobileBar.classList.add('translate-y-full');
+                        }
+                    }, { passive: true });
                 }
 
                 // Aplicar colores personalizados
@@ -423,37 +474,87 @@ document.addEventListener('DOMContentLoaded', () => {
                 return `${m} min`;
             })(service.duracion);
 
-                const alignVal = (window.currentWebData && window.currentWebData.alineacion_servicios) ? window.currentWebData.alineacion_servicios : 'left';
-                const flexAlignClass = alignVal === 'center' ? 'items-center text-center' : (alignVal === 'right' ? 'items-end text-right' : 'items-start text-left');
-                const badgeJustify = alignVal === 'center' ? 'justify-center' : (alignVal === 'right' ? 'justify-end' : 'justify-start');
-                const textAlignClass = alignVal === 'center' ? 'text-center' : (alignVal === 'right' ? 'text-right' : 'text-left');
-
                 let packagesBadgeHtml = '';
                 try {
                     const pkgs = typeof service.precios_paquetes_json === 'string' ? JSON.parse(service.precios_paquetes_json || '[]') : (service.precios_paquetes_json || []);
                     if (Array.isArray(pkgs) && pkgs.length > 0) {
-                        packagesBadgeHtml = '<div class="flex flex-wrap gap-1 mt-2 mb-2 w-full ' + badgeJustify + '">' + pkgs.map(p => 
+                        packagesBadgeHtml = '<div class="flex flex-wrap gap-1 mt-2 mb-3 w-full justify-start">' + pkgs.map(p => 
                             `<span class="bg-orange-50 text-[#FC8712] border border-orange-200/80 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">inventory_2</span> ${p.cupos} clases x $${parseFloat(p.precio).toLocaleString('es-AR')}</span>`
                         ).join('') + '</div>';
                     }
                 } catch(e) {}
 
                 grid.innerHTML += `
-                    <div onclick="openWebModalService('${service.id}')" class="service-card cursor-pointer bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div onclick="openWebModalService('${service.id}')" data-name="${(service.nombre || '').replace(/"/g, '&quot;')}" data-desc="${(plainTextDesc || '').replace(/"/g, '&quot;')}" class="service-card cursor-pointer bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden flex flex-col hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1.5 transition-all duration-300 group">
                         ${imagesHtml}
-                        <div class="p-6 flex flex-col flex-1 ${flexAlignClass}">
-                            <h3 class="text-xl font-bold text-slate-800 leading-tight mb-2 w-full ${textAlignClass}">${service.nombre}</h3>
-                            <div class="flex items-center gap-2 text-sm font-medium text-slate-500 mb-2 w-full service-duration-badge ${badgeJustify}"><span class="material-symbols-outlined text-base">schedule</span> ${durFmt}</div>
+                        <div class="p-6 flex flex-col flex-1 items-start text-left">
+                            <h3 class="text-xl font-bold text-slate-800 leading-tight mb-2 w-full text-left group-hover:text-primary transition-colors">${service.nombre}</h3>
+                            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-xl mb-3"><span class="material-symbols-outlined text-[16px]">schedule</span> ${durFmt}</div>
                             ${packagesBadgeHtml}
-                            <div class="text-slate-500 text-sm mb-6 flex-1 line-clamp-3 overflow-hidden w-full ${textAlignClass}" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;" title="Clic para leer más">${plainTextDesc}</div>
+                            <div class="text-slate-500 text-sm mb-6 flex-1 line-clamp-3 overflow-hidden w-full text-left leading-relaxed" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;" title="Clic para leer más">${plainTextDesc}</div>
                             <div class="flex items-center justify-between w-full mt-auto pt-4 border-t border-slate-100">
-                                ${precio}
-                                <span class="text-primary font-bold text-sm flex items-center gap-1">Ver detalles <span class="material-symbols-outlined text-sm">visibility</span></span>
+                                <div>${precio}</div>
+                                <span class="text-primary font-bold text-xs sm:text-sm flex items-center gap-1 group-hover:translate-x-1 transition-transform">Ver detalles <span class="material-symbols-outlined text-base">arrow_forward</span></span>
                             </div>
                         </div>
                     </div>
                 `;
             });
+
+            // Activar buscador de servicios si hay más de 2 servicios
+            if (servicesData.length > 2) {
+                document.getElementById('serviceSearchWrapper')?.classList.remove('hidden');
+            }
+
+            window.filterWebServices = function(val) {
+                val = (val || '').toLowerCase().trim();
+                const cards = document.querySelectorAll('.service-card');
+                const clearBtn = document.getElementById('clearSearchBtn');
+                const countEl = document.getElementById('serviceSearchCount');
+                if (clearBtn) clearBtn.classList.toggle('hidden', val === '');
+                
+                let visibleCount = 0;
+                cards.forEach(card => {
+                    const name = (card.dataset.name || '').toLowerCase();
+                    const desc = (card.dataset.desc || '').toLowerCase();
+                    const matches = !val || name.includes(val) || desc.includes(val);
+                    card.style.display = matches ? '' : 'none';
+                    if (matches) visibleCount++;
+                });
+                
+                if (countEl) {
+                    if (val !== '') {
+                        countEl.textContent = `Mostrando ${visibleCount} de ${cards.length} servicios`;
+                        countEl.classList.remove('hidden');
+                    } else {
+                        countEl.classList.add('hidden');
+                    }
+                }
+                
+                let noMatchMsg = document.getElementById('noServicesFoundMsg');
+                if (visibleCount === 0 && cards.length > 0) {
+                    if (!noMatchMsg && grid) {
+                        noMatchMsg = document.createElement('div');
+                        noMatchMsg.id = 'noServicesFoundMsg';
+                        noMatchMsg.className = 'w-full max-w-md mx-auto py-12 text-center text-slate-500';
+                        noMatchMsg.innerHTML = `
+                            <span class="material-symbols-outlined text-5xl text-slate-300 mb-3">search_off</span>
+                            <p class="font-bold text-slate-700 text-base">No encontramos servicios que coincidan con "${val}"</p>
+                            <p class="text-xs text-slate-400 mt-1.5">Probá con otro término o limpiá el buscador.</p>
+                            <button type="button" onclick="window.clearServiceSearch()" class="mt-4 px-5 py-2.5 bg-primary/10 hover:bg-primary/20 text-primary font-bold rounded-xl text-xs transition-all">Limpiar Búsqueda</button>
+                        `;
+                        grid.appendChild(noMatchMsg);
+                    }
+                } else if (noMatchMsg) {
+                    noMatchMsg.remove();
+                }
+            };
+
+            window.clearServiceSearch = function() {
+                const input = document.getElementById('serviceSearchInput');
+                if (input) input.value = '';
+                window.filterWebServices('');
+            };
 
             const cards = document.querySelectorAll('.service-card');
             const observer = new IntersectionObserver((entries) => {

@@ -88,20 +88,71 @@
     </nav>
 
     <!-- Hero Section (Portada) -->
-    <header class="relative pt-32 pb-40 px-6 flex items-center justify-center overflow-hidden bg-slate-900 text-white min-h-[60vh]">
+    <header class="relative pt-32 pb-44 px-6 flex items-center justify-center overflow-hidden bg-slate-900 text-white min-h-[65vh]">
         <!-- Fondo (Imagen o color) -->
         <div id="heroBackground" class="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-40 transition-opacity duration-700"></div>
         <!-- Overlay gradiente -->
         <div class="absolute inset-0 z-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent"></div>
         
         <div class="relative z-10 text-center max-w-3xl mx-auto">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-semibold tracking-wide text-white/90 mb-6 shadow-xs animate-pulse">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span>Turnos y Reservas Online Disponibles</span>
+            </div>
             <h1 id="heroTitle" class="text-5xl md:text-7xl font-extrabold font-display mb-6 tracking-tight drop-shadow-lg">Bienvenidos</h1>
-            <p id="heroSubtitle" class="text-lg md:text-2xl text-slate-200 mb-10 drop-shadow-md">El mejor servicio para vos.</p>
-            <a id="heroReservarBtn" href="calendarioMensual.html" class="inline-block bg-primary text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-2xl hover:shadow-primary/30 hover:-translate-y-1 transition-all">
-                Solicitar un Turno Ahora
-            </a>
+            <p id="heroSubtitle" class="text-lg md:text-2xl text-slate-200 mb-10 drop-shadow-md font-light leading-relaxed">El mejor servicio para vos.</p>
+            <div class="flex flex-wrap items-center justify-center gap-3.5">
+                <a id="heroReservarBtn" href="calendarioMensual.html" class="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-2xl font-extrabold text-base sm:text-lg hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-1 active:scale-95 transition-all">
+                    <span class="material-symbols-outlined text-[22px]">calendar_month</span> Solicitar Turno Ahora
+                </a>
+                <a href="#sectionServicios" class="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white px-6 py-4 rounded-2xl font-bold text-base hover:-translate-y-0.5 active:scale-95 transition-all">
+                    <span>Ver Servicios</span> <span class="material-symbols-outlined text-[18px]">expand_more</span>
+                </a>
+            </div>
         </div>
     </header>
+
+    <!-- Barra de Atajos e Información Clave -->
+    <div class="relative z-20 -mt-12 sm:-mt-14 max-w-6xl mx-auto px-4">
+        <div class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 sm:p-6 shadow-xl shadow-slate-900/5 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800">
+            <div class="flex items-center gap-3.5 pt-3 md:pt-0">
+                <div class="w-11 h-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[22px]">schedule</span>
+                </div>
+                <div>
+                    <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Atención</h4>
+                    <p id="infoStripHorarios" class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-white">Horarios Disponibles</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3.5 pt-3 md:pt-0 md:pl-6">
+                <div class="w-11 h-11 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[22px]">verified</span>
+                </div>
+                <div>
+                    <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Reserva 100% Online</h4>
+                    <p class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-white">Al Instante</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3.5 pt-3 md:pt-0 md:pl-6">
+                <div class="w-11 h-11 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[22px]">groups</span>
+                </div>
+                <div>
+                    <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Especialistas</h4>
+                    <p class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-white">Equipo Calificado</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3.5 pt-3 md:pt-0 md:pl-6">
+                <div class="w-11 h-11 rounded-2xl bg-sky-500/10 text-sky-600 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[22px]">chat</span>
+                </div>
+                <div>
+                    <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Consultas</h4>
+                    <a id="infoStripWhatsApp" href="javascript:void(0)" class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-white hover:text-emerald-600 transition-colors">WhatsApp Directo</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Services Section -->
     <main class="flex-1 w-full relative z-10">
@@ -123,11 +174,59 @@
         </section>
 
         <section id="sectionServicios" class="py-20 px-6 max-w-7xl mx-auto">
-            <div class="text-center mb-16">
+            <div class="text-center mb-10">
                 <h2 class="text-3xl md:text-4xl font-extrabold font-display mb-4 text-slate-800">Nuestros Servicios</h2>
                 <div class="w-24 h-1 bg-primary mx-auto rounded-full"></div>
             </div>
+
+            <!-- Buscador Interactivo de Servicios -->
+            <div id="serviceSearchWrapper" class="max-w-md mx-auto mb-12 hidden">
+                <div class="relative flex items-center">
+                    <span class="material-symbols-outlined absolute left-4 text-slate-400 text-[20px]">search</span>
+                    <input type="text" id="serviceSearchInput" placeholder="Buscar un servicio o tratamiento..." class="w-full bg-white border border-slate-200 rounded-2xl pl-11 pr-10 py-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all shadow-xs" oninput="window.filterWebServices(this.value)">
+                    <button type="button" id="clearSearchBtn" onclick="window.clearServiceSearch()" class="hidden absolute right-3.5 text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined text-[18px]">close</span></button>
+                </div>
+                <div id="serviceSearchCount" class="text-xs text-slate-400 text-center mt-2.5 hidden"></div>
+            </div>
+
             <div id="servicesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+        </section>
+
+        <!-- Cómo Funciona (3 Pasos Simples) -->
+        <section id="sectionComoFunciona" class="py-20 px-6 bg-gradient-to-b from-white to-slate-50 border-y border-slate-100">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-16">
+                    <span class="text-xs font-bold uppercase tracking-widest text-primary mb-2 block">Paso a Paso</span>
+                    <h2 class="text-3xl md:text-4xl font-extrabold font-display mb-4 text-slate-800">¿Cómo Reservar tu Turno?</h2>
+                    <div class="w-20 h-1 bg-primary mx-auto rounded-full"></div>
+                    <p class="text-slate-500 text-sm mt-3 max-w-lg mx-auto">Agendar tu cita es rápido, simple y no requiere descargar ninguna aplicación.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+                    <!-- Paso 1 -->
+                    <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 relative group hover:-translate-y-1">
+                        <div class="w-14 h-14 rounded-2xl bg-primary/10 text-primary font-black text-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">1</div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Elegí tu Servicio</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Seleccioná el servicio o clase que deseás tomar junto al especialista de tu preferencia.</p>
+                    </div>
+                    <!-- Paso 2 -->
+                    <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 relative group hover:-translate-y-1">
+                        <div class="w-14 h-14 rounded-2xl bg-orange-50 text-[#FC8712] font-black text-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">2</div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Seleccioná Fecha y Hora</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Accedé al calendario en tiempo real y elegí el horario que mejor se adapte a tu rutina.</p>
+                    </div>
+                    <!-- Paso 3 -->
+                    <div class="bg-white rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 relative group hover:-translate-y-1">
+                        <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 font-black text-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">3</div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">¡Listo, Turno Confirmado!</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed">Completá tus datos de contacto y recibí la confirmación inmediata en tu celular.</p>
+                    </div>
+                </div>
+                <div class="text-center mt-12">
+                    <a id="btnComoFuncionaReservar" href="calendarioMensual.html" class="inline-flex items-center gap-2 bg-primary hover:bg-primary/95 text-white font-extrabold px-8 py-3.5 rounded-2xl text-base shadow-lg shadow-primary/25 hover:scale-[1.02] active:scale-95 transition-all">
+                        <span class="material-symbols-outlined text-[20px]">calendar_month</span> Agendar Mi Turno Ahora
+                    </a>
+                </div>
+            </div>
         </section>
 
         <!-- Cursos -->
@@ -156,6 +255,22 @@
             <img src="public/logoletras.png" alt="Desarrollado con Agendatina" class="h-14 w-auto opacity-80 hover:opacity-100 transition-all">
         </a>
     </footer>
+
+    <!-- Botón Flotante de WhatsApp para Contacto Inmediato -->
+    <a id="btnFloatingWhatsApp" href="javascript:void(0)" target="_blank" class="hidden fixed bottom-6 right-6 z-40 bg-[#25D366] hover:bg-[#20ba59] text-white p-3.5 sm:p-4 rounded-full shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 items-center justify-center group" title="Escribinos por WhatsApp">
+        <svg class="w-7 h-7 sm:w-8 sm:h-8 fill-current" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.983.536 1.769.832 2.791.832h.001c3.182 0 5.767-2.587 5.768-5.766.001-3.181-2.586-5.768-5.769-5.768zm7.441 5.766c-.002 4.112-3.345 7.454-7.442 7.454-1.28 0-2.493-.326-3.565-.898l-3.965 1.04 1.058-3.864c-.66-1.121-1.028-2.42-1.028-3.732.002-4.112 3.346-7.454 7.443-7.454 4.112 0 7.459 3.342 7.459 7.454z"/></svg>
+    </a>
+
+    <!-- Barra Móvil Flotante "Reservar Turno" en Scroll -->
+    <div id="stickyMobileBar" class="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 flex sm:hidden items-center justify-between z-30 shadow-2xl transition-transform duration-300 translate-y-full">
+        <div class="flex items-center gap-2 truncate pr-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+            <span id="stickyMobileBizName" class="text-xs font-bold text-slate-800 truncate">Reservá tu Turno</span>
+        </div>
+        <a id="stickyMobileReservarBtn" href="calendarioMensual.html" class="bg-primary hover:bg-primary/95 text-white font-extrabold px-4 py-2 rounded-xl text-xs shrink-0 shadow-md">
+            Reservar Turno
+        </a>
+    </div>
 
     <!-- Modal de Detalles del Servicio (webServiceModal) -->
     <div id="webServiceModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto opacity-0 transition-opacity duration-300">
