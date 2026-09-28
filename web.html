@@ -87,25 +87,25 @@
         </div>
     </nav>
 
-    <!-- Hero Section (Portada) -->
-    <header class="relative pt-32 pb-44 px-6 flex items-center justify-center overflow-hidden bg-slate-900 text-white min-h-[65vh]">
-        <!-- Fondo (Imagen o color) -->
-        <div id="heroBackground" class="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-40 transition-opacity duration-700"></div>
-        <!-- Overlay gradiente -->
-        <div class="absolute inset-0 z-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent"></div>
+    <!-- Hero Section (Portada Luminosa y Moderna) -->
+    <header class="relative pt-32 pb-44 px-6 flex items-center justify-center overflow-hidden bg-gradient-to-b from-slate-100 via-white to-slate-50 text-slate-800 min-h-[60vh] border-b border-slate-200/60">
+        <!-- Fondo (Imagen o color si el usuario configuró uno) -->
+        <div id="heroBackground" class="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-20 transition-opacity duration-700"></div>
+        <!-- Overlay sutil luminoso -->
+        <div class="absolute inset-0 z-0 bg-gradient-to-t from-slate-50 via-white/40 to-transparent"></div>
         
         <div class="relative z-10 text-center max-w-3xl mx-auto">
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-semibold tracking-wide text-white/90 mb-6 shadow-xs animate-pulse">
-                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/90 border border-slate-200/90 text-xs sm:text-sm font-semibold tracking-wide text-slate-700 mb-6 shadow-xs animate-pulse">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                 <span>Turnos y Reservas Online Disponibles</span>
             </div>
-            <h1 id="heroTitle" class="text-5xl md:text-7xl font-extrabold font-display mb-6 tracking-tight drop-shadow-lg">Bienvenidos</h1>
-            <p id="heroSubtitle" class="text-lg md:text-2xl text-slate-200 mb-10 drop-shadow-md font-light leading-relaxed">El mejor servicio para vos.</p>
+            <h1 id="heroTitle" class="text-5xl md:text-7xl font-extrabold font-display mb-6 tracking-tight text-slate-900 drop-shadow-xs">Bienvenidos</h1>
+            <p id="heroSubtitle" class="text-lg md:text-2xl text-slate-600 mb-10 drop-shadow-xs font-normal leading-relaxed">El mejor servicio para vos.</p>
             <div class="flex flex-wrap items-center justify-center gap-3.5">
-                <a id="heroReservarBtn" href="calendarioMensual.html" class="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-2xl font-extrabold text-base sm:text-lg hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-1 active:scale-95 transition-all">
+                <a id="heroReservarBtn" href="calendarioMensual.html" class="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-2xl font-extrabold text-base sm:text-lg hover:shadow-2xl hover:shadow-primary/30 hover:-translate-y-1 active:scale-95 transition-all">
                     <span class="material-symbols-outlined text-[22px]">calendar_month</span> Solicitar Turno Ahora
                 </a>
-                <a href="#sectionServicios" class="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white px-6 py-4 rounded-2xl font-bold text-base hover:-translate-y-0.5 active:scale-95 transition-all">
+                <a href="javascript:void(0)" onclick="document.getElementById('sectionServicios')?.scrollIntoView({ behavior: 'smooth' })" class="inline-flex items-center gap-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-sm px-6 py-4 rounded-2xl font-bold text-base hover:-translate-y-0.5 active:scale-95 transition-all cursor-pointer">
                     <span>Ver Servicios</span> <span class="material-symbols-outlined text-[18px]">expand_more</span>
                 </a>
             </div>
@@ -114,14 +114,14 @@
 
     <!-- Barra de Atajos e Información Clave -->
     <div class="relative z-20 -mt-12 sm:-mt-14 max-w-6xl mx-auto px-4">
-        <div class="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 sm:p-6 shadow-xl shadow-slate-900/5 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100 dark:divide-slate-800">
+        <div class="bg-white/95 backdrop-blur-xl border border-slate-200/80 rounded-3xl p-4 sm:p-6 shadow-xl shadow-slate-900/5 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-100">
             <div class="flex items-center gap-3.5 pt-3 md:pt-0">
                 <div class="w-11 h-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                     <span class="material-symbols-outlined text-[22px]">schedule</span>
                 </div>
                 <div>
                     <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Atención</h4>
-                    <p id="infoStripHorarios" class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-white">Horarios Disponibles</p>
+                    <p id="infoStripHorarios" class="text-xs sm:text-sm font-extrabold text-slate-800">Horarios Disponibles</p>
                 </div>
             </div>
             <div class="flex items-center gap-3.5 pt-3 md:pt-0 md:pl-6">
@@ -130,7 +130,7 @@
                 </div>
                 <div>
                     <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Reserva 100% Online</h4>
-                    <p class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-white">Al Instante</p>
+                    <p class="text-xs sm:text-sm font-extrabold text-slate-800">Al Instante</p>
                 </div>
             </div>
             <div class="flex items-center gap-3.5 pt-3 md:pt-0 md:pl-6">
@@ -139,7 +139,7 @@
                 </div>
                 <div>
                     <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Especialistas</h4>
-                    <p class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-white">Equipo Calificado</p>
+                    <p class="text-xs sm:text-sm font-extrabold text-slate-800">Equipo Calificado</p>
                 </div>
             </div>
             <div class="flex items-center gap-3.5 pt-3 md:pt-0 md:pl-6">
@@ -148,7 +148,7 @@
                 </div>
                 <div>
                     <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Consultas</h4>
-                    <a id="infoStripWhatsApp" href="javascript:void(0)" class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-white hover:text-emerald-600 transition-colors">WhatsApp Directo</a>
+                    <a id="infoStripWhatsApp" href="javascript:void(0)" class="text-xs sm:text-sm font-extrabold text-slate-800 hover:text-emerald-600 transition-colors">WhatsApp Directo</a>
                 </div>
             </div>
         </div>

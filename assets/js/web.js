@@ -173,8 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (data.fondo && document.getElementById('heroBackground')) {
                     document.getElementById('heroBackground').style.backgroundImage = `url('${data.fondo}')`;
-                    document.getElementById('heroBackground').classList.remove('opacity-40');
-                    document.getElementById('heroBackground').classList.add('opacity-50');
+                    document.getElementById('heroBackground').classList.remove('opacity-40', 'opacity-50');
+                    document.getElementById('heroBackground').classList.add('opacity-25');
                 }
 
                 const navIcon = document.getElementById('navBusinessIcon') || document.getElementById('navIcon');
