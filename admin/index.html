@@ -91,14 +91,14 @@
                     <span class="px-3 py-1 rounded-full bg-[#d11149]/20 text-[#fc8712] border border-[#d11149]/30 text-xs font-black uppercase tracking-wider inline-block mb-2">⭐ Planes & Tarifas Oficiales Agendatina</span>
                     <h2 class="text-xl sm:text-2xl font-extrabold font-display">Resumen Visual de Suscripción</h2>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="openDiscountCodesModal()" class="text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-md cursor-pointer">
+                <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
+                    <button onclick="openDiscountCodesModal()" class="flex-1 sm:flex-initial text-xs font-bold text-white bg-purple-600 hover:bg-purple-700 px-4 py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer">
                         <span class="material-symbols-outlined text-[16px]">sell</span>
-                        <span>Códigos de Descuento (<span id="discountCodesCountBadge">0</span>)</span>
+                        <span>Códigos Descuento (<span id="discountCodesCountBadge">0</span>)</span>
                     </button>
-                    <button onclick="openPricesModal()" class="text-xs font-bold text-white bg-[#d11149] hover:bg-[#d11149]/90 px-4 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-md cursor-pointer">
+                    <button onclick="openPricesModal()" class="flex-1 sm:flex-initial text-xs font-bold text-white bg-[#d11149] hover:bg-[#d11149]/90 px-4 py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md cursor-pointer">
                         <span class="material-symbols-outlined text-[16px]">edit_note</span>
-                        <span>Editar Precios Oficiales</span>
+                        <span>Editar Precios</span>
                     </button>
                 </div>
             </div>
@@ -227,11 +227,12 @@
             </div>
             <select id="statusFilter" onclick="clearPaymentsNotification()" class="w-full sm:w-auto bg-white border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm shadow-sm text-slate-600 font-medium">
                 <option value="">Todos los estados</option>
+                <option value="por_vencer">⚠️ Por Vencer (Pronto)</option>
                 <option value="pendiente_revision">En Revisión</option>
-                <option value="activo">Activos</option>
+                <option value="activo">Activos / Al día</option>
                 <option value="prueba">En Prueba</option>
                 <option value="beta">En Beta</option>
-                <option value="vencido">Vencidos</option>
+                <option value="vencido">Vencidos (Período de Gracia)</option>
                 <option value="suspendido">Suspendidos</option>
             </select>
             <select id="planFilter" class="w-full sm:w-auto bg-white border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm shadow-sm text-slate-600 font-medium">
@@ -240,16 +241,16 @@
                 <option value="intermedio">Intermedio</option>
                 <option value="completo">Premium</option>
             </select>
-            <button onclick="exportToCSV()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition-all hover:-translate-y-0.5 whitespace-nowrap">
+            <button onclick="exportToCSV()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition-all hover:-translate-y-0.5 whitespace-nowrap text-sm">
                 <span class="material-symbols-outlined text-[20px]">download</span> Exportar
             </button>
-            <button onclick="openNotificationModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5 whitespace-nowrap">
+            <button onclick="openNotificationModal()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5 whitespace-nowrap text-sm">
                 <span class="material-symbols-outlined text-[20px]">campaign</span> Avisos
             </button>
-            <button onclick="openPricesModal()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-purple-600/30 transition-all hover:-translate-y-0.5 whitespace-nowrap">
+            <button onclick="openPricesModal()" class="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-purple-600/30 transition-all hover:-translate-y-0.5 whitespace-nowrap text-sm">
                 <span class="material-symbols-outlined text-[20px]">payments</span> Precios
             </button>
-            <button onclick="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-0.5 whitespace-nowrap">
+            <button onclick="openModal()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-0.5 whitespace-nowrap text-sm">
                 <span class="material-symbols-outlined text-[20px]">add</span> Nuevo Negocio
             </button>
         </div>
@@ -931,12 +932,22 @@ function getSubscriptionDetails(c, trialDays = 30) {
         const diffTime = trialEndDate - today;
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-        if (diffDays > 0) {
+        if (diffDays > 5) {
             return {
                 estado: 'prueba',
                 label: 'Prueba Gratis',
                 statusBadge: '<span class="bg-sky-100 text-sky-800 border border-sky-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-sky-600">schedule</span> Prueba Gratis</span>',
                 diasBadge: `<span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-slate-400">schedule</span> ${diffDays} días prueba</span>`,
+                isOverdue: false,
+                daysRemaining: diffDays,
+                anchorDay: anchorDay
+            };
+        } else if (diffDays > 0) {
+            return {
+                estado: 'por_vencer',
+                label: 'Prueba Por Vencer',
+                statusBadge: '<span class="bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full text-xs font-extrabold inline-flex items-center gap-1.5 whitespace-nowrap animate-pulse"><span class="material-symbols-outlined text-[14px] text-amber-600">warning</span> Por Vencer</span>',
+                diasBadge: `<span class="bg-amber-50 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-xl font-extrabold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-amber-600">hourglass_top</span> ${diffDays} día${diffDays === 1 ? '' : 's'} restante${diffDays === 1 ? '' : 's'}</span>`,
                 isOverdue: false,
                 daysRemaining: diffDays,
                 anchorDay: anchorDay
@@ -948,8 +959,8 @@ function getSubscriptionDetails(c, trialDays = 30) {
                 return {
                     estado: 'vencido',
                     label: 'Prueba Vencida',
-                    statusBadge: '<span class="bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-amber-600">warning</span> Prueba Vencida</span>',
-                    diasBadge: `<span class="bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">warning</span> ${graceRemaining} días para pagar</span>`,
+                    statusBadge: '<span class="bg-orange-100 text-orange-900 border border-orange-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-orange-600">warning</span> Prueba Vencida</span>',
+                    diasBadge: `<span class="bg-orange-50 text-orange-800 border border-orange-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">warning</span> ${graceRemaining} día${graceRemaining === 1 ? '' : 's'} para pagar</span>`,
                     isOverdue: true,
                     daysRemaining: graceRemaining,
                     anchorDay: anchorDay
@@ -986,46 +997,38 @@ function getSubscriptionDetails(c, trialDays = 30) {
     }
 
     // Para estado 'activo' o 'pagado'
-    let curYear = today.getFullYear();
-    let curMonth = today.getMonth();
+    const cycleStart = c.ultimo_pago ? new Date(String(c.ultimo_pago).replace(/-/g, '/')) : fechaAltaZero;
+    const daysUsed = Math.floor((today - cycleStart) / (1000 * 60 * 60 * 24));
+    const cycleRemaining = 30 - daysUsed;
 
-    let maxDaysCurMonth = new Date(curYear, curMonth + 1, 0).getDate();
-    let currentMonthDueDate = new Date(curYear, curMonth, Math.min(anchorDay, maxDaysCurMonth));
-
-    let targetDueDate;
-
-    if (today <= currentMonthDueDate) {
-        targetDueDate = currentMonthDueDate;
-    } else {
-        let nextMonth = curMonth + 1;
-        let nextYear = curYear;
-        if (nextMonth > 11) { nextMonth = 0; nextYear++; }
-        let maxDaysNextMonth = new Date(nextYear, nextMonth + 1, 0).getDate();
-        targetDueDate = new Date(nextYear, nextMonth, Math.min(anchorDay, maxDaysNextMonth));
-    }
-
-    const diffDays = Math.ceil((targetDueDate - today) / (1000 * 60 * 60 * 24));
-
-    if (diffDays >= 0) {
+    if (cycleRemaining > 5) {
         return {
             estado: 'activo',
             label: 'Activo / Al día',
             statusBadge: '<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-emerald-600">check_circle</span> Activo / Al día</span>',
-            diasBadge: `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event_available</span> ${diffDays} días (Día ${anchorDay})</span>`,
+            diasBadge: `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event_available</span> ${cycleRemaining} días (Día ${anchorDay})</span>`,
             isOverdue: false,
-            daysRemaining: diffDays,
+            daysRemaining: cycleRemaining,
+            anchorDay: anchorDay
+        };
+    } else if (cycleRemaining > 0) {
+        return {
+            estado: 'por_vencer',
+            label: 'Pago Por Vencer',
+            statusBadge: '<span class="bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full text-xs font-extrabold inline-flex items-center gap-1.5 whitespace-nowrap animate-pulse"><span class="material-symbols-outlined text-[14px] text-amber-600">warning</span> Por Vencer</span>',
+            diasBadge: `<span class="bg-amber-50 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-xl font-extrabold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-amber-600">hourglass_top</span> ${cycleRemaining} día${cycleRemaining === 1 ? '' : 's'} restante${cycleRemaining === 1 ? '' : 's'}</span>`,
+            isOverdue: false,
+            daysRemaining: cycleRemaining,
             anchorDay: anchorDay
         };
     } else {
-        const overdueDays = Math.abs(diffDays);
-        const graceRemaining = 10 - overdueDays;
-
+        const graceRemaining = 10 + cycleRemaining; // cycleRemaining es <= 0
         if (graceRemaining > 0) {
             return {
                 estado: 'vencido',
                 label: 'Pago Vencido',
-                statusBadge: '<span class="bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-amber-600">warning</span> Pago Vencido</span>',
-                diasBadge: `<span class="bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">warning</span> ${graceRemaining} días para pagar</span>`,
+                statusBadge: '<span class="bg-orange-100 text-orange-900 border border-orange-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-orange-600">warning</span> Pago Vencido</span>',
+                diasBadge: `<span class="bg-orange-50 text-orange-800 border border-orange-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">warning</span> ${graceRemaining} día${graceRemaining === 1 ? '' : 's'} para pagar</span>`,
                 isOverdue: true,
                 daysRemaining: graceRemaining,
                 anchorDay: anchorDay
@@ -1397,22 +1400,27 @@ function filterClients() {
                               (client.nombre_completo && client.nombre_completo.toLowerCase().includes(searchTerm)) ||
                               (client.email && client.email.toLowerCase().includes(searchTerm));
 
+        const currentTrialDays = (window.globalConfig && window.globalConfig.dias_prueba_defecto) ? parseInt(window.globalConfig.dias_prueba_defecto) : 30;
+        const subInfo = getSubscriptionDetails(client, currentTrialDays);
+
         let matchesStatus = statusTerm === '';
         if (!matchesStatus) {
-            if (statusTerm === 'vencido') {
-                let diasRestantes = 15;
-                if (client.fecha_alta) {
-                    const fAlta = new Date(client.fecha_alta.replace(/-/g, '/'));
-                    fAlta.setHours(0,0,0,0);
-                    const hoy = new Date();
-                    hoy.setHours(0,0,0,0);
-                    const diffDays = Math.floor((hoy - fAlta) / (1000 * 60 * 60 * 24));
-                    diasRestantes = (client.estado_pago === 'beta' ? 30 : 15) - diffDays;
-                }
-                const isTrialExpired = (client.estado_pago === 'prueba' || client.estado_pago === 'beta') && diasRestantes < 0;
-                matchesStatus = client.estado_pago === 'vencido' || isTrialExpired;
+            if (statusTerm === 'por_vencer') {
+                matchesStatus = subInfo.estado === 'por_vencer';
+            } else if (statusTerm === 'vencido') {
+                matchesStatus = subInfo.estado === 'vencido' || client.estado_pago === 'vencido';
+            } else if (statusTerm === 'suspendido') {
+                matchesStatus = subInfo.estado === 'suspendido' || client.estado_pago === 'suspendido';
+            } else if (statusTerm === 'activo') {
+                matchesStatus = subInfo.estado === 'activo' || client.estado_pago === 'activo';
+            } else if (statusTerm === 'prueba') {
+                matchesStatus = subInfo.estado === 'prueba' || (client.estado_pago === 'prueba' && !subInfo.isOverdue);
+            } else if (statusTerm === 'beta') {
+                matchesStatus = client.estado_pago === 'beta';
+            } else if (statusTerm === 'pendiente_revision') {
+                matchesStatus = client.estado_pago === 'pendiente_revision' || subInfo.estado === 'pendiente_revision';
             } else {
-                matchesStatus = client.estado_pago === statusTerm;
+                matchesStatus = client.estado_pago === statusTerm || subInfo.estado === statusTerm;
             }
         }
 

@@ -308,34 +308,34 @@
                 }
 
                 const readToggleBtn = isUnread ? `
-                    <button onclick="marcarLeida(${n.id})" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1" title="Marcar esta notificación como leída">
+                    <button onclick="event.stopPropagation(); marcarLeida(${n.id})" class="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1 active:scale-95" title="Marcar esta notificación como leída">
                         <span class="material-symbols-outlined text-[16px]">check_circle</span> Marcar leída
                     </button>
                 ` : `
-                    <button onclick="marcarNoLeida(${n.id})" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1" title="Marcar esta notificación como no leída">
+                    <button onclick="event.stopPropagation(); marcarNoLeida(${n.id})" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 rounded-xl text-xs font-bold transition-all shadow-xs flex items-center gap-1 active:scale-95" title="Marcar esta notificación como no leída">
                         <span class="material-symbols-outlined text-[16px]">undo</span> Marcar no leída
                     </button>
                 `;
 
                 html += `
-                    <div class="${cardStyle} rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-all cursor-pointer hover:border-blue-300" onclick="if(!event.target.closest('button') && !event.target.closest('a')) ${isUnread ? `marcarLeida(${n.id})` : `marcarNoLeida(${n.id})`}">
-                        <div class="flex-1 min-w-0">
-                            <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                    <div class="${cardStyle} rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all cursor-pointer hover:border-blue-300" onclick="handleCardClick(event, ${n.id}, ${isUnread ? 1 : 0})">
+                        <div class="flex-1 min-w-0 w-full">
+                            <div class="flex flex-wrap items-center gap-2 mb-2">
                                 ${statusPill}
                                 ${segBadge}
                                 <span class="font-extrabold text-slate-900 text-sm flex items-center gap-1">${bizName} <span class="bg-slate-200 text-slate-700 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border border-slate-300">ID: ${bizId}</span></span>
-                                <span class="text-xs text-slate-400 font-medium ml-auto">${fDate}</span>
+                                <span class="text-xs text-slate-400 font-medium sm:ml-auto w-full sm:w-auto mt-1 sm:mt-0">${fDate}</span>
                             </div>
-                            <div class="text-xs text-slate-600 font-medium mb-2 flex items-center gap-2">
+                            <div class="text-xs text-slate-600 font-medium mb-2.5 flex flex-wrap items-center gap-2">
                                 <span>Emisor: <strong class="text-slate-800">${n.nombre_usuario || 'Desconocido'}</strong> (${n.email_usuario || 'Sin email'})</span>
                                 ${roleTag}
                             </div>
-                            <p class="text-sm font-semibold ${isUnread ? 'text-slate-900' : 'text-slate-700'} leading-relaxed bg-white/80 p-3 rounded-xl border border-slate-200/60 hover:text-blue-600 transition-colors">${n.mensaje}</p>
+                            <p class="text-xs sm:text-sm font-semibold ${isUnread ? 'text-slate-900' : 'text-slate-700'} leading-relaxed bg-white/80 p-3 sm:p-3.5 rounded-xl border border-slate-200/60 hover:text-blue-600 transition-colors">${n.mensaje}</p>
                         </div>
-                        <div class="flex items-center gap-2 shrink-0 self-end sm:self-center" onclick="event.stopPropagation()">
+                        <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0 w-full md:w-auto justify-end pt-2 md:pt-0 border-t md:border-t-0 border-slate-200/50" onclick="event.stopPropagation()">
                             ${targetModuleBtn}
                             ${readToggleBtn}
-                            <button onclick="eliminarNotificacion(${n.id})" class="p-2 text-slate-400 hover:text-red-600 rounded-xl hover:bg-red-50 transition-colors" title="Eliminar Notificación">
+                            <button onclick="event.stopPropagation(); eliminarNotificacion(${n.id})" class="p-2 text-slate-400 hover:text-red-600 rounded-xl hover:bg-red-50 transition-colors active:scale-95" title="Eliminar Notificación">
                                 <span class="material-symbols-outlined text-[18px]">delete</span>
                             </button>
                         </div>
@@ -479,9 +479,22 @@
             });
         }
 
+        function handleCardClick(event, id, isUnread) {
+            if (event.target.closest('button') || event.target.closest('a')) return;
+            // Solo marcar como leída si la notificación actualmente no está leída.
+            // Si ya está leída, al hacer clic en el celular NO se vuelve a marcar como no leída.
+            if (isUnread) {
+                marcarLeida(id);
+            }
+        }
+
+        let isMarkingAction = false;
         function marcarLeida(id) {
             const target = notificacionesRaw.find(n => Number(n.id) === Number(id));
-            if (target) target.leida = 1;
+            if (target) {
+                if (Number(target.leida) === 1) return; // Ya está leída
+                target.leida = 1;
+            }
             filterNotificaciones();
 
             fetch('../backend/admin_notificaciones_api.php', {
@@ -499,7 +512,10 @@
 
         function marcarNoLeida(id) {
             const target = notificacionesRaw.find(n => Number(n.id) === Number(id));
-            if (target) target.leida = 0;
+            if (target) {
+                if (Number(target.leida) === 0) return; // Ya está no leída
+                target.leida = 0;
+            }
             filterNotificaciones();
 
             fetch('../backend/admin_notificaciones_api.php', {

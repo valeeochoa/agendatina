@@ -529,11 +529,17 @@ function getSubscriptionDetails(c, trialDays = 30) {
         const diffTime = trialEndDate - today;
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-        if (diffDays > 0) {
+        if (diffDays > 5) {
             return {
                 estado: 'prueba',
                 statusBadge: '<span class="bg-sky-100 text-sky-800 border border-sky-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-sky-600">schedule</span> Prueba Gratis</span>',
                 diasBadge: `<span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-slate-400">schedule</span> ${diffDays} días prueba</span>`
+            };
+        } else if (diffDays > 0) {
+            return {
+                estado: 'por_vencer',
+                statusBadge: '<span class="bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full text-xs font-extrabold inline-flex items-center gap-1.5 whitespace-nowrap animate-pulse"><span class="material-symbols-outlined text-[14px] text-amber-600">warning</span> Por Vencer</span>',
+                diasBadge: `<span class="bg-amber-50 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-xl font-extrabold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-amber-600">hourglass_top</span> ${diffDays} día${diffDays === 1 ? '' : 's'} restante${diffDays === 1 ? '' : 's'}</span>`
             };
         } else {
             const overdueDays = Math.abs(diffDays);
@@ -541,8 +547,8 @@ function getSubscriptionDetails(c, trialDays = 30) {
             if (graceRemaining > 0) {
                 return {
                     estado: 'vencido',
-                    statusBadge: '<span class="bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-amber-600">warning</span> Prueba Vencida</span>',
-                    diasBadge: `<span class="bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">warning</span> ${graceRemaining} días para pagar</span>`
+                    statusBadge: '<span class="bg-orange-100 text-orange-900 border border-orange-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-orange-600">warning</span> Prueba Vencida</span>',
+                    diasBadge: `<span class="bg-orange-50 text-orange-800 border border-orange-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">warning</span> ${graceRemaining} día${graceRemaining === 1 ? '' : 's'} para pagar</span>`
                 };
             } else {
                 return {
@@ -568,41 +574,29 @@ function getSubscriptionDetails(c, trialDays = 30) {
     }
 
     // Para estado 'activo' o 'pagado'
-    let curYear = today.getFullYear();
-    let curMonth = today.getMonth();
+    const cycleStart = client.ultimo_pago ? new Date(String(client.ultimo_pago).replace(/-/g, '/')) : fechaAltaZero;
+    const daysUsed = Math.floor((today - cycleStart) / (1000 * 60 * 60 * 24));
+    const cycleRemaining = 30 - daysUsed;
 
-    let maxDaysCurMonth = new Date(curYear, curMonth + 1, 0).getDate();
-    let currentMonthDueDate = new Date(curYear, curMonth, Math.min(anchorDay, maxDaysCurMonth));
-
-    let targetDueDate;
-
-    if (today <= currentMonthDueDate) {
-        targetDueDate = currentMonthDueDate;
-    } else {
-        let nextMonth = curMonth + 1;
-        let nextYear = curYear;
-        if (nextMonth > 11) { nextMonth = 0; nextYear++; }
-        let maxDaysNextMonth = new Date(nextYear, nextMonth + 1, 0).getDate();
-        targetDueDate = new Date(nextYear, nextMonth, Math.min(anchorDay, maxDaysNextMonth));
-    }
-
-    const diffDays = Math.ceil((targetDueDate - today) / (1000 * 60 * 60 * 24));
-
-    if (diffDays >= 0) {
+    if (cycleRemaining > 5) {
         return {
             estado: 'activo',
             statusBadge: '<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-emerald-600">check_circle</span> Activo / Al día</span>',
-            diasBadge: `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event_available</span> ${diffDays} días (Día ${anchorDay})</span>`
+            diasBadge: `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event_available</span> ${cycleRemaining} días (Día ${anchorDay})</span>`
+        };
+    } else if (cycleRemaining > 0) {
+        return {
+            estado: 'por_vencer',
+            statusBadge: '<span class="bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full text-xs font-extrabold inline-flex items-center gap-1.5 whitespace-nowrap animate-pulse"><span class="material-symbols-outlined text-[14px] text-amber-600">warning</span> Por Vencer</span>',
+            diasBadge: `<span class="bg-amber-50 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-xl font-extrabold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-amber-600">hourglass_top</span> ${cycleRemaining} día${cycleRemaining === 1 ? '' : 's'} restante${cycleRemaining === 1 ? '' : 's'}</span>`
         };
     } else {
-        const overdueDays = Math.abs(diffDays);
-        const graceRemaining = 10 - overdueDays;
-
+        const graceRemaining = 10 + cycleRemaining; // cycleRemaining es <= 0
         if (graceRemaining > 0) {
             return {
                 estado: 'vencido',
-                statusBadge: '<span class="bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-amber-600">warning</span> Pago Vencido</span>',
-                diasBadge: `<span class="bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">warning</span> ${graceRemaining} días para pagar</span>`
+                statusBadge: '<span class="bg-orange-100 text-orange-900 border border-orange-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-orange-600">warning</span> Pago Vencido</span>',
+                diasBadge: `<span class="bg-orange-50 text-orange-800 border border-orange-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">warning</span> ${graceRemaining} día${graceRemaining === 1 ? '' : 's'} para pagar</span>`
             };
         } else {
             return {

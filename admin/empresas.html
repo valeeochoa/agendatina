@@ -134,10 +134,12 @@
             <div>
                 <select id="statusFilter" onchange="filterClients()" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d11149] font-semibold text-slate-700">
                     <option value="">Todos los Estados de Pago</option>
-                    <option value="prueba">Prueba Gratis (15 días)</option>
+                    <option value="por_vencer">⚠️ Por Vencer (Pronto)</option>
+                    <option value="prueba">Prueba Gratis</option>
                     <option value="pendiente_revision">Comprobante Subido (Pendiente)</option>
-                    <option value="activo">Activo / Pagado</option>
-                    <option value="suspendido">Suspendido / Vencido</option>
+                    <option value="activo">Activo / Al día</option>
+                    <option value="vencido">Vencido (Período de Gracia)</option>
+                    <option value="suspendido">Suspendido / Plazo Vencido</option>
                     <option value="beta">Beta (VIP)</option>
                 </select>
             </div>
@@ -252,24 +254,103 @@
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
                 if (diffDays > 0) {
+                    if (diffDays > 5) {
+                        return {
+                            estado: 'prueba',
+                            label: 'Prueba Gratis',
+                            statusBadge: '<span class="bg-sky-100 text-sky-800 border border-sky-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-sky-600">schedule</span> Prueba Gratis</span>',
+                            diasBadge: `<span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-slate-400">schedule</span> ${diffDays} días prueba</span>`,
+                            isOverdue: false,
+                            daysRemaining: diffDays,
+                            anchorDay: anchorDay
+                        };
+                    } else if (diffDays > 0) {
+                        return {
+                            estado: 'por_vencer',
+                            label: 'Prueba Por Vencer',
+                            statusBadge: '<span class="bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full text-xs font-extrabold inline-flex items-center gap-1.5 whitespace-nowrap animate-pulse"><span class="material-symbols-outlined text-[14px] text-amber-600">warning</span> Por Vencer</span>',
+                            diasBadge: `<span class="bg-amber-50 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-xl font-extrabold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-amber-600">hourglass_top</span> ${diffDays} día${diffDays === 1 ? '' : 's'} restante${diffDays === 1 ? '' : 's'}</span>`,
+                            isOverdue: false,
+                            daysRemaining: diffDays,
+                            anchorDay: anchorDay
+                        };
+                    } else {
+                        const overdueDays = Math.abs(diffDays);
+                        const graceRemaining = 10 - overdueDays;
+                        if (graceRemaining > 0) {
+                            return {
+                                estado: 'vencido',
+                                label: 'Prueba Vencida',
+                                statusBadge: '<span class="bg-orange-100 text-orange-900 border border-orange-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-orange-600">warning</span> Prueba Vencida</span>',
+                                diasBadge: `<span class="bg-orange-50 text-orange-800 border border-orange-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">warning</span> ${graceRemaining} día${graceRemaining === 1 ? '' : 's'} para pagar</span>`,
+                                isOverdue: true,
+                                daysRemaining: graceRemaining,
+                                anchorDay: anchorDay
+                            };
+                        } else {
+                            return {
+                                estado: 'suspendido',
+                                label: 'Plazo Vencido',
+                                statusBadge: '<span class="bg-rose-100 text-rose-800 border border-rose-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-rose-600">block</span> Suspendido</span>',
+                                diasBadge: '<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">error</span> Plazo Vencido</span>',
+                                isOverdue: true,
+                                daysRemaining: 0,
+                                anchorDay: anchorDay
+                            };
+                        }
+                    }
+                }
+
+                if (estado === 'beta') {
+                    const betaEndDate = new Date(fechaAltaZero);
+                    betaEndDate.setDate(betaEndDate.getDate() + 35);
+                    const diffDays = Math.ceil((betaEndDate - today) / (1000 * 60 * 60 * 24));
                     return {
-                        estado: 'prueba',
-                        label: 'Prueba Gratis',
-                        statusBadge: '<span class="bg-sky-100 text-sky-800 border border-sky-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-sky-600">schedule</span> Prueba Gratis</span>',
-                        diasBadge: `<span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-slate-400">schedule</span> ${diffDays} días prueba</span>`,
+                        estado: 'beta',
+                        label: 'Beta VIP',
+                        statusBadge: '<span class="bg-purple-100 text-purple-800 border border-purple-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-purple-600">verified</span> Beta VIP</span>',
+                        diasBadge: diffDays > 0 
+                            ? `<span class="bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span> ${diffDays} días</span>`
+                            : `<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">error</span> Beta Vencida</span>`,
+                        isOverdue: diffDays <= 0,
+                        daysRemaining: Math.max(0, diffDays),
+                        anchorDay: anchorDay
+                    };
+                }
+
+                // Para estado 'activo' o 'pagado'
+                const cycleStart = c.ultimo_pago ? new Date(String(c.ultimo_pago).replace(/-/g, '/')) : fechaAltaZero;
+                const daysUsed = Math.floor((today - cycleStart) / (1000 * 60 * 60 * 24));
+                const cycleRemaining = 30 - daysUsed;
+
+                if (cycleRemaining > 5) {
+                    return {
+                        estado: 'activo',
+                        label: 'Activo / Al día',
+                        statusBadge: '<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-emerald-600">check_circle</span> Activo / Al día</span>',
+                        diasBadge: `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event_available</span> ${cycleRemaining} días (Día ${anchorDay})</span>`,
                         isOverdue: false,
-                        daysRemaining: diffDays,
+                        daysRemaining: cycleRemaining,
+                        anchorDay: anchorDay
+                    };
+                } else if (cycleRemaining > 0) {
+                    return {
+                        estado: 'por_vencer',
+                        label: 'Pago Por Vencer',
+                        statusBadge: '<span class="bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full text-xs font-extrabold inline-flex items-center gap-1.5 whitespace-nowrap animate-pulse"><span class="material-symbols-outlined text-[14px] text-amber-600">warning</span> Por Vencer</span>',
+                        diasBadge: `<span class="bg-amber-50 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-xl font-extrabold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-amber-600">hourglass_top</span> ${cycleRemaining} día${cycleRemaining === 1 ? '' : 's'} restante${cycleRemaining === 1 ? '' : 's'}</span>`,
+                        isOverdue: false,
+                        daysRemaining: cycleRemaining,
                         anchorDay: anchorDay
                     };
                 } else {
-                    const overdueDays = Math.abs(diffDays);
-                    const graceRemaining = 10 - overdueDays;
+                    const graceRemaining = 10 + cycleRemaining; // cycleRemaining es <= 0
                     if (graceRemaining > 0) {
                         return {
                             estado: 'vencido',
-                            label: 'Prueba Vencida',
-                            statusBadge: '<span class="bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-amber-600">warning</span> Prueba Vencida</span>',
-                            diasBadge: `<span class="bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">warning</span> ${graceRemaining} días para pagar</span>`,
+                            label: 'Pago Vencido',
+                            statusBadge: '<span class="bg-orange-100 text-orange-900 border border-orange-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-orange-600">warning</span> Pago Vencido</span>',
+                            diasBadge: `<span class="bg-orange-50 text-orange-800 border border-orange-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">warning</span> ${graceRemaining} día${graceRemaining === 1 ? '' : 's'} para pagar</span>`,
                             isOverdue: true,
                             daysRemaining: graceRemaining,
                             anchorDay: anchorDay
@@ -277,7 +358,7 @@
                     } else {
                         return {
                             estado: 'suspendido',
-                            label: 'Plazo Vencido',
+                            label: 'Suspendido',
                             statusBadge: '<span class="bg-rose-100 text-rose-800 border border-rose-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-rose-600">block</span> Suspendido</span>',
                             diasBadge: '<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">error</span> Plazo Vencido</span>',
                             isOverdue: true,
@@ -287,82 +368,6 @@
                     }
                 }
             }
-
-            if (estado === 'beta') {
-                const betaEndDate = new Date(fechaAltaZero);
-                betaEndDate.setDate(betaEndDate.getDate() + 35);
-                const diffDays = Math.ceil((betaEndDate - today) / (1000 * 60 * 60 * 24));
-                return {
-                    estado: 'beta',
-                    label: 'Beta VIP',
-                    statusBadge: '<span class="bg-purple-100 text-purple-800 border border-purple-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-purple-600">verified</span> Beta VIP</span>',
-                    diasBadge: diffDays > 0 
-                        ? `<span class="bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span> ${diffDays} días</span>`
-                        : `<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">error</span> Beta Vencida</span>`,
-                    isOverdue: diffDays <= 0,
-                    daysRemaining: Math.max(0, diffDays),
-                    anchorDay: anchorDay
-                };
-            }
-
-            // Para estado 'activo' o 'pagado'
-            let curYear = today.getFullYear();
-            let curMonth = today.getMonth();
-
-            let maxDaysCurMonth = new Date(curYear, curMonth + 1, 0).getDate();
-            let currentMonthDueDate = new Date(curYear, curMonth, Math.min(anchorDay, maxDaysCurMonth));
-
-            let targetDueDate;
-
-            if (today <= currentMonthDueDate) {
-                targetDueDate = currentMonthDueDate;
-            } else {
-                let nextMonth = curMonth + 1;
-                let nextYear = curYear;
-                if (nextMonth > 11) { nextMonth = 0; nextYear++; }
-                let maxDaysNextMonth = new Date(nextYear, nextMonth + 1, 0).getDate();
-                targetDueDate = new Date(nextYear, nextMonth, Math.min(anchorDay, maxDaysNextMonth));
-            }
-
-            const diffDays = Math.ceil((targetDueDate - today) / (1000 * 60 * 60 * 24));
-
-            if (diffDays >= 0) {
-                return {
-                    estado: 'activo',
-                    label: 'Activo / Al día',
-                    statusBadge: '<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-emerald-600">check_circle</span> Activo / Al día</span>',
-                    diasBadge: `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event_available</span> ${diffDays} días (Día ${anchorDay})</span>`,
-                    isOverdue: false,
-                    daysRemaining: diffDays,
-                    anchorDay: anchorDay
-                };
-            } else {
-                const overdueDays = Math.abs(diffDays);
-                const graceRemaining = 10 - overdueDays;
-
-                if (graceRemaining > 0) {
-                    return {
-                        estado: 'vencido',
-                        label: 'Pago Vencido',
-                        statusBadge: '<span class="bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-amber-600">warning</span> Pago Vencido</span>',
-                        diasBadge: `<span class="bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">warning</span> ${graceRemaining} días para pagar</span>`,
-                        isOverdue: true,
-                        daysRemaining: graceRemaining,
-                        anchorDay: anchorDay
-                    };
-                } else {
-                    return {
-                        estado: 'suspendido',
-                        label: 'Suspendido',
-                        statusBadge: '<span class="bg-rose-100 text-rose-800 border border-rose-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap"><span class="material-symbols-outlined text-[14px] text-rose-600">block</span> Suspendido</span>',
-                        diasBadge: '<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-xl font-bold text-xs whitespace-nowrap inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">error</span> Plazo Vencido</span>',
-                        isOverdue: true,
-                        daysRemaining: 0,
-                        anchorDay: anchorDay
-                    };
-                }
-            }
-        }
 
         function loadEmpresas() {
             fetch('../backend/admin_api.php')
