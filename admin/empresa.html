@@ -626,7 +626,7 @@ function renderEmpresaDetails(client) {
         linkEl.innerHTML = `<span class="material-symbols-outlined text-[16px]">link</span> Sin enlace configurado`;
     }
 
-    const subInfo = getSubscriptionDetails(client, window.globalConfig ? window.globalConfig.dias_prueba_defecto : 15);
+    const subInfo = getSubscriptionDetails(client, window.globalConfig ? window.globalConfig.dias_prueba_defecto : 30);
     document.getElementById('empresaBadgeStatus').innerHTML = `<div class="flex items-center gap-2">${subInfo.statusBadge} ${subInfo.diasBadge}</div>`;
 
     document.getElementById('empresaMetricPlan').textContent = client.plan || 'Básico';

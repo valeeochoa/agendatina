@@ -420,7 +420,26 @@
                     (c.ruta && c.ruta.toLowerCase().includes(search));
 
                 const subInfo = getSubscriptionDetails(c, globalTrialDays);
-                const matchStatus = !status || c.estado_pago === status || subInfo.estado === status;
+                let matchStatus = !status;
+                if (!matchStatus) {
+                    if (status === 'por_vencer') {
+                        matchStatus = subInfo.estado === 'por_vencer';
+                    } else if (status === 'vencido') {
+                        matchStatus = subInfo.estado === 'vencido';
+                    } else if (status === 'suspendido') {
+                        matchStatus = subInfo.estado === 'suspendido';
+                    } else if (status === 'activo') {
+                        matchStatus = subInfo.estado === 'activo';
+                    } else if (status === 'prueba') {
+                        matchStatus = subInfo.estado === 'prueba';
+                    } else if (status === 'beta') {
+                        matchStatus = subInfo.estado === 'beta' || c.estado_pago === 'beta';
+                    } else if (status === 'pendiente_revision') {
+                        matchStatus = subInfo.estado === 'pendiente_revision' || c.estado_pago === 'pendiente_revision';
+                    } else {
+                        matchStatus = subInfo.estado === status;
+                    }
+                }
                 const matchPlan = !plan || (c.plan && c.plan.toLowerCase().includes(plan));
 
                 return matchSearch && matchStatus && matchPlan;

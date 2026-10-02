@@ -1058,9 +1058,9 @@ function updateChart(data) {
         let countActivo = 0, countPrueba = 0, countRevision = 0, countVencido = 0;
         data.forEach(client => {
             const sub = getSubscriptionDetails(client, currentTrialDays);
-            if (sub.estado === 'activo') countActivo++;
+            if (sub.estado === 'activo' || (sub.estado === 'por_vencer' && client.estado_pago === 'activo')) countActivo++;
             else if (sub.estado === 'pendiente_revision') countRevision++;
-            else if (sub.estado === 'prueba' || sub.estado === 'beta') countPrueba++;
+            else if (sub.estado === 'prueba' || sub.estado === 'beta' || (sub.estado === 'por_vencer' && client.estado_pago !== 'activo')) countPrueba++;
             else countVencido++;
         });
         labels = ['Activos', 'En Prueba/Beta', 'En Revisión', 'Vencidos/Suspendidos'];
@@ -1408,19 +1408,19 @@ function filterClients() {
             if (statusTerm === 'por_vencer') {
                 matchesStatus = subInfo.estado === 'por_vencer';
             } else if (statusTerm === 'vencido') {
-                matchesStatus = subInfo.estado === 'vencido' || client.estado_pago === 'vencido';
+                matchesStatus = subInfo.estado === 'vencido';
             } else if (statusTerm === 'suspendido') {
-                matchesStatus = subInfo.estado === 'suspendido' || client.estado_pago === 'suspendido';
+                matchesStatus = subInfo.estado === 'suspendido';
             } else if (statusTerm === 'activo') {
-                matchesStatus = subInfo.estado === 'activo' || client.estado_pago === 'activo';
+                matchesStatus = subInfo.estado === 'activo';
             } else if (statusTerm === 'prueba') {
-                matchesStatus = subInfo.estado === 'prueba' || (client.estado_pago === 'prueba' && !subInfo.isOverdue);
+                matchesStatus = subInfo.estado === 'prueba';
             } else if (statusTerm === 'beta') {
-                matchesStatus = client.estado_pago === 'beta';
+                matchesStatus = subInfo.estado === 'beta' || client.estado_pago === 'beta';
             } else if (statusTerm === 'pendiente_revision') {
-                matchesStatus = client.estado_pago === 'pendiente_revision' || subInfo.estado === 'pendiente_revision';
+                matchesStatus = subInfo.estado === 'pendiente_revision' || client.estado_pago === 'pendiente_revision';
             } else {
-                matchesStatus = client.estado_pago === statusTerm || subInfo.estado === statusTerm;
+                matchesStatus = subInfo.estado === statusTerm;
             }
         }
 
