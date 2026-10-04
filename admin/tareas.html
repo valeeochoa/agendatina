@@ -98,14 +98,33 @@
             </form>
         </div>
 
-        <!-- Pestañas de Tareas -->
-        <div class="flex border-b border-slate-200 mb-6 gap-2">
-            <button id="tabBtnPendientes" onclick="switchTaskTab('pendientes')" class="px-5 py-3 font-bold text-sm text-[#d11149] border-b-2 border-[#d11149] transition-all flex items-center gap-2">
-                <span class="material-symbols-outlined text-[18px]">check_box_outline_blank</span> Pendientes <span id="countPendientes" class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-extrabold ml-1">0</span>
-            </button>
-            <button id="tabBtnCompletadas" onclick="switchTaskTab('completadas')" class="px-5 py-3 font-bold text-sm text-slate-400 hover:text-slate-700 transition-all flex items-center gap-2">
-                <span class="material-symbols-outlined text-[18px]">task_alt</span> Tareas Realizadas <span id="countCompletadas" class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-xs font-extrabold ml-1">0</span>
-            </button>
+        <!-- Pestañas de Tareas y Barra de Selección / Copiado de Prompt -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 mb-6 pb-2">
+            <!-- Pestañas -->
+            <div class="flex gap-2">
+                <button id="tabBtnPendientes" onclick="switchTaskTab('pendientes')" class="px-5 py-3 font-bold text-sm text-[#d11149] border-b-2 border-[#d11149] transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">check_box_outline_blank</span> Pendientes <span id="countPendientes" class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-extrabold ml-1">0</span>
+                </button>
+                <button id="tabBtnCompletadas" onclick="switchTaskTab('completadas')" class="px-5 py-3 font-bold text-sm text-slate-400 hover:text-slate-700 transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">task_alt</span> Tareas Realizadas <span id="countCompletadas" class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-xs font-extrabold ml-1">0</span>
+                </button>
+            </div>
+
+            <!-- Acciones de Selección y Copiado de Prompt -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <button type="button" id="btnToggleSelectAllTasks" onclick="toggleSelectAllTasksCurrentTab()" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer border border-slate-200">
+                    <span id="iconToggleSelectAll" class="material-symbols-outlined text-[18px]">select_all</span>
+                    <span id="txtToggleSelectAll">Seleccionar Todas</span>
+                </button>
+                <span id="selectedTasksCountBadge" class="hidden bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-2 rounded-2xl text-xs font-bold items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                    <span id="selectedTasksCountTxt">0 seleccionadas</span>
+                </span>
+                <button type="button" id="btnCopiarPromptTareas" onclick="abrirModalPromptTareas()" class="px-4 py-2.5 bg-[#d11149] hover:bg-[#d11149]/90 text-white rounded-2xl font-extrabold text-xs transition-all flex items-center gap-1.5 shadow-md shadow-[#d11149]/20 cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">content_copy</span>
+                    <span>Copiar como Prompt</span>
+                </button>
+            </div>
         </div>
 
         <!-- Panel Tareas Pendientes -->
@@ -119,9 +138,55 @@
         </div>
     </main>
 
+    <!-- MODAL PROMPT DE TAREAS PARA ASISTENTE IA -->
+    <div id="modalPromptTareas" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div id="modalPromptTareasContent" class="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative transform scale-95 transition-transform duration-300">
+            <button type="button" onclick="cerrarModalPromptTareas()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+
+            <div class="mb-4">
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    <span class="material-symbols-outlined text-[#d11149] text-lg">smart_toy</span>
+                    <span>Generador de Prompt para Asistente IA</span>
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-900" id="modalPromptTareasTitle">Prompt de Tareas Seleccionadas</h3>
+                <p class="text-xs text-slate-500 mt-1">Copia este prompt con las tareas seleccionadas y pégalo directamente en el chat para comenzar la implementación:</p>
+            </div>
+
+            <div class="mb-5">
+                <textarea id="txtPromptTareas" rows="12" readonly class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-mono text-slate-800 outline-none focus:ring-2 focus:ring-[#d11149] leading-relaxed resize-none"></textarea>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="button" onclick="cerrarModalPromptTareas()" class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-xs transition-all">Cerrar</button>
+                <button type="button" id="btnCopiarPromptTareasModal" onclick="copiarTextoPromptTareasAccion()" class="px-6 py-3 bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold rounded-2xl text-xs transition-all shadow-lg shadow-[#d11149]/20 flex items-center justify-center gap-1.5 flex-1">
+                    <span class="material-symbols-outlined text-[18px]">content_copy</span> Copiar Prompt al Portapapeles
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirmación Eliminación Tarea -->
+    <div id="deleteTaskModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white p-6 rounded-3xl max-w-sm w-full text-center shadow-2xl">
+            <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-2xl">delete_forever</span>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2">¿Eliminar tarea?</h3>
+            <p class="text-xs text-slate-500 mb-6">Esta acción borrará la tarea de la lista permanentemente.</p>
+            <div class="flex gap-3">
+                <button onclick="closeDeleteTaskModal()" class="flex-1 px-4 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl text-xs hover:bg-slate-200 transition-colors">Cancelar</button>
+                <button id="btnConfirmDeleteTask" class="flex-1 px-4 py-2.5 bg-red-600 text-white font-bold rounded-xl text-xs hover:bg-red-700 transition-colors shadow-lg shadow-red-600/30">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let allTasks = [];
         let currentTab = 'pendientes';
+        let selectedTaskIds = new Set();
+        let taskIdToDelete = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             fetch('../backend/admin_auth.php')
@@ -138,7 +203,13 @@
                 .then(data => {
                     if (data.success && data.data) {
                         allTasks = data.data;
+                        // Limpiar IDs seleccionados que ya no existan
+                        const existingIds = new Set(allTasks.map(t => t.id));
+                        selectedTaskIds.forEach(id => {
+                            if (!existingIds.has(id)) selectedTaskIds.delete(id);
+                        });
                         renderTasks();
+                        updateSelectedTasksUI();
                     }
                 });
         }
@@ -161,6 +232,59 @@
                 panelC.classList.remove('hidden');
                 panelP.classList.add('hidden');
             }
+            updateSelectedTasksUI();
+        }
+
+        function toggleSelectTask(id) {
+            if (selectedTaskIds.has(id)) {
+                selectedTaskIds.delete(id);
+            } else {
+                selectedTaskIds.add(id);
+            }
+            renderTasks();
+            updateSelectedTasksUI();
+        }
+
+        function toggleSelectAllTasksCurrentTab() {
+            const currentTasks = allTasks.filter(t => t.estado === (currentTab === 'pendientes' ? 'pendiente' : 'completada'));
+            const allSelected = currentTasks.length > 0 && currentTasks.every(t => selectedTaskIds.has(t.id));
+
+            if (allSelected) {
+                currentTasks.forEach(t => selectedTaskIds.delete(t.id));
+            } else {
+                currentTasks.forEach(t => selectedTaskIds.add(t.id));
+            }
+            renderTasks();
+            updateSelectedTasksUI();
+        }
+
+        function updateSelectedTasksUI() {
+            const count = selectedTaskIds.size;
+            const badge = document.getElementById('selectedTasksCountBadge');
+            const txtCount = document.getElementById('selectedTasksCountTxt');
+            const txtBtnAll = document.getElementById('txtToggleSelectAll');
+            const iconBtnAll = document.getElementById('iconToggleSelectAll');
+
+            const currentTasks = allTasks.filter(t => t.estado === (currentTab === 'pendientes' ? 'pendiente' : 'completada'));
+            const allSelected = currentTasks.length > 0 && currentTasks.every(t => selectedTaskIds.has(t.id));
+
+            if (badge && txtCount) {
+                if (count > 0) {
+                    badge.classList.remove('hidden');
+                    badge.classList.add('flex');
+                    txtCount.textContent = `${count} seleccionada${count > 1 ? 's' : ''}`;
+                } else {
+                    badge.classList.add('hidden');
+                    badge.classList.remove('flex');
+                }
+            }
+
+            if (txtBtnAll) {
+                txtBtnAll.textContent = allSelected ? 'Deseleccionar Todas' : 'Seleccionar Todas';
+            }
+            if (iconBtnAll) {
+                iconBtnAll.textContent = allSelected ? 'deselect' : 'select_all';
+            }
         }
 
         function renderTasks() {
@@ -179,13 +303,19 @@
             } else {
                 let htmlP = '';
                 pendientes.forEach(t => {
+                    const isSelected = selectedTaskIds.has(t.id);
                     htmlP += `
-                        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-sm hover:shadow-md transition-all flex items-center justify-between gap-4">
-                            <div class="flex items-center gap-3.5 min-w-0">
-                                <input type="checkbox" onchange="toggleTaskState(${t.id}, 'completada')" class="w-5 h-5 text-[#d11149] rounded-lg border-slate-300 focus:ring-[#d11149] cursor-pointer shrink-0">
-                                <span class="font-bold text-slate-800 text-sm sm:text-base break-words">${t.tarea}</span>
+                        <div class="rounded-2xl p-4 sm:p-5 border transition-all flex items-center justify-between gap-3 ${isSelected ? 'bg-indigo-50/40 border-indigo-400 ring-2 ring-indigo-200 shadow-md' : 'bg-white border-slate-200 shadow-sm hover:shadow-md'}">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <label class="flex items-center gap-1.5 cursor-pointer px-2 py-1.5 rounded-xl border transition-all shrink-0 ${isSelected ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'}" title="Seleccionar tarea para el prompt">
+                                    <input type="checkbox" onchange="toggleSelectTask(${t.id})" ${isSelected ? 'checked' : ''} class="w-4 h-4 text-[#d11149] rounded border-slate-300 focus:ring-[#d11149] cursor-pointer shrink-0">
+                                    <span class="text-[11px] font-extrabold select-none">Sel</span>
+                                </label>
+                                <div class="h-6 w-px bg-slate-200 shrink-0 hidden sm:block"></div>
+                                <input type="checkbox" onchange="toggleTaskState(${t.id}, 'completada')" class="w-5 h-5 text-[#d11149] rounded-lg border-slate-300 focus:ring-[#d11149] cursor-pointer shrink-0" title="Marcar como realizada">
+                                <span class="font-bold text-slate-800 text-sm sm:text-base break-words">${escapeHtml(t.tarea)}</span>
                             </div>
-                            <button onclick="deleteTask(${t.id})" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg transition-colors shrink-0" title="Eliminar Tarea"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                            <button onclick="confirmDeleteTask(${t.id})" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg transition-colors shrink-0" title="Eliminar Tarea"><span class="material-symbols-outlined text-[18px]">delete</span></button>
                         </div>
                     `;
                 });
@@ -198,17 +328,23 @@
             } else {
                 let htmlC = '';
                 completadas.forEach(t => {
+                    const isSelected = selectedTaskIds.has(t.id);
                     const fechaDone = t.fecha_cumplimiento ? new Date(t.fecha_cumplimiento.replace(/-/g, '/')).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }) : 'Reciente';
                     htmlC += `
-                        <div class="bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-200 opacity-75 flex items-center justify-between gap-4">
-                            <div class="flex items-center gap-3.5 min-w-0">
-                                <input type="checkbox" checked onchange="toggleTaskState(${t.id}, 'pendiente')" class="w-5 h-5 text-emerald-600 rounded-lg border-slate-300 focus:ring-emerald-500 cursor-pointer shrink-0">
+                        <div class="rounded-2xl p-4 sm:p-5 border transition-all flex items-center justify-between gap-3 ${isSelected ? 'bg-indigo-50/40 border-indigo-400 ring-2 ring-indigo-200 shadow-md' : 'bg-slate-50 border border-slate-200 opacity-80'}">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <label class="flex items-center gap-1.5 cursor-pointer px-2 py-1.5 rounded-xl border transition-all shrink-0 ${isSelected ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white hover:bg-slate-200 text-slate-600 border-slate-200'}" title="Seleccionar tarea para el prompt">
+                                    <input type="checkbox" onchange="toggleSelectTask(${t.id})" ${isSelected ? 'checked' : ''} class="w-4 h-4 text-[#d11149] rounded border-slate-300 focus:ring-[#d11149] cursor-pointer shrink-0">
+                                    <span class="text-[11px] font-extrabold select-none">Sel</span>
+                                </label>
+                                <div class="h-6 w-px bg-slate-200 shrink-0 hidden sm:block"></div>
+                                <input type="checkbox" checked onchange="toggleTaskState(${t.id}, 'pendiente')" class="w-5 h-5 text-emerald-600 rounded-lg border-slate-300 focus:ring-emerald-500 cursor-pointer shrink-0" title="Volver a marcar como pendiente">
                                 <div>
-                                    <span class="font-bold text-slate-600 text-sm sm:text-base line-through break-words">${t.tarea}</span>
+                                    <span class="font-bold text-slate-600 text-sm sm:text-base line-through break-words">${escapeHtml(t.tarea)}</span>
                                     <p class="text-[11px] text-emerald-600 font-semibold mt-0.5 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event_available</span> Realizada el ${fechaDone}</p>
                                 </div>
                             </div>
-                            <button onclick="deleteTask(${t.id})" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg transition-colors shrink-0" title="Eliminar Tarea"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                            <button onclick="confirmDeleteTask(${t.id})" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg transition-colors shrink-0" title="Eliminar Tarea"><span class="material-symbols-outlined text-[18px]">delete</span></button>
                         </div>
                     `;
                 });
@@ -234,9 +370,13 @@
             .then(data => {
                 if (data.success) {
                     input.value = '';
+                    showToast('Tarea agregada exitosamente', 'success');
                     loadTasks();
-                } else alert(data.error || 'Error al crear la tarea.');
+                } else {
+                    showToast(data.error || 'Error al crear la tarea.', 'error');
+                }
             })
+            .catch(() => showToast('Error de conexión al guardar la tarea.', 'error'))
             .finally(() => btn.disabled = false);
         }
 
@@ -248,16 +388,163 @@
             })
             .then(res => res.json())
             .then(data => {
-                if (data.success) loadTasks();
+                if (data.success) {
+                    showToast(nuevoEstado === 'completada' ? 'Tarea marcada como realizada' : 'Tarea reabierta como pendiente', 'success');
+                    loadTasks();
+                }
             });
         }
 
-        function deleteTask(id) {
+        function confirmDeleteTask(id) {
+            taskIdToDelete = id;
+            document.getElementById('deleteTaskModal').classList.remove('hidden');
+        }
+
+        function closeDeleteTaskModal() {
+            taskIdToDelete = null;
+            document.getElementById('deleteTaskModal').classList.add('hidden');
+        }
+
+        document.getElementById('btnConfirmDeleteTask').addEventListener('click', () => {
+            if (!taskIdToDelete) return;
+            const id = taskIdToDelete;
+            closeDeleteTaskModal();
             fetch('../backend/tareas_admin_api.php?id=' + id, { method: 'DELETE' })
             .then(res => res.json())
             .then(data => {
-                if (data.success) loadTasks();
+                if (data.success) {
+                    selectedTaskIds.delete(id);
+                    showToast('Tarea eliminada exitosamente', 'success');
+                    loadTasks();
+                }
             });
+        });
+
+        function abrirModalPromptTareas() {
+            let items = allTasks.filter(t => selectedTaskIds.has(t.id));
+
+            // Si no seleccionó manualmente ninguna tarea, seleccionar por defecto las tareas del tab actual
+            if (items.length === 0) {
+                const targetState = currentTab === 'pendientes' ? 'pendiente' : 'completada';
+                const currentList = allTasks.filter(t => t.estado === targetState);
+                if (currentList.length === 0) {
+                    showToast('No hay tareas para generar el prompt.', 'warning');
+                    return;
+                }
+                currentList.forEach(t => selectedTaskIds.add(t.id));
+                renderTasks();
+                updateSelectedTasksUI();
+                items = currentList;
+                showToast(`Se seleccionaron automáticamente ${items.length} tareas para el prompt.`, 'info');
+            }
+
+            let lines = [];
+            lines.push(`Actúa como un desarrollador senior de software para la plataforma Agendatina.`);
+            lines.push(`Necesito que implementes o soluciones las siguientes tareas administrativas del sistema:`);
+            lines.push(``);
+            lines.push(`### Tareas Seleccionadas (${items.length}):`);
+            items.forEach((t, idx) => {
+                const estadoTxt = t.estado === 'pendiente' ? 'PENDIENTE' : 'REALIZADA';
+                lines.push(`${idx + 1}. [${estadoTxt}] ${t.tarea} (ID: #${t.id})`);
+            });
+            lines.push(``);
+            lines.push(`### Instrucciones de Trabajo:`);
+            lines.push(`1. Analiza minuciosamente el código del repositorio de Agendatina para identificar los archivos y componentes afectados por cada tarea.`);
+            lines.push(`2. Explica brevemente la estrategia técnica para solucionar o implementar cada punto.`);
+            lines.push(`3. Realiza las modificaciones de código necesarias siguiendo los estándares de diseño y arquitectura del proyecto.`);
+            lines.push(`4. Asegúrate de respetar las reglas establecidas (sin window.alert/confirm nativos, tipografía Fredoka para el logo si aplica, compatibilidad con la base de datos).`);
+
+            const promptText = lines.join('\n');
+            document.getElementById('txtPromptTareas').value = promptText;
+            document.getElementById('modalPromptTareasTitle').textContent = `Prompt de Tareas Seleccionadas (${items.length})`;
+
+            const modal = document.getElementById('modalPromptTareas');
+            const content = document.getElementById('modalPromptTareasContent');
+            const btnCopy = document.getElementById('btnCopiarPromptTareasModal');
+            btnCopy.innerHTML = '<span class="material-symbols-outlined text-[18px]">content_copy</span> Copiar Prompt al Portapapeles';
+            btnCopy.className = 'px-6 py-3 bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold rounded-2xl text-xs transition-all shadow-lg shadow-[#d11149]/20 flex items-center justify-center gap-1.5 flex-1 cursor-pointer';
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function cerrarModalPromptTareas() {
+            const modal = document.getElementById('modalPromptTareas');
+            const content = document.getElementById('modalPromptTareasContent');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+
+        function copiarTextoPromptTareasAccion() {
+            const txt = document.getElementById('txtPromptTareas');
+            txt.select();
+            txt.setSelectionRange(0, 99999);
+
+            const btn = document.getElementById('btnCopiarPromptTareasModal');
+
+            const handleSuccess = () => {
+                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> ¡Prompt Copiado al Portapapeles!';
+                btn.className = 'px-6 py-3 bg-emerald-600 text-white font-extrabold rounded-2xl text-xs transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-1.5 flex-1';
+                showToast('¡Prompt copiado al portapapeles exitosamente!', 'success');
+            };
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(txt.value).then(handleSuccess).catch(() => {
+                    document.execCommand('copy');
+                    handleSuccess();
+                });
+            } else {
+                document.execCommand('copy');
+                handleSuccess();
+            }
+        }
+
+        function showToast(msg, type = 'success') {
+            let toast = document.getElementById('adminToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'adminToast';
+                document.body.appendChild(toast);
+            }
+            
+            let bg = 'bg-slate-900 text-white';
+            let icon = 'info';
+            if (type === 'success') {
+                bg = 'bg-emerald-600 text-white shadow-emerald-600/30';
+                icon = 'check_circle';
+            } else if (type === 'warning') {
+                bg = 'bg-amber-600 text-white shadow-amber-600/30';
+                icon = 'warning';
+            } else if (type === 'error') {
+                bg = 'bg-red-600 text-white shadow-red-600/30';
+                icon = 'error';
+            } else if (type === 'info') {
+                bg = 'bg-blue-600 text-white shadow-blue-600/30';
+                icon = 'info';
+            }
+
+            toast.className = `fixed bottom-5 right-5 z-[99999] px-5 py-3 rounded-2xl shadow-xl font-bold text-xs flex items-center gap-2 transition-all duration-300 transform translate-y-0 opacity-100 ${bg}`;
+            toast.innerHTML = `<span class="material-symbols-outlined text-[18px]">${icon}</span> <span>${escapeHtml(msg)}</span>`;
+
+            clearTimeout(window.__toastTimeout);
+            window.__toastTimeout = setTimeout(() => {
+                toast.className = 'fixed bottom-5 right-5 z-[99999] px-5 py-3 rounded-2xl shadow-xl font-bold text-xs flex items-center gap-2 transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none';
+            }, 3500);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         function logoutAdmin() {

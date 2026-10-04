@@ -89,9 +89,17 @@
                 <span id="totalReportesBadge" class="bg-red-50 text-[#d11149] border border-red-200 px-4 py-2.5 rounded-2xl text-xs font-bold">
                     Cargando...
                 </span>
-                <button onclick="abrirModalResumenCopiar()" class="bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold px-4 py-2.5 rounded-2xl transition-all flex items-center gap-2 shadow-lg shadow-[#d11149]/20 text-xs sm:text-sm">
+                <button type="button" id="btnToggleSelectAllReportes" onclick="toggleSelectAllReportes()" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer border border-slate-200">
+                    <span id="iconToggleSelectAllReportes" class="material-symbols-outlined text-[18px]">select_all</span>
+                    <span id="txtToggleSelectAllReportes">Seleccionar Todos</span>
+                </button>
+                <span id="selectedReportesCountBadge" class="hidden bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-2 rounded-2xl text-xs font-bold items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                    <span id="selectedReportesCountTxt">0 seleccionados</span>
+                </span>
+                <button onclick="abrirModalResumenCopiar()" class="bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold px-4 py-2.5 rounded-2xl transition-all flex items-center gap-2 shadow-lg shadow-[#d11149]/20 text-xs sm:text-sm cursor-pointer">
                     <span class="material-symbols-outlined text-[18px]">content_copy</span>
-                    <span>Copiar Resumen Pendientes</span>
+                    <span>Copiar como Prompt</span>
                 </button>
             </div>
         </div>
@@ -126,6 +134,11 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-slate-200 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50">
+                            <th class="p-4 w-12 text-center">
+                                <label class="inline-flex items-center justify-center cursor-pointer p-1" title="Seleccionar todos los visibles">
+                                    <input type="checkbox" id="chkSelectAllReportesTh" onchange="toggleSelectAllReportesCheckbox(this.checked)" class="w-4 h-4 text-[#d11149] rounded border-slate-300 focus:ring-[#d11149] cursor-pointer">
+                                </label>
+                            </th>
                             <th class="p-4">Fecha</th>
                             <th class="p-4">Emprendimiento</th>
                             <th class="p-4">Mensaje de la Incidencia</th>
@@ -133,7 +146,7 @@
                         </tr>
                     </thead>
                     <tbody id="reportesList">
-                        <tr><td colspan="4" class="p-8 text-center text-slate-400 text-sm">Cargando reportes...</td></tr>
+                        <tr><td colspan="5" class="p-8 text-center text-slate-400 text-sm">Cargando reportes...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -158,6 +171,8 @@
     <script>
         let reportesData = [];
         let reportIdToDelete = null;
+        let selectedReportIds = new Set();
+        let currentFilteredReports = [];
 
         document.addEventListener('DOMContentLoaded', () => {
             fetch('../backend/admin_auth.php')
@@ -174,16 +189,21 @@
                 .then(data => {
                     if (data.success && Array.isArray(data.data)) {
                         reportesData = data.data;
+                        // Limpiar IDs seleccionados que ya no existan
+                        const existingIds = new Set(reportesData.map(r => r.id));
+                        selectedReportIds.forEach(id => {
+                            if (!existingIds.has(id)) selectedReportIds.delete(id);
+                        });
                         document.getElementById('totalReportesBadge').textContent = `${data.pendientes_count || 0} Pendientes (${reportesData.length} Total)`;
                         filterReportes();
                     } else {
                         document.getElementById('totalReportesBadge').textContent = '0 Pendientes (0 Total)';
-                        document.getElementById('reportesList').innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 text-sm">No hay reportes de error registrados.</td></tr>';
+                        document.getElementById('reportesList').innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400 text-sm">No hay reportes de error registrados.</td></tr>';
                     }
                 })
                 .catch(() => {
                     document.getElementById('totalReportesBadge').textContent = '0 Pendientes';
-                    document.getElementById('reportesList').innerHTML = '<tr><td colspan="4" class="p-8 text-center text-red-500 font-medium">Error de conexión al cargar reportes.</td></tr>';
+                    document.getElementById('reportesList').innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-500 font-medium">Error de conexión al cargar reportes.</td></tr>';
                 });
         }
 
@@ -204,6 +224,70 @@
                 if (btnRes) btnRes.className = 'px-3.5 py-2 rounded-xl font-bold text-xs transition-all bg-white text-slate-800 shadow-xs flex items-center gap-1';
             }
             filterReportes();
+        }
+
+        function toggleSelectReport(id) {
+            if (selectedReportIds.has(id)) {
+                selectedReportIds.delete(id);
+            } else {
+                selectedReportIds.add(id);
+            }
+            updateSelectedReportesUI();
+            renderTable(currentFilteredReports);
+        }
+
+        function toggleSelectAllReportesCheckbox(checkAll) {
+            if (checkAll) {
+                currentFilteredReports.forEach(r => selectedReportIds.add(r.id));
+            } else {
+                currentFilteredReports.forEach(r => selectedReportIds.delete(r.id));
+            }
+            updateSelectedReportesUI();
+            renderTable(currentFilteredReports);
+        }
+
+        function toggleSelectAllReportes() {
+            const allSelected = currentFilteredReports.length > 0 && currentFilteredReports.every(r => selectedReportIds.has(r.id));
+            if (allSelected) {
+                currentFilteredReports.forEach(r => selectedReportIds.delete(r.id));
+            } else {
+                currentFilteredReports.forEach(r => selectedReportIds.add(r.id));
+            }
+            updateSelectedReportesUI();
+            renderTable(currentFilteredReports);
+        }
+
+        function updateSelectedReportesUI() {
+            const count = selectedReportIds.size;
+            const badge = document.getElementById('selectedReportesCountBadge');
+            const txtCount = document.getElementById('selectedReportesCountTxt');
+            const txtBtnAll = document.getElementById('txtToggleSelectAllReportes');
+            const iconBtnAll = document.getElementById('iconToggleSelectAllReportes');
+            const thChk = document.getElementById('chkSelectAllReportesTh');
+
+            const allSelected = currentFilteredReports.length > 0 && currentFilteredReports.every(r => selectedReportIds.has(r.id));
+
+            if (thChk) {
+                thChk.checked = allSelected;
+            }
+
+            if (badge && txtCount) {
+                if (count > 0) {
+                    badge.classList.remove('hidden');
+                    badge.classList.add('flex');
+                    txtCount.textContent = `${count} seleccionado${count > 1 ? 's' : ''}`;
+                } else {
+                    badge.classList.add('hidden');
+                    badge.classList.remove('flex');
+                }
+            }
+
+            if (txtBtnAll) {
+                txtBtnAll.textContent = allSelected ? 'Deseleccionar Todos' : 'Seleccionar Todos';
+            }
+            if (iconBtnAll) {
+                iconBtnAll.textContent = allSelected ? 'deselect' : 'select_all';
+            }
         }
 
         function filterReportes() {
@@ -233,18 +317,21 @@
                 return matchSearch && matchStatus;
             });
 
+            currentFilteredReports = filtered;
+            updateSelectedReportesUI();
             renderTable(filtered);
         }
 
         function renderTable(list) {
             const tbody = document.getElementById('reportesList');
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 text-sm">No se encontraron reportes de error.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400 text-sm">No se encontraron reportes de error.</td></tr>';
                 return;
             }
 
             let html = '';
             list.forEach(r => {
+                const isSelected = selectedReportIds.has(r.id);
                 const f = new Date(r.fecha).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
                 const isResolved = r.estado === 'resuelto';
                 const statusBadge = isResolved ? 
@@ -288,28 +375,33 @@
                     </button>`;
 
                 html += `
-                    <tr class="hover:bg-slate-50 border-b border-slate-100 transition-colors cursor-pointer" onclick="if(!event.target.closest('button')) abrirModalResponder(${r.id})">
+                    <tr class="border-b border-slate-100 transition-colors cursor-pointer ${isSelected ? 'bg-indigo-50/50 hover:bg-indigo-50' : 'hover:bg-slate-50'}" onclick="if(!event.target.closest('button') && !event.target.closest('input') && !event.target.closest('label')) abrirModalResponder(${r.id})">
+                        <td class="p-4 text-center whitespace-nowrap" onclick="event.stopPropagation()">
+                            <label class="inline-flex items-center justify-center cursor-pointer p-1.5 rounded-xl border transition-all ${isSelected ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'}" title="Seleccionar para copiar como prompt">
+                                <input type="checkbox" data-report-id="${r.id}" onchange="toggleSelectReport(${r.id})" ${isSelected ? 'checked' : ''} class="w-4 h-4 text-[#d11149] rounded border-slate-300 focus:ring-[#d11149] cursor-pointer">
+                            </label>
+                        </td>
                         <td class="p-4 text-xs font-semibold text-slate-500 whitespace-nowrap">
                             ${f}
                             <div class="mt-1">${statusBadge}</div>
                         </td>
                         <td class="p-4">
                             <div class="flex items-center gap-2 mb-0.5">
-                                <span class="font-extrabold text-slate-900 text-sm">${r.nombre_negocio || 'Sin Negocio'}</span>
+                                <span class="font-extrabold text-slate-900 text-sm">${escapeHtml(r.nombre_negocio || 'Sin Negocio')}</span>
                                 <span class="bg-slate-100 text-slate-600 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border border-slate-200">ID: #${r.id_negocio || '?'}</span>
                             </div>
                             <div class="text-xs text-slate-600 font-medium">
-                                <span class="font-bold text-slate-700">${senderName || 'Usuario Desconocido'}</span> 
-                                <span class="text-slate-400">(${senderEmail || 'Sin email'})</span>
+                                <span class="font-bold text-slate-700">${escapeHtml(senderName || 'Usuario Desconocido')}</span> 
+                                <span class="text-slate-400">(${escapeHtml(senderEmail || 'Sin email')})</span>
                             </div>
                             <div>${roleTag}</div>
                         </td>
                         <td class="p-4">
                             <div class="flex items-center gap-2 mb-1">
                                 ${typeBadge}
-                                <span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">${r.modulo || 'General'}</span>
+                                <span class="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">${escapeHtml(r.modulo || 'General')}</span>
                             </div>
-                            <p class="text-sm text-slate-700 font-medium leading-relaxed hover:text-blue-600 transition-colors">${r.descripcion}</p>
+                            <p class="text-sm text-slate-700 font-medium leading-relaxed hover:text-blue-600 transition-colors">${escapeHtml(r.descripcion)}</p>
                         </td>
                         <td class="p-4 text-center whitespace-nowrap" onclick="event.stopPropagation()">
                             <div class="flex items-center justify-center gap-2">
@@ -534,57 +626,78 @@
                 return !isMejora;
             });
 
-            const pendientes = errorReportesOnly.filter(r => (r.estado || 'pendiente') === 'pendiente');
+            let items = errorReportesOnly.filter(r => selectedReportIds.has(r.id));
 
-            if (pendientes.length === 0) {
-                document.getElementById('txtResumenPendientes').value = "📌 RESUMEN DE REPORTES DE ERROR PENDIENTES\n==========================================\n¡No hay reportes de error pendientes registrados en este momento!";
-            } else {
-                let lines = [];
-                lines.push(`📌 RESUMEN DE REPORTES DE ERROR PENDIENTES (${pendientes.length} Pendientes)`);
-                lines.push(`================================================================`);
-                lines.push(``);
+            // Si no seleccionó manualmente ninguno, usar por defecto los pendientes
+            if (items.length === 0) {
+                const pendientes = errorReportesOnly.filter(r => (r.estado || 'pendiente') === 'pendiente');
+                if (pendientes.length === 0) {
+                    showToast('No hay reportes de error pendientes para generar el prompt.', 'warning');
+                    return;
+                }
+                pendientes.forEach(r => selectedReportIds.add(r.id));
+                items = pendientes;
+                updateSelectedReportesUI();
+                renderTable(currentFilteredReports);
+                showToast(`Se seleccionaron automáticamente los ${pendientes.length} reportes pendientes para el prompt.`, 'info');
+            }
 
-                pendientes.forEach((r, idx) => {
-                    const f = new Date(r.fecha).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
-                    
-                    let senderName = (r.nombre_usuario || '').trim();
-                    let senderEmail = (r.email_usuario || '').trim();
+            let lines = [];
+            lines.push(`Actúa como un desarrollador senior de software para la plataforma Agendatina.`);
+            lines.push(`A continuación tienes los reportes de error e incidencias técnicas seleccionados por el administrador para resolver:`);
+            lines.push(``);
+            lines.push(`### Reportes de Error Seleccionados (${items.length}):`);
+            lines.push(``);
 
-                    if (!senderName || !senderEmail || senderName === 'Usuario Desconocido' || senderEmail === 'Sin email') {
-                        const msg = r.descripcion || '';
-                        const match = msg.match(/(?:registrado:\s*|de\s*|por\s*|^)([A-ZÁÉÍÓÚÑa-záéíóúñ\s]+)\s*\(([^@\s]+@[^@\s]+\.[^@\s\)]+)\)/i);
-                        if (match) {
-                            if (!senderName || senderName === 'Usuario Desconocido') senderName = match[1].trim();
-                            if (!senderEmail || senderEmail === 'Sin email') senderEmail = match[2].trim();
-                        } else {
-                            const emailMatch = msg.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
-                            if (emailMatch && (!senderEmail || senderEmail === 'Sin email')) {
-                                senderEmail = emailMatch[1];
-                            }
+            items.forEach((r, idx) => {
+                const f = new Date(r.fecha).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+                
+                let senderName = (r.nombre_usuario || '').trim();
+                let senderEmail = (r.email_usuario || '').trim();
+
+                if (!senderName || !senderEmail || senderName === 'Usuario Desconocido' || senderEmail === 'Sin email') {
+                    const msg = r.descripcion || '';
+                    const match = msg.match(/(?:registrado:\s*|de\s*|por\s*|^)([A-ZÁÉÍÓÚÑa-záéíóúñ\s]+)\s*\(([^@\s]+@[^@\s]+\.[^@\s\)]+)\)/i);
+                    if (match) {
+                        if (!senderName || senderName === 'Usuario Desconocido') senderName = match[1].trim();
+                        if (!senderEmail || senderEmail === 'Sin email') senderEmail = match[2].trim();
+                    } else {
+                        const emailMatch = msg.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+                        if (emailMatch && (!senderEmail || senderEmail === 'Sin email')) {
+                            senderEmail = emailMatch[1];
                         }
                     }
+                }
 
-                    const modulo = r.modulo || 'General';
-                    const negocio = r.nombre_negocio || 'Sin Negocio';
-                    const idNegocio = r.id_negocio || '?';
-                    const desc = (r.descripcion || '').trim();
+                const modulo = r.modulo || 'General';
+                const negocio = r.nombre_negocio || 'Sin Negocio';
+                const idNegocio = r.id_negocio || '?';
+                const desc = (r.descripcion || '').trim();
+                const estado = (r.estado || 'pendiente').toUpperCase();
 
-                    lines.push(`${idx + 1}. [Segmento / Módulo: ${modulo}]`);
-                    lines.push(`   - Negocio: ${negocio} (ID: #${idNegocio})`);
-                    lines.push(`   - Emisor: ${senderName || 'Desconocido'} (${senderEmail || 'Sin email'})`);
-                    lines.push(`   - Fecha: ${f} hs`);
-                    lines.push(`   - Mensaje / Incidencia: ${desc}`);
-                    lines.push(``);
-                });
+                lines.push(`${idx + 1}. **Incidencia #${r.id}** [Módulo / Segmento: ${modulo}] - Estado: ${estado}`);
+                lines.push(`   - **Negocio:** ${negocio} (ID: #${idNegocio})`);
+                lines.push(`   - **Emisor:** ${senderName || 'Desconocido'} (${senderEmail || 'Sin email'}) - Rol: ${r.rol_usuario || 'Admin'}`);
+                lines.push(`   - **Fecha del reporte:** ${f} hs`);
+                lines.push(`   - **Mensaje / Descripción del error:**`);
+                lines.push(`     ${desc}`);
+                lines.push(``);
+            });
 
-                document.getElementById('txtResumenPendientes').value = lines.join('\n');
-            }
+            lines.push(`### Instrucciones para el Asistente:`);
+            lines.push(`1. Analiza los componentes y archivos del proyecto Agendatina involucrados en cada reporte.`);
+            lines.push(`2. Identifica la causa técnica exacta del fallo.`);
+            lines.push(`3. Realiza las correcciones de código necesarias paso a paso asegurándote de no romper funcionalidades existentes.`);
+            lines.push(`4. Respeta las reglas de diseño y arquitectura del proyecto.`);
+
+            document.getElementById('txtResumenPendientes').value = lines.join('\n');
+            document.getElementById('modalResumenTitulo').textContent = `Prompt de Reportes de Error (${items.length})`;
 
             const modal = document.getElementById('modalResumenCopiar');
             const content = document.getElementById('modalResumenCopiarContent');
             const btnCopy = document.getElementById('btnCopiarResumenText');
-            btnCopy.innerHTML = '<span class="material-symbols-outlined text-[18px]">content_copy</span> Copiar al Portapapeles';
-            btnCopy.className = 'px-6 py-3 bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold rounded-2xl text-xs transition-all shadow-lg shadow-[#d11149]/20 flex items-center justify-center gap-1.5 flex-1';
+            btnCopy.innerHTML = '<span class="material-symbols-outlined text-[18px]">content_copy</span> Copiar Prompt al Portapapeles';
+            btnCopy.className = 'px-6 py-3 bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold rounded-2xl text-xs transition-all shadow-lg shadow-[#d11149]/20 flex items-center justify-center gap-1.5 flex-1 cursor-pointer';
 
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -612,25 +725,66 @@
 
             const btn = document.getElementById('btnCopiarResumenText');
 
+            const handleSuccess = () => {
+                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> ¡Prompt Copiado al Portapapeles!';
+                btn.className = 'px-6 py-3 bg-emerald-600 text-white font-extrabold rounded-2xl text-xs transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-1.5 flex-1';
+                showToast('¡Prompt copiado al portapapeles exitosamente!', 'success');
+            };
+
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(txt.value).then(() => {
-                    btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> ¡Copiado al Portapapeles!';
-                    btn.className = 'px-6 py-3 bg-emerald-600 text-white font-extrabold rounded-2xl text-xs transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-1.5 flex-1';
-                }).catch(() => {
+                navigator.clipboard.writeText(txt.value).then(handleSuccess).catch(() => {
                     document.execCommand('copy');
-                    btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> ¡Copiado al Portapapeles!';
-                    btn.className = 'px-6 py-3 bg-emerald-600 text-white font-extrabold rounded-2xl text-xs transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-1.5 flex-1';
+                    handleSuccess();
                 });
             } else {
                 document.execCommand('copy');
-                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> ¡Copiado al Portapapeles!';
-                btn.className = 'px-6 py-3 bg-emerald-600 text-white font-extrabold rounded-2xl text-xs transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-1.5 flex-1';
+                handleSuccess();
             }
+        }
+
+        function showToast(msg, type = 'success') {
+            let toast = document.getElementById('adminToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'adminToast';
+                document.body.appendChild(toast);
+            }
+            
+            let bg = 'bg-slate-900 text-white';
+            let icon = 'info';
+            if (type === 'success') {
+                bg = 'bg-emerald-600 text-white shadow-emerald-600/30';
+                icon = 'check_circle';
+            } else if (type === 'warning') {
+                bg = 'bg-amber-600 text-white shadow-amber-600/30';
+                icon = 'warning';
+            } else if (type === 'error') {
+                bg = 'bg-red-600 text-white shadow-red-600/30';
+                icon = 'error';
+            } else if (type === 'info') {
+                bg = 'bg-blue-600 text-white shadow-blue-600/30';
+                icon = 'info';
+            }
+
+            toast.className = `fixed bottom-5 right-5 z-[99999] px-5 py-3 rounded-2xl shadow-xl font-bold text-xs flex items-center gap-2 transition-all duration-300 transform translate-y-0 opacity-100 ${bg}`;
+            toast.innerHTML = `<span class="material-symbols-outlined text-[18px]">${icon}</span> <span>${escapeHtml(msg)}</span>`;
+
+            clearTimeout(window.__toastTimeout);
+            window.__toastTimeout = setTimeout(() => {
+                toast.className = 'fixed bottom-5 right-5 z-[99999] px-5 py-3 rounded-2xl shadow-xl font-bold text-xs flex items-center gap-2 transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none';
+            }, 3500);
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
     </script>
     <script src="admin_nav.js?v=2"></script>
 
-    <!-- MODAL RESUMEN Y COPIADO DE PENDIENTES -->
+    <!-- MODAL RESUMEN Y COPIADO DE PENDIENTES / PROMPT IA -->
     <div id="modalResumenCopiar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
         <div id="modalResumenCopiarContent" class="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative transform scale-95 transition-transform duration-300">
             <button type="button" onclick="cerrarModalResumenCopiar()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
@@ -639,11 +793,11 @@
 
             <div class="mb-4">
                 <div class="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
-                    <span class="material-symbols-outlined text-[#d11149] text-lg">description</span>
-                    <span>Resumen de Incidencias</span>
+                    <span class="material-symbols-outlined text-[#d11149] text-lg">smart_toy</span>
+                    <span>Generador de Prompt para Asistente IA</span>
                 </div>
-                <h3 class="text-xl font-extrabold text-slate-900">Resumen de Reportes Pendientes</h3>
-                <p class="text-xs text-slate-500 mt-1">Texto con el segmento y mensaje de cada reporte listo para copiar y enviar.</p>
+                <h3 class="text-xl font-extrabold text-slate-900" id="modalResumenTitulo">Prompt de Reportes de Error</h3>
+                <p class="text-xs text-slate-500 mt-1">Copia este prompt con los reportes seleccionados y pégalo directamente en el chat para comenzar la resolución:</p>
             </div>
 
             <div class="mb-5">
@@ -653,7 +807,7 @@
             <div class="flex gap-3">
                 <button type="button" onclick="cerrarModalResumenCopiar()" class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-xs transition-all">Cerrar</button>
                 <button type="button" id="btnCopiarResumenText" onclick="copiarTextoResumenAccion()" class="px-6 py-3 bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold rounded-2xl text-xs transition-all shadow-lg shadow-[#d11149]/20 flex items-center justify-center gap-1.5 flex-1">
-                    <span class="material-symbols-outlined text-[18px]">content_copy</span> Copiar al Portapapeles
+                    <span class="material-symbols-outlined text-[18px]">content_copy</span> Copiar Prompt al Portapapeles
                 </button>
             </div>
         </div>
