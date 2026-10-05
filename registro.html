@@ -616,9 +616,14 @@
         REG_DIAS_SEMANA_MAP.forEach(dia => {
             const isChecked = checkedDays.includes(dia.num);
             const currentDia = regCurrentHorariosDetallados[dia.key] || regCurrentHorariosDetallados[dia.altKey];
-            const activo = (currentDia && currentDia.activo !== undefined) ? currentDia.activo : isChecked;
+            const activo = isChecked;
 
-            if (hasDescansoCompleto && isDescansoValido) {
+            if (regCustomScheduleManuallyConfigured && currentDia && Array.isArray(currentDia.tramos) && currentDia.tramos.length > 0) {
+                regCurrentHorariosDetallados[dia.key] = {
+                    activo: activo,
+                    tramos: currentDia.tramos
+                };
+            } else if (hasDescansoCompleto && isDescansoValido) {
                 regCurrentHorariosDetallados[dia.key] = {
                     activo: activo,
                     tramos: [
@@ -664,6 +669,24 @@
 
         if (Object.keys(regCurrentHorariosDetallados).length === 0) {
             window.handleRegGeneralHoursChange();
+        } else {
+            // Sincronizar el estado activo de cada día con los checkboxes seleccionados en el formulario principal
+            const checkedDays = Array.from(document.querySelectorAll('input[name="reg_dias"]:checked')).map(cb => cb.value);
+            REG_DIAS_SEMANA_MAP.forEach(dia => {
+                const isChecked = checkedDays.includes(dia.num);
+                if (regCurrentHorariosDetallados[dia.key]) {
+                    regCurrentHorariosDetallados[dia.key].activo = isChecked;
+                } else {
+                    const defaultApertura = document.getElementById('regHoraApertura')?.value || '09:00';
+                    const defaultCierre = document.getElementById('regHoraCierre')?.value || '19:00';
+                    regCurrentHorariosDetallados[dia.key] = {
+                        activo: isChecked,
+                        tramos: [{ inicio: defaultApertura, fin: defaultCierre }]
+                    };
+                }
+            });
+            const hiddenInp = document.getElementById('regHorariosDetalladosJsonInput');
+            if (hiddenInp) hiddenInp.value = JSON.stringify(regCurrentHorariosDetallados);
         }
 
         renderRegDiasHorariosContainer();
@@ -748,11 +771,23 @@
 
     window.toggleRegDiaActivo = function(key, isChecked) {
         if (!regCurrentHorariosDetallados[key]) {
-            regCurrentHorariosDetallados[key] = { activo: isChecked, tramos: [{ inicio: '09:00', fin: '19:00' }] };
+            const defaultApertura = document.getElementById('regHoraApertura')?.value || '09:00';
+            const defaultCierre = document.getElementById('regHoraCierre')?.value || '19:00';
+            regCurrentHorariosDetallados[key] = { activo: isChecked, tramos: [{ inicio: defaultApertura, fin: defaultCierre }] };
         } else {
             regCurrentHorariosDetallados[key].activo = isChecked;
         }
         regCustomScheduleManuallyConfigured = true;
+
+        // Sincronizar en tiempo real el checkbox correspondiente en el formulario principal (Paso 3)
+        const mainCb = document.querySelector(`input[name="reg_dias"][value="${key}"]`);
+        if (mainCb) {
+            mainCb.checked = isChecked;
+        }
+
+        const hiddenInp = document.getElementById('regHorariosDetalladosJsonInput');
+        if (hiddenInp) hiddenInp.value = JSON.stringify(regCurrentHorariosDetallados);
+
         renderRegDiasHorariosContainer();
         validateRegHorariosDetalladosLive();
     };
@@ -951,7 +986,7 @@
 
         document.querySelectorAll('input[name="reg_dias"]').forEach(cb => {
             cb.addEventListener('change', () => {
-                if (!regCustomScheduleManuallyConfigured) window.handleRegGeneralHoursChange();
+                window.handleRegGeneralHoursChange();
             });
         });
 
