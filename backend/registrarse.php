@@ -283,7 +283,13 @@ try {
     $stmtPersonal = $pdo->prepare("INSERT INTO personal_negocio (id_usuario, id_negocio, rol_en_local) VALUES (:id_u, :id_n, 'admin')");
     $stmtPersonal->execute(['id_u' => $idUsuario, 'id_n' => $idNegocio]);
 
-    // 7. Crear configuración inicial del negocio
+    // 7. Crear configuración inicial del negocio con horarios de calendario predeterminados
+    $hora_apertura = !empty($_POST['hora_apertura']) ? trim($_POST['hora_apertura']) : '09:00:00';
+    $hora_cierre = !empty($_POST['hora_cierre']) ? trim($_POST['hora_cierre']) : '18:00:00';
+    $hora_descanso_inicio = !empty($_POST['hora_descanso_inicio']) ? trim($_POST['hora_descanso_inicio']) : null;
+    $hora_descanso_fin = !empty($_POST['hora_descanso_fin']) ? trim($_POST['hora_descanso_fin']) : null;
+    $dias_trabajo = !empty($_POST['dias_trabajo']) ? trim($_POST['dias_trabajo']) : '1,2,3,4,5';
+
     $horarios_detallados_raw = isset($_POST['horarios_detallados_json']) ? trim($_POST['horarios_detallados_json']) : null;
     
     // Mapeo exhaustivo de texto a clave numérica estándar (1=Lunes .. 6=Sábado, 0=Domingo)

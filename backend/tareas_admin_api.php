@@ -8,6 +8,9 @@ if (!isset($_SESSION['is_superadmin']) || $_SESSION['is_superadmin'] !== true) {
     exit;
 }
 
+// Liberar bloqueo de sesión inmediatamente
+session_write_close();
+
 require_once __DIR__ . '/conexion.php';
 
 // Auto-crear tabla de tareas administrativas

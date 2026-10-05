@@ -201,11 +201,18 @@
         let globalTrialDays = 30;
 
         document.addEventListener('DOMContentLoaded', () => {
-            fetch('../backend/admin_auth.php')
+            fetch('../backend/admin_auth.php?t=' + Date.now())
                 .then(r => r.json())
                 .then(d => {
-                    if (!d.logged_in) window.location.href = 'login.html';
-                    else loadEmpresas();
+                    if (d && d.logged_in === false) {
+                        window.location.href = 'login.html';
+                    } else {
+                        loadEmpresas();
+                    }
+                })
+                .catch(err => {
+                    console.warn('admin_auth check failed, proceeding to loadEmpresas():', err);
+                    loadEmpresas();
                 });
         });
 
@@ -370,9 +377,14 @@
             }
 
         function loadEmpresas() {
-            fetch('../backend/admin_api.php')
+            fetch('../backend/admin_api.php?t=' + Date.now())
                 .then(res => res.json())
                 .then(data => {
+                    if (data && data.error && !data.success && (data.error.includes('Acceso denegado') || data.error.includes('Super Admin'))) {
+                        window.location.href = 'login.html';
+                        return;
+                    }
+
                     const list = Array.isArray(data.data) ? data.data : (Array.isArray(data.negocios) ? data.negocios : []);
                     if (data.success && list) {
                         clientsData = list;
@@ -385,7 +397,8 @@
                         const prueba = clientsData.filter(c => !c.estado_pago || c.estado_pago === 'prueba').length;
                         const suspendidas = clientsData.filter(c => c.estado_pago === 'suspendido').length;
 
-                        document.getElementById('totalEmpresasBadge').textContent = `${total} Emprendimientos Registrados`;
+                        const badge = document.getElementById('totalEmpresasBadge');
+                        if (badge) badge.textContent = `${total} Emprendimientos Registrados`;
                         if (document.getElementById('metricTotalCount')) document.getElementById('metricTotalCount').textContent = total;
                         if (document.getElementById('metricActivasCount')) document.getElementById('metricActivasCount').textContent = activas;
                         if (document.getElementById('metricPruebaCount')) document.getElementById('metricPruebaCount').textContent = prueba;
@@ -400,11 +413,17 @@
                         
                         filterClients();
                     } else {
-                        document.getElementById('clientsList').innerHTML = '<tr><td colspan="7" class="p-8 text-center text-red-500 font-medium">Error al cargar las empresas desde el servidor.</td></tr>';
+                        const errMsg = (data && data.error) ? data.error : 'Error desconocido al cargar las empresas';
+                        document.getElementById('clientsList').innerHTML = `<tr><td colspan="7" class="p-8 text-center text-rose-500 font-medium">${errMsg} <br><button onclick="loadEmpresas()" class="mt-3 px-4 py-1.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold hover:bg-rose-100 transition-colors inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">refresh</span> Reintentar</button></td></tr>`;
+                        const badge = document.getElementById('totalEmpresasBadge');
+                        if (badge) badge.textContent = 'Error al cargar';
                     }
                 })
                 .catch(err => {
-                    document.getElementById('clientsList').innerHTML = '<tr><td colspan="7" class="p-8 text-center text-red-500 font-medium">Error de conexión al cargar empresas.</td></tr>';
+                    console.error('Error al cargar empresas:', err);
+                    document.getElementById('clientsList').innerHTML = '<tr><td colspan="7" class="p-8 text-center text-rose-500 font-medium">Error de conexión al cargar empresas. <br><button onclick="loadEmpresas()" class="mt-3 px-4 py-1.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold hover:bg-rose-100 transition-colors inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">refresh</span> Reintentar</button></td></tr>';
+                    const badge = document.getElementById('totalEmpresasBadge');
+                    if (badge) badge.textContent = 'Error de conexión';
                 });
         }
 

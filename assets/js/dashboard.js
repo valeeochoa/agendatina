@@ -21,7 +21,7 @@ window.loadDashboardData = function() {
         const isWeekly = window.currentWebData?.tipo_calendario === 'semanal';
         const calPage = isWeekly ? 'calendarioSemanal.html' : 'calendarioMensual.html';
         if (cardCalendario) cardCalendario.href = calPage;
-        if (step2Link) step2Link.href = calPage;
+        if (step2Link) step2Link.href = 'servicios.html';
         
         // 3. Gestionar permisos según el rol y verificación de correo (Modo DEMO oculta banners de verificación y pago)
         if (window.currentUserData) {

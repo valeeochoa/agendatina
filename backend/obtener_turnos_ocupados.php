@@ -36,20 +36,22 @@ try {
 
     $permiteSimultaneos = ($conf && (($conf['turnos_simultaneos'] ?? 'no') === 'si' || ($conf['modo_reservas'] ?? '') === 'cupos_alumnos'));
 
-    if ($conf) {
-        $ocupados['_config'] = [
-            'hora_apertura' => $conf['hora_apertura'] ?? '09:00',
-            'hora_cierre' => $conf['hora_cierre'] ?? '18:00',
-            'hora_descanso_inicio' => $conf['hora_descanso_inicio'] ?? '',
-            'hora_descanso_fin' => $conf['hora_descanso_fin'] ?? '',
-            'dias_trabajo' => $conf['dias_trabajo'] ?? '1,2,3,4,5,6',
-            'horarios_detallados_json' => $conf['horarios_detallados_json'] ?? '{}',
-            'intervalo_turnos' => $conf['intervalo_turnos'] ?? '30',
-            'primer_dia_semana' => (int)($conf['primer_dia_semana'] ?? 1),
-            'turnos_simultaneos' => $permiteSimultaneos ? 'si' : 'no',
-            'modo_reservas' => $conf['modo_reservas'] ?? 'libre'
-        ];
-    }
+    $hApertura = (!empty($conf['hora_apertura']) && $conf['hora_apertura'] !== '00:00:00' && $conf['hora_apertura'] !== '00:00') ? substr($conf['hora_apertura'], 0, 5) : '09:00';
+    $hCierre = (!empty($conf['hora_cierre']) && $conf['hora_cierre'] !== '00:00:00' && $conf['hora_cierre'] !== '00:00') ? substr($conf['hora_cierre'], 0, 5) : '18:00';
+    $diasTrabajo = !empty($conf['dias_trabajo']) ? $conf['dias_trabajo'] : '1,2,3,4,5';
+
+    $ocupados['_config'] = [
+        'hora_apertura' => $hApertura,
+        'hora_cierre' => $hCierre,
+        'hora_descanso_inicio' => $conf['hora_descanso_inicio'] ?? '',
+        'hora_descanso_fin' => $conf['hora_descanso_fin'] ?? '',
+        'dias_trabajo' => $diasTrabajo,
+        'horarios_detallados_json' => !empty($conf['horarios_detallados_json']) ? $conf['horarios_detallados_json'] : '{}',
+        'intervalo_turnos' => !empty($conf['intervalo_turnos']) ? $conf['intervalo_turnos'] : '30',
+        'primer_dia_semana' => (int)($conf['primer_dia_semana'] ?? 1),
+        'turnos_simultaneos' => $permiteSimultaneos ? 'si' : 'no',
+        'modo_reservas' => $conf['modo_reservas'] ?? 'libre'
+    ];
     
     $intervaloRaw = $conf && isset($conf['intervalo_turnos']) && is_numeric($conf['intervalo_turnos']) ? (int)$conf['intervalo_turnos'] : 30;
     $intervalo = $intervaloRaw > 0 ? $intervaloRaw : 30;

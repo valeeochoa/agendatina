@@ -9,6 +9,9 @@ if (!isset($_SESSION['admin_logged_in']) && !isset($_SESSION['is_superadmin'])) 
     exit;
 }
 
+// Liberar bloqueo de sesión inmediatamente para evitar cuelgues concurrentes
+session_write_close();
+
 require_once __DIR__ . '/conexion.php';
 
 // Asegurar tabla notificaciones_admin

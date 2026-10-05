@@ -1133,7 +1133,7 @@ function loadDashboardData() {
                     const step2Icon = document.getElementById('step2Icon');
                     const step2Text = document.getElementById('step2Text');
                     const step2Link = document.getElementById('step2Link');
-                    if(step2Link) step2Link.href = webData.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
+                    if(step2Link) step2Link.href = 'servicios.html';
                     
                     if (hasServices && !isDemoUser) {
                         if(step2Icon) { step2Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step2Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }

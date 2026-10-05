@@ -1614,6 +1614,7 @@ function fetchServices() {
         } else {
             services = [];
         }
+        checkEmptyServicesNotice();
         populateServiceSelect();
         populateCalendarViewFilter();
         if (isAdmin) renderServicesList();
@@ -1636,6 +1637,89 @@ function fetchServices() {
         }
     });
 }
+
+function checkEmptyServicesNotice() {
+    const isOwnerOrAdmin = isAdmin || sessionStorage.getItem('agendatina_session') === 'active' || (!negocioSlug);
+
+    const existingModal = document.getElementById('noServicesWarningModal');
+    const existingBanner = document.getElementById('noServicesWarningBanner');
+
+    if (!services || services.length === 0) {
+        // 1. Inyectar Banner visual en la cabecera del calendario
+        if (!existingBanner) {
+            const banner = document.createElement('div');
+            banner.id = 'noServicesWarningBanner';
+            banner.className = 'w-full mb-8 p-5 sm:p-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 border-2 border-dashed border-amber-300 dark:border-amber-600/50 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm';
+            banner.innerHTML = `
+                <div class="flex items-center gap-3.5 text-center sm:text-left">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300 flex items-center justify-center shrink-0 mx-auto sm:mx-0 shadow-xs">
+                        <span class="material-symbols-outlined text-2xl">warning</span>
+                    </div>
+                    <div>
+                        <h4 class="font-extrabold text-amber-950 dark:text-amber-200 text-sm sm:text-base font-display">Aún no has creado ningún servicio</h4>
+                        <p class="text-xs text-amber-800/90 dark:text-amber-300/80 mt-0.5">Para que tus clientes puedan reservar turnos y ver horarios disponibles, debes dar de alta al menos un servicio.</p>
+                    </div>
+                </div>
+                ${isOwnerOrAdmin ? `
+                    <a href="servicios.html" class="px-5 py-3 bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md shadow-[#d11149]/20 flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap hover:scale-[1.02] active:scale-95">
+                        <span class="material-symbols-outlined text-[18px]">add_task</span> Crear Mi Primer Servicio
+                    </a>
+                ` : ''}
+            `;
+
+            const weeklyView = document.getElementById('weeklyCalendarView');
+            const monthlyMain = document.getElementById('mainCalendarWrapper');
+            if (weeklyView) {
+                weeklyView.insertBefore(banner, weeklyView.firstChild);
+            } else if (monthlyMain) {
+                monthlyMain.parentElement.insertBefore(banner, monthlyMain);
+            } else {
+                const header = document.querySelector('header');
+                if (header && header.nextSibling) {
+                    header.parentNode.insertBefore(banner, header.nextSibling);
+                }
+            }
+        }
+
+        // 2. Si es Admin o Dueño, mostrar cartel emergente si no se ha descartado en esta sesión
+        if (isOwnerOrAdmin && !sessionStorage.getItem('agendatina_dismiss_empty_services_notice')) {
+            if (!existingModal) {
+                const modal = document.createElement('div');
+                modal.id = 'noServicesWarningModal';
+                modal.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[10000] flex items-center justify-center p-4 transition-opacity duration-300';
+                modal.innerHTML = `
+                    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl border border-slate-100 transform scale-100 transition-all relative overflow-hidden">
+                        <div class="w-16 h-16 rounded-3xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                            <span class="material-symbols-outlined text-4xl">add_task</span>
+                        </div>
+                        <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display">¡Crea tu Primer Servicio!</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 mb-6 leading-relaxed">
+                            Detectamos que tu negocio todavía no tiene ningún servicio registrado. Para habilitar los turnos y permitir que tus clientes agenden citas en este calendario, primero debes configurar tus servicios.
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <button onclick="dismissEmptyServicesNotice()" class="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-xs transition-colors cursor-pointer">
+                                Ver Calendario
+                            </button>
+                            <a href="servicios.html" class="flex-1 py-3 px-4 bg-[#d11149] hover:bg-[#d11149]/90 text-white font-black rounded-2xl text-xs transition-all shadow-lg shadow-[#d11149]/20 flex items-center justify-center gap-1.5">
+                                <span class="material-symbols-outlined text-[16px]">add_task</span> Crear Servicio
+                            </a>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+        }
+    } else {
+        if (existingBanner) existingBanner.remove();
+        if (existingModal) existingModal.remove();
+    }
+}
+
+window.dismissEmptyServicesNotice = function() {
+    sessionStorage.setItem('agendatina_dismiss_empty_services_notice', 'true');
+    const modal = document.getElementById('noServicesWarningModal');
+    if (modal) modal.remove();
+};
 
 function populateCalendarViewFilter() {
     const titleContainer = document.getElementById('mainCalendarHeader') || 

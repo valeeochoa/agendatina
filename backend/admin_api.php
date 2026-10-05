@@ -23,6 +23,9 @@ if ((!isset($_SESSION['is_superadmin']) || $_SESSION['is_superadmin'] !== true) 
     exit;
 }
 
+// Liberar bloqueo de sesión inmediatamente para permitir peticiones concurrentes
+session_write_close();
+
 require_once __DIR__ . '/conexion.php';
 
 // Forzar modo de excepciones para evitar fallos silenciosos en la base de datos (Ej: al hacer DELETE)

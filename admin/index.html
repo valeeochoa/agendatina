@@ -1287,7 +1287,7 @@ function updatePricesCardSummary(config) {
 }
 
 function fetchClients() {
-    fetch('../backend/admin_api.php')
+    fetch('../backend/admin_api.php?t=' + Date.now())
     .then(res => res.json())
     .then(data => {
         if (data.success) {
