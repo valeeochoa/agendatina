@@ -205,6 +205,7 @@
                                             <input type="time" id="regHoraDescansoFin" class="w-full max-w-full box-border min-w-0 bg-white border border-slate-200 rounded-xl px-3 sm:px-4 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-amber-500 outline-none">
                                         </div>
                                     </div>
+                                    <div id="regDescansoFeedback" class="hidden mt-2 text-[11px] font-bold text-amber-800 bg-amber-100/80 px-2.5 py-1 rounded-xl"></div>
                                 </div>
 
                                 <div class="max-w-full min-w-0 box-border">
@@ -598,6 +599,7 @@
         const inpCi = document.getElementById('regHoraCierre');
         const inpDi = document.getElementById('regHoraDescansoInicio');
         const inpDf = document.getElementById('regHoraDescansoFin');
+        const fbDescanso = document.getElementById('regDescansoFeedback');
 
         let newApertura = inpAp?.value || '09:00';
         let newCierre = inpCi?.value || '19:00';
@@ -610,6 +612,25 @@
             (newDescansoInicio < newDescansoFin) && 
             (newDescansoFin < newCierre);
 
+        const isDescansoCompletamenteVacio = (!newDescansoInicio && !newDescansoFin);
+
+        // Feedback visual amigable si los horarios de descanso no son coherentes
+        if (fbDescanso) {
+            if (hasDescansoCompleto && !isDescansoValido) {
+                fbDescanso.classList.remove('hidden');
+                if (newDescansoInicio >= newDescansoFin) {
+                    fbDescanso.textContent = 'El fin del descanso debe ser posterior al inicio.';
+                } else if (newDescansoInicio <= newApertura || newDescansoFin >= newCierre) {
+                    fbDescanso.textContent = `El descanso debe estar dentro del horario de atención (${newApertura} a ${newCierre}).`;
+                } else {
+                    fbDescanso.textContent = 'Horario de descanso no válido para los horarios generales.';
+                }
+            } else {
+                fbDescanso.classList.add('hidden');
+                fbDescanso.textContent = '';
+            }
+        }
+
         const checkedDays = Array.from(document.querySelectorAll('input[name="reg_dias"]:checked')).map(cb => cb.value);
 
         // Actualizar horarios detallados con clave numérica estándar
@@ -618,12 +639,7 @@
             const currentDia = regCurrentHorariosDetallados[dia.key] || regCurrentHorariosDetallados[dia.altKey];
             const activo = isChecked;
 
-            if (regCustomScheduleManuallyConfigured && currentDia && Array.isArray(currentDia.tramos) && currentDia.tramos.length > 0) {
-                regCurrentHorariosDetallados[dia.key] = {
-                    activo: activo,
-                    tramos: currentDia.tramos
-                };
-            } else if (hasDescansoCompleto && isDescansoValido) {
+            if (hasDescansoCompleto && isDescansoValido) {
                 regCurrentHorariosDetallados[dia.key] = {
                     activo: activo,
                     tramos: [
@@ -631,13 +647,34 @@
                         { inicio: newDescansoFin, fin: newCierre }
                     ]
                 };
-            } else {
+            } else if (isDescansoCompletamenteVacio) {
                 regCurrentHorariosDetallados[dia.key] = {
                     activo: activo,
                     tramos: [
                         { inicio: newApertura, fin: newCierre }
                     ]
                 };
+            } else {
+                if (currentDia && Array.isArray(currentDia.tramos) && currentDia.tramos.length > 0) {
+                    const tramos = [...currentDia.tramos];
+                    if (tramos.length === 1) {
+                        tramos[0] = { inicio: newApertura, fin: newCierre };
+                    } else if (tramos.length === 2 && !hasDescansoCompleto) {
+                        tramos[0].inicio = newApertura;
+                        tramos[1].fin = newCierre;
+                    }
+                    regCurrentHorariosDetallados[dia.key] = {
+                        activo: activo,
+                        tramos: tramos
+                    };
+                } else {
+                    regCurrentHorariosDetallados[dia.key] = {
+                        activo: activo,
+                        tramos: [
+                            { inicio: newApertura, fin: newCierre }
+                        ]
+                    };
+                }
             }
         });
 
@@ -667,7 +704,8 @@
             regCurrentHorariosDetallados = {};
         }
 
-        if (Object.keys(regCurrentHorariosDetallados).length === 0) {
+        // Si no se han personalizado tramos manualmente, o si está vacío, regenerar desde horarios generales
+        if (!regCustomScheduleManuallyConfigured || Object.keys(regCurrentHorariosDetallados).length === 0) {
             window.handleRegGeneralHoursChange();
         } else {
             // Sincronizar el estado activo de cada día con los checkboxes seleccionados en el formulario principal
@@ -777,7 +815,6 @@
         } else {
             regCurrentHorariosDetallados[key].activo = isChecked;
         }
-        regCustomScheduleManuallyConfigured = true;
 
         // Sincronizar en tiempo real el checkbox correspondiente en el formulario principal (Paso 3)
         const mainCb = document.querySelector(`input[name="reg_dias"][value="${key}"]`);
@@ -892,8 +929,43 @@
             }
         });
 
+        // Sincronizar descansos y horarios generales desde los tramos personalizados si son consistentes
+        syncGeneralHoursFromDetailed();
+
         closeRegCustomScheduleModal();
     };
+
+    function syncGeneralHoursFromDetailed() {
+        const inpAp = document.getElementById('regHoraApertura');
+        const inpCi = document.getElementById('regHoraCierre');
+        const inpDi = document.getElementById('regHoraDescansoInicio');
+        const inpDf = document.getElementById('regHoraDescansoFin');
+        if (!inpAp || !inpCi) return;
+
+        const activeDays = Object.values(regCurrentHorariosDetallados).filter(d => d && d.activo !== false);
+        if (activeDays.length === 0) return;
+
+        const firstDay = activeDays[0];
+        const tramos = firstDay.tramos || [];
+
+        if (tramos.length === 2) {
+            const ap = tramos[0].inicio || '';
+            const dInicio = tramos[0].fin || '';
+            const dFin = tramos[1].inicio || '';
+            const ci = tramos[1].fin || '';
+            if (ap) inpAp.value = ap;
+            if (ci) inpCi.value = ci;
+            if (inpDi) inpDi.value = dInicio;
+            if (inpDf) inpDf.value = dFin;
+        } else if (tramos.length === 1) {
+            const ap = tramos[0].inicio || '';
+            const ci = tramos[0].fin || '';
+            if (ap) inpAp.value = ap;
+            if (ci) inpCi.value = ci;
+            if (inpDi) inpDi.value = '';
+            if (inpDf) inpDf.value = '';
+        }
+    }
 
     window.resetRegCustomScheduleToGeneral = function() {
         regCustomScheduleManuallyConfigured = false;
@@ -976,10 +1048,10 @@
         [inpAp, inpCi, inpDi, inpDf].forEach(el => {
             if (el) {
                 el.addEventListener('input', () => {
-                    if (!regCustomScheduleManuallyConfigured) window.handleRegGeneralHoursChange();
+                    window.handleRegGeneralHoursChange();
                 });
                 el.addEventListener('change', () => {
-                    if (!regCustomScheduleManuallyConfigured) window.handleRegGeneralHoursChange();
+                    window.handleRegGeneralHoursChange();
                 });
             }
         });
