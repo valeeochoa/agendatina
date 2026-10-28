@@ -211,16 +211,16 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = '';
         businesses.forEach(b => {
             const card = document.createElement('div');
-            card.className = 'flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-2xl cursor-pointer hover:border-purple-500 hover:bg-purple-50/50 hover:shadow-md transition-all group';
+            card.className = 'flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:border-purple-500 hover:bg-purple-50/50 hover:shadow-2xs transition-all group';
             
             const isOwner = b.rol === 'admin';
             const roleBadge = isOwner 
-                ? '<span class="bg-purple-100 text-purple-700 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border border-purple-200">Administrador / Dueño</span>' 
-                : '<span class="bg-blue-100 text-blue-700 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border border-blue-200">Profesional / Equipo</span>';
+                ? '<span class="bg-purple-100 text-purple-700 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-purple-200">Administrador / Dueño</span>' 
+                : '<span class="bg-blue-100 text-blue-700 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-blue-200">Profesional / Equipo</span>';
 
             card.innerHTML = `
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-purple-600 font-bold text-lg shrink-0 overflow-hidden shadow-xs">
+                    <div class="w-10 h-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-purple-600 font-bold text-lg shrink-0 overflow-hidden shadow-2xs">
                         ${b.logo ? `<img src="${b.logo}" class="w-full h-full object-cover">` : `<span class="material-symbols-outlined text-xl">storefront</span>`}
                     </div>
                     <div>

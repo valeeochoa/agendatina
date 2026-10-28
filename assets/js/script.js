@@ -896,6 +896,17 @@ function loadDashboardData() {
     ])
     .then(([data, webData, pData, services, turnos]) => {
         if (!data || !data.success) {
+            if (window.location.protocol === 'file:') {
+                console.warn('Protocolo file: detectado. Mostrando preview visual del dashboard...');
+                const loader = document.getElementById('dashboardLoader');
+                if (loader) loader.classList.add('hidden');
+                const content = document.getElementById('dashboardMainContent');
+                if (content) {
+                    content.classList.remove('hidden', 'opacity-0');
+                    content.classList.add('opacity-100');
+                }
+                return;
+            }
             const errReason = (data && data.error) ? data.error : 'Sin respuesta del servidor o desconexión de red';
             console.error('⚠️ [Error al cargar información del panel] No se pudo recuperar la sesión o datos del negocio. Motivo:', errReason);
             const loader = document.getElementById('dashboardLoader');
@@ -1120,7 +1131,7 @@ function loadDashboardData() {
                     const step1Icon = document.getElementById('step1Icon');
                     const step1Text = document.getElementById('step1Text');
                     if (hasConfig && !isDemoUser) {
-                        if(step1Icon) { step1Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step1Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
+                        if(step1Icon) { step1Icon.innerHTML = '<span class="material-symbols-outlined text-white text-xs">check</span>'; step1Icon.className = 'w-6 h-6 rounded bg-emerald-500 text-white flex items-center justify-center shrink-0'; }
                         if(step1Text) {
                             step1Text.classList.add('line-through', 'text-slate-400');
                             const desc = step1Text.parentElement.nextElementSibling;
@@ -1136,7 +1147,7 @@ function loadDashboardData() {
                     if(step2Link) step2Link.href = 'servicios.html';
                     
                     if (hasServices && !isDemoUser) {
-                        if(step2Icon) { step2Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step2Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
+                        if(step2Icon) { step2Icon.innerHTML = '<span class="material-symbols-outlined text-white text-xs">check</span>'; step2Icon.className = 'w-6 h-6 rounded bg-emerald-500 text-white flex items-center justify-center shrink-0'; }
                         if(step2Text) {
                             step2Text.classList.add('line-through', 'text-slate-400');
                             const desc = step2Text.parentElement.nextElementSibling;
@@ -1154,7 +1165,7 @@ function loadDashboardData() {
                         step3Link.href = (business.ruta || business.subdominio) ? '/' + (business.ruta || business.subdominio) : '#';
                     }
                     if (hasTurnos && !isDemoUser) {
-                        if(step3Icon) { step3Icon.innerHTML = '<span class="material-symbols-outlined text-white text-sm">check</span>'; step3Icon.className = 'w-8 h-8 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm'; }
+                        if(step3Icon) { step3Icon.innerHTML = '<span class="material-symbols-outlined text-white text-xs">check</span>'; step3Icon.className = 'w-6 h-6 rounded bg-emerald-500 text-white flex items-center justify-center shrink-0'; }
                         if(step3Text) {
                             step3Text.classList.add('line-through', 'text-slate-400');
                             const desc = step3Text.parentElement.nextElementSibling;
@@ -1165,6 +1176,41 @@ function loadDashboardData() {
                     }
                 }
             }
+
+            // --- QUICK STATS EN EL HERO ---
+            try {
+                const today = new Date();
+                const todayStr = today.toISOString().split('T')[0];
+                const mesActual = today.getMonth();
+                const anioActual = today.getFullYear();
+
+                const allTurnos = Array.isArray(turnos) ? turnos : [];
+                const totalCount = allTurnos.length;
+                const pendCount = allTurnos.filter(t => t.estado === 'pendiente').length;
+                const todayCount = allTurnos.filter(t => t.fecha && t.fecha.startsWith(todayStr)).length;
+                const mesCount = allTurnos.filter(t => {
+                    if (!t.fecha) return false;
+                    const d = new Date(t.fecha);
+                    return d.getMonth() === mesActual && d.getFullYear() === anioActual && (t.estado === 'confirmado' || t.estado === 'completado');
+                }).length;
+
+                const elHoy  = document.getElementById('statHoy');
+                const elPend = document.getElementById('statPendHero');
+                const elMes  = document.getElementById('statMes');
+                const elTot  = document.getElementById('statTotalHero');
+                if (elHoy)  elHoy.textContent  = todayCount;
+                if (elPend) elPend.textContent  = pendCount;
+                if (elMes)  elMes.textContent   = mesCount;
+                if (elTot)  elTot.textContent   = totalCount;
+
+                // También actualizar los stats del modal de perfil (IDs statTotal, statConf, statPend)
+                const elStatTotal = document.getElementById('statTotal');
+                const elStatConf  = document.getElementById('statConf');
+                const elStatPend2 = document.getElementById('statPend');
+                if (elStatTotal) elStatTotal.textContent = totalCount;
+                if (elStatConf)  elStatConf.textContent  = allTurnos.filter(t => t.estado === 'confirmado' || t.estado === 'completado').length;
+                if (elStatPend2) elStatPend2.textContent = pendCount;
+            } catch(e) { /* silencioso */ }
 
             checkNotifications(); // Cargar notificaciones en la campanita
             loadDashboardChart(webData.color_primario || '#3b82f6');
@@ -2730,7 +2776,7 @@ function renderShowcaseStep(stepIdx, animate = true) {
         if (dotsContainer) {
             const dots = dotsContainer.children;
             for (let i = 0; i < dots.length; i++) {
-                dots[i].className = i === step.planIndex ? 'w-8 h-2.5 rounded-full bg-primary transition-all scale-105' : 'w-2.5 h-2.5 rounded-full bg-slate-300 transition-all';
+                dots[i].className = i === step.planIndex ? 'w-7 h-1.5 rounded-sm bg-primary transition-all' : 'w-2.5 h-1.5 rounded-sm bg-slate-300 transition-all';
             }
         }
 

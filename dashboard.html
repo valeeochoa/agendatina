@@ -18,6 +18,19 @@
     <link rel="stylesheet" href="assets/css/global.css">
     <style>
         .signature-glow { background: linear-gradient(135deg, #D11149 0%, #FC8712 100%); }
+        .dash-card { transition: all 0.18s ease; }
+        .dash-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px -4px rgba(0,0,0,0.10); }
+        .dash-card .card-accent { transition: width 0.25s ease; width: 3px; }
+        .dash-card:hover .card-accent { width: 5px; }
+        .stat-chip { backdrop-filter: blur(8px); }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(12px);} to { opacity:1; transform:translateY(0);} }
+        .fade-up { animation: fadeUp 0.4s ease forwards; }
+        .fade-up-1 { animation-delay: 0.05s; opacity:0; }
+        .fade-up-2 { animation-delay: 0.1s; opacity:0; }
+        .fade-up-3 { animation-delay: 0.15s; opacity:0; }
+        .fade-up-4 { animation-delay: 0.2s; opacity:0; }
+        .fade-up-5 { animation-delay: 0.25s; opacity:0; }
+        .fade-up-6 { animation-delay: 0.3s; opacity:0; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased min-h-screen flex flex-col">
@@ -41,18 +54,18 @@
                         <p class="text-xs font-semibold text-slate-500" id="navPlanName">Cargando plan...</p>
                     </div>
                 </div>
-                <a href="perfil.html" id="navAvatar" class="w-10 h-10 rounded-full signature-glow text-white flex items-center justify-center font-bold shadow-md cursor-pointer overflow-hidden hover:ring-2 hover:ring-primary hover:ring-offset-2 transition-all" title="Ir a Mi Perfil">
-                    <span class="material-symbols-outlined text-[20px]">person</span>
+                <a href="perfil.html" id="navAvatar" class="w-9 h-9 rounded-lg signature-glow text-white flex items-center justify-center font-bold shadow-2xs cursor-pointer overflow-hidden hover:ring-2 hover:ring-primary hover:ring-offset-2 transition-all" title="Ir a Mi Perfil">
+                    <span class="material-symbols-outlined text-[18px]">person</span>
                 </a>
 
                 <!-- Campanita de Notificaciones -->
                 <div id="navNotifBtn" class="relative cursor-pointer text-slate-400 hover:text-primary transition-colors flex items-center ml-2" title="Notificaciones" onclick="toggleNotifications(event)">
-                    <span class="material-symbols-outlined text-[28px]">notifications</span>
+                    <span class="material-symbols-outlined text-[26px]">notifications</span>
                     <span id="notifBadge" class="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full hidden"></span>
                     
                     <!-- Dropdown de notificaciones -->
-                    <div id="notifDropdown" class="fixed left-3 right-3 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-10 sm:mt-2 w-auto sm:w-80 bg-white rounded-3xl shadow-2xl border border-slate-100 hidden flex-col z-50 overflow-hidden cursor-default text-left" onclick="event.stopPropagation()">
-                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                    <div id="notifDropdown" class="fixed left-3 right-3 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-10 sm:mt-2 w-auto sm:w-80 bg-white rounded-xl shadow-xl border border-slate-200 hidden flex-col z-50 overflow-hidden cursor-default text-left" onclick="event.stopPropagation()">
+                        <div class="p-3.5 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
                             <h4 class="font-bold text-slate-800 text-sm">Notificaciones</h4>
                             <div class="flex items-center gap-3">
                                 <button class="text-xs text-primary font-semibold hover:underline" onclick="markAllRead(event)">Marcar leídas</button>
@@ -67,7 +80,7 @@
                     </div>
                 </div>
 
-                <button id="navLogoutBtn" onclick="logoutDashboard()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-600 hover:text-red-600 bg-slate-100 hover:bg-red-50 rounded-xl transition-all shadow-xs ml-2" title="Cerrar sesión">
+                <button id="navLogoutBtn" onclick="logoutDashboard()" class="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-700 hover:text-red-600 bg-slate-100 hover:bg-red-50 rounded-lg transition-all shadow-2xs ml-2" title="Cerrar sesión">
                     <span class="material-symbols-outlined text-[18px]">logout</span>
                     <span class="hidden sm:inline">Cerrar sesión</span>
                 </button>
@@ -75,7 +88,7 @@
         </div>
     </nav>
 
-    <main class="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 overflow-x-hidden">
+    <main class="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-10 overflow-x-hidden">
         <!-- Estado de Carga Inicial -->
         <div id="dashboardLoader" class="flex flex-col items-center justify-center py-24 text-slate-400 transition-all duration-300">
             <span class="material-symbols-outlined text-5xl animate-spin mb-4 text-primary">refresh</span>
@@ -85,328 +98,392 @@
         <!-- Contenido Real del Dashboard (Oculto por defecto) -->
         <div id="dashboardMainContent" class="hidden opacity-0 transition-opacity duration-500">
             <!-- Banner de Suscripción -->
-            <div id="subscriptionBanner" class="hidden mb-8 p-4 rounded-2xl shadow-sm text-sm font-semibold flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div id="subscriptionBanner" class="hidden mb-5 px-4 py-3 rounded-lg border text-sm font-semibold flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-2xl" id="subIcon">info</span>
-                    <span id="subMessage" class="text-base"></span>
+                    <span class="material-symbols-outlined text-xl" id="subIcon">info</span>
+                    <span id="subMessage" class="text-sm"></span>
                 </div>
-                <button id="subActionBtn" class="px-5 py-2.5 rounded-xl text-white text-sm font-bold hidden whitespace-nowrap transition-transform hover:-translate-y-0.5"></button>
+                <button id="subActionBtn" class="px-4 py-1.5 rounded-md text-white text-xs font-bold hidden whitespace-nowrap transition-colors"></button>
             </div>
             
             <!-- Banner de Alerta de Configuración -->
-            <div id="configAlertBanner" class="hidden mb-8 p-4 rounded-2xl shadow-sm flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-red-50 border border-red-200 text-red-800">
+            <div id="configAlertBanner" class="hidden mb-5 px-4 py-3 rounded-lg flex-col sm:flex-row gap-3 items-start sm:items-center justify-between bg-red-50 border border-red-200 text-red-800">
                 <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined text-2xl">warning</span>
-                    <span class="text-sm"><strong>¡Atención!</strong> No tienes días de trabajo configurados. Tus clientes no podrán sacar turnos.</span>
+                    <span class="material-symbols-outlined text-xl text-red-600">warning</span>
+                    <span class="text-xs sm:text-sm"><strong>¡Atención!</strong> No tienes días de trabajo configurados. Tus clientes no podrán sacar turnos.</span>
                 </div>
-                <a href="ajustes.html" class="px-5 py-2.5 rounded-xl text-white text-sm font-bold transition-transform hover:-translate-y-0.5 bg-red-600 hover:bg-red-700 whitespace-nowrap text-center w-full sm:w-auto">Configurar Días</a>
+                <a href="ajustes.html" class="px-4 py-1.5 rounded-md text-white text-xs font-bold transition-colors bg-red-600 hover:bg-red-700 whitespace-nowrap text-center w-full sm:w-auto">Configurar Días</a>
             </div>
 
-            <!-- Banner Tarjeta de Bienvenida -->
-            <div class="mb-8 bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-7 shadow-xs flex items-center justify-between gap-4 relative overflow-hidden">
-                <div class="z-10">
-                    <h1 class="text-2xl sm:text-3xl font-extrabold font-display text-slate-800 mb-1" id="dashGreeting">¡Hola, bienvenido!</h1>
-                    <p class="text-xs sm:text-sm text-slate-500 font-medium" id="dashSubGreeting">¿Qué deseas hacer hoy? Gestiona tu negocio desde aquí.</p>
-                </div>
-            </div>
-            
             <!-- Banner de Verificación de Cuenta por Correo (Código 15 min) -->
-            <div id="verifyEmailBanner" class="hidden mb-6 bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div id="verifyEmailBanner" class="hidden mb-5 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined text-[24px]">mark_email_unread</span>
+                    <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[18px]">mark_email_unread</span>
                     </div>
                     <div>
-                        <h3 class="font-bold text-slate-800 text-sm sm:text-base">¡Verifica tu cuenta para asegurar tus reservas!</h3>
-                        <p class="text-xs text-slate-500">Te enviamos un código de 6 dígitos válido por 15 minutos a tu correo electrónico.</p>
+                        <h3 class="font-bold text-slate-800 text-sm">¡Verifica tu cuenta para asegurar tus reservas!</h3>
+                        <p class="text-xs text-slate-500">Te enviamos un código de 6 dígitos válido por 15 minutos a tu correo.</p>
                     </div>
                 </div>
-                <button onclick="openVerifyEmailModal()" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold px-5 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shrink-0 shadow-sm flex items-center justify-center gap-1.5">
-                    <span class="material-symbols-outlined text-[18px]">verified</span> Ingresar Código
+                <button onclick="openVerifyEmailModal()" class="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-lg text-xs uppercase tracking-wider transition-colors shrink-0 flex items-center justify-center gap-1.5">
+                    <span class="material-symbols-outlined text-[15px]">verified</span> Ingresar Código
                 </button>
             </div>
 
-            <!-- Banner Notificaciones por WhatsApp (Próximamente) -->
-            <div class="mb-8 bg-emerald-50/60 border border-emerald-200/60 px-4 py-3 rounded-2xl flex items-center justify-between gap-3 text-xs sm:text-sm font-semibold text-emerald-900 shadow-2xs">
-                <div class="flex items-center gap-2">
-                    <span class="text-base">💬</span>
-                    <span>Próximamente notificaciones a los profesionales por WhatsApp</span>
+            <!-- ===== HERO SECTION ===== -->
+            <div class="mb-8 fade-up fade-up-1">
+                <!-- Greeting + Stats Row -->
+                <div class="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                    <!-- Top: Greeting -->
+                    <div class="px-6 pt-6 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100">
+                        <div>
+                            <h1 class="text-2xl sm:text-3xl font-extrabold font-display text-slate-900 leading-tight" id="dashGreeting">¡Hola, bienvenido!</h1>
+                            <p class="text-sm text-slate-500 mt-1 font-medium" id="dashSubGreeting">¿Qué deseas hacer hoy? Gestiona tu negocio desde aquí.</p>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <a href="agenda.html" class="flex items-center gap-2 px-4 py-2 bg-primary text-white font-bold text-xs rounded-lg hover:bg-primary/90 transition-colors shadow-sm">
+                                <span class="material-symbols-outlined text-[16px]">menu_book</span>
+                                <span>Ver Agenda</span>
+                            </a>
+                            <a href="calendarioMensual.html" class="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 font-bold text-xs rounded-lg hover:bg-slate-200 transition-colors">
+                                <span class="material-symbols-outlined text-[16px]">calendar_month</span>
+                                <span class="hidden sm:inline">Calendario</span>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- Bottom: Quick Stats -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-slate-100">
+                        <div class="px-5 py-4">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Hoy</p>
+                            <p class="text-2xl font-black text-slate-900" id="statHoy">—</p>
+                            <p class="text-xs text-slate-500 font-medium mt-0.5">turnos agendados</p>
+                        </div>
+                        <div class="px-5 py-4">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pendientes</p>
+                            <p class="text-2xl font-black text-amber-600" id="statPendHero">—</p>
+                            <p class="text-xs text-slate-500 font-medium mt-0.5">por confirmar</p>
+                        </div>
+                        <div class="px-5 py-4">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Este mes</p>
+                            <p class="text-2xl font-black text-emerald-600" id="statMes">—</p>
+                            <p class="text-xs text-slate-500 font-medium mt-0.5">confirmados</p>
+                        </div>
+                        <div class="px-5 py-4">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total</p>
+                            <p class="text-2xl font-black text-primary" id="statTotalHero">—</p>
+                            <p class="text-xs text-slate-500 font-medium mt-0.5">turnos recibidos</p>
+                        </div>
+                    </div>
                 </div>
-                <span class="px-2.5 py-0.5 rounded-full bg-emerald-100/80 text-emerald-800 text-[11px] font-extrabold border border-emerald-200/80 shrink-0">Próximamente</span>
+            </div>
+
+            <!-- Banner Notificaciones por WhatsApp (Próximamente) -->
+            <div class="mb-7 bg-emerald-50 border border-emerald-200 px-4 py-2.5 rounded-lg flex items-center justify-between gap-3 text-xs font-semibold text-emerald-900">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm">💬</span>
+                    <span>Próximamente: notificaciones a profesionales por WhatsApp</span>
+                </div>
+                <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[10px] font-bold border border-emerald-200 shrink-0">Próximamente</span>
             </div>
 
             <!-- Widget de Inicio Rápido -->
-            <div id="onboardingWidget" class="hidden mb-10 bg-white border border-primary/20 rounded-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
-                <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full opacity-50 pointer-events-none"></div>
+            <div id="onboardingWidget" class="hidden mb-8 bg-white border border-slate-200 rounded-xl overflow-hidden fade-up fade-up-2">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[18px]">rocket_launch</span>
+                        </div>
+                        <h2 class="text-base font-bold text-slate-800">Primeros pasos en Agendatina</h2>
+                    </div>
+                    <button onclick="toggleOnboardingCollapse()" id="btnToggleOnboarding" class="w-7 h-7 rounded-md bg-white hover:bg-slate-100 text-slate-500 flex items-center justify-center transition-colors border border-slate-200" title="Minimizar / Maximizar">
+                        <span class="material-symbols-outlined text-[18px]" id="iconToggleOnboarding">remove</span>
+                    </button>
+                </div>
                 
-                <div class="relative z-10">
-                    <div class="flex items-center justify-between gap-4 mb-2">
-                        <h2 class="text-2xl font-extrabold text-slate-800 font-display">Primeros pasos en Agendatina</h2>
-                        <button onclick="toggleOnboardingCollapse()" id="btnToggleOnboarding" class="w-9 h-9 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-black text-xl transition-all shadow-xs" title="Minimizar / Maximizar">
-                            <span class="material-symbols-outlined text-[22px]" id="iconToggleOnboarding">remove</span>
-                        </button>
+                <div id="onboardingBody" class="p-6">
+                    <p class="text-slate-500 text-sm mb-5">Completa esta guía para que tu sistema quede listo y puedas empezar a recibir reservas.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <!-- Step 1 -->
+                        <div class="border border-slate-200 rounded-lg p-4 flex flex-col transition-all hover:border-slate-300 hover:bg-slate-50 group">
+                            <div class="flex items-center gap-2.5 mb-2">
+                                <div id="step1Icon" class="w-6 h-6 rounded bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">1</div>
+                                <h3 id="step1Text" class="font-bold text-slate-800 text-sm">Horarios y Calendario</h3>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-3 flex-1 leading-relaxed">Selecciona qué días trabajás, tus horarios de apertura y el tipo de calendario.</p>
+                            <a href="ajustes.html" class="text-xs font-bold text-primary flex items-center gap-1 group-hover:gap-2 transition-all">Ir a Ajustes <span class="material-symbols-outlined text-[13px]">arrow_forward</span></a>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="border border-slate-200 rounded-lg p-4 flex flex-col transition-all hover:border-slate-300 hover:bg-slate-50 group">
+                            <div class="flex items-center gap-2.5 mb-2">
+                                <div id="step2Icon" class="w-6 h-6 rounded bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">2</div>
+                                <h3 id="step2Text" class="font-bold text-slate-800 text-sm">Agregar un Servicio</h3>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-3 flex-1 leading-relaxed">Crea al menos un servicio con nombre, duración y precio para que los clientes reserven.</p>
+                            <a href="servicios.html" id="step2Link" class="text-xs font-bold text-primary flex items-center gap-1 group-hover:gap-2 transition-all">Ir a Servicios <span class="material-symbols-outlined text-[13px]">arrow_forward</span></a>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="border border-slate-200 rounded-lg p-4 flex flex-col transition-all hover:border-slate-300 hover:bg-slate-50 group">
+                            <div class="flex items-center gap-2.5 mb-2">
+                                <div id="step3Icon" class="w-6 h-6 rounded bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center font-bold text-xs">3</div>
+                                <h3 id="step3Text" class="font-bold text-slate-800 text-sm">Prueba tu Agenda</h3>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-3 flex-1 leading-relaxed">Visitá tu enlace público como si fueras un cliente y agendá tu primer turno de prueba.</p>
+                            <a href="#" id="step3Link" target="_blank" class="text-xs font-bold text-primary flex items-center gap-1 opacity-40 pointer-events-none">Ver mi web <span class="material-symbols-outlined text-[13px]">open_in_new</span></a>
+                        </div>
                     </div>
                     
-                    <div id="onboardingBody">
-                        <p class="text-slate-500 mb-6 max-w-2xl">Completa esta breve guía para dejar tu sistema listo y comenzar a recibir reservas automáticamente.</p>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <!-- Step 1 -->
-                            <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col transition-all hover:border-primary/50 hover:shadow-md group">
-                                <div class="flex items-center gap-3 mb-3">
-                                    <div id="step1Icon" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">1</div>
-                                    <h3 id="step1Text" class="font-bold text-slate-800">Horarios y Calendario</h3>
-                                </div>
-                                <p class="text-xs text-slate-500 mb-4 flex-1">Selecciona qué días trabajas, tus horarios de apertura y el tipo de calendario (Mensual o Semanal).</p>
-                                <a href="ajustes.html" class="text-sm font-bold text-primary hover:text-primary/80 flex items-center gap-1 group-hover:translate-x-1 transition-transform">Ir a Ajustes <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
-                            </div>
-
-                            <!-- Step 2 -->
-                            <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col transition-all hover:border-primary/50 hover:shadow-md group">
-                                <div class="flex items-center gap-3 mb-3">
-                                    <div id="step2Icon" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">2</div>
-                                    <h3 id="step2Text" class="font-bold text-slate-800">Agregar un Servicio</h3>
-                                </div>
-                                <p class="text-xs text-slate-500 mb-4 flex-1">Crea al menos un servicio con su nombre, duración y precio para que tus clientes puedan elegirlo.</p>
-                                <a href="servicios.html" id="step2Link" class="text-sm font-bold text-primary hover:text-primary/80 flex items-center gap-1 group-hover:translate-x-1 transition-transform">Ir a Servicios <span class="material-symbols-outlined text-[16px]">arrow_forward</span></a>
-                            </div>
-
-                            <!-- Step 3 -->
-                            <div class="bg-slate-50 border border-slate-200 p-5 rounded-2xl flex flex-col transition-all hover:border-primary/50 hover:shadow-md group">
-                                <div class="flex items-center gap-3 mb-3">
-                                    <div id="step3Icon" class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-bold text-sm">3</div>
-                                    <h3 id="step3Text" class="font-bold text-slate-800">Prueba tu Agenda</h3>
-                                </div>
-                                <p class="text-xs text-slate-500 mb-4 flex-1">Visita tu enlace público como si fueras un cliente y agenda tu primer turno de prueba.</p>
-                                <a href="#" id="step3Link" target="_blank" class="text-sm font-bold text-primary hover:text-primary/80 flex items-center gap-1 opacity-50 pointer-events-none transition-all">Ver mi web <span class="material-symbols-outlined text-[16px]">open_in_new</span></a>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-8 pt-6 border-t border-primary/10 flex flex-col sm:flex-row justify-between items-center gap-4">
-                            <p class="text-sm text-slate-500"><span class="font-bold">Tip:</span> Si no sabes por dónde empezar, mira el recorrido guiado.</p>
-                            <button onclick="startTour()" class="bg-primary/10 text-primary hover:bg-primary/20 font-bold py-2.5 px-6 rounded-xl transition-all flex items-center gap-2 text-sm w-full sm:w-auto justify-center border border-primary/20 shadow-xs">
-                                <span class="material-symbols-outlined text-[18px]">explore</span> Iniciar tour virtual
-                            </button>
-                        </div>
+                    <div class="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+                        <p class="text-xs text-slate-500"><span class="font-semibold text-slate-700">Tip:</span> Si no sabés por dónde empezar, iniciá el recorrido guiado.</p>
+                        <button onclick="startTour()" class="bg-primary/10 text-primary hover:bg-primary/20 font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-xs w-full sm:w-auto justify-center border border-primary/20">
+                            <span class="material-symbols-outlined text-[15px]">explore</span> Iniciar tour virtual
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Grilla Principal de Tarjetas (4 Filas) -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            <!-- ===== FILA 1 ===== -->
+            <!-- ===== SECCIÓN: MÓDULOS PRINCIPALES ===== -->
+            <div class="mb-3 fade-up fade-up-3">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Módulos principales</p>
+            </div>
+
+            <!-- Grilla Principal de Tarjetas -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+
             <!-- 1. Gestionar Calendario -->
-            <a href="calendarioMensual.html" id="cardCalendario" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-orange-500/50 transition-all flex flex-col relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <span class="material-symbols-outlined text-9xl text-orange-500">calendar_month</span>
-                </div>
-                <div class="w-14 h-14 rounded-2xl bg-orange-500/10 text-orange-600 flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
-                    <span class="material-symbols-outlined text-3xl">calendar_month</span>
-                </div>
-                <h2 class="text-2xl font-bold mb-3 z-10">Gestionar Calendario</h2>
-                <p class="text-slate-500 flex-1 z-10">Define tus horarios de atención, bloquea fechas y configura la modalidad de trabajo.</p>
-                <div class="mt-8 flex items-center gap-2 text-orange-600 font-bold z-10">
-                    Configurar mi calendario <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            <a href="calendarioMensual.html" id="cardCalendario" class="dash-card group bg-white rounded-xl border border-slate-200 flex items-stretch overflow-hidden fade-up fade-up-3">
+                <div class="card-accent bg-orange-400 rounded-l-xl shrink-0"></div>
+                <div class="flex flex-col justify-between p-5 flex-1">
+                    <div>
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-9 h-9 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-xl">calendar_month</span>
+                            </div>
+                            <span class="material-symbols-outlined text-[18px] text-slate-300 group-hover:text-orange-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">arrow_outward</span>
+                        </div>
+                        <h2 class="text-base font-bold text-slate-800 mb-1">Calendario</h2>
+                        <p class="text-xs text-slate-500 leading-relaxed">Define horarios, bloquea fechas y configura la modalidad de trabajo.</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100">
+                        <span class="text-xs font-bold text-orange-600">Configurar calendario →</span>
+                    </div>
                 </div>
             </a>
 
             <!-- 2. Mi Agenda Virtual -->
-            <a href="agenda.html" id="cardAgenda" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-primary/50 transition-all flex flex-col relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <span class="material-symbols-outlined text-9xl text-primary">menu_book</span>
-                </div>
-                <div class="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
-                    <span class="material-symbols-outlined text-3xl">menu_book</span>
-                </div>
-                <h2 class="text-2xl font-bold mb-3 z-10">Mi Agenda Virtual</h2>
-                <p class="text-slate-500 flex-1 z-10">Administra los turnos de tus clientes, confirma reservas pendientes y bloquea horarios manualmente.</p>
-                <div class="mt-8 flex items-center gap-2 text-primary font-bold z-10">
-                    Ingresar a la agenda <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                </div>
-            </a>
-
-            <!-- 2.B Alumnos / Clientes (Módulo de Cupos) -->
-            <a href="clientes.html" id="cardClientes" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-amber-500/50 transition-all flex flex-col relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <span class="material-symbols-outlined text-9xl text-amber-500">groups</span>
-                </div>
-                <div class="flex justify-between items-start mb-6 z-10">
-                    <div class="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <span class="material-symbols-outlined text-3xl">groups</span>
+            <a href="agenda.html" id="cardAgenda" class="dash-card group bg-white rounded-xl border border-slate-200 flex items-stretch overflow-hidden fade-up fade-up-3">
+                <div class="card-accent bg-[#d11149] rounded-l-xl shrink-0"></div>
+                <div class="flex flex-col justify-between p-5 flex-1">
+                    <div>
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-9 h-9 rounded-lg bg-rose-50 text-primary flex items-center justify-center">
+                                <span class="material-symbols-outlined text-xl">menu_book</span>
+                            </div>
+                            <span class="material-symbols-outlined text-[18px] text-slate-300 group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">arrow_outward</span>
+                        </div>
+                        <h2 class="text-base font-bold text-slate-800 mb-1">Agenda Virtual</h2>
+                        <p class="text-xs text-slate-500 leading-relaxed">Administrá turnos, confirmá reservas pendientes y bloqueá horarios.</p>
                     </div>
-                    <span id="badgeCardClientes" class="bg-amber-100 text-amber-800 text-[10px] font-black uppercase px-2.5 py-1 rounded-full border border-amber-200/80">
-                        Cupos y Alumnos
-                    </span>
-                </div>
-                <h2 class="text-2xl font-bold mb-3 z-10">Alumnos / Clientes</h2>
-                <p class="text-slate-500 flex-1 z-10">Registra tus alumnos, asigna paquetes de clases o pases temporales y controla sus créditos y vencimientos.</p>
-                <div class="mt-8 flex items-center gap-2 text-amber-600 font-bold z-10">
-                    Gestionar alumnos <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    <div class="mt-4 pt-3 border-t border-slate-100">
+                        <span class="text-xs font-bold text-primary">Ingresar a la agenda →</span>
+                    </div>
                 </div>
             </a>
 
-            <!-- 3. Mi Página Web -->
-            <a href="mi-web.html" id="cardWeb" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-emerald-500/50 transition-all flex flex-col relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <span class="material-symbols-outlined text-9xl text-emerald-500">dvr</span>
-                </div>
-                <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
-                    <span class="material-symbols-outlined text-3xl">dvr</span>
-                </div>
-                <h2 class="text-2xl font-bold mb-3 z-10">Mi Página Web</h2>
-                <p class="text-slate-500 flex-1 z-10">Edita la portada, colores y servicios de tu página pública. Añade fotos, precios y descripciones detalladas.</p>
-                <div class="mt-8 flex items-center gap-2 text-emerald-500 font-semibold z-10">
-                    Personalizar mi página <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                </div>
-            </a>
-
-            <!-- ===== FILA 2 ===== -->
-            <!-- 4. Servicios -->
-            <a href="servicios.html" id="cardServicios" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-pink-500/50 transition-all flex flex-col relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <span class="material-symbols-outlined text-9xl text-[#d11149]">content_cut</span>
-                </div>
-                <div class="w-14 h-14 rounded-2xl bg-pink-100 text-[#d11149] flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
-                    <span class="material-symbols-outlined text-3xl">content_cut</span>
-                </div>
-                <h2 class="text-2xl font-bold mb-3 z-10">Servicios</h2>
-                <p class="text-slate-500 flex-1 z-10">Administra los servicios que ofrece tu local, sus precios, duraciones y descripciones para reserva online.</p>
-                <div class="mt-8 flex items-center gap-2 text-[#d11149] font-semibold z-10">
-                    Gestionar servicios <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            <!-- 3. Alumnos / Clientes -->
+            <a href="clientes.html" id="cardClientes" class="dash-card group bg-white rounded-xl border border-slate-200 flex items-stretch overflow-hidden fade-up fade-up-4">
+                <div class="card-accent bg-amber-500 rounded-l-xl shrink-0"></div>
+                <div class="flex flex-col justify-between p-5 flex-1">
+                    <div>
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-xl">groups</span>
+                            </div>
+                            <span id="badgeCardClientes" class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">Alumnos</span>
+                        </div>
+                        <h2 class="text-base font-bold text-slate-800 mb-1">Alumnos / Clientes</h2>
+                        <p class="text-xs text-slate-500 leading-relaxed">Registrá alumnos, asigná paquetes y controlá créditos y vencimientos.</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100">
+                        <span class="text-xs font-bold text-amber-600">Gestionar alumnos →</span>
+                    </div>
                 </div>
             </a>
 
-            <!-- 5. Equipo de Trabajo -->
-            <a href="equipo.html" id="cardEquipo" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-purple-500/50 transition-all flex flex-col relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <span class="material-symbols-outlined text-9xl text-purple-600">group</span>
-                </div>
-                <div class="w-14 h-14 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
-                    <span class="material-symbols-outlined text-3xl">group</span>
-                </div>
-                <h2 class="text-2xl font-bold mb-3 z-10">Equipo de Trabajo</h2>
-                <p class="text-slate-500 flex-1 z-10">Visualiza los profesionales de tu equipo, sus servicios asociados, límite del plan y crea nuevas cuentas de acceso.</p>
-                <div class="mt-8 flex items-center gap-2 text-purple-600 font-semibold z-10">
-                    Ver profesionales y equipo <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                </div>
-            </a>
-
-            <!-- 6. Estadísticas -->
-            <a href="estadisticas.html" id="cardEstadisticas" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-teal-400 transition-all flex flex-col relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <span class="material-symbols-outlined text-9xl text-teal-500">query_stats</span>
-                </div>
-                <div class="w-14 h-14 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
-                    <span class="material-symbols-outlined text-3xl">query_stats</span>
-                </div>
-                <h2 class="text-2xl font-bold mb-3 z-10">Estadísticas</h2>
-                <p class="text-slate-500 flex-1 z-10">Analiza el rendimiento de tu negocio, turnos más solicitados y crecimiento de clientes.</p>
-                <div class="mt-8 flex items-center gap-2 text-teal-600 font-semibold z-10">
-                    Ver estadísticas <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            <!-- 4. Mi Página Web -->
+            <a href="mi-web.html" id="cardWeb" class="dash-card group bg-white rounded-xl border border-slate-200 flex items-stretch overflow-hidden fade-up fade-up-4">
+                <div class="card-accent bg-emerald-500 rounded-l-xl shrink-0"></div>
+                <div class="flex flex-col justify-between p-5 flex-1">
+                    <div>
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-xl">dvr</span>
+                            </div>
+                            <span class="material-symbols-outlined text-[18px] text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">arrow_outward</span>
+                        </div>
+                        <h2 class="text-base font-bold text-slate-800 mb-1">Mi Página Web</h2>
+                        <p class="text-xs text-slate-500 leading-relaxed">Editá portada, colores y servicios de tu página pública con fotos y precios.</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100">
+                        <span class="text-xs font-bold text-emerald-600">Personalizar mi página →</span>
+                    </div>
                 </div>
             </a>
 
-            <!-- ===== FILA 3 ===== -->
-            <!-- 7. Ajustes -->
-            <a href="ajustes.html" id="cardAjustes" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-amber-400 transition-all flex flex-col relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <span class="material-symbols-outlined text-9xl text-amber-500">settings_suggest</span>
-                </div>
-                <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
-                    <span class="material-symbols-outlined text-3xl">settings_suggest</span>
-                </div>
-                <h2 class="text-2xl font-bold mb-3 z-10">Ajustes</h2>
-                <p class="text-slate-500 flex-1 z-10">Configura colores, horarios de atención, turnos y modalidad de trabajo.</p>
-                <div class="mt-8 flex items-center gap-2 text-amber-600 font-semibold z-10">
-                    Configurar ajustes <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                </div>
-            </a>
-
-            <!-- 8. Manual de Uso -->
-            <a href="manual.html" id="cardManual" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-sky-400 transition-all flex flex-col relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <span class="material-symbols-outlined text-9xl text-sky-500">auto_stories</span>
-                </div>
-                <div class="w-14 h-14 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
-                    <span class="material-symbols-outlined text-3xl">auto_stories</span>
-                </div>
-                <h2 class="text-2xl font-bold mb-3 z-10">Manual de Uso</h2>
-                <p class="text-slate-500 flex-1 z-10">Guía interactiva completa del sistema, explicaciones de cada módulo y alcance por plan activo.</p>
-                <div class="mt-8 flex items-center gap-2 text-sky-600 font-semibold z-10">
-                    Leer manual de uso <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            <!-- 5. Servicios -->
+            <a href="servicios.html" id="cardServicios" class="dash-card group bg-white rounded-xl border border-slate-200 flex items-stretch overflow-hidden fade-up fade-up-5">
+                <div class="card-accent bg-rose-500 rounded-l-xl shrink-0"></div>
+                <div class="flex flex-col justify-between p-5 flex-1">
+                    <div>
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-9 h-9 rounded-lg bg-rose-50 text-[#d11149] flex items-center justify-center">
+                                <span class="material-symbols-outlined text-xl">content_cut</span>
+                            </div>
+                            <span class="material-symbols-outlined text-[18px] text-slate-300 group-hover:text-rose-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">arrow_outward</span>
+                        </div>
+                        <h2 class="text-base font-bold text-slate-800 mb-1">Servicios</h2>
+                        <p class="text-xs text-slate-500 leading-relaxed">Administrá servicios, precios, duraciones y descripciones para reserva online.</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100">
+                        <span class="text-xs font-bold text-[#d11149]">Gestionar servicios →</span>
+                    </div>
                 </div>
             </a>
 
-            <!-- 9. Consultas Frecuentes -->
-            <a href="consultas.html" id="cardFaq" class="group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-indigo-400 transition-all flex flex-col relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <span class="material-symbols-outlined text-9xl text-indigo-500">quiz</span>
-                </div>
-                <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-6 z-10 group-hover:scale-110 transition-transform">
-                    <span class="material-symbols-outlined text-3xl">quiz</span>
-                </div>
-                <h2 class="text-2xl font-bold mb-3 z-10">Consultas Frecuentes</h2>
-                <p class="text-slate-500 flex-1 z-10">Aprende a configurar servicios, horarios y descubre todas las funcionalidades del sistema.</p>
-                <div class="mt-8 flex items-center gap-2 text-indigo-600 font-semibold z-10">
-                    Ver tutoriales <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            <!-- 6. Equipo de Trabajo -->
+            <a href="equipo.html" id="cardEquipo" class="dash-card group bg-white rounded-xl border border-slate-200 flex items-stretch overflow-hidden fade-up fade-up-5">
+                <div class="card-accent bg-purple-500 rounded-l-xl shrink-0"></div>
+                <div class="flex flex-col justify-between p-5 flex-1">
+                    <div>
+                        <div class="flex items-start justify-between mb-3">
+                            <div class="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-xl">group</span>
+                            </div>
+                            <span class="material-symbols-outlined text-[18px] text-slate-300 group-hover:text-purple-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">arrow_outward</span>
+                        </div>
+                        <h2 class="text-base font-bold text-slate-800 mb-1">Equipo de Trabajo</h2>
+                        <p class="text-xs text-slate-500 leading-relaxed">Profesionales del equipo, servicios asociados, límite del plan y nuevas cuentas.</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-100">
+                        <span class="text-xs font-bold text-purple-600">Ver profesionales →</span>
+                    </div>
                 </div>
             </a>
 
-            <!-- ===== FILA 4 ===== -->
-            <!-- 10. Sugerencias y Mejoras -->
-            <a href="javascript:void(0)" onclick="openSupportModal()" id="cardMejora" class="col-span-1 md:col-span-3 group bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm hover:shadow-xl hover:border-blue-400 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative overflow-hidden">
-                <div class="flex items-center gap-6 z-10">
-                    <div class="w-16 h-16 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                        <span class="material-symbols-outlined text-3xl">lightbulb</span>
+            </div>
+
+            <!-- Segunda fila: Estadísticas, Ajustes, Manual, FAQ -->
+            <div class="mb-3 mt-6 fade-up fade-up-5">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Herramientas y configuración</p>
+            </div>
+
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6 fade-up fade-up-6">
+
+            <!-- Estadísticas -->
+            <a href="estadisticas.html" id="cardEstadisticas" class="dash-card group bg-white rounded-xl border border-slate-200 p-4 flex flex-col gap-3 hover:border-teal-300">
+                <div class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[18px]">query_stats</span>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800">Estadísticas</h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Rendimiento y métricas</p>
+                </div>
+                <span class="text-[11px] font-bold text-teal-600 mt-auto">Ver métricas →</span>
+            </a>
+
+            <!-- Ajustes -->
+            <a href="ajustes.html" id="cardAjustes" class="dash-card group bg-white rounded-xl border border-slate-200 p-4 flex flex-col gap-3 hover:border-amber-300">
+                <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[18px]">settings_suggest</span>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800">Ajustes</h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Horarios y modalidad</p>
+                </div>
+                <span class="text-[11px] font-bold text-amber-600 mt-auto">Configurar →</span>
+            </a>
+
+            <!-- Manual de Uso -->
+            <a href="manual.html" id="cardManual" class="dash-card group bg-white rounded-xl border border-slate-200 p-4 flex flex-col gap-3 hover:border-sky-300">
+                <div class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[18px]">auto_stories</span>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800">Manual de Uso</h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Guía de módulos</p>
+                </div>
+                <span class="text-[11px] font-bold text-sky-600 mt-auto">Leer manual →</span>
+            </a>
+
+            <!-- Consultas Frecuentes -->
+            <a href="consultas.html" id="cardFaq" class="dash-card group bg-white rounded-xl border border-slate-200 p-4 flex flex-col gap-3 hover:border-indigo-300">
+                <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[18px]">quiz</span>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800">Consultas Frecuentes</h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Tutoriales y ayuda</p>
+                </div>
+                <span class="text-[11px] font-bold text-indigo-600 mt-auto">Ver tutoriales →</span>
+            </a>
+
+            </div>
+
+            <!-- Sugerencias y Mejoras -->
+            <a href="javascript:void(0)" onclick="openSupportModal()" id="cardMejora" class="dash-card group bg-white rounded-xl border border-slate-200 px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-blue-300 mb-8 fade-up fade-up-6">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-xl">lightbulb</span>
                     </div>
                     <div>
-                        <h2 class="text-2xl font-bold text-slate-800 mb-1">Sugerencias y Mejoras</h2>
-                        <p class="text-slate-500 text-sm">¿Tienes alguna idea de mejora o encontraste algún detalle? Envíanos tu mensaje directo a nuestro equipo.</p>
+                        <h2 class="text-sm font-bold text-slate-800">Sugerencias y Mejoras</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">¿Tenés una idea o encontraste algo raro? Escribinos directo al equipo.</p>
                     </div>
                 </div>
-                <div class="px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all shadow-md flex items-center gap-2 shrink-0 z-10">
-                    <span class="material-symbols-outlined text-[18px]">send</span>
+                <div class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-colors flex items-center gap-2 shrink-0">
+                    <span class="material-symbols-outlined text-[15px]">send</span>
                     <span>Enviar sugerencia</span>
                 </div>
             </a>
         </div>
-    </div>
 </main>
 
     <!-- Modal de Perfil -->
     <div id="profileModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-4xl w-full p-6 sm:p-10 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="profileModalContent">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold font-display text-slate-800">Mi Perfil</h2>
-                <button onclick="closeProfileModal()" class="text-slate-400 hover:text-red-500 transition-colors">
-                    <span class="material-symbols-outlined">close</span>
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200/90 max-w-4xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar" id="profileModalContent">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+                <h2 class="text-xl sm:text-2xl font-bold font-display text-slate-800">Mi Perfil</h2>
+                <button onclick="closeProfileModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+                    <span class="material-symbols-outlined text-xl">close</span>
                 </button>
             </div>
             
             <!-- Estadísticas en tiempo real -->
             <div id="profileStats" class="grid grid-cols-3 gap-3 mb-6">
-                <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 text-center">
+                <div class="bg-blue-50/70 border border-blue-100 rounded-lg p-3 text-center">
                     <p class="text-[10px] sm:text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Total Turnos Recibidos</p>
                     <p class="text-2xl font-black text-blue-700" id="statTotal">0</p>
                 </div>
-                <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3 text-center">
+                <div class="bg-emerald-50/70 border border-emerald-100 rounded-lg p-3 text-center">
                     <p class="text-[10px] sm:text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Turnos Confirmados</p>
                     <p class="text-2xl font-black text-emerald-700" id="statConf">0</p>
                 </div>
-                <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 text-center">
+                <div class="bg-amber-50/70 border border-amber-100 rounded-lg p-3 text-center">
                     <p class="text-[10px] sm:text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Turnos Pendientes</p>
                     <p class="text-2xl font-black text-amber-700" id="statPend">0</p>
                 </div>
             </div>
 
             <!-- Botón Ver Comprobante (se muestra por JS si tiene uno subido) -->
-            <div id="profileReceiptContainer" class="hidden mb-6 flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <div id="profileReceiptContainer" class="hidden mb-6 flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg p-4">
                 <div>
                     <p class="font-bold text-sm text-slate-800">Mi último comprobante de pago</p>
                     <p class="text-xs text-slate-500">Visualiza el comprobante que enviaste para tu suscripción.</p>
                 </div>
-                <button type="button" id="btnProfileViewReceipt" class="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-colors flex items-center gap-1 shadow-sm">
+                <button type="button" id="btnProfileViewReceipt" class="px-3.5 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-colors flex items-center gap-1 shadow-2xs">
                     <span class="material-symbols-outlined text-[16px]">visibility</span> Ver comprobante
                 </button>
             </div>
@@ -415,28 +492,28 @@
             <form id="profileForm" class="flex flex-col gap-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Nombre Completo</label>
-                        <input type="text" id="profileName" name="nombre" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none transition-all text-sm">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nombre Completo</label>
+                        <input type="text" id="profileName" name="nombre" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-sm font-medium">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Logo del Negocio</label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Logo del Negocio</label>
                         <div class="flex items-center gap-3">
-                            <img id="profileLogoPreview" class="w-10 h-10 rounded-full object-cover hidden border border-slate-200 shadow-sm">
-                            <input type="file" id="profileLogo" name="logo" accept="image/png, image/jpeg, image/webp" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-primary outline-none transition-all file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer text-xs">
+                            <img id="profileLogoPreview" class="w-10 h-10 rounded-lg object-cover hidden border border-slate-200 shadow-2xs">
+                            <input type="file" id="profileLogo" name="logo" accept="image/png, image/jpeg, image/webp" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all file:mr-2 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer text-xs">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Color Principal (Panel)</label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Color Principal (Panel)</label>
                         <div class="flex items-center gap-3">
-                            <input type="color" id="profileColor" name="color_primario" value="#3b82f6" class="w-8 h-8 rounded border-none cursor-pointer p-0 bg-transparent">
-                            <span class="text-xs text-slate-500">Para botones y destacados.</span>
+                            <input type="color" id="profileColor" name="color_primario" value="#3b82f6" class="w-8 h-8 rounded border border-slate-200 cursor-pointer p-0 bg-transparent">
+                            <span class="text-xs text-slate-500 font-medium">Para botones y destacados.</span>
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Color Secundario (Detalles)</label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Color Secundario (Detalles)</label>
                         <div class="flex items-center gap-3">
-                            <input type="color" id="profileColorSecundario" name="color_secundario" value="#8b5cf6" class="w-8 h-8 rounded border-none cursor-pointer p-0 bg-transparent">
-                            <span class="text-xs text-slate-500">Para iconos suaves.</span>
+                            <input type="color" id="profileColorSecundario" name="color_secundario" value="#8b5cf6" class="w-8 h-8 rounded border border-slate-200 cursor-pointer p-0 bg-transparent">
+                            <span class="text-xs text-slate-500 font-medium">Para iconos suaves.</span>
                         </div>
                     </div>
                 </div>
@@ -444,21 +521,21 @@
                     <h3 class="font-bold text-slate-800 mb-3 text-sm">Seguridad</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Contraseña Actual</label>
-                            <input type="password" id="currentPassword" name="current_password" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none transition-all text-sm" placeholder="Requerida">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Contraseña Actual</label>
+                            <input type="password" id="currentPassword" name="current_password" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-sm font-medium" placeholder="Requerida">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Nueva Contraseña</label>
-                            <input type="password" id="newPassword" name="new_password" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none transition-all text-sm" placeholder="Mín. 6 caracteres" minlength="6" maxlength="14">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nueva Contraseña</label>
+                            <input type="password" id="newPassword" name="new_password" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-sm font-medium" placeholder="Mín. 6 caracteres" minlength="6" maxlength="14">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Confirmar Nueva</label>
-                            <input type="password" id="confirmPassword" name="confirm_password" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary outline-none transition-all text-sm" placeholder="Repite contraseña" minlength="6" maxlength="14">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Confirmar Nueva</label>
+                            <input type="password" id="confirmPassword" name="confirm_password" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-sm font-medium" placeholder="Repite contraseña" minlength="6" maxlength="14">
                         </div>
                     </div>
                 </div>
                 <div id="profileMessage" class="hidden p-3 rounded-lg text-sm font-medium text-center mt-2"></div>
-                <button type="submit" id="btnProfileSubmit" class="w-full signature-glow text-white py-3.5 rounded-xl font-bold text-lg mt-2 shadow-lg shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all">
+                <button type="submit" id="btnProfileSubmit" class="w-full signature-glow text-white py-3 rounded-lg font-bold text-base mt-2 shadow-2xs hover:brightness-110 active:scale-[0.98] transition-all">
                     Guardar Cambios
                 </button>
             </form>
@@ -467,35 +544,35 @@
 
     <!-- Modal para Pagar Suscripción / Enviar Comprobante -->
     <div id="paymentModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300 overflow-y-auto">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 my-8 max-h-[90vh] overflow-y-auto" id="paymentModalContent">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold font-display text-slate-800">Abonar Suscripción</h2>
-                <button onclick="closePaymentModal()" class="text-slate-400 hover:text-red-500 transition-colors">
-                    <span class="material-symbols-outlined">close</span>
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200/90 max-w-md w-full p-6 sm:p-7 transform scale-95 transition-transform duration-300 my-8 max-h-[90vh] overflow-y-auto" id="paymentModalContent">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+                <h2 class="text-xl sm:text-2xl font-bold font-display text-slate-800">Abonar Suscripción</h2>
+                <button onclick="closePaymentModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+                    <span class="material-symbols-outlined text-xl">close</span>
                 </button>
             </div>
             
-            <div id="paymentFormContainer" class="space-y-6">
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
-                    <p class="text-sm text-slate-500">Estás por abonar el</p>
-                    <p class="text-lg font-bold text-primary" id="paymentPlanName">Plan Simple</p>
-                    <p class="text-3xl font-extrabold font-display my-2" id="paymentPrice"><span class="text-base font-normal text-slate-400">Calculando...</span></p>
+            <div id="paymentFormContainer" class="space-y-5">
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 text-center">
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Estás por abonar el</p>
+                    <p class="text-lg font-bold text-primary mt-0.5" id="paymentPlanName">Plan Simple</p>
+                    <p class="text-3xl font-extrabold font-display my-2 tracking-tight" id="paymentPrice"><span class="text-base font-normal text-slate-400">Calculando...</span></p>
                 </div>
                 
-                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-blue-800 text-sm">
+                <div class="bg-blue-50/70 border border-blue-200 rounded-lg p-4 text-blue-900 text-xs sm:text-sm">
                     <p class="font-bold mb-2">Datos para transferencia:</p>
-                    <p class="flex justify-between"><span>CBU:</span> <span class="font-mono font-medium">0000003100000000000000</span></p>
-                    <p class="flex justify-between"><span>Alias:</span> <span class="font-mono font-medium">AGENDATINA.PAGOS</span></p>
-                    <p class="flex justify-between"><span>Titular:</span> <span class="font-mono font-medium">Agendatina S.A.</span></p>
+                    <p class="flex justify-between py-0.5"><span>CBU:</span> <span class="font-mono font-bold">0000003100000000000000</span></p>
+                    <p class="flex justify-between py-0.5"><span>Alias:</span> <span class="font-mono font-bold">AGENDATINA.PAGOS</span></p>
+                    <p class="flex justify-between py-0.5"><span>Titular:</span> <span class="font-medium">Agendatina S.A.</span></p>
                 </div>
 
                 <form id="receiptForm" class="flex flex-col gap-4">
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-2">Adjuntar Comprobante</label>
-                        <input type="file" id="comprobanteInput" accept="image/*,.pdf" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer">
-                        <p class="text-xs text-slate-500 mt-2">Formatos aceptados: JPG, PNG o PDF.</p>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Adjuntar Comprobante</label>
+                        <input type="file" id="comprobanteInput" accept="image/*,.pdf" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer text-xs">
+                        <p class="text-[11px] text-slate-500 mt-1.5 font-medium">Formatos aceptados: JPG, PNG o PDF.</p>
                     </div>
-                    <button type="submit" id="btnSubmitReceipt" class="w-full bg-primary hover:bg-primary/90 text-white py-3.5 rounded-xl font-bold text-lg mt-2 shadow-lg shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                    <button type="submit" id="btnSubmitReceipt" class="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg font-bold text-sm sm:text-base mt-2 shadow-2xs hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
                         Enviar Comprobante
                     </button>
                 </form>
@@ -503,12 +580,12 @@
 
             <!-- Mensaje de éxito (Oculto inicialmente) -->
             <div id="paymentSuccessMessage" class="hidden flex-col items-center text-center py-6">
-                <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
-                    <span class="material-symbols-outlined text-4xl">check_circle</span>
+                <div class="w-12 h-12 bg-emerald-50 border border-emerald-200 text-emerald-600 rounded-lg flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-3xl">check_circle</span>
                 </div>
                 <h3 class="text-xl font-bold text-slate-800 mb-2">¡Comprobante Enviado!</h3>
-                <p class="text-slate-500 text-sm">Estamos verificando tu pago. En un plazo máximo de <strong>24 horas</strong> verás el cambio reflejado en tu cuenta y desaparecerá el aviso de pago.</p>
-                <button onclick="closePaymentModal()" class="mt-6 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-6 rounded-xl transition-colors">
+                <p class="text-slate-500 text-xs sm:text-sm leading-relaxed">Estamos verificando tu pago. En un plazo máximo de <strong>24 horas</strong> verás el cambio reflejado en tu cuenta y desaparecerá el aviso de pago.</p>
+                <button onclick="closePaymentModal()" class="mt-6 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-6 rounded-lg text-sm transition-colors">
                     Entendido
                 </button>
             </div>
@@ -517,35 +594,35 @@
 
     <!-- Modal de Confirmación Genérico -->
     <div id="confirmModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 text-center" id="confirmModalContent">
-            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span class="material-symbols-outlined text-3xl">logout</span>
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200/90 max-w-sm w-full p-6 sm:p-7 transform scale-95 transition-transform duration-300 text-center" id="confirmModalContent">
+            <div class="w-12 h-12 bg-red-50 border border-red-200 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-2xl">logout</span>
             </div>
             <h3 class="text-xl font-bold text-slate-800 mb-2" id="confirmTitle">Confirmar Acción</h3>
-            <p class="text-slate-500 text-sm mb-6" id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
+            <p class="text-slate-500 text-xs sm:text-sm mb-6 leading-relaxed" id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
             <div class="flex gap-3 justify-center">
-                <button id="btnCancelConfirm" onclick="closeConfirm()" class="px-4 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors flex-1">Cancelar</button>
-                <button id="btnAcceptConfirm" class="px-4 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-xl transition-colors flex-1">Aceptar</button>
+                <button id="btnCancelConfirm" onclick="closeConfirm()" class="px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors flex-1">Cancelar</button>
+                <button id="btnAcceptConfirm" class="px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-colors flex-1 shadow-2xs">Aceptar</button>
             </div>
         </div>
     </div>
 
     <!-- Modal de Soporte -->
     <div id="supportModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="supportModalContent">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold font-display text-slate-800">Soporte y Sugerencias</h2>
-                <button onclick="closeSupportModal()" class="text-slate-400 hover:text-red-500 transition-colors">
-                    <span class="material-symbols-outlined">close</span>
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200/90 max-w-lg w-full p-6 sm:p-7 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="supportModalContent">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+                <h2 class="text-xl sm:text-2xl font-bold font-display text-slate-800">Soporte y Sugerencias</h2>
+                <button onclick="closeSupportModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+                    <span class="material-symbols-outlined text-xl">close</span>
                 </button>
             </div>
             <form id="supportForm" class="flex flex-col gap-4">
-                <p class="text-sm text-slate-500 mb-2">Envíanos tus sugerencias de mejora o repórtanos si encontraste algún problema en la plataforma. Tu opinión nos ayuda a crecer.</p>
+                <p class="text-xs sm:text-sm text-slate-500 mb-2 leading-relaxed">Envíanos tus sugerencias de mejora o repórtanos si encontraste algún problema en la plataforma. Tu opinión nos ayuda a crecer.</p>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Mensaje</label>
-                    <textarea id="supportMessage" name="mensaje" rows="4" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all resize-none" placeholder="Escribe aquí tu sugerencia o reporte..."></textarea>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Mensaje</label>
+                    <textarea id="supportMessage" name="mensaje" rows="4" required class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2.5 text-sm font-medium focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none" placeholder="Escribe aquí tu sugerencia o reporte..."></textarea>
                 </div>
-                <button type="submit" id="btnSupportSubmit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold text-lg mt-2 shadow-lg shadow-blue-600/20 active:scale-[0.98] transition-all">
+                <button type="submit" id="btnSupportSubmit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold text-sm sm:text-base mt-2 shadow-2xs active:scale-[0.98] transition-all">
                     Enviar mensaje
                 </button>
             </form>
@@ -554,59 +631,61 @@
 
     <!-- Modal Notificación Completa (Textos largos) -->
     <div id="customNotifModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[200] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300" id="customNotifModalContent">
-            <div class="flex justify-between items-center mb-6">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><span class="material-symbols-outlined">campaign</span></div>
-                    <h2 class="text-xl font-bold text-slate-800" id="customNotifTitle">Aviso</h2>
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200/90 max-w-md w-full p-6 sm:p-7 transform scale-95 transition-transform duration-300" id="customNotifModalContent">
+            <div class="flex justify-between items-center mb-5 pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-lg bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center"><span class="material-symbols-outlined text-xl">campaign</span></div>
+                    <h2 class="text-lg font-bold text-slate-800" id="customNotifTitle">Aviso</h2>
                 </div>
-                <button onclick="closeCustomNotifModal()" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined">close</span></button>
+                <button onclick="closeCustomNotifModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"><span class="material-symbols-outlined text-xl">close</span></button>
             </div>
-            <div class="bg-slate-50 p-4 rounded-xl text-slate-700 text-sm leading-relaxed whitespace-pre-wrap max-h-[50vh] overflow-y-auto custom-scrollbar" id="customNotifMessage"></div>
-            <div class="mt-6 flex justify-end">
-                <button onclick="closeCustomNotifModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2.5 px-6 rounded-xl transition-colors">Entendido</button>
+            <div class="bg-slate-50 border border-slate-200/80 p-4 rounded-lg text-slate-700 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap max-h-[50vh] overflow-y-auto custom-scrollbar" id="customNotifMessage"></div>
+            <div class="mt-5 flex justify-end">
+                <button onclick="closeCustomNotifModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 px-5 rounded-lg text-xs sm:text-sm transition-colors">Entendido</button>
             </div>
         </div>
+    </div>
+
     <!-- Modal Gestión de Equipo y Cuentas de Profesionales -->
     <div id="teamModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="teamModalContent">
-            <div class="flex justify-between items-center mb-6">
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200/90 max-w-lg w-full p-6 sm:p-7 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="teamModalContent">
+            <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
                 <div>
-                    <h2 class="text-2xl font-bold font-display text-slate-800 flex items-center gap-2">
+                    <h2 class="text-xl sm:text-2xl font-bold font-display text-slate-800 flex items-center gap-2">
                         <span class="material-symbols-outlined text-purple-600">group_add</span> Crear Profesional
                     </h2>
                     <p class="text-xs text-slate-500 mt-0.5">Crear cuenta con acceso exclusivo para un especialista de tu local.</p>
                 </div>
-                <button onclick="closeTeamModal()" class="text-slate-400 hover:text-red-500 transition-colors">
-                    <span class="material-symbols-outlined">close</span>
+                <button onclick="closeTeamModal()" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+                    <span class="material-symbols-outlined text-xl">close</span>
                 </button>
             </div>
 
             <!-- Lista de profesionales actual y límite -->
-            <div class="mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-200">
+            <div class="mb-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div class="flex justify-between items-center mb-3">
                     <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Cuentas Registradas</span>
-                    <span class="text-xs font-black text-purple-600 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200">Límite de Plan: <span id="teamLimitCount">1</span></span>
+                    <span class="text-xs font-black text-purple-600 bg-purple-50 px-2.5 py-1 rounded-md border border-purple-200">Límite de Plan: <span id="teamLimitCount">1</span></span>
                 </div>
                 <div id="teamList" class="space-y-2"></div>
             </div>
 
             <!-- Formulario de creación de cuenta -->
             <form id="teamForm" class="space-y-4">
-                <h3 class="text-sm font-bold text-slate-800 border-b border-slate-100 pb-2">Nueva Cuenta de Acceso</h3>
+                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider border-b border-slate-100 pb-2">Nueva Cuenta de Acceso</h3>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Nombre Completo</label>
-                    <input type="text" name="nombre" required placeholder="Ej: María López" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nombre Completo</label>
+                    <input type="text" name="nombre" required placeholder="Ej: María López" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2 text-sm focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Correo Electrónico (Login)</label>
-                    <input type="email" name="email" required placeholder="maria@ejemplo.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Correo Electrónico (Login)</label>
+                    <input type="email" name="email" required placeholder="maria@ejemplo.com" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2 text-sm focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1">Contraseña Inicial</label>
-                    <input type="password" name="password" required placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-purple-500 outline-none">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Contraseña Inicial</label>
+                    <input type="password" name="password" required placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3.5 py-2 text-sm focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-none">
                 </div>
-                <button type="submit" id="btnTeamSubmit" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl shadow-lg shadow-primary/20 text-sm transition-all">
+                <button type="submit" id="btnTeamSubmit" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2.5 rounded-lg shadow-2xs text-sm transition-all">
                     Registrar Cuenta de Profesional
                 </button>
             </form>
@@ -615,12 +694,12 @@
 
     <!-- Modal Verificación de Correo -->
     <div id="verifyEmailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative">
-            <button onclick="closeVerifyEmailModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2"><span class="material-symbols-outlined">close</span></button>
+        <div class="bg-white rounded-xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-slate-200/90 relative">
+            <button onclick="closeVerifyEmailModal()" class="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"><span class="material-symbols-outlined text-xl">close</span></button>
             
             <div class="text-center mb-6">
-                <div class="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mx-auto mb-3">
-                    <span class="material-symbols-outlined text-3xl">mark_email_read</span>
+                <div class="w-12 h-12 bg-primary/10 text-primary border border-primary/20 rounded-lg flex items-center justify-center mx-auto mb-3">
+                    <span class="material-symbols-outlined text-2xl">mark_email_read</span>
                 </div>
                 <h3 class="text-xl font-bold text-slate-800">Verificar Cuenta</h3>
                 <p class="text-xs text-slate-500 mt-1">Ingresa el código de 6 dígitos enviado a tu correo. Válido por 15 minutos.</p>
@@ -628,13 +707,13 @@
 
             <form id="verifyEmailForm" class="space-y-4">
                 <div>
-                    <input type="text" id="verifyCodeInput" maxlength="6" pattern="[0-9]{6}" required placeholder="000000" class="w-full text-center text-3xl font-extrabold tracking-[10px] py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-primary outline-none">
+                    <input type="text" id="verifyCodeInput" maxlength="6" pattern="[0-9]{6}" required placeholder="000000" class="w-full text-center text-2xl font-extrabold tracking-[8px] py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none">
                 </div>
-                <div id="verifyEmailMsg" class="hidden text-xs font-bold p-3 rounded-xl text-center"></div>
+                <div id="verifyEmailMsg" class="hidden text-xs font-bold p-3 rounded-lg text-center"></div>
 
-                <button type="submit" id="btnSubmitVerify" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-primary/20 transition-all">Verificar Cuenta</button>
+                <button type="submit" id="btnSubmitVerify" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-2.5 rounded-lg shadow-2xs transition-all text-sm">Verificar Cuenta</button>
 
-                <div class="text-center pt-2">
+                <div class="text-center pt-1">
                     <button type="button" onclick="resendVerifyCode(this)" class="text-xs font-bold text-slate-500 hover:text-primary transition-colors">¿No recibiste el código? Reenviar correo</button>
                 </div>
             </form>
@@ -643,19 +722,19 @@
 
     <!-- Modal de Bienvenida para Nuevas Cuentas -->
     <div id="welcomeNewAccountModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[250] hidden flex items-center justify-center p-4 opacity-0 transition-all duration-300">
-        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 text-center relative overflow-hidden" id="welcomeNewAccountContent">
+        <div class="bg-white rounded-xl shadow-2xl border border-slate-200/90 max-w-lg w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 text-center relative overflow-hidden" id="welcomeNewAccountContent">
             <div class="absolute -top-12 -right-12 w-36 h-36 bg-gradient-to-br from-[#d11149]/20 to-[#fc8712]/20 rounded-full blur-2xl pointer-events-none"></div>
             <div class="absolute -bottom-12 -left-12 w-36 h-36 bg-gradient-to-br from-amber-400/20 to-pink-500/20 rounded-full blur-2xl pointer-events-none"></div>
 
-            <button onclick="closeWelcomeNewAccountModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2 transition-colors">
-                <span class="material-symbols-outlined">close</span>
+            <button onclick="closeWelcomeNewAccountModal()" class="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors">
+                <span class="material-symbols-outlined text-xl">close</span>
             </button>
 
-            <div class="w-16 h-16 rounded-3xl signature-glow text-white flex items-center justify-center mx-auto mb-4 shadow-xl shadow-[#d11149]/30">
-                <span class="material-symbols-outlined text-4xl">celebration</span>
+            <div class="w-14 h-14 rounded-xl signature-glow text-white flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#d11149]/20">
+                <span class="material-symbols-outlined text-3xl">celebration</span>
             </div>
 
-            <span class="bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-2">¡Prueba Gratuita Activada!</span>
+            <span class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-[11px] font-black px-3 py-1 rounded-md uppercase tracking-wider inline-block mb-2">¡Prueba Gratuita Activada!</span>
 
             <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">¡Bienvenido a Agendatina! 🎉</h2>
             <p class="text-xs sm:text-sm text-slate-600 mb-6 leading-relaxed">
@@ -663,17 +742,17 @@
             </p>
 
             <div class="grid grid-cols-3 gap-3 mb-6 text-left">
-                <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl">
+                <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-lg">
                     <span class="material-symbols-outlined text-[#d11149] text-xl mb-1 block">menu_book</span>
                     <h4 class="font-bold text-slate-800 text-xs">1. Agenda</h4>
                     <p class="text-[11px] text-slate-500 leading-tight">Turnos y Papelera</p>
                 </div>
-                <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl">
+                <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-lg">
                     <span class="material-symbols-outlined text-pink-600 text-xl mb-1 block">content_cut</span>
                     <h4 class="font-bold text-slate-800 text-xs">2. Servicios</h4>
                     <p class="text-[11px] text-slate-500 leading-tight">Precios y Duración</p>
                 </div>
-                <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl">
+                <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-lg">
                     <span class="material-symbols-outlined text-amber-600 text-xl mb-1 block">language</span>
                     <h4 class="font-bold text-slate-800 text-xs">3. Mi Web</h4>
                     <p class="text-[11px] text-slate-500 leading-tight">Tu Link Público</p>
@@ -681,10 +760,10 @@
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3">
-                <button onclick="startGuidedVirtualTour()" class="w-full signature-glow text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-[#d11149]/20 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm">
-                    <span class="material-symbols-outlined text-[20px]">explore</span> Iniciar Tour Virtual Guiado
+                <button onclick="startGuidedVirtualTour()" class="w-full signature-glow text-white font-bold py-3 px-5 rounded-lg shadow-2xs hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-xs sm:text-sm">
+                    <span class="material-symbols-outlined text-[18px]">explore</span> Iniciar Tour Virtual Guiado
                 </button>
-                <button onclick="closeWelcomeNewAccountModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3.5 px-5 rounded-2xl text-sm transition-all">
+                <button onclick="closeWelcomeNewAccountModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-5 rounded-lg text-xs sm:text-sm transition-all">
                     Ir al Dashboard
                 </button>
             </div>
