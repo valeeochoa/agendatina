@@ -160,6 +160,12 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN envia
 try { $pdo->query("SELECT usar_cupones_descuento FROM configuracion_web LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN usar_cupones_descuento TINYINT(1) DEFAULT 0"); }
 
+try { $pdo->query("SELECT cupon_descuento_pct FROM configuracion_web LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN cupon_descuento_pct INT DEFAULT 10"); }
+
+try { $pdo->query("SELECT cupon_duracion_horas FROM configuracion_web LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN cupon_duracion_horas INT DEFAULT 24"); }
+
 try { $pdo->query("SELECT dias_retorno_clientes FROM configuracion_web LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN dias_retorno_clientes INT DEFAULT 30"); }
 
@@ -168,13 +174,15 @@ try {
         id INT AUTO_INCREMENT PRIMARY KEY,
         id_negocio INT NOT NULL,
         codigo VARCHAR(50) NOT NULL,
-        porcentaje INT NOT NULL DEFAULT 10,
-        telefono_cliente VARCHAR(60) DEFAULT NULL,
-        nombre_cliente VARCHAR(120) DEFAULT NULL,
-        usado TINYINT(1) NOT NULL DEFAULT 0,
-        expira_en DATETIME NOT NULL,
-        creado_en DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        INDEX idx_negocio_codigo (id_negocio, codigo)
+        cliente_celular VARCHAR(50) DEFAULT NULL,
+        cliente_nombre VARCHAR(255) DEFAULT NULL,
+        porcentaje_descuento INT DEFAULT 10,
+        usado TINYINT(1) DEFAULT 0,
+        fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+        fecha_expiracion DATETIME NOT NULL,
+        fecha_uso DATETIME DEFAULT NULL,
+        INDEX (id_negocio),
+        INDEX (codigo)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 } catch(Exception $e) {}
 
@@ -221,7 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             echo json_encode([]); exit;
         }
 
-        $stmt = $pdo->prepare("SELECT color_primario, color_secundario, color_primario_web, color_secundario_web, color_fondo, colores_extra_json, url_logo AS logo, fondo, mensaje_bienvenida AS titulo, subtitulo, whatsapp_contacto, instagram_url, hora_apertura, hora_cierre, intervalo_turnos, tiempo_entre_turnos, turnos_simultaneos, confirmacion_automatica, anticipacion_turno_min, alineacion_servicios, tipo_calendario, texto_local, ubicacion_maps, cursos_html, cursos_json, profesionales_json, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, metodos_pago, limite_eliminacion_dias, horarios_detallados_json, usar_fondo_degrade, primer_dia_semana, datos_transferencia, porcentaje_sena, notificaciones_email, modo_reservas, auto_renovar_vencimiento, reserva_sena_1h, whatsapp_comprobante, enviar_msj_automaticos, usar_cupones_descuento, dias_retorno_clientes FROM configuracion_web WHERE id_negocio = :id_negocio");
+        $stmt = $pdo->prepare("SELECT color_primario, color_secundario, color_primario_web, color_secundario_web, color_fondo, colores_extra_json, url_logo AS logo, fondo, mensaje_bienvenida AS titulo, subtitulo, whatsapp_contacto, instagram_url, hora_apertura, hora_cierre, intervalo_turnos, tiempo_entre_turnos, turnos_simultaneos, confirmacion_automatica, anticipacion_turno_min, alineacion_servicios, tipo_calendario, texto_local, ubicacion_maps, cursos_html, cursos_json, profesionales_json, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, metodos_pago, limite_eliminacion_dias, horarios_detallados_json, usar_fondo_degrade, primer_dia_semana, datos_transferencia, porcentaje_sena, notificaciones_email, modo_reservas, auto_renovar_vencimiento, reserva_sena_1h, whatsapp_comprobante, enviar_msj_automaticos, usar_cupones_descuento, cupon_descuento_pct, cupon_duracion_horas, dias_retorno_clientes FROM configuracion_web WHERE id_negocio = :id_negocio");
         $stmt->execute(['id_negocio' => $id_negocio]);
         $config = $stmt->fetch();
         
@@ -549,6 +557,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $whatsapp_comprobante = isset($data['whatsapp_comprobante']) ? trim($data['whatsapp_comprobante']) : ($oldData['whatsapp_comprobante'] ?? '');
         $enviar_msj_automaticos = isset($data['enviar_msj_automaticos']) ? (int)$data['enviar_msj_automaticos'] : (isset($oldData['enviar_msj_automaticos']) ? (int)$oldData['enviar_msj_automaticos'] : 0);
         $usar_cupones_descuento = isset($data['usar_cupones_descuento']) ? (int)$data['usar_cupones_descuento'] : (isset($oldData['usar_cupones_descuento']) ? (int)$oldData['usar_cupones_descuento'] : 0);
+        $cupon_descuento_pct = isset($data['cupon_descuento_pct']) ? max(1, min(100, (int)$data['cupon_descuento_pct'])) : (isset($oldData['cupon_descuento_pct']) ? (int)$oldData['cupon_descuento_pct'] : 10);
+        $cupon_duracion_horas = isset($data['cupon_duracion_horas']) ? max(1, (int)$data['cupon_duracion_horas']) : (isset($oldData['cupon_duracion_horas']) ? (int)$oldData['cupon_duracion_horas'] : 24);
         $dias_retorno_clientes = isset($data['dias_retorno_clientes']) ? max(1, (int)$data['dias_retorno_clientes']) : (isset($oldData['dias_retorno_clientes']) ? (int)$oldData['dias_retorno_clientes'] : 30);
         
         $stmtPlanCheck = $pdo->prepare("SELECT plan FROM negocios WHERE id = ?");
@@ -563,14 +573,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         
         $stmt = $pdo->prepare("INSERT INTO configuracion_web 
-            (id_negocio, color_primario, color_secundario, color_primario_web, color_secundario_web, color_fondo, colores_extra_json, url_logo, fondo, mensaje_bienvenida, subtitulo, whatsapp_contacto, instagram_url, hora_apertura, hora_cierre, intervalo_turnos, tiempo_entre_turnos, turnos_simultaneos, confirmacion_automatica, anticipacion_turno_min, alineacion_servicios, tipo_calendario, texto_local, ubicacion_maps, cursos_html, cursos_json, profesionales_json, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, metodos_pago, limite_eliminacion_dias, horarios_detallados_json, usar_fondo_degrade, primer_dia_semana, datos_transferencia, porcentaje_sena, notificaciones_email, modo_reservas, auto_renovar_vencimiento, reserva_sena_1h, whatsapp_comprobante, enviar_msj_automaticos, usar_cupones_descuento, dias_retorno_clientes) 
-            VALUES (:id_negocio, :c_pri, :c_sec, :c_p_web, :c_s_web, :c_bg, :c_extra, :logo, :fondo, :msg, :subtitulo, :wpp, :ig, :h_open, :h_close, :intervalo, :tiempo_entre, :simultaneos, :conf_auto, :anticipacion, :align, :tipo_cal, :txt_local, :maps, :cursos_h, :cursos_j, :profs, :h_d_inicio, :h_d_fin, :d_trabajo, :metodos_pago, :limite_elim, :h_detallados, :u_degrade, :p_dia, :datos_trans, :pct_sena, :notif_email, :modo_res, :auto_renovar, :res_sena_1h, :wpp_comp, :env_msj_auto, :usar_cupones, :dias_retorno) 
+            (id_negocio, color_primario, color_secundario, color_primario_web, color_secundario_web, color_fondo, colores_extra_json, url_logo, fondo, mensaje_bienvenida, subtitulo, whatsapp_contacto, instagram_url, hora_apertura, hora_cierre, intervalo_turnos, tiempo_entre_turnos, turnos_simultaneos, confirmacion_automatica, anticipacion_turno_min, alineacion_servicios, tipo_calendario, texto_local, ubicacion_maps, cursos_html, cursos_json, profesionales_json, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, metodos_pago, limite_eliminacion_dias, horarios_detallados_json, usar_fondo_degrade, primer_dia_semana, datos_transferencia, porcentaje_sena, notificaciones_email, modo_reservas, auto_renovar_vencimiento, reserva_sena_1h, whatsapp_comprobante, enviar_msj_automaticos, usar_cupones_descuento, cupon_descuento_pct, cupon_duracion_horas, dias_retorno_clientes) 
+            VALUES (:id_negocio, :c_pri, :c_sec, :c_p_web, :c_s_web, :c_bg, :c_extra, :logo, :fondo, :msg, :subtitulo, :wpp, :ig, :h_open, :h_close, :intervalo, :tiempo_entre, :simultaneos, :conf_auto, :anticipacion, :align, :tipo_cal, :txt_local, :maps, :cursos_h, :cursos_j, :profs, :h_d_inicio, :h_d_fin, :d_trabajo, :metodos_pago, :limite_elim, :h_detallados, :u_degrade, :p_dia, :datos_trans, :pct_sena, :notif_email, :modo_res, :auto_renovar, :res_sena_1h, :wpp_comp, :env_msj_auto, :usar_cupones, :cup_pct, :cup_dur, :dias_retorno) 
             ON DUPLICATE KEY UPDATE 
-            color_primario = :c_pri, color_secundario = :c_sec, color_primario_web = :c_p_web, color_secundario_web = :c_s_web, color_fondo = :c_bg, colores_extra_json = :c_extra, url_logo = :logo, fondo = :fondo, mensaje_bienvenida = :msg, subtitulo = :subtitulo, whatsapp_contacto = :wpp, instagram_url = :ig, hora_apertura = :h_open, hora_cierre = :h_close, intervalo_turnos = :intervalo, tiempo_entre_turnos = :tiempo_entre, turnos_simultaneos = :simultaneos, confirmacion_automatica = :conf_auto, anticipacion_turno_min = :anticipacion, alineacion_servicios = :align, tipo_calendario = :tipo_cal, texto_local = :txt_local, ubicacion_maps = :maps, cursos_html = :cursos_h, cursos_json = :cursos_j, profesionales_json = :profs, hora_descanso_inicio = :h_d_inicio, hora_descanso_fin = :h_d_fin, dias_trabajo = :d_trabajo, metodos_pago = :metodos_pago, limite_eliminacion_dias = :limite_elim, horarios_detallados_json = :h_detallados, usar_fondo_degrade = :u_degrade, primer_dia_semana = :p_dia, datos_transferencia = :datos_trans, porcentaje_sena = :pct_sena, notificaciones_email = :notif_email, modo_reservas = :modo_res, auto_renovar_vencimiento = :auto_renovar, reserva_sena_1h = :res_sena_1h, whatsapp_comprobante = :wpp_comp, enviar_msj_automaticos = :env_msj_auto, usar_cupones_descuento = :usar_cupones, dias_retorno_clientes = :dias_retorno");
+            color_primario = :c_pri, color_secundario = :c_sec, color_primario_web = :c_p_web, color_secundario_web = :c_s_web, color_fondo = :c_bg, colores_extra_json = :c_extra, url_logo = :logo, fondo = :fondo, mensaje_bienvenida = :msg, subtitulo = :subtitulo, whatsapp_contacto = :wpp, instagram_url = :ig, hora_apertura = :h_open, hora_cierre = :h_close, intervalo_turnos = :intervalo, tiempo_entre_turnos = :tiempo_entre, turnos_simultaneos = :simultaneos, confirmacion_automatica = :conf_auto, anticipacion_turno_min = :anticipacion, alineacion_servicios = :align, tipo_calendario = :tipo_cal, texto_local = :txt_local, ubicacion_maps = :maps, cursos_html = :cursos_h, cursos_json = :cursos_j, profesionales_json = :profs, hora_descanso_inicio = :h_d_inicio, hora_descanso_fin = :h_d_fin, dias_trabajo = :d_trabajo, metodos_pago = :metodos_pago, limite_eliminacion_dias = :limite_elim, horarios_detallados_json = :h_detallados, usar_fondo_degrade = :u_degrade, primer_dia_semana = :p_dia, datos_transferencia = :datos_trans, porcentaje_sena = :pct_sena, notificaciones_email = :notif_email, modo_reservas = :modo_res, auto_renovar_vencimiento = :auto_renovar, reserva_sena_1h = :res_sena_1h, whatsapp_comprobante = :wpp_comp, enviar_msj_automaticos = :env_msj_auto, usar_cupones_descuento = :usar_cupones, cupon_descuento_pct = :cup_pct, cupon_duracion_horas = :cup_dur, dias_retorno_clientes = :dias_retorno");
             
         $stmt->execute([
             'id_negocio' => $id_negocio, 'c_pri' => $color_primario, 'c_sec' => $color_secundario, 'c_p_web' => $color_primario_web, 'c_s_web' => $color_secundario_web,
-            'c_bg' => $color_fondo, 'c_extra' => $colores_extra_json, 'logo' => $url_logo, 'fondo' => $url_fondo, 'msg' => $mensaje_bienvenida, 'subtitulo' => $subtitulo, 'wpp' => $whatsapp_contacto, 'ig' => $instagram_url, 'h_open' => $hora_apertura, 'h_close' => $hora_cierre, 'intervalo' => $intervalo_turnos, 'tiempo_entre' => $tiempo_entre_turnos, 'simultaneos' => $turnos_simultaneos, 'conf_auto' => $confirmacion_automatica, 'anticipacion' => $anticipacion_turno_min, 'align' => $alineacion_servicios, 'tipo_cal' => $tipo_calendario, 'txt_local' => $txt_local, 'maps' => $ubicacion_maps, 'cursos_h' => $cursos_html, 'cursos_j' => $cursos_json, 'profs' => $profesionales_json, 'h_d_inicio' => $hora_descanso_inicio, 'h_d_fin' => $hora_descanso_fin, 'd_trabajo' => $dias_trabajo, 'metodos_pago' => $metodos_pago, 'limite_elim' => $limite_eliminacion_dias, 'h_detallados' => $horarios_detallados_json, 'u_degrade' => $usar_fondo_degrade, 'p_dia' => $primer_dia_semana, 'datos_trans' => $datos_transferencia, 'pct_sena' => $porcentaje_sena, 'notif_email' => $notificaciones_email, 'modo_res' => $modo_reservas, 'auto_renovar' => $auto_renovar_vencimiento, 'res_sena_1h' => $reserva_sena_1h, 'wpp_comp' => $whatsapp_comprobante, 'env_msj_auto' => $enviar_msj_automaticos, 'usar_cupones' => $usar_cupones_descuento, 'dias_retorno' => $dias_retorno_clientes
+            'c_bg' => $color_fondo, 'c_extra' => $colores_extra_json, 'logo' => $url_logo, 'fondo' => $url_fondo, 'msg' => $mensaje_bienvenida, 'subtitulo' => $subtitulo, 'wpp' => $whatsapp_contacto, 'ig' => $instagram_url, 'h_open' => $hora_apertura, 'h_close' => $hora_cierre, 'intervalo' => $intervalo_turnos, 'tiempo_entre' => $tiempo_entre_turnos, 'simultaneos' => $turnos_simultaneos, 'conf_auto' => $confirmacion_automatica, 'anticipacion' => $anticipacion_turno_min, 'align' => $alineacion_servicios, 'tipo_cal' => $tipo_calendario, 'txt_local' => $txt_local, 'maps' => $ubicacion_maps, 'cursos_h' => $cursos_html, 'cursos_j' => $cursos_json, 'profs' => $profesionales_json, 'h_d_inicio' => $hora_descanso_inicio, 'h_d_fin' => $hora_descanso_fin, 'd_trabajo' => $dias_trabajo, 'metodos_pago' => $metodos_pago, 'limite_elim' => $limite_eliminacion_dias, 'h_detallados' => $horarios_detallados_json, 'u_degrade' => $usar_fondo_degrade, 'p_dia' => $primer_dia_semana, 'datos_trans' => $datos_transferencia, 'pct_sena' => $porcentaje_sena, 'notif_email' => $notificaciones_email, 'modo_res' => $modo_reservas, 'auto_renovar' => $auto_renovar_vencimiento, 'res_sena_1h' => $reserva_sena_1h, 'wpp_comp' => $whatsapp_comprobante, 'env_msj_auto' => $enviar_msj_automaticos, 'usar_cupones' => $usar_cupones_descuento, 'cup_pct' => $cupon_descuento_pct, 'cup_dur' => $cupon_duracion_horas, 'dias_retorno' => $dias_retorno_clientes
         ]);
 
         $response = ['success' => true];

@@ -31,10 +31,11 @@ try {
 
    // Obtener configuración web del negocio (horarios, días laborables, etc.)
     try { $pdo->query("SELECT usar_cupones_descuento FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN usar_cupones_descuento TINYINT(1) DEFAULT 0"); } catch (Exception $eCol2) {} }
-    try { $pdo->query("SELECT reserva_sena_1h FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN reserva_sena_1h TINYINT(1) DEFAULT 0"); } catch (Exception $eCol2) {} }
+    try { $pdo->query("SELECT cupon_descuento_pct FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN cupon_descuento_pct INT DEFAULT 10"); } catch (Exception $eCol2) {} }
+    try { $pdo->query("SELECT cupon_duracion_horas FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN cupon_duracion_horas INT DEFAULT 24"); } catch (Exception $eCol2) {} }
     try { $pdo->query("SELECT reserva_sena_1h FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN reserva_sena_1h TINYINT(1) DEFAULT 0"); } catch (Exception $eCol2) {} }
     try { $pdo->query("SELECT tiempo_entre_turnos FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN tiempo_entre_turnos INT DEFAULT 0"); } catch (Exception $eCol2) {} }
-    $stmtConf = $pdo->prepare("SELECT hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json, intervalo_turnos, tiempo_entre_turnos, primer_dia_semana, turnos_simultaneos, modo_reservas, usar_cupones_descuento, reserva_sena_1h FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");
+    $stmtConf = $pdo->prepare("SELECT hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json, intervalo_turnos, tiempo_entre_turnos, primer_dia_semana, turnos_simultaneos, modo_reservas, usar_cupones_descuento, cupon_descuento_pct, cupon_duracion_horas, reserva_sena_1h FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");
     $stmtConf->execute(['id_negocio' => $id_negocio]);
     $conf = $stmtConf->fetch(PDO::FETCH_ASSOC);
 
@@ -57,6 +58,8 @@ try {
         'turnos_simultaneos' => $permiteSimultaneos ? 'si' : 'no',
         'modo_reservas' => $conf['modo_reservas'] ?? 'libre',
         'usar_cupones_descuento' => (int)($conf['usar_cupones_descuento'] ?? 0),
+        'cupon_descuento_pct' => (int)($conf['cupon_descuento_pct'] ?? 10),
+        'cupon_duracion_horas' => (int)($conf['cupon_duracion_horas'] ?? 24),
         'reserva_sena_1h' => (int)($conf['reserva_sena_1h'] ?? 0)
     ];
     

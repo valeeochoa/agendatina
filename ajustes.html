@@ -430,6 +430,31 @@
                             </span>
                         </div>
                     </div>
+
+                    <!-- Reserva automática por 1 hora en espera de confirmación / Seña por Transferencia (Incidencia #25) -->
+                    <div class="p-5 bg-gradient-to-r from-amber-50/90 via-orange-50/60 to-slate-50 border border-amber-300/90 rounded-2xl space-y-3 shadow-2xs">
+                        <div class="flex items-start sm:items-center justify-between gap-3">
+                            <label class="flex items-start sm:items-center gap-3 cursor-pointer">
+                                <input type="checkbox" id="chkReservaSena1hTurnos" onchange="syncReservaSena1hFromTurnos(this.checked)" class="w-5 h-5 mt-0.5 sm:mt-0 text-[#D11149] rounded focus:ring-[#D11149] border-slate-300 shrink-0">
+                                <div>
+                                    <span class="block text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[20px] text-amber-600">hourglass_top</span>
+                                        <span>Reserva automática por 1 hora en espera de confirmación (Transferencia de Seña)</span>
+                                    </span>
+                                    <span class="block text-xs text-slate-600 mt-0.5 leading-relaxed">
+                                        El turno se reserva provisoriamente por 1 hora en espera de que el cliente realice la transferencia de la seña. El sistema te avisa por email de que tenés un turno en espera de confirmación y le muestra los datos de pago al cliente.
+                                    </span>
+                                </div>
+                            </label>
+                            <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 shrink-0">Opcional</span>
+                        </div>
+                        <div id="divAvisoTurnosReservaSena1h" class="hidden text-xs text-amber-900 bg-white border border-amber-200 rounded-xl p-3 leading-relaxed flex items-center justify-between gap-2">
+                            <span>
+                                💡 Podés configurar tu Alias bancario, porcentaje de seña y WhatsApp de comprobantes en la sección <strong class="text-[#D11149]">Métodos de Pago</strong>.
+                            </span>
+                            <a href="#chkTransferencia" onclick="focusMetodosPagoSection(event)" class="text-xs font-extrabold text-[#D11149] hover:underline shrink-0">Ver datos de pago →</a>
+                        </div>
+                    </div>
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">Anticipación mínima</label>
                         <div class="flex items-center gap-2">
@@ -595,17 +620,41 @@
                         </div>
                     </div>
 
-                    <!-- Pregunta 2: Cupones de descuento -->
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl transition-all">
+                    <!-- Pregunta 2: Cupones de descuento (Incidencia #24) -->
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl transition-all space-y-3">
                         <label class="flex items-start sm:items-center justify-between gap-3 cursor-pointer">
                             <div class="flex items-start sm:items-center gap-3">
                                 <input type="checkbox" id="chkUsarCuponesDescuento" name="usar_cupones_descuento" value="1" onchange="toggleFidelizacionDetails()" class="w-5 h-5 mt-0.5 sm:mt-0 text-purple-600 rounded focus:ring-purple-500 border-slate-300 shrink-0">
                                 <div>
-                                    <span class="block text-sm font-extrabold text-slate-800">¿Deseas que el sistema brinde cupones de descuento (10% OFF) y mostrar el campo al reservar?</span>
-                                    <span class="block text-xs text-slate-500 mt-0.5">Solo si tildas esta opción, tus clientes verán el campo para ingresar un cupón al sacar turno y podrás enviarles cupones de 10% OFF válidos por 24hs y de un solo uso.</span>
+                                    <span class="block text-sm font-extrabold text-slate-800">¿Deseas habilitar cupones de descuento y mostrar el campo al reservar?</span>
+                                    <span class="block text-xs text-slate-500 mt-0.5">Solo si tildas esta opción, tus clientes verán el campo para ingresar un cupón al sacar turno. Podrás personalizar el porcentaje de descuento y la duración del cupón.</span>
                                 </div>
                             </div>
                         </label>
+
+                        <div id="divDetallesCuponesDescuento" class="hidden pt-3 border-t border-slate-200/80 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Porcentaje de Descuento del Cupón:</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="configCuponDescuentoPct" name="cupon_descuento_pct" min="1" max="100" value="10" class="w-24 bg-white border border-slate-200 rounded-xl px-3 py-2 text-center text-sm font-black text-slate-900 focus:ring-2 focus:ring-purple-500 outline-none transition-all">
+                                    <span class="text-xs font-extrabold text-slate-700">% OFF</span>
+                                </div>
+                                <span class="block text-[11px] text-slate-500 mt-1">Descuento aplicado al total del servicio al canjear el cupón (de 1 solo uso).</span>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Duración / Validez del Cupón:</label>
+                                <select id="configCuponDuracionHoras" name="cupon_duracion_horas" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none transition-all">
+                                    <option value="12">12 horas</option>
+                                    <option value="24" selected>24 horas (1 día)</option>
+                                    <option value="48">48 horas (2 días)</option>
+                                    <option value="72">72 horas (3 días)</option>
+                                    <option value="168">7 días (1 semana)</option>
+                                    <option value="360">15 días</option>
+                                    <option value="720">30 días (1 mes)</option>
+                                </select>
+                                <span class="block text-[11px] text-slate-500 mt-1">Tiempo que tiene el cliente para utilizar el cupón desde su emisión.</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -32,6 +32,8 @@ try {
 foreach ([
     'enviar_msj_automaticos' => 'TINYINT(1) DEFAULT 0',
     'usar_cupones_descuento' => 'TINYINT(1) DEFAULT 0',
+    'cupon_descuento_pct' => 'INT DEFAULT 10',
+    'cupon_duracion_horas' => 'INT DEFAULT 24',
     'dias_retorno_clientes' => 'INT DEFAULT 30'
 ] as $col => $def) {
     try { $pdo->query("SELECT $col FROM configuracion_web LIMIT 1"); }
@@ -42,6 +44,8 @@ $stmtNeg = $pdo->prepare("
     SELECT n.nombre_fantasia, n.ruta,
            COALESCE(cw.enviar_msj_automaticos, 0) AS enviar_msj_automaticos,
            COALESCE(cw.usar_cupones_descuento, 0) AS usar_cupones_descuento,
+           COALESCE(cw.cupon_descuento_pct, 10) AS cupon_descuento_pct,
+           COALESCE(cw.cupon_duracion_horas, 24) AS cupon_duracion_horas,
            COALESCE(cw.dias_retorno_clientes, 30) AS dias_retorno_clientes
     FROM negocios n
     LEFT JOIN configuracion_web cw ON cw.id_negocio = n.id
@@ -52,6 +56,8 @@ $negData = $stmtNeg->fetch(PDO::FETCH_ASSOC);
 
 $diasRetorno = max(1, (int)($negData['dias_retorno_clientes'] ?? 30));
 $usarCupones = (int)($negData['usar_cupones_descuento'] ?? 0) === 1;
+$cuponPct = max(1, min(100, (int)($negData['cupon_descuento_pct'] ?? 10)));
+$cuponHoras = max(1, (int)($negData['cupon_duracion_horas'] ?? 24));
 $enviarMsj = (int)($negData['enviar_msj_automaticos'] ?? 0) === 1;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -69,35 +75,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $codigoCupon = null;
-    if ($usarCupones) {
-        $stmtExist = $pdo->prepare("SELECT codigo FROM cupones_descuento WHERE id_negocio = :id_neg AND cliente_celular = :cel AND usado = 0 AND fecha_expiracion > NOW() ORDER BY id DESC LIMIT 1");
-        $stmtExist->execute(['id_neg' => $id_negocio, 'cel' => $clienteCelular]);
-        $existingCode = $stmtExist->fetchColumn();
+    $duracionTexto = ($cuponHoras >= 24 && $cuponHoras % 24 === 0) 
+        ? (($cuponHoras / 24 === 1) ? '24hs' : ($cuponHoras / 24) . ' días') 
+        : "{$cuponHoras}hs";
 
-        if ($existingCode) {
-            $codigoCupon = $existingCode;
+    if ($usarCupones) {
+        $stmtExist = $pdo->prepare("SELECT codigo, porcentaje_descuento FROM cupones_descuento WHERE id_negocio = :id_neg AND cliente_celular = :cel AND usado = 0 AND fecha_expiracion > NOW() ORDER BY id DESC LIMIT 1");
+        $stmtExist->execute(['id_neg' => $id_negocio, 'cel' => $clienteCelular]);
+        $existingRow = $stmtExist->fetch(PDO::FETCH_ASSOC);
+
+        if ($existingRow) {
+            $codigoCupon = $existingRow['codigo'];
+            if (!empty($existingRow['porcentaje_descuento'])) {
+                $cuponPct = (int)$existingRow['porcentaje_descuento'];
+            }
         } else {
             $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
             $randPart = '';
             for ($i = 0; $i < 5; $i++) {
                 $randPart .= $chars[random_int(0, strlen($chars) - 1)];
             }
-            $codigoCupon = 'DESC10-' . $randPart;
-            $expira = date('Y-m-d H:i:s', strtotime('+24 hours'));
+            $prefix = $cuponPct > 0 ? "DESC{$cuponPct}-" : "DESC10-";
+            $codigoCupon = $prefix . $randPart;
+            $expira = date('Y-m-d H:i:s', strtotime("+{$cuponHoras} hours"));
 
-            $stmtIns = $pdo->prepare("INSERT INTO cupones_descuento (id_negocio, codigo, cliente_celular, cliente_nombre, porcentaje_descuento, usado, fecha_expiracion) VALUES (:id_neg, :cod, :cel, :nom, 10, 0, :exp)");
+            $stmtIns = $pdo->prepare("INSERT INTO cupones_descuento (id_negocio, codigo, cliente_celular, cliente_nombre, porcentaje_descuento, usado, fecha_expiracion) VALUES (:id_neg, :cod, :cel, :nom, :pct, 0, :exp)");
             $stmtIns->execute([
                 'id_neg' => $id_negocio,
                 'cod' => $codigoCupon,
                 'cel' => $clienteCelular,
                 'nom' => $clienteNombre,
+                'pct' => $cuponPct,
                 'exp' => $expira
             ]);
         }
     }
 
     if ($usarCupones && $codigoCupon) {
-        $mensaje = "Hola {$clienteNombre} ya pasaron {$diasTranscurridos} días desde la última vez que viniste, si sacas un turno ahora desde la página con el cupón {$codigoCupon} tenes un 10off, este cupón es para usar una sola vez y expira en 24hs";
+        $mensaje = "Hola {$clienteNombre} ya pasaron {$diasTranscurridos} días desde la última vez que viniste, si sacas un turno ahora desde la página con el cupón {$codigoCupon} tenes un {$cuponPct}% OFF, este cupón es para usar una sola vez y expira en {$duracionTexto}";
     } else {
         $mensaje = "Hola {$clienteNombre} ya pasaron {$diasTranscurridos} días desde la última vez que viniste, te escribimos para recordarte que puedes agendar tu próximo turno desde nuestra página cuando gustes.";
     }

@@ -16,6 +16,16 @@ if (empty($ruta)) {
 
 require_once __DIR__ . '/backend/conexion.php';
 
+// Si se accede a un negocio real (no demo), limpiar cualquier sesión demo residual
+if (!empty($ruta) && strpos(strtolower(trim($ruta)), 'demo') !== 0) {
+    if (session_status() === PHP_SESSION_NONE) {
+        @session_start();
+    }
+    if (!empty($_SESSION['is_demo'])) {
+        unset($_SESSION['is_demo'], $_SESSION['user_id'], $_SESSION['id_negocio'], $_SESSION['ruta_negocio'], $_SESSION['rol_en_local'], $_SESSION['nombre_completo'], $_SESSION['nombre_negocio']);
+    }
+}
+
 try {
     // 2. Validar que la ruta del negocio exista en la base de datos
     $stmt = $pdo->prepare("SELECT id FROM negocios WHERE ruta = :ruta LIMIT 1");
@@ -37,14 +47,14 @@ try {
 
     $tipo_calendario = $conf ? ($conf['tipo_calendario'] ?? 'clasico') : 'clasico';
 
-    // 4. Verificar si el plan incluye página web (Premium/Completo)
+    // 4. Verificar si el plan incluye página web (Profesional/Intermedio o Premium/Completo)
     $stmtPlan = $pdo->prepare("SELECT plan FROM negocios WHERE id = :id LIMIT 1");
     $stmtPlan->execute(['id' => $id_negocio]);
     $planRow = $stmtPlan->fetch();
-    $planName = $planRow ? strtolower($planRow['plan']) : 'basico';
-    $tiene_web = (strpos($planName, 'premium') !== false || strpos($planName, 'completo') !== false);
+    $planName = $planRow ? strtolower(trim($planRow['plan'])) : 'basico';
+    $tiene_web = (strpos($planName, 'profesional') !== false || strpos($planName, 'intermedio') !== false || strpos($planName, 'premium') !== false || strpos($planName, 'completo') !== false);
 
-    // 4. Enrutamiento según la URL solicitada
+    // 5. Enrutamiento según la URL solicitada
     if ($vista === 'calendario') {
         // Están visitando /tu-negocio/calendario
         if ($tipo_calendario === 'semanal') {

@@ -3630,6 +3630,15 @@ if (document.readyState === 'complete' || document.readyState === 'interactive')
 }
 
 function checkAdminGlobalSession(config = null) {
+    // En páginas de Calendario (Mensual / Semanal), delegar el control del navbar exclusivamente a calendario.js
+    const isCalendarView = !!(document.getElementById('mainCalendarWrapper') || document.getElementById('weeklyCalendarView') || document.getElementById('calBody') || window.location.pathname.toLowerCase().includes('calendario'));
+    if (isCalendarView) {
+        if (typeof window.syncCalendarNavbarMode === 'function') {
+            window.syncCalendarNavbarMode(config);
+        }
+        return;
+    }
+
     fetch('backend/perfil.php')
     .then(res => res.json())
     .then(data => {
@@ -3655,7 +3664,9 @@ function checkAdminGlobalSession(config = null) {
 
             const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
             const urlParams = new URLSearchParams(window.location.search);
-            const negocioSlug = urlParams.get('n') || (window.location.pathname.split('/').filter(p => p && !p.includes('.html') && !p.includes('.php')).pop() || '');
+            const ignorePathParts = ['backend', 'css', 'js', 'public', 'agendatina', 'pruebas', 'public_html', 'htdocs', 'calendario', 'web'];
+            const pathSlug = window.location.pathname.split('/').filter(p => p && !p.includes('.html') && !p.includes('.php') && !ignorePathParts.includes(p.toLowerCase())).pop() || '';
+            const negocioSlug = urlParams.get('n') || pathSlug;
             const currentRuta = (negocioSlug || (config ? config.ruta || config.subdominio : '') || '').toLowerCase().trim();
             
             const adminPages = ['dashboard', 'ajustes', 'estadisticas', 'servicios', 'equipo', 'mi-web', 'agenda', 'manual', 'consultas', 'perfil', 'pago', 'clientes', 'mi-cuenta'];
@@ -3663,7 +3674,9 @@ function checkAdminGlobalSession(config = null) {
             const isPublicPage = currentPath.includes('web.html') || currentPath.includes('calendario');
             const isStrictAdminPage = adminPages.some(page => currentPath.includes(page));
 
-            if (isDemo || (!isPublicPage && isStrictAdminPage) || (currentRuta && loggedRuta === currentRuta) || (config && data.business.id == config.id_negocio)) {
+            const effectiveIsDemo = isDemo && (!currentRuta || currentRuta.startsWith('demo'));
+
+            if (effectiveIsDemo || (!isPublicPage && isStrictAdminPage) || (currentRuta && loggedRuta === currentRuta) || (config && config.id_negocio && data.business.id == config.id_negocio)) {
                 isUserAdmin = true;
             } else {
                 isUserAdmin = false;

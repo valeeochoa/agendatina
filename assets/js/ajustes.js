@@ -486,6 +486,16 @@ window.applyCalendarConfigToForm = function(data) {
         if (chkCupones) chkCupones.checked = (data.usar_cupones_descuento == 1 || data.usar_cupones_descuento === '1' || data.usar_cupones_descuento === true);
     }
 
+    if (data.cupon_descuento_pct !== undefined) {
+        const inpCuponPct = form.querySelector('#configCuponDescuentoPct');
+        if (inpCuponPct) inpCuponPct.value = Math.max(1, Math.min(100, parseInt(data.cupon_descuento_pct) || 10));
+    }
+
+    if (data.cupon_duracion_horas !== undefined) {
+        const selCuponDur = form.querySelector('#configCuponDuracionHoras');
+        if (selCuponDur) selCuponDur.value = String(parseInt(data.cupon_duracion_horas) || 24);
+    }
+
     if (data.dias_retorno_clientes !== undefined) {
         const inpDiasRetorno = form.querySelector('#configDiasRetornoClientes');
         if (inpDiasRetorno) inpDiasRetorno.value = parseInt(data.dias_retorno_clientes) || 30;
@@ -536,9 +546,46 @@ window.setPrimerDiaSemana = function(val) {
 
 window.toggleReservaSena1hDetails = function() {
     const chk1h = document.getElementById('chkReservaSena1h');
+    const chk1hTurnos = document.getElementById('chkReservaSena1hTurnos');
     const div1h = document.getElementById('divDetallesReservaSena1h');
-    if (chk1h && div1h) {
+    const divAvisoTurnos = document.getElementById('divAvisoTurnosReservaSena1h');
+    
+    if (chk1h && chk1hTurnos) {
+        chk1hTurnos.checked = chk1h.checked;
+    }
+    if (div1h && chk1h) {
         div1h.classList.toggle('hidden', !chk1h.checked);
+    }
+    if (divAvisoTurnos && chk1h) {
+        divAvisoTurnos.classList.toggle('hidden', !chk1h.checked);
+    }
+};
+
+window.syncReservaSena1hFromTurnos = function(isChecked) {
+    const chk1h = document.getElementById('chkReservaSena1h');
+    const chkTrans = document.getElementById('chkTransferencia');
+    if (chk1h) {
+        chk1h.checked = isChecked;
+        if (isChecked && chkTrans && !chkTrans.checked) {
+            chkTrans.checked = true;
+            if (typeof window.toggleMetodosPagoDetails === 'function') window.toggleMetodosPagoDetails();
+        }
+        window.toggleReservaSena1hDetails();
+    }
+};
+
+window.focusMetodosPagoSection = function(e) {
+    if (e) e.preventDefault();
+    const target = document.getElementById('chkTransferencia') || document.querySelector('[data-ajustes-marker="pagos"]');
+    if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const chkTrans = document.getElementById('chkTransferencia');
+        if (chkTrans && !chkTrans.checked) {
+            chkTrans.checked = true;
+            if (typeof window.toggleMetodosPagoDetails === 'function') window.toggleMetodosPagoDetails();
+        }
+        const inpDatos = document.getElementById('configDatosTransferencia');
+        if (inpDatos) setTimeout(() => inpDatos.focus(), 400);
     }
 };
 
@@ -547,6 +594,12 @@ window.toggleFidelizacionDetails = function() {
     const divDias = document.getElementById('divDetallesDiasRetorno');
     if (chkMsj && divDias) {
         divDias.classList.toggle('hidden', !chkMsj.checked);
+    }
+
+    const chkCupon = document.getElementById('chkUsarCuponesDescuento');
+    const divCupon = document.getElementById('divDetallesCuponesDescuento');
+    if (chkCupon && divCupon) {
+        divCupon.classList.toggle('hidden', !chkCupon.checked);
     }
 };
 
@@ -1352,6 +1405,8 @@ function handleCalendarConfigSubmit(e) {
         whatsapp_comprobante: form.querySelector('#configWhatsappComprobante')?.value || '',
         enviar_msj_automaticos: form.querySelector('#chkEnviarMsjAutomaticos')?.checked ? 1 : 0,
         usar_cupones_descuento: form.querySelector('#chkUsarCuponesDescuento')?.checked ? 1 : 0,
+        cupon_descuento_pct: Math.max(1, Math.min(100, parseInt(form.querySelector('#configCuponDescuentoPct')?.value) || 10)),
+        cupon_duracion_horas: parseInt(form.querySelector('#configCuponDuracionHoras')?.value) || 24,
         dias_retorno_clientes: parseInt(form.querySelector('#configDiasRetornoClientes')?.value) || 30,
         primer_dia_semana: form.querySelector('#configPrimerDiaSemana')?.value ?? 1
     };

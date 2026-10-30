@@ -190,6 +190,8 @@ foreach ([
     'datos_transferencia' => 'TEXT DEFAULT NULL',
     'porcentaje_sena' => 'INT DEFAULT 50',
     'usar_cupones_descuento' => 'TINYINT(1) DEFAULT 0',
+    'cupon_descuento_pct' => 'INT DEFAULT 10',
+    'cupon_duracion_horas' => 'INT DEFAULT 24',
     'whatsapp_contacto' => 'VARCHAR(50) DEFAULT NULL',
     'tiempo_entre_turnos' => 'INT DEFAULT 0'
 ] as $colCw => $defCw) {
@@ -236,7 +238,7 @@ try {
         exit;
     }
 
-    $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos, tiempo_entre_turnos, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, reserva_sena_1h, whatsapp_comprobante, datos_transferencia, porcentaje_sena, usar_cupones_descuento, whatsapp_contacto FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
+    $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos, tiempo_entre_turnos, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, reserva_sena_1h, whatsapp_comprobante, datos_transferencia, porcentaje_sena, usar_cupones_descuento, cupon_descuento_pct, cupon_duracion_horas, whatsapp_contacto FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
     $stmtConfig->execute(['id' => $id_negocio]);
     $configWeb = $stmtConfig->fetch(PDO::FETCH_ASSOC);
 
@@ -391,11 +393,13 @@ try {
         if (!$rowCup) {
             $pdo->rollBack();
             http_response_code(400);
-            echo json_encode(['success' => false, 'error' => 'El cupón de descuento ingresado no es válido, ya fue utilizado o ha expirado (validez de 24 hs).']);
+            $durH = (int)($configWeb['cupon_duracion_horas'] ?? 24);
+            $durTexto = ($durH >= 24 && $durH % 24 === 0) ? (($durH / 24 === 1) ? '24 hs' : ($durH / 24) . ' días') : "{$durH} hs";
+            echo json_encode(['success' => false, 'error' => "El cupón de descuento ingresado no es válido, ya fue utilizado o ha expirado (validez de {$durTexto})."]);
             exit;
         }
         $cuponAplicadoCodigo = $rowCup['codigo'];
-        $descuentoAplicadoPct = (int)($rowCup['porcentaje_descuento'] ?? 10);
+        $descuentoAplicadoPct = (int)($rowCup['porcentaje_descuento'] ?? ($configWeb['cupon_descuento_pct'] ?? 10));
         $pdo->prepare("UPDATE cupones_descuento SET usado = 1, fecha_uso = NOW() WHERE id = ?")->execute([$rowCup['id']]);
         $lastTurnoId = $pdo->lastInsertId();
         if ($lastTurnoId) {
@@ -411,6 +415,11 @@ try {
     $pctSena = !empty($configWeb['porcentaje_sena']) ? (int)$configWeb['porcentaje_sena'] : 50;
     if ($precio_servicio > 0 && $pctSena > 0) {
         $monto_sena = round($precio_servicio * ($pctSena / 100), 2);
+    }
+
+    $isReservaSena1h = !empty($configWeb['reserva_sena_1h']);
+    if ($isReservaSena1h) {
+        $subject = "⏳ Turno en Espera de Confirmación (Reserva 1h - Seña) - $fecha_display | $businessName";
     }
 
     $pdo->commit();
@@ -443,6 +452,19 @@ try {
     $mail->setFrom('no-reply@agendatina.site', 'Agendatina (Turnos)');
     $mail->addAddress($to);
     $mail->isHTML(true);
+
+    if ($isReservaSena1h) {
+        $bannerSena = "
+        <div style='background-color: #fffbeb; border: 2px solid #f59e0b; padding: 18px; border-radius: 10px; margin-bottom: 22px; text-align: left;'>
+            <p style='margin: 0 0 8px 0; color: #b45309; font-size: 16px; font-weight: 800;'>⏱️ Reserva automática por 1 hora en espera de confirmación</p>
+            <p style='margin: 0; color: #78350f; font-size: 14px; line-height: 1.5;'>
+                El turno ha sido reservado provisoriamente. El cliente está por transferir la seña acordada (" . (!empty($monto_sena) ? "<strong>\$$monto_sena</strong> ($pctSena%)" : "$pctSena%") . ") y enviarte el comprobante por WhatsApp. 
+                Recuerda verificar el pago antes de confirmar definitivamente el turno en tu agenda.
+            </p>
+        </div>";
+        $message = str_replace("<h2 style='color: #1e293b; margin-top: 0;'>¡Nueva Solicitud de Turno!</h2>", $bannerSena . "<h2 style='color: #1e293b; margin-top: 0;'>¡Turno en Espera de Confirmación (Seña)!</h2>", $message);
+    }
+
     $mail->Subject = $subject;
     $mail->Body = $message;
     $mail->send();
@@ -489,6 +511,8 @@ echo json_encode([
     'reserva_sena_1h' => (int)($configWeb['reserva_sena_1h'] ?? 0),
     'datos_transferencia' => $configWeb['datos_transferencia'] ?? '',
     'whatsapp_comprobante' => !empty($configWeb['whatsapp_comprobante']) ? $configWeb['whatsapp_comprobante'] : ($configWeb['whatsapp_contacto'] ?? ''),
+    'cupon_descuento_pct' => (int)($configWeb['cupon_descuento_pct'] ?? 10),
+    'cupon_duracion_horas' => (int)($configWeb['cupon_duracion_horas'] ?? 24),
     'porcentaje_sena' => (int)($configWeb['porcentaje_sena'] ?? 50),
     'precio_servicio' => $precio_servicio,
     'monto_sena' => $monto_sena,

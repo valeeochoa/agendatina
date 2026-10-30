@@ -1,11 +1,11 @@
 // backend/js/calendario.js
 let negocioSlug = '';
 const urlParams = new URLSearchParams(window.location.search);
-negocioSlug = urlParams.get('n');
+negocioSlug = urlParams.get('n') || urlParams.get('ruta') || '';
 if (!negocioSlug) {
     const pathParts = window.location.pathname.split('/').filter(p => p && !p.includes('.html') && !p.includes('.php'));
-    const ignoreDirs = ['backend', 'css', 'js', 'public', 'agendatina', 'calendario', 'web', 'calendarioMensual', 'calendarioSemanal', 'calendario2'];
-    const validParts = pathParts.filter(p => !ignoreDirs.includes(p));
+    const ignoreDirs = ['backend', 'css', 'js', 'public', 'agendatina', 'pruebas', 'public_html', 'htdocs', 'calendario', 'web', 'calendarioMensual', 'calendarioSemanal', 'calendario2'];
+    const validParts = pathParts.filter(p => !ignoreDirs.includes(p.toLowerCase()));
     if (validParts.length > 0) {
         negocioSlug = validParts[validParts.length - 1];
     }
@@ -17,7 +17,16 @@ var isPreviewMode = false;
 var services = [];
 var allAppointments = [];
 var teamProfessionals = [];
-var isAdmin = sessionStorage.getItem('agendatina_session') === 'active' || (negocioSlug === '');
+// Si se accede mediante el enlace público del negocio (?n=tu-negocio o /tu-negocio, salvo demo o ?admin=1), se inicia en modo Cliente
+var isPublicClientSlug = Boolean(negocioSlug && !negocioSlug.toLowerCase().startsWith('demo') && urlParams.get('admin') !== '1');
+var isAdmin = !isPublicClientSlug && (sessionStorage.getItem('agendatina_session') === 'active' || (negocioSlug === '') || negocioSlug.toLowerCase().startsWith('demo'));
+
+window.hasWebPagePlan = function(planStr) {
+    const p = String(planStr || (window.businessWebConfig && window.businessWebConfig.plan) || '').toLowerCase().trim();
+    if (!p) return false;
+    if (p.includes('basico') || p.includes('básico') || p.includes('simple')) return false;
+    return p.includes('profesional') || p.includes('intermedio') || p.includes('premium') || p.includes('completo');
+};
 
 window.normalizeProfName = function(name) {
     if (!name || typeof name !== 'string') return '';
@@ -2136,17 +2145,86 @@ function buildProfessionalLinkButton(profName) {
 }
 
 window.copyMyLink = function() {
+    const doCopyLink = (rutaVal) => {
+        if (!rutaVal) {
+            if (typeof showToast === 'function') showToast('No se encontró la ruta pública del negocio.', 'error');
+            return;
+        }
+        const pathParts = window.location.pathname.split('/');
+        pathParts.pop();
+        const basePath = pathParts.join('/');
+        const link = window.location.origin + (basePath ? basePath : '') + '/' + rutaVal;
+
+        const onCopiedSuccess = () => {
+            if (typeof showToast === 'function') {
+                showToast('¡Enlace copiado al portapapeles! (' + link + ')', 'success');
+            }
+            const shareBtns = document.querySelectorAll('button[onclick="copyMyLink()"]');
+            shareBtns.forEach(btn => {
+                if (!btn.dataset.origHtml) btn.dataset.origHtml = btn.innerHTML;
+                btn.innerHTML = '<span class="material-symbols-outlined text-[20px] text-emerald-600">check_circle</span> <span class="text-emerald-600 font-extrabold">¡Copiado!</span>';
+                setTimeout(() => {
+                    if (btn.dataset.origHtml) btn.innerHTML = btn.dataset.origHtml;
+                }, 2800);
+            });
+        };
+
+        const fallbackCopy = () => {
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = link;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                const ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                if (ok) {
+                    onCopiedSuccess();
+                } else {
+                    prompt('Copia tu enlace manualmente:', link);
+                }
+            } catch (err) {
+                prompt('Copia tu enlace manualmente:', link);
+            }
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(link).then(onCopiedSuccess).catch(fallbackCopy);
+        } else {
+            fallbackCopy();
+        }
+    };
+
     let ruta = '';
-    if (window.currentBusinessData && window.currentBusinessData.ruta) {
+    if (window.businessWebConfig && window.businessWebConfig.ruta) {
+        ruta = window.businessWebConfig.ruta;
+    } else if (window.currentBusinessData && window.currentBusinessData.ruta) {
         ruta = window.currentBusinessData.ruta;
+    } else if (window.currentWebData && window.currentWebData.ruta) {
+        ruta = window.currentWebData.ruta;
     } else if (typeof negocioSlug !== 'undefined' && negocioSlug) {
         ruta = negocioSlug;
     }
-    if (!ruta) return;
-    const link = window.location.origin + '/' + ruta;
-    navigator.clipboard.writeText(link).then(() => {
-        showToast('Se copió el enlace', 'success');
-    }).catch(() => { prompt('Copia tu enlace manualmente:', link); });
+
+    if (ruta) {
+        doCopyLink(ruta);
+    } else {
+        fetch('backend/guardar_web.php')
+            .then(r => r.json())
+            .then(d => {
+                if (d && d.ruta) {
+                    window.businessWebConfig = Object.assign(window.businessWebConfig || {}, d);
+                    doCopyLink(d.ruta);
+                } else {
+                    return fetch('backend/perfil.php').then(r2 => r2.json()).then(p => {
+                        doCopyLink(p && p.business ? p.business.ruta : '');
+                    });
+                }
+            })
+            .catch(() => doCopyLink(''));
+    }
 };
 
 function regenerarEnlacesProf() {
@@ -3659,6 +3737,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     prevClientBtnWeekly.classList.replace('bg-slate-800', 'bg-white');
                     prevClientBtnWeekly.classList.replace('text-white', 'text-primary');
                 }
+                if (typeof window.syncCalendarNavbarMode === 'function') window.syncCalendarNavbarMode(window.businessWebConfig);
                 initWizard();
             });
         }
@@ -3679,12 +3758,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const shareBtn = document.querySelector('#adminControls button[onclick="copyMyLink()"]');
             const manageBtn = document.getElementById('manageServicesBtn');
             const multiSelectBtn = document.getElementById('btnMultiSelect');
+            const papeleraBtn = document.querySelector('#adminControls button[onclick="openPapeleraModal()"]');
 
             if (isPreviewMode) {
                 // --- Entrando en Vista Cliente ---
                 if(shareBtn) shareBtn.classList.add('hidden');
                 if(manageBtn) manageBtn.classList.add('hidden');
                 if(multiSelectBtn) multiSelectBtn.classList.add('hidden');
+                if(papeleraBtn) papeleraBtn.classList.add('hidden');
 
                 previewClientBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">visibility_off</span> Salir de Vista Cliente';
                 previewClientBtn.classList.replace('bg-white', 'bg-slate-800');
@@ -3700,12 +3781,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(shareBtn) shareBtn.classList.remove('hidden');
                 if(manageBtn) manageBtn.classList.remove('hidden');
                 if(multiSelectBtn) multiSelectBtn.classList.remove('hidden');
+                if(papeleraBtn) papeleraBtn.classList.remove('hidden');
 
                 previewClientBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">visibility</span> Vista Cliente';
                 previewClientBtn.classList.replace('bg-slate-800', 'bg-white');
                 previewClientBtn.classList.replace('text-white', 'text-slate-600');
                 previewClientBtn.classList.add('hover:text-primary');
             }
+            if (typeof window.syncCalendarNavbarMode === 'function') window.syncCalendarNavbarMode(window.businessWebConfig);
             populateCalendarViewFilter();
             updateServiceDropdown();
             updateProfServicesDisplay();
@@ -3715,6 +3798,107 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    window.cargarConfiguracionAjustes = function() {
+        return fetch(negocioSlug ? `backend/guardar_web.php?n=${negocioSlug}` : `backend/guardar_web.php`)
+        .then(res => res.json())
+        .then(config => {
+            if (config) {
+                window.businessWebConfig = config;
+                if (typeof window.syncCouponFieldVisibility === 'function') window.syncCouponFieldVisibility(config);
+                let title = config.nombre_fantasia || config.nombre_negocio || config.titulo || 'Agendatina';
+                document.title = title + ' | Reservar tu turno';
+                
+                const logoSrc = config.logo || config.url_logo || '';
+                const favicon = document.getElementById('favicon') || document.querySelector('link[rel="icon"]');
+                if (favicon) {
+                    favicon.href = logoSrc || 'public/logo.png';
+                }
+
+                const navBusinessNameText = document.getElementById('navBusinessNameText');
+                if (navBusinessNameText) {
+                    navBusinessNameText.textContent = title;
+                }
+
+                const logoImg = document.getElementById('navBusinessLogoImg');
+                const iconEl = document.getElementById('navBusinessIcon');
+                if (logoSrc && logoImg) {
+                    logoImg.src = logoSrc;
+                    logoImg.classList.remove('hidden');
+                    if (iconEl) iconEl.classList.add('hidden');
+                } else if (iconEl) {
+                    iconEl.classList.remove('hidden');
+                    if (logoImg) logoImg.classList.add('hidden');
+                }
+
+                // Botón para ver la Página Web del negocio (SOLO si tiene un plan tildado para Página Web: Profesional o Premium)
+                const navVerWebBtn = document.getElementById('navVerWebBtn');
+                if (navVerWebBtn) {
+                    const webSlug = negocioSlug || (config ? config.ruta || config.subdominio : '') || '';
+                    const webRuta = webSlug ? `web.html?n=${webSlug}` : 'web.html';
+                    navVerWebBtn.href = webRuta;
+                    if (window.hasWebPagePlan(config.plan)) {
+                        navVerWebBtn.classList.remove('hidden');
+                        navVerWebBtn.style.display = 'inline-flex';
+                    } else {
+                        navVerWebBtn.classList.add('hidden');
+                        navVerWebBtn.style.display = 'none';
+                    }
+                }
+
+                let interval = config.intervalo_turnos;
+                generateTimeSlots(config.hora_apertura, config.hora_cierre, interval);
+                checkAdminCalendarSession(config);
+
+                if (config.color_primario || config.color_secundario || config.colores_extra_json || config.color_fondo) {
+                    if (typeof window.applyUserCustomColors === 'function') {
+                        window.applyUserCustomColors(config.color_primario, config.color_secundario, config.colores_extra_json, config.color_fondo);
+                    }
+                }
+
+                // Aplicar el color de fondo o degradé directamente a la etiqueta <body>
+                if (config.color_fondo) {
+                    document.body.style.setProperty('background-color', config.color_fondo, 'important');
+                } else if (config.color_primario || config.color_secundario) {
+                    const pColor = config.color_primario || '#D11149';
+                    const sColor = config.color_secundario || '#FC8712';
+                    document.body.style.setProperty('background-color', `color-mix(in srgb, ${pColor} 10%, color-mix(in srgb, ${sColor} 7%, #f8fafc))`, 'important');
+                }
+
+                const isDegradeActive = (config.usar_fondo_degrade === undefined || config.usar_fondo_degrade === null || config.usar_fondo_degrade == 1 || config.usar_fondo_degrade === '1' || config.usar_fondo_degrade === true) && config.usar_fondo_degrade != 0 && config.usar_fondo_degrade !== '0';
+
+                if (isDegradeActive) {
+                    document.body.setAttribute('data-degrade', '1');
+                    document.body.classList.add('calendar-degrade-active');
+                    const pColor = config.color_primario || '#D11149';
+                    const sColor = config.color_secundario || '#FC8712';
+                    document.body.style.setProperty('background-color', 'transparent', 'important');
+                    document.body.style.setProperty('background-image', `linear-gradient(135deg, color-mix(in srgb, ${pColor} 40%, #ffffff) 0%, color-mix(in srgb, ${pColor} 18%, color-mix(in srgb, ${sColor} 18%, #ffffff)) 50%, color-mix(in srgb, ${sColor} 40%, #ffffff) 100%)`, 'important');
+                    document.body.style.setProperty('background-attachment', 'fixed', 'important');
+                } else {
+                    document.body.removeAttribute('data-degrade');
+                    document.body.classList.remove('calendar-degrade-active');
+                }
+
+                // Sincronizar tipo de vista de calendario exclusivamente según la configuración elegida en Ajustes
+                if (config.tipo_calendario) {
+                    const isWeeklyPage = !!document.getElementById('weeklyCalendarView');
+                    if (config.tipo_calendario === 'semanal' && !isWeeklyPage) {
+                        window.location.href = 'calendarioSemanal.html' + (negocioSlug ? '?n=' + negocioSlug : '');
+                    } else if (config.tipo_calendario === 'clasico' && isWeeklyPage) {
+                        window.location.href = 'calendarioMensual.html' + (negocioSlug ? '?n=' + negocioSlug : '');
+                    }
+                }
+
+                return config;
+            }
+        }).catch(() => {
+            document.title = 'Agendatina | Calendario de Turnos';
+            const navBusinessNameText = document.getElementById('navBusinessNameText');
+            if (navBusinessNameText) navBusinessNameText.textContent = 'Agendatina';
+            checkAdminCalendarSession();
+        });
+    };
+
     if (bookingForm) {
         const serviceSelect = document.getElementById('serviceSelect');
         const profSelect = document.getElementById('profesionalSelect');
@@ -3829,101 +4013,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }).finally(() => { btnSubmit.disabled = false; btnSubmit.textContent = 'Solicitar Turno'; });
         });
 
-        window.cargarConfiguracionAjustes = function() {
-            return fetch(negocioSlug ? `backend/guardar_web.php?n=${negocioSlug}` : `backend/guardar_web.php`)
-            .then(res => res.json())
-            .then(config => {
-                if (config) {
-                    window.businessWebConfig = config;
-                    if (typeof window.syncCouponFieldVisibility === 'function') window.syncCouponFieldVisibility(config);
-                    let title = config.nombre_fantasia || config.nombre_negocio || config.titulo || 'Agendatina';
-                    document.title = title + ' | Reservar tu turno';
-                    
-                    const favicon = document.getElementById('favicon') || document.querySelector('link[rel="icon"]');
-                    if (favicon) {
-                        favicon.href = config.url_logo || 'public/logo.png';
-                    }
-
-                    const navBusinessNameText = document.getElementById('navBusinessNameText');
-                    if (navBusinessNameText) {
-                        navBusinessNameText.textContent = title;
-                    }
-
-                    const logoImg = document.getElementById('navBusinessLogoImg');
-                    const iconEl = document.getElementById('navBusinessIcon');
-                    if (config.url_logo && logoImg) {
-                        logoImg.src = config.url_logo;
-                        logoImg.classList.remove('hidden');
-                        if (iconEl) iconEl.classList.add('hidden');
-                    } else if (iconEl) {
-                        iconEl.classList.remove('hidden');
-                        if (logoImg) logoImg.classList.add('hidden');
-                    }
-
-                    // Botón para ver la Página Web del negocio
-                    const navVerWebBtn = document.getElementById('navVerWebBtn');
-                    if (navVerWebBtn) {
-                        const webSlug = negocioSlug || (config ? config.ruta || config.subdominio : '') || '';
-                        const webRuta = webSlug ? `web.html?n=${webSlug}` : 'web.html';
-                        navVerWebBtn.href = webRuta;
-                        navVerWebBtn.classList.remove('hidden');
-                        navVerWebBtn.style.display = 'inline-flex';
-                    }
-
-                    let interval = config.intervalo_turnos;
-                    generateTimeSlots(config.hora_apertura, config.hora_cierre, interval);
-                    checkAdminCalendarSession(config);
-
-                    if (config.color_primario || config.color_secundario || config.colores_extra_json || config.color_fondo) {
-                        if (typeof window.applyUserCustomColors === 'function') {
-                            window.applyUserCustomColors(config.color_primario, config.color_secundario, config.colores_extra_json, config.color_fondo);
-                        }
-                    }
-
-                    // Aplicar el color de fondo o degradé directamente a la etiqueta <body>
-                    if (config.color_fondo) {
-                        document.body.style.setProperty('background-color', config.color_fondo, 'important');
-                    } else if (config.color_primario || config.color_secundario) {
-                        const pColor = config.color_primario || '#D11149';
-                        const sColor = config.color_secundario || '#FC8712';
-                        document.body.style.setProperty('background-color', `color-mix(in srgb, ${pColor} 10%, color-mix(in srgb, ${sColor} 7%, #f8fafc))`, 'important');
-                    }
-
-                    const isDegradeActive = (config.usar_fondo_degrade === undefined || config.usar_fondo_degrade === null || config.usar_fondo_degrade == 1 || config.usar_fondo_degrade === '1' || config.usar_fondo_degrade === true) && config.usar_fondo_degrade != 0 && config.usar_fondo_degrade !== '0';
-
-                    if (isDegradeActive) {
-                        document.body.setAttribute('data-degrade', '1');
-                        document.body.classList.add('calendar-degrade-active');
-                        const pColor = config.color_primario || '#D11149';
-                        const sColor = config.color_secundario || '#FC8712';
-                        document.body.style.setProperty('background-color', 'transparent', 'important');
-                        document.body.style.setProperty('background-image', `linear-gradient(135deg, color-mix(in srgb, ${pColor} 40%, #ffffff) 0%, color-mix(in srgb, ${pColor} 18%, color-mix(in srgb, ${sColor} 18%, #ffffff)) 50%, color-mix(in srgb, ${sColor} 40%, #ffffff) 100%)`, 'important');
-                        document.body.style.setProperty('background-attachment', 'fixed', 'important');
-                    } else {
-                        document.body.removeAttribute('data-degrade');
-                        document.body.classList.remove('calendar-degrade-active');
-                    }
-
-                    // Sincronizar tipo de vista de calendario exclusivamente según la configuración elegida en Ajustes
-                    if (config.tipo_calendario) {
-                        const isWeeklyPage = !!document.getElementById('weeklyCalendarView');
-                        if (config.tipo_calendario === 'semanal' && !isWeeklyPage) {
-                            window.location.href = 'calendarioSemanal.html' + (negocioSlug ? '?n=' + negocioSlug : '');
-                        } else if (config.tipo_calendario === 'clasico' && isWeeklyPage) {
-                            window.location.href = 'calendarioMensual.html' + (negocioSlug ? '?n=' + negocioSlug : '');
-                        }
-                    }
-
-                    return config;
-                }
-            }).catch(() => {
-                document.title = 'Agendatina | Calendario de Turnos';
-                const navBusinessNameText = document.getElementById('navBusinessNameText');
-                if (navBusinessNameText) navBusinessNameText.textContent = 'Agendatina';
-                checkAdminCalendarSession();
-            });
-        };
-
         window.cargarConfiguracionAjustes().finally(() => {
             cal_renderCalendar();
             cal_fetchBookedTimes();
@@ -3953,6 +4042,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const cancelEditBtn = document.getElementById('cancelEditBtn');
         if (cancelEditBtn) cancelEditBtn.addEventListener('click', (e) => { e.preventDefault(); resetServiceForm(); });
+    } else if (document.getElementById('weeklyCalendarView')) {
+        window.cargarConfiguracionAjustes();
     }
 
     const manualTurnoForm = document.getElementById('manualTurnoForm');
@@ -3996,27 +4087,157 @@ window.logoutAdminSession = function() {
         .catch(() => { window.location.href = 'login.html'; });
 };
 
-function checkAdminCalendarSession(config = null) {
+window.ensureAgendatinaCalendarFooter = function() {
+    let footer = document.getElementById('agendatinaFooter');
+    if (!footer) {
+        footer = document.createElement('footer');
+        footer.id = 'agendatinaFooter';
+        footer.className = 'w-full border-t border-slate-200/70 dark:border-slate-800/70 bg-white/60 dark:bg-slate-900/60 backdrop-blur-md py-6 mt-12 px-4 text-center';
+        const main = document.querySelector('main') || document.body;
+        if (main === document.body) {
+            document.body.appendChild(footer);
+        } else {
+            main.parentElement.appendChild(footer);
+        }
+    }
+    footer.innerHTML = `
+        <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+            <a href="index.html" target="_blank" class="inline-flex items-center gap-2 hover:opacity-85 transition-opacity">
+                <img src="public/logo.png" alt="Agendatina" class="h-6 w-auto object-contain">
+                <span class="font-brand font-semibold text-lg tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
+            </a>
+            <div class="flex flex-wrap items-center justify-center gap-3 font-medium">
+                <span>Sistema de Gestión de Turnos Online 24/7</span>
+                <span class="text-slate-300">•</span>
+                <a href="index.html" target="_blank" class="hover:text-[#d11149] font-semibold transition-colors">Conocé Agendatina</a>
+                <span class="text-slate-300">•</span>
+                <a href="terminos.html" target="_blank" class="hover:text-[#d11149] font-semibold transition-colors">Términos y Privacidad</a>
+            </div>
+        </div>
+    `;
+};
+
+window.syncCalendarNavbarMode = function(config = null) {
+    const cfg = config || window.businessWebConfig || {};
     const btnVolver = document.getElementById('btnVolverPanel');
     const brand = document.getElementById('navAgendatinaBrand');
     const sep = document.getElementById('navBrandSeparator');
+    const bizSep = document.getElementById('navBizSeparator');
     const bugBtn = document.getElementById('navReportBugBtn');
     const logoutBtn = document.getElementById('navLogoutBtn');
     const sessionBadge = document.getElementById('adminSessionBadge');
     const sessionBadgeText = document.getElementById('adminSessionBadgeText');
     const bizText = document.getElementById('navBusinessNameText');
     const bizLogo = document.getElementById('navBusinessLogoImg');
+    const bizIcon = document.getElementById('navBusinessIcon');
     const bizHeader = document.getElementById('navBusinessNameHeader');
-    const headerEl = document.querySelector('header');
+    const navVerWebBtn = document.getElementById('navVerWebBtn');
+    const adminControls = document.getElementById('adminControls');
+    const btnMultiSelect = document.getElementById('btnMultiSelect');
 
-    // Garantizar presencia permanente del header
+    if (bizHeader) { bizHeader.classList.remove('hidden'); bizHeader.style.display = 'flex'; }
+
+    // 1. Logo y Nombre del Negocio en el Navbar
+    const displayTitle = cfg.nombre_fantasia || cfg.nombre_negocio || cfg.titulo || (bizText ? bizText.textContent : '') || 'Reserva de Turnos';
+    if (bizText && displayTitle) {
+        bizText.textContent = displayTitle;
+    }
+    const logoSrc = cfg.logo || cfg.url_logo || (bizLogo ? bizLogo.getAttribute('src') : '');
+    if (logoSrc && logoSrc.trim() !== '' && bizLogo) {
+        bizLogo.src = logoSrc;
+        bizLogo.classList.remove('hidden');
+        if (bizIcon) bizIcon.classList.add('hidden');
+    } else {
+        if (bizLogo) bizLogo.classList.add('hidden');
+        if (bizIcon) bizIcon.classList.remove('hidden');
+    }
+
+    // 2. Botón Página Web: SOLO si el negocio tiene un plan que incluye Página Web (Profesional o Premium; NUNCA en Básico)
+    if (navVerWebBtn) {
+        const webSlug = negocioSlug || cfg.ruta || cfg.subdominio || '';
+        navVerWebBtn.href = webSlug ? `web.html?n=${webSlug}` : 'web.html';
+        if (window.hasWebPagePlan(cfg.plan)) {
+            navVerWebBtn.classList.remove('hidden');
+            navVerWebBtn.style.display = 'inline-flex';
+        } else {
+            navVerWebBtn.classList.add('hidden');
+            navVerWebBtn.style.display = 'none';
+        }
+    }
+
+    // 3. Agendatina nunca va en el navbar de la vista del cliente; toda la info de Agendatina va en el footer
+    window.ensureAgendatinaCalendarFooter();
+    if (brand) { brand.classList.add('hidden'); brand.style.display = 'none'; }
+    if (sep) { sep.classList.add('hidden'); sep.style.display = 'none'; }
+
+    const showAdminUi = Boolean(isAdmin && !isPreviewMode && window._verifiedCalendarAdmin);
+    const isDemo = Boolean(window._verifiedCalendarDemo);
+
+    if (showAdminUi) {
+        if (bizSep) { bizSep.classList.remove('hidden'); bizSep.style.display = 'inline'; }
+        if (btnVolver) { btnVolver.classList.remove('hidden'); btnVolver.style.display = 'inline-flex'; }
+        if (logoutBtn) { logoutBtn.classList.remove('hidden'); logoutBtn.style.display = 'inline-flex'; }
+        if (adminControls) {
+            adminControls.classList.remove('hidden');
+            if (adminControls.classList.contains('flex-wrap')) adminControls.classList.add('flex');
+        }
+        if (btnMultiSelect && !document.getElementById('weeklyCalendarView')) {
+            btnMultiSelect.classList.remove('hidden');
+            btnMultiSelect.classList.add('flex');
+        }
+        if (sessionBadge) {
+            if (isDemo) {
+                sessionBadge.classList.remove('hidden');
+                sessionBadge.style.display = 'flex';
+                if (sessionBadgeText) sessionBadgeText.textContent = 'Modo Demo';
+            } else {
+                sessionBadge.classList.add('hidden');
+                sessionBadge.style.display = 'none';
+            }
+        }
+        if (bugBtn) {
+            if (isDemo) {
+                bugBtn.classList.add('hidden');
+                bugBtn.style.display = 'none';
+            } else {
+                bugBtn.classList.remove('hidden');
+                bugBtn.style.display = 'inline-flex';
+            }
+        }
+    } else {
+        // Vista Cliente o Visitante sin cuenta ingresada: ocultar botones de Volver al panel y Reportar error
+        if (bizSep) { bizSep.classList.add('hidden'); bizSep.style.display = 'none'; }
+        if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
+        if (logoutBtn) { logoutBtn.classList.add('hidden'); logoutBtn.style.display = 'none'; }
+        if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
+        if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
+        if (!isAdmin && adminControls) {
+            adminControls.classList.add('hidden');
+            adminControls.classList.remove('flex');
+        }
+        if (!isAdmin && btnMultiSelect) {
+            btnMultiSelect.classList.add('hidden');
+            btnMultiSelect.classList.remove('flex');
+        }
+    }
+};
+
+function checkAdminCalendarSession(config = null) {
+    const headerEl = document.querySelector('header');
     if (headerEl) {
         headerEl.classList.remove('hidden');
         headerEl.style.display = 'block';
         headerEl.style.visibility = 'visible';
     }
 
-    if (bizHeader) { bizHeader.classList.remove('hidden'); bizHeader.style.display = 'flex'; }
+    // Si es un enlace público de cliente (?n=negocio), forzar vista cliente limpia sin botones de admin
+    if (isPublicClientSlug) {
+        isAdmin = false;
+        window._verifiedCalendarAdmin = false;
+        window._verifiedCalendarDemo = false;
+        window.syncCalendarNavbarMode(config);
+        return;
+    }
 
     fetch('backend/perfil.php')
     .then(res => res.json())
@@ -4032,73 +4253,42 @@ function checkAdminCalendarSession(config = null) {
         }
 
         if (data && data.success && data.business) {
-            isDemo = (data.business.is_demo === true) || 
-                     (data.user && data.user.email === 'demo@agendatina.site') || 
-                     (data.business.ruta === 'demo') || 
-                     (config && config.is_demo === true) ||
-                     negocioSlug === 'demo';
-
             const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
             const currentRuta = (negocioSlug || (config ? config.ruta || config.subdominio : '') || '').toLowerCase().trim();
 
-            if (isDemo || (currentRuta && loggedRuta === currentRuta) || (config && data.business.id == config.id_negocio)) {
+            const backendIsDemo = (data.business.is_demo === true) || 
+                     (data.user && data.user.email && data.user.email.includes('demo')) || 
+                     (loggedRuta.startsWith('demo')) || 
+                     (config && config.is_demo === true) ||
+                     currentRuta.startsWith('demo');
+
+            // Solo considerar modo Demo si la ruta actual también es demo o está vacía
+            isDemo = backendIsDemo && (!currentRuta || currentRuta.startsWith('demo'));
+
+            if (isDemo || (!currentRuta && data.business.id) || (currentRuta && loggedRuta === currentRuta) || (config && config.id_negocio && data.business.id == config.id_negocio)) {
                 isUserAdmin = true;
             }
 
             if (isUserAdmin) {
-                if (bizText && data.business.nombre_fantasia) bizText.textContent = data.business.nombre_fantasia;
-                if (bizLogo && data.config && data.config.url_logo) {
-                    bizLogo.src = data.config.url_logo;
-                    bizLogo.classList.remove('hidden');
-                }
+                window.currentBusinessData = data.business;
+                const mergedCfg = Object.assign({}, config || window.businessWebConfig || {}, {
+                    nombre_fantasia: data.business.nombre_fantasia || (config && config.nombre_fantasia),
+                    plan: data.business.plan || (config && config.plan),
+                    ruta: data.business.ruta || (config && config.ruta),
+                    logo: (data.config && (data.config.logo || data.config.url_logo)) || (config && (config.logo || config.url_logo))
+                });
+                window.businessWebConfig = mergedCfg;
+                config = mergedCfg;
             }
         }
 
-        const bizSep = document.getElementById('navBizSeparator');
-
-        if (isUserAdmin) {
-            // Usuario es Administrador de la cuenta: Mostrar marca Agendatina y controles administrativos
-            if (brand) { brand.classList.remove('hidden'); brand.style.display = 'flex'; }
-            if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
-            if (bizSep) { bizSep.classList.remove('hidden'); bizSep.style.display = 'inline'; }
-            if (btnVolver) { btnVolver.classList.remove('hidden'); btnVolver.style.display = 'inline-flex'; }
-            if (logoutBtn) { logoutBtn.classList.remove('hidden'); logoutBtn.style.display = 'inline-flex'; }
-
-            if (sessionBadge) {
-                if (isDemo) {
-                    sessionBadge.classList.remove('hidden');
-                    sessionBadge.style.display = 'flex';
-                    const dot = sessionBadge.querySelector('span:first-child');
-                    if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
-                    if (sessionBadgeText) {
-                        sessionBadgeText.textContent = 'Modo Demo';
-                        sessionBadgeText.className = 'text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider hidden md:inline';
-                    }
-                } else {
-                    sessionBadge.classList.add('hidden');
-                    sessionBadge.style.display = 'none';
-                }
-            }
-
-            if (bugBtn) {
-                if (isDemo) {
-                    bugBtn.classList.add('hidden');
-                    bugBtn.style.display = 'none';
-                } else {
-                    bugBtn.classList.remove('hidden');
-                    bugBtn.style.display = 'inline-flex';
-                }
-            }
-        } else {
-            // Usuario es Cliente / Visitante: OCULTAR marca Agendatina del header y todos los botones administrativos
-            if (brand) { brand.classList.add('hidden'); brand.style.display = 'none'; }
-            if (sep) { sep.classList.add('hidden'); sep.style.display = 'none'; }
-            if (bizSep) { bizSep.classList.add('hidden'); bizSep.style.display = 'none'; }
-            if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
-            if (logoutBtn) { logoutBtn.classList.add('hidden'); logoutBtn.style.display = 'none'; }
-            if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
-            if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
+        window._verifiedCalendarAdmin = isUserAdmin;
+        window._verifiedCalendarDemo = isDemo;
+        if (!isUserAdmin) {
+            isAdmin = false;
+            sessionStorage.removeItem('agendatina_session');
         }
+        window.syncCalendarNavbarMode(config);
     })
     .catch(err => {
         if (!negocioSlug) {
@@ -4106,15 +4296,10 @@ function checkAdminCalendarSession(config = null) {
             window.location.href = 'login.html';
             return;
         }
-        // En caso de error o sesión cerrada en vista pública, ocultar marca Agendatina del header y botones de administración
-        if (brand) { brand.classList.add('hidden'); brand.style.display = 'none'; }
-        if (sep) { sep.classList.add('hidden'); sep.style.display = 'none'; }
-        const bizSep = document.getElementById('navBizSeparator');
-        if (bizSep) { bizSep.classList.add('hidden'); bizSep.style.display = 'none'; }
-        if (btnVolver) { btnVolver.classList.add('hidden'); btnVolver.style.display = 'none'; }
-        if (logoutBtn) { logoutBtn.classList.add('hidden'); logoutBtn.style.display = 'none'; }
-        if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
-        if (bugBtn) { bugBtn.classList.add('hidden'); bugBtn.style.display = 'none'; }
+        isAdmin = false;
+        window._verifiedCalendarAdmin = false;
+        window._verifiedCalendarDemo = false;
+        window.syncCalendarNavbarMode(config);
     });
 }
 
