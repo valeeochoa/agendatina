@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Landing Page de Alta Conversión | Modelo Marca Blanca</title>
+    <meta name="robots" content="noindex, nofollow">
+    <title>Landing Page de Alta Conversión | Marca Ejemplo</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Google Material Symbols -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 
@@ -22,17 +23,13 @@
                     },
                     colors: {
                         brand: {
-                            50: '#eef2ff',
-                            100: '#e0e7ff',
-                            200: '#c7d2fe',
-                            300: '#a5b4fc',
-                            400: '#818cf8',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
-                            800: '#3730a3',
-                            900: '#312e81',
-                            accent: '#10b981', // Verde esmeralda de conversión
+                            pink: '#e9579a',
+                            pinkHover: '#d44385',
+                            pinkLight: '#fde8ef',
+                            pinkMuted: '#fff2f8',
+                            green: '#2fa36b',
+                            greenHover: '#258a58',
+                            greenLight: '#e7f7ef',
                         }
                     }
                 }
@@ -53,102 +50,183 @@
         .faq-item.active .faq-chevron {
             transform: rotate(180deg);
         }
+
+        /* Fondo animado estilo Lava Lamp con blobs orgánicos */
+        .lava-wrap {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .lava-blur {
+            position: absolute;
+            inset: -40px;
+            filter: blur(65px);
+            opacity: 0.55;
+        }
+        .lava-blob {
+            position: absolute;
+            border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
+            animation: lavaMove 18s infinite alternate ease-in-out;
+            will-change: transform, border-radius;
+        }
+        .lava-blob-1 {
+            width: 420px;
+            height: 420px;
+            background: #e9579a;
+            top: -60px;
+            left: 10%;
+            animation-duration: 16s;
+        }
+        .lava-blob-2 {
+            width: 460px;
+            height: 460px;
+            background: #2fa36b;
+            bottom: -80px;
+            right: 8%;
+            animation-duration: 20s;
+        }
+        .lava-blob-3 {
+            width: 340px;
+            height: 340px;
+            background: #f7a8cc;
+            top: 35%;
+            right: 32%;
+            animation-duration: 14s;
+        }
+        .lava-blob-4 {
+            width: 360px;
+            height: 360px;
+            background: #73dba3;
+            bottom: 30px;
+            left: 20%;
+            animation-duration: 22s;
+        }
+        @keyframes lavaMove {
+            0% {
+                transform: translate(0, 0) scale(1) rotate(0deg);
+                border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%;
+            }
+            50% {
+                transform: translate(70px, -50px) scale(1.12) rotate(140deg);
+                border-radius: 58% 42% 38% 62% / 60% 38% 62% 40%;
+            }
+            100% {
+                transform: translate(-50px, 60px) scale(0.92) rotate(260deg);
+                border-radius: 35% 65% 50% 50% / 50% 45% 55% 50%;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .lava-blob { animation: none; }
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-600 selection:text-white">
+<body class="bg-white text-slate-800 font-sans antialiased selection:bg-brand-pink selection:text-white">
 
-    <!-- Barra Superior Marca Blanca (Demostración) -->
+    <!-- Barra de demostración sobria -->
     <aside aria-label="Aviso de demostración" class="bg-slate-900 text-slate-300 text-xs py-2 px-4 border-b border-slate-800 sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+        <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
             <div class="flex items-center gap-2">
-                <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span class="font-semibold text-white">Plantilla Marca Blanca:</span>
-                <span class="text-slate-400">Modelo A • Landing Page de Alta Conversión</span>
+                <span class="inline-block w-2 h-2 rounded-full bg-brand-green"></span>
+                <span class="font-medium text-white">Modelo 1: Landing Page</span>
+                <span class="hidden sm:inline text-slate-400">· Paleta Rosa & Verde · Fondo Lava</span>
             </div>
-            <div class="text-[11px] text-slate-400">
-                100% personalizable para agencias y clientes finales
-            </div>
+            <a href="index.html" class="inline-flex items-center gap-1 text-slate-300 hover:text-white transition-colors underline underline-offset-2">
+                <span>Volver a modelos</span>
+                <span class="material-symbols-outlined text-[14px]">arrow_back</span>
+            </a>
         </div>
     </aside>
 
-    <!-- Header / Navbar Minimalista -->
+    <!-- Header / Navbar -->
     <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-8 z-40">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-            <a href="#inicio" class="flex items-center gap-2">
-                <div class="w-9 h-9 rounded-xl bg-brand-600 text-white flex items-center justify-center font-black text-lg shadow-sm">
-                    ⚡
+            <a href="#inicio" class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-brand-pink text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                    ME
                 </div>
-                <span class="font-extrabold text-xl tracking-tight text-slate-900">Marca<span class="text-brand-600">Pro</span></span>
+                <span class="font-bold text-xl tracking-tight text-slate-900">Marca <span class="text-brand-pink">Ejemplo</span></span>
             </a>
 
             <nav class="hidden md:flex items-center gap-7 text-xs font-bold text-slate-600">
-                <a href="#beneficios" class="hover:text-brand-600 transition-colors">Beneficios</a>
-                <a href="#testimonios" class="hover:text-brand-600 transition-colors">Testimonios</a>
-                <a href="#faq" class="hover:text-brand-600 transition-colors">Preguntas Frecuentes</a>
-                <a href="#contacto" class="hover:text-brand-600 transition-colors">Contacto</a>
+                <a href="#beneficios" class="hover:text-brand-pink transition-colors">Beneficios</a>
+                <a href="#testimonios" class="hover:text-brand-pink transition-colors">Testimonios</a>
+                <a href="#faq" class="hover:text-brand-pink transition-colors">Preguntas Frecuentes</a>
+                <a href="#contacto" class="hover:text-brand-pink transition-colors">Contacto</a>
             </nav>
 
-            <a href="#contacto" class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5">
+            <a href="#contacto" class="bg-brand-pink hover:bg-brand-pinkHover text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5">
                 <span>Solicitar Info</span>
                 <span class="material-symbols-outlined text-sm">arrow_forward</span>
             </a>
         </div>
     </header>
 
-    <!-- 1. HERO SECTION -->
-    <section id="inicio" class="relative pt-12 pb-20 md:pt-20 md:pb-28 overflow-hidden bg-gradient-to-b from-white via-brand-50/30 to-slate-50 border-b border-slate-200/60">
-        <!-- Glows de fondo -->
-        <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-brand-400/15 rounded-full blur-3xl pointer-events-none -z-10"></div>
-        <div class="absolute top-1/3 right-10 w-72 h-72 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none -z-10"></div>
+    <!-- 1. HERO SECTION CON FONDO LAVA -->
+    <section id="inicio" class="relative pt-16 pb-20 md:pt-24 md:pb-32 overflow-hidden border-b border-slate-200/60">
+        
+        <!-- Animación Lava Lamp -->
+        <div class="lava-wrap">
+            <div class="lava-blur">
+                <div class="lava-blob lava-blob-1"></div>
+                <div class="lava-blob-2 lava-blob"></div>
+                <div class="lava-blob-3 lava-blob"></div>
+                <div class="lava-blob-4 lava-blob"></div>
+            </div>
+        </div>
 
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-            <!-- Pill de confianza -->
-            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-50 border border-brand-200/80 text-brand-700 text-xs font-extrabold mb-6 shadow-2xs">
-                <span class="material-symbols-outlined text-[16px] text-brand-600">verified</span>
-                <span>Estructura Optimizada para Tráfico Pago (Google & Meta Ads)</span>
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10">
+            <!-- Badge introductorio -->
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 backdrop-blur-sm border border-brand-pink/20 text-brand-pink text-xs font-bold mb-6 shadow-xs">
+                <span class="material-symbols-outlined text-[16px]">touch_app</span>
+                <span>Estructura orientada a consultas directas</span>
             </div>
 
             <!-- Titular Fuerte -->
-            <h1 class="text-4xl sm:text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-[1.15] mb-6">
-                Multiplicá tus Consultas y Ventas con una <span class="bg-clip-text text-transparent bg-gradient-to-r from-brand-600 to-indigo-600">Landing Page Enfocada en Resultados</span>
+            <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15] mb-6">
+                Captá más consultas con una <span class="text-brand-pink">landing page</span> pensada para convertir
             </h1>
 
             <!-- Bajada en Lorem Ipsum Extenso -->
             <p class="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto mb-9 font-medium">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
             </p>
 
-            <!-- CTAs Principales -->
+            <!-- CTAs Principales con ícono SVG WhatsApp -->
             <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5 mb-10">
                 <a href="https://wa.me/5491100000000?text=Hola!%20Me%20interesa%20recibir%20información%20sobre%20la%20propuesta" 
                    target="_blank" 
-                   class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm sm:text-base px-7 py-3.5 rounded-2xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2.5">
-                    <span class="text-xl">💬</span>
-                    <span>Consultar por WhatsApp Ahora</span>
+                   rel="noopener noreferrer"
+                   class="w-full sm:w-auto bg-brand-green hover:bg-brand-greenHover text-white font-bold text-sm sm:text-base px-6 py-3.5 rounded-2xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2.5">
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                    </svg>
+                    <span>Consultar por WhatsApp</span>
                 </a>
                 <a href="#contacto" 
-                   class="w-full sm:w-auto bg-white hover:bg-slate-100 text-slate-800 font-extrabold text-sm sm:text-base px-6 py-3.5 rounded-2xl border border-slate-300 shadow-2xs transition-all">
-                    Completar Formulario
+                   class="w-full sm:w-auto bg-white/90 hover:bg-white text-slate-800 font-bold text-sm sm:text-base px-6 py-3.5 rounded-2xl border border-slate-300 shadow-xs transition-all">
+                    Dejar un Mensaje
                 </a>
             </div>
 
-            <!-- Métricas / Prueba Social Rápida -->
+            <!-- Métricas -->
             <div class="pt-8 border-t border-slate-200/80 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
                 <div>
-                    <span class="block text-2xl sm:text-3xl font-black text-slate-900">+450</span>
-                    <span class="text-xs text-slate-500 font-semibold">Leads Generados</span>
+                    <span class="block text-2xl sm:text-3xl font-extrabold text-slate-900">+450</span>
+                    <span class="text-xs text-slate-500 font-medium">Consultas recibidas</span>
                 </div>
                 <div>
-                    <span class="block text-2xl sm:text-3xl font-black text-slate-900">1.2s</span>
-                    <span class="text-xs text-slate-500 font-semibold">Tiempo de Carga</span>
+                    <span class="block text-2xl sm:text-3xl font-extrabold text-slate-900">1.2s</span>
+                    <span class="text-xs text-slate-500 font-medium">Tiempo de carga</span>
                 </div>
                 <div>
-                    <span class="block text-2xl sm:text-3xl font-black text-slate-900">98.5%</span>
-                    <span class="text-xs text-slate-500 font-semibold">Satisfacción Clientes</span>
+                    <span class="block text-2xl sm:text-3xl font-extrabold text-slate-900">98%</span>
+                    <span class="text-xs text-slate-500 font-medium">Satisfacción</span>
                 </div>
                 <div>
-                    <span class="block text-2xl sm:text-3xl font-black text-slate-900">24/7</span>
-                    <span class="text-xs text-slate-500 font-semibold">Captación Activa</span>
+                    <span class="block text-2xl sm:text-3xl font-extrabold text-slate-900">24/7</span>
+                    <span class="text-xs text-slate-500 font-medium">Recepción activa</span>
                 </div>
             </div>
         </div>
@@ -158,11 +236,11 @@
     <section id="beneficios" class="py-20 bg-white border-b border-slate-200/70">
         <div class="max-w-6xl mx-auto px-4 sm:px-6">
             <div class="text-center max-w-2xl mx-auto mb-14">
-                <span class="text-brand-600 font-extrabold uppercase text-xs tracking-wider bg-brand-50 px-3 py-1 rounded-md border border-brand-100">
-                    Ventajas Estratégicas
+                <span class="text-brand-pink font-bold uppercase text-xs tracking-wider bg-brand-pinkLight px-3 py-1 rounded-md border border-brand-pink/20">
+                    Ventajas
                 </span>
-                <h2 class="text-3xl sm:text-4xl font-black text-slate-900 mt-3 mb-4">
-                    ¿Por qué esta estructura convierte más visitas en clientes?
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3 mb-4">
+                    ¿Por qué esta estructura genera más respuestas?
                 </h2>
                 <p class="text-sm sm:text-base text-slate-500 leading-relaxed font-medium">
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam in dui mauris vivamus hendrerit arcu sed erat molestie vehicula.
@@ -171,66 +249,66 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Beneficio 1 -->
-                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/90 hover:border-brand-300 hover:shadow-md transition-all flex flex-col justify-between">
+                <div class="p-6 rounded-2xl bg-[#fffafc] border border-slate-200/90 hover:border-brand-pink/40 hover:shadow-md transition-all flex flex-col justify-between">
                     <div>
-                        <div class="w-12 h-12 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center mb-5 font-bold">
+                        <div class="w-12 h-12 rounded-xl bg-brand-pinkLight text-brand-pink flex items-center justify-center mb-5 font-bold">
                             <span class="material-symbols-outlined text-2xl">speed</span>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-900 mb-2.5">Velocidad de Carga Ultrarrápida</h3>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2.5">Velocidad ultrarrápida</h3>
                         <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque.
                         </p>
                     </div>
-                    <div class="mt-5 pt-3 border-t border-slate-200/70 text-xs font-extrabold text-brand-600">
-                        Optimización Web Vitals →
+                    <div class="mt-5 pt-3 border-t border-slate-200/70 text-xs font-bold text-brand-pink">
+                        Optimización continua →
                     </div>
                 </div>
 
                 <!-- Beneficio 2 -->
-                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/90 hover:border-brand-300 hover:shadow-md transition-all flex flex-col justify-between">
+                <div class="p-6 rounded-2xl bg-[#f7fbf8] border border-slate-200/90 hover:border-brand-green/40 hover:shadow-md transition-all flex flex-col justify-between">
                     <div>
-                        <div class="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-5 font-bold">
+                        <div class="w-12 h-12 rounded-xl bg-brand-greenLight text-brand-green flex items-center justify-center mb-5 font-bold">
                             <span class="material-symbols-outlined text-2xl">devices</span>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-900 mb-2.5">Diseño Adaptado a Móviles</h3>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2.5">Diseño para celulares</h3>
                         <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-                            Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
+                            Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem.
                         </p>
                     </div>
-                    <div class="mt-5 pt-3 border-t border-slate-200/70 text-xs font-extrabold text-emerald-600">
-                        100% Mobile First →
+                    <div class="mt-5 pt-3 border-t border-slate-200/70 text-xs font-bold text-brand-green">
+                        Adaptable a toda pantalla →
                     </div>
                 </div>
 
                 <!-- Beneficio 3 -->
-                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/90 hover:border-brand-300 hover:shadow-md transition-all flex flex-col justify-between">
+                <div class="p-6 rounded-2xl bg-[#fffafc] border border-slate-200/90 hover:border-brand-pink/40 hover:shadow-md transition-all flex flex-col justify-between">
                     <div>
-                        <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center mb-5 font-bold">
+                        <div class="w-12 h-12 rounded-xl bg-brand-pinkLight text-brand-pink flex items-center justify-center mb-5 font-bold">
                             <span class="material-symbols-outlined text-2xl">ads_click</span>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-900 mb-2.5">Enfoque Directo al CTA</h3>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2.5">Llamadas claras a la acción</h3>
                         <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-                            Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam.
+                            Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt.
                         </p>
                     </div>
-                    <div class="mt-5 pt-3 border-t border-slate-200/70 text-xs font-extrabold text-amber-600">
+                    <div class="mt-5 pt-3 border-t border-slate-200/70 text-xs font-bold text-brand-pink">
                         Sin distracciones →
                     </div>
                 </div>
 
                 <!-- Beneficio 4 -->
-                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/90 hover:border-brand-300 hover:shadow-md transition-all flex flex-col justify-between">
+                <div class="p-6 rounded-2xl bg-[#f7fbf8] border border-slate-200/90 hover:border-brand-green/40 hover:shadow-md transition-all flex flex-col justify-between">
                     <div>
-                        <div class="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center mb-5 font-bold">
+                        <div class="w-12 h-12 rounded-xl bg-brand-greenLight text-brand-green flex items-center justify-center mb-5 font-bold">
                             <span class="material-symbols-outlined text-2xl">chat</span>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-900 mb-2.5">Integración Directa con WhatsApp</h3>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2.5">Canal directo a WhatsApp</h3>
                         <p class="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-                            Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur quis autem vel eum iure.
+                            Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur.
                         </p>
                     </div>
-                    <div class="mt-5 pt-3 border-t border-slate-200/70 text-xs font-extrabold text-indigo-600">
-                        Cierre inmediato de ventas →
+                    <div class="mt-5 pt-3 border-t border-slate-200/70 text-xs font-bold text-brand-green">
+                        Atención inmediata →
                     </div>
                 </div>
             </div>
@@ -241,11 +319,11 @@
     <section id="testimonios" class="py-20 bg-slate-50 border-b border-slate-200/70">
         <div class="max-w-6xl mx-auto px-4 sm:px-6">
             <div class="text-center max-w-2xl mx-auto mb-14">
-                <span class="text-emerald-700 font-extrabold uppercase text-xs tracking-wider bg-emerald-50 px-3 py-1 rounded-md border border-emerald-200">
-                    Prueba Social
+                <span class="text-brand-green font-bold uppercase text-xs tracking-wider bg-brand-greenLight px-3 py-1 rounded-md border border-brand-green/20">
+                    Opiniones
                 </span>
-                <h2 class="text-3xl sm:text-4xl font-black text-slate-900 mt-3 mb-4">
-                    Lo que dicen quienes ya trabajan con nosotros
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3 mb-4">
+                    Comentarios de clientes satisfechos
                 </h2>
                 <p class="text-sm sm:text-base text-slate-500 leading-relaxed font-medium">
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit in voluptate velit esse.
@@ -254,61 +332,77 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Testimonio 1 -->
-                <div class="bg-white p-7 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between">
+                <div class="bg-white p-7 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
                     <div>
+                        <!-- Estrellas SVG en lugar de emojis -->
                         <div class="flex items-center gap-1 text-amber-400 mb-4">
-                            <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                         </div>
-                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed italic mb-6">
-                            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed italic mb-5">
+                            "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis."
                         </p>
                     </div>
                     <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces" alt="Avatar cliente" class="w-10 h-10 rounded-full object-cover">
+                        <div class="w-9 h-9 rounded-full bg-brand-pinkLight text-brand-pink font-bold text-xs flex items-center justify-center">
+                            MR
+                        </div>
                         <div>
-                            <h4 class="font-bold text-slate-900 text-xs sm:text-sm">Mariana López</h4>
-                            <p class="text-[11px] text-slate-400">Directora de Marketing • Estudio Creativo</p>
+                            <span class="block font-bold text-slate-900 text-xs">Martín Rodríguez</span>
+                            <span class="text-[11px] text-slate-400">Director Comercial</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Testimonio 2 -->
-                <div class="bg-white p-7 rounded-2xl border border-brand-200 shadow-sm relative flex flex-col justify-between">
-                    <span class="absolute -top-3 right-6 bg-brand-600 text-white text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
-                        Caso Destacado
-                    </span>
+                <div class="bg-white p-7 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
                     <div>
                         <div class="flex items-center gap-1 text-amber-400 mb-4">
-                            <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                         </div>
-                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed italic mb-6">
-                            "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed italic mb-5">
+                            "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias."
                         </p>
                     </div>
                     <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces" alt="Avatar cliente" class="w-10 h-10 rounded-full object-cover">
+                        <div class="w-9 h-9 rounded-full bg-brand-greenLight text-brand-green font-bold text-xs flex items-center justify-center">
+                            CB
+                        </div>
                         <div>
-                            <h4 class="font-bold text-slate-900 text-xs sm:text-sm">Esteban Rossi</h4>
-                            <p class="text-[11px] text-slate-400">Fundador • TechSolutions</p>
+                            <span class="block font-bold text-slate-900 text-xs">Carla Benítez</span>
+                            <span class="text-[11px] text-slate-400">Emprendedora Digital</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Testimonio 3 -->
-                <div class="bg-white p-7 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-sm transition-all flex flex-col justify-between">
+                <div class="bg-white p-7 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
                     <div>
                         <div class="flex items-center gap-1 text-amber-400 mb-4">
-                            <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                         </div>
-                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed italic mb-6">
-                            "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident."
+                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed italic mb-5">
+                            "Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus omnis voluptas."
                         </p>
                     </div>
                     <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
-                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop&crop=faces" alt="Avatar cliente" class="w-10 h-10 rounded-full object-cover">
+                        <div class="w-9 h-9 rounded-full bg-brand-pinkLight text-brand-pink font-bold text-xs flex items-center justify-center">
+                            LP
+                        </div>
                         <div>
-                            <h4 class="font-bold text-slate-900 text-xs sm:text-sm">Valeria Gómez</h4>
-                            <p class="text-[11px] text-slate-400">Gerente Comercial • Inmobiliaria Urbana</p>
+                            <span class="block font-bold text-slate-900 text-xs">Lucas Peralta</span>
+                            <span class="text-[11px] text-slate-400">Consultor de Marcas</span>
                         </div>
                     </div>
                 </div>
@@ -316,113 +410,113 @@
         </div>
     </section>
 
-    <!-- 4. SECCIÓN DE PREGUNTAS FRECUENTES (ACORDEÓN) -->
+    <!-- 4. SECCIÓN DE PREGUNTAS FRECUENTES (FAQ ACORDEÓN) -->
     <section id="faq" class="py-20 bg-white border-b border-slate-200/70">
-        <div class="max-w-3xl mx-auto px-4 sm:px-6">
-            <div class="text-center mb-12">
-                <span class="text-brand-600 font-extrabold uppercase text-xs tracking-wider bg-brand-50 px-3 py-1 rounded-md border border-brand-100">
-                    Resolvé tus Dudas
+        <div class="max-w-4xl mx-auto px-4 sm:px-6">
+            <div class="text-center max-w-2xl mx-auto mb-12">
+                <span class="text-brand-pink font-bold uppercase text-xs tracking-wider bg-brand-pinkLight px-3 py-1 rounded-md border border-brand-pink/20">
+                    Respuestas
                 </span>
-                <h2 class="text-3xl sm:text-4xl font-black text-slate-900 mt-3 mb-4">
-                    Preguntas Frecuentes
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-3 mb-4">
+                    Preguntas frecuentes
                 </h2>
-                <p class="text-sm sm:text-base text-slate-500 font-medium">
-                    Respuestas claras a las consultas habituales antes de iniciar tu proyecto.
+                <p class="text-sm sm:text-base text-slate-500 leading-relaxed font-medium">
+                    Resolvemos las dudas más habituales antes de poner en marcha tu página web.
                 </p>
             </div>
 
+            <!-- Acordeón -->
             <div class="space-y-3.5" id="faqAccordion">
-                <!-- FAQ 1 (Activa por defecto) -->
-                <div class="faq-item active bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden transition-all">
+                <!-- Item 1 -->
+                <div class="faq-item bg-slate-50 border border-slate-200/80 rounded-2xl overflow-hidden transition-all">
                     <button type="button" class="faq-btn w-full px-5 py-4 text-left font-bold text-sm sm:text-base text-slate-900 flex items-center justify-between gap-3">
-                        <span>¿En cuánto tiempo queda lista y operativa la landing page?</span>
+                        <span>¿Cuánto tiempo lleva poner en marcha una landing page?</span>
                         <span class="material-symbols-outlined faq-chevron text-slate-400 transition-transform">expand_more</span>
                     </button>
                     <div class="faq-content px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
                     </div>
                 </div>
 
-                <!-- FAQ 2 -->
-                <div class="faq-item bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden transition-all">
+                <!-- Item 2 -->
+                <div class="faq-item bg-slate-50 border border-slate-200/80 rounded-2xl overflow-hidden transition-all">
                     <button type="button" class="faq-btn w-full px-5 py-4 text-left font-bold text-sm sm:text-base text-slate-900 flex items-center justify-between gap-3">
-                        <span>¿Puedo medir conversiones con píxel de Meta Ads y Google Analytics?</span>
+                        <span>¿Se puede conectar directo a mi número de WhatsApp?</span>
                         <span class="material-symbols-outlined faq-chevron text-slate-400 transition-transform">expand_more</span>
                     </button>
                     <div class="faq-content px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-                        Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.
+                        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
                     </div>
                 </div>
 
-                <!-- FAQ 3 -->
-                <div class="faq-item bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden transition-all">
-                    <button type="button" class="faq-btn w-full px-5 py-4 text-left font-bold text-sm sm:text-base text-slate-900 flex items-center justify-between gap-3">
-                        <span>¿Necesito contratar hosting y dominio previamente?</span>
-                        <span class="material-symbols-outlined faq-chevron text-slate-400 transition-transform">expand_more</span>
-                    </button>
-                    <div class="faq-content px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-                        At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga.
-                    </div>
-                </div>
-
-                <!-- FAQ 4 -->
-                <div class="faq-item bg-slate-50 border border-slate-200 rounded-2xl overflow-hidden transition-all">
+                <!-- Item 3 -->
+                <div class="faq-item bg-slate-50 border border-slate-200/80 rounded-2xl overflow-hidden transition-all">
                     <button type="button" class="faq-btn w-full px-5 py-4 text-left font-bold text-sm sm:text-base text-slate-900 flex items-center justify-between gap-3">
                         <span>¿Cómo llegan las consultas que los usuarios envían por la web?</span>
                         <span class="material-symbols-outlined faq-chevron text-slate-400 transition-transform">expand_more</span>
                     </button>
                     <div class="faq-content px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-                        Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae.
+                        Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus.
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- 5. SECCIÓN DE CONTACTO Y CAPTACIÓN -->
+    <!-- 5. SECCIÓN DE CONTACTO CON FORMULARIO DE EJEMPLO -->
     <section id="contacto" class="py-20 bg-slate-50 relative overflow-hidden">
         <div class="max-w-4xl mx-auto px-4 sm:px-6">
             <div class="bg-white rounded-3xl border border-slate-200/90 shadow-xl p-7 sm:p-10 md:p-12">
                 <div class="text-center max-w-xl mx-auto mb-9">
-                    <span class="text-brand-600 font-extrabold uppercase text-xs tracking-wider bg-brand-50 px-3 py-1 rounded-md border border-brand-100">
-                        Comenzá Hoy
+                    <span class="text-brand-pink font-bold uppercase text-xs tracking-wider bg-brand-pinkLight px-3 py-1 rounded-md border border-brand-pink/20">
+                        Contacto
                     </span>
-                    <h2 class="text-3xl sm:text-4xl font-black text-slate-900 mt-2.5 mb-3">
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 mt-2.5 mb-3">
                         Dejanos tu consulta
                     </h2>
                     <p class="text-xs sm:text-sm text-slate-500 font-medium">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Completa tus datos y nos pondremos en contacto en menos de 2 horas hábiles.
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Completa tus datos para recibir información detallada.
                     </p>
                 </div>
 
+                <!-- Formulario simulado que nunca envía correos reales -->
                 <form id="leadForm" onsubmit="handleLeadSubmit(event)" class="space-y-4 max-w-xl mx-auto text-xs sm:text-sm">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">Nombre Completo *</label>
-                            <input type="text" required placeholder="Ej: Santiago Morales" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-brand-600 focus:bg-white transition-all font-medium">
+                            <input type="text" required placeholder="Ej: Santiago Morales" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-brand-pink focus:bg-white transition-all font-medium">
                         </div>
                         <div>
                             <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">WhatsApp / Teléfono *</label>
-                            <input type="tel" required placeholder="+54 9 11 0000-0000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-brand-600 focus:bg-white transition-all font-medium">
+                            <input type="tel" required placeholder="+54 9 11 0000-0000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-brand-pink focus:bg-white transition-all font-medium">
                         </div>
                     </div>
 
                     <div>
                         <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">Correo Electrónico *</label>
-                        <input type="email" required placeholder="tu@empresa.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-brand-600 focus:bg-white transition-all font-medium">
+                        <input type="email" required placeholder="tu@empresa.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-brand-pink focus:bg-white transition-all font-medium">
                     </div>
 
                     <div>
                         <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">¿Qué servicio o producto ofrecés? *</label>
-                        <textarea rows="3" required placeholder="Lorem ipsum dolor sit amet, contanos brevemente sobre tu negocio y tus objetivos comerciales..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-brand-600 focus:bg-white transition-all font-medium"></textarea>
+                        <textarea rows="3" required placeholder="Lorem ipsum dolor sit amet, contanos brevemente sobre tu negocio y tus objetivos comerciales..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-brand-pink focus:bg-white transition-all font-medium"></textarea>
                     </div>
 
-                    <!-- Mensaje de éxito simulado -->
-                    <div id="formSuccessAlert" class="hidden p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold text-center">
-                        ✓ ¡Mensaje enviado con éxito! Nos comunicaremos con vos a la brevedad.
+                    <!-- Mensaje didáctico simulado -->
+                    <div id="formDemoNotice" class="hidden p-5 rounded-2xl bg-brand-greenLight border border-brand-green/30 text-slate-800 text-xs text-center space-y-2">
+                        <div class="inline-flex items-center gap-1.5 text-brand-green font-bold text-sm">
+                            <span class="material-symbols-outlined text-[18px]">info</span>
+                            <span>Este formulario es de ejemplo</span>
+                        </div>
+                        <p class="text-slate-600 leading-relaxed">
+                            No se enviaron datos reales. En tu sitio web terminado, los mensajes llegarán directamente a tu casilla de correo electrónico o al WhatsApp de tu negocio.
+                        </p>
+                        <button type="button" onclick="resetDemoNotice()" class="mt-2 px-4 py-1.5 rounded-lg bg-slate-900 text-white font-bold text-[11px] hover:bg-slate-800 transition-colors">
+                            Volver a probar
+                        </button>
                     </div>
 
-                    <button type="submit" id="btnSubmitForm" class="w-full py-3.5 px-6 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-black text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                    <button type="submit" id="btnSubmitForm" class="w-full py-3.5 px-6 rounded-2xl bg-brand-pink hover:bg-brand-pinkHover text-white font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
                         <span>Enviar Consulta Directa</span>
                         <span class="material-symbols-outlined text-[18px]">send</span>
                     </button>
@@ -435,23 +529,24 @@
     <footer class="bg-white border-t border-slate-200 py-10 text-center text-xs text-slate-500">
         <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-2">
-                <span class="font-extrabold text-slate-900 text-sm">Marca<span class="text-brand-600">Pro</span></span>
-                <span class="text-slate-400">• Modelo A (Landing Page de Conversión)</span>
+                <span class="font-bold text-slate-900 text-sm">Marca <span class="text-brand-pink">Ejemplo</span></span>
+                <span class="text-slate-400">· Modelo de demostración</span>
             </div>
-            <p>© 2026 MarcaPro. Todos los derechos reservados. Plantilla lista para integración de marca blanca.</p>
+            <p>© 2026 Marca Ejemplo. Plantilla lista para personalizar.</p>
         </div>
     </footer>
 
-    <!-- BOTÓN FLOTANTE DE WHATSAPP -->
+    <!-- BOTÓN FLOTANTE DE WHATSAPP CON SVG -->
     <a href="https://wa.me/5491100000000?text=Hola!%20Vengo%20desde%20la%20landing%20page%20y%20quisiera%20más%20información." 
        target="_blank" 
        rel="noopener noreferrer"
        aria-label="Contactar por WhatsApp"
-       class="fixed bottom-6 right-6 z-50 w-14 h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-emerald-500/40 hover:scale-110 active:scale-95 transition-all group">
-        <span class="text-2xl">💬</span>
-        <!-- Tooltip -->
+       class="fixed bottom-6 right-6 z-50 w-14 h-14 bg-brand-green hover:bg-brand-greenHover text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-brand-green/40 hover:scale-110 active:scale-95 transition-all group">
+        <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24">
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+        </svg>
         <span class="absolute right-16 top-1/2 -translate-y-1/2 bg-slate-900 text-white text-[11px] font-bold py-1 px-2.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-md">
-            ¿Hablamos por WhatsApp?
+            Consultar por WhatsApp
         </span>
     </a>
 
@@ -462,44 +557,39 @@
             btn.addEventListener('click', () => {
                 const item = btn.parentElement;
                 const wasActive = item.classList.contains('active');
-                
-                // Cerrar todos los acordeones
                 document.querySelectorAll('#faqAccordion .faq-item').forEach(el => el.classList.remove('active'));
-                
-                // Si no estaba activo, abrir el seleccionado
                 if (!wasActive) {
                     item.classList.add('active');
                 }
             });
         });
 
-        // Manejo del formulario de captación (lead)
+        // Manejo del formulario de captación sin envíos reales
         function handleLeadSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById('btnSubmitForm');
-            const alert = document.getElementById('formSuccessAlert');
-            const orig = btn.innerHTML;
+            const notice = document.getElementById('formDemoNotice');
 
             btn.disabled = true;
-            btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Enviando...';
+            btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Verificando...';
 
             setTimeout(() => {
-                btn.innerHTML = '✓ Consulta Recibida';
-                btn.classList.remove('bg-brand-600', 'hover:bg-brand-700');
-                btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
-                alert.classList.remove('hidden');
+                btn.classList.add('hidden');
+                notice.classList.remove('hidden');
+            }, 600);
+        }
 
-                setTimeout(() => {
-                    e.target.reset();
-                    btn.disabled = false;
-                    btn.innerHTML = orig;
-                    btn.classList.add('bg-brand-600', 'hover:bg-brand-700');
-                    btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
-                    alert.classList.add('hidden');
-                }, 4000);
-            }, 800);
+        function resetDemoNotice() {
+            const form = document.getElementById('leadForm');
+            const btn = document.getElementById('btnSubmitForm');
+            const notice = document.getElementById('formDemoNotice');
+
+            form.reset();
+            btn.disabled = false;
+            btn.innerHTML = '<span>Enviar Consulta Directa</span><span class="material-symbols-outlined text-[18px]">send</span>';
+            btn.classList.remove('hidden');
+            notice.classList.add('hidden');
         }
     </script>
 </body>
 </html>
-

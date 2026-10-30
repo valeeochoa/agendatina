@@ -8,23 +8,44 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            pink: '#d11149',
+                            pinkLight: '#fde8ef',
+                            orange: '#fc8712',
+                            orangeLight: '#fff2e6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+                        brand: ['Fredoka', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-slate-900 selection:text-white">
+<body class="bg-[#fffaf7] text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-brand-pink selection:text-white">
 
-    <!-- Navegación simple y personal -->
-    <header class="border-b border-slate-200/80 bg-white/80 backdrop-blur-md sticky top-0 z-30">
+    <!-- Navegación con detalles sutiles Agendatina -->
+    <header class="border-b border-[#f3e5dc] bg-white/90 backdrop-blur-md sticky top-0 z-30">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-            <a href="https://valeeochoa.github.io" target="_blank" rel="noopener" class="font-semibold text-slate-900 text-base tracking-tight hover:text-slate-600 transition-colors flex items-center gap-2">
+            <a href="https://valeeochoa.github.io" target="_blank" rel="noopener" class="group flex items-center gap-2.5 font-semibold text-slate-900 text-base tracking-tight hover:text-brand-pink transition-colors">
+                <span class="w-2.5 h-2.5 rounded-full bg-brand-pink group-hover:scale-125 transition-transform"></span>
                 <span>Valentina Ochoa</span>
             </a>
-            <a href="https://valeeochoa.github.io" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+            <a href="https://valeeochoa.github.io" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-700 bg-brand-orangeLight border border-brand-orange/20 hover:border-brand-orange text-brand-orange px-3.5 py-1.5 rounded-full transition-all">
                 <span>Portfolio</span>
-                <span class="material-symbols-outlined text-[16px]">arrow_outward</span>
+                <span class="material-symbols-outlined text-[15px]">arrow_outward</span>
             </a>
         </div>
     </header>
@@ -32,162 +53,269 @@
     <!-- Contenido principal -->
     <main class="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16 flex-1 w-full">
         
-        <!-- Saludo y presentación -->
-        <div class="max-w-2xl mb-12">
-            <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight leading-tight mb-4">
-                Hola, estos son algunos de los modelos con los que actualmente trabajo.
+        <!-- Saludo cálido y presentación -->
+        <div class="max-w-2xl mb-12 sm:mb-14">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-pinkLight text-brand-pink text-xs font-bold mb-4 border border-brand-pink/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand-pink"></span>
+                Demostraciones en vivo
+            </div>
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-4">
+                Hola, estos son algunos de los <span class="text-brand-pink">modelos</span> con los que actualmente trabajo.
             </h1>
             <p class="text-slate-600 text-base sm:text-lg leading-relaxed">
-                Están pensados para diferentes necesidades: desde captar consultas directas hasta sitios institucionales o catálogos. Podés hacer clic en cualquiera para abrir la demostración en vivo y ver cómo funciona.
+                Cada uno está pensado para un objetivo puntual y adaptado a la identidad de cada cliente. Podés hacer clic en cualquiera para navegar la versión de demostración y ver cómo interactúa.
             </p>
         </div>
 
-        <!-- Grilla de modelos (A, B, C, D) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+        <!-- 3 Modelos Principales -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-7 mb-16 sm:mb-20">
             
-            <!-- Modelo A -->
-            <a href="modelo-a-landing.html" target="_blank" rel="noopener" class="group bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 hover:border-slate-400 hover:shadow-lg transition-all duration-200 flex flex-col justify-between">
+            <!-- Modelo 1: Landing Page (Rosa + Verde) -->
+            <a href="modelo-a-landing.html" target="_blank" rel="noopener" class="group bg-white rounded-2xl border-2 border-slate-200/90 hover:border-brand-pink p-5 hover:shadow-xl hover:shadow-brand-pink/5 transition-all duration-300 flex flex-col justify-between">
                 <div>
-                    <!-- Imagen de previsualización -->
-                    <div class="aspect-[16/10] rounded-xl overflow-hidden bg-slate-100 border border-slate-200/60 mb-5 relative">
-                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=900&h=560&fit=crop" alt="Previsualización Modelo A" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300">
-                        <div class="absolute top-3 left-3">
-                            <span class="px-2.5 py-1 rounded-md bg-slate-900/80 backdrop-blur-sm text-white text-xs font-semibold">
-                                Modelo A
+                    <!-- Miniatura representativa con colores rosa + verde y lava -->
+                    <div class="aspect-[16/10] rounded-xl overflow-hidden bg-gradient-to-br from-[#fde8ef] to-[#e7f7ef] border border-slate-100 mb-5 relative flex items-center justify-center p-3">
+                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop" alt="Demo Modelo 1" class="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300 opacity-90">
+                        <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                            <span class="px-2.5 py-1 rounded-md bg-white/95 backdrop-blur-sm text-[#e9579a] text-[11px] font-bold border border-[#e9579a]/30 shadow-xs">
+                                Modelo 1
                             </span>
+                        </div>
+                        <div class="absolute bottom-2.5 right-2.5 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full border border-slate-200 text-[10px] font-bold text-slate-700">
+                            <span class="w-2 h-2 rounded-full bg-[#e9579a]"></span>
+                            <span class="w-2 h-2 rounded-full bg-[#2fa36b]"></span>
+                            <span class="text-[10px] ml-0.5">Lava</span>
                         </div>
                     </div>
 
-                    <h2 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-slate-700 transition-colors">
+                    <h2 class="text-lg sm:text-xl font-bold text-slate-900 mb-2 group-hover:text-brand-pink transition-colors">
                         Landing page de alta conversión
                     </h2>
-                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                        Enfocada en captar consultas o clientes potenciales en una sola página. Incluye llamadas directas a WhatsApp, beneficios destacados, preguntas frecuentes en acordeón y formulario de contacto simple.
+                    <p class="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">
+                        Enfocada en captar consultas o leads en una sola página. Incluye llamadas directas a WhatsApp, beneficios destacados, preguntas frecuentes en acordeón y formulario de ejemplo.
                     </p>
 
-                    <div class="flex flex-wrap gap-1.5 mb-6">
-                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">One-page</span>
-                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">WhatsApp directo</span>
-                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">Preguntas frecuentes</span>
+                    <div class="flex flex-wrap gap-1.5 mb-5">
+                        <span class="px-2 py-0.5 rounded-md bg-[#fde8ef] text-[#e9579a] text-[11px] font-semibold">Rosa & Verde</span>
+                        <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">WhatsApp directo</span>
+                        <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">Acordeón FAQ</span>
                     </div>
                 </div>
 
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-sm font-semibold text-slate-900">
+                <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm font-bold text-slate-900 group-hover:text-brand-pink transition-colors">
                     <span>Ver modelo en vivo</span>
-                    <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    <span class="material-symbols-outlined text-[17px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
                 </div>
             </a>
 
-            <!-- Modelo B -->
-            <a href="modelo-b-institucional.html" target="_blank" rel="noopener" class="group bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 hover:border-slate-400 hover:shadow-lg transition-all duration-200 flex flex-col justify-between">
+            <!-- Modelo 2: Institucional (Celeste + Marrón) -->
+            <a href="modelo-b-institucional.html" target="_blank" rel="noopener" class="group bg-white rounded-2xl border-2 border-slate-200/90 hover:border-[#6b4a2f] p-5 hover:shadow-xl hover:shadow-[#6b4a2f]/5 transition-all duration-300 flex flex-col justify-between">
                 <div>
-                    <!-- Imagen de previsualización -->
-                    <div class="aspect-[16/10] rounded-xl overflow-hidden bg-slate-100 border border-slate-200/60 mb-5 relative">
-                        <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=900&h=560&fit=crop" alt="Previsualización Modelo B" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300">
-                        <div class="absolute top-3 left-3">
-                            <span class="px-2.5 py-1 rounded-md bg-slate-900/80 backdrop-blur-sm text-white text-xs font-semibold">
-                                Modelo B
+                    <!-- Miniatura representativa celeste + marrón y ondas -->
+                    <div class="aspect-[16/10] rounded-xl overflow-hidden bg-gradient-to-br from-[#e0f3fa] to-[#f4eee8] border border-slate-100 mb-5 relative flex items-center justify-center p-3">
+                        <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=500&fit=crop" alt="Demo Modelo 2" class="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300 opacity-90">
+                        <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                            <span class="px-2.5 py-1 rounded-md bg-white/95 backdrop-blur-sm text-[#6b4a2f] text-[11px] font-bold border border-[#6b4a2f]/30 shadow-xs">
+                                Modelo 2
                             </span>
+                        </div>
+                        <div class="absolute bottom-2.5 right-2.5 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full border border-slate-200 text-[10px] font-bold text-slate-700">
+                            <span class="w-2 h-2 rounded-full bg-[#7ec8e3]"></span>
+                            <span class="w-2 h-2 rounded-full bg-[#6b4a2f]"></span>
+                            <span class="text-[10px] ml-0.5">Ondas</span>
                         </div>
                     </div>
 
-                    <h2 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-slate-700 transition-colors">
+                    <h2 class="text-lg sm:text-xl font-bold text-slate-900 mb-2 group-hover:text-[#6b4a2f] transition-colors">
                         Sitio web institucional
                     </h2>
-                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                        Estructura formal con 5 secciones (Inicio, Quiénes somos, Servicios, Galería de proyectos y Contacto con mapa). Ideal para empresas, estudios o profesionales que buscan transmitir solidez y confianza.
+                    <p class="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">
+                        Estructura formal con 5 secciones: Inicio, Quiénes somos, Servicios, Galería de proyectos y Contacto con mapa. Pensada para empresas y profesionales que buscan transmitir solidez.
                     </p>
 
-                    <div class="flex flex-wrap gap-1.5 mb-6">
-                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">5 secciones</span>
-                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">Quiénes somos</span>
-                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">Galería de proyectos</span>
+                    <div class="flex flex-wrap gap-1.5 mb-5">
+                        <span class="px-2 py-0.5 rounded-md bg-[#f4eee8] text-[#6b4a2f] text-[11px] font-semibold">Celeste & Marrón</span>
+                        <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">5 secciones</span>
+                        <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">Galería</span>
                     </div>
                 </div>
 
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-sm font-semibold text-slate-900">
+                <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#6b4a2f] transition-colors">
                     <span>Ver modelo en vivo</span>
-                    <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    <span class="material-symbols-outlined text-[17px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
                 </div>
             </a>
 
-            <!-- Modelo C -->
-            <a href="modelo-c-catalogo.html" target="_blank" rel="noopener" class="group bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 hover:border-slate-400 hover:shadow-lg transition-all duration-200 flex flex-col justify-between">
+            <!-- Modelo 3: Catálogo Digital (Azul + Amarillo pastel) -->
+            <a href="modelo-c-catalogo.html" target="_blank" rel="noopener" class="group bg-white rounded-2xl border-2 border-slate-200/90 hover:border-[#2e5aac] p-5 hover:shadow-xl hover:shadow-[#2e5aac]/5 transition-all duration-300 flex flex-col justify-between">
                 <div>
-                    <!-- Imagen de previsualización -->
-                    <div class="aspect-[16/10] rounded-xl overflow-hidden bg-slate-100 border border-slate-200/60 mb-5 relative">
-                        <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=900&h=560&fit=crop" alt="Previsualización Modelo C" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300">
-                        <div class="absolute top-3 left-3">
-                            <span class="px-2.5 py-1 rounded-md bg-slate-900/80 backdrop-blur-sm text-white text-xs font-semibold">
-                                Modelo C
+                    <!-- Miniatura representativa azul + amarillo pastel y formas -->
+                    <div class="aspect-[16/10] rounded-xl overflow-hidden bg-gradient-to-br from-[#ebf2fb] to-[#fffde6] border border-slate-100 mb-5 relative flex items-center justify-center p-3">
+                        <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&h=500&fit=crop" alt="Demo Modelo 3" class="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300 opacity-90">
+                        <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                            <span class="px-2.5 py-1 rounded-md bg-white/95 backdrop-blur-sm text-[#2e5aac] text-[11px] font-bold border border-[#2e5aac]/30 shadow-xs">
+                                Modelo 3
                             </span>
+                        </div>
+                        <div class="absolute bottom-2.5 right-2.5 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full border border-slate-200 text-[10px] font-bold text-slate-700">
+                            <span class="w-2 h-2 rounded-full bg-[#2e5aac]"></span>
+                            <span class="w-2 h-2 rounded-full bg-[#fce38a]"></span>
+                            <span class="text-[10px] ml-0.5">Formas</span>
                         </div>
                     </div>
 
-                    <h2 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-slate-700 transition-colors">
-                        Catálogo digital con consulta a WhatsApp
+                    <h2 class="text-lg sm:text-xl font-bold text-slate-900 mb-2 group-hover:text-[#2e5aac] transition-colors">
+                        Catálogo con WhatsApp
                     </h2>
-                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                        Exhibición de productos o colecciones con buscador rápido y filtros por categorías. Al hacer clic en cualquier artículo, se abre WhatsApp con un mensaje automático que indica el nombre del producto seleccionado.
+                    <p class="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">
+                        Exhibición de productos o artículos con buscador y filtros por categoría. Al tocar consultar en cualquier ítem, se abre WhatsApp con el producto y precio ya listo para enviar.
                     </p>
 
-                    <div class="flex flex-wrap gap-1.5 mb-6">
-                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">Filtro por categorías</span>
-                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">Buscador en vivo</span>
-                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">Consulta por ítem</span>
+                    <div class="flex flex-wrap gap-1.5 mb-5">
+                        <span class="px-2 py-0.5 rounded-md bg-[#ebf2fb] text-[#2e5aac] text-[11px] font-semibold">Azul & Amarillo</span>
+                        <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">Buscador en vivo</span>
+                        <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">Mensaje auto</span>
                     </div>
                 </div>
 
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-sm font-semibold text-slate-900">
+                <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#2e5aac] transition-colors">
                     <span>Ver modelo en vivo</span>
-                    <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
-                </div>
-            </a>
-
-            <!-- Modelo D -->
-            <a href="modelo-d-soporte.html" target="_blank" rel="noopener" class="group bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 hover:border-slate-400 hover:shadow-lg transition-all duration-200 flex flex-col justify-between">
-                <div>
-                    <!-- Imagen de previsualización -->
-                    <div class="aspect-[16/10] rounded-xl overflow-hidden bg-slate-100 border border-slate-200/60 mb-5 relative">
-                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&h=560&fit=crop" alt="Previsualización Modelo D" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300">
-                        <div class="absolute top-3 left-3">
-                            <span class="px-2.5 py-1 rounded-md bg-slate-900/80 backdrop-blur-sm text-white text-xs font-semibold">
-                                Modelo D
-                            </span>
-                        </div>
-                    </div>
-
-                    <h2 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-slate-700 transition-colors">
-                        Planes de mantenimiento y soporte
-                    </h2>
-                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
-                        Página demostrativa para mostrar abonos mensuales de soporte técnico. Presenta 3 planes escalonados, una tabla comparativa técnica de tareas y un historial mensual (changelog) de mejoras y copias de seguridad.
-                    </p>
-
-                    <div class="flex flex-wrap gap-1.5 mb-6">
-                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">3 planes mensuales</span>
-                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">Matriz comparativa</span>
-                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">Historial de tareas</span>
-                    </div>
-                </div>
-
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-sm font-semibold text-slate-900">
-                    <span>Ver modelo en vivo</span>
-                    <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    <span class="material-symbols-outlined text-[17px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
                 </div>
             </a>
 
         </div>
+
+        <!-- Sección de Mantenimiento y Soporte Web (Sin precios fijos) -->
+        <section class="mt-8 pt-12 border-t border-[#f0ded3]">
+            <div class="max-w-2xl mb-8">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-orangeLight text-brand-orange text-xs font-bold mb-3 border border-brand-orange/20">
+                    <span class="material-symbols-outlined text-[15px]">build</span>
+                    Acompañamiento Continuo
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-3">
+                    Planes de Mantenimiento y Soporte
+                </h2>
+                <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+                    Un sitio web requiere mantenimiento técnico y revisiones regulares para mantenerse seguro, rápido y al día. Hay 3 modalidades de trabajo disponibles según el alcance que necesite tu negocio:
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- Básico -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-base mb-4">
+                            1
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900 mb-1">Mantenimiento Básico</h3>
+                        <p class="text-xs text-slate-500 mb-5">Para sitios estáticos que solo necesitan cuidado preventivo y hosting.</p>
+                        
+                        <ul class="space-y-2.5 text-xs text-slate-600">
+                            <li class="flex items-start gap-2">
+                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
+                                <span>Alojamiento (hosting) y renovación anual de dominio.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
+                                <span>Copias de seguridad mensuales (backups).</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
+                                <span>Monitoreo de estado y certificado de seguridad SSL.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
+                                <span>Resolución de caídas o errores técnicos imprevistos.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Estándar -->
+                <div class="bg-white rounded-2xl border-2 border-brand-orange/60 p-6 flex flex-col justify-between relative shadow-sm">
+                    <div class="absolute -top-3 right-6 bg-brand-orange text-white text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full tracking-wider">
+                        Recomendado
+                    </div>
+                    <div>
+                        <div class="w-10 h-10 rounded-xl bg-brand-orangeLight text-brand-orange flex items-center justify-center font-bold text-base mb-4">
+                            2
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900 mb-1">Mantenimiento Estándar</h3>
+                        <p class="text-xs text-slate-500 mb-5">Para negocios que actualizan precios, promociones o imágenes cada mes.</p>
+                        
+                        <ul class="space-y-2.5 text-xs text-slate-600">
+                            <li class="flex items-start gap-2">
+                                <span class="material-symbols-outlined text-brand-orange text-[16px] mt-0.5">check</span>
+                                <span class="font-medium text-slate-800">Todo lo incluido en el plan Básico.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
+                                <span>Modificación mensual de textos, datos de contacto o fotos.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
+                                <span>Actualización de listas de precios y nuevos productos.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
+                                <span>Soporte directo y canal de atención por WhatsApp.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Amplio -->
+                <div class="bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col justify-between">
+                    <div>
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-base mb-4">
+                            3
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900 mb-1">Mantenimiento Amplio</h3>
+                        <p class="text-xs text-slate-500 mb-5">Para marcas con constante actividad comercial y campañas activas.</p>
+                        
+                        <ul class="space-y-2.5 text-xs text-slate-600">
+                            <li class="flex items-start gap-2">
+                                <span class="material-symbols-outlined text-brand-pink text-[16px] mt-0.5">check</span>
+                                <span class="font-medium text-slate-800">Todo lo incluido en el plan Estándar.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
+                                <span>Creación o rediseño de nuevas secciones y landing pages.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
+                                <span>Optimización continua de velocidad, rendimiento y SEO.</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
+                                <span>Reporte mensual de visitas, clics y mejoras aplicadas.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mt-6 text-center">
+                <p class="text-xs text-slate-500">
+                    * El presupuesto mensual de mantenimiento se define de forma personalizada según la complejidad técnica y el volumen de actualizaciones requeridas.
+                </p>
+            </div>
+        </section>
+
     </main>
 
-    <!-- Footer minimalista -->
-    <footer class="border-t border-slate-200/80 bg-white py-8">
+    <!-- Footer minimalista en sintonía con la marca -->
+    <footer class="border-t border-[#f3e5dc] bg-white py-8 mt-12">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-            <div>
-                <span>Valentina Ochoa · </span>
-                <a href="https://valeeochoa.github.io" target="_blank" rel="noopener" class="text-slate-700 hover:text-slate-900 underline underline-offset-4 transition-colors">Portfolio</a>
+            <div class="flex items-center gap-2">
+                <span class="font-semibold text-slate-800">Valentina Ochoa</span>
+                <span>·</span>
+                <a href="https://valeeochoa.github.io" target="_blank" rel="noopener" class="text-brand-pink hover:text-brand-orange underline underline-offset-4 transition-colors font-medium">Portfolio personal</a>
             </div>
-            <p>Modelos de demostración para clientes.</p>
+            <p>Página de acceso privado para demostraciones de clientes.</p>
         </div>
     </footer>
 
