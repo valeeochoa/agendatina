@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Proyectos | Marca Ejemplo · Sitio Institucional</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231e1e24'/%3E%3Ctext x='32' y='44' font-family='sans-serif' font-weight='700' font-size='28' text-anchor='middle'%3E%3Ctspan fill='%23d11149'%3EV%3C/tspan%3E%3Ctspan fill='%23fc8712'%3E8%3C/tspan%3E%3Ctspan fill='%23d11149'%3EA%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        celeste: { DEFAULT: '#7ec8e3', light: '#e8f6fb', dark: '#52a9c9' },
+                        marron: { DEFAULT: '#6b4a2f', light: '#f5eee8', dark: '#4a321f' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white text-slate-800 font-sans antialiased selection:bg-celeste selection:text-slate-900 flex flex-col min-h-screen justify-between">
+
+    <div>
+        <aside aria-label="Aviso de demostración" class="bg-slate-900 text-slate-300 text-xs py-2 px-4 border-b border-slate-800 sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="inline-flex items-center gap-1 font-bold text-[11px] bg-slate-800 border border-slate-700 px-2 py-0.5 rounded text-white tracking-wide">
+                        <span class="text-[#d11149]">V</span><span class="text-[#fc8712]">8</span><span class="text-[#d11149]">A</span>
+                    </span>
+                    <span class="inline-block w-1.5 h-1.5 rounded-full bg-celeste"></span>
+                    <span class="font-medium text-white">Modelo 2 · Pestaña: Proyectos</span>
+                </div>
+                <a href="../index.html" class="inline-flex items-center gap-1 text-slate-300 hover:text-white transition-colors underline underline-offset-2">
+                    <span>Volver a modelos</span>
+                    <span class="material-symbols-outlined text-[14px]">arrow_back</span>
+                </a>
+            </div>
+        </aside>
+
+        <header class="bg-white/95 backdrop-blur-md border-b border-[#ebdcd1] sticky top-8 z-40 shadow-2xs">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+                <a href="index.html" class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-marron text-white flex items-center justify-center font-bold text-sm shadow-xs">ME</div>
+                    <div>
+                        <span class="font-bold text-xl tracking-tight text-slate-900 block leading-tight">Marca <span class="text-marron">Ejemplo</span></span>
+                        <span class="text-[11px] text-slate-500 font-medium block">Estudio & Consultoría</span>
+                    </div>
+                </a>
+
+                <nav class="hidden lg:flex items-center gap-8 text-xs font-bold text-slate-700">
+                    <a href="index.html" class="hover:text-marron transition-colors py-1">Inicio</a>
+                    <a href="nosotros.html" class="hover:text-marron transition-colors py-1">Quiénes Somos</a>
+                    <a href="servicios.html" class="hover:text-marron transition-colors py-1">Servicios</a>
+                    <a href="proyectos.html" class="text-marron border-b-2 border-marron py-1" aria-current="page">Proyectos</a>
+                    <a href="contacto.html" class="hover:text-marron transition-colors py-1">Contacto</a>
+                </nav>
+
+                <div class="flex items-center gap-3">
+                    <a href="contacto.html" class="hidden sm:inline-flex border-2 border-marron text-marron hover:bg-marron hover:text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-xs">
+                        Agendar Reunión
+                    </a>
+                    <button type="button" onclick="toggleMobileMenu()" aria-label="Abrir menú" class="lg:hidden p-2 rounded-xl text-slate-700 hover:bg-slate-100">
+                        <span class="material-symbols-outlined text-2xl">menu</span>
+                    </button>
+                </div>
+            </div>
+
+            <nav id="mobileMenu" aria-label="Menú móvil" class="hidden lg:hidden bg-white border-b border-[#ebdcd1] px-6 py-5 space-y-3.5 text-sm font-bold text-slate-700">
+                <a href="index.html" class="block hover:text-marron">Inicio</a>
+                <a href="nosotros.html" class="block hover:text-marron">Quiénes Somos</a>
+                <a href="servicios.html" class="block hover:text-marron">Servicios</a>
+                <a href="proyectos.html" class="block text-marron">Proyectos</a>
+                <a href="contacto.html" class="block hover:text-marron">Contacto</a>
+            </nav>
+        </header>
+
+        <!-- Cabecera -->
+        <section class="bg-gradient-to-b from-[#f3f9fc] to-white py-12 sm:py-16 border-b border-[#e8f6fb]">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center max-w-3xl">
+                <span class="text-marron font-bold uppercase text-xs tracking-wider bg-marron-light px-3 py-1 rounded-md border border-marron/20 inline-block mb-3">
+                    Pestaña Institucional
+                </span>
+                <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
+                    Proyectos y Casos de Éxito
+                </h1>
+                <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
+                    Experiencias reales donde acompañamos a empresas en su consolidación y crecimiento.
+                </p>
+            </div>
+        </section>
+
+        <!-- Galería de Casos -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                <!-- Caso 1 -->
+                <div class="rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-xl transition-all duration-300">
+                    <div class="aspect-[16/10] overflow-hidden bg-slate-100">
+                        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=500&fit=crop" 
+                             alt="Caso Proyecto 1" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-6">
+                        <span class="text-[11px] font-bold text-marron uppercase tracking-wider block mb-1">Estrategia & Operaciones</span>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">Reestructuración Logística Regional</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio praesent libero sed cursus ante dapibus diam.
+                        </p>
+                        <div class="pt-3 border-t border-slate-100 text-xs text-slate-500 flex justify-between">
+                            <span>Sector: Industrial</span>
+                            <span class="font-bold text-slate-800">Resultado: +34% eficiencia</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Caso 2 -->
+                <div class="rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-xl transition-all duration-300">
+                    <div class="aspect-[16/10] overflow-hidden bg-slate-100">
+                        <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&h=500&fit=crop" 
+                             alt="Caso Proyecto 2" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-6">
+                        <span class="text-[11px] font-bold text-marron uppercase tracking-wider block mb-1">Finanzas & M&A</span>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">Fusión y Adquisición Internacional</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
+                            Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium totam rem aperiam.
+                        </p>
+                        <div class="pt-3 border-t border-slate-100 text-xs text-slate-500 flex justify-between">
+                            <span>Sector: Banca & Finanzas</span>
+                            <span class="font-bold text-slate-800">Resultado: Cierre exitoso</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Caso 3 -->
+                <div class="rounded-3xl overflow-hidden border border-slate-200 bg-white hover:shadow-xl transition-all duration-300">
+                    <div class="aspect-[16/10] overflow-hidden bg-slate-100">
+                        <img src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=800&h=500&fit=crop" 
+                             alt="Caso Proyecto 3" class="w-full h-full object-cover">
+                    </div>
+                    <div class="p-6">
+                        <span class="text-[11px] font-bold text-marron uppercase tracking-wider block mb-1">Transformación Digital</span>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">Modernización de Plataformas</h3>
+                        <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
+                            Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit magni dolores eos qui ratione voluptatem.
+                        </p>
+                        <div class="pt-3 border-t border-slate-100 text-xs text-slate-500 flex justify-between">
+                            <span>Sector: Tecnología</span>
+                            <span class="font-bold text-slate-800">Resultado: 100% cloud</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="bg-slate-900 text-slate-400 py-10 text-xs border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>© 2026 Marca Ejemplo. Pestaña Proyectos.</p>
+            <div class="flex gap-4">
+                <a href="index.html" class="hover:text-white">Inicio</a>
+                <a href="servicios.html" class="hover:text-white">Servicios</a>
+                <a href="contacto.html" class="hover:text-white">Contacto</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+    </script>
+</body>
+</html>

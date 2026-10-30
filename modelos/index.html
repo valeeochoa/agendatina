@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>Valentina Ochoa | Modelos de páginas web</title>
+    <!-- Favicon V8A oficial -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231e1e24'/%3E%3Ctext x='32' y='44' font-family='sans-serif' font-weight='700' font-size='28' text-anchor='middle'%3E%3Ctspan fill='%23d11149'%3EV%3C/tspan%3E%3Ctspan fill='%23fc8712'%3E8%3C/tspan%3E%3Ctspan fill='%23d11149'%3EA%3C/tspan%3E%3C/text%3E%3C/svg%3E">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,14 +19,16 @@
                     colors: {
                         brand: {
                             pink: '#d11149',
+                            pinkHover: '#b50e3e',
                             pinkLight: '#fde8ef',
                             orange: '#fc8712',
+                            orangeHover: '#e0760d',
                             orangeLight: '#fff2e6'
                         }
                     },
                     fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-                        brand: ['Fredoka', 'sans-serif']
+                        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+                        brand: ['"Fredoka"', 'sans-serif']
                     }
                 }
             }
@@ -32,275 +36,446 @@
     </script>
     <style>
         body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
+        
+        /* Animación suave de fondo Agendatina */
+        .glow-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(70px);
+            opacity: 0.28;
+            pointer-events: none;
+            will-change: transform;
+            animation: pulseGlow 14s infinite alternate ease-in-out;
+        }
+        @keyframes pulseGlow {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(40px, -25px) scale(1.1); }
+            100% { transform: translate(-30px, 35px) scale(0.95); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .glow-blob { animation: none; }
+        }
     </style>
 </head>
-<body class="bg-[#fffaf7] text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-brand-pink selection:text-white">
+<body class="bg-[#fffbf8] text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-brand-pink selection:text-white relative overflow-x-hidden">
 
-    <!-- Navegación con detalles sutiles Agendatina -->
-    <header class="border-b border-[#f3e5dc] bg-white/90 backdrop-blur-md sticky top-0 z-30">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-            <a href="https://valeeochoa.github.io" target="_blank" rel="noopener" class="group flex items-center gap-2.5 font-semibold text-slate-900 text-base tracking-tight hover:text-brand-pink transition-colors">
-                <span class="w-2.5 h-2.5 rounded-full bg-brand-pink group-hover:scale-125 transition-transform"></span>
-                <span>Valentina Ochoa</span>
+    <!-- Blobs decorativos de fondo con colores Agendatina -->
+    <div class="glow-blob w-[450px] h-[450px] bg-brand-pink top-[-80px] left-[-100px]"></div>
+    <div class="glow-blob w-[450px] h-[450px] bg-brand-orange top-[200px] right-[-120px] animation-delay-2000"></div>
+
+    <!-- Navegación con logo V8A y estilo Agendatina -->
+    <header class="border-b border-[#f3e5dc] bg-white/90 backdrop-blur-md sticky top-0 z-30 shadow-2xs">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <a href="https://valeeochoa.github.io" target="_blank" rel="noopener" class="group flex items-center gap-2.5">
+                <span class="inline-flex items-center font-brand font-bold text-xs bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-xl text-white tracking-wider shadow-sm group-hover:scale-105 transition-transform">
+                    <span class="text-brand-pink">V</span><span class="text-brand-orange">8</span><span class="text-brand-pink">A</span>
+                </span>
+                <span class="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-brand-pink transition-colors">
+                    Valentina Ochoa
+                </span>
             </a>
-            <a href="https://valeeochoa.github.io" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-700 bg-brand-orangeLight border border-brand-orange/20 hover:border-brand-orange text-brand-orange px-3.5 py-1.5 rounded-full transition-all">
-                <span>Portfolio</span>
-                <span class="material-symbols-outlined text-[15px]">arrow_outward</span>
-            </a>
+            <div class="flex items-center gap-3">
+                <a href="https://valeeochoa.github.io" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-800 bg-brand-orangeLight border border-brand-orange/30 hover:bg-brand-orange hover:text-white px-4 py-1.5 rounded-full transition-all shadow-2xs">
+                    <span>Portfolio</span>
+                    <span class="material-symbols-outlined text-[15px]">arrow_outward</span>
+                </a>
+            </div>
         </div>
     </header>
 
     <!-- Contenido principal -->
-    <main class="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16 flex-1 w-full">
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 flex-1 w-full relative z-10">
         
-        <!-- Saludo cálido y presentación -->
-        <div class="max-w-2xl mb-12 sm:mb-14">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-pinkLight text-brand-pink text-xs font-bold mb-4 border border-brand-pink/20">
-                <span class="w-1.5 h-1.5 rounded-full bg-brand-pink"></span>
-                Demostraciones en vivo
+        <!-- Hero con estilo dinámico y colores vivos -->
+        <div class="max-w-3xl mb-12 sm:mb-16">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-pinkLight border border-brand-pink/25 text-brand-pink text-xs font-bold mb-5 shadow-2xs">
+                <span class="w-2 h-2 rounded-full bg-brand-pink animate-pulse"></span>
+                <span>Prototipos Web y Demostraciones en Vivo</span>
             </div>
-            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-4">
-                Hola, estos son algunos de los <span class="text-brand-pink">modelos</span> con los que actualmente trabajo.
+            
+            <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.12] mb-5">
+                Hola, estos son algunos de los <span class="bg-gradient-to-r from-brand-pink via-[#e63969] to-brand-orange bg-clip-text text-transparent">modelos web</span> con los que trabajo.
             </h1>
-            <p class="text-slate-600 text-base sm:text-lg leading-relaxed">
-                Cada uno está pensado para un objetivo puntual y adaptado a la identidad de cada cliente. Podés hacer clic en cualquiera para navegar la versión de demostración y ver cómo interactúa.
+            
+            <p class="text-slate-600 text-base sm:text-lg leading-relaxed max-w-2xl font-normal">
+                Cada desarrollo tiene un propósito estratégico puntual: captación de contactos, presencia corporativa formal con múltiples pestañas o venta rápida por WhatsApp. Hacé clic en cualquiera para navegar la versión completa.
             </p>
+
+            <!-- Badges rápidos -->
+            <div class="flex flex-wrap gap-2 mt-6">
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-2xs">
+                    <span class="material-symbols-outlined text-[16px] text-brand-pink">check_circle</span>
+                    Diseños adaptables a móviles
+                </span>
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-2xs">
+                    <span class="material-symbols-outlined text-[16px] text-brand-orange">palette</span>
+                    Colores y tipografía a medida
+                </span>
+                <span class="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700 shadow-2xs">
+                    <span class="material-symbols-outlined text-[16px] text-emerald-600">bolt</span>
+                    Sin intermediarios ni comisiones
+                </span>
+            </div>
         </div>
 
         <!-- 3 Modelos Principales -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-7 mb-16 sm:mb-20">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-7 mb-20">
             
-            <!-- Modelo 1: Landing Page (Rosa + Verde) -->
-            <a href="modelo-a-landing.html" target="_blank" rel="noopener" class="group bg-white rounded-2xl border-2 border-slate-200/90 hover:border-brand-pink p-5 hover:shadow-xl hover:shadow-brand-pink/5 transition-all duration-300 flex flex-col justify-between">
+            <!-- Modelo 1: Landing Page (Rosa + Verde · Fondo Lava) -->
+            <a href="modelo-a-landing.html" target="_blank" rel="noopener" class="group bg-white rounded-3xl border-2 border-slate-200/90 hover:border-brand-pink p-5 sm:p-6 hover:shadow-2xl hover:shadow-brand-pink/15 transition-all duration-300 flex flex-col justify-between hover:-translate-y-1">
                 <div>
-                    <!-- Miniatura representativa con colores rosa + verde y lava -->
-                    <div class="aspect-[16/10] rounded-xl overflow-hidden bg-gradient-to-br from-[#fde8ef] to-[#e7f7ef] border border-slate-100 mb-5 relative flex items-center justify-center p-3">
-                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop" alt="Demo Modelo 1" class="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300 opacity-90">
-                        <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                            <span class="px-2.5 py-1 rounded-md bg-white/95 backdrop-blur-sm text-[#e9579a] text-[11px] font-bold border border-[#e9579a]/30 shadow-xs">
+                    <!-- Miniatura interactiva con fondo lava -->
+                    <div class="aspect-[16/10] rounded-2xl overflow-hidden bg-gradient-to-br from-[#fde8ef] to-[#e7f7ef] border border-slate-100 mb-5 relative flex items-center justify-center p-3">
+                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=500&fit=crop" alt="Demo Modelo 1" class="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500 opacity-90">
+                        <div class="absolute top-3 left-3 flex items-center gap-1.5">
+                            <span class="px-2.5 py-1 rounded-lg bg-white/95 backdrop-blur-sm text-[#e9579a] text-[11px] font-bold border border-[#e9579a]/30 shadow-xs">
                                 Modelo 1
                             </span>
                         </div>
-                        <div class="absolute bottom-2.5 right-2.5 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full border border-slate-200 text-[10px] font-bold text-slate-700">
-                            <span class="w-2 h-2 rounded-full bg-[#e9579a]"></span>
-                            <span class="w-2 h-2 rounded-full bg-[#2fa36b]"></span>
-                            <span class="text-[10px] ml-0.5">Lava</span>
+                        <div class="absolute bottom-3 right-3 flex items-center gap-1.5 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full border border-slate-200 text-[10px] font-bold text-slate-700 shadow-xs">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#e9579a]"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#2fa36b]"></span>
+                            <span class="text-[10px]">Fondo Lava</span>
                         </div>
                     </div>
 
-                    <h2 class="text-lg sm:text-xl font-bold text-slate-900 mb-2 group-hover:text-brand-pink transition-colors">
+                    <h2 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-brand-pink transition-colors">
                         Landing page de alta conversión
                     </h2>
                     <p class="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">
-                        Enfocada en captar consultas o leads en una sola página. Incluye llamadas directas a WhatsApp, beneficios destacados, preguntas frecuentes en acordeón y formulario de ejemplo.
+                        One-page enfocada en captar consultas o leads directos. Incluye llamadas a WhatsApp, 4 beneficios, testimonios con estrellas, preguntas frecuentes en acordeón y formulario de ejemplo.
                     </p>
 
                     <div class="flex flex-wrap gap-1.5 mb-5">
-                        <span class="px-2 py-0.5 rounded-md bg-[#fde8ef] text-[#e9579a] text-[11px] font-semibold">Rosa & Verde</span>
-                        <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">WhatsApp directo</span>
-                        <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">Acordeón FAQ</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-[#fde8ef] text-[#e9579a] text-[11px] font-bold">Rosa & Verde</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-medium">WhatsApp directo</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-medium">Acordeón FAQ</span>
                     </div>
                 </div>
 
-                <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm font-bold text-slate-900 group-hover:text-brand-pink transition-colors">
-                    <span>Ver modelo en vivo</span>
-                    <span class="material-symbols-outlined text-[17px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm font-bold text-slate-900 group-hover:text-brand-pink transition-colors">
+                    <span>Navegar modelo en vivo</span>
+                    <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1.5 transition-transform">arrow_forward</span>
                 </div>
             </a>
 
-            <!-- Modelo 2: Institucional (Celeste + Marrón) -->
-            <a href="modelo-b-institucional.html" target="_blank" rel="noopener" class="group bg-white rounded-2xl border-2 border-slate-200/90 hover:border-[#6b4a2f] p-5 hover:shadow-xl hover:shadow-[#6b4a2f]/5 transition-all duration-300 flex flex-col justify-between">
+            <!-- Modelo 2: Institucional (Celeste + Marrón · 5 Pestañas Reales) -->
+            <a href="institucional/index.html" target="_blank" rel="noopener" class="group bg-white rounded-3xl border-2 border-slate-200/90 hover:border-[#6b4a2f] p-5 sm:p-6 hover:shadow-2xl hover:shadow-[#6b4a2f]/15 transition-all duration-300 flex flex-col justify-between hover:-translate-y-1">
                 <div>
-                    <!-- Miniatura representativa celeste + marrón y ondas -->
-                    <div class="aspect-[16/10] rounded-xl overflow-hidden bg-gradient-to-br from-[#e0f3fa] to-[#f4eee8] border border-slate-100 mb-5 relative flex items-center justify-center p-3">
-                        <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=500&fit=crop" alt="Demo Modelo 2" class="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300 opacity-90">
-                        <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                            <span class="px-2.5 py-1 rounded-md bg-white/95 backdrop-blur-sm text-[#6b4a2f] text-[11px] font-bold border border-[#6b4a2f]/30 shadow-xs">
+                    <!-- Miniatura interactiva con fondo ondas -->
+                    <div class="aspect-[16/10] rounded-2xl overflow-hidden bg-gradient-to-br from-[#e0f3fa] to-[#f4eee8] border border-slate-100 mb-5 relative flex items-center justify-center p-3">
+                        <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=500&fit=crop" alt="Demo Modelo 2" class="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500 opacity-90">
+                        <div class="absolute top-3 left-3 flex items-center gap-1.5">
+                            <span class="px-2.5 py-1 rounded-lg bg-white/95 backdrop-blur-sm text-[#6b4a2f] text-[11px] font-bold border border-[#6b4a2f]/30 shadow-xs">
                                 Modelo 2
                             </span>
                         </div>
-                        <div class="absolute bottom-2.5 right-2.5 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full border border-slate-200 text-[10px] font-bold text-slate-700">
-                            <span class="w-2 h-2 rounded-full bg-[#7ec8e3]"></span>
-                            <span class="w-2 h-2 rounded-full bg-[#6b4a2f]"></span>
-                            <span class="text-[10px] ml-0.5">Ondas</span>
+                        <div class="absolute bottom-3 right-3 flex items-center gap-1.5 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full border border-slate-200 text-[10px] font-bold text-slate-700 shadow-xs">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#7ec8e3]"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#6b4a2f]"></span>
+                            <span class="text-[10px]">Fondo Ondas</span>
                         </div>
                     </div>
 
-                    <h2 class="text-lg sm:text-xl font-bold text-slate-900 mb-2 group-hover:text-[#6b4a2f] transition-colors">
+                    <div class="inline-block px-2.5 py-0.5 rounded-md bg-[#e8f6fb] text-[#52a9c9] text-[10px] font-extrabold uppercase tracking-wider mb-1">
+                        5 Pestañas Reales
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-[#6b4a2f] transition-colors">
                         Sitio web institucional
                     </h2>
                     <p class="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">
-                        Estructura formal con 5 secciones: Inicio, Quiénes somos, Servicios, Galería de proyectos y Contacto con mapa. Pensada para empresas y profesionales que buscan transmitir solidez.
+                        Estructura multipágina con navegación entre archivos reales: Inicio, Quiénes somos, Servicios, Proyectos y Contacto con mapa. Pensada para empresas y consultoras.
                     </p>
 
                     <div class="flex flex-wrap gap-1.5 mb-5">
-                        <span class="px-2 py-0.5 rounded-md bg-[#f4eee8] text-[#6b4a2f] text-[11px] font-semibold">Celeste & Marrón</span>
-                        <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">5 secciones</span>
-                        <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">Galería</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-[#f4eee8] text-[#6b4a2f] text-[11px] font-bold">Celeste & Marrón</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-medium">Multipágina</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-medium">Casos de éxito</span>
                     </div>
                 </div>
 
-                <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#6b4a2f] transition-colors">
-                    <span>Ver modelo en vivo</span>
-                    <span class="material-symbols-outlined text-[17px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#6b4a2f] transition-colors">
+                    <span>Navegar modelo en vivo</span>
+                    <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1.5 transition-transform">arrow_forward</span>
                 </div>
             </a>
 
-            <!-- Modelo 3: Catálogo Digital (Azul + Amarillo pastel) -->
-            <a href="modelo-c-catalogo.html" target="_blank" rel="noopener" class="group bg-white rounded-2xl border-2 border-slate-200/90 hover:border-[#2e5aac] p-5 hover:shadow-xl hover:shadow-[#2e5aac]/5 transition-all duration-300 flex flex-col justify-between">
+            <!-- Modelo 3: Catálogo Digital (Azul + Amarillo Pastel · Fondo Formas) -->
+            <a href="modelo-c-catalogo.html" target="_blank" rel="noopener" class="group bg-white rounded-3xl border-2 border-slate-200/90 hover:border-[#2e5aac] p-5 sm:p-6 hover:shadow-2xl hover:shadow-[#2e5aac]/15 transition-all duration-300 flex flex-col justify-between hover:-translate-y-1">
                 <div>
-                    <!-- Miniatura representativa azul + amarillo pastel y formas -->
-                    <div class="aspect-[16/10] rounded-xl overflow-hidden bg-gradient-to-br from-[#ebf2fb] to-[#fffde6] border border-slate-100 mb-5 relative flex items-center justify-center p-3">
-                        <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&h=500&fit=crop" alt="Demo Modelo 3" class="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform duration-300 opacity-90">
-                        <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5">
-                            <span class="px-2.5 py-1 rounded-md bg-white/95 backdrop-blur-sm text-[#2e5aac] text-[11px] font-bold border border-[#2e5aac]/30 shadow-xs">
+                    <!-- Miniatura interactiva con fondo formas -->
+                    <div class="aspect-[16/10] rounded-2xl overflow-hidden bg-gradient-to-br from-[#ebf2fb] to-[#fffde6] border border-slate-100 mb-5 relative flex items-center justify-center p-3">
+                        <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=800&h=500&fit=crop" alt="Demo Modelo 3" class="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500 opacity-90">
+                        <div class="absolute top-3 left-3 flex items-center gap-1.5">
+                            <span class="px-2.5 py-1 rounded-lg bg-white/95 backdrop-blur-sm text-[#2e5aac] text-[11px] font-bold border border-[#2e5aac]/30 shadow-xs">
                                 Modelo 3
                             </span>
                         </div>
-                        <div class="absolute bottom-2.5 right-2.5 flex items-center gap-1 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full border border-slate-200 text-[10px] font-bold text-slate-700">
-                            <span class="w-2 h-2 rounded-full bg-[#2e5aac]"></span>
-                            <span class="w-2 h-2 rounded-full bg-[#fce38a]"></span>
-                            <span class="text-[10px] ml-0.5">Formas</span>
+                        <div class="absolute bottom-3 right-3 flex items-center gap-1.5 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full border border-slate-200 text-[10px] font-bold text-slate-700 shadow-xs">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#2e5aac]"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#fce38a]"></span>
+                            <span class="text-[10px]">Fondo Formas</span>
                         </div>
                     </div>
 
-                    <h2 class="text-lg sm:text-xl font-bold text-slate-900 mb-2 group-hover:text-[#2e5aac] transition-colors">
+                    <h2 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-[#2e5aac] transition-colors">
                         Catálogo con WhatsApp
                     </h2>
                     <p class="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">
-                        Exhibición de productos o artículos con buscador y filtros por categoría. Al tocar consultar en cualquier ítem, se abre WhatsApp con el producto y precio ya listo para enviar.
+                        Tienda digital con buscador integrado en el navbar y filtros por categoría. Al tocar consultar en cualquier artículo, se abre WhatsApp con el producto y precio ya pre-armado.
                     </p>
 
                     <div class="flex flex-wrap gap-1.5 mb-5">
-                        <span class="px-2 py-0.5 rounded-md bg-[#ebf2fb] text-[#2e5aac] text-[11px] font-semibold">Azul & Amarillo</span>
-                        <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">Buscador en vivo</span>
-                        <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-medium">Mensaje auto</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-[#ebf2fb] text-[#2e5aac] text-[11px] font-bold">Azul & Amarillo</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-medium">Buscador en vivo</span>
+                        <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-medium">Venta directa</span>
                     </div>
                 </div>
 
-                <div class="pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#2e5aac] transition-colors">
-                    <span>Ver modelo en vivo</span>
-                    <span class="material-symbols-outlined text-[17px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#2e5aac] transition-colors">
+                    <span>Navegar modelo en vivo</span>
+                    <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1.5 transition-transform">arrow_forward</span>
                 </div>
             </a>
 
         </div>
 
-        <!-- Sección de Mantenimiento y Soporte Web (Sin precios fijos) -->
-        <section class="mt-8 pt-12 border-t border-[#f0ded3]">
-            <div class="max-w-2xl mb-8">
-                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-orangeLight text-brand-orange text-xs font-bold mb-3 border border-brand-orange/20">
-                    <span class="material-symbols-outlined text-[15px]">build</span>
-                    Acompañamiento Continuo
+        <!-- SECCIÓN DE MANTENIMIENTO REDISEÑADA Y MEJORADA -->
+        <section class="mt-8 pt-14 border-t border-[#f0ded3]">
+            <div class="max-w-3xl mb-10">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-orangeLight text-brand-orange text-xs font-bold mb-3 border border-brand-orange/30 shadow-2xs">
+                    <span class="material-symbols-outlined text-[17px]">verified_user</span>
+                    <span>Soporte, Hosting & Mantenimiento Web</span>
                 </div>
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-3">
-                    Planes de Mantenimiento y Soporte
+                <h2 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">
+                    Planes de Acompañamiento Continuo
                 </h2>
                 <p class="text-slate-600 text-sm sm:text-base leading-relaxed">
-                    Un sitio web requiere mantenimiento técnico y revisiones regulares para mantenerse seguro, rápido y al día. Hay 3 modalidades de trabajo disponibles según el alcance que necesite tu negocio:
+                    Un sitio web requiere servidores estables, copias de seguridad y revisiones regulares para no caerse ni perder información. Estas son las 3 opciones de cobertura disponibles según el movimiento de tu negocio:
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-7 items-stretch">
                 
-                <!-- Básico -->
-                <div class="bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col justify-between">
+                <!-- BÁSICO: REDISEÑADO CON VALOR, ATRACTIVO Y RECONFORTANTE -->
+                <div class="bg-white rounded-3xl border-2 border-emerald-500/40 hover:border-emerald-500 p-6 sm:p-7 flex flex-col justify-between shadow-sm hover:shadow-xl transition-all duration-300 relative group">
+                    <div class="absolute -top-3.5 left-6 bg-emerald-600 text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-full tracking-wider shadow-xs flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">shield</span>
+                        <span>Tranquilidad Total</span>
+                    </div>
+
                     <div>
-                        <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-base mb-4">
-                            1
+                        <!-- Encabezado con Icono Representativo -->
+                        <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xl mb-4 mt-2 border border-emerald-100 group-hover:scale-105 transition-transform">
+                            <span class="material-symbols-outlined text-2xl">verified</span>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-900 mb-1">Mantenimiento Básico</h3>
-                        <p class="text-xs text-slate-500 mb-5">Para sitios estáticos que solo necesitan cuidado preventivo y hosting.</p>
                         
-                        <ul class="space-y-2.5 text-xs text-slate-600">
-                            <li class="flex items-start gap-2">
-                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
-                                <span>Alojamiento (hosting) y renovación anual de dominio.</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
-                                <span>Copias de seguridad mensuales (backups).</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
-                                <span>Monitoreo de estado y certificado de seguridad SSL.</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
-                                <span>Resolución de caídas o errores técnicos imprevistos.</span>
-                            </li>
-                        </ul>
+                        <h3 class="text-xl font-extrabold text-slate-900 mb-1">Mantenimiento Básico</h3>
+                        <p class="text-xs font-semibold text-emerald-700 mb-2">Tu web 100% activa, protegida y sin preocupaciones</p>
+                        <p class="text-xs text-slate-500 mb-6 leading-relaxed">
+                            Diseñado para sitios que no requieren cambios de texto constantes pero necesitan estar siempre online, rápidos y con respaldo técnico ante imprevistos.
+                        </p>
+                        
+                        <!-- Bloques con iconos destacados -->
+                        <div class="space-y-3.5 mb-6">
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="material-symbols-outlined text-[15px]">dns</span>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-xs text-slate-900 block">Alojamiento (Hosting) de Alta Velocidad</span>
+                                    <span class="text-[11px] text-slate-500">Servidores optimizados con carga rápida en todo el país.</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="material-symbols-outlined text-[15px]">language</span>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-xs text-slate-900 block">Dominio Web Oficial Incluido</span>
+                                    <span class="text-[11px] text-slate-500">Gestión y renovación anual bonificada para que nunca venza.</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="material-symbols-outlined text-[15px]">lock</span>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-xs text-slate-900 block">Seguridad y Certificado SSL (Candado)</span>
+                                    <span class="text-[11px] text-slate-500">Navegación segura y blindaje ante ataques o vulnerabilidades.</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="material-symbols-outlined text-[15px]">cloud_sync</span>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-xs text-slate-900 block">Copias de Seguridad Mensuales (Backups)</span>
+                                    <span class="text-[11px] text-slate-500">Respaldos completos guardados para restaurar en cualquier momento.</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="material-symbols-outlined text-[15px]">health_and_safety</span>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-xs text-slate-900 block">Monitoreo 24/7 y Resolución de Caídas</span>
+                                    <span class="text-[11px] text-slate-500">Supervisión constante y respuesta inmediata ante fallas técnicas.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100">
+                        <span class="text-[11px] font-bold text-emerald-700 block text-center bg-emerald-50 py-2 px-3 rounded-xl border border-emerald-100">
+                            Cobertura técnica esencial y tranquilidad
+                        </span>
                     </div>
                 </div>
 
-                <!-- Estándar -->
-                <div class="bg-white rounded-2xl border-2 border-brand-orange/60 p-6 flex flex-col justify-between relative shadow-sm">
-                    <div class="absolute -top-3 right-6 bg-brand-orange text-white text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full tracking-wider">
-                        Recomendado
+                <!-- ESTÁNDAR: RECOMENDADO -->
+                <div class="bg-white rounded-3xl border-2 border-brand-orange hover:border-brand-orangeHover p-6 sm:p-7 flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 relative group">
+                    <div class="absolute -top-3.5 right-6 bg-brand-orange text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-full tracking-wider shadow-xs">
+                        Más Elegido
                     </div>
+
                     <div>
-                        <div class="w-10 h-10 rounded-xl bg-brand-orangeLight text-brand-orange flex items-center justify-center font-bold text-base mb-4">
-                            2
+                        <div class="w-12 h-12 rounded-2xl bg-brand-orangeLight text-brand-orange flex items-center justify-center font-bold text-xl mb-4 mt-2 border border-brand-orange/20 group-hover:scale-105 transition-transform">
+                            <span class="material-symbols-outlined text-2xl">edit_note</span>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-900 mb-1">Mantenimiento Estándar</h3>
-                        <p class="text-xs text-slate-500 mb-5">Para negocios que actualizan precios, promociones o imágenes cada mes.</p>
                         
-                        <ul class="space-y-2.5 text-xs text-slate-600">
-                            <li class="flex items-start gap-2">
-                                <span class="material-symbols-outlined text-brand-orange text-[16px] mt-0.5">check</span>
-                                <span class="font-medium text-slate-800">Todo lo incluido en el plan Básico.</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
-                                <span>Modificación mensual de textos, datos de contacto o fotos.</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
-                                <span>Actualización de listas de precios y nuevos productos.</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
-                                <span>Soporte directo y canal de atención por WhatsApp.</span>
-                            </li>
-                        </ul>
+                        <h3 class="text-xl font-extrabold text-slate-900 mb-1">Mantenimiento Estándar</h3>
+                        <p class="text-xs font-semibold text-brand-orange mb-2">Ideal para negocios con cambios y promociones mensuales</p>
+                        <p class="text-xs text-slate-500 mb-6 leading-relaxed">
+                            Pensado para comercios o servicios que renuevan precios, publican nuevos artículos, agregan fotos de proyectos o ajustan datos de contacto periódicamente.
+                        </p>
+                        
+                        <div class="space-y-3.5 mb-6">
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-lg bg-brand-orangeLight text-brand-orange flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="material-symbols-outlined text-[15px]">check</span>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-xs text-slate-900 block">Todo lo incluido en el Plan Básico</span>
+                                    <span class="text-[11px] text-slate-500">Hosting, dominio, SSL, backups y monitoreo 24/7.</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-lg bg-brand-orangeLight text-brand-orange flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="material-symbols-outlined text-[15px]">history_edu</span>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-xs text-slate-900 block">Modificación Mensual de Textos y Fotos</span>
+                                    <span class="text-[11px] text-slate-500">Actualización de información comercial y banners destacados.</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-lg bg-brand-orangeLight text-brand-orange flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="material-symbols-outlined text-[15px]">sell</span>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-xs text-slate-900 block">Actualización de Precios y Productos</span>
+                                    <span class="text-[11px] text-slate-500">Ajuste de listas, tarifas, promociones o nuevos ingresos.</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-lg bg-brand-orangeLight text-brand-orange flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="material-symbols-outlined text-[15px]">chat</span>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-xs text-slate-900 block">Canal Directo de Soporte por WhatsApp</span>
+                                    <span class="text-[11px] text-slate-500">Atención prioritaria y resolución rápida de pedidos de cambio.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100">
+                        <span class="text-[11px] font-bold text-brand-orange block text-center bg-brand-orangeLight py-2 px-3 rounded-xl border border-brand-orange/20">
+                            Cuidado técnico + cambios de contenido
+                        </span>
                     </div>
                 </div>
 
-                <!-- Amplio -->
-                <div class="bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col justify-between">
+                <!-- AMPLIO: MÁXIMA ESCALA -->
+                <div class="bg-white rounded-3xl border-2 border-brand-pink/40 hover:border-brand-pink p-6 sm:p-7 flex flex-col justify-between shadow-sm hover:shadow-xl transition-all duration-300 relative group">
+                    <div class="absolute -top-3.5 left-6 bg-brand-pink text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-full tracking-wider shadow-xs">
+                        Completo
+                    </div>
+
                     <div>
-                        <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-base mb-4">
-                            3
+                        <div class="w-12 h-12 rounded-2xl bg-brand-pinkLight text-brand-pink flex items-center justify-center font-bold text-xl mb-4 mt-2 border border-brand-pink/20 group-hover:scale-105 transition-transform">
+                            <span class="material-symbols-outlined text-2xl">rocket_launch</span>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-900 mb-1">Mantenimiento Amplio</h3>
-                        <p class="text-xs text-slate-500 mb-5">Para marcas con constante actividad comercial y campañas activas.</p>
                         
-                        <ul class="space-y-2.5 text-xs text-slate-600">
-                            <li class="flex items-start gap-2">
-                                <span class="material-symbols-outlined text-brand-pink text-[16px] mt-0.5">check</span>
-                                <span class="font-medium text-slate-800">Todo lo incluido en el plan Estándar.</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
-                                <span>Creación o rediseño de nuevas secciones y landing pages.</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
-                                <span>Optimización continua de velocidad, rendimiento y SEO.</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="material-symbols-outlined text-emerald-600 text-[16px] mt-0.5">check</span>
-                                <span>Reporte mensual de visitas, clics y mejoras aplicadas.</span>
-                            </li>
-                        </ul>
+                        <h3 class="text-xl font-extrabold text-slate-900 mb-1">Mantenimiento Amplio</h3>
+                        <p class="text-xs font-semibold text-brand-pink mb-2">Para marcas con constante actividad y campañas</p>
+                        <p class="text-xs text-slate-500 mb-6 leading-relaxed">
+                            Orientado a empresas o marcas en expansión que necesitan nuevas páginas de aterrizaje, mejoras de diseño continuas y optimización para captar clientes.
+                        </p>
+                        
+                        <div class="space-y-3.5 mb-6">
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-lg bg-brand-pinkLight text-brand-pink flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="material-symbols-outlined text-[15px]">check</span>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-xs text-slate-900 block">Todo lo incluido en el Plan Estándar</span>
+                                    <span class="text-[11px] text-slate-500">Hosting, backups, cambios de texto y atención por WhatsApp.</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-lg bg-brand-pinkLight text-brand-pink flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="material-symbols-outlined text-[15px]">add_to_photos</span>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-xs text-slate-900 block">Nuevas Secciones o Landing Pages</span>
+                                    <span class="text-[11px] text-slate-500">Creación periódica de páginas para lanzamientos o promociones.</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-lg bg-brand-pinkLight text-brand-pink flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="material-symbols-outlined text-[15px]">speed</span>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-xs text-slate-900 block">Optimización Continua de Velocidad & SEO</span>
+                                    <span class="text-[11px] text-slate-500">Mejoras de rendimiento para asegurar buen posicionamiento.</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-lg bg-brand-pinkLight text-brand-pink flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="material-symbols-outlined text-[15px]">analytics</span>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-xs text-slate-900 block">Reporte Mensual de Rendimiento</span>
+                                    <span class="text-[11px] text-slate-500">Métricas claras de visitas, interacciones y estado general.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100">
+                        <span class="text-[11px] font-bold text-brand-pink block text-center bg-brand-pinkLight py-2 px-3 rounded-xl border border-brand-pink/20">
+                            Evolución continua y desarrollo activo
+                        </span>
                     </div>
                 </div>
 
             </div>
 
-            <div class="mt-6 text-center">
-                <p class="text-xs text-slate-500">
-                    * El presupuesto mensual de mantenimiento se define de forma personalizada según la complejidad técnica y el volumen de actualizaciones requeridas.
+            <div class="mt-8 text-center bg-white border border-[#f3e5dc] rounded-2xl p-4 max-w-2xl mx-auto shadow-2xs">
+                <p class="text-xs text-slate-600">
+                    <strong class="text-slate-800">Nota:</strong> El valor mensual de mantenimiento se coordina de manera personalizada según la escala y necesidades específicas de cada cliente.
                 </p>
             </div>
         </section>
@@ -308,14 +483,17 @@
     </main>
 
     <!-- Footer minimalista en sintonía con la marca -->
-    <footer class="border-t border-[#f3e5dc] bg-white py-8 mt-12">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+    <footer class="border-t border-[#f3e5dc] bg-white py-8 mt-12 relative z-10">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
             <div class="flex items-center gap-2">
+                <span class="inline-flex items-center font-brand font-bold text-[10px] bg-slate-900 px-2 py-0.5 rounded text-white tracking-wider">
+                    <span class="text-brand-pink">V</span><span class="text-brand-orange">8</span><span class="text-brand-pink">A</span>
+                </span>
                 <span class="font-semibold text-slate-800">Valentina Ochoa</span>
                 <span>·</span>
                 <a href="https://valeeochoa.github.io" target="_blank" rel="noopener" class="text-brand-pink hover:text-brand-orange underline underline-offset-4 transition-colors font-medium">Portfolio personal</a>
             </div>
-            <p>Página de acceso privado para demostraciones de clientes.</p>
+            <p>Acceso privado para demostraciones de clientes y agencias.</p>
         </div>
     </footer>
 
