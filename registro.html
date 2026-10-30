@@ -115,53 +115,116 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5" id="plansGrid">
+                        <!-- Banner de Prueba Gratis -->
+                        <div class="mb-4 px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-50 via-rose-50 to-amber-50 border border-orange-200/80 text-xs text-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-2xs">
+                            <span class="font-bold flex items-center gap-1.5 text-slate-900">
+                                <span class="material-symbols-outlined text-[20px] text-[#FC8712]">auto_awesome</span>
+                                Probá cualquier plan GRATIS por <span class="trial-days-display font-black text-[#D11149]">30</span> días
+                            </span>
+                            <span class="text-[11px] font-semibold text-slate-500 bg-white/80 px-2.5 py-0.5 rounded-md border border-slate-200/70">Sin tarjeta de crédito • Cancelá cuando quieras</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="plansGrid">
                             <!-- Plan Simple / Básico -->
-                            <label class="cursor-pointer relative">
+                            <label class="cursor-pointer relative flex">
                                 <input type="radio" name="regPlan" value="Básico" class="peer sr-only" onchange="recalcRegPrices()">
-                                <div class="p-4 rounded-lg border-2 border-slate-200 peer-checked:border-[#d11149] peer-checked:bg-[#fcb0b3]/15 transition-all text-center h-full flex flex-col justify-between">
+                                <div class="w-full p-4 sm:p-5 rounded-2xl border-2 border-slate-200 bg-white peer-checked:border-[#d11149] peer-checked:bg-rose-50/20 peer-checked:shadow-md transition-all flex flex-col justify-between hover:border-slate-300">
                                     <div>
-                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Plan Inicial</span>
-                                        <h3 class="font-bold text-slate-800 text-base mt-1">Simple</h3>
-                                        <div class="my-2">
-                                            <span class="text-slate-400 line-through text-xs" id="regBasicOldPrice">$8.889</span>
-                                            <p class="text-2xl font-black text-[#d11149]" id="regBasicPrice">$8.000<span class="text-xs font-normal text-slate-500">/mes</span></p>
+                                        <div class="flex items-center justify-between gap-2 mb-2">
+                                            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">Inicial</span>
+                                            <span class="text-[11px] font-bold text-slate-400">1-5 profs</span>
                                         </div>
+                                        <h3 class="font-black text-slate-900 text-lg">Plan Simple</h3>
+                                        <p class="text-xs text-slate-500 mt-1 mb-3">Calendario online para recibir reservas organizadas las 24 hs.</p>
+
+                                        <div class="my-3 py-2 border-y border-slate-100">
+                                            <div class="flex items-center gap-1.5 mb-0.5">
+                                                <span class="text-slate-400 line-through text-xs font-semibold" id="regBasicOldPrice">$8.889</span>
+                                                <span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded" id="regBasicBadge">-10% OFF</span>
+                                            </div>
+                                            <p class="text-2xl font-black text-slate-900" id="regBasicPrice">$8.000<span class="text-xs font-normal text-slate-500">/mes</span></p>
+                                        </div>
+
+                                        <ul class="space-y-2 text-xs text-slate-600 mt-3">
+                                            <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-600 text-base shrink-0">check_circle</span> <span>Calendario de turnos online 24/7 (Mensual y Semanal)</span></li>
+                                            <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-600 text-base shrink-0">check_circle</span> <span>Notificaciones por email automáticas</span></li>
+                                            <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-600 text-base shrink-0">check_circle</span> <span>Personalización de 2 colores base de marca</span></li>
+                                            <li class="flex items-start gap-1.5 text-slate-400"><span class="material-symbols-outlined text-slate-300 text-base shrink-0">cancel</span> <span>Sin Agenda Virtual (Solo calendario)</span></li>
+                                            <li class="flex items-start gap-1.5 text-slate-400"><span class="material-symbols-outlined text-slate-300 text-base shrink-0">cancel</span> <span>Sin página web propia (`mi-web`)</span></li>
+                                        </ul>
                                     </div>
-                                    <span class="text-[11px] text-slate-500 font-medium" id="regBasicSubtext">1 Profesional • Calendario Online</span>
+                                    <div class="mt-4 pt-3 border-t border-slate-100">
+                                        <span class="text-[11px] text-slate-500 font-bold block" id="regBasicSubtext">1 Profesional • Calendario Online</span>
+                                    </div>
                                 </div>
                             </label>
 
                             <!-- Plan Profesional -->
-                            <label class="cursor-pointer relative">
+                            <label class="cursor-pointer relative flex">
                                 <input type="radio" name="regPlan" value="Profesional" class="peer sr-only" checked onchange="recalcRegPrices()">
-                                <div class="p-4 rounded-lg border-2 border-slate-200 peer-checked:border-[#d11149] peer-checked:bg-[#fcb0b3]/15 transition-all text-center h-full flex flex-col justify-between">
-                                    <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#d11149] text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-md shadow-2xs">Más Elegido</span>
+                                <div class="w-full p-4 sm:p-5 rounded-2xl border-2 border-slate-200 bg-white peer-checked:border-[#d11149] peer-checked:bg-rose-50/20 peer-checked:shadow-md transition-all flex flex-col justify-between hover:border-slate-300 relative">
+                                    <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#d11149] text-white text-[10px] font-black uppercase px-3 py-0.5 rounded-full shadow-sm tracking-wider">★ Más Elegido</span>
                                     <div>
-                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gestión Completa</span>
-                                        <h3 class="font-bold text-slate-800 text-base mt-1">Profesional</h3>
-                                        <div class="my-2">
-                                            <span class="text-slate-400 line-through text-xs" id="regInterOldPrice">$11.111</span>
+                                        <div class="flex items-center justify-between gap-2 mb-2">
+                                            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-rose-100 text-[#d11149] border border-rose-200">Gestión Total</span>
+                                            <span class="text-[11px] font-bold text-slate-400">1-5 profs</span>
+                                        </div>
+                                        <h3 class="font-black text-slate-900 text-lg">Plan Profesional</h3>
+                                        <p class="text-xs text-slate-500 mt-1 mb-3">Agenda virtual + tu propia página web de reservas y catálogo.</p>
+
+                                        <div class="my-3 py-2 border-y border-slate-100">
+                                            <div class="flex items-center gap-1.5 mb-0.5">
+                                                <span class="text-slate-400 line-through text-xs font-semibold" id="regInterOldPrice">$11.111</span>
+                                                <span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded" id="regInterBadge">-10% OFF</span>
+                                            </div>
                                             <p class="text-2xl font-black text-[#d11149]" id="regInterPrice">$10.000<span class="text-xs font-normal text-slate-500">/mes</span></p>
                                         </div>
+
+                                        <ul class="space-y-2 text-xs text-slate-600 mt-3">
+                                            <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-[#d11149] text-base shrink-0">check_circle</span> <span class="font-bold text-slate-800">Todo lo del Plan Simple</span></li>
+                                            <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-[#d11149] text-base shrink-0">check_circle</span> <span><strong>Agenda Virtual interactiva</strong> (confirmar citas en 1 clic)</span></li>
+                                            <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-[#d11149] text-base shrink-0">check_circle</span> <span><strong>Tu Página Web Propia</strong> (`mi-web`) con catálogo</span></li>
+                                            <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-[#d11149] text-base shrink-0">check_circle</span> <span>Personalización de 3 colores (2 base + 1 a elección)</span></li>
+                                            <li class="flex items-start gap-1.5 text-slate-400"><span class="material-symbols-outlined text-slate-300 text-base shrink-0">cancel</span> <span>Sin gestión de cupos grupales ni pases</span></li>
+                                        </ul>
                                     </div>
-                                    <span class="text-[11px] text-slate-500 font-medium" id="regInterSubtext">1 Profesional • Agenda Virtual y Web</span>
+                                    <div class="mt-4 pt-3 border-t border-slate-100">
+                                        <span class="text-[11px] text-[#d11149] font-bold block" id="regInterSubtext">1 Profesional • Agenda Virtual + Web</span>
+                                    </div>
                                 </div>
                             </label>
 
                             <!-- Plan Premium -->
-                            <label class="cursor-pointer relative">
+                            <label class="cursor-pointer relative flex">
                                 <input type="radio" name="regPlan" value="Premium" class="peer sr-only" onchange="recalcRegPrices()">
-                                <div class="p-4 rounded-lg border-2 border-slate-200 peer-checked:border-[#d11149] peer-checked:bg-[#fcb0b3]/15 transition-all text-center h-full flex flex-col justify-between">
+                                <div class="w-full p-4 sm:p-5 rounded-2xl border-2 border-slate-200 bg-white peer-checked:border-[#d11149] peer-checked:bg-rose-50/20 peer-checked:shadow-md transition-all flex flex-col justify-between hover:border-slate-300">
                                     <div>
-                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Presencia Web y Cupos</span>
-                                        <h3 class="font-bold text-slate-800 text-base mt-1">Premium</h3>
-                                        <div class="my-2">
-                                            <span class="text-slate-400 line-through text-xs" id="regPremOldPrice">$16.667</span>
-                                            <p class="text-2xl font-black text-[#d11149]" id="regPremPrice">$15.000<span class="text-xs font-normal text-slate-500">/mes</span></p>
+                                        <div class="flex items-center justify-between gap-2 mb-2">
+                                            <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200">Clases & Cupos</span>
+                                            <span class="text-[11px] font-bold text-slate-400">1-5 profs</span>
                                         </div>
+                                        <h3 class="font-black text-slate-900 text-lg">Plan Premium</h3>
+                                        <p class="text-xs text-slate-500 mt-1 mb-3">Clases grupales por cupos, portal del alumno y paquetes de pases.</p>
+
+                                        <div class="my-3 py-2 border-y border-slate-100">
+                                            <div class="flex items-center gap-1.5 mb-0.5">
+                                                <span class="text-slate-400 line-through text-xs font-semibold" id="regPremOldPrice">$16.667</span>
+                                                <span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded" id="regPremBadge">-10% OFF</span>
+                                            </div>
+                                            <p class="text-2xl font-black text-slate-900" id="regPremPrice">$15.000<span class="text-xs font-normal text-slate-500">/mes</span></p>
+                                        </div>
+
+                                        <ul class="space-y-2 text-xs text-slate-600 mt-3">
+                                            <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-amber-600 text-base shrink-0">check_circle</span> <span class="font-bold text-slate-800">Todo lo del Plan Profesional</span></li>
+                                            <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-amber-600 text-base shrink-0">check_circle</span> <span><strong>Clases por Cupos múltiples</strong> (yoga, pilates, talleres)</span></li>
+                                            <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-amber-600 text-base shrink-0">check_circle</span> <span><strong>Portal del Alumno</strong> con autogestión de citas</span></li>
+                                            <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-amber-600 text-base shrink-0">check_circle</span> <span><strong>Paquetes de Pases y créditos</strong> con vencimiento</span></li>
+                                            <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-amber-600 text-base shrink-0">check_circle</span> <span>Personalización extendida de hasta 5 colores</span></li>
+                                        </ul>
                                     </div>
-                                    <span class="text-[11px] text-slate-500 font-medium" id="regPremSubtext">1 Profesional • Clases por Cupos + Portal</span>
+                                    <div class="mt-4 pt-3 border-t border-slate-100">
+                                        <span class="text-[11px] text-amber-700 font-bold block" id="regPremSubtext">1 Profesional • Clases por Cupos + Portal</span>
+                                    </div>
                                 </div>
                             </label>
                         </div>
@@ -376,11 +439,16 @@
         }
 
         if (requestedPlan) {
-            const planLower = requestedPlan.toLowerCase();
+            const planLower = requestedPlan.toLowerCase().trim();
             const radios = document.querySelectorAll('input[name="regPlan"]');
             radios.forEach(radio => {
-                const valLower = radio.value.toLowerCase();
-                if (valLower === planLower || (planLower.includes('sim') && valLower.includes('bás')) || (planLower.includes('prof') && valLower.includes('prof')) || (planLower.includes('prem') && valLower.includes('prem'))) {
+                const valLower = radio.value.toLowerCase().trim();
+                if (
+                    valLower === planLower ||
+                    ((planLower.includes('sim') || planLower.includes('bas') || planLower.includes('bás')) && (valLower.includes('bás') || valLower.includes('bas'))) ||
+                    ((planLower.includes('prof') || planLower.includes('inter')) && valLower.includes('prof')) ||
+                    ((planLower.includes('prem') || planLower.includes('comp')) && valLower.includes('prem'))
+                ) {
                     radio.checked = true;
                 }
             });
@@ -391,7 +459,7 @@
             validarCuponRegistro();
         }
 
-        window.regPricingData = { precio_basico: 8889, precio_intermedio: 11111, precio_premium: 16667, descuento_porcentaje: 10 };
+        window.regPricingData = { precio_basico: 8889, precio_intermedio: 11111, precio_premium: 16667, descuento_porcentaje: 10, dias_prueba_defecto: 30 };
         fetch('backend/obtener_precios.php').then(r=>r.json()).then(pData => {
             if (pData && pData.success && pData.data) {
                 window.regPricingData = pData.data;
@@ -418,7 +486,17 @@
         const rawB = parseFloat(pData.precio_basico) || 8889;
         const rawI = parseFloat(pData.precio_intermedio) || 11111;
         const rawP = parseFloat(pData.precio_premium) || 16667;
-        let discPct = parseInt(pData.descuento_porcentaje) || 10;
+        
+        let discPct = (pData.descuento_porcentaje !== undefined && pData.descuento_porcentaje !== null) 
+            ? parseInt(pData.descuento_porcentaje) 
+            : 10;
+        if (isNaN(discPct) || discPct < 0) discPct = 0;
+        if (pData.descuento_hasta) {
+            const exp = new Date(String(pData.descuento_hasta).replace(/-/g, '/'));
+            if (!isNaN(exp.getTime()) && exp < new Date()) {
+                discPct = 0;
+            }
+        }
         
         if (appliedCouponPct > 0) {
             discPct = Math.max(discPct, appliedCouponPct);
@@ -429,12 +507,22 @@
         function calc(rawBase) {
             const priceForOne = Math.round(rawBase * factor);
             if (count === 1) {
-                return { final: priceForOne, old: Math.round(rawBase), showOld: discPct > 0 };
+                return { 
+                    final: priceForOne, 
+                    old: Math.round(rawBase), 
+                    showOld: discPct > 0,
+                    badgeText: discPct > 0 ? `-${discPct}% OFF` : ''
+                };
             } else {
                 let volDisc = Math.min(count * 10, 50);
                 let totalBeforeVol = priceForOne * count;
                 let final = totalBeforeVol * (1 - volDisc / 100);
-                return { final: Math.round(final), old: Math.round(totalBeforeVol), showOld: true };
+                return { 
+                    final: Math.round(final), 
+                    old: Math.round(totalBeforeVol), 
+                    showOld: true,
+                    badgeText: `-${volDisc}% EQUIPO`
+                };
             }
         }
 
@@ -449,21 +537,39 @@
 
         const oldBEl = document.getElementById('regBasicOldPrice');
         if (oldBEl) oldBEl.style.display = bRes.showOld ? 'inline' : 'none';
-        document.getElementById('regBasicOldPrice').textContent = '$' + bRes.old.toLocaleString('es-AR');
+        if (oldBEl) oldBEl.textContent = '$' + bRes.old.toLocaleString('es-AR');
+        const badgeBEl = document.getElementById('regBasicBadge');
+        if (badgeBEl) {
+            badgeBEl.style.display = bRes.showOld ? 'inline-block' : 'none';
+            badgeBEl.textContent = bRes.badgeText;
+        }
         document.getElementById('regBasicPrice').innerHTML = '$' + bRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + couponNoticeTag + bPerProf;
         document.getElementById('regBasicSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Calendario Online`;
 
         const oldIEl = document.getElementById('regInterOldPrice');
         if (oldIEl) oldIEl.style.display = iRes.showOld ? 'inline' : 'none';
-        document.getElementById('regInterOldPrice').textContent = '$' + iRes.old.toLocaleString('es-AR');
+        if (oldIEl) oldIEl.textContent = '$' + iRes.old.toLocaleString('es-AR');
+        const badgeIEl = document.getElementById('regInterBadge');
+        if (badgeIEl) {
+            badgeIEl.style.display = iRes.showOld ? 'inline-block' : 'none';
+            badgeIEl.textContent = iRes.badgeText;
+        }
         document.getElementById('regInterPrice').innerHTML = '$' + iRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + couponNoticeTag + iPerProf;
-        document.getElementById('regInterSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Agenda Virtual`;
+        document.getElementById('regInterSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Agenda Virtual + Web`;
 
         const oldPEl = document.getElementById('regPremOldPrice');
         if (oldPEl) oldPEl.style.display = pRes.showOld ? 'inline' : 'none';
-        document.getElementById('regPremOldPrice').textContent = '$' + pRes.old.toLocaleString('es-AR');
+        if (oldPEl) oldPEl.textContent = '$' + pRes.old.toLocaleString('es-AR');
+        const badgePEl = document.getElementById('regPremBadge');
+        if (badgePEl) {
+            badgePEl.style.display = pRes.showOld ? 'inline-block' : 'none';
+            badgePEl.textContent = pRes.badgeText;
+        }
         document.getElementById('regPremPrice').innerHTML = '$' + pRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + couponNoticeTag + pPerProf;
-        document.getElementById('regPremSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Mini Web Integrada`;
+        document.getElementById('regPremSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Clases por Cupos + Portal`;
+
+        const trialDays = (pData && pData.dias_prueba_defecto) ? pData.dias_prueba_defecto : 30;
+        document.querySelectorAll('.trial-days-display').forEach(el => el.textContent = trialDays);
     }
 
     function submitFullRegister(e) {

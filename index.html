@@ -390,375 +390,81 @@
                 </p>
             </div>
 
-            <!-- Mockup Fiel del Dashboard de Agendatina con Interacción en Vivo (ID #29 y Requerimiento #8) -->
-            <div id="dashboardPreviewContainer" class="bg-slate-50/70 border border-slate-200/90 rounded-3xl p-5 sm:p-8 shadow-xl space-y-6">
-                <!-- Barra Superior Réplica del Dashboard -->
-                <div class="bg-white rounded-2xl p-5 border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#D11149] to-[#FC8712] text-white flex items-center justify-center font-black text-xl shadow-md shadow-rose-500/20">
-                            ST
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-base sm:text-lg font-black text-slate-800">Panel de Control • SteticaPepito</h3>
-                                <span class="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-black px-2 py-0.5 rounded-full">Activo</span>
-                            </div>
-                            <p class="text-xs text-slate-500">Vista réplica interactiva del panel de administración del negocio</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold text-slate-400">Pestaña activa:</span>
-                        <span id="activeModuleIndicatorBadge" class="bg-[#D11149] text-white text-xs font-black px-3 py-1.5 rounded-xl shadow-xs">
-                            Calendario y Agenda
-                        </span>
-                    </div>
+            <!-- Pestañas de Carpetas (Folder Tabs) y Marco de Simulación Compacto -->
+            <div class="relative">
+                <!-- Barra de pestañas estilo carpetas con scroll horizontal en mobile -->
+                <div class="flex items-end gap-1.5 overflow-x-auto scrollbar-none px-2 sm:px-4 border-b-2 border-slate-200" id="folderTabsBar" role="tablist">
+                    <!-- Generado dinámicamente por assets/js/index_modulos_sim.js -->
                 </div>
 
-                <!-- Grilla 1: Módulos Principales (Réplica visual exacta del Dashboard con card-accent de colores) -->
-                <div>
-                    <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-slate-300"></span> Módulos Principales (Hacé clic en cualquier tarjeta para previsualizarlo)
-                    </p>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="dashboardModulesGrid">
-                        <!-- 1. Calendario -->
-                        <div onclick="window.selectModuleTab('automatizacion', true)" data-dash-card="automatizacion" class="dash-replica-card cursor-pointer group bg-white rounded-xl border border-slate-200 flex items-stretch overflow-hidden hover:border-orange-400 hover:shadow-md transition-all shadow-xs">
-                            <div class="card-accent bg-orange-400 rounded-l-xl shrink-0 w-1.5"></div>
-                            <div class="flex flex-col justify-between p-4 sm:p-5 flex-1">
-                                <div>
-                                    <div class="flex items-start justify-between mb-3">
-                                        <div class="w-9 h-9 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center">
-                                            <span class="material-symbols-outlined text-xl">calendar_month</span>
-                                        </div>
-                                        <span class="material-symbols-outlined text-[18px] text-slate-300 group-hover:text-orange-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">arrow_outward</span>
-                                    </div>
-                                    <h4 class="text-sm sm:text-base font-bold text-slate-800 mb-1">Calendario de Turnos</h4>
-                                    <p class="text-xs text-slate-500 leading-relaxed">Bloques dinámicos según servicio + tiempo de descanso entre citas.</p>
-                                </div>
-                                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-orange-600">
-                                    <span>Explorar módulo</span> <span>→</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 2. Alumnos / Clientes -->
-                        <div onclick="window.selectModuleTab('cupos', true)" data-dash-card="cupos" class="dash-replica-card cursor-pointer group bg-white rounded-xl border border-slate-200 flex items-stretch overflow-hidden hover:border-amber-400 hover:shadow-md transition-all shadow-xs">
-                            <div class="card-accent bg-amber-500 rounded-l-xl shrink-0 w-1.5"></div>
-                            <div class="flex flex-col justify-between p-4 sm:p-5 flex-1">
-                                <div>
-                                    <div class="flex items-start justify-between mb-3">
-                                        <div class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-                                            <span class="material-symbols-outlined text-xl">groups</span>
-                                        </div>
-                                        <span class="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">Alumnos</span>
-                                    </div>
-                                    <h4 class="text-sm sm:text-base font-bold text-slate-800 mb-1">Alumnos / Clientes</h4>
-                                    <p class="text-xs text-slate-500 leading-relaxed">Control de cupos, créditos de pases y auto-renovación de vencimientos.</p>
-                                </div>
-                                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-amber-600">
-                                    <span>Explorar módulo</span> <span>→</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 3. Mi Página Web -->
-                        <div onclick="window.selectModuleTab('web', true)" data-dash-card="web" class="dash-replica-card cursor-pointer group bg-white rounded-xl border border-slate-200 flex items-stretch overflow-hidden hover:border-emerald-400 hover:shadow-md transition-all shadow-xs">
-                            <div class="card-accent bg-emerald-500 rounded-l-xl shrink-0 w-1.5"></div>
-                            <div class="flex flex-col justify-between p-4 sm:p-5 flex-1">
-                                <div>
-                                    <div class="flex items-start justify-between mb-3">
-                                        <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                                            <span class="material-symbols-outlined text-xl">dvr</span>
-                                        </div>
-                                        <span class="material-symbols-outlined text-[18px] text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">arrow_outward</span>
-                                    </div>
-                                    <h4 class="text-sm sm:text-base font-bold text-slate-800 mb-1">Mi Página Web</h4>
-                                    <p class="text-xs text-slate-500 leading-relaxed">Portada personalizada, catálogo con fotos, cursos y mapa interactivo.</p>
-                                </div>
-                                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-emerald-600">
-                                    <span>Explorar módulo</span> <span>→</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 4. Servicios -->
-                        <div onclick="window.selectModuleTab('servicios', true)" data-dash-card="servicios" class="dash-replica-card cursor-pointer group bg-white rounded-xl border border-slate-200 flex items-stretch overflow-hidden hover:border-rose-400 hover:shadow-md transition-all shadow-xs">
-                            <div class="card-accent bg-rose-500 rounded-l-xl shrink-0 w-1.5"></div>
-                            <div class="flex flex-col justify-between p-4 sm:p-5 flex-1">
-                                <div>
-                                    <div class="flex items-start justify-between mb-3">
-                                        <div class="w-9 h-9 rounded-lg bg-rose-50 text-[#d11149] flex items-center justify-center">
-                                            <span class="material-symbols-outlined text-xl">content_cut</span>
-                                        </div>
-                                        <span class="material-symbols-outlined text-[18px] text-slate-300 group-hover:text-rose-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">arrow_outward</span>
-                                    </div>
-                                    <h4 class="text-sm sm:text-base font-bold text-slate-800 mb-1">Servicios y Tarifas</h4>
-                                    <p class="text-xs text-slate-500 leading-relaxed">Duraciones exactas en horas y minutos, precios en efectivo y de lista.</p>
-                                </div>
-                                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#d11149]">
-                                    <span>Explorar módulo</span> <span>→</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 5. Equipo de Trabajo -->
-                        <div onclick="window.selectModuleTab('equipo', true)" data-dash-card="equipo" class="dash-replica-card cursor-pointer group bg-white rounded-xl border border-slate-200 flex items-stretch overflow-hidden hover:border-purple-400 hover:shadow-md transition-all shadow-xs">
-                            <div class="card-accent bg-purple-500 rounded-l-xl shrink-0 w-1.5"></div>
-                            <div class="flex flex-col justify-between p-4 sm:p-5 flex-1">
-                                <div>
-                                    <div class="flex items-start justify-between mb-3">
-                                        <div class="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
-                                            <span class="material-symbols-outlined text-xl">badge</span>
-                                        </div>
-                                        <span class="material-symbols-outlined text-[18px] text-slate-300 group-hover:text-purple-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">arrow_outward</span>
-                                    </div>
-                                    <h4 class="text-sm sm:text-base font-bold text-slate-800 mb-1">Equipo y Profesionales</h4>
-                                    <p class="text-xs text-slate-500 leading-relaxed">Incluido en todos los planes. Asignación de agendas, fotos y permisos.</p>
-                                </div>
-                                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-purple-600">
-                                    <span>Explorar módulo</span> <span>→</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 6. Estadísticas -->
-                        <div onclick="window.selectModuleTab('estadisticas', true)" data-dash-card="estadisticas" class="dash-replica-card cursor-pointer group bg-white rounded-xl border border-slate-200 flex items-stretch overflow-hidden hover:border-teal-400 hover:shadow-md transition-all shadow-xs">
-                            <div class="card-accent bg-teal-500 rounded-l-xl shrink-0 w-1.5"></div>
-                            <div class="flex flex-col justify-between p-4 sm:p-5 flex-1">
-                                <div>
-                                    <div class="flex items-start justify-between mb-3">
-                                        <div class="w-9 h-9 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
-                                            <span class="material-symbols-outlined text-xl">insights</span>
-                                        </div>
-                                        <span class="material-symbols-outlined text-[18px] text-slate-300 group-hover:text-teal-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all">arrow_outward</span>
-                                    </div>
-                                    <h4 class="text-sm sm:text-base font-bold text-slate-800 mb-1">Métricas y Fidelización</h4>
-                                    <p class="text-xs text-slate-500 leading-relaxed">Ingresos, clientes para retorno y cupones de descuento personalizados.</p>
-                                </div>
-                                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-teal-600">
-                                    <span>Explorar módulo</span> <span>→</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Grilla 2: Herramientas y Configuración (Dashboard Secundario) -->
-                <div>
-                    <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-slate-300"></span> Herramientas y Configuración
-                    </p>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <div onclick="window.selectModuleTab('ajustes', true)" data-dash-card="ajustes" class="dash-replica-card cursor-pointer group bg-white rounded-xl border border-slate-200 p-4 flex flex-col gap-2 hover:border-amber-400 hover:shadow-sm transition-all shadow-xs">
-                            <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-[18px]">tune</span>
-                            </div>
-                            <div>
-                                <h5 class="text-xs sm:text-sm font-bold text-slate-800">Ajustes</h5>
-                                <p class="text-[11px] text-slate-500 mt-0.5">Turnos, seña y descansos</p>
-                            </div>
-                            <span class="text-[11px] font-bold text-amber-600 mt-auto">Ver ajustes →</span>
-                        </div>
-
-                        <div onclick="window.selectModuleTab('manual', true)" data-dash-card="manual" class="dash-replica-card cursor-pointer group bg-white rounded-xl border border-slate-200 p-4 flex flex-col gap-2 hover:border-sky-400 hover:shadow-sm transition-all shadow-xs">
-                            <div class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-[18px]">menu_book</span>
-                            </div>
-                            <div>
-                                <h5 class="text-xs sm:text-sm font-bold text-slate-800">Manual de Uso</h5>
-                                <p class="text-[11px] text-slate-500 mt-0.5">Tour virtual y guías</p>
-                            </div>
-                            <span class="text-[11px] font-bold text-sky-600 mt-auto">Ver manual →</span>
-                        </div>
-
-                        <div onclick="window.selectModuleTab('automatizacion', true)" class="dash-replica-card cursor-pointer group bg-white rounded-xl border border-slate-200 p-4 flex flex-col gap-2 hover:border-indigo-400 hover:shadow-sm transition-all shadow-xs">
-                            <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-[18px]">schedule</span>
-                            </div>
-                            <div>
-                                <h5 class="text-xs sm:text-sm font-bold text-slate-800">Horarios</h5>
-                                <p class="text-[11px] text-slate-500 mt-0.5">Lunes a Domingo</p>
-                            </div>
-                            <span class="text-[11px] font-bold text-indigo-600 mt-auto">Ver horarios →</span>
-                        </div>
-
-                        <div onclick="window.selectModuleTab('estadisticas', true)" class="dash-replica-card cursor-pointer group bg-white rounded-xl border border-slate-200 p-4 flex flex-col gap-2 hover:border-purple-400 hover:shadow-sm transition-all shadow-xs">
-                            <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-[18px]">local_activity</span>
-                            </div>
-                            <div>
-                                <h5 class="text-xs sm:text-sm font-bold text-slate-800">Cupones</h5>
-                                <p class="text-[11px] text-slate-500 mt-0.5">Descuentos y retorno</p>
-                            </div>
-                            <span class="text-[11px] font-bold text-purple-600 mt-auto">Ver cupones →</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Visor Interactivo en Vivo del Módulo Seleccionado -->
-                <div class="bg-white rounded-3xl border border-slate-200/90 shadow-lg overflow-hidden p-6 sm:p-8 transition-all">
-                    <div id="moduleCarouselSlideContainer" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center min-h-[340px]">
-                        <!-- Renderizado dinámicamente por JS -->
-                    </div>
-
-                    <!-- Controles Inferiores -->
-                    <div class="mt-6 pt-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
-                        <div class="flex items-center gap-2 text-xs font-bold text-slate-400">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" id="modCarouselStatusDot"></span>
-                            <span id="modCarouselStatusText">Rotación automática activa (hacé clic en cualquier tarjeta del dashboard para explorar)</span>
-                        </div>
+                <!-- Marco Estilo Ventana de Navegador con Simulación Interactiva en Vivo -->
+                <div id="moduleSimulatorFrame" class="bg-white rounded-b-2xl sm:rounded-b-3xl border-x-2 border-b-2 border-slate-200/90 shadow-xl overflow-hidden">
+                    <!-- Barra de Navegador Falso -->
+                    <div class="bg-slate-100/90 border-b border-slate-200/90 px-4 py-2.5 flex items-center justify-between gap-4">
                         <div class="flex items-center gap-2">
-                            <button type="button" onclick="window.stepModuleTab(-1)" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all flex items-center justify-center cursor-pointer" title="Módulo anterior">
-                                <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                            <span class="w-3 h-3 rounded-full bg-rose-400/90 inline-block"></span>
+                            <span class="w-3 h-3 rounded-full bg-amber-400/90 inline-block"></span>
+                            <span class="w-3 h-3 rounded-full bg-emerald-400/90 inline-block"></span>
+                        </div>
+
+                        <!-- Barra de URL con candado -->
+                        <div class="flex-1 max-w-md mx-auto bg-white border border-slate-200/80 rounded-lg px-3 py-1 text-center text-xs font-semibold text-slate-500 flex items-center justify-center gap-1.5 shadow-2xs truncate">
+                            <span class="material-symbols-outlined text-[14px] text-emerald-600">lock</span>
+                            <span id="simBrowserUrl" class="truncate font-mono text-[11px] text-slate-600">agendatina.site/demo-negocio/calendario</span>
+                        </div>
+
+                        <!-- Controles de Navegación de Pestañas -->
+                        <div class="flex items-center gap-1">
+                            <button type="button" onclick="window.stepModuleTab(-1)" class="w-7 h-7 rounded-lg bg-white hover:bg-slate-200 text-slate-600 border border-slate-200 flex items-center justify-center transition-colors shadow-2xs cursor-pointer" title="Pestaña anterior">
+                                <span class="material-symbols-outlined text-[16px]">chevron_left</span>
                             </button>
-                            <button type="button" onclick="window.stepModuleTab(1)" class="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all flex items-center justify-center cursor-pointer" title="Siguiente módulo">
-                                <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                            <button type="button" onclick="window.stepModuleTab(1)" class="w-7 h-7 rounded-lg bg-white hover:bg-slate-200 text-slate-600 border border-slate-200 flex items-center justify-center transition-colors shadow-2xs cursor-pointer" title="Pestaña siguiente">
+                                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
                             </button>
                         </div>
+                    </div>
+
+                    <!-- Espacio de Trabajo de la Simulación Activa (Mínimo alto controlado para evitar saltos) -->
+                    <div id="simModuleWorkspace" class="p-4 sm:p-7 min-h-[380px] flex flex-col justify-center">
+                        <!-- Renderizado dinámicamente por assets/js/index_modulos_sim.js -->
+                    </div>
+
+                    <!-- Barra Inferior de Estado -->
+                    <div class="px-5 py-3 bg-slate-50 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+                        <div class="flex items-center gap-2 font-bold text-slate-500">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" id="modCarouselStatusDot"></span>
+                            <span id="modCarouselStatusText">Rotación automática activa (hacé clic en cualquier pestaña para pausar y explorar)</span>
+                        </div>
+                        <button type="button" onclick="window.openSimCta('¡Creá tu cuenta gratis!', 'Probá todas las funciones de Agendatina gratis por 30 días sin tarjeta de crédito.', 'Básico')" class="text-[#D11149] font-extrabold hover:underline flex items-center gap-1 cursor-pointer">
+                            <span>Comenzar prueba gratis de 30 días</span>
+                            <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                        </button>
                     </div>
                 </div>
             </div>
 
-            <div class="hidden grid grid-cols-1 md:grid-cols-2 gap-7">
-                <!-- 1. Automatización 24/7 y Calendario / Agenda Virtual -->
-                <div id="mod-automatizacion" class="scroll-mt-28 p-7 rounded-2xl border border-slate-200 bg-gradient-to-br from-rose-50/40 via-white to-white hover:border-rose-300 shadow-2xs hover:shadow-md transition-all">
-                    <div class="flex items-start justify-between gap-4 mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-[#D11149] text-white flex items-center justify-center shadow-sm shrink-0">
-                            <span class="material-symbols-outlined text-2xl">calendar_month</span>
-                        </div>
-                        <span class="text-[11px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-rose-100 text-[#D11149] border border-rose-200">Núcleo de Reservas</span>
+            <!-- Modal Reutilizable de Llamado a la Acción para Simulaciones -->
+            <div id="simCtaModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[90] hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+                <div id="simCtaModalContent" class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-7 border border-slate-200 transform scale-95 transition-transform duration-300 text-center space-y-4">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#D11149] to-[#FC8712] text-white flex items-center justify-center mx-auto shadow-lg shadow-rose-500/25">
+                        <span class="material-symbols-outlined text-3xl">rocket_launch</span>
                     </div>
-                    <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display">Automatización 24/7: Calendario y Agenda Virtual</h3>
-                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
-                        Recibí reservas las 24 horas desde tu link personalizado. El <strong>Plan Simple</strong> incluye el Calendario interactivo (vista mensual y semanal), mientras que los planes <strong>Profesional y Premium</strong> suman la <strong>Agenda Virtual</strong> completa con filtros por estado, buscador de clientes y confirmación en un clic.
-                    </p>
-                    <ul class="space-y-2 text-xs text-slate-700 font-semibold">
-                        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[#D11149] text-base">check_circle</span> Cálculo inteligente según la duración de cada servicio</li>
-                        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[#D11149] text-base">check_circle</span> Opción de seña con retención de turno por 1 hora y envío de Alias</li>
-                        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[#D11149] text-base">check_circle</span> Bloqueo de feriados, vacaciones y horarios de descanso</li>
-                    </ul>
-                </div>
-
-                <!-- 2. Tu Página Web Propia -->
-                <div id="mod-web" class="scroll-mt-28 p-7 rounded-2xl border border-slate-200 bg-gradient-to-br from-emerald-50/40 via-white to-white hover:border-emerald-300 shadow-2xs hover:shadow-md transition-all">
-                    <div class="flex items-start justify-between gap-4 mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-teal-600 text-white flex items-center justify-center shadow-sm shrink-0">
-                            <span class="material-symbols-outlined text-2xl">language</span>
-                        </div>
-                        <span class="text-[11px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-emerald-100 text-teal-800 border border-emerald-200">Profesional y Premium</span>
+                    <div>
+                        <h3 id="simCtaTitle" class="text-xl font-black text-slate-900">Creá tu cuenta gratis</h3>
+                        <p id="simCtaText" class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+                            Esta es una simulación interactiva. Para guardar tus propios servicios, horarios y recibir reservas reales de tus clientes, comenzá tu prueba gratuita de 30 días.
+                        </p>
                     </div>
-                    <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display">Tu Página Web Propia (`mi-web`)</h3>
-                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
-                        Mucho más que un simple link de turnos: tené tu propia página web de presentación donde tus clientes conocen tu local, ven a tu equipo, exploran tu catálogo y reservan sin salir de la página.
-                    </p>
-                    <ul class="space-y-2 text-xs text-slate-700 font-semibold">
-                        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-teal-600 text-base">check_circle</span> Personalización con tu logotipo, imagen de portada y colores de marca</li>
-                        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-teal-600 text-base">check_circle</span> Mapa interactivo con la ubicación de tu local e Instagram directo</li>
-                        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-teal-600 text-base">check_circle</span> Sección destacada para promocionar cursos, talleres o novedades</li>
-                    </ul>
-                </div>
-
-                <!-- 3. Métricas, Estadísticas y Fidelización -->
-                <div id="mod-estadisticas" class="scroll-mt-28 p-7 rounded-2xl border border-slate-200 bg-gradient-to-br from-purple-50/40 via-white to-white hover:border-purple-300 shadow-2xs hover:shadow-md transition-all">
-                    <div class="flex items-start justify-between gap-4 mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-sm shrink-0">
-                            <span class="material-symbols-outlined text-2xl">insights</span>
-                        </div>
-                        <span class="text-[11px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-purple-100 text-purple-800 border border-purple-200">Todos los Planes</span>
+                    <div class="pt-2 space-y-2">
+                        <a id="simCtaPrimaryBtn" href="registro.html?plan=Plan+Profesional" class="w-full py-3 px-5 rounded-xl bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white font-extrabold text-sm hover:opacity-95 transition-all shadow-md flex items-center justify-center gap-2">
+                            <span>Comenzar prueba gratis de 30 días</span>
+                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                        </a>
+                        <button type="button" onclick="window.closeSimCta()" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer">
+                            Seguir explorando la simulación
+                        </button>
                     </div>
-                    <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display">Métricas, Estadísticas y Retorno de Clientes</h3>
-                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
-                        Tomá decisiones basadas en datos reales de tu negocio y recuperá clientes inactivos de forma inteligente con recordatorios y cupones promocionales.
-                    </p>
-                    <ul class="space-y-2 text-xs text-slate-700 font-semibold">
-                        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-purple-600 text-base">check_circle</span> Reportes de ingresos estimados, turnos atendidos y servicios más rentables</li>
-                        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-purple-600 text-base">check_circle</span> Detección automática de clientes que deben volver a realizarse un servicio</li>
-                        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-purple-600 text-base">check_circle</span> Generación opcional de cupones de 10% OFF válidos por 24hs (1 solo uso)</li>
-                    </ul>
-                </div>
-
-                <!-- 4. Cupos, Pases y Portal de Alumnos -->
-                <div id="mod-cupos" class="scroll-mt-28 p-7 rounded-2xl border border-slate-200 bg-gradient-to-br from-orange-50/40 via-white to-white hover:border-orange-300 shadow-2xs hover:shadow-md transition-all">
-                    <div class="flex items-start justify-between gap-4 mb-4">
-                        <div class="w-12 h-12 rounded-xl bg-[#FC8712] text-white flex items-center justify-center shadow-sm shrink-0">
-                            <span class="material-symbols-outlined text-2xl">groups</span>
-                        </div>
-                        <span class="text-[11px] font-extrabold uppercase px-2.5 py-1 rounded-full bg-orange-100 text-orange-800 border border-orange-200">Exclusivo Plan Premium</span>
-                    </div>
-                    <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display">Cupos, Pases y Portal de Alumnos</h3>
-                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
-                        Ideal para estudios de pilates, yoga, gimnasios, danza e institutos. Tus alumnos ingresan con su cuenta para inscribirse a clases grupales descontando sus pases automáticamente.
-                    </p>
-                    <ul class="space-y-2 text-xs text-slate-700 font-semibold mb-4">
-                        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[#FC8712] text-base">check_circle</span> Control de cupos máximos por clase y lista de inscriptos</li>
-                        <li class="flex items-center gap-2"><span class="material-symbols-outlined text-[#FC8712] text-base">check_circle</span> Renovación automática opcional de vencimiento al recargar pases</li>
-                    </ul>
-                    <a href="alumno.html" class="inline-flex items-center gap-1.5 text-xs font-extrabold text-[#FC8712] hover:text-orange-700 bg-orange-50 hover:bg-orange-100 border border-orange-200 px-3.5 py-2 rounded-xl transition-all">
-                        <span class="material-symbols-outlined text-base">open_in_new</span> Conocer el Portal de Alumnos
-                    </a>
-                </div>
-
-                <!-- 5. Servicios y Paquetes -->
-                <div id="mod-servicios" class="scroll-mt-28 p-6 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition-all">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-xl">content_cut</span>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-extrabold text-slate-900 font-display">Catálogo de Servicios y Tarifas</h3>
-                            <span class="text-[11px] font-bold text-slate-500">Organización flexible por especialidad</span>
-                        </div>
-                    </div>
-                    <p class="text-xs text-slate-600 leading-relaxed">
-                        Creá servicios ilimitados indicando duración exacta (en horas y minutos), precio estándar, precio promocional en efectivo, foto ilustrativa y qué profesional lo realiza.
-                    </p>
-                </div>
-
-                <!-- 6. Equipo y Profesionales -->
-                <div id="mod-equipo" class="scroll-mt-28 p-6 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition-all">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-xl">badge</span>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-extrabold text-slate-900 font-display">Equipo y Profesionales</h3>
-                            <span class="text-[11px] font-bold text-emerald-700">Disponible en todos los niveles (Simple, Profesional y Premium)</span>
-                        </div>
-                    </div>
-                    <p class="text-xs text-slate-600 leading-relaxed">
-                        Sumá de 1 a +5 profesionales en cualquiera de nuestros planes. Cada integrante cuenta con su agenda diferenciada, foto, especialidad y permisos de acceso configurables.
-                    </p>
-                </div>
-
-                <!-- 7. Ajustes del Sistema -->
-                <div id="mod-ajustes" class="scroll-mt-28 p-6 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition-all">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-slate-200 text-slate-800 flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-xl">tune</span>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-extrabold text-slate-900 font-display">Ajustes y Reglas de Negocio</h3>
-                            <span class="text-[11px] font-bold text-slate-500">Adaptado 100% a tu forma de trabajar</span>
-                        </div>
-                    </div>
-                    <p class="text-xs text-slate-600 leading-relaxed">
-                        Definí horarios personalizados de Lunes a Domingo con múltiples tramos, anticipación mínima para reservar, métodos de pago aceptados, primer día de la semana y fondo degradé en todo el sistema.
-                    </p>
-                </div>
-
-                <!-- 8. Manual de Uso y Tour Virtual -->
-                <div id="mod-manual" class="scroll-mt-28 p-6 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition-all">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-xl">menu_book</span>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-extrabold text-slate-900 font-display">Manual de Uso y Tour Virtual</h3>
-                            <span class="text-[11px] font-bold text-slate-500">Aprendizaje rápido y acompañamiento</span>
-                        </div>
-                    </div>
-                    <p class="text-xs text-slate-600 leading-relaxed">
-                        Al ingresar por primera vez, un tour interactivo te guía paso a paso para configurar horarios y crear tu primer servicio, complementado con un manual detallado por módulo.
-                    </p>
+                    <p class="text-[11px] text-slate-400 font-semibold pt-1">Sin tarjeta de crédito requerida • Cancelá cuando quieras</p>
                 </div>
             </div>
         </div>
@@ -1635,6 +1341,7 @@
     </div>
 
     <script src="assets/js/script.js?v=1.3.0" defer></script>
+    <script src="assets/js/index_modulos_sim.js?v=1.0.0" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // 1. Navbar con efecto cristalino al hacer scroll
@@ -1661,393 +1368,6 @@
 
             document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
 
-            // 3. Carrusel Interactivo con Pestañas de Módulos del Sistema (ID #29)
-            const MODULE_TABS_ORDER = ['automatizacion', 'estadisticas', 'web', 'cupos', 'servicios', 'equipo', 'ajustes', 'manual'];
-            const MODULE_TABS_DATA = {
-                automatizacion: {
-                    badge: 'Núcleo de Reservas',
-                    badgeClass: 'bg-rose-100 text-[#D11149] border-rose-200',
-                    icon: 'calendar_month',
-                    iconBg: 'bg-[#D11149]',
-                    title: 'Automatización 24/7: Calendario y Agenda Virtual',
-                    desc: 'Recibí reservas las 24 horas desde tu link personalizado. El <strong>Plan Básico / Simple</strong> incluye el Calendario interactivo (vista mensual y semanal), mientras que los planes <strong>Profesional y Premium</strong> suman la <strong>Agenda Virtual</strong> completa con filtros por estado, buscador de clientes y confirmación en un clic.',
-                    bullets: [
-                        'Generación inteligente de horarios según la duración de cada servicio (+ tiempo de descanso)',
-                        'Opción de seña con retención de turno por 1 hora y envío automático de Alias bancario',
-                        'Bloqueo rápido de feriados, vacaciones, días libres y horarios de descanso'
-                    ],
-                    visualHtml: `
-                        <div class="bg-slate-900 rounded-2xl p-5 text-white shadow-2xl border border-slate-800 space-y-4">
-                            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-3 h-3 rounded-full bg-rose-500"></span>
-                                    <span class="text-xs font-extrabold tracking-wide uppercase text-slate-300">Agenda Virtual & Calendario 24/7</span>
-                                </div>
-                                <span class="text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full">En Vivo</span>
-                            </div>
-                            <div class="grid grid-cols-3 gap-2 text-center">
-                                <div class="bg-slate-800/90 p-2.5 rounded-xl border border-slate-700">
-                                    <span class="block text-[10px] text-slate-400">09:00 hs</span>
-                                    <span class="text-xs font-extrabold text-emerald-400">Confirmado</span>
-                                    <span class="block text-[10px] text-slate-300 truncate mt-0.5">Corte + Barba (45m)</span>
-                                </div>
-                                <div class="bg-[#D11149]/20 p-2.5 rounded-xl border border-[#D11149]">
-                                    <span class="block text-[10px] text-rose-300">10:00 hs</span>
-                                    <span class="text-xs font-extrabold text-white">Disponible</span>
-                                    <span class="block text-[10px] text-rose-200 truncate mt-0.5">+15m descanso incl.</span>
-                                </div>
-                                <div class="bg-slate-800/90 p-2.5 rounded-xl border border-slate-700">
-                                    <span class="block text-[10px] text-slate-400">11:00 hs</span>
-                                    <span class="text-xs font-extrabold text-amber-400">Seña 1h</span>
-                                    <span class="block text-[10px] text-slate-300 truncate mt-0.5">Coloración (90m)</span>
-                                </div>
-                            </div>
-                            <div class="bg-slate-800/70 rounded-xl p-3.5 border border-slate-700/80 flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <span class="material-symbols-outlined text-[#FC8712]">bolt</span>
-                                    <div class="text-xs">
-                                        <p class="font-bold text-white">Ajuste dinámico por servicio</p>
-                                        <p class="text-slate-400 text-[11px]">Los bloques se adaptan solos si eligen un servicio más corto o más largo.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>`
-                },
-                estadisticas: {
-                    badge: 'Todos los Planes',
-                    badgeClass: 'bg-purple-100 text-purple-800 border-purple-200',
-                    icon: 'insights',
-                    iconBg: 'bg-purple-600',
-                    title: 'Métricas, Estadísticas y Retorno de Clientes',
-                    desc: 'Tomá decisiones basadas en datos reales de tu negocio: visualizá ingresos estimados, servicios más rentables, rendimiento por profesional y recuperá clientes inactivos con recordatorios y cupones de descuento.',
-                    bullets: [
-                        'Gráficos interactivos de ingresos estimados, turnos atendidos y evolución mensual',
-                        'Detección automática de clientes que ya deberían volver a realizarse un servicio',
-                        'Generación opcional de cupones de 10% OFF válidos por 24hs (de un solo uso)'
-                    ],
-                    visualHtml: `
-                        <div class="bg-slate-900 rounded-2xl p-5 text-white shadow-2xl border border-slate-800 space-y-4">
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="bg-slate-800/90 p-3.5 rounded-xl border border-slate-700">
-                                    <span class="text-[10px] uppercase font-bold text-slate-400">Ingresos del Mes</span>
-                                    <p class="text-xl font-black text-emerald-400 mt-0.5">$1.480.000</p>
-                                    <span class="text-[10px] text-emerald-300 font-bold">▲ +24% vs mes anterior</span>
-                                </div>
-                                <div class="bg-slate-800/90 p-3.5 rounded-xl border border-slate-700">
-                                    <span class="text-[10px] uppercase font-bold text-slate-400">Clientes para Retorno</span>
-                                    <p class="text-xl font-black text-purple-400 mt-0.5">18 Clientes</p>
-                                    <span class="text-[10px] text-purple-300 font-bold">🎁 Cupón 10% OFF listo</span>
-                                </div>
-                            </div>
-                            <div class="bg-slate-800/60 p-4 rounded-xl border border-slate-700/80">
-                                <div class="flex items-end justify-between gap-2 h-24 pt-2 px-2">
-                                    <div class="w-full bg-purple-500/40 rounded-t-lg h-[45%]"></div>
-                                    <div class="w-full bg-purple-500/60 rounded-t-lg h-[65%]"></div>
-                                    <div class="w-full bg-purple-500/80 rounded-t-lg h-[55%]"></div>
-                                    <div class="w-full bg-gradient-to-t from-purple-600 to-[#D11149] rounded-t-lg h-[95%] shadow-lg"></div>
-                                    <div class="w-full bg-purple-500/70 rounded-t-lg h-[80%]"></div>
-                                </div>
-                                <div class="flex justify-between text-[10px] text-slate-400 font-bold mt-2 px-1">
-                                    <span>Sem 1</span><span>Sem 2</span><span>Sem 3</span><span>Sem 4</span><span>Actual</span>
-                                </div>
-                            </div>
-                        </div>`
-                },
-                web: {
-                    badge: 'Profesional y Premium',
-                    badgeClass: 'bg-emerald-100 text-teal-800 border-emerald-200',
-                    icon: 'language',
-                    iconBg: 'bg-teal-600',
-                    title: 'Tu Página Web Propia (mi-web)',
-                    desc: 'Mucho más que un simple link de turnos: tené tu propia página web profesional donde tus clientes conocen tu negocio, ven a tu equipo, exploran tu catálogo con fotos y reservan sin salir de la página.',
-                    bullets: [
-                        'Personalización total con tu logotipo, portada y paleta de colores de tu marca',
-                        'Mapa interactivo con la ubicación de tu local, horarios e Instagram directo',
-                        'Sección destacada para promocionar cursos, talleres o lanzamientos con fotos'
-                    ],
-                    visualHtml: `
-                        <div class="bg-slate-900 rounded-2xl p-5 text-white shadow-2xl border border-slate-800 space-y-3.5">
-                            <div class="flex items-center gap-2 bg-slate-800 px-3 py-2 rounded-xl border border-slate-700 text-xs text-slate-300">
-                                <span class="material-symbols-outlined text-teal-400 text-base">lock</span>
-                                <span class="font-mono text-[11px] truncate">agendatina.com/tu-negocio</span>
-                            </div>
-                            <div class="p-4 rounded-xl bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white space-y-1.5">
-                                <span class="text-[10px] font-black uppercase bg-black/20 px-2 py-0.5 rounded">Portada Personalizada</span>
-                                <h4 class="text-base font-extrabold">Estética & Spa Aura</h4>
-                                <p class="text-[11px] opacity-90">Reservá tu turno online en segundos • Ubicación y Catálogo</p>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2.5 text-xs">
-                                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-teal-400">location_on</span>
-                                    <span>Mapa Interactivo</span>
-                                </div>
-                                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-amber-400">school</span>
-                                    <span>Sección Cursos</span>
-                                </div>
-                            </div>
-                        </div>`
-                },
-                cupos: {
-                    badge: 'Exclusivo Plan Premium',
-                    badgeClass: 'bg-orange-100 text-orange-800 border-orange-200',
-                    icon: 'groups',
-                    iconBg: 'bg-[#FC8712]',
-                    title: 'Cupos, Pases y Portal de Alumnos',
-                    desc: 'Ideal para estudios de pilates, yoga, gimnasios, danza e institutos. Tus alumnos ingresan con su cuenta al Portal de Alumnos para inscribirse a clases grupales descontando sus pases automáticamente.',
-                    bullets: [
-                        'Control automático de cupos máximos por clase y listado de alumnos inscriptos',
-                        'Portal del Alumno para consultar pases disponibles, historial y reservar con 1 clic',
-                        'Auto-renovación opcional de fecha de vencimiento (+1 mes) al recargar pases'
-                    ],
-                    ctaUrl: 'alumno.html',
-                    ctaText: 'Conocer el Portal de Alumnos',
-                    visualHtml: `
-                        <div class="bg-slate-900 rounded-2xl p-5 text-white shadow-2xl border border-slate-800 space-y-3.5">
-                            <div class="flex items-center justify-between bg-orange-500/15 border border-orange-500/30 p-3 rounded-xl">
-                                <div>
-                                    <span class="text-[10px] font-extrabold uppercase text-orange-300">Portal del Alumno</span>
-                                    <h4 class="text-sm font-black text-white">Pilates Reformer • 18:00 hs</h4>
-                                </div>
-                                <span class="text-xs font-black bg-[#FC8712] text-white px-2.5 py-1 rounded-lg">6 / 8 Cupos</span>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2.5 text-xs">
-                                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
-                                    <span class="text-[10px] text-slate-400 block">Pases Disponibles</span>
-                                    <strong class="text-base text-emerald-400 font-black">8 Clases</strong>
-                                </div>
-                                <div class="bg-slate-800 p-3 rounded-xl border border-slate-700">
-                                    <span class="text-[10px] text-slate-400 block">Vencimiento</span>
-                                    <strong class="text-base text-amber-400 font-black">Auto +30 días</strong>
-                                </div>
-                            </div>
-                        </div>`
-                },
-                servicios: {
-                    badge: 'Todos los Planes',
-                    badgeClass: 'bg-amber-100 text-amber-800 border-amber-200',
-                    icon: 'content_cut',
-                    iconBg: 'bg-amber-600',
-                    title: 'Catálogo de Servicios y Tarifas',
-                    desc: 'Creá servicios ilimitados indicando duración exacta (en horas y minutos), precio estándar, precio promocional abonando en efectivo, foto ilustrativa y qué profesional lo realiza.',
-                    bullets: [
-                        'Configuración de duración exacta por servicio para adaptar el calendario automáticamente',
-                        'Doble tarifa opcional: Precio de Lista / Transferencia y Precio Promocional en Efectivo',
-                        'Opciones limpias según tu plan: Cupos y Paquetes visibles solo cuando los necesitás'
-                    ],
-                    visualHtml: `
-                        <div class="bg-slate-900 rounded-2xl p-5 text-white shadow-2xl border border-slate-800 space-y-3">
-                            <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 flex items-center justify-between">
-                                <div>
-                                    <h4 class="text-sm font-extrabold text-white">Limpieza Facial Profunda</h4>
-                                    <span class="text-[11px] text-slate-400">⏱️ Duración: 1 h 15 min • 👤 Sofía</span>
-                                </div>
-                                <div class="text-right">
-                                    <span class="block text-sm font-black text-emerald-400">$18.000 Efec.</span>
-                                    <span class="block text-[10px] text-slate-400">$20.000 Lista</span>
-                                </div>
-                            </div>
-                            <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 flex items-center justify-between">
-                                <div>
-                                    <h4 class="text-sm font-extrabold text-white">Manicuría Semipermanente</h4>
-                                    <span class="text-[11px] text-slate-400">⏱️ Duración: 45 min • 👤 Valentina</span>
-                                </div>
-                                <div class="text-right">
-                                    <span class="block text-sm font-black text-emerald-400">$12.500 Efec.</span>
-                                    <span class="block text-[10px] text-slate-400">$14.000 Lista</span>
-                                </div>
-                            </div>
-                        </div>`
-                },
-                equipo: {
-                    badge: 'Todos los Planes (Simple, Profesional y Premium)',
-                    badgeClass: 'bg-blue-100 text-blue-800 border-blue-200',
-                    icon: 'badge',
-                    iconBg: 'bg-blue-600',
-                    title: 'Equipo y Profesionales',
-                    desc: 'Disponible en todos los niveles (Básico/Simple, Profesional y Premium). Sumá de 1 a +5 profesionales según el tamaño de tu equipo: cada integrante cuenta con su agenda diferenciada, foto, especialidad y permisos.',
-                    bullets: [
-                        'Disponible para todos los planes: administrá los horarios y servicios de cada profesional',
-                        'Vista en columnas simultáneas para comparar la disponibilidad de todo tu equipo',
-                        'Permisos configurables para cada integrante del staff desde tu panel'
-                    ],
-                    visualHtml: `
-                        <div class="bg-slate-900 rounded-2xl p-5 text-white shadow-2xl border border-slate-800 space-y-3">
-                            <div class="grid grid-cols-2 gap-3">
-                                <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 text-center">
-                                    <div class="w-10 h-10 rounded-full bg-rose-500/20 text-rose-300 font-black flex items-center justify-center mx-auto mb-2">M</div>
-                                    <h4 class="text-xs font-extrabold">Marcos • Barbería</h4>
-                                    <span class="text-[10px] text-emerald-400 font-bold">5 turnos hoy</span>
-                                </div>
-                                <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 text-center">
-                                    <div class="w-10 h-10 rounded-full bg-blue-500/20 text-blue-300 font-black flex items-center justify-center mx-auto mb-2">L</div>
-                                    <h4 class="text-xs font-extrabold">Lucía • Colorista</h4>
-                                    <span class="text-[10px] text-emerald-400 font-bold">4 turnos hoy</span>
-                                </div>
-                            </div>
-                            <div class="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 text-center text-xs text-blue-200 font-bold">
-                                👥 Incluido en todos los planes (Simple, Profesional y Premium)
-                            </div>
-                        </div>`
-                },
-                ajustes: {
-                    badge: 'Personalización Total',
-                    badgeClass: 'bg-slate-200 text-slate-800 border-slate-300',
-                    icon: 'tune',
-                    iconBg: 'bg-slate-800',
-                    title: 'Ajustes Inteligentes, Pagos y Tiempo de Descanso',
-                    desc: 'Organizado por segmentos con buscador rápido y colores de tu perfil. Configurá horarios por día, métodos de pago, primer día de la semana y el tiempo de descanso entre turnos.',
-                    bullets: [
-                        'Tiempo de descanso configurable entre turnos (ej: +10m o +15m libres sin afectar el último turno del día)',
-                        'Buscador instantáneo y filtros por tema: Diseño, Horarios, Turnos, Pagos y Fidelización',
-                        'Horarios personalizados de Lunes a Domingo con múltiples tramos de atención'
-                    ],
-                    visualHtml: `
-                        <div class="bg-slate-900 rounded-2xl p-5 text-white shadow-2xl border border-slate-800 space-y-3">
-                            <div class="flex flex-wrap gap-1.5">
-                                <span class="px-2.5 py-1 rounded-lg bg-[#D11149] text-white text-[10px] font-black">Turnos y Descansos</span>
-                                <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[10px] font-bold">Horarios</span>
-                                <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[10px] font-bold">Pagos y Señas</span>
-                            </div>
-                            <div class="bg-slate-800 p-3.5 rounded-xl border-l-4 border-[#FC8712] space-y-1">
-                                <span class="text-xs font-extrabold text-white flex items-center gap-1.5">☕ Tiempo de descanso entre turnos: +15 min</span>
-                                <p class="text-[11px] text-slate-400">Calcula Servicio + Descanso automáticamente y permite reservar el último turno del día sin bloqueos.</p>
-                            </div>
-                        </div>`
-                },
-                manual: {
-                    badge: 'Acompañamiento Paso a Paso',
-                    badgeClass: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-                    icon: 'menu_book',
-                    iconBg: 'bg-indigo-600',
-                    title: 'Manual de Uso y Tour Virtual Interactivo',
-                    desc: 'Al ingresar por primera vez, un tour virtual interactivo resalta cada herramienta individualmente para guiarte paso a paso, acompañado de un Manual de Usuario claro según tu plan.',
-                    bullets: [
-                        'Tour Virtual que ilumina cada módulo individualmente explicando su función',
-                        'Guía detallada diferenciando Calendario (Plan Básico) y Agenda Virtual (Profesional y Premium)',
-                        'Explicación paso a paso de Equipo y Profesionales para todos los niveles'
-                    ],
-                    visualHtml: `
-                        <div class="bg-slate-900 rounded-2xl p-5 text-white shadow-2xl border border-slate-800 space-y-3">
-                            <div class="bg-indigo-600/20 border border-indigo-500/40 p-4 rounded-xl space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-[10px] font-black uppercase bg-indigo-500 text-white px-2 py-0.5 rounded">Paso 4 de 9 • Tour Virtual</span>
-                                    <span class="material-symbols-outlined text-indigo-300">Auto_awesome</span>
-                                </div>
-                                <h4 class="text-sm font-extrabold">Módulo Resaltado Individualmente</h4>
-                                <p class="text-[11px] text-slate-300">Conocé cómo aprovechar cada sección de Agendatina desde el primer día.</p>
-                            </div>
-                        </div>`
-                }
-            };
-
-            let currentModTabIdx = 0;
-            let modCarouselTimer = null;
-            let modCarouselPaused = false;
-
-            window.selectModuleTab = function(tabKey, isManualClick = false) {
-                const idx = MODULE_TABS_ORDER.indexOf(tabKey);
-                if (idx === -1) return;
-                currentModTabIdx = idx;
-                const d = MODULE_TABS_DATA[tabKey];
-
-                // Actualizar botones de pestañas
-                document.querySelectorAll('#moduleCarouselTabs .mod-tab-btn').forEach(btn => {
-                    const k = btn.getAttribute('data-mod-tab');
-                    const icon = btn.querySelector('.material-symbols-outlined');
-                    if (k === tabKey) {
-                        btn.className = 'mod-tab-btn px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all flex items-center gap-1.5 bg-[#D11149] text-white shadow-md scale-[1.02] cursor-pointer';
-                        if (icon) icon.className = 'material-symbols-outlined text-[18px] text-white';
-                    } else {
-                        btn.className = 'mod-tab-btn px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-white/80 cursor-pointer';
-                        if (icon) icon.className = 'material-symbols-outlined text-[18px] text-[#D11149]';
-                    }
-                });
-
-                // Resaltar tarjeta correspondiente en el mockup réplica del Dashboard
-                document.querySelectorAll('#dashboardPreviewContainer [data-dash-card]').forEach(card => {
-                    const ck = card.getAttribute('data-dash-card');
-                    if (ck === tabKey) {
-                        card.classList.add('ring-2', 'ring-[#D11149]', 'shadow-md', 'scale-[1.01]');
-                    } else {
-                        card.classList.remove('ring-2', 'ring-[#D11149]', 'shadow-md', 'scale-[1.01]');
-                    }
-                });
-
-                const indBadge = document.getElementById('activeModuleIndicatorBadge');
-                if (indBadge && d) {
-                    indBadge.textContent = d.title.split(':')[0] || d.title;
-                }
-
-                // Renderizar contenido del slide
-                const container = document.getElementById('moduleCarouselSlideContainer');
-                if (container && d) {
-                    const bulletsHtml = d.bullets.map(b => `
-                        <li class="flex items-start gap-2.5">
-                            <span class="material-symbols-outlined text-[#D11149] text-[18px] shrink-0 mt-0.5">check_circle</span>
-                            <span>${b}</span>
-                        </li>`).join('');
-                    const ctaHtml = d.ctaUrl ? `
-                        <div class="pt-2">
-                            <a href="${d.ctaUrl}" class="inline-flex items-center gap-1.5 text-xs font-extrabold text-white bg-[#FC8712] hover:bg-orange-600 px-4 py-2.5 rounded-xl shadow-sm transition-all">
-                                <span class="material-symbols-outlined text-base">open_in_new</span> ${d.ctaText}
-                            </a>
-                        </div>` : '';
-
-                    container.innerHTML = `
-                        <div class="lg:col-span-7 space-y-4 animate-in fade-in duration-300">
-                            <div class="flex items-center gap-3">
-                                <div class="w-11 h-11 rounded-xl ${d.iconBg} text-white flex items-center justify-center shadow-sm shrink-0">
-                                    <span class="material-symbols-outlined text-2xl">${d.icon}</span>
-                                </div>
-                                <span class="text-[11px] font-extrabold uppercase px-3 py-1 rounded-full border ${d.badgeClass}">${d.badge}</span>
-                            </div>
-                            <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-display leading-tight">${d.title}</h3>
-                            <p class="text-sm sm:text-base text-slate-600 leading-relaxed">${d.desc}</p>
-                            <ul class="space-y-2.5 text-xs sm:text-sm text-slate-700 font-semibold pt-1">
-                                ${bulletsHtml}
-                            </ul>
-                            ${ctaHtml}
-                        </div>
-                        <div class="lg:col-span-5 animate-in fade-in duration-300">
-                            ${d.visualHtml}
-                        </div>
-                    `;
-                }
-
-                if (isManualClick) {
-                    window.pauseModuleCarousel(true);
-                    const statusText = document.getElementById('modCarouselStatusText');
-                    const statusDot = document.getElementById('modCarouselStatusDot');
-                    if (statusText) statusText.textContent = 'Pestaña seleccionada manualmente';
-                    if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-amber-500';
-                }
-            };
-
-            window.stepModuleTab = function(delta) {
-                const nextIdx = (currentModTabIdx + delta + MODULE_TABS_ORDER.length) % MODULE_TABS_ORDER.length;
-                window.selectModuleTab(MODULE_TABS_ORDER[nextIdx], true);
-            };
-
-            window.goToModuleTab = function(tabKey) {
-                const section = document.getElementById('modulos-detallados');
-                if (section) {
-                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-                window.selectModuleTab(tabKey, true);
-            };
-
-            window.pauseModuleCarousel = function(pause) {
-                modCarouselPaused = Boolean(pause);
-            };
-
-            window.selectModuleTab('automatizacion', false);
-            modCarouselTimer = setInterval(() => {
-                if (!modCarouselPaused) {
-                    const nextIdx = (currentModTabIdx + 1) % MODULE_TABS_ORDER.length;
-                    window.selectModuleTab(MODULE_TABS_ORDER[nextIdx], false);
-                }
-            }, 5500);
         });
     </script>
 </body>

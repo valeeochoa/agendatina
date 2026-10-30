@@ -3009,7 +3009,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Inicialización del Carrusel (Landing Page) ---
         if (document.getElementById('carouselTitle')) {
             window.numProfessionals = { basic: 1, inter: 1, prem: 1 };
-            window.pricingData = null;
+            window.pricingData = { precio_basico: 8889, precio_intermedio: 11111, precio_premium: 16667, descuento_porcentaje: 10, dias_prueba_defecto: 30 };
             
             window.updateProfCount = function(change, planKey) {
                 let currentVal = window.numProfessionals[planKey] || 1;
@@ -3056,7 +3056,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 let rawI = parseFloat(pData.precio_intermedio) || 11111;
                 let rawP = parseFloat(pData.precio_premium) || 16667;
 
-                let discPct = parseInt(pData.descuento_porcentaje);
+                let discPct = (pData.descuento_porcentaje !== undefined && pData.descuento_porcentaje !== null) 
+                    ? parseInt(pData.descuento_porcentaje) 
+                    : 10;
                 if (isNaN(discPct) || discPct < 0) discPct = 0;
                 if (pData.descuento_hasta) {
                     const exp = new Date(String(pData.descuento_hasta).replace(/-/g, '/'));
@@ -3132,6 +3134,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateBox('priceInterBox', 'priceInterOld', i, rawI, 'text-white/80', 'perPersonInter', 'inter');
                 updateBox('pricePremBox', 'pricePremOld', p, rawP, 'text-slate-500', 'perPersonPrem', 'prem');
                 
+                // Actualizar opciones del select del modal si está presente
+                const selectRegPlan = document.getElementById('regPlan');
+                if (selectRegPlan && selectRegPlan.options && selectRegPlan.options.length >= 3) {
+                    selectRegPlan.options[0].textContent = `Plan Simple ($${b.toLocaleString('es-AR')} / mes)`;
+                    selectRegPlan.options[1].textContent = `Plan Profesional ($${i.toLocaleString('es-AR')} / mes)`;
+                    selectRegPlan.options[2].textContent = `Plan Premium ($${p.toLocaleString('es-AR')} / mes)`;
+                }
+
                 // Actualizar insignias de notificaciones de WhatsApp dinámicamente según cantidad de profesionales
                 const countInter = window.numProfessionals['inter'] || 1;
                 const countPrem = window.numProfessionals['prem'] || 1;
@@ -3175,8 +3185,9 @@ document.addEventListener('DOMContentLoaded', () => {
             window.renderPricing();
 
             fetch('backend/obtener_precios.php').then(res=>res.json()).then(pData => {
-                if(pData.success && pData.data) {
+                if(pData && pData.success && pData.data) {
                     window.pricingData = pData.data;
+                    window.globalPricesData = pData.data;
                     window.renderPricing();
                 }
             }).catch(() => setCarouselIndex(1));

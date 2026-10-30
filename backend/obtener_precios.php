@@ -21,18 +21,24 @@ try {
     try { $pdo->query("SELECT dias_prueba_defecto FROM configuracion_global LIMIT 1"); } 
     catch(Exception $e) { try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN dias_prueba_defecto INT NOT NULL DEFAULT 30"); } catch(Exception $ex) {} }
 
-    $stmt = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(dias_prueba_defecto, 30) AS dias_prueba_defecto FROM configuracion_global WHERE id = 1");
+    $stmt = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(dias_prueba_defecto, 30) AS dias_prueba_defecto FROM configuracion_global ORDER BY id ASC LIMIT 1");
     $precios = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$precios) {
         $precios = [
-            'precio_basico' => 8889,
-            'precio_intermedio' => 11111,
-            'precio_premium' => 16667,
+            'precio_basico' => 8889.0,
+            'precio_intermedio' => 11111.0,
+            'precio_premium' => 16667.0,
             'descuento_porcentaje' => 10,
             'descuento_hasta' => null,
             'dias_prueba_defecto' => 30
         ];
     } else {
+        $precios['precio_basico'] = (float)$precios['precio_basico'];
+        $precios['precio_intermedio'] = (float)$precios['precio_intermedio'];
+        $precios['precio_premium'] = (float)$precios['precio_premium'];
+        $precios['descuento_porcentaje'] = isset($precios['descuento_porcentaje']) ? (int)$precios['descuento_porcentaje'] : 0;
+        $precios['dias_prueba_defecto'] = !empty($precios['dias_prueba_defecto']) ? (int)$precios['dias_prueba_defecto'] : 30;
+
         if (!empty($precios['descuento_hasta'])) {
             $expTime = strtotime($precios['descuento_hasta']);
             if ($expTime && $expTime < time()) {
@@ -47,9 +53,9 @@ try {
     echo json_encode([
         'success' => true,
         'data' => [
-            'precio_basico' => 8889,
-            'precio_intermedio' => 11111,
-            'precio_premium' => 16667,
+            'precio_basico' => 8889.0,
+            'precio_intermedio' => 11111.0,
+            'precio_premium' => 16667.0,
             'descuento_porcentaje' => 10,
             'descuento_hasta' => null,
             'dias_prueba_defecto' => 30
