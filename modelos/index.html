@@ -3,721 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modelos Web | Desarrollos a Medida Marca Blanca</title>
+    <meta name="robots" content="noindex, nofollow">
+    <title>Valentina Ochoa | Modelos de páginas web</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { primary: "#ec135b" },
-                    fontFamily: { display: ["Plus Jakarta Sans", "sans-serif"] },
-                }
-            }
-        }
-    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
-        
-        /* Animaciones de Scroll */
-        .reveal-on-scroll {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .reveal-on-scroll.is-visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* Ocultar barra de scroll en carrusel */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased selection:bg-primary selection:text-white">
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-slate-900 selection:text-white">
 
-    <!-- Navegación Principal -->
-    <nav id="modelosNav" class="fixed w-full z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200/60 transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-20">
-                <a href="#inicio" class="flex items-center gap-2 group">
-                    <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/30 group-hover:scale-105 transition-transform">
-                        <span class="material-symbols-outlined">web</span>
-                    </div>
-                    <span class="font-black text-xl tracking-tight text-slate-900">Studio<span class="text-primary">Web</span></span>
-                </a>
-                <div class="hidden md:flex space-x-8 items-center">
-                    <a href="#modelos" class="text-sm font-bold text-slate-600 hover:text-primary transition-colors">Modelos</a>
-                    <a href="#planes" class="text-sm font-bold text-slate-600 hover:text-primary transition-colors">Planes</a>
-                    <a href="#contacto" class="text-sm font-bold text-slate-600 hover:text-primary transition-colors">Contacto</a>
-                </div>
-                <a href="#contacto" class="hidden md:inline-flex bg-slate-900 text-white px-5 py-2.5 rounded-full text-sm font-bold hover:bg-primary transition-colors shadow-md">
-                    Cotizar Proyecto
-                </a>
-            </div>
+    <!-- Navegación simple y personal -->
+    <header class="border-b border-slate-200/80 bg-white/80 backdrop-blur-md sticky top-0 z-30">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <a href="https://valeeochoa.github.io" target="_blank" rel="noopener" class="font-semibold text-slate-900 text-base tracking-tight hover:text-slate-600 transition-colors flex items-center gap-2">
+                <span>Valentina Ochoa</span>
+            </a>
+            <a href="https://valeeochoa.github.io" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                <span>Portfolio</span>
+                <span class="material-symbols-outlined text-[16px]">arrow_outward</span>
+            </a>
         </div>
-    </nav>
+    </header>
 
-    <!-- Hero Section -->
-    <section id="inicio" class="relative pt-32 pb-16 lg:pt-44 lg:pb-24 overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5 -z-10"></div>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center reveal-on-scroll">
-            <span class="inline-flex items-center gap-1.5 py-1 px-3.5 rounded-full bg-primary/10 text-primary text-xs font-black tracking-wider uppercase mb-5 border border-primary/20">
-                <span class="material-symbols-outlined text-[15px]">verified</span> Prototipos & Soluciones Marca Blanca
-            </span>
-            <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight mb-6 leading-tight">
-                Impulsa tu negocio con una <br class="hidden sm:block"/>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">web funcional y a medida</span>
-            </h1>
-            <p class="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto font-medium mb-8 leading-relaxed">
-                Explora en nuestro carrusel interactivo los 4 modelos de demostración creados para agencias y clientes comerciales. Cada uno listo para personalizar y desplegar.
-            </p>
-            <div class="flex flex-wrap justify-center gap-3">
-                <a href="#modelos" class="bg-primary text-white px-7 py-3.5 rounded-full text-sm font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 hover:-translate-y-0.5 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[18px]">view_carousel</span> Ver Carrusel de Modelos
-                </a>
-                <a href="#planes" class="bg-white text-slate-700 border border-slate-200 px-7 py-3.5 rounded-full text-sm font-bold hover:border-primary hover:text-primary transition-all shadow-xs">
-                    Planes y Precios
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Sección del Carrusel de Modelos -->
-    <section id="modelos" class="py-20 bg-white border-y border-slate-200/80 relative">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            <!-- Encabezado de la sección -->
-            <div class="text-center max-w-3xl mx-auto mb-10 reveal-on-scroll">
-                <span class="inline-block py-1 px-3 rounded-full bg-slate-100 text-slate-700 text-xs font-black tracking-wider uppercase mb-3 border border-slate-200">
-                    Galería Interactiva
-                </span>
-                <h2 class="text-3xl md:text-4xl font-black text-slate-900 mb-3 tracking-tight">Carrusel de Modelos Web</h2>
-                <p class="text-slate-500 text-sm md:text-base">
-                    Navega con las flechas, desliza o haz clic en las pestañas para explorar cada alternativa. Haz clic en la tarjeta o botón para abrir la demostración en pantalla completa.
-                </p>
-            </div>
-
-            <!-- Botones Pills de Acceso Directo por Modelo -->
-            <div class="flex flex-wrap justify-center items-center gap-2 mb-8 reveal-on-scroll" id="carouselTabs">
-                <button type="button" data-slide="0" class="carousel-tab-btn active px-4 py-2 rounded-xl text-xs font-extrabold transition-all border border-indigo-200 bg-indigo-50 text-indigo-700 shadow-xs flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-indigo-600"></span> Modelo A: Landing Page
-                </button>
-                <button type="button" data-slide="1" class="carousel-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-sky-500"></span> Modelo B: Institucional
-                </button>
-                <button type="button" data-slide="2" class="carousel-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Modelo C: Catálogo WhatsApp
-                </button>
-                <button type="button" data-slide="3" class="carousel-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-1.5">
-                    <span class="w-2 h-2 rounded-full bg-cyan-500"></span> Modelo D: Planes Soporte
-                </button>
-            </div>
-
-            <!-- Contenedor Principal del Carrusel con Controles Flotantes -->
-            <div class="relative reveal-on-scroll group/carousel" id="carouselWrapper">
-                
-                <!-- Botón Flecha Izquierda -->
-                <button id="prevBtn" aria-label="Modelo anterior" class="absolute -left-3 sm:-left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-white/95 backdrop-blur-md shadow-xl border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all duration-200 active:scale-90">
-                    <span class="material-symbols-outlined text-[24px] sm:text-[28px]">chevron_left</span>
-                </button>
-
-                <!-- Botón Flecha Derecha -->
-                <button id="nextBtn" aria-label="Siguiente modelo" class="absolute -right-3 sm:-right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-white/95 backdrop-blur-md shadow-xl border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all duration-200 active:scale-90">
-                    <span class="material-symbols-outlined text-[24px] sm:text-[28px]">chevron_right</span>
-                </button>
-
-                <!-- Pista del Carrusel (Scroll Snap) -->
-                <div id="carouselTrack" class="flex gap-6 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory py-4 px-1" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Carrusel de modelos web">
-                    
-                    <!-- SLIDE 1: Modelo A -->
-                    <div class="carousel-slide flex-shrink-0 w-full lg:w-[86%] xl:w-[82%] snap-center rounded-3xl bg-slate-900 border border-slate-800 text-white overflow-hidden shadow-2xl transition-all duration-300">
-                        <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[460px]">
-                            <!-- Imagen Preview con Overlay -->
-                            <a href="modelo-a-landing.html" target="_blank" class="lg:col-span-7 relative group overflow-hidden block aspect-video lg:aspect-auto">
-                                <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=700&fit=crop" alt="Demo Modelo A Landing Page" class="w-full h-full object-cover opacity-75 group-hover:opacity-90 group-hover:scale-105 transition-all duration-700">
-                                <div class="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-slate-950 via-slate-950/40 to-transparent"></div>
-                                <div class="absolute top-4 left-4 flex gap-2">
-                                    <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-black uppercase tracking-wider backdrop-blur-md">
-                                        Modelo A
-                                    </span>
-                                    <span class="px-3 py-1 rounded-full bg-white/10 text-white border border-white/20 text-[11px] font-bold backdrop-blur-md">
-                                        One-Page
-                                    </span>
-                                </div>
-                                <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-white/80 font-medium">
-                                    <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-emerald-400">bolt</span> Campañas Google & Meta Ads</span>
-                                    <span class="flex items-center gap-1 group-hover:text-emerald-400 transition-colors">Vista previa interactiva <span class="material-symbols-outlined text-[16px]">open_in_new</span></span>
-                                </div>
-                            </a>
-
-                            <!-- Contenido Descriptivo -->
-                            <div class="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-800">
-                                <div>
-                                    <div class="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-2">
-                                        <span class="material-symbols-outlined text-[18px]">ads_click</span>
-                                        Landing Page de Alta Conversión
-                                    </div>
-                                    <h3 class="text-2xl sm:text-3xl font-black text-white mb-3 leading-tight">
-                                        Captación Ágil de Leads
-                                    </h3>
-                                    <p class="text-slate-300 text-xs sm:text-sm leading-relaxed mb-5">
-                                        Estructura one-page pensada para tráfico pago: Hero de fuerte impacto, 4 beneficios clave, prueba social con testimonios, acordeón interactivo de Preguntas Frecuentes, formulario de leads y botón flotante de WhatsApp.
-                                    </p>
-                                    
-                                    <!-- Tags de funcionalidades -->
-                                    <div class="flex flex-wrap gap-1.5 mb-6">
-                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">CTA WhatsApp</span>
-                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">FAQ Acordeón</span>
-                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Lead Form</span>
-                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Prueba Social</span>
-                                    </div>
-                                </div>
-
-                                <!-- Botón CTA a modelo -->
-                                <div class="pt-4 border-t border-slate-800 flex flex-col sm:flex-row gap-3 items-stretch">
-                                    <a href="modelo-a-landing.html" target="_blank" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-sm py-3 px-5 rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 group/btn">
-                                        <span>Abrir Demo en Pantalla Completa</span>
-                                        <span class="material-symbols-outlined text-[18px] group-hover/btn:translate-x-0.5 transition-transform">arrow_forward</span>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SLIDE 2: Modelo B -->
-                    <div class="carousel-slide flex-shrink-0 w-full lg:w-[86%] xl:w-[82%] snap-center rounded-3xl bg-slate-900 border border-slate-800 text-white overflow-hidden shadow-2xl transition-all duration-300">
-                        <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[460px]">
-                            <!-- Imagen Preview con Overlay -->
-                            <a href="modelo-b-institucional.html" target="_blank" class="lg:col-span-7 relative group overflow-hidden block aspect-video lg:aspect-auto">
-                                <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=700&fit=crop" alt="Demo Modelo B Institucional" class="w-full h-full object-cover opacity-75 group-hover:opacity-90 group-hover:scale-105 transition-all duration-700">
-                                <div class="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-slate-950 via-slate-950/40 to-transparent"></div>
-                                <div class="absolute top-4 left-4 flex gap-2">
-                                    <span class="px-3 py-1 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30 text-[11px] font-black uppercase tracking-wider backdrop-blur-md">
-                                        Modelo B
-                                    </span>
-                                    <span class="px-3 py-1 rounded-full bg-white/10 text-white border border-white/20 text-[11px] font-bold backdrop-blur-md">
-                                        5 Secciones
-                                    </span>
-                                </div>
-                                <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-white/80 font-medium">
-                                    <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-sky-400">domain</span> Estudios, Empresas y Pymes</span>
-                                    <span class="flex items-center gap-1 group-hover:text-sky-400 transition-colors">Vista previa interactiva <span class="material-symbols-outlined text-[16px]">open_in_new</span></span>
-                                </div>
-                            </a>
-
-                            <!-- Contenido Descriptivo -->
-                            <div class="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-800">
-                                <div>
-                                    <div class="flex items-center gap-2 text-sky-400 text-xs font-bold uppercase tracking-wider mb-2">
-                                        <span class="material-symbols-outlined text-[18px]">apartment</span>
-                                        Sitio Web Institucional
-                                    </div>
-                                    <h3 class="text-2xl sm:text-3xl font-black text-white mb-3 leading-tight">
-                                        Presencia Corporativa
-                                    </h3>
-                                    <p class="text-slate-300 text-xs sm:text-sm leading-relaxed mb-5">
-                                        Navegación fluida por 5 secciones estratégicas: Quiénes Somos con espacio de historia y equipo, grilla de 6 servicios, galería fotográfica de proyectos o casos de éxito, formulario validado y mapa de ubicación corporativo.
-                                    </p>
-                                    
-                                    <!-- Tags de funcionalidades -->
-                                    <div class="flex flex-wrap gap-1.5 mb-6">
-                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Navbar Fijo</span>
-                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Quiénes Somos</span>
-                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Galería Casos</span>
-                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Mapa & Contacto</span>
-                                    </div>
-                                </div>
-
-                                <!-- Botón CTA a modelo -->
-                                <div class="pt-4 border-t border-slate-800 flex flex-col sm:flex-row gap-3 items-stretch">
-                                    <a href="modelo-b-institucional.html" target="_blank" class="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-sm py-3 px-5 rounded-xl shadow-lg shadow-sky-600/30 transition-all flex items-center justify-center gap-2 group/btn">
-                                        <span>Abrir Demo en Pantalla Completa</span>
-                                        <span class="material-symbols-outlined text-[18px] group-hover/btn:translate-x-0.5 transition-transform">arrow_forward</span>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SLIDE 3: Modelo C -->
-                    <div class="carousel-slide flex-shrink-0 w-full lg:w-[86%] xl:w-[82%] snap-center rounded-3xl bg-slate-900 border border-slate-800 text-white overflow-hidden shadow-2xl transition-all duration-300">
-                        <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[460px]">
-                            <!-- Imagen Preview con Overlay -->
-                            <a href="modelo-c-catalogo.html" target="_blank" class="lg:col-span-7 relative group overflow-hidden block aspect-video lg:aspect-auto">
-                                <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1200&h=700&fit=crop" alt="Demo Modelo C Catálogo WhatsApp" class="w-full h-full object-cover opacity-75 group-hover:opacity-90 group-hover:scale-105 transition-all duration-700">
-                                <div class="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-slate-950 via-slate-950/40 to-transparent"></div>
-                                <div class="absolute top-4 left-4 flex gap-2">
-                                    <span class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[11px] font-black uppercase tracking-wider backdrop-blur-md">
-                                        Modelo C
-                                    </span>
-                                    <span class="px-3 py-1 rounded-full bg-white/10 text-white border border-white/20 text-[11px] font-bold backdrop-blur-md">
-                                        Catálogo Ágil
-                                    </span>
-                                </div>
-                                <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-white/80 font-medium">
-                                    <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-amber-400">storefront</span> Showrooms, Minoristas & Mayoristas</span>
-                                    <span class="flex items-center gap-1 group-hover:text-amber-400 transition-colors">Vista previa interactiva <span class="material-symbols-outlined text-[16px]">open_in_new</span></span>
-                                </div>
-                            </a>
-
-                            <!-- Contenido Descriptivo -->
-                            <div class="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-800">
-                                <div>
-                                    <div class="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">
-                                        <span class="material-symbols-outlined text-[18px]">shopping_bag</span>
-                                        Catálogo Digital con WhatsApp
-                                    </div>
-                                    <h3 class="text-2xl sm:text-3xl font-black text-white mb-3 leading-tight">
-                                        Venta Directa sin Carrito Complejo
-                                    </h3>
-                                    <p class="text-slate-300 text-xs sm:text-sm leading-relaxed mb-5">
-                                        Exhibición limpia de productos con filtros visuales por categorías y buscador instantáneo. Cada tarjeta genera un mensaje pre-armado hacia WhatsApp indicando exactamente el producto y precio por el que el cliente consulta.
-                                    </p>
-                                    
-                                    <!-- Tags de funcionalidades -->
-                                    <div class="flex flex-wrap gap-1.5 mb-6">
-                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Filtro Categorías</span>
-                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Búsqueda en Vivo</span>
-                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Enlace wa.me Auto</span>
-                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Sin Pasarela</span>
-                                    </div>
-                                </div>
-
-                                <!-- Botón CTA a modelo -->
-                                <div class="pt-4 border-t border-slate-800 flex flex-col sm:flex-row gap-3 items-stretch">
-                                    <a href="modelo-c-catalogo.html" target="_blank" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-sm py-3 px-5 rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 group/btn">
-                                        <span>Abrir Demo en Pantalla Completa</span>
-                                        <span class="material-symbols-outlined text-[18px] group-hover/btn:translate-x-0.5 transition-transform">arrow_forward</span>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SLIDE 4: Modelo D -->
-                    <div class="carousel-slide flex-shrink-0 w-full lg:w-[86%] xl:w-[82%] snap-center rounded-3xl bg-slate-900 border border-slate-800 text-white overflow-hidden shadow-2xl transition-all duration-300">
-                        <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[460px]">
-                            <!-- Imagen Preview con Overlay -->
-                            <a href="modelo-d-soporte.html" target="_blank" class="lg:col-span-7 relative group overflow-hidden block aspect-video lg:aspect-auto">
-                                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=700&fit=crop" alt="Demo Modelo D Soporte Web" class="w-full h-full object-cover opacity-75 group-hover:opacity-90 group-hover:scale-105 transition-all duration-700">
-                                <div class="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-slate-950 via-slate-950/40 to-transparent"></div>
-                                <div class="absolute top-4 left-4 flex gap-2">
-                                    <span class="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-[11px] font-black uppercase tracking-wider backdrop-blur-md">
-                                        Modelo D
-                                    </span>
-                                    <span class="px-3 py-1 rounded-full bg-white/10 text-white border border-white/20 text-[11px] font-bold backdrop-blur-md">
-                                        Planes & SLA
-                                    </span>
-                                </div>
-                                <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-white/80 font-medium">
-                                    <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-cyan-400">terminal</span> Agencias & Clientes con Mantenimiento</span>
-                                    <span class="flex items-center gap-1 group-hover:text-cyan-400 transition-colors">Vista previa interactiva <span class="material-symbols-outlined text-[16px]">open_in_new</span></span>
-                                </div>
-                            </a>
-
-                            <!-- Contenido Descriptivo -->
-                            <div class="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-800">
-                                <div>
-                                    <div class="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-2">
-                                        <span class="material-symbols-outlined text-[18px]">verified_user</span>
-                                        Planes de Mantenimiento & Soporte
-                                    </div>
-                                    <h3 class="text-2xl sm:text-3xl font-black text-white mb-3 leading-tight">
-                                        Abonos Técnicos & Changelog
-                                    </h3>
-                                    <p class="text-slate-300 text-xs sm:text-sm leading-relaxed mb-5">
-                                        Portal demostrativo con 3 planes mensuales (Básico USD 20, Estándar USD 35 y Amplio USD 60), tabla comparativa detallada con estados de inclusión y timeline interactivo de registro de cambios técnicos y copias de seguridad.
-                                    </p>
-                                    
-                                    <!-- Tags de funcionalidades -->
-                                    <div class="flex flex-wrap gap-1.5 mb-6">
-                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">3 Niveles USD</span>
-                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Matriz Técnica</span>
-                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Changelog Historial</span>
-                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">SLA Garantizado</span>
-                                    </div>
-                                </div>
-
-                                <!-- Botón CTA a modelo -->
-                                <div class="pt-4 border-t border-slate-800 flex flex-col sm:flex-row gap-3 items-stretch">
-                                    <a href="modelo-d-soporte.html" target="_blank" class="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-extrabold text-sm py-3 px-5 rounded-xl shadow-lg shadow-cyan-600/30 transition-all flex items-center justify-center gap-2 group/btn">
-                                        <span>Abrir Demo en Pantalla Completa</span>
-                                        <span class="material-symbols-outlined text-[18px] group-hover/btn:translate-x-0.5 transition-transform">arrow_forward</span>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Indicadores de Posición (Dots) -->
-                <div class="flex items-center justify-center gap-2.5 mt-6" id="carouselDots">
-                    <button type="button" data-slide="0" aria-label="Ir al modelo 1" class="carousel-dot h-3 w-8 rounded-full bg-primary transition-all duration-300"></button>
-                    <button type="button" data-slide="1" aria-label="Ir al modelo 2" class="carousel-dot h-3 w-3 rounded-full bg-slate-300 hover:bg-slate-400 transition-all duration-300"></button>
-                    <button type="button" data-slide="2" aria-label="Ir al modelo 3" class="carousel-dot h-3 w-3 rounded-full bg-slate-300 hover:bg-slate-400 transition-all duration-300"></button>
-                    <button type="button" data-slide="3" aria-label="Ir al modelo 4" class="carousel-dot h-3 w-3 rounded-full bg-slate-300 hover:bg-slate-400 transition-all duration-300"></button>
-                </div>
-
-            </div>
-
-            <!-- Banner Informativo Inferior -->
-            <div class="mt-12 text-center bg-blue-50 border border-blue-100 rounded-2xl p-6 reveal-on-scroll">
-                <p class="text-blue-900 font-bold flex flex-wrap items-center justify-center gap-2 text-sm sm:text-base">
-                    <span class="material-symbols-outlined text-primary text-[22px]">design_services</span> 
-                    ¿Necesitas una combinación especial o funciones a medida? Todos los modelos se adaptan 100% a la paleta, tipografía y requerimientos del cliente.
-                </p>
-            </div>
-
-        </div>
-    </section>
-
-    <!-- Planes de Desarrollo -->
-    <section id="planes" class="py-24 bg-slate-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16 reveal-on-scroll">
-                <span class="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary text-xs font-black tracking-wider uppercase mb-3 border border-primary/20">
-                    Transparencia y Escala
-                </span>
-                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Planes de Desarrollo</h2>
-                <p class="text-slate-500 text-lg">Inversión clara y paquetes adaptados al alcance de cada negocio.</p>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                
-                <!-- Plan 1 -->
-                <div class="reveal-on-scroll bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 relative flex flex-col" style="transition-delay: 100ms;">
-                    <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
-                        <span class="material-symbols-outlined">storefront</span>
-                    </div>
-                    <h3 class="text-xl font-extrabold text-slate-900 mb-2">Presencia Online</h3>
-                    <div class="flex items-baseline gap-2 mb-6 border-b border-slate-100 pb-6">
-                        <span class="text-4xl font-black text-slate-900">$200.000</span>
-                        <span class="text-sm font-bold text-slate-400">ARS</span>
-                    </div>
-                    <ul class="space-y-4 mb-8 flex-1">
-                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Página web institucional (hasta 3 secciones: inicio, catálogo, contacto)</span></li>
-                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Formulario de contacto</span></li>
-                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Botón de WhatsApp directo</span></li>
-                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Diseño Responsive (adaptable a móviles)</span></li>
-                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Configuración SEO básico</span></li>
-                    </ul>
-                    <div class="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100">
-                        <p class="text-xs font-bold text-slate-800 uppercase tracking-wide mb-1">Mantenimiento Mensual</p>
-                        <p class="text-lg font-black text-blue-600">$30.000 <span class="text-xs font-medium text-slate-500">ARS/mes</span></p>
-                        <p class="text-xs text-slate-500 mt-2">Incluye: Hosting, configuración, soporte técnico y pequeños cambios estéticos.</p>
-                    </div>
-                    <a href="#contacto" class="w-full text-center bg-slate-900 text-white py-3.5 rounded-xl font-bold hover:bg-slate-800 transition-colors">Seleccionar Plan</a>
-                </div>
-
-                <!-- Plan 2 -->
-                <div class="reveal-on-scroll bg-white rounded-[2rem] p-8 border-2 border-purple-500 shadow-xl relative flex flex-col transform md:-translate-y-4 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300" style="transition-delay: 200ms;">
-                    <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-primary text-white text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-wider shadow-md">
-                        Más Elegido
-                    </div>
-                    <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mb-6">
-                        <span class="material-symbols-outlined">group_add</span>
-                    </div>
-                    <h3 class="text-xl font-extrabold text-slate-900 mb-2">Captación de Clientes</h3>
-                    <div class="flex items-baseline gap-2 mb-6 border-b border-slate-100 pb-6">
-                        <span class="text-4xl font-black text-slate-900">$500.000</span>
-                        <span class="text-sm font-bold text-slate-400">ARS</span>
-                    </div>
-                    <ul class="space-y-4 mb-8 flex-1">
-                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-purple-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm font-medium">Todo lo del plan anterior</span></li>
-                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Hasta 5 secciones personalizadas</span></li>
-                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Sistema CMS para cargar y editar información (1 usuario)</span></li>
-                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Formularios de consulta personalizados por producto/servicio</span></li>
-                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Integración automática de leads con Email o WhatsApp</span></li>
-                    </ul>
-                    <div class="bg-purple-50 rounded-xl p-4 mb-6 border border-purple-100">
-                        <p class="text-xs font-bold text-slate-800 uppercase tracking-wide mb-1">Mantenimiento Mensual</p>
-                        <p class="text-lg font-black text-purple-600">$40.000 <span class="text-xs font-medium text-slate-500">ARS/mes</span></p>
-                        <p class="text-xs text-slate-500 mt-2">Incluye: Hosting, sistema CMS, soporte técnico y actualizaciones.</p>
-                    </div>
-                    <a href="#contacto" class="w-full text-center bg-purple-600 text-white py-3.5 rounded-xl font-bold hover:bg-purple-700 transition-colors shadow-lg shadow-purple-600/30">Seleccionar Plan</a>
-                </div>
-
-                <!-- Plan 3 -->
-                <div class="reveal-on-scroll bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 relative flex flex-col" style="transition-delay: 300ms;">
-                    <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mb-6">
-                        <span class="material-symbols-outlined">real_estate_agent</span>
-                    </div>
-                    <h3 class="text-xl font-extrabold text-slate-900 mb-2">Gestión Inmobiliaria</h3>
-                    <div class="flex items-baseline gap-2 mb-6 border-b border-slate-100 pb-6">
-                        <span class="text-4xl font-black text-slate-900">$900.000</span>
-                        <span class="text-sm font-bold text-slate-400">ARS</span>
-                    </div>
-                    <ul class="space-y-4 mb-8 flex-1">
-                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-amber-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm font-medium">Todo lo del plan anterior</span></li>
-                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Hasta 6 secciones institucionales</span></li>
-                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Sistema CMS multi-agente (hasta 5 usuarios)</span></li>
-                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Panel avanzado de gestión de interesados por propiedad</span></li>
-                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Panel de estadísticas básicas de visitas y consultas</span></li>
-                        <li class="flex items-start gap-3"><span class="material-symbols-outlined text-green-500 text-[20px]">check_circle</span> <span class="text-slate-600 text-sm">Panel centralizado de consultas de clientes</span></li>
-                    </ul>
-                    <div class="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100">
-                        <p class="text-xs font-bold text-slate-800 uppercase tracking-wide mb-1">Mantenimiento Mensual</p>
-                        <p class="text-lg font-black text-amber-600">$50.000 <span class="text-xs font-medium text-slate-500">ARS/mes</span></p>
-                        <p class="text-xs text-slate-500 mt-2">Incluye: Hosting premium, soporte prioritario y bases de datos dinámicas.</p>
-                    </div>
-                    <a href="#contacto" class="w-full text-center bg-slate-900 text-white py-3.5 rounded-xl font-bold hover:bg-slate-800 transition-colors">Seleccionar Plan</a>
-                </div>
-
-            </div>
-
-            <div class="mt-12 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm max-w-4xl mx-auto flex gap-4 items-start reveal-on-scroll">
-                <span class="material-symbols-outlined text-primary mt-1">info</span>
-                <div>
-                    <h4 class="font-bold text-slate-800 mb-1">Información importante sobre el Mantenimiento</h4>
-                    <p class="text-sm text-slate-600 leading-relaxed">
-                        El mantenimiento mensual incluye la bonificación del nombre de dominio, válido únicamente con las extensiones: <strong class="text-slate-800">.website, .online, .store, .uno, .site</strong>. 
-                        Los precios de mantenimiento se actualizan semestralmente (cada 6 meses) para garantizar la calidad del servicio de servidores.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Sección de Contacto -->
-    <section id="contacto" class="py-24 bg-white relative overflow-hidden">
-        <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-purple-500/5 blur-3xl"></div>
+    <!-- Contenido principal -->
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16 flex-1 w-full">
         
-        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="text-center mb-12 reveal-on-scroll">
-                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Empecemos tu proyecto</h2>
-                <p class="text-slate-500 text-lg">Déjame tus datos, el plan que te interesa y me pondré en contacto contigo a la brevedad.</p>
-            </div>
-
-            <div class="bg-white rounded-[2rem] shadow-xl border border-slate-100 p-8 md:p-10 reveal-on-scroll" style="transition-delay: 150ms;">
-                <form action="#" method="POST" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nombre completo</label>
-                            <input type="text" required class="w-full px-4 py-3.5 rounded-xl border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary text-sm font-medium transition-colors" placeholder="Ej: Juan Pérez">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">WhatsApp / Celular</label>
-                            <input type="tel" required class="w-full px-4 py-3.5 rounded-xl border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary text-sm font-medium transition-colors" placeholder="+54 9 ...">
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Plan o Modelo de interés</label>
-                        <select class="w-full px-4 py-3.5 rounded-xl border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary text-sm font-medium transition-colors">
-                            <option value="" disabled selected>Selecciona un plan o modelo</option>
-                            <option value="modelo-a">🚀 Modelo A: Landing Page Alta Conversión</option>
-                            <option value="modelo-b">🏢 Modelo B: Sitio Web Institucional</option>
-                            <option value="modelo-c">🛍️ Modelo C: Catálogo Digital WhatsApp</option>
-                            <option value="modelo-d">🛡️ Modelo D: Planes de Mantenimiento & Soporte</option>
-                            <option value="presencia">🟦 Plan Presencia Online ($200.000)</option>
-                            <option value="captacion">🟪 Plan Captación de Clientes ($500.000)</option>
-                            <option value="inmobiliaria">🟨 Plan Gestión Inmobiliaria ($900.000)</option>
-                            <option value="medida">🛠️ Proyecto a Medida (Cotizar)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Cuéntame sobre tu negocio</label>
-                        <textarea rows="4" class="w-full px-4 py-3.5 rounded-xl border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary text-sm font-medium transition-colors resize-none" placeholder="¿A qué se dedica tu empresa? ¿Tienes alguna referencia o requerimiento especial?"></textarea>
-                    </div>
-
-                    <button type="submit" class="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
-                        <span class="material-symbols-outlined">send</span> Enviar Consulta
-                    </button>
-                </form>
-            </div>
+        <!-- Saludo y presentación -->
+        <div class="max-w-2xl mb-12">
+            <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight leading-tight mb-4">
+                Hola, estos son algunos de los modelos con los que actualmente trabajo.
+            </h1>
+            <p class="text-slate-600 text-base sm:text-lg leading-relaxed">
+                Están pensados para diferentes necesidades: desde captar consultas directas hasta sitios institucionales o catálogos. Podés hacer clic en cualquiera para abrir la demostración en vivo y ver cómo funciona.
+            </p>
         </div>
-    </section>
 
-    <!-- Footer -->
-    <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div class="flex items-center justify-center gap-2 text-white mb-6">
-                <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg">
-                    <span class="material-symbols-outlined text-[18px]">web</span>
+        <!-- Grilla de modelos (A, B, C, D) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+            
+            <!-- Modelo A -->
+            <a href="modelo-a-landing.html" target="_blank" rel="noopener" class="group bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 hover:border-slate-400 hover:shadow-lg transition-all duration-200 flex flex-col justify-between">
+                <div>
+                    <!-- Imagen de previsualización -->
+                    <div class="aspect-[16/10] rounded-xl overflow-hidden bg-slate-100 border border-slate-200/60 mb-5 relative">
+                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=900&h=560&fit=crop" alt="Previsualización Modelo A" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300">
+                        <div class="absolute top-3 left-3">
+                            <span class="px-2.5 py-1 rounded-md bg-slate-900/80 backdrop-blur-sm text-white text-xs font-semibold">
+                                Modelo A
+                            </span>
+                        </div>
+                    </div>
+
+                    <h2 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-slate-700 transition-colors">
+                        Landing page de alta conversión
+                    </h2>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                        Enfocada en captar consultas o clientes potenciales en una sola página. Incluye llamadas directas a WhatsApp, beneficios destacados, preguntas frecuentes en acordeón y formulario de contacto simple.
+                    </p>
+
+                    <div class="flex flex-wrap gap-1.5 mb-6">
+                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">One-page</span>
+                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">WhatsApp directo</span>
+                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">Preguntas frecuentes</span>
+                    </div>
                 </div>
-                <span class="font-extrabold text-lg tracking-tight">Studio<span class="text-primary">Web</span></span>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-sm font-semibold text-slate-900">
+                    <span>Ver modelo en vivo</span>
+                    <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </div>
+            </a>
+
+            <!-- Modelo B -->
+            <a href="modelo-b-institucional.html" target="_blank" rel="noopener" class="group bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 hover:border-slate-400 hover:shadow-lg transition-all duration-200 flex flex-col justify-between">
+                <div>
+                    <!-- Imagen de previsualización -->
+                    <div class="aspect-[16/10] rounded-xl overflow-hidden bg-slate-100 border border-slate-200/60 mb-5 relative">
+                        <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=900&h=560&fit=crop" alt="Previsualización Modelo B" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300">
+                        <div class="absolute top-3 left-3">
+                            <span class="px-2.5 py-1 rounded-md bg-slate-900/80 backdrop-blur-sm text-white text-xs font-semibold">
+                                Modelo B
+                            </span>
+                        </div>
+                    </div>
+
+                    <h2 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-slate-700 transition-colors">
+                        Sitio web institucional
+                    </h2>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                        Estructura formal con 5 secciones (Inicio, Quiénes somos, Servicios, Galería de proyectos y Contacto con mapa). Ideal para empresas, estudios o profesionales que buscan transmitir solidez y confianza.
+                    </p>
+
+                    <div class="flex flex-wrap gap-1.5 mb-6">
+                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">5 secciones</span>
+                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">Quiénes somos</span>
+                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">Galería de proyectos</span>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-sm font-semibold text-slate-900">
+                    <span>Ver modelo en vivo</span>
+                    <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </div>
+            </a>
+
+            <!-- Modelo C -->
+            <a href="modelo-c-catalogo.html" target="_blank" rel="noopener" class="group bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 hover:border-slate-400 hover:shadow-lg transition-all duration-200 flex flex-col justify-between">
+                <div>
+                    <!-- Imagen de previsualización -->
+                    <div class="aspect-[16/10] rounded-xl overflow-hidden bg-slate-100 border border-slate-200/60 mb-5 relative">
+                        <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=900&h=560&fit=crop" alt="Previsualización Modelo C" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300">
+                        <div class="absolute top-3 left-3">
+                            <span class="px-2.5 py-1 rounded-md bg-slate-900/80 backdrop-blur-sm text-white text-xs font-semibold">
+                                Modelo C
+                            </span>
+                        </div>
+                    </div>
+
+                    <h2 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-slate-700 transition-colors">
+                        Catálogo digital con consulta a WhatsApp
+                    </h2>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                        Exhibición de productos o colecciones con buscador rápido y filtros por categorías. Al hacer clic en cualquier artículo, se abre WhatsApp con un mensaje automático que indica el nombre del producto seleccionado.
+                    </p>
+
+                    <div class="flex flex-wrap gap-1.5 mb-6">
+                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">Filtro por categorías</span>
+                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">Buscador en vivo</span>
+                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">Consulta por ítem</span>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-sm font-semibold text-slate-900">
+                    <span>Ver modelo en vivo</span>
+                    <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </div>
+            </a>
+
+            <!-- Modelo D -->
+            <a href="modelo-d-soporte.html" target="_blank" rel="noopener" class="group bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 hover:border-slate-400 hover:shadow-lg transition-all duration-200 flex flex-col justify-between">
+                <div>
+                    <!-- Imagen de previsualización -->
+                    <div class="aspect-[16/10] rounded-xl overflow-hidden bg-slate-100 border border-slate-200/60 mb-5 relative">
+                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&h=560&fit=crop" alt="Previsualización Modelo D" class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300">
+                        <div class="absolute top-3 left-3">
+                            <span class="px-2.5 py-1 rounded-md bg-slate-900/80 backdrop-blur-sm text-white text-xs font-semibold">
+                                Modelo D
+                            </span>
+                        </div>
+                    </div>
+
+                    <h2 class="text-xl font-bold text-slate-900 mb-2 group-hover:text-slate-700 transition-colors">
+                        Planes de mantenimiento y soporte
+                    </h2>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                        Página demostrativa para mostrar abonos mensuales de soporte técnico. Presenta 3 planes escalonados, una tabla comparativa técnica de tareas y un historial mensual (changelog) de mejoras y copias de seguridad.
+                    </p>
+
+                    <div class="flex flex-wrap gap-1.5 mb-6">
+                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">3 planes mensuales</span>
+                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">Matriz comparativa</span>
+                        <span class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 text-xs font-medium">Historial de tareas</span>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-between text-sm font-semibold text-slate-900">
+                    <span>Ver modelo en vivo</span>
+                    <span class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </div>
+            </a>
+
+        </div>
+    </main>
+
+    <!-- Footer minimalista -->
+    <footer class="border-t border-slate-200/80 bg-white py-8">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+            <div>
+                <span>Valentina Ochoa · </span>
+                <a href="https://valeeochoa.github.io" target="_blank" rel="noopener" class="text-slate-700 hover:text-slate-900 underline underline-offset-4 transition-colors">Portfolio</a>
             </div>
-            <p class="text-sm mb-4">Desarrollo web y prototipos marca blanca para agencias y empresas.</p>
-            <p class="text-xs text-slate-500">© 2026 Todos los derechos reservados.</p>
+            <p>Modelos de demostración para clientes.</p>
         </div>
     </footer>
 
-    <!-- Script del Carrusel e Interacciones -->
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // 1. Navbar con efecto cristalino al hacer scroll
-            const modelosNav = document.getElementById('modelosNav');
-            window.addEventListener('scroll', () => {
-                if (window.scrollY > 20) {
-                    modelosNav.classList.add('shadow-md', 'bg-white/95');
-                    modelosNav.classList.remove('bg-white/80');
-                } else {
-                    modelosNav.classList.remove('shadow-md', 'bg-white/95');
-                    modelosNav.classList.add('bg-white/80');
-                }
-            });
-
-            // 2. Animaciones al aparecer en pantalla (Intersection Observer)
-            const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
-            const observer = new IntersectionObserver((entries, obs) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('is-visible');
-                        obs.unobserve(entry.target);
-                    }
-                });
-            }, observerOptions);
-
-            document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
-
-            // 3. Lógica del Carrusel de Modelos
-            const track = document.getElementById('carouselTrack');
-            const slides = Array.from(track.querySelectorAll('.carousel-slide'));
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            const tabButtons = Array.from(document.querySelectorAll('.carousel-tab-btn'));
-            const dotButtons = Array.from(document.querySelectorAll('.carousel-dot'));
-            const carouselWrapper = document.getElementById('carouselWrapper');
-
-            let currentIndex = 0;
-            let autoplayInterval = null;
-            const TOTAL_SLIDES = slides.length;
-
-            // Función para actualizar estados visuales de Tabs y Dots
-            function updateIndicators(index) {
-                currentIndex = index;
-
-                // Actualizar Dots
-                dotButtons.forEach((dot, i) => {
-                    if (i === index) {
-                        dot.className = 'carousel-dot h-3 w-8 rounded-full bg-primary transition-all duration-300';
-                    } else {
-                        dot.className = 'carousel-dot h-3 w-3 rounded-full bg-slate-300 hover:bg-slate-400 transition-all duration-300';
-                    }
-                });
-
-                // Actualizar Tabs
-                tabButtons.forEach((tab, i) => {
-                    const dotIndicator = tab.querySelector('span');
-                    if (i === index) {
-                        tab.className = 'carousel-tab-btn active px-4 py-2 rounded-xl text-xs font-extrabold transition-all border border-indigo-200 bg-indigo-50 text-indigo-700 shadow-xs flex items-center gap-1.5';
-                    } else {
-                        tab.className = 'carousel-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-1.5';
-                    }
-                });
-            }
-
-            // Desplazar a slide específico
-            function goToSlide(index) {
-                if (index < 0) index = TOTAL_SLIDES - 1;
-                if (index >= TOTAL_SLIDES) index = 0;
-                
-                const targetSlide = slides[index];
-                if (targetSlide) {
-                    targetSlide.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                    updateIndicators(index);
-                }
-            }
-
-            // Botones de Navegación Flechas
-            prevBtn.addEventListener('click', () => {
-                goToSlide(currentIndex - 1);
-            });
-
-            nextBtn.addEventListener('click', () => {
-                goToSlide(currentIndex + 1);
-            });
-
-            // Tabs superiores
-            tabButtons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const slideIndex = parseInt(btn.getAttribute('data-slide'), 10);
-                    goToSlide(slideIndex);
-                });
-            });
-
-            // Dots inferiores
-            dotButtons.forEach(dot => {
-                dot.addEventListener('click', () => {
-                    const slideIndex = parseInt(dot.getAttribute('data-slide'), 10);
-                    goToSlide(slideIndex);
-                });
-            });
-
-            // Sincronizar al hacer scroll manual o swipe
-            let isScrollingTimeout;
-            track.addEventListener('scroll', () => {
-                clearTimeout(isScrollingTimeout);
-                isScrollingTimeout = setTimeout(() => {
-                    const trackCenter = track.scrollLeft + track.offsetWidth / 2;
-                    let closestIndex = 0;
-                    let minDistance = Infinity;
-
-                    slides.forEach((slide, idx) => {
-                        const slideCenter = slide.offsetLeft + slide.offsetWidth / 2;
-                        const distance = Math.abs(trackCenter - slideCenter);
-                        if (distance < minDistance) {
-                            minDistance = distance;
-                            closestIndex = idx;
-                        }
-                    });
-
-                    if (closestIndex !== currentIndex) {
-                        updateIndicators(closestIndex);
-                    }
-                }, 100);
-            }, { passive: true });
-
-            // Soporte para flechas del teclado cuando el carrusel tiene foco
-            track.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowLeft') {
-                    e.preventDefault();
-                    goToSlide(currentIndex - 1);
-                } else if (e.key === 'ArrowRight') {
-                    e.preventDefault();
-                    goToSlide(currentIndex + 1);
-                }
-            });
-
-            // Autoplay cada 5 segundos
-            function startAutoplay() {
-                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-                stopAutoplay();
-                autoplayInterval = setInterval(() => {
-                    goToSlide(currentIndex + 1);
-                }, 5500);
-            }
-
-            function stopAutoplay() {
-                if (autoplayInterval) {
-                    clearInterval(autoplayInterval);
-                    autoplayInterval = null;
-                }
-            }
-
-            // Pausar autoplay al hacer hover o tocar el carrusel
-            carouselWrapper.addEventListener('mouseenter', stopAutoplay);
-            carouselWrapper.addEventListener('mouseleave', startAutoplay);
-            carouselWrapper.addEventListener('touchstart', stopAutoplay, { passive: true });
-            carouselWrapper.addEventListener('focusin', stopAutoplay);
-            carouselWrapper.addEventListener('focusout', startAutoplay);
-
-            // Iniciar carrusel
-            startAutoplay();
-        });
-    </script>
 </body>
 </html>
