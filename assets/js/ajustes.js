@@ -252,8 +252,7 @@ window.applyCalendarConfigToForm = function(data) {
     }
 
     if (data.primer_dia_semana !== undefined) {
-        const selectPrimerDia = form.querySelector('#configPrimerDiaSemana');
-        if (selectPrimerDia) selectPrimerDia.value = String(data.primer_dia_semana);
+        window.setPrimerDiaSemana(String(data.primer_dia_semana));
     }
 
     const rawHDet = data.horarios_detallados_json;
@@ -338,17 +337,82 @@ window.applyCalendarConfigToForm = function(data) {
     if (data.porcentaje_sena !== undefined) {
         const inpSena = form.querySelector('#configPorcentajeSena');
         if (inpSena) {
-            inpSena.value = data.porcentaje_sena || 100;
+            inpSena.value = data.porcentaje_sena || 50;
             window.updateSenaHelpText();
         }
+    }
+
+    if (data.reserva_sena_1h !== undefined) {
+        const chkReserva1h = form.querySelector('#chkReservaSena1h');
+        if (chkReserva1h) chkReserva1h.checked = (data.reserva_sena_1h == 1 || data.reserva_sena_1h === '1' || data.reserva_sena_1h === true);
+    }
+
+    if (data.whatsapp_comprobante !== undefined) {
+        const inpWppComp = form.querySelector('#configWhatsappComprobante');
+        if (inpWppComp) inpWppComp.value = data.whatsapp_comprobante || '';
+    }
+
+    if (data.enviar_msj_automaticos !== undefined) {
+        const chkMsjAuto = form.querySelector('#chkEnviarMsjAutomaticos');
+        if (chkMsjAuto) chkMsjAuto.checked = (data.enviar_msj_automaticos == 1 || data.enviar_msj_automaticos === '1' || data.enviar_msj_automaticos === true);
+    }
+
+    if (data.usar_cupones_descuento !== undefined) {
+        const chkCupones = form.querySelector('#chkUsarCuponesDescuento');
+        if (chkCupones) chkCupones.checked = (data.usar_cupones_descuento == 1 || data.usar_cupones_descuento === '1' || data.usar_cupones_descuento === true);
+    }
+
+    if (data.dias_retorno_clientes !== undefined) {
+        const inpDiasRetorno = form.querySelector('#configDiasRetornoClientes');
+        if (inpDiasRetorno) inpDiasRetorno.value = parseInt(data.dias_retorno_clientes) || 30;
     }
 
     if (data.metodos_pago !== undefined) {
         const metodosArr = (typeof data.metodos_pago === 'string') ? data.metodos_pago.split(',') : (data.metodos_pago || []);
         form.querySelectorAll('input[name="metodos_pago_arr"]').forEach(cb => {
-            cb.checked = metodosArr.includes(cb.value);
+            if (!cb.disabled) {
+                cb.checked = metodosArr.includes(cb.value);
+            } else {
+                cb.checked = false;
+            }
         });
         window.toggleMetodosPagoDetails();
+    }
+    window.toggleReservaSena1hDetails();
+    window.toggleFidelizacionDetails();
+};
+
+window.setPrimerDiaSemana = function(val) {
+    const cleanVal = (String(val) === '0') ? '0' : '1';
+    const inp = document.getElementById('configPrimerDiaSemana');
+    if (inp) inp.value = cleanVal;
+
+    const btnLunes = document.getElementById('btnPrimerDiaLunes');
+    const btnDomingo = document.getElementById('btnPrimerDiaDomingo');
+    if (btnLunes && btnDomingo) {
+        if (cleanVal === '1') {
+            btnLunes.className = 'px-5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white text-slate-900 shadow-xs';
+            btnDomingo.className = 'px-5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-500 hover:text-slate-800';
+        } else {
+            btnDomingo.className = 'px-5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white text-slate-900 shadow-xs';
+            btnLunes.className = 'px-5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-500 hover:text-slate-800';
+        }
+    }
+};
+
+window.toggleReservaSena1hDetails = function() {
+    const chk1h = document.getElementById('chkReservaSena1h');
+    const div1h = document.getElementById('divDetallesReservaSena1h');
+    if (chk1h && div1h) {
+        div1h.classList.toggle('hidden', !chk1h.checked);
+    }
+};
+
+window.toggleFidelizacionDetails = function() {
+    const chkMsj = document.getElementById('chkEnviarMsjAutomaticos');
+    const divDias = document.getElementById('divDetallesDiasRetorno');
+    if (chkMsj && divDias) {
+        divDias.classList.toggle('hidden', !chkMsj.checked);
     }
 };
 
@@ -362,10 +426,10 @@ window.toggleMetodosPagoDetails = function() {
     const chkMp = document.getElementById('chkMercadoPago');
     const divMp = document.getElementById('divDetallesMercadoPago');
     if (chkMp && divMp) {
-        divMp.classList.toggle('hidden', !chkMp.checked);
+        divMp.classList.toggle('hidden', !chkMp.checked || chkMp.disabled);
     }
 
-    const checkedCount = document.querySelectorAll('input[name="metodos_pago_arr"]:checked').length;
+    const checkedCount = document.querySelectorAll('input[name="metodos_pago_arr"]:checked:not(:disabled)').length;
     const noInfoBox = document.getElementById('noPaymentMethodsInfo');
     if (noInfoBox) {
         if (checkedCount === 0) {
@@ -382,16 +446,17 @@ window.updateSenaHelpText = function() {
     const helpBadge = document.getElementById('senaHelpBadge');
     if (!inpSena || !helpText) return;
 
-    let val = parseInt(inpSena.value) || 100;
+    let val = parseInt(inpSena.value) || 50;
     if (val < 1) val = 1;
     if (val > 100) val = 100;
     inpSena.value = val;
 
     if (val === 100) {
         if (helpBadge) helpBadge.className = 'text-xs p-3 rounded-xl border leading-relaxed font-bold transition-all bg-emerald-50 text-emerald-800 border-emerald-200/80 flex items-start gap-2';
-        helpText.innerHTML = '⚡ <strong>Seña del 100%:</strong> Significa que no se exige sólo una reserva parcial, sino que abonen el total del producto o servicio vía Mercado Pago para confirmar el turno.';
+        helpText.innerHTML = '⚡ <strong>Pago del 100%:</strong> El cliente tendrá 1 hora para transferir el total del servicio a tu Alias y enviarte el comprobante por WhatsApp.';
     } else {
-        if (helpBadge) helpBadge.className = 'text-xs p-3 rounded-xl border leading-relaxed font-bold transition-all bg-purple-50 text-purple-900 border-purple-200/80 flex items-start gap-2';
+        if (helpBadge) helpBadge.className = 'text-xs p-3 rounded-xl border leading-relaxed font-bold transition-all bg-amber-50/80 text-amber-900 border-amber-200/80 flex items-start gap-2';
+        helpText.innerHTML = `⏱️ <strong>Seña del ${val}% (Retención 1h):</strong> Al reservar, se le indicará abonar el ${val}% del servicio a tu Alias y compartir el comprobante por WhatsApp en menos de 1 hora.`;
     }
 };
 
@@ -402,16 +467,19 @@ window.updateModoReservasVisibility = function(planName) {
     const cardCupos = document.getElementById('cardModoCupos');
     const noticeNonPremium = document.getElementById('noticeNonPremiumModoReserva');
     const containerGrid = document.getElementById('containerModoReservasGrid');
+    const boxAutoRenovar = document.getElementById('boxAutoRenovarVencimiento');
 
     if (!isPremium) {
         if (cardCupos) { cardCupos.classList.add('hidden'); cardCupos.style.display = 'none'; }
         if (noticeNonPremium) { noticeNonPremium.classList.remove('hidden'); noticeNonPremium.style.display = 'flex'; }
         if (containerGrid) containerGrid.className = 'grid grid-cols-1 gap-4';
+        if (boxAutoRenovar) { boxAutoRenovar.classList.add('hidden'); boxAutoRenovar.style.display = 'none'; }
         window.setModoReserva('libre');
     } else {
         if (cardCupos) { cardCupos.classList.remove('hidden'); cardCupos.style.display = 'flex'; }
         if (noticeNonPremium) { noticeNonPremium.classList.add('hidden'); noticeNonPremium.style.display = 'none'; }
         if (containerGrid) containerGrid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
+        if (boxAutoRenovar) { boxAutoRenovar.classList.remove('hidden'); boxAutoRenovar.style.display = ''; }
     }
 };
 
@@ -1104,8 +1172,8 @@ function handleCalendarConfigSubmit(e) {
         intervalo = form.querySelector('#inputIntervaloCustom')?.value || 30;
     }
 
-    // Recolectar métodos de pago
-    const metodosArr = Array.from(form.querySelectorAll('input[name="metodos_pago_arr"]:checked')).map(cb => cb.value);
+    // Recolectar métodos de pago (excluyendo deshabilitados)
+    const metodosArr = Array.from(form.querySelectorAll('input[name="metodos_pago_arr"]:checked:not(:disabled)')).map(cb => cb.value);
     if (metodosArr.length === 0) {
         metodosArr.push('efectivo'); // Si no selecciona nada, por defecto se entiende pago presencial en el local
     }
@@ -1133,11 +1201,17 @@ function handleCalendarConfigSubmit(e) {
         usar_fondo_degrade: form.querySelector('#configFondoDegrade')?.checked ? 1 : 0,
         notificaciones_email: form.querySelector('#notificacionesEmail')?.checked ? 1 : 0,
         modo_reservas: form.querySelector('#selectModoReservas')?.value || 'libre',
+        auto_renovar_vencimiento: form.querySelector('#configAutoRenovarVencimiento')?.value || 'si',
         limite_eliminacion_dias: form.querySelector('#configLimiteEliminacion')?.value || 0,
         horarios_detallados_json: form.querySelector('#horariosDetalladosJsonInput')?.value || '{}',
         metodos_pago: metodosStr,
         datos_transferencia: datosTrans,
-        porcentaje_sena: form.querySelector('#configPorcentajeSena')?.value || 100,
+        porcentaje_sena: form.querySelector('#configPorcentajeSena')?.value || 50,
+        reserva_sena_1h: form.querySelector('#chkReservaSena1h')?.checked ? 1 : 0,
+        whatsapp_comprobante: form.querySelector('#configWhatsappComprobante')?.value || '',
+        enviar_msj_automaticos: form.querySelector('#chkEnviarMsjAutomaticos')?.checked ? 1 : 0,
+        usar_cupones_descuento: form.querySelector('#chkUsarCuponesDescuento')?.checked ? 1 : 0,
+        dias_retorno_clientes: parseInt(form.querySelector('#configDiasRetornoClientes')?.value) || 30,
         primer_dia_semana: form.querySelector('#configPrimerDiaSemana')?.value ?? 1
     };
 

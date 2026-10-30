@@ -163,9 +163,9 @@
                     <button onclick="switchTab('equipo')" id="tab-equipo" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
                         <span class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-purple-600 text-[20px]">group</span>
-                            <span>Equipo & Permisos</span>
+                            <span>Equipo & Profesionales</span>
                         </span>
-                        <span id="badge-equipo" class="text-[10px] font-extrabold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md shrink-0">Profesional</span>
+                        <span id="badge-equipo" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Incluido</span>
                     </button>
 
                     <button onclick="switchTab('web')" id="tab-web" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
@@ -229,12 +229,12 @@
                                 <span class="text-xs font-black uppercase tracking-wider text-slate-600 bg-slate-200 px-3 py-1 rounded-lg mb-4 inline-block">Plan Simple</span>
                                 <h3 class="text-xl font-bold text-slate-900 mb-3">Para Emprendedores</h3>
                                 <ul class="text-sm text-slate-700 space-y-3 font-medium">
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> De 1 a 5 profesionales en tu local</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> Equipo y profesionales en todos los niveles (1 a +5)</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> Recepción de turnos online 24/7</li>
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> Agenda Virtual y Calendario de turnos</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> Calendario de turnos (Mensual y Semanal)</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> Módulo de Estadísticas y Métricas</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-emerald-500 text-[18px]">check_circle</span> 2 Colores de personalización base</li>
-                                    <li class="flex items-center gap-2.5 opacity-60"><span class="material-symbols-outlined text-slate-400 text-[18px]">remove_circle_outline</span> Sin roles o permisos de acceso individuales</li>
+                                    <li class="flex items-center gap-2.5 opacity-60"><span class="material-symbols-outlined text-slate-400 text-[18px]">remove_circle_outline</span> Sin Agenda Virtual (Solo Calendario)</li>
                                 </ul>
                             </div>
                         </div>
@@ -246,12 +246,11 @@
                                 <span class="text-xs font-black uppercase tracking-wider text-primary bg-primary/10 px-3 py-1 rounded-lg mb-4 inline-block">Plan Profesional</span>
                                 <h3 class="text-xl font-bold text-slate-900 mb-3">Gestión Avanzada</h3>
                                 <ul class="text-sm text-slate-700 space-y-3 font-medium">
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Todo lo del Plan Simple</li>
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> De 1 a 5 profesionales con Roles & Permisos</li>
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Duraciones en Horas y Minutos</li>
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Intervalo dinámico por servicio</li>
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Módulo de Estadísticas y Métricas</li>
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> +1 Color de personalización extra (+1)</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Todo lo del Plan Simple + <strong>Agenda Virtual</strong></li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Equipo y profesionales con Roles & Permisos</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Página Web propia personalizada (<code>mi-web</code>)</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Duraciones en Horas/Minutos e intervalo dinámico</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> +1 Color de personalización extra (3 en total)</li>
                                     <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-primary text-[18px]">check_circle</span> Notificaciones por correo electrónico</li>
                                 </ul>
                             </div>
@@ -262,14 +261,14 @@
                             <div>
                                 <span id="badgePlanPremium" class="hidden absolute top-4 right-4 text-[10px] font-black uppercase bg-emerald-600 text-white px-2.5 py-1 rounded-full shadow-sm">🟢 TU PLAN ACTIVO</span>
                                 <span class="text-xs font-black uppercase tracking-wider text-purple-700 bg-purple-100 px-3 py-1 rounded-lg mb-4 inline-block">Plan Premium</span>
-                                <h3 class="text-xl font-bold text-slate-900 mb-3">Equipo & Estadísticas</h3>
+                                <h3 class="text-xl font-bold text-slate-900 mb-3">Presencia & Cupos</h3>
                                 <ul class="text-sm text-slate-700 space-y-3 font-medium">
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> Todo lo del Plan Profesional</li>
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> De 1 a 5 profesionales con Roles & Permisos</li>
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> Página Web Integrada exclusiva</li>
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> Métricas y Estadísticas Avanzadas</li>
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> +3 Colores de personalización extra (+3)</li>
-                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> Notificaciones y recordatorios automáticos</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> Todo lo del Plan Profesional (Agenda Virtual + Web)</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> Módulo de Clases por Cupos y Pases</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> Portal exclusivo del Alumno (<code>alumno.html</code>)</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> Equipo y profesionales con Roles Avanzados</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> +3 Colores de personalización extra (5 en total)</li>
+                                    <li class="flex items-center gap-2.5"><span class="material-symbols-outlined text-purple-600 text-[18px]">check_circle</span> Auto-renovación de vencimiento de pases</li>
                                 </ul>
                             </div>
                         </div>
@@ -397,14 +396,27 @@
                 <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-8">
                     <div>
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-3">
-                            <span class="material-symbols-outlined text-[16px]">menu_book</span> Tu centro de control diario
+                            <span class="material-symbols-outlined text-[16px]">menu_book</span> Plan Profesional y Premium
                         </div>
                         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3 flex items-center gap-3 font-display">
                             Mi Agenda Virtual
                         </h2>
                         <p class="text-slate-600 text-base sm:text-lg leading-relaxed">
-                            La Agenda Virtual es el corazón de tu negocio en Agendatina. Desde acá tenés el control total de lo que pasa en el día a día: podés recepcionar solicitudes, organizar tus atenciones, controlar asistencias y filtrar por profesional de forma súper fácil y cotidiana.
+                            La Agenda Virtual es el centro de recepción y control diario para los planes <strong>Profesional y Premium</strong> (el Plan Simple cuenta únicamente con el Calendario de turnos). Desde acá podés recepcionar solicitudes, organizar tus atenciones, controlar asistencias y filtrar por profesional.
                         </p>
+                    </div>
+
+                    <div id="noticeAgendaUpgrade" class="hidden bg-amber-50 border border-amber-200 rounded-3xl p-6">
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-amber-600 text-2xl">workspace_premium</span>
+                            <div>
+                                <h3 class="font-bold text-amber-900 text-sm mb-1">Módulo Incluido en Plan Profesional y Premium</h3>
+                                <p class="text-xs text-amber-800 leading-relaxed mb-3">Tu Plan Simple incluye el <strong>Calendario de turnos</strong> completo (vista mensual y semanal). Para disponer de la <strong>Agenda Virtual</strong> interactiva con pestañas de estados, buscador e historial de asistencia, podés actualizar tu cuenta al Plan Profesional o Premium.</p>
+                                <button onclick="switchTab('planes')" class="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-xs transition-all border-none cursor-pointer">
+                                    <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Ver Alcance por Plan
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- 1. FILTRO DE PROFESIONALES Y PERMISOS -->
@@ -639,15 +651,12 @@
                         </p>
                     </div>
 
-                    <div id="noticeEquipoUpgrade" class="hidden bg-amber-50 border border-amber-200 rounded-3xl p-6">
+                    <div class="bg-emerald-50/80 border border-emerald-200 rounded-3xl p-6">
                         <div class="flex items-start gap-3">
-                            <span class="material-symbols-outlined text-amber-600 text-2xl">workspace_premium</span>
+                            <span class="material-symbols-outlined text-emerald-600 text-2xl">verified</span>
                             <div>
-                                <h3 class="font-bold text-amber-900 text-sm mb-1">Módulo Disponible en Plan Profesional y Premium</h3>
-                                <p class="text-xs text-amber-800 leading-relaxed mb-3">Tu plan activo actual es el Plan Simple (1 Profesional). Al actualizar a un Plan Profesional o Premium podrás dar de alta a múltiples profesionales con contraseña propia.</p>
-                                <button onclick="switchTab('planes')" class="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-xs transition-all border-none cursor-pointer">
-                                    <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Ver Planes y Alcances
-                                </button>
+                                <h3 class="font-bold text-emerald-950 text-sm mb-1">Módulo Disponible en Todos los Niveles (Plan Simple, Profesional y Premium)</h3>
+                                <p class="text-xs text-emerald-900 leading-relaxed">En cualquiera de los planes de Agendatina podés gestionar a tu equipo de profesionales (de 1 a +5 integrantes según la cantidad contratada en tu suscripción). En los planes Profesional y Premium además podés personalizar permisos individuales por sección.</p>
                             </div>
                         </div>
                     </div>
@@ -1023,11 +1032,12 @@
                         const boxPro = document.getElementById('boxPlanProfesional');
                         const boxPrem = document.getElementById('boxPlanPremium');
 
+                        const badgeAgenda = document.getElementById('badge-agenda');
                         const badgeEquipo = document.getElementById('badge-equipo');
                         const badgeWeb = document.getElementById('badge-web');
                         const badgeEstadisticas = document.getElementById('badge-estadisticas');
                         const badgeAlumnos = document.getElementById('badge-alumnos');
-                        const noticeEquipo = document.getElementById('noticeEquipoUpgrade');
+                        const noticeAgenda = document.getElementById('noticeAgendaUpgrade');
                         const noticeWeb = document.getElementById('noticeWebUpgrade');
                         const noticeEstadisticas = document.getElementById('noticeEstadisticasUpgrade');
                         const noticeAlumnos = document.getElementById('noticeAlumnosUpgrade');
@@ -1037,12 +1047,13 @@
                             if (badgeSimple) { badgeSimple.classList.remove('hidden'); badgeSimple.textContent = '🟢 TU PLAN ACTIVO'; }
                             if (boxSimple) boxSimple.className = 'border-2 border-emerald-500 rounded-3xl p-6 bg-emerald-50/20 relative shadow-md flex flex-col justify-between';
                             
-                            if (badgeEquipo) { badgeEquipo.className = 'text-[10px] font-extrabold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md shrink-0'; badgeEquipo.textContent = 'Profesional'; }
-                            if (badgeWeb) { badgeWeb.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0'; badgeWeb.textContent = 'Premium'; }
+                            if (badgeAgenda) { badgeAgenda.className = 'text-[10px] font-extrabold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md shrink-0'; badgeAgenda.textContent = 'Profesional'; }
+                            if (badgeEquipo) { badgeEquipo.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeEquipo.textContent = 'Incluido'; }
+                            if (badgeWeb) { badgeWeb.className = 'text-[10px] font-extrabold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md shrink-0'; badgeWeb.textContent = 'Profesional'; }
                             if (badgeEstadisticas) { badgeEstadisticas.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeEstadisticas.textContent = 'Incluido'; }
                             if (badgeAlumnos) { badgeAlumnos.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0'; badgeAlumnos.textContent = 'Premium'; }
                             
-                            if (noticeEquipo) noticeEquipo.classList.remove('hidden');
+                            if (noticeAgenda) noticeAgenda.classList.remove('hidden');
                             if (noticeWeb) noticeWeb.classList.remove('hidden');
                             if (noticeEstadisticas) noticeEstadisticas.classList.add('hidden');
                             if (noticeAlumnos) noticeAlumnos.classList.remove('hidden');
@@ -1052,13 +1063,14 @@
                             if (badgePro) { badgePro.classList.remove('hidden'); badgePro.textContent = '🟢 TU PLAN ACTIVO'; }
                             if (boxPro) boxPro.className = 'border-2 border-emerald-500 rounded-3xl p-6 bg-emerald-50/20 relative shadow-md flex flex-col justify-between';
 
+                            if (badgeAgenda) { badgeAgenda.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeAgenda.textContent = 'Incluido'; }
                             if (badgeEquipo) { badgeEquipo.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeEquipo.textContent = 'Incluido'; }
-                            if (badgeWeb) { badgeWeb.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0'; badgeWeb.textContent = 'Premium'; }
+                            if (badgeWeb) { badgeWeb.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeWeb.textContent = 'Incluido'; }
                             if (badgeEstadisticas) { badgeEstadisticas.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeEstadisticas.textContent = 'Incluido'; }
                             if (badgeAlumnos) { badgeAlumnos.className = 'text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0'; badgeAlumnos.textContent = 'Premium'; }
                             
-                            if (noticeEquipo) noticeEquipo.classList.add('hidden');
-                            if (noticeWeb) noticeWeb.classList.remove('hidden');
+                            if (noticeAgenda) noticeAgenda.classList.add('hidden');
+                            if (noticeWeb) noticeWeb.classList.add('hidden');
                             if (noticeEstadisticas) noticeEstadisticas.classList.add('hidden');
                             if (noticeAlumnos) noticeAlumnos.classList.remove('hidden');
 
@@ -1067,12 +1079,13 @@
                             if (badgePrem) { badgePrem.classList.remove('hidden'); badgePrem.textContent = '🟢 TU PLAN ACTIVO'; }
                             if (boxPrem) boxPrem.className = 'border-2 border-emerald-500 rounded-3xl p-6 bg-emerald-50/20 relative shadow-md flex flex-col justify-between';
 
+                            if (badgeAgenda) { badgeAgenda.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeAgenda.textContent = 'Incluido'; }
                             if (badgeEquipo) { badgeEquipo.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeEquipo.textContent = 'Incluido'; }
                             if (badgeWeb) { badgeWeb.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeWeb.textContent = 'Incluido'; }
                             if (badgeEstadisticas) { badgeEstadisticas.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeEstadisticas.textContent = 'Incluido'; }
                             if (badgeAlumnos) { badgeAlumnos.className = 'text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0'; badgeAlumnos.textContent = 'Incluido'; }
 
-                            if (noticeEquipo) noticeEquipo.classList.add('hidden');
+                            if (noticeAgenda) noticeAgenda.classList.add('hidden');
                             if (noticeWeb) noticeWeb.classList.add('hidden');
                             if (noticeEstadisticas) noticeEstadisticas.classList.add('hidden');
                             if (noticeAlumnos) noticeAlumnos.classList.add('hidden');

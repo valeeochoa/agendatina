@@ -2083,6 +2083,35 @@ function regenerarEnlacesProf() {
     });
 }
 
+window.showCalendarServiceSuccessModal = function(isEditing) {
+    let modal = document.getElementById('calendarServiceSuccessModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'calendarServiceSuccessModal';
+        modal.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[10000] flex items-center justify-center p-4 transition-opacity duration-300';
+        document.body.appendChild(modal);
+    }
+    modal.innerHTML = `
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl border border-slate-100 transform scale-100 transition-all relative overflow-hidden">
+            <div class="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <span class="material-symbols-outlined text-4xl">check_circle</span>
+            </div>
+            <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display">${isEditing ? '¡Servicio Actualizado!' : '¡Servicio Creado con Éxito!'}</h3>
+            <p class="text-xs text-slate-500 mb-5 leading-relaxed">El servicio ya se encuentra disponible en tu catálogo y en el calendario.</p>
+            <p class="text-[11px] text-slate-400 font-semibold">Cerrando ventana automáticamente...</p>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        if (modal) modal.classList.add('hidden');
+        if (typeof closeServicesModal === 'function') closeServicesModal();
+        else {
+            const sm = document.getElementById('servicesModal');
+            if (sm) sm.classList.add('hidden');
+        }
+    }, 1250);
+};
+
 function handleServiceFormSubmit(e) {
     e.preventDefault();
     const form = e.target;
@@ -2113,6 +2142,10 @@ function handleServiceFormSubmit(e) {
                 }
             }
             resetServiceForm();
+            const isEditingSvc = formData.get('id') && String(formData.get('id')).trim() !== '';
+            if (typeof window.showCalendarServiceSuccessModal === 'function') {
+                window.showCalendarServiceSuccessModal(isEditingSvc);
+            }
         } else {
             showToast(data.error || 'Error al guardar el servicio', 'error');
         }
@@ -2244,7 +2277,7 @@ function initWizard() {
                     </div>
                     <p class="text-slate-800 font-bold mb-2 text-lg">Aún no tienes servicios cargados</p>
                     <p class="text-sm text-slate-500 mb-4">Para utilizar este calendario interactivo, necesitas agregar al menos un servicio desde tu panel de control.</p>
-                    <button type="button" onclick="window.location.href='dashboard.html'" class="inline-block bg-primary text-white font-bold py-2.5 px-6 rounded-xl shadow-md shadow-primary/20 hover:bg-primary/90 transition-colors text-sm">Ir al panel de control</button>
+                    <button type="button" onclick="window.location.href='servicios.html'" class="inline-block bg-primary text-white font-bold py-2.5 px-6 rounded-xl shadow-md shadow-primary/20 hover:bg-primary/90 transition-colors text-sm">Crear mi primer servicio</button>
                 </div>
             `;
         } else {
@@ -2640,6 +2673,7 @@ function cal_fetchBookedTimesWeeklyAdmin() {
         cal_bookedSlots = bookedData; 
         if (bookedData && bookedData._config) {
             window.businessWebConfig = Object.assign(window.businessWebConfig || {}, bookedData._config);
+            if (typeof window.syncCouponFieldVisibility === 'function') window.syncCouponFieldVisibility(window.businessWebConfig);
         }
         renderAdminWeeklyGrid(); 
         
@@ -3389,6 +3423,100 @@ window.bloquearHorario = function(fecha, hora, prof = null) {
     });
 };
 
+window.syncCouponFieldVisibility = function(conf) {
+    const enabled = conf && (conf.usar_cupones_descuento == 1 || conf.usar_cupones_descuento === '1' || conf.usar_cupones_descuento === true);
+    const boxM = document.getElementById('boxCuponDescuentoBooking');
+    const boxW = document.getElementById('weeklyBoxCuponDescuentoBooking');
+    if (boxM) {
+        if (enabled) boxM.classList.remove('hidden');
+        else boxM.classList.add('hidden');
+    }
+    if (boxW) {
+        if (enabled) boxW.classList.remove('hidden');
+        else boxW.classList.add('hidden');
+    }
+};
+
+window.copyAliasToClipboard = function(text) {
+    if (!text) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            if (typeof showToast === 'function') showToast('¡Alias / Datos copiados al portapapeles!', 'success');
+        }).catch(() => {});
+    }
+};
+
+window.updateBookingSuccessModalContent = function(data) {
+    const content = document.getElementById('bookingSuccessModalContent');
+    if (!content || !data) return;
+
+    const isHold1h = data.reserva_sena_1h == 1 || data.reserva_sena_1h === '1' || data.reserva_sena_1h === true;
+    const aliasText = (data.datos_transferencia || '').trim();
+    const wppRaw = (data.whatsapp_comprobante || '').replace(/\D/g, '');
+    const pctSena = parseInt(data.porcentaje_sena) || 50;
+    const montoSena = parseFloat(data.monto_sena) || 0;
+    const cuponUsado = data.cupon_aplicado || '';
+    const descPct = parseInt(data.descuento_pct) || 0;
+
+    if (!isHold1h && !cuponUsado) return;
+
+    let cuponBannerHtml = '';
+    if (cuponUsado && descPct > 0) {
+        cuponBannerHtml = `
+            <div class="mb-4 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-center gap-1.5">
+                <span class="material-symbols-outlined text-[18px] text-emerald-600">local_activity</span>
+                <span>¡Cupón <strong>${cuponUsado}</strong> aplicado (${descPct}% OFF)!</span>
+            </div>
+        `;
+    }
+
+    if (isHold1h) {
+        const wppMsg = `Hola! Acabo de reservar un turno en ${data.business_name || 'su agenda'} para el ${data.fecha_display || ''} a las ${data.hora || ''} hs (${data.servicio || ''}). Adjunto el comprobante de la seña para confirmar mi reserva.`;
+        const wppUrl = wppRaw ? `https://wa.me/${wppRaw}?text=${encodeURIComponent(wppMsg)}` : '';
+        const safeAliasAttr = aliasText.replace(/'/g, "\\'").replace(/\r?\n/g, ' ');
+
+        content.innerHTML = `
+            <div class="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <span class="material-symbols-outlined text-3xl">timer</span>
+            </div>
+            <span class="bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-2">
+                ⏱️ Reserva retenida por 1 Hora
+            </span>
+            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-100 mb-2">
+                ¡Abona la seña para confirmar!
+            </h3>
+            <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm mb-4 leading-relaxed">
+                Tu turno quedó pre-reservado automáticamente por <strong>1 hora</strong>. Debes abonar la seña${montoSena > 0 ? ` de <strong>$${montoSena.toLocaleString('es-AR')}</strong> (${pctSena}%)` : ` (${pctSena}%)`} en menos de 1 hora, de lo contrario se dará de baja la reserva.
+            </p>
+            ${cuponBannerHtml}
+            ${aliasText ? `
+                <div class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-3.5 mb-4 text-left">
+                    <div class="flex items-center justify-between gap-2 mb-1">
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Alias / Datos Bancarios</span>
+                        <button type="button" onclick="window.copyAliasToClipboard('${safeAliasAttr}')" class="text-[11px] font-bold text-[#D11149] hover:underline flex items-center gap-0.5 cursor-pointer">
+                            <span class="material-symbols-outlined text-[14px]">content_copy</span> Copiar
+                        </button>
+                    </div>
+                    <p class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-100 break-words whitespace-pre-line">${aliasText}</p>
+                </div>
+            ` : ''}
+            ${wppUrl ? `
+                <a href="${wppUrl}" target="_blank" class="w-full mb-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-extrabold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md shadow-[#25D366]/20">
+                    <span class="material-symbols-outlined text-[18px]">chat</span> Compartir Comprobante (${wppRaw})
+                </a>
+            ` : ''}
+            <button onclick="closeBookingSuccessModal()" class="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-3 rounded-xl transition-all text-xs sm:text-sm cursor-pointer">
+                Entendido
+            </button>
+        `;
+    } else if (cuponBannerHtml) {
+        const pEl = content.querySelector('p');
+        if (pEl) {
+            pEl.insertAdjacentHTML('afterend', cuponBannerHtml);
+        }
+    }
+};
+
 function toYYYYMMDD(date) {
     return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
 }
@@ -3412,6 +3540,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const form = document.getElementById('weeklyBookingForm');
     if (form) {
+        fetch(negocioSlug ? `backend/guardar_web.php?n=${negocioSlug}` : `backend/guardar_web.php`).then(r => r.json()).then(conf => { if (conf) { window.businessWebConfig = Object.assign(window.businessWebConfig || {}, conf); if (typeof window.syncCouponFieldVisibility === 'function') window.syncCouponFieldVisibility(window.businessWebConfig); } }).catch(() => {});
         document.getElementById('prevWeek').addEventListener('click', () => { weekStartDate.setDate(weekStartDate.getDate() - 7); renderWeeklyCalendar(); });
         document.getElementById('nextWeek').addEventListener('click', () => { weekStartDate.setDate(weekStartDate.getDate() + 7); renderWeeklyCalendar(); });
 
@@ -3428,6 +3557,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch('backend/enviar_turno.php', { method: 'POST', body: formData })
             .then(res => res.json()).then(data => {
                 if (data.success) {
+                    if (typeof window.updateBookingSuccessModalContent === 'function') window.updateBookingSuccessModalContent(data);
                     document.getElementById('bookingSuccessModal').classList.remove('hidden');
                     setTimeout(() => { document.getElementById('bookingSuccessModal').classList.remove('opacity-0'); document.getElementById('bookingSuccessModalContent').classList.remove('scale-95'); }, 10);
                 } else showToast(data.error || 'Ocurrió un error.', 'error');
@@ -3596,6 +3726,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const modal = document.getElementById('bookingSuccessModal');
                     const content = document.getElementById('bookingSuccessModalContent');
                     if (modal && content) {
+                        if (typeof window.updateBookingSuccessModalContent === 'function') window.updateBookingSuccessModalContent(data);
                         modal.classList.remove('hidden');
                         setTimeout(() => {
                             modal.classList.remove('opacity-0');
@@ -3622,6 +3753,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(config => {
                 if (config) {
                     window.businessWebConfig = config;
+                    if (typeof window.syncCouponFieldVisibility === 'function') window.syncCouponFieldVisibility(config);
                     let title = config.nombre_fantasia || config.nombre_negocio || config.titulo || 'Agendatina';
                     document.title = title + ' | Reservar tu turno';
                     

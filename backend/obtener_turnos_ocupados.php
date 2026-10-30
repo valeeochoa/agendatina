@@ -30,7 +30,9 @@ try {
     $ocupados = [];
 
    // Obtener configuración web del negocio (horarios, días laborables, etc.)
-    $stmtConf = $pdo->prepare("SELECT hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json, intervalo_turnos, primer_dia_semana, turnos_simultaneos, modo_reservas FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");
+    try { $pdo->query("SELECT usar_cupones_descuento FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN usar_cupones_descuento TINYINT(1) DEFAULT 0"); } catch (Exception $eCol2) {} }
+    try { $pdo->query("SELECT reserva_sena_1h FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN reserva_sena_1h TINYINT(1) DEFAULT 0"); } catch (Exception $eCol2) {} }
+    $stmtConf = $pdo->prepare("SELECT hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json, intervalo_turnos, primer_dia_semana, turnos_simultaneos, modo_reservas, usar_cupones_descuento, reserva_sena_1h FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");
     $stmtConf->execute(['id_negocio' => $id_negocio]);
     $conf = $stmtConf->fetch(PDO::FETCH_ASSOC);
 
@@ -50,7 +52,9 @@ try {
         'intervalo_turnos' => !empty($conf['intervalo_turnos']) ? $conf['intervalo_turnos'] : '30',
         'primer_dia_semana' => (int)($conf['primer_dia_semana'] ?? 1),
         'turnos_simultaneos' => $permiteSimultaneos ? 'si' : 'no',
-        'modo_reservas' => $conf['modo_reservas'] ?? 'libre'
+        'modo_reservas' => $conf['modo_reservas'] ?? 'libre',
+        'usar_cupones_descuento' => (int)($conf['usar_cupones_descuento'] ?? 0),
+        'reserva_sena_1h' => (int)($conf['reserva_sena_1h'] ?? 0)
     ];
     
     $intervaloRaw = $conf && isset($conf['intervalo_turnos']) && is_numeric($conf['intervalo_turnos']) ? (int)$conf['intervalo_turnos'] : 30;

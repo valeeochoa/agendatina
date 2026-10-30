@@ -223,7 +223,7 @@
                 <!-- Tabs internos -->
                 <div class="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
                     <!-- Tab Bar -->
-                    <div class="flex border-b border-slate-200 px-2 pt-2 gap-1 bg-slate-50/70">
+                    <div class="flex border-b border-slate-200 px-2 pt-2 gap-1 bg-slate-50/70 overflow-x-auto tabs-scroll">
                         <button id="tabProximos"
                             class="flex-1 sm:flex-none sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-t-lg text-primary bg-white border border-slate-200 border-b-white -mb-px flex items-center justify-center gap-1.5 transition-all"
                             onclick="switchAgendaTab('proximos')">
@@ -248,6 +248,13 @@
                             <span class="material-symbols-outlined text-[17px]">delete</span>
                             <span>Papelera</span>
                             <span id="trashBadgeDot" class="w-2 h-2 rounded-full bg-red-500 hidden animate-pulse ml-0.5"></span>
+                        </button>
+                        <button id="tabRetorno"
+                            class="flex-1 sm:flex-none sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-t-lg text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 transition-all whitespace-nowrap relative"
+                            onclick="switchAgendaTab('retorno')">
+                            <span class="material-symbols-outlined text-[17px] text-amber-600">loyalty</span>
+                            <span>Retorno / Cupones</span>
+                            <span id="retornoCountBadge" class="hidden bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">0</span>
                         </button>
                     </div>
 
@@ -276,6 +283,9 @@
                         <div id="lista-vencidos" class="space-y-3 hidden"></div>
                         <div id="lista-historial" class="space-y-3 hidden"></div>
                         <div id="lista-eliminados" class="space-y-3 hidden"></div>
+                        <div id="lista-retorno" class="space-y-3 hidden">
+                            <div class="text-center py-8 text-slate-400 text-sm">Cargando clientes para retorno...</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -330,6 +340,9 @@
         function switchAgendaTab(tab) {
             // Guardar el tab activo globalmente
             window.activeAgendaTab = tab;
+            if (tab === 'retorno') {
+                loadClientesRetorno();
+            }
             if (tab === 'papelera') {
                 localStorage.removeItem('agendatina_unread_trash');
                 var dot = document.getElementById('trashBadgeDot');
@@ -340,13 +353,15 @@
                 proximos: document.getElementById('lista-confirmados'),
                 vencidos: document.getElementById('lista-vencidos'),
                 historial: document.getElementById('lista-historial'),
-                papelera: document.getElementById('lista-eliminados')
+                papelera: document.getElementById('lista-eliminados'),
+                retorno: document.getElementById('lista-retorno')
             };
             var tabs = {
                 proximos: document.getElementById('tabProximos'),
                 vencidos: document.getElementById('tabVencidos'),
                 historial: document.getElementById('tabHistorial'),
-                papelera: document.getElementById('tabPapelera')
+                papelera: document.getElementById('tabPapelera'),
+                retorno: document.getElementById('tabRetorno')
             };
             var activeClass = 'flex-1 sm:flex-none sm:px-5 py-2.5 text-sm font-bold rounded-t-xl flex items-center justify-center gap-1.5 transition-all text-primary bg-white border border-slate-200 border-b-white -mb-px';
             var inactiveClass = 'flex-1 sm:flex-none sm:px-5 py-2.5 text-sm font-bold rounded-t-xl flex items-center justify-center gap-1.5 transition-all text-slate-400 hover:text-slate-600 border-transparent';
@@ -365,8 +380,131 @@
             });
         }
 
+        function loadClientesRetorno() {
+            const container = document.getElementById('lista-retorno');
+            const badge = document.getElementById('retornoCountBadge');
+            if (!container) return;
+
+            fetch('backend/clientes_retorno.php')
+                .then(r => r.json())
+                .then(data => {
+                    if (!data || !data.success) {
+                        container.innerHTML = '<div class="p-6 text-center text-slate-400 text-sm">No se pudo cargar la lista de retorno.</div>';
+                        return;
+                    }
+                    const list = data.clientes || [];
+                    const diasConfig = data.dias_retorno_clientes || 30;
+                    const usaCupones = !!data.usar_cupones_descuento;
+
+                    if (badge) {
+                        if (list.length > 0) {
+                            badge.textContent = list.length;
+                            badge.classList.remove('hidden');
+                        } else {
+                            badge.classList.add('hidden');
+                        }
+                    }
+
+                    let headerHtml = `
+                        <div class="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="flex items-start gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                                    <span class="material-symbols-outlined text-xl">loyalty</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-extrabold text-slate-900">Seguimiento de Retorno de Clientes (+${diasConfig} días)</h3>
+                                    <p class="text-xs text-slate-600 mt-0.5">Clientes que cumplieron ${diasConfig} días o más desde su última visita y aún no volvieron a reservar turno. ${usaCupones ? 'Al enviar el recordatorio se genera automáticamente un <strong>cupón único de 10% OFF válido por 24 hs</strong>.' : 'Puedes activar los cupones de 10% OFF desde Ajustes.'}</p>
+                                </div>
+                            </div>
+                            <a href="ajustes.html" class="px-3.5 py-2 bg-white hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-xl text-xs font-bold transition-all shrink-0 self-start sm:self-center flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[15px]">tune</span> Configurar Días / Cupones
+                            </a>
+                        </div>
+                    `;
+
+                    if (list.length === 0) {
+                        container.innerHTML = headerHtml + `
+                            <div class="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-slate-500 text-sm">
+                                <span class="material-symbols-outlined text-3xl text-slate-300 mb-2 block">verified</span>
+                                <p class="font-bold text-slate-700">No hay clientes pendientes de retorno por el momento</p>
+                                <p class="text-xs text-slate-400 mt-1">Aquí aparecerán los clientes cuando pasen ${diasConfig} días desde su última atención sin un nuevo turno.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    let cardsHtml = '';
+                    list.forEach(c => {
+                        const safeName = (c.cliente_nombre || 'Cliente').replace(/'/g, "\\'");
+                        const safeCel = (c.cliente_celular || '').replace(/'/g, "\\'");
+                        const cuponTag = c.cupon_activo
+                            ? `<span class="bg-amber-100 text-amber-800 border border-amber-300 text-[11px] font-extrabold px-2.5 py-0.5 rounded-lg inline-flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">local_activity</span> Cupón activo: ${c.cupon_activo}</span>`
+                            : '';
+
+                        cardsHtml += `
+                            <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xs hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                    <div class="flex flex-wrap items-center gap-2 mb-1">
+                                        <span class="font-extrabold text-slate-900 text-sm sm:text-base">${c.cliente_nombre || 'Cliente'}</span>
+                                        <span class="bg-rose-50 text-[#d11149] border border-rose-200 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">Hace ${c.dias_transcurridos} días</span>
+                                        ${cuponTag}
+                                    </div>
+                                    <p class="text-xs text-slate-500 font-medium">
+                                        Último servicio: <strong class="text-slate-700">${c.ultimo_servicio || '-'}</strong> (${c.ultima_fecha_display || c.ultima_fecha}) • Tel: <strong class="text-slate-700">${c.cliente_celular}</strong>
+                                    </p>
+                                </div>
+                                <button type="button" onclick="enviarMensajeRetornoCliente('${safeName}', '${safeCel}', ${c.dias_transcurridos}, this)" class="px-4 py-2.5 bg-[#25D366] hover:bg-[#20bd5a] text-white font-extrabold rounded-xl text-xs transition-all shadow-sm flex items-center justify-center gap-1.5 shrink-0 cursor-pointer">
+                                    <span class="material-symbols-outlined text-[17px]">chat</span>
+                                    <span>${usaCupones ? 'Enviar WhatsApp + Cupón 10% OFF' : 'Enviar Recordatorio por WhatsApp'}</span>
+                                </button>
+                            </div>
+                        `;
+                    });
+
+                    container.innerHTML = headerHtml + `<div class="space-y-2.5">${cardsHtml}</div>`;
+                })
+                .catch(() => {});
+        }
+
+        function enviarMensajeRetornoCliente(nombre, celular, dias, btnEl) {
+            const origHtml = btnEl ? btnEl.innerHTML : '';
+            if (btnEl) {
+                btnEl.disabled = true;
+                btnEl.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">refresh</span> Preparando cupón...';
+            }
+
+            fetch('backend/clientes_retorno.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    cliente_nombre: nombre,
+                    cliente_celular: celular,
+                    dias_transcurridos: dias
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.success && data.whatsapp_url) {
+                    window.open(data.whatsapp_url, '_blank');
+                    loadClientesRetorno();
+                } else {
+                    if (typeof showToast === 'function') showToast((data && data.error) || 'Error al generar el mensaje', 'error');
+                }
+            })
+            .catch(() => {
+                if (typeof showToast === 'function') showToast('Error de conexión', 'error');
+            })
+            .finally(() => {
+                if (btnEl) {
+                    btnEl.disabled = false;
+                    btnEl.innerHTML = origHtml;
+                }
+            });
+        }
+
         // Sincronizar buscador mobile con desktop
         document.addEventListener('DOMContentLoaded', function() {
+            loadClientesRetorno();
             var mobileInput = document.getElementById('agendaSearchInputMobile');
             if (mobileInput) {
                 mobileInput.addEventListener('input', function(e) {

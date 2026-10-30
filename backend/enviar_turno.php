@@ -26,6 +26,7 @@ $servicio = isset($_POST['servicio']) ? trim($_POST['servicio']) : '';
 $profesional = isset($_POST['profesional']) ? trim($_POST['profesional']) : 'Cualquiera (Sin preferencia)';
 $metodo_pago = isset($_POST['metodo_pago']) ? trim($_POST['metodo_pago']) : '';
 $ruta = isset($_POST['negocio']) ? trim($_POST['negocio']) : '';
+$cupon_descuento = isset($_POST['cupon_descuento']) ? strtoupper(trim($_POST['cupon_descuento'])) : '';
 
 // Validar datos básicos
 if (empty($nombre) || empty($apellido) || empty($celular) || empty($fecha) || empty($hora) || empty($servicio)) {
@@ -160,19 +161,67 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_nombre V
 try { $pdo->query("SELECT cliente_celular FROM turnos LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_celular VARCHAR(255) DEFAULT NULL"); }
 
+try { $pdo->query("SELECT cupon_usado FROM turnos LIMIT 1"); }
+catch(Exception $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN cupon_usado VARCHAR(50) DEFAULT NULL"); } catch(Exception $e2) {} }
+
+try { $pdo->query("SELECT descuento_pct FROM turnos LIMIT 1"); }
+catch(Exception $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN descuento_pct INT DEFAULT 0"); } catch(Exception $e2) {} }
+
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS cupones_descuento (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        id_negocio INT NOT NULL,
+        codigo VARCHAR(50) NOT NULL,
+        cliente_celular VARCHAR(50) DEFAULT NULL,
+        cliente_nombre VARCHAR(255) DEFAULT NULL,
+        porcentaje_descuento INT DEFAULT 10,
+        usado TINYINT(1) DEFAULT 0,
+        fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+        fecha_expiracion DATETIME NOT NULL,
+        fecha_uso DATETIME DEFAULT NULL,
+        INDEX (id_negocio),
+        INDEX (codigo)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+} catch (Exception $eTbl) {}
+
+foreach ([
+    'reserva_sena_1h' => 'TINYINT(1) DEFAULT 0',
+    'whatsapp_comprobante' => 'VARCHAR(50) DEFAULT NULL',
+    'datos_transferencia' => 'TEXT DEFAULT NULL',
+    'porcentaje_sena' => 'INT DEFAULT 50',
+    'usar_cupones_descuento' => 'TINYINT(1) DEFAULT 0',
+    'whatsapp_contacto' => 'VARCHAR(50) DEFAULT NULL'
+] as $colCw => $defCw) {
+    try { $pdo->query("SELECT $colCw FROM configuracion_web LIMIT 1"); }
+    catch(Exception $eCw) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN $colCw $defCw"); } catch(Exception $eCw2) {} }
+}
+
+/*
+ * TODO (Futuro - Comentado temporalmente por indicación del usuario):
+ * Lógica de expiración automática de reservas pendientes de seña tras 1 hora sin comprobante
+ * sin necesidad de cron externo:
+ * $pdo->prepare("UPDATE turnos SET estado = 'cancelado' WHERE id_negocio = ? AND estado = 'pendiente' AND creado_en < DATE_SUB(NOW(), INTERVAL 1 HOUR)")->execute([$id_negocio]);
+ */
+
+$cuponAplicadoCodigo = null;
+$descuentoAplicadoPct = 0;
+$precio_servicio = 0;
+$monto_sena = 0;
+
 try {
     $pdo->beginTransaction();
 
     $cliente_nombre = $nombre . ' ' . $apellido;
 
     // Buscar el ID del servicio en base al nombre para insertarlo como Clave Foránea
-    $stmtServ = $pdo->prepare("SELECT id, duracion_minutos, email_profesional, capacidad, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo FROM servicios WHERE id_negocio = :id_negocio AND nombre_servicio = :servicio LIMIT 1");
+    $stmtServ = $pdo->prepare("SELECT id, precio, duracion_minutos, email_profesional, capacidad, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo FROM servicios WHERE id_negocio = :id_negocio AND nombre_servicio = :servicio LIMIT 1");
     $stmtServ->execute(['id_negocio' => $id_negocio, 'servicio' => $servicio]);
     $serv = $stmtServ->fetch();
     $id_servicio = $serv ? $serv['id'] : null;
     $duracion_nuevo = $serv && !empty($serv['duracion_minutos']) ? (int)$serv['duracion_minutos'] : 30;
     $capacidad_nuevo = $serv && !empty($serv['cupo_maximo']) ? (int)$serv['cupo_maximo'] : ($serv && !empty($serv['capacidad']) ? (int)$serv['capacidad'] : 1);
     $email_profesional = $serv && !empty($serv['email_profesional']) ? $serv['email_profesional'] : null;
+    $precio_servicio = $serv && !empty($serv['precio']) ? (float)$serv['precio'] : 0;
 
     // =========================================================================
     // VALIDACIÓN DE DÍAS BLOQUEADOS Y HORARIO DE ATENCIÓN
@@ -186,7 +235,7 @@ try {
         exit;
     }
 
-    $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
+    $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, reserva_sena_1h, whatsapp_comprobante, datos_transferencia, porcentaje_sena, usar_cupones_descuento, whatsapp_contacto FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
     $stmtConfig->execute(['id' => $id_negocio]);
     $configWeb = $stmtConfig->fetch(PDO::FETCH_ASSOC);
 
@@ -333,6 +382,35 @@ try {
         'estado' => 'pendiente',
     ]);
 
+    if (!empty($cupon_descuento) && !empty($configWeb['usar_cupones_descuento'])) {
+        $stmtCup = $pdo->prepare("SELECT id, codigo, porcentaje_descuento FROM cupones_descuento WHERE id_negocio = :id_neg AND UPPER(codigo) = :cod AND usado = 0 AND fecha_expiracion > NOW() LIMIT 1 FOR UPDATE");
+        $stmtCup->execute(['id_neg' => $id_negocio, 'cod' => $cupon_descuento]);
+        $rowCup = $stmtCup->fetch(PDO::FETCH_ASSOC);
+        if (!$rowCup) {
+            $pdo->rollBack();
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'El cupón de descuento ingresado no es válido, ya fue utilizado o ha expirado (validez de 24 hs).']);
+            exit;
+        }
+        $cuponAplicadoCodigo = $rowCup['codigo'];
+        $descuentoAplicadoPct = (int)($rowCup['porcentaje_descuento'] ?? 10);
+        $pdo->prepare("UPDATE cupones_descuento SET usado = 1, fecha_uso = NOW() WHERE id = ?")->execute([$rowCup['id']]);
+        $lastTurnoId = $pdo->lastInsertId();
+        if ($lastTurnoId) {
+            try {
+                $pdo->prepare("UPDATE turnos SET cupon_usado = ?, descuento_pct = ? WHERE id = ?")->execute([$cuponAplicadoCodigo, $descuentoAplicadoPct, $lastTurnoId]);
+            } catch (Exception $eUpCup) {}
+        }
+    }
+
+    if ($descuentoAplicadoPct > 0 && $precio_servicio > 0) {
+        $precio_servicio = round($precio_servicio * (1 - ($descuentoAplicadoPct / 100)), 2);
+    }
+    $pctSena = !empty($configWeb['porcentaje_sena']) ? (int)$configWeb['porcentaje_sena'] : 50;
+    if ($precio_servicio > 0 && $pctSena > 0) {
+        $monto_sena = round($precio_servicio * ($pctSena / 100), 2);
+    }
+
     $pdo->commit();
 
 } catch (PDOException $e) {
@@ -403,5 +481,21 @@ try {
 }
 
 // Responder al cliente garantizando que el proceso de correo ya finalizó
-echo json_encode(['success' => true, 'mail_enviado' => $mailEnviado]);
+echo json_encode([
+    'success' => true,
+    'mail_enviado' => $mailEnviado,
+    'reserva_sena_1h' => (int)($configWeb['reserva_sena_1h'] ?? 0),
+    'datos_transferencia' => $configWeb['datos_transferencia'] ?? '',
+    'whatsapp_comprobante' => !empty($configWeb['whatsapp_comprobante']) ? $configWeb['whatsapp_comprobante'] : ($configWeb['whatsapp_contacto'] ?? ''),
+    'porcentaje_sena' => (int)($configWeb['porcentaje_sena'] ?? 50),
+    'precio_servicio' => $precio_servicio,
+    'monto_sena' => $monto_sena,
+    'cupon_aplicado' => $cuponAplicadoCodigo,
+    'descuento_pct' => $descuentoAplicadoPct,
+    'business_name' => $businessName,
+    'fecha_display' => $fecha_display,
+    'hora' => $hora,
+    'servicio' => $servicio,
+    'cliente_nombre' => $nombre . ' ' . $apellido
+]);
 ?>

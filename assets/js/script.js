@@ -1760,7 +1760,7 @@ function showWelcomeAnimation(plan, isDemo = false) {
         iconColor = 'text-secondary';
         iconBg = 'bg-secondary/10';
     } else {
-        if (!document.getElementById('confettiScript')) {
+        if (false && !document.getElementById('confettiScript')) {
             const script = document.createElement('script');
             script.id = 'confettiScript';
             script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
@@ -1768,7 +1768,7 @@ function showWelcomeAnimation(plan, isDemo = false) {
                 confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, zIndex: 9999 });
             };
             document.head.appendChild(script);
-        } else if (typeof confetti === 'function') {
+        } else if (false && typeof confetti === 'function') {
             confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, zIndex: 9999 });
         }
     }

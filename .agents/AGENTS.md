@@ -27,8 +27,11 @@ En todas las vistas HTML de la plataforma (`index.html`, `login.html`, `registro
 - **Plan Premium**: Incluye 2 colores base + **hasta 3 opciones adicionales de colores personalizados (+3)** a elección del cliente (Color Terciario, Fondo del Header, Color de Títulos, Botones CTA, Fondo de Tarjetas o Efectos Hover). Total: 5 colores.
 - **Formato del Modal (+)**: Al presionar el botón `+` en `perfil.html`, se muestra un modal desplegable con las opciones de destino del nuevo color (Fondo del Header, Color de Títulos, Botones CTA, Fondo de Tarjetas, Color Terciario, Hover) y un selector cromático de color.
 
-## Flujo de Trabajo en Entorno Principal (`main`)
+## Flujo de Trabajo en Entorno Principal (`main`) y Ejecución de Comandos
 - **REGLA EXPLICITA DEL USUARIO (Actualizada)**: Por instrucción del usuario, se trabaja y despliega directamente sobre la rama **`main`** (`git checkout main` -> `git push origin main` -> producción en `/public_html/`) hasta que él indique lo contrario.
+- **Ejecución Directa por el Agente**: El agente **siempre debe ejecutar directamente todos los comandos de terminal y Git** (`git add`, `git commit`, `git push origin main`) por su cuenta sin pedirle al usuario que los corra manualmente.
+- **Migraciones Automáticas de Base de Datos (Sin `init_db.php` manual ni Crons)**: Nunca pedir al usuario que ejecute `php init_db.php` manualmente ni en local ni en producción. Cualquier nueva columna o tabla debe auto-crearse de forma transparente dentro de los propios endpoints PHP (`try { $pdo->query("SELECT campo FROM tabla LIMIT 1"); } catch (Exception $e) { $pdo->exec("ALTER TABLE ..."); }`). Asimismo, no implementar crons externos ni pseudo-crons activos por el momento (dejar comentado para futura implementación).
+- **Archivos `.md` de Notas/Reportes**: Cualquier archivo `.md` auxiliar creado durante el desarrollo debe guardarse en la carpeta del proyecto pero mantenerse excluido en `.gitignore` para no subirlo al repositorio de producción.
 
 ## Portal Alumno: Reservas con Pase y Sincronización de Historial (REGLA MEMORIZADA)
 - **Causa del bloqueo "Reservando..." y ausencia en historial/pases**:

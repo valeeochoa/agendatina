@@ -412,7 +412,7 @@ window.openWelcomeNewAccountModal = function(force = false) {
     }, 10);
 
     // Lanzar confeti de bienvenida 🎉 (Únicamente para cuentas reales)
-    if (!isDemo && typeof confetti === 'function') {
+    if (false && !isDemo && typeof confetti === 'function') {
         try {
             confetti({
                 particleCount: 140,
@@ -528,6 +528,11 @@ window.endTour = function() {
         window.previousTourTarget.style.position = '';
         window.previousTourTarget.style.zIndex = '';
         const nav = window.previousTourTarget.closest('nav');
+        const prevFadeParent = window.previousTourTarget.closest('.fade-up');
+        if (prevFadeParent) {
+            prevFadeParent.style.position = '';
+            prevFadeParent.style.zIndex = '';
+        }
         if (nav) nav.style.zIndex = '';
     }
 
@@ -550,6 +555,11 @@ window.endTour = function() {
     if (window.previousTourTarget) {
         window.previousTourTarget.style.zIndex = '';
         const nav = window.previousTourTarget.closest('nav');
+        const prevFadeParent = window.previousTourTarget.closest('.fade-up');
+        if (prevFadeParent) {
+            prevFadeParent.style.position = '';
+            prevFadeParent.style.zIndex = '';
+        }
         if (nav) nav.style.zIndex = '';
         window.previousTourTarget = null;
     }
@@ -597,7 +607,7 @@ function showLegacyTourStep(index, doScroll = true) {
     const highlight = document.getElementById('tourHighlight');
     const arrow = document.getElementById('tourArrow');
 
-    if (!target || target.offsetParent === null || window.getComputedStyle(target).display === 'none') {
+    if (!target || target.classList.contains('hidden') || window.getComputedStyle(target).display === 'none') { if (doScroll) nextLegacyTourStep(); return; } target.style.animation = 'none'; target.style.opacity = '1'; target.style.transform = 'none'; const fadeParentCheck = target.closest('.fade-up'); if (fadeParentCheck) { fadeParentCheck.style.animation = 'none'; fadeParentCheck.style.opacity = '1'; fadeParentCheck.style.transform = 'none'; } if (false) {
         if (doScroll) nextLegacyTourStep();
         return;
     }
@@ -607,6 +617,11 @@ function showLegacyTourStep(index, doScroll = true) {
         window.previousTourTarget.style.position = '';
         window.previousTourTarget.style.zIndex = '';
         const nav = window.previousTourTarget.closest('nav');
+        const prevFadeParent = window.previousTourTarget.closest('.fade-up');
+        if (prevFadeParent) {
+            prevFadeParent.style.position = '';
+            prevFadeParent.style.zIndex = '';
+        }
         if (nav) nav.style.zIndex = '';
     }
 
@@ -617,9 +632,14 @@ function showLegacyTourStep(index, doScroll = true) {
     target.style.position = 'relative';
     target.style.zIndex = '202';
     const nav = target.closest('nav');
+    const fadeParent = target.closest('.fade-up');
+    if (fadeParent && fadeParent !== target) {
+        fadeParent.style.position = 'relative';
+        fadeParent.style.zIndex = '202';
+    }
     if (nav) nav.style.zIndex = '202';
 
-    const executeStep = () => {
+    const executeStep = () => { isAutoScrolling = false;
         const rect = target.getBoundingClientRect();
         
         tooltip.classList.remove('hidden', 'scale-95', 'opacity-0');

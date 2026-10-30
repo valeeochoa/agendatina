@@ -337,6 +337,12 @@
                 </div>
             </div>
 
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Fecha de Creación / Alta (Para probar avisos "Por Vencer")</label>
+                    <input type="date" name="fecha_alta" id="edit_fecha_alta" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
+                    <p class="text-[11px] text-slate-400 mt-1">Modifica esta fecha para simular días restantes de prueba o vencimiento mensual.</p>
+                </div>
+
             <div id="editFormMessage" class="hidden p-4 rounded-xl text-sm font-medium text-center"></div>
 
             <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
@@ -945,6 +951,10 @@ function openEditModal() {
     document.getElementById('edit_plan').value = currentEmpresaData.plan || 'Basico';
     document.getElementById('edit_max_profesionales').value = currentEmpresaData.max_profesionales || 1;
     document.getElementById('edit_estado_pago').value = currentEmpresaData.estado_pago || 'prueba';
+    const faInput = document.getElementById('edit_fecha_alta');
+    if (faInput) {
+        faInput.value = currentEmpresaData.fecha_alta ? String(currentEmpresaData.fecha_alta).substring(0, 10) : '';
+    }
 
     const modal = document.getElementById('editClientModal');
     const content = document.getElementById('editModalContent');
@@ -968,7 +978,8 @@ function submitEditClient(e) {
         id_negocio: currentEmpresaId,
         plan: document.getElementById('edit_plan').value,
         max_profesionales: document.getElementById('edit_max_profesionales').value,
-        estado_pago: document.getElementById('edit_estado_pago').value
+        estado_pago: document.getElementById('edit_estado_pago').value,
+        fecha_alta: document.getElementById('edit_fecha_alta') ? document.getElementById('edit_fecha_alta').value : ''
     };
 
     fetch('../backend/admin_api.php', {

@@ -88,15 +88,20 @@
                 </div>
 
                 <!-- Primer día de la semana -->
-                <div class="mt-5 pt-5 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+                <div class="mt-5 pt-5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <label class="block text-sm font-extrabold text-slate-800">Primer día de la semana</label>
-                        <span class="block text-xs text-slate-500">Define con qué día inicia la vista del calendario semanal.</span>
+                        <span class="block text-xs text-slate-500 mt-0.5">Define con qué día inicia la grilla de tu calendario.</span>
                     </div>
-                    <select id="configPrimerDiaSemana" name="primer_dia_semana" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all font-bold text-slate-800">
-                        <option value="1" selected>📅 Lunes (Predeterminado)</option>
-                        <option value="0">🗓️ Domingo</option>
-                    </select>
+                    <div class="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200/80 self-start sm:self-auto">
+                        <button type="button" id="btnPrimerDiaLunes" onclick="setPrimerDiaSemana('1')" class="px-5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white text-slate-900 shadow-xs">
+                            Lunes
+                        </button>
+                        <button type="button" id="btnPrimerDiaDomingo" onclick="setPrimerDiaSemana('0')" class="px-5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-500 hover:text-slate-800">
+                            Domingo
+                        </button>
+                    </div>
+                    <input type="hidden" id="configPrimerDiaSemana" name="primer_dia_semana" value="1">
                 </div>
 
                 <!-- Fondo Degradé Opcional -->
@@ -107,8 +112,8 @@
                                 <span class="material-symbols-outlined text-xl">palette</span>
                             </div>
                             <div>
-                                <span class="block text-sm font-extrabold text-slate-800">Fondo Degradé de Colores en el Calendario</span>
-                                <span class="block text-xs text-slate-500">Activa un degradé de fondo con los colores de tu marca en lugar del fondo plano blanco.</span>
+                                <span class="block text-sm font-extrabold text-slate-800">Fondo Degradé de Colores en el Sistema</span>
+                                <span class="block text-xs text-slate-500">Activa un degradé suave de fondo con los colores de tu marca en todo el sistema en lugar del fondo plano blanco.</span>
                             </div>
                         </div>
                         <input type="checkbox" id="configFondoDegrade" name="usar_fondo_degrade" value="1" class="w-5 h-5 text-primary rounded focus:ring-primary border-slate-300 ml-4 shrink-0">
@@ -179,168 +184,83 @@
                             <span class="block text-xs text-slate-500">Cobro presencial al finalizar la atención.</span>
                         </div>
                     </label>
-                    
-                    <!-- 2. Transferencia Bancaria -->
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl transition-all">
-                        <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="checkbox" id="chkTransferencia" name="metodos_pago_arr" value="transferencia" onchange="toggleMetodosPagoDetails()" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-500 border-slate-300 shrink-0">
-                            <div>
-                                <span class="block text-sm font-extrabold text-slate-800">🏦 Transferencia Bancaria</span>
-                                <span class="block text-xs text-slate-500">Permite a tus clientes transferirte mediante CBU / CVU / Alias.</span>
-                            </div>
-                        </label>
-                        
-                        <!-- Detalles de Transferencia -->
-                        <div id="divDetallesTransferencia" class="hidden mt-3 pt-3 border-t border-slate-200/80">
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Alias, CBU o Datos Bancarios para recibir transferencias:</label>
-                            <input type="text" id="configDatosTransferencia" name="datos_transferencia" placeholder="Ej: MI.NEGOCIO.MP / CBU 000000000000" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
-                            
-                            <!-- Advertencia Modo Demo -->
-                            <p id="demoAliasWarning" class="hidden text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200/80 rounded-xl p-2.5 mt-2.5 items-center gap-2">
-                                <span class="material-symbols-outlined text-[18px] text-amber-600">lock</span>
-                                En modo demo la transferencia no está disponible.
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <!-- 3. Mercado Pago (deshabilitado) -->
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl transition-all opacity-50 cursor-not-allowed" title="Mercado Pago aún no está disponible">
-                        <label class="flex items-center gap-3 cursor-not-allowed">
-                            <input type="checkbox" name="metodos_pago_arr" value="mercado_pago" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-500 border-slate-300 shrink-0" disabled>
-                            <div>
-                                <span class="block text-sm font-extrabold text-slate-800">🛒 Mercado Pago</span>
-                                <span class="block text-xs text-slate-500">Próximamente podrás aceptar pagos via Mercado Pago.</span>
-                            </div>
-                        </label>
-                    </div>
-                    
-                    <!-- 4. Auto‑renovación (solo premium) -->
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl transition-all" data-plan="premium">
-                        <label class="flex items-center gap-3">
-                            <input type="checkbox" name="auto_renovar" value="1" class="w-5 h-5 text-primary rounded focus:ring-primary border-slate-300 shrink-0">
-                            <span class="block text-sm font-extrabold text-slate-800">Auto‑renovación de pases (solo Premium)</span>
-                        </label>
-                    </div>
-                    
-                    <!-- 5. Reserva con seña (opcional) -->
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl transition-all">
-                        <label class="flex items-center gap-3">
-                            <input type="checkbox" id="chkReservaConSena" name="reserva_con_sena" value="1" class="w-5 h-5 text-primary rounded focus:ring-primary border-slate-300 shrink-0">
-                            <span class="block text-sm font-extrabold text-slate-800">Reservar turno con seña (1 h) </span>
-                        </label>
-                        <p class="text-xs text-slate-500 mt-1">Al activar, el cliente dispone 1 h para pagar la seña; si no lo hace, la reserva se libera.</p>
-                    </div>
-                    
-                    <!-- 6. Mensajes automáticos + cupones -->
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl transition-all">
-                        <label class="flex items-center gap-3">
-                            <input type="checkbox" id="chkMsjAutom" name="msj_autom" value="1" class="w-5 h-5 text-primary rounded focus:ring-primary border-slate-300 shrink-0">
-                            <span class="block text-sm font-extrabold text-slate-800">Enviar mensajes automáticos y activar cupones</span>
-                        </label>
-                        <p class="text-xs text-slate-500 mt-1">Si se habilita, el sistema enviará recordatorios y generará cupones de descuento.</p>
-                    </div>
-                    
-                    <!-- 7. Mostrar cupón a cliente (solo si está activo) -->
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl transition-all" data-flag="usar_cupones">
-                        <label class="flex items-center gap-3">
-                            <input type="checkbox" id="chkMostrarCupon" name="mostrar_cupones" value="1" class="w-5 h-5 text-primary rounded focus:ring-primary border-slate-300 shrink-0">
-                            <span class="block text-sm font-extrabold text-slate-800">Mostrar campo de cupón en la reserva</span>
-                        </label>
-                    </div>
-                    
-                    <!-- 8. Texto Fondo Degradé (aclaración) -->
-                    <div class="mt-5 pt-5 border-t border-slate-100">
-                        <label class="flex items-center justify-between p-4 bg-slate-50 hover:bg-purple-50/50 border border-slate-200 hover:border-purple-300 rounded-2xl cursor-pointer transition-all">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#d11149] to-[#fc8712] text-white flex items-center justify-center shadow-sm shrink-0">
-                                    <span class="material-symbols-outlined text-xl">palette</span>
-                                </div>
-                                <div>
-                                    <span class="block text-sm font-extrabold text-slate-800">Fondo Degradé (aplicable a todo el sistema)</span>
-                                    <span class="block text-xs text-slate-500">Activa un degradé de fondo con los colores de tu marca en lugar del fondo plano blanco.</span>
-                                </div>
-                            </div>
-                            <input type="checkbox" id="configFondoDegrade" name="usar_fondo_degrade" value="1" class="w-5 h-5 text-primary rounded focus:ring-primary border-slate-300 ml-4 shrink-0">
-                        </label>
-                    </div>
-                    
-                    <!-- 9. Primer día de la semana (sin emojis) -->
-                    <div class="mt-5 pt-5 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
-                        <div>
-                            <label class="block text-sm font-extrabold text-slate-800">Primer día de la semana</label>
-                            <span class="block text-xs text-slate-500">Define con qué día inicia la vista del calendario semanal.</span>
-                        </div>
-                        <select id="configPrimerDiaSemana" name="primer_dia_semana" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all font-bold text-slate-800">
-                            <option value="1" selected>📅 Lunes (Predeterminado)</option>
-                            <option value="0">🗓️ Domingo</option>
-                        </select>
-                    </div>
-                    <label class="flex items-center gap-3 p-4 bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-2xl cursor-pointer transition-all">
-                        <input type="checkbox" name="metodos_pago_arr" value="efectivo" onchange="toggleMetodosPagoDetails()" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-500 border-slate-300 shrink-0" checked>
-                        <div>
-                            <span class="block text-sm font-extrabold text-slate-800">💵 Efectivo en Local</span>
-                            <span class="block text-xs text-slate-500">Cobro presencial al finalizar la atención.</span>
-                        </div>
-                    </label>
 
-                    <!-- 2. Transferencia Bancaria -->
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl transition-all">
-                        <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="checkbox" id="chkTransferencia" name="metodos_pago_arr" value="transferencia" onchange="toggleMetodosPagoDetails()" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-500 border-slate-300 shrink-0">
-                            <div>
-                                <span class="block text-sm font-extrabold text-slate-800">🏦 Transferencia Bancaria</span>
-                                <span class="block text-xs text-slate-500">Permite a tus clientes transferirte mediante CBU / CVU / Alias.</span>
-                            </div>
-                        </label>
-                        
-                        <!-- Detalles de Transferencia -->
-                        <div id="divDetallesTransferencia" class="hidden mt-3 pt-3 border-t border-slate-200/80">
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Alias, CBU o Datos Bancarios para recibir transferencias:</label>
-                            <input type="text" id="configDatosTransferencia" name="datos_transferencia" placeholder="Ej: MI.NEGOCIO.MP / CBU 000000000000" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
-                            
-                            <!-- Advertencia Modo Demo -->
-                            <p id="demoAliasWarning" class="hidden text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200/80 rounded-xl p-2.5 mt-2.5 items-center gap-2">
-                                <span class="material-symbols-outlined text-[18px] text-amber-600">lock</span>
-                                <span>🔒 En el <strong>Modo Demo</strong> no está permitido modificar ni ingresar datos de transferencia reales.</span>
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- 3. Mercado Pago / Seña -->
+                    <!-- 2. Transferencia Bancaria y Seña Opcional por 1 Hora -->
                     <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl transition-all space-y-3">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" id="chkTransferencia" name="metodos_pago_arr" value="transferencia" onchange="toggleMetodosPagoDetails()" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-500 border-slate-300 shrink-0">
+                            <div>
+                                <span class="block text-sm font-extrabold text-slate-800">🏦 Transferencia Bancaria / Seña</span>
+                                <span class="block text-xs text-slate-500">Permite a tus clientes transferirte mediante CBU / CVU / Alias.</span>
+                            </div>
+                        </label>
+                        
+                        <!-- Detalles de Transferencia -->
+                        <div id="divDetallesTransferencia" class="hidden pt-3 border-t border-slate-200/80 space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Alias, CBU o Datos Bancarios para recibir transferencias:</label>
+                                <input type="text" id="configDatosTransferencia" name="datos_transferencia" placeholder="Ej: MI.NEGOCIO.MP / CBU 000000000000" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
+                                
+                                <!-- Advertencia Modo Demo -->
+                                <p id="demoAliasWarning" class="hidden text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200/80 rounded-xl p-2.5 mt-2.5 items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px] text-amber-600">lock</span>
+                                    <span>🔒 En el <strong>Modo Demo</strong> no está permitido modificar ni ingresar datos de transferencia reales.</span>
+                                </p>
+                            </div>
+
+                            <!-- Opción de Reserva con Seña por 1 Hora (Opcional para el negocio) -->
+                            <div class="p-4 bg-white border border-amber-200/90 rounded-2xl space-y-3 shadow-2xs">
+                                <label class="flex items-start sm:items-center justify-between gap-3 cursor-pointer">
+                                    <div class="flex items-start sm:items-center gap-3">
+                                        <input type="checkbox" id="chkReservaSena1h" name="reserva_sena_1h" value="1" onchange="toggleReservaSena1hDetails()" class="w-5 h-5 mt-0.5 sm:mt-0 text-[#D11149] rounded focus:ring-[#D11149] border-slate-300 shrink-0">
+                                        <div>
+                                            <span class="block text-xs sm:text-sm font-extrabold text-slate-900">⏱️ Retener turno por 1 hora esperando el pago de Seña (Opcional)</span>
+                                            <span class="block text-[11px] text-slate-500 mt-0.5">Al reservar, se retiene el turno por 1 hora indicando tu Alias y pidiendo enviar el comprobante por WhatsApp en menos de 1 hora (si no abona, la reserva se da de baja).</span>
+                                        </div>
+                                    </div>
+                                    <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 shrink-0">Opcional</span>
+                                </label>
+
+                                <div id="divDetallesReservaSena1h" class="hidden pt-3 border-t border-slate-100 space-y-3">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">WhatsApp para recibir el comprobante:</label>
+                                            <input type="text" id="configWhatsappComprobante" name="whatsapp_comprobante" placeholder="Ej: 5491123456789" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
+                                            <span class="block text-[10px] text-slate-400 mt-1">Si lo dejas vacío, se usará el WhatsApp principal de tu negocio.</span>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Porcentaje de Seña Requerido (%):</label>
+                                            <div class="flex items-center gap-2">
+                                                <input type="number" id="configPorcentajeSena" name="porcentaje_sena" min="1" max="100" value="50" oninput="updateSenaHelpText()" onchange="updateSenaHelpText()" class="w-24 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-center text-sm font-black text-slate-900 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
+                                                <span class="font-extrabold text-slate-700 text-sm">% del servicio</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="senaHelpBadge" class="text-xs p-3 rounded-xl border leading-relaxed font-bold transition-all bg-amber-50/80 text-amber-900 border-amber-200/80 flex items-start gap-2">
+                                        <span class="material-symbols-outlined text-[18px] shrink-0 mt-0.5 text-amber-600">schedule</span>
+                                        <span id="senaHelpText">Al confirmar la solicitud, el cliente verá el importe de seña calculado, tu Alias bancario y el botón directo para enviarte el comprobante antes de cumplirse 1 hora.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Mercado Pago (Deshabilitado - Próximamente) -->
+                    <div class="p-4 bg-slate-50/70 border border-slate-200 rounded-2xl transition-all opacity-60 cursor-not-allowed select-none" title="La integración con Mercado Pago estará disponible próximamente">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <label class="flex items-center gap-3 cursor-pointer">
-                                <input type="checkbox" id="chkMercadoPago" name="metodos_pago_arr" value="mercadopago" onchange="toggleMetodosPagoDetails()" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-500 border-slate-300 shrink-0">
+                            <label class="flex items-center gap-3 cursor-not-allowed">
+                                <input type="checkbox" id="chkMercadoPago" name="metodos_pago_arr" value="mercadopago" disabled class="w-5 h-5 text-slate-400 rounded border-slate-300 shrink-0 cursor-not-allowed">
                                 <div>
-                                    <span class="block text-sm font-extrabold text-slate-800">💳 Mercado Pago / Seña</span>
-                                    <span class="block text-xs text-slate-500">Solicita un pago o seña al reservar.</span>
+                                    <span class="block text-sm font-extrabold text-slate-600">💳 Mercado Pago (Checkout Automático)</span>
+                                    <span class="block text-xs text-slate-400">Cobro automático con tarjeta o dinero en cuenta de Mercado Pago.</span>
                                 </div>
                             </label>
 
-                            <!-- Leyenda Integración Automática con Hover PRÓXIMAMENTE -->
-                            <div class="group flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100/90 border border-slate-200/90 text-slate-400 hover:text-slate-700 hover:bg-slate-200/70 hover:border-slate-300 transition-all cursor-help shrink-0" title="Integración directa con Checkout API de Mercado Pago en desarrollo">
-                                <span class="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-purple-600 transition-colors">electric_bolt</span>
-                                <span class="text-[11px] font-bold transition-colors">Integración Directa MP:</span>
-                                <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-lg bg-slate-200 text-slate-600 group-hover:bg-purple-600 group-hover:text-white transition-all shadow-2xs">PRÓXIMAMENTE</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Detalles de Seña -->
-                        <div id="divDetallesMercadoPago" class="hidden pt-3 border-t border-slate-200/80 space-y-3">
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                <div>
-                                    <label class="block text-xs font-bold text-slate-700">Porcentaje de Seña Requerido (%):</label>
-                                    <span class="block text-[11px] text-slate-500">Indica el % sobre el total del servicio que el cliente debe pagar para reservar.</span>
-                                </div>
-                                <div class="flex items-center gap-2 shrink-0">
-                                    <input type="number" id="configPorcentajeSena" name="porcentaje_sena" min="1" max="100" value="100" oninput="updateSenaHelpText()" onchange="updateSenaHelpText()" class="w-24 bg-white border border-slate-200 rounded-xl px-3 py-2 text-center text-sm font-black text-slate-900 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
-                                    <span class="font-extrabold text-slate-700 text-sm">%</span>
-                                </div>
-                            </div>
-                            
-                            <div id="senaHelpBadge" class="text-xs p-3 rounded-xl border leading-relaxed font-bold transition-all bg-emerald-50 text-emerald-800 border-emerald-200 flex items-start gap-2">
-                                <span class="material-symbols-outlined text-[18px] shrink-0 mt-0.5">info</span>
-                                <span id="senaHelpText">Si colocas el 100%, significa que no pide seña parcial sino que abonen el total del producto/servicio vía Mercado Pago.</span>
+                            <!-- Leyenda Integración Automática PRÓXIMAMENTE -->
+                            <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-200/70 border border-slate-300/80 text-slate-600 shrink-0">
+                                <span class="material-symbols-outlined text-[16px] text-purple-600">electric_bolt</span>
+                                <span class="text-[11px] font-bold">Integración MP:</span>
+                                <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-lg bg-purple-600 text-white shadow-2xs">PRÓXIMAMENTE</span>
                             </div>
                         </div>
                     </div>
@@ -434,10 +354,13 @@
                         </select>
                         <p class="text-xs text-slate-500 mt-1">Limpia de forma automática de la base de datos los turnos finalizados más antiguos que los días seleccionados.</p>
                     </div>
-                    <div class="p-5 bg-gradient-to-r from-orange-50/80 to-amber-50/50 border border-orange-200/80 rounded-2xl space-y-3">
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-orange-600 text-[22px]">update</span>
-                            <label class="block text-sm font-extrabold text-slate-800">Auto-renovación de Vencimiento al Cargar Pases</label>
+                    <div id="boxAutoRenovarVencimiento" class="hidden p-5 bg-gradient-to-r from-orange-50/80 to-amber-50/50 border border-orange-200/80 rounded-2xl space-y-3">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-orange-600 text-[22px]">update</span>
+                                <label class="block text-sm font-extrabold text-slate-800">Auto-renovación de Vencimiento al Cargar Pases</label>
+                            </div>
+                            <span class="bg-purple-100 text-purple-900 border border-purple-200 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full shrink-0">Plan Premium</span>
                         </div>
                         <select id="configAutoRenovarVencimiento" name="auto_renovar_vencimiento" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500 outline-none transition-all font-bold text-slate-800">
                             <option value="si" selected>⚡ Renovar Vencimiento Automáticamente (+1 mes desde la recarga)</option>
@@ -521,6 +444,60 @@
                     <button type="button" onclick="openUpgradePlanModal('Premium')" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-extrabold px-4 py-2.5 rounded-xl transition-all shadow-md shadow-purple-600/20 text-xs shrink-0 flex items-center gap-1.5 cursor-pointer">
                         <span class="material-symbols-outlined text-base">rocket_launch</span> Mejorar a Plan Premium
                     </button>
+                </div>
+            </div>
+
+            <!-- Fidelización, Mensajes de Retorno y Cupones de Descuento -->
+            <div class="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-slate-200 mb-6 space-y-5">
+                <div class="flex items-start justify-between gap-4 pb-4 border-b border-slate-100">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-[#D11149] text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
+                            <span class="material-symbols-outlined text-xl">loyalty</span>
+                        </div>
+                        <div>
+                            <h2 class="text-lg sm:text-xl font-bold text-slate-900">Fidelización, Mensajes Automáticos y Cupones</h2>
+                            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Elige si deseas preparar recordatorios de retorno para tus clientes y habilitar cupones de descuento.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Pregunta 1: Mensajes automáticos de retorno -->
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl transition-all">
+                        <label class="flex items-start sm:items-center justify-between gap-3 cursor-pointer">
+                            <div class="flex items-start sm:items-center gap-3">
+                                <input type="checkbox" id="chkEnviarMsjAutomaticos" name="enviar_msj_automaticos" value="1" onchange="toggleFidelizacionDetails()" class="w-5 h-5 mt-0.5 sm:mt-0 text-[#D11149] rounded focus:ring-[#D11149] border-slate-300 shrink-0">
+                                <div>
+                                    <span class="block text-sm font-extrabold text-slate-800">¿Deseas enviar mensajes automáticos de retorno a tus clientes?</span>
+                                    <span class="block text-xs text-slate-500 mt-0.5">El sistema detectará qué clientes ya deberían volver a realizarse un servicio (verificando que no hayan sacado un turno más reciente) y preparará el mensaje listo para enviar.</span>
+                                </div>
+                            </div>
+                        </label>
+
+                        <div id="divDetallesDiasRetorno" class="hidden mt-3 pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700">Días transcurridos desde la última visita para sugerir retorno:</label>
+                                <span class="block text-[11px] text-slate-500">Pasado este tiempo sin un nuevo turno, el cliente aparecerá en la lista de seguimiento.</span>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <input type="number" id="configDiasRetornoClientes" name="dias_retorno_clientes" min="1" max="365" value="30" class="w-24 bg-white border border-slate-200 rounded-xl px-3 py-2 text-center text-sm font-black text-slate-900 focus:ring-2 focus:ring-purple-500 outline-none transition-all">
+                                <span class="text-xs font-extrabold text-slate-600">días</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pregunta 2: Cupones de descuento -->
+                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl transition-all">
+                        <label class="flex items-start sm:items-center justify-between gap-3 cursor-pointer">
+                            <div class="flex items-start sm:items-center gap-3">
+                                <input type="checkbox" id="chkUsarCuponesDescuento" name="usar_cupones_descuento" value="1" onchange="toggleFidelizacionDetails()" class="w-5 h-5 mt-0.5 sm:mt-0 text-purple-600 rounded focus:ring-purple-500 border-slate-300 shrink-0">
+                                <div>
+                                    <span class="block text-sm font-extrabold text-slate-800">¿Deseas que el sistema brinde cupones de descuento (10% OFF) y mostrar el campo al reservar?</span>
+                                    <span class="block text-xs text-slate-500 mt-0.5">Solo si tildas esta opción, tus clientes verán el campo para ingresar un cupón al sacar turno y podrás enviarles cupones de 10% OFF válidos por 24hs y de un solo uso.</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
                 </div>
             </div>
 

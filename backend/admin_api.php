@@ -819,6 +819,7 @@ elseif ($method === 'PUT') {
     $plan = $data['plan'] ?? null;
     $max_profesionales = isset($data['max_profesionales']) ? (int)$data['max_profesionales'] : null;
     $estado_pago = $data['estado_pago'] ?? null;
+    $fecha_alta = !empty($data['fecha_alta']) ? trim($data['fecha_alta']) : null;
     $motivo_rechazo = trim($data['motivo_rechazo'] ?? '');
     $nota_interna = $data['nota_interna'] ?? null;
 
@@ -940,6 +941,10 @@ elseif ($method === 'PUT') {
                 if ($plan !== null) {
                     $updates[] = "plan = :plan";
                     $params['plan'] = $plan;
+                }
+                if ($fecha_alta !== null) {
+                    $updates[] = "fecha_alta = :fecha_alta";
+                    $params['fecha_alta'] = strlen($fecha_alta) === 10 ? ($fecha_alta . ' 00:00:00') : $fecha_alta;
                 }
                 if ($max_profesionales !== null) {
                     $updates[] = "max_profesionales = :max_profesionales";

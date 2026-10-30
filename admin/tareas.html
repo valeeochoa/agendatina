@@ -16,19 +16,22 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col md:flex-row">
 
-    <!-- Sidebar Menú Izquierdo (Fijo) -->
+    <!-- Sidebar Menú Izquierdo (Colapsable en Mobile, Fijo en Desktop) -->
     <aside class="w-full md:w-64 bg-slate-900 text-white shrink-0 md:h-screen md:sticky md:top-0 flex flex-col justify-between p-4 sm:p-6 shadow-xl overflow-y-auto z-40">
         <div>
             <!-- Header Brand -->
-            <div class="flex items-center justify-between md:justify-start gap-3 mb-8 pb-4 border-b border-slate-800">
+            <div class="flex items-center justify-between md:justify-start gap-3 md:mb-8 md:pb-4 md:border-b border-slate-800">
                 <a href="index.html" class="flex items-center gap-2">
                     <img src="../public/logo.png" alt="Agendatina" class="h-8 w-auto">
-                    <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span> <span class="text-xs text-slate-400 font-sans font-bold block">SuperAdmin</span></span>
+                    <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span> <span class="text-xs text-slate-400 font-sans font-bold inline md:block ml-1 md:ml-0">SuperAdmin</span></span>
                 </a>
+                <button type="button" onclick="document.getElementById('adminMobileNav').classList.toggle('hidden'); document.getElementById('adminMobileFooter').classList.toggle('hidden');" class="md:hidden px-3 py-2 rounded-xl bg-slate-800 text-slate-200 hover:bg-slate-700 flex items-center gap-1.5 text-xs font-bold border border-slate-700">
+                    <span class="material-symbols-outlined text-[18px]">menu</span> Menú
+                </button>
             </div>
 
             <!-- Navegación -->
-            <nav class="space-y-1">
+            <nav id="adminMobileNav" class="hidden md:block space-y-1 mt-4 pt-3 border-t border-slate-800 md:mt-0 md:pt-0 md:border-t-0">
                 <a href="index.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
                     <span class="material-symbols-outlined text-[22px]">dashboard</span> Dashboard (Resumen)
                 </a>
@@ -65,7 +68,7 @@
         </div>
 
         <!-- Footer Logout -->
-        <div class="pt-6 border-t border-slate-800 mt-6">
+        <div id="adminMobileFooter" class="hidden md:block pt-4 md:pt-6 border-t border-slate-800 mt-4 md:mt-6">
             <button onclick="logoutAdmin()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-red-600/20 text-slate-300 hover:text-red-400 rounded-xl text-xs font-bold transition-all">
                 <span class="material-symbols-outlined text-[18px]">logout</span> Cerrar Sesión
             </button>
@@ -73,56 +76,60 @@
     </aside>
 
     <!-- Contenido Principal -->
-    <main class="flex-1 p-4 sm:p-8 max-w-5xl w-full min-w-0 overflow-x-hidden">
+    <main class="flex-1 p-3.5 sm:p-8 max-w-5xl w-full min-w-0 overflow-x-hidden">
         <!-- Encabezado -->
-        <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="mb-5 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-                <h1 class="text-2xl sm:text-3xl font-black text-slate-900">Gestor de Tareas Administrativas</h1>
-                <p class="text-xs sm:text-sm text-slate-500 mt-1">Organiza tus actividades pendientes, revisiones de comprobantes y soluciones de soporte.</p>
+                <h1 class="text-xl sm:text-3xl font-black text-slate-900">Gestor de Tareas Administrativas</h1>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">Organiza tus actividades pendientes, revisiones y mejoras del sistema.</p>
             </div>
-            <span class="bg-blue-100 text-blue-700 px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 self-start sm:self-auto">
-                <span class="material-symbols-outlined text-[18px]">info</span> Las tareas listas se borran tras 30 días
+            <span class="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold flex items-center gap-1.5 self-start sm:self-auto">
+                <span class="material-symbols-outlined text-[16px]">info</span> Las tareas listas se borran tras 30 días
             </span>
         </div>
 
         <!-- Formulario para Nueva Tarea -->
-        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 mb-8">
-            <form id="newTaskForm" onsubmit="createTask(event)" class="flex flex-col sm:flex-row gap-3">
+        <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-sm border border-slate-200 mb-6 sm:mb-8">
+            <form id="newTaskForm" onsubmit="createTask(event)" class="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
                 <div class="flex-1 relative">
                     <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">add_task</span>
-                    <input type="text" id="newTaskInput" required class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d11149]" placeholder="Escribe una nueva tarea (ej: Revisar pago de Estética Bella)...">
+                    <input type="text" id="newTaskInput" required class="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#d11149]" placeholder="Escribe una nueva tarea...">
                 </div>
-                <button type="submit" id="btnAddTask" class="px-6 py-3 bg-[#d11149] hover:bg-[#f44979] text-white rounded-2xl font-bold text-sm shadow-md shadow-[#d11149]/20 transition-all flex items-center justify-center gap-1.5 shrink-0">
+                <button type="submit" id="btnAddTask" class="px-5 py-3 bg-[#d11149] hover:bg-[#f44979] text-white rounded-2xl font-bold text-sm shadow-md shadow-[#d11149]/20 transition-all flex items-center justify-center gap-1.5 shrink-0">
                     <span class="material-symbols-outlined text-[20px]">add</span> Agregar Tarea
                 </button>
             </form>
         </div>
 
         <!-- Pestañas de Tareas y Barra de Selección / Copiado de Prompt -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 mb-6 pb-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 mb-5 pb-3">
             <!-- Pestañas -->
-            <div class="flex gap-2">
-                <button id="tabBtnPendientes" onclick="switchTaskTab('pendientes')" class="px-5 py-3 font-bold text-sm text-[#d11149] border-b-2 border-[#d11149] transition-all flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[18px]">check_box_outline_blank</span> Pendientes <span id="countPendientes" class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-extrabold ml-1">0</span>
+            <div class="grid grid-cols-2 sm:flex gap-1.5 sm:gap-2 w-full sm:w-auto bg-white sm:bg-transparent p-1 sm:p-0 rounded-2xl sm:rounded-none border border-slate-200 sm:border-0">
+                <button id="tabBtnPendientes" onclick="switchTaskTab('pendientes')" class="px-3 sm:px-5 py-2.5 sm:py-3 font-bold text-xs sm:text-sm text-[#d11149] bg-rose-50/70 sm:bg-transparent rounded-xl sm:rounded-none sm:border-b-2 sm:border-[#d11149] transition-all flex items-center justify-center gap-1.5 sm:gap-2">
+                    <span class="material-symbols-outlined text-[17px] sm:text-[18px]">check_box_outline_blank</span>
+                    <span>Pendientes</span>
+                    <span id="countPendientes" class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[11px] font-extrabold">0</span>
                 </button>
-                <button id="tabBtnCompletadas" onclick="switchTaskTab('completadas')" class="px-5 py-3 font-bold text-sm text-slate-400 hover:text-slate-700 transition-all flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[18px]">task_alt</span> Tareas Realizadas <span id="countCompletadas" class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-xs font-extrabold ml-1">0</span>
+                <button id="tabBtnCompletadas" onclick="switchTaskTab('completadas')" class="px-3 sm:px-5 py-2.5 sm:py-3 font-bold text-xs sm:text-sm text-slate-500 hover:text-slate-700 rounded-xl sm:rounded-none transition-all flex items-center justify-center gap-1.5 sm:gap-2">
+                    <span class="material-symbols-outlined text-[17px] sm:text-[18px]">task_alt</span>
+                    <span>Realizadas</span>
+                    <span id="countCompletadas" class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[11px] font-extrabold">0</span>
                 </button>
             </div>
 
             <!-- Acciones de Selección y Copiado de Prompt -->
-            <div class="flex items-center gap-2 flex-wrap">
-                <button type="button" id="btnToggleSelectAllTasks" onclick="toggleSelectAllTasksCurrentTab()" class="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer border border-slate-200">
-                    <span id="iconToggleSelectAll" class="material-symbols-outlined text-[18px]">select_all</span>
+            <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+                <button type="button" id="btnToggleSelectAllTasks" onclick="toggleSelectAllTasksCurrentTab()" class="flex-1 sm:flex-none justify-center px-3 py-2.5 bg-white sm:bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer border border-slate-200 shadow-2xs sm:shadow-none">
+                    <span id="iconToggleSelectAll" class="material-symbols-outlined text-[17px]">select_all</span>
                     <span id="txtToggleSelectAll">Seleccionar Todas</span>
                 </button>
                 <span id="selectedTasksCountBadge" class="hidden bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-2 rounded-2xl text-xs font-bold items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
                     <span id="selectedTasksCountTxt">0 seleccionadas</span>
                 </span>
-                <button type="button" id="btnCopiarPromptTareas" onclick="abrirModalPromptTareas()" class="px-4 py-2.5 bg-[#d11149] hover:bg-[#d11149]/90 text-white rounded-2xl font-extrabold text-xs transition-all flex items-center gap-1.5 shadow-md shadow-[#d11149]/20 cursor-pointer">
-                    <span class="material-symbols-outlined text-[18px]">content_copy</span>
-                    <span>Copiar como Prompt</span>
+                <button type="button" id="btnCopiarPromptTareas" onclick="abrirModalPromptTareas()" class="flex-1 sm:flex-none justify-center px-3.5 py-2.5 bg-[#d11149] hover:bg-[#d11149]/90 text-white rounded-2xl font-extrabold text-xs transition-all flex items-center gap-1.5 shadow-md shadow-[#d11149]/20 cursor-pointer">
+                    <span class="material-symbols-outlined text-[17px]">content_copy</span>
+                    <span>Copiar Prompt</span>
                 </button>
             </div>
         </div>
@@ -140,25 +147,25 @@
 
     <!-- MODAL PROMPT DE TAREAS PARA ASISTENTE IA -->
     <div id="modalPromptTareas" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div id="modalPromptTareasContent" class="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative transform scale-95 transition-transform duration-300">
+        <div id="modalPromptTareasContent" class="bg-white rounded-3xl p-5 sm:p-8 max-w-2xl w-full shadow-2xl relative transform scale-95 transition-transform duration-300">
             <button type="button" onclick="cerrarModalPromptTareas()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition-colors">
                 <span class="material-symbols-outlined">close</span>
             </button>
 
-            <div class="mb-4">
+            <div class="mb-4 pr-6">
                 <div class="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
                     <span class="material-symbols-outlined text-[#d11149] text-lg">smart_toy</span>
                     <span>Generador de Prompt para Asistente IA</span>
                 </div>
-                <h3 class="text-xl font-extrabold text-slate-900" id="modalPromptTareasTitle">Prompt de Tareas Seleccionadas</h3>
-                <p class="text-xs text-slate-500 mt-1">Copia este prompt con las tareas seleccionadas y pégalo directamente en el chat para comenzar la implementación:</p>
+                <h3 class="text-lg sm:text-xl font-extrabold text-slate-900" id="modalPromptTareasTitle">Prompt de Tareas Seleccionadas</h3>
+                <p class="text-xs text-slate-500 mt-1">Copia este prompt con las tareas seleccionadas y pégalo directamente en el chat:</p>
             </div>
 
             <div class="mb-5">
-                <textarea id="txtPromptTareas" rows="12" readonly class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-mono text-slate-800 outline-none focus:ring-2 focus:ring-[#d11149] leading-relaxed resize-none"></textarea>
+                <textarea id="txtPromptTareas" rows="10" readonly class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 sm:p-4 text-xs font-mono text-slate-800 outline-none focus:ring-2 focus:ring-[#d11149] leading-relaxed resize-none"></textarea>
             </div>
 
-            <div class="flex gap-3">
+            <div class="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
                 <button type="button" onclick="cerrarModalPromptTareas()" class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-xs transition-all">Cerrar</button>
                 <button type="button" id="btnCopiarPromptTareasModal" onclick="copiarTextoPromptTareasAccion()" class="px-6 py-3 bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold rounded-2xl text-xs transition-all shadow-lg shadow-[#d11149]/20 flex items-center justify-center gap-1.5 flex-1">
                     <span class="material-symbols-outlined text-[18px]">content_copy</span> Copiar Prompt al Portapapeles
@@ -203,7 +210,6 @@
                 .then(data => {
                     if (data.success && data.data) {
                         allTasks = data.data;
-                        // Limpiar IDs seleccionados que ya no existan
                         const existingIds = new Set(allTasks.map(t => t.id));
                         selectedTaskIds.forEach(id => {
                             if (!existingIds.has(id)) selectedTaskIds.delete(id);
@@ -222,13 +228,13 @@
             const panelC = document.getElementById('panelCompletadas');
 
             if (tab === 'pendientes') {
-                btnP.className = 'px-5 py-3 font-bold text-sm text-[#d11149] border-b-2 border-[#d11149] transition-all flex items-center gap-2';
-                btnC.className = 'px-5 py-3 font-bold text-sm text-slate-400 hover:text-slate-700 transition-all flex items-center gap-2';
+                btnP.className = 'px-3 sm:px-5 py-2.5 sm:py-3 font-bold text-xs sm:text-sm text-[#d11149] bg-rose-50/70 sm:bg-transparent rounded-xl sm:rounded-none sm:border-b-2 sm:border-[#d11149] transition-all flex items-center justify-center gap-1.5 sm:gap-2';
+                btnC.className = 'px-3 sm:px-5 py-2.5 sm:py-3 font-bold text-xs sm:text-sm text-slate-500 hover:text-slate-700 rounded-xl sm:rounded-none transition-all flex items-center justify-center gap-1.5 sm:gap-2';
                 panelP.classList.remove('hidden');
                 panelC.classList.add('hidden');
             } else {
-                btnC.className = 'px-5 py-3 font-bold text-sm text-emerald-600 border-b-2 border-emerald-600 transition-all flex items-center gap-2';
-                btnP.className = 'px-5 py-3 font-bold text-sm text-slate-400 hover:text-slate-700 transition-all flex items-center gap-2';
+                btnC.className = 'px-3 sm:px-5 py-2.5 sm:py-3 font-bold text-xs sm:text-sm text-emerald-600 bg-emerald-50/70 sm:bg-transparent rounded-xl sm:rounded-none sm:border-b-2 sm:border-emerald-600 transition-all flex items-center justify-center gap-1.5 sm:gap-2';
+                btnP.className = 'px-3 sm:px-5 py-2.5 sm:py-3 font-bold text-xs sm:text-sm text-slate-500 hover:text-slate-700 rounded-xl sm:rounded-none transition-all flex items-center justify-center gap-1.5 sm:gap-2';
                 panelC.classList.remove('hidden');
                 panelP.classList.add('hidden');
             }
@@ -280,7 +286,7 @@
             }
 
             if (txtBtnAll) {
-                txtBtnAll.textContent = allSelected ? 'Deseleccionar Todas' : 'Seleccionar Todas';
+                txtBtnAll.textContent = allSelected ? 'Deseleccionar' : 'Seleccionar Todas';
             }
             if (iconBtnAll) {
                 iconBtnAll.textContent = allSelected ? 'deselect' : 'select_all';
@@ -297,7 +303,7 @@
             const panelP = document.getElementById('panelPendientes');
             const panelC = document.getElementById('panelCompletadas');
 
-            // Renderizar Pendientes
+            // Renderizar Pendientes (Optimizado para Celulares y Desktop)
             if (pendientes.length === 0) {
                 panelP.innerHTML = `<div class="p-8 text-center bg-white rounded-3xl border border-dashed border-slate-300 text-slate-400 text-sm font-medium"><span class="material-symbols-outlined text-4xl mb-2 text-slate-300">task</span><p>¡Excelente! No tienes tareas pendientes.</p></div>`;
             } else {
@@ -305,24 +311,30 @@
                 pendientes.forEach(t => {
                     const isSelected = selectedTaskIds.has(t.id);
                     htmlP += `
-                        <div class="rounded-2xl p-4 sm:p-5 border transition-all flex items-center justify-between gap-3 ${isSelected ? 'bg-indigo-50/40 border-indigo-400 ring-2 ring-indigo-200 shadow-md' : 'bg-white border-slate-200 shadow-sm hover:shadow-md'}">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <label class="flex items-center gap-1.5 cursor-pointer px-2 py-1.5 rounded-xl border transition-all shrink-0 ${isSelected ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200'}" title="Seleccionar tarea para el prompt">
-                                    <input type="checkbox" onchange="toggleSelectTask(${t.id})" ${isSelected ? 'checked' : ''} class="w-4 h-4 text-[#d11149] rounded border-slate-300 focus:ring-[#d11149] cursor-pointer shrink-0">
-                                    <span class="text-[11px] font-extrabold select-none">Sel</span>
-                                </label>
-                                <div class="h-6 w-px bg-slate-200 shrink-0 hidden sm:block"></div>
-                                <input type="checkbox" onchange="toggleTaskState(${t.id}, 'completada')" class="w-5 h-5 text-[#d11149] rounded-lg border-slate-300 focus:ring-[#d11149] cursor-pointer shrink-0" title="Marcar como realizada">
-                                <span class="font-bold text-slate-800 text-sm sm:text-base break-words">${escapeHtml(t.tarea)}</span>
+                        <div class="rounded-2xl p-3.5 sm:p-5 border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${isSelected ? 'bg-indigo-50/40 border-indigo-400 ring-2 ring-indigo-200 shadow-md' : 'bg-white border-slate-200 shadow-sm hover:shadow-md'}">
+                            <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                                <input type="checkbox" onchange="toggleTaskState(${t.id}, 'completada')" class="mt-0.5 sm:mt-0 w-5 h-5 text-[#d11149] rounded-lg border-slate-300 focus:ring-[#d11149] cursor-pointer shrink-0" title="Marcar como realizada">
+                                <div class="min-w-0 flex-1">
+                                    <span class="font-bold text-slate-800 text-sm sm:text-base leading-snug break-words block">${escapeHtml(t.tarea)}</span>
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1 inline-block">ID #${t.id}</span>
+                                </div>
                             </div>
-                            <button onclick="confirmDeleteTask(${t.id})" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg transition-colors shrink-0" title="Eliminar Tarea"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                            <div class="flex items-center justify-between sm:justify-end gap-2 pt-2.5 sm:pt-0 border-t border-slate-100 sm:border-t-0 shrink-0">
+                                <label class="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-xl border transition-all ${isSelected ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'}" title="Seleccionar tarea para el prompt">
+                                    <input type="checkbox" onchange="toggleSelectTask(${t.id})" ${isSelected ? 'checked' : ''} class="w-4 h-4 text-[#d11149] rounded border-slate-300 focus:ring-[#d11149] cursor-pointer shrink-0">
+                                    <span class="text-xs font-extrabold select-none">${isSelected ? 'Seleccionada' : 'Seleccionar'}</span>
+                                </label>
+                                <button onclick="confirmDeleteTask(${t.id})" class="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-xl transition-colors shrink-0 flex items-center justify-center" title="Eliminar Tarea">
+                                    <span class="material-symbols-outlined text-[19px]">delete</span>
+                                </button>
+                            </div>
                         </div>
                     `;
                 });
                 panelP.innerHTML = htmlP;
             }
 
-            // Renderizar Completadas
+            // Renderizar Completadas (Optimizado para Celulares y Desktop)
             if (completadas.length === 0) {
                 panelC.innerHTML = `<div class="p-8 text-center bg-white rounded-3xl border border-dashed border-slate-300 text-slate-400 text-sm font-medium"><span class="material-symbols-outlined text-4xl mb-2 text-slate-300">check_circle</span><p>No hay tareas realizadas guardadas.</p></div>`;
             } else {
@@ -331,20 +343,23 @@
                     const isSelected = selectedTaskIds.has(t.id);
                     const fechaDone = t.fecha_cumplimiento ? new Date(t.fecha_cumplimiento.replace(/-/g, '/')).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }) : 'Reciente';
                     htmlC += `
-                        <div class="rounded-2xl p-4 sm:p-5 border transition-all flex items-center justify-between gap-3 ${isSelected ? 'bg-indigo-50/40 border-indigo-400 ring-2 ring-indigo-200 shadow-md' : 'bg-slate-50 border border-slate-200 opacity-80'}">
-                            <div class="flex items-center gap-3 min-w-0">
-                                <label class="flex items-center gap-1.5 cursor-pointer px-2 py-1.5 rounded-xl border transition-all shrink-0 ${isSelected ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white hover:bg-slate-200 text-slate-600 border-slate-200'}" title="Seleccionar tarea para el prompt">
-                                    <input type="checkbox" onchange="toggleSelectTask(${t.id})" ${isSelected ? 'checked' : ''} class="w-4 h-4 text-[#d11149] rounded border-slate-300 focus:ring-[#d11149] cursor-pointer shrink-0">
-                                    <span class="text-[11px] font-extrabold select-none">Sel</span>
-                                </label>
-                                <div class="h-6 w-px bg-slate-200 shrink-0 hidden sm:block"></div>
-                                <input type="checkbox" checked onchange="toggleTaskState(${t.id}, 'pendiente')" class="w-5 h-5 text-emerald-600 rounded-lg border-slate-300 focus:ring-emerald-500 cursor-pointer shrink-0" title="Volver a marcar como pendiente">
-                                <div>
-                                    <span class="font-bold text-slate-600 text-sm sm:text-base line-through break-words">${escapeHtml(t.tarea)}</span>
-                                    <p class="text-[11px] text-emerald-600 font-semibold mt-0.5 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event_available</span> Realizada el ${fechaDone}</p>
+                        <div class="rounded-2xl p-3.5 sm:p-5 border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${isSelected ? 'bg-indigo-50/40 border-indigo-400 ring-2 ring-indigo-200 shadow-md' : 'bg-slate-50 border border-slate-200 opacity-85'}">
+                            <div class="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                                <input type="checkbox" checked onchange="toggleTaskState(${t.id}, 'pendiente')" class="mt-0.5 sm:mt-0 w-5 h-5 text-emerald-600 rounded-lg border-slate-300 focus:ring-emerald-500 cursor-pointer shrink-0" title="Volver a marcar como pendiente">
+                                <div class="min-w-0 flex-1">
+                                    <span class="font-bold text-slate-600 text-sm sm:text-base line-through leading-snug break-words block">${escapeHtml(t.tarea)}</span>
+                                    <p class="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">event_available</span> Realizada el ${fechaDone} • ID #${t.id}</p>
                                 </div>
                             </div>
-                            <button onclick="confirmDeleteTask(${t.id})" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg transition-colors shrink-0" title="Eliminar Tarea"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                            <div class="flex items-center justify-between sm:justify-end gap-2 pt-2.5 sm:pt-0 border-t border-slate-200/70 sm:border-t-0 shrink-0">
+                                <label class="flex items-center gap-1.5 cursor-pointer px-3 py-1.5 rounded-xl border transition-all ${isSelected ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white hover:bg-slate-200 text-slate-600 border-slate-200'}" title="Seleccionar tarea para el prompt">
+                                    <input type="checkbox" onchange="toggleSelectTask(${t.id})" ${isSelected ? 'checked' : ''} class="w-4 h-4 text-[#d11149] rounded border-slate-300 focus:ring-[#d11149] cursor-pointer shrink-0">
+                                    <span class="text-xs font-extrabold select-none">${isSelected ? 'Seleccionada' : 'Seleccionar'}</span>
+                                </label>
+                                <button onclick="confirmDeleteTask(${t.id})" class="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-xl transition-colors shrink-0 flex items-center justify-center" title="Eliminar Tarea">
+                                    <span class="material-symbols-outlined text-[19px]">delete</span>
+                                </button>
+                            </div>
                         </div>
                     `;
                 });
@@ -423,7 +438,6 @@
         function abrirModalPromptTareas() {
             let items = allTasks.filter(t => selectedTaskIds.has(t.id));
 
-            // Si no seleccionó manualmente ninguna tarea, seleccionar por defecto las tareas del tab actual
             if (items.length === 0) {
                 const targetState = currentTab === 'pendientes' ? 'pendiente' : 'completada';
                 const currentList = allTasks.filter(t => t.estado === targetState);
