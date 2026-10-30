@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modelos Web | Desarrollos a Medida</title>
+    <title>Modelos Web | Desarrollos a Medida Marca Blanca</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     
     <script>
@@ -25,27 +25,37 @@
         /* Animaciones de Scroll */
         .reveal-on-scroll {
             opacity: 0;
-            transform: translateY(40px);
+            transform: translateY(30px);
             transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .reveal-on-scroll.is-visible {
             opacity: 1;
             transform: translateY(0);
         }
+
+        /* Ocultar barra de scroll en carrusel */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased selection:bg-primary selection:text-white">
 
-    <nav id="modelosNav" class="fixed w-full z-50 bg-white/70 backdrop-blur-lg border-b border-slate-200/50 transition-all duration-300">
+    <!-- Navegación Principal -->
+    <nav id="modelosNav" class="fixed w-full z-50 bg-white/80 backdrop-blur-lg border-b border-slate-200/60 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
-                <div class="flex items-center gap-2">
-                    <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/30">
+                <a href="#inicio" class="flex items-center gap-2 group">
+                    <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/30 group-hover:scale-105 transition-transform">
                         <span class="material-symbols-outlined">web</span>
                     </div>
-                    <span class="font-extrabold text-xl tracking-tight">Studio<span class="text-primary">Web</span></span>
-                </div>
-                <div class="hidden md:flex space-x-8">
+                    <span class="font-black text-xl tracking-tight text-slate-900">Studio<span class="text-primary">Web</span></span>
+                </a>
+                <div class="hidden md:flex space-x-8 items-center">
                     <a href="#modelos" class="text-sm font-bold text-slate-600 hover:text-primary transition-colors">Modelos</a>
                     <a href="#planes" class="text-sm font-bold text-slate-600 hover:text-primary transition-colors">Planes</a>
                     <a href="#contacto" class="text-sm font-bold text-slate-600 hover:text-primary transition-colors">Contacto</a>
@@ -57,143 +67,335 @@
         </div>
     </nav>
 
-    <section class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-        <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-purple-500/5 -z-10"></div>
+    <!-- Hero Section -->
+    <section id="inicio" class="relative pt-32 pb-16 lg:pt-44 lg:pb-24 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5 -z-10"></div>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center reveal-on-scroll">
-            <span class="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-wider uppercase mb-6 border border-primary/20">
-                Desarrollo Profesional
+            <span class="inline-flex items-center gap-1.5 py-1 px-3.5 rounded-full bg-primary/10 text-primary text-xs font-black tracking-wider uppercase mb-5 border border-primary/20">
+                <span class="material-symbols-outlined text-[15px]">verified</span> Prototipos & Soluciones Marca Blanca
             </span>
-            <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight mb-8">
-                Impulsa tu negocio con una <br class="hidden md:block"/> <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">web a medida</span>
+            <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight mb-6 leading-tight">
+                Impulsa tu negocio con una <br class="hidden sm:block"/>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">web funcional y a medida</span>
             </h1>
-            <p class="mt-4 text-xl text-slate-500 max-w-2xl mx-auto font-medium mb-10">
-                Elige entre nuestros modelos optimizados o personaliza cada detalle según las necesidades específicas de tu empresa.
+            <p class="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto font-medium mb-8 leading-relaxed">
+                Explora en nuestro carrusel interactivo los 4 modelos de demostración creados para agencias y clientes comerciales. Cada uno listo para personalizar y desplegar.
             </p>
-            <div class="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="#modelos" class="bg-primary text-white px-8 py-4 rounded-full text-base font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 hover:-translate-y-1">
-                    Ver Modelos Demo
+            <div class="flex flex-wrap justify-center gap-3">
+                <a href="#modelos" class="bg-primary text-white px-7 py-3.5 rounded-full text-sm font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 hover:-translate-y-0.5 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">view_carousel</span> Ver Carrusel de Modelos
                 </a>
-                <a href="#planes" class="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-full text-base font-bold hover:border-primary hover:text-primary transition-all shadow-sm">
-                    Ver Planes y Precios
+                <a href="#planes" class="bg-white text-slate-700 border border-slate-200 px-7 py-3.5 rounded-full text-sm font-bold hover:border-primary hover:text-primary transition-all shadow-xs">
+                    Planes y Precios
                 </a>
             </div>
         </div>
     </section>
 
-    <section id="modelos" class="py-24 bg-white">
+    <!-- Sección del Carrusel de Modelos -->
+    <section id="modelos" class="py-20 bg-white border-y border-slate-200/80 relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16 reveal-on-scroll">
-                <span class="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-wider uppercase mb-3 border border-primary/20">
-                    Soluciones Marca Blanca (White Label)
+            
+            <!-- Encabezado de la sección -->
+            <div class="text-center max-w-3xl mx-auto mb-10 reveal-on-scroll">
+                <span class="inline-block py-1 px-3 rounded-full bg-slate-100 text-slate-700 text-xs font-black tracking-wider uppercase mb-3 border border-slate-200">
+                    Galería Interactiva
                 </span>
-                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Plantillas Web para Agencias y Clientes</h2>
-                <p class="text-slate-500 text-lg">Haz clic en "Ver Demo" para navegar cada modelo funcional en pantalla completa.</p>
-            </div>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Modelo A -->
-                <div class="reveal-on-scroll group rounded-3xl border border-slate-200/90 bg-slate-50 overflow-hidden hover:shadow-xl hover:border-indigo-400 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between" style="transition-delay: 100ms;">
-                    <div>
-                        <div class="aspect-video bg-indigo-900 relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&h=300&fit=crop" alt="Landing Page" class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500">
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent flex flex-col justify-end p-5">
-                                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-400">Modelo A</span>
-                                <span class="text-white font-extrabold text-base leading-tight">Landing Page Alta Conversión</span>
-                            </div>
-                        </div>
-                        <div class="p-5">
-                            <p class="text-xs text-slate-600 mb-4 leading-relaxed">Hero de impacto, 4 beneficios, testimonios, acordeón FAQ interactivo, formulario de leads y WhatsApp flotante.</p>
-                        </div>
-                    </div>
-                    <div class="p-5 pt-0">
-                        <a href="modelo-a-landing.html" target="_blank" class="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-xs font-extrabold shadow-xs transition-colors">
-                            <span class="material-symbols-outlined text-[16px]">visibility</span> Ver Demo Modelo A
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Modelo B -->
-                <div class="reveal-on-scroll group rounded-3xl border border-slate-200/90 bg-slate-50 overflow-hidden hover:shadow-xl hover:border-blue-400 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between" style="transition-delay: 200ms;">
-                    <div>
-                        <div class="aspect-video bg-slate-900 relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=500&h=300&fit=crop" alt="Sitio Institucional" class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500">
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent flex flex-col justify-end p-5">
-                                <span class="text-[10px] font-black uppercase tracking-wider text-sky-400">Modelo B</span>
-                                <span class="text-white font-extrabold text-base leading-tight">Sitio Web Institucional (5 Secciones)</span>
-                            </div>
-                        </div>
-                        <div class="p-5">
-                            <p class="text-xs text-slate-600 mb-4 leading-relaxed">Navegación fija, quiénes somos extenso, grilla de 6 servicios, galería fotográfica de proyectos y mapa corporativo.</p>
-                        </div>
-                    </div>
-                    <div class="p-5 pt-0">
-                        <a href="modelo-b-institucional.html" target="_blank" class="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-blue-600 text-white py-2.5 rounded-xl text-xs font-extrabold shadow-xs transition-colors">
-                            <span class="material-symbols-outlined text-[16px]">visibility</span> Ver Demo Modelo B
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Modelo C -->
-                <div class="reveal-on-scroll group rounded-3xl border border-slate-200/90 bg-slate-50 overflow-hidden hover:shadow-xl hover:border-amber-400 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between" style="transition-delay: 300ms;">
-                    <div>
-                        <div class="aspect-video bg-stone-900 relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=500&h=300&fit=crop" alt="Catálogo Digital" class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500">
-                            <div class="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/40 to-transparent flex flex-col justify-end p-5">
-                                <span class="text-[10px] font-black uppercase tracking-wider text-amber-400">Modelo C</span>
-                                <span class="text-white font-extrabold text-base leading-tight">Catálogo Digital WhatsApp</span>
-                            </div>
-                        </div>
-                        <div class="p-5">
-                            <p class="text-xs text-slate-600 mb-4 leading-relaxed">Filtros por categorías, buscador en tiempo real, fichas con fotos/precios y consulta directa a WhatsApp por ítem.</p>
-                        </div>
-                    </div>
-                    <div class="p-5 pt-0">
-                        <a href="modelo-c-catalogo.html" target="_blank" class="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-xs font-extrabold shadow-xs transition-colors">
-                            <span class="material-symbols-outlined text-[16px]">visibility</span> Ver Demo Modelo C
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Modelo D -->
-                <div class="reveal-on-scroll group rounded-3xl border border-slate-200/90 bg-slate-50 overflow-hidden hover:shadow-xl hover:border-sky-400 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between" style="transition-delay: 400ms;">
-                    <div>
-                        <div class="aspect-video bg-slate-900 relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&h=300&fit=crop" alt="Mantenimiento Web" class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-500">
-                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent flex flex-col justify-end p-5">
-                                <span class="text-[10px] font-black uppercase tracking-wider text-sky-400">Modelo D</span>
-                                <span class="text-white font-extrabold text-base leading-tight">Planes de Soporte & Changelog</span>
-                            </div>
-                        </div>
-                        <div class="p-5">
-                            <p class="text-xs text-slate-600 mb-4 leading-relaxed">Tarjetas de abonos (USD 20/35/60), matriz comparativa técnica de tareas y timeline de reportes mensuales.</p>
-                        </div>
-                    </div>
-                    <div class="p-5 pt-0">
-                        <a href="modelo-d-soporte.html" target="_blank" class="w-full flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-700 text-white py-2.5 rounded-xl text-xs font-extrabold shadow-xs transition-colors">
-                            <span class="material-symbols-outlined text-[16px]">visibility</span> Ver Demo Modelo D
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mt-12 text-center bg-blue-50 border border-blue-100 rounded-2xl p-6 reveal-on-scroll">
-                <p class="text-blue-800 font-medium flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined">design_services</span> 
-                    ¿Necesitas algo distinto? Todos los modelos son 100% personalizables a la identidad de tu marca.
+                <h2 class="text-3xl md:text-4xl font-black text-slate-900 mb-3 tracking-tight">Carrusel de Modelos Web</h2>
+                <p class="text-slate-500 text-sm md:text-base">
+                    Navega con las flechas, desliza o haz clic en las pestañas para explorar cada alternativa. Haz clic en la tarjeta o botón para abrir la demostración en pantalla completa.
                 </p>
             </div>
+
+            <!-- Botones Pills de Acceso Directo por Modelo -->
+            <div class="flex flex-wrap justify-center items-center gap-2 mb-8 reveal-on-scroll" id="carouselTabs">
+                <button type="button" data-slide="0" class="carousel-tab-btn active px-4 py-2 rounded-xl text-xs font-extrabold transition-all border border-indigo-200 bg-indigo-50 text-indigo-700 shadow-xs flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-indigo-600"></span> Modelo A: Landing Page
+                </button>
+                <button type="button" data-slide="1" class="carousel-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-sky-500"></span> Modelo B: Institucional
+                </button>
+                <button type="button" data-slide="2" class="carousel-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Modelo C: Catálogo WhatsApp
+                </button>
+                <button type="button" data-slide="3" class="carousel-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-cyan-500"></span> Modelo D: Planes Soporte
+                </button>
+            </div>
+
+            <!-- Contenedor Principal del Carrusel con Controles Flotantes -->
+            <div class="relative reveal-on-scroll group/carousel" id="carouselWrapper">
+                
+                <!-- Botón Flecha Izquierda -->
+                <button id="prevBtn" aria-label="Modelo anterior" class="absolute -left-3 sm:-left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-white/95 backdrop-blur-md shadow-xl border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all duration-200 active:scale-90">
+                    <span class="material-symbols-outlined text-[24px] sm:text-[28px]">chevron_left</span>
+                </button>
+
+                <!-- Botón Flecha Derecha -->
+                <button id="nextBtn" aria-label="Siguiente modelo" class="absolute -right-3 sm:-right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-white/95 backdrop-blur-md shadow-xl border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all duration-200 active:scale-90">
+                    <span class="material-symbols-outlined text-[24px] sm:text-[28px]">chevron_right</span>
+                </button>
+
+                <!-- Pista del Carrusel (Scroll Snap) -->
+                <div id="carouselTrack" class="flex gap-6 overflow-x-auto no-scrollbar scroll-smooth snap-x snap-mandatory py-4 px-1" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Carrusel de modelos web">
+                    
+                    <!-- SLIDE 1: Modelo A -->
+                    <div class="carousel-slide flex-shrink-0 w-full lg:w-[86%] xl:w-[82%] snap-center rounded-3xl bg-slate-900 border border-slate-800 text-white overflow-hidden shadow-2xl transition-all duration-300">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[460px]">
+                            <!-- Imagen Preview con Overlay -->
+                            <a href="modelo-a-landing.html" target="_blank" class="lg:col-span-7 relative group overflow-hidden block aspect-video lg:aspect-auto">
+                                <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=700&fit=crop" alt="Demo Modelo A Landing Page" class="w-full h-full object-cover opacity-75 group-hover:opacity-90 group-hover:scale-105 transition-all duration-700">
+                                <div class="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-slate-950 via-slate-950/40 to-transparent"></div>
+                                <div class="absolute top-4 left-4 flex gap-2">
+                                    <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[11px] font-black uppercase tracking-wider backdrop-blur-md">
+                                        Modelo A
+                                    </span>
+                                    <span class="px-3 py-1 rounded-full bg-white/10 text-white border border-white/20 text-[11px] font-bold backdrop-blur-md">
+                                        One-Page
+                                    </span>
+                                </div>
+                                <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-white/80 font-medium">
+                                    <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-emerald-400">bolt</span> Campañas Google & Meta Ads</span>
+                                    <span class="flex items-center gap-1 group-hover:text-emerald-400 transition-colors">Vista previa interactiva <span class="material-symbols-outlined text-[16px]">open_in_new</span></span>
+                                </div>
+                            </a>
+
+                            <!-- Contenido Descriptivo -->
+                            <div class="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-800">
+                                <div>
+                                    <div class="flex items-center gap-2 text-indigo-400 text-xs font-bold uppercase tracking-wider mb-2">
+                                        <span class="material-symbols-outlined text-[18px]">ads_click</span>
+                                        Landing Page de Alta Conversión
+                                    </div>
+                                    <h3 class="text-2xl sm:text-3xl font-black text-white mb-3 leading-tight">
+                                        Captación Ágil de Leads
+                                    </h3>
+                                    <p class="text-slate-300 text-xs sm:text-sm leading-relaxed mb-5">
+                                        Estructura one-page pensada para tráfico pago: Hero de fuerte impacto, 4 beneficios clave, prueba social con testimonios, acordeón interactivo de Preguntas Frecuentes, formulario de leads y botón flotante de WhatsApp.
+                                    </p>
+                                    
+                                    <!-- Tags de funcionalidades -->
+                                    <div class="flex flex-wrap gap-1.5 mb-6">
+                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">CTA WhatsApp</span>
+                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">FAQ Acordeón</span>
+                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Lead Form</span>
+                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Prueba Social</span>
+                                    </div>
+                                </div>
+
+                                <!-- Botón CTA a modelo -->
+                                <div class="pt-4 border-t border-slate-800 flex flex-col sm:flex-row gap-3 items-stretch">
+                                    <a href="modelo-a-landing.html" target="_blank" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-sm py-3 px-5 rounded-xl shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 group/btn">
+                                        <span>Abrir Demo en Pantalla Completa</span>
+                                        <span class="material-symbols-outlined text-[18px] group-hover/btn:translate-x-0.5 transition-transform">arrow_forward</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SLIDE 2: Modelo B -->
+                    <div class="carousel-slide flex-shrink-0 w-full lg:w-[86%] xl:w-[82%] snap-center rounded-3xl bg-slate-900 border border-slate-800 text-white overflow-hidden shadow-2xl transition-all duration-300">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[460px]">
+                            <!-- Imagen Preview con Overlay -->
+                            <a href="modelo-b-institucional.html" target="_blank" class="lg:col-span-7 relative group overflow-hidden block aspect-video lg:aspect-auto">
+                                <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&h=700&fit=crop" alt="Demo Modelo B Institucional" class="w-full h-full object-cover opacity-75 group-hover:opacity-90 group-hover:scale-105 transition-all duration-700">
+                                <div class="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-slate-950 via-slate-950/40 to-transparent"></div>
+                                <div class="absolute top-4 left-4 flex gap-2">
+                                    <span class="px-3 py-1 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30 text-[11px] font-black uppercase tracking-wider backdrop-blur-md">
+                                        Modelo B
+                                    </span>
+                                    <span class="px-3 py-1 rounded-full bg-white/10 text-white border border-white/20 text-[11px] font-bold backdrop-blur-md">
+                                        5 Secciones
+                                    </span>
+                                </div>
+                                <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-white/80 font-medium">
+                                    <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-sky-400">domain</span> Estudios, Empresas y Pymes</span>
+                                    <span class="flex items-center gap-1 group-hover:text-sky-400 transition-colors">Vista previa interactiva <span class="material-symbols-outlined text-[16px]">open_in_new</span></span>
+                                </div>
+                            </a>
+
+                            <!-- Contenido Descriptivo -->
+                            <div class="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-800">
+                                <div>
+                                    <div class="flex items-center gap-2 text-sky-400 text-xs font-bold uppercase tracking-wider mb-2">
+                                        <span class="material-symbols-outlined text-[18px]">apartment</span>
+                                        Sitio Web Institucional
+                                    </div>
+                                    <h3 class="text-2xl sm:text-3xl font-black text-white mb-3 leading-tight">
+                                        Presencia Corporativa
+                                    </h3>
+                                    <p class="text-slate-300 text-xs sm:text-sm leading-relaxed mb-5">
+                                        Navegación fluida por 5 secciones estratégicas: Quiénes Somos con espacio de historia y equipo, grilla de 6 servicios, galería fotográfica de proyectos o casos de éxito, formulario validado y mapa de ubicación corporativo.
+                                    </p>
+                                    
+                                    <!-- Tags de funcionalidades -->
+                                    <div class="flex flex-wrap gap-1.5 mb-6">
+                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Navbar Fijo</span>
+                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Quiénes Somos</span>
+                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Galería Casos</span>
+                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Mapa & Contacto</span>
+                                    </div>
+                                </div>
+
+                                <!-- Botón CTA a modelo -->
+                                <div class="pt-4 border-t border-slate-800 flex flex-col sm:flex-row gap-3 items-stretch">
+                                    <a href="modelo-b-institucional.html" target="_blank" class="flex-1 bg-sky-600 hover:bg-sky-500 text-white font-extrabold text-sm py-3 px-5 rounded-xl shadow-lg shadow-sky-600/30 transition-all flex items-center justify-center gap-2 group/btn">
+                                        <span>Abrir Demo en Pantalla Completa</span>
+                                        <span class="material-symbols-outlined text-[18px] group-hover/btn:translate-x-0.5 transition-transform">arrow_forward</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SLIDE 3: Modelo C -->
+                    <div class="carousel-slide flex-shrink-0 w-full lg:w-[86%] xl:w-[82%] snap-center rounded-3xl bg-slate-900 border border-slate-800 text-white overflow-hidden shadow-2xl transition-all duration-300">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[460px]">
+                            <!-- Imagen Preview con Overlay -->
+                            <a href="modelo-c-catalogo.html" target="_blank" class="lg:col-span-7 relative group overflow-hidden block aspect-video lg:aspect-auto">
+                                <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1200&h=700&fit=crop" alt="Demo Modelo C Catálogo WhatsApp" class="w-full h-full object-cover opacity-75 group-hover:opacity-90 group-hover:scale-105 transition-all duration-700">
+                                <div class="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-slate-950 via-slate-950/40 to-transparent"></div>
+                                <div class="absolute top-4 left-4 flex gap-2">
+                                    <span class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[11px] font-black uppercase tracking-wider backdrop-blur-md">
+                                        Modelo C
+                                    </span>
+                                    <span class="px-3 py-1 rounded-full bg-white/10 text-white border border-white/20 text-[11px] font-bold backdrop-blur-md">
+                                        Catálogo Ágil
+                                    </span>
+                                </div>
+                                <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-white/80 font-medium">
+                                    <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-amber-400">storefront</span> Showrooms, Minoristas & Mayoristas</span>
+                                    <span class="flex items-center gap-1 group-hover:text-amber-400 transition-colors">Vista previa interactiva <span class="material-symbols-outlined text-[16px]">open_in_new</span></span>
+                                </div>
+                            </a>
+
+                            <!-- Contenido Descriptivo -->
+                            <div class="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-800">
+                                <div>
+                                    <div class="flex items-center gap-2 text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">
+                                        <span class="material-symbols-outlined text-[18px]">shopping_bag</span>
+                                        Catálogo Digital con WhatsApp
+                                    </div>
+                                    <h3 class="text-2xl sm:text-3xl font-black text-white mb-3 leading-tight">
+                                        Venta Directa sin Carrito Complejo
+                                    </h3>
+                                    <p class="text-slate-300 text-xs sm:text-sm leading-relaxed mb-5">
+                                        Exhibición limpia de productos con filtros visuales por categorías y buscador instantáneo. Cada tarjeta genera un mensaje pre-armado hacia WhatsApp indicando exactamente el producto y precio por el que el cliente consulta.
+                                    </p>
+                                    
+                                    <!-- Tags de funcionalidades -->
+                                    <div class="flex flex-wrap gap-1.5 mb-6">
+                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Filtro Categorías</span>
+                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Búsqueda en Vivo</span>
+                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Enlace wa.me Auto</span>
+                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Sin Pasarela</span>
+                                    </div>
+                                </div>
+
+                                <!-- Botón CTA a modelo -->
+                                <div class="pt-4 border-t border-slate-800 flex flex-col sm:flex-row gap-3 items-stretch">
+                                    <a href="modelo-c-catalogo.html" target="_blank" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-sm py-3 px-5 rounded-xl shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2 group/btn">
+                                        <span>Abrir Demo en Pantalla Completa</span>
+                                        <span class="material-symbols-outlined text-[18px] group-hover/btn:translate-x-0.5 transition-transform">arrow_forward</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SLIDE 4: Modelo D -->
+                    <div class="carousel-slide flex-shrink-0 w-full lg:w-[86%] xl:w-[82%] snap-center rounded-3xl bg-slate-900 border border-slate-800 text-white overflow-hidden shadow-2xl transition-all duration-300">
+                        <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[460px]">
+                            <!-- Imagen Preview con Overlay -->
+                            <a href="modelo-d-soporte.html" target="_blank" class="lg:col-span-7 relative group overflow-hidden block aspect-video lg:aspect-auto">
+                                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&h=700&fit=crop" alt="Demo Modelo D Soporte Web" class="w-full h-full object-cover opacity-75 group-hover:opacity-90 group-hover:scale-105 transition-all duration-700">
+                                <div class="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-slate-950 via-slate-950/40 to-transparent"></div>
+                                <div class="absolute top-4 left-4 flex gap-2">
+                                    <span class="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-[11px] font-black uppercase tracking-wider backdrop-blur-md">
+                                        Modelo D
+                                    </span>
+                                    <span class="px-3 py-1 rounded-full bg-white/10 text-white border border-white/20 text-[11px] font-bold backdrop-blur-md">
+                                        Planes & SLA
+                                    </span>
+                                </div>
+                                <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-white/80 font-medium">
+                                    <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-cyan-400">terminal</span> Agencias & Clientes con Mantenimiento</span>
+                                    <span class="flex items-center gap-1 group-hover:text-cyan-400 transition-colors">Vista previa interactiva <span class="material-symbols-outlined text-[16px]">open_in_new</span></span>
+                                </div>
+                            </a>
+
+                            <!-- Contenido Descriptivo -->
+                            <div class="lg:col-span-5 p-6 sm:p-8 flex flex-col justify-between bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-800">
+                                <div>
+                                    <div class="flex items-center gap-2 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-2">
+                                        <span class="material-symbols-outlined text-[18px]">verified_user</span>
+                                        Planes de Mantenimiento & Soporte
+                                    </div>
+                                    <h3 class="text-2xl sm:text-3xl font-black text-white mb-3 leading-tight">
+                                        Abonos Técnicos & Changelog
+                                    </h3>
+                                    <p class="text-slate-300 text-xs sm:text-sm leading-relaxed mb-5">
+                                        Portal demostrativo con 3 planes mensuales (Básico USD 20, Estándar USD 35 y Amplio USD 60), tabla comparativa detallada con estados de inclusión y timeline interactivo de registro de cambios técnicos y copias de seguridad.
+                                    </p>
+                                    
+                                    <!-- Tags de funcionalidades -->
+                                    <div class="flex flex-wrap gap-1.5 mb-6">
+                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">3 Niveles USD</span>
+                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Matriz Técnica</span>
+                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">Changelog Historial</span>
+                                        <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-[11px] font-semibold border border-slate-700/60">SLA Garantizado</span>
+                                    </div>
+                                </div>
+
+                                <!-- Botón CTA a modelo -->
+                                <div class="pt-4 border-t border-slate-800 flex flex-col sm:flex-row gap-3 items-stretch">
+                                    <a href="modelo-d-soporte.html" target="_blank" class="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white font-extrabold text-sm py-3 px-5 rounded-xl shadow-lg shadow-cyan-600/30 transition-all flex items-center justify-center gap-2 group/btn">
+                                        <span>Abrir Demo en Pantalla Completa</span>
+                                        <span class="material-symbols-outlined text-[18px] group-hover/btn:translate-x-0.5 transition-transform">arrow_forward</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Indicadores de Posición (Dots) -->
+                <div class="flex items-center justify-center gap-2.5 mt-6" id="carouselDots">
+                    <button type="button" data-slide="0" aria-label="Ir al modelo 1" class="carousel-dot h-3 w-8 rounded-full bg-primary transition-all duration-300"></button>
+                    <button type="button" data-slide="1" aria-label="Ir al modelo 2" class="carousel-dot h-3 w-3 rounded-full bg-slate-300 hover:bg-slate-400 transition-all duration-300"></button>
+                    <button type="button" data-slide="2" aria-label="Ir al modelo 3" class="carousel-dot h-3 w-3 rounded-full bg-slate-300 hover:bg-slate-400 transition-all duration-300"></button>
+                    <button type="button" data-slide="3" aria-label="Ir al modelo 4" class="carousel-dot h-3 w-3 rounded-full bg-slate-300 hover:bg-slate-400 transition-all duration-300"></button>
+                </div>
+
+            </div>
+
+            <!-- Banner Informativo Inferior -->
+            <div class="mt-12 text-center bg-blue-50 border border-blue-100 rounded-2xl p-6 reveal-on-scroll">
+                <p class="text-blue-900 font-bold flex flex-wrap items-center justify-center gap-2 text-sm sm:text-base">
+                    <span class="material-symbols-outlined text-primary text-[22px]">design_services</span> 
+                    ¿Necesitas una combinación especial o funciones a medida? Todos los modelos se adaptan 100% a la paleta, tipografía y requerimientos del cliente.
+                </p>
+            </div>
+
         </div>
     </section>
 
+    <!-- Planes de Desarrollo -->
     <section id="planes" class="py-24 bg-slate-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16 reveal-on-scroll">
+                <span class="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary text-xs font-black tracking-wider uppercase mb-3 border border-primary/20">
+                    Transparencia y Escala
+                </span>
                 <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4">Planes de Desarrollo</h2>
-                <p class="text-slate-500 text-lg">Inversión transparente para el crecimiento de tu empresa.</p>
+                <p class="text-slate-500 text-lg">Inversión clara y paquetes adaptados al alcance de cada negocio.</p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
+                <!-- Plan 1 -->
                 <div class="reveal-on-scroll bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 relative flex flex-col" style="transition-delay: 100ms;">
                     <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6">
                         <span class="material-symbols-outlined">storefront</span>
@@ -218,6 +420,7 @@
                     <a href="#contacto" class="w-full text-center bg-slate-900 text-white py-3.5 rounded-xl font-bold hover:bg-slate-800 transition-colors">Seleccionar Plan</a>
                 </div>
 
+                <!-- Plan 2 -->
                 <div class="reveal-on-scroll bg-white rounded-[2rem] p-8 border-2 border-purple-500 shadow-xl relative flex flex-col transform md:-translate-y-4 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300" style="transition-delay: 200ms;">
                     <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-primary text-white text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-wider shadow-md">
                         Más Elegido
@@ -245,6 +448,7 @@
                     <a href="#contacto" class="w-full text-center bg-purple-600 text-white py-3.5 rounded-xl font-bold hover:bg-purple-700 transition-colors shadow-lg shadow-purple-600/30">Seleccionar Plan</a>
                 </div>
 
+                <!-- Plan 3 -->
                 <div class="reveal-on-scroll bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 relative flex flex-col" style="transition-delay: 300ms;">
                     <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mb-6">
                         <span class="material-symbols-outlined">real_estate_agent</span>
@@ -285,6 +489,7 @@
         </div>
     </section>
 
+    <!-- Sección de Contacto -->
     <section id="contacto" class="py-24 bg-white relative overflow-hidden">
         <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 rounded-full bg-primary/5 blur-3xl"></div>
         <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-purple-500/5 blur-3xl"></div>
@@ -309,9 +514,13 @@
                     </div>
                     
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Plan de interés</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Plan o Modelo de interés</label>
                         <select class="w-full px-4 py-3.5 rounded-xl border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary text-sm font-medium transition-colors">
                             <option value="" disabled selected>Selecciona un plan o modelo</option>
+                            <option value="modelo-a">🚀 Modelo A: Landing Page Alta Conversión</option>
+                            <option value="modelo-b">🏢 Modelo B: Sitio Web Institucional</option>
+                            <option value="modelo-c">🛍️ Modelo C: Catálogo Digital WhatsApp</option>
+                            <option value="modelo-d">🛡️ Modelo D: Planes de Mantenimiento & Soporte</option>
                             <option value="presencia">🟦 Plan Presencia Online ($200.000)</option>
                             <option value="captacion">🟪 Plan Captación de Clientes ($500.000)</option>
                             <option value="inmobiliaria">🟨 Plan Gestión Inmobiliaria ($900.000)</option>
@@ -321,7 +530,7 @@
 
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Cuéntame sobre tu negocio</label>
-                        <textarea rows="4" class="w-full px-4 py-3.5 rounded-xl border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary text-sm font-medium transition-colors resize-none" placeholder="¿A qué se dedica tu empresa? ¿Tienes alguna referencia de diseño?"></textarea>
+                        <textarea rows="4" class="w-full px-4 py-3.5 rounded-xl border-slate-200 bg-slate-50 focus:ring-primary focus:border-primary text-sm font-medium transition-colors resize-none" placeholder="¿A qué se dedica tu empresa? ¿Tienes alguna referencia o requerimiento especial?"></textarea>
                     </div>
 
                     <button type="submit" class="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2">
@@ -332,6 +541,7 @@
         </div>
     </section>
 
+    <!-- Footer -->
     <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <div class="flex items-center justify-center gap-2 text-white mb-6">
@@ -340,11 +550,12 @@
                 </div>
                 <span class="font-extrabold text-lg tracking-tight">Studio<span class="text-primary">Web</span></span>
             </div>
-            <p class="text-sm mb-4">Desarrollo web a medida para negocios que buscan crecer.</p>
+            <p class="text-sm mb-4">Desarrollo web y prototipos marca blanca para agencias y empresas.</p>
             <p class="text-xs text-slate-500">© 2026 Todos los derechos reservados.</p>
         </div>
     </footer>
 
+    <!-- Script del Carrusel e Interacciones -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // 1. Navbar con efecto cristalino al hacer scroll
@@ -352,25 +563,160 @@
             window.addEventListener('scroll', () => {
                 if (window.scrollY > 20) {
                     modelosNav.classList.add('shadow-md', 'bg-white/95');
-                    modelosNav.classList.remove('bg-white/70');
+                    modelosNav.classList.remove('bg-white/80');
                 } else {
                     modelosNav.classList.remove('shadow-md', 'bg-white/95');
-                    modelosNav.classList.add('bg-white/70');
+                    modelosNav.classList.add('bg-white/80');
                 }
             });
 
             // 2. Animaciones al aparecer en pantalla (Intersection Observer)
             const observerOptions = { root: null, rootMargin: '0px', threshold: 0.15 };
-            const observer = new IntersectionObserver((entries, observer) => {
+            const observer = new IntersectionObserver((entries, obs) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('is-visible');
-                        observer.unobserve(entry.target); // Animar solo una vez
+                        obs.unobserve(entry.target);
                     }
                 });
             }, observerOptions);
 
             document.querySelectorAll('.reveal-on-scroll').forEach(el => observer.observe(el));
+
+            // 3. Lógica del Carrusel de Modelos
+            const track = document.getElementById('carouselTrack');
+            const slides = Array.from(track.querySelectorAll('.carousel-slide'));
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const tabButtons = Array.from(document.querySelectorAll('.carousel-tab-btn'));
+            const dotButtons = Array.from(document.querySelectorAll('.carousel-dot'));
+            const carouselWrapper = document.getElementById('carouselWrapper');
+
+            let currentIndex = 0;
+            let autoplayInterval = null;
+            const TOTAL_SLIDES = slides.length;
+
+            // Función para actualizar estados visuales de Tabs y Dots
+            function updateIndicators(index) {
+                currentIndex = index;
+
+                // Actualizar Dots
+                dotButtons.forEach((dot, i) => {
+                    if (i === index) {
+                        dot.className = 'carousel-dot h-3 w-8 rounded-full bg-primary transition-all duration-300';
+                    } else {
+                        dot.className = 'carousel-dot h-3 w-3 rounded-full bg-slate-300 hover:bg-slate-400 transition-all duration-300';
+                    }
+                });
+
+                // Actualizar Tabs
+                tabButtons.forEach((tab, i) => {
+                    const dotIndicator = tab.querySelector('span');
+                    if (i === index) {
+                        tab.className = 'carousel-tab-btn active px-4 py-2 rounded-xl text-xs font-extrabold transition-all border border-indigo-200 bg-indigo-50 text-indigo-700 shadow-xs flex items-center gap-1.5';
+                    } else {
+                        tab.className = 'carousel-tab-btn px-4 py-2 rounded-xl text-xs font-extrabold transition-all border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-1.5';
+                    }
+                });
+            }
+
+            // Desplazar a slide específico
+            function goToSlide(index) {
+                if (index < 0) index = TOTAL_SLIDES - 1;
+                if (index >= TOTAL_SLIDES) index = 0;
+                
+                const targetSlide = slides[index];
+                if (targetSlide) {
+                    targetSlide.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    updateIndicators(index);
+                }
+            }
+
+            // Botones de Navegación Flechas
+            prevBtn.addEventListener('click', () => {
+                goToSlide(currentIndex - 1);
+            });
+
+            nextBtn.addEventListener('click', () => {
+                goToSlide(currentIndex + 1);
+            });
+
+            // Tabs superiores
+            tabButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const slideIndex = parseInt(btn.getAttribute('data-slide'), 10);
+                    goToSlide(slideIndex);
+                });
+            });
+
+            // Dots inferiores
+            dotButtons.forEach(dot => {
+                dot.addEventListener('click', () => {
+                    const slideIndex = parseInt(dot.getAttribute('data-slide'), 10);
+                    goToSlide(slideIndex);
+                });
+            });
+
+            // Sincronizar al hacer scroll manual o swipe
+            let isScrollingTimeout;
+            track.addEventListener('scroll', () => {
+                clearTimeout(isScrollingTimeout);
+                isScrollingTimeout = setTimeout(() => {
+                    const trackCenter = track.scrollLeft + track.offsetWidth / 2;
+                    let closestIndex = 0;
+                    let minDistance = Infinity;
+
+                    slides.forEach((slide, idx) => {
+                        const slideCenter = slide.offsetLeft + slide.offsetWidth / 2;
+                        const distance = Math.abs(trackCenter - slideCenter);
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            closestIndex = idx;
+                        }
+                    });
+
+                    if (closestIndex !== currentIndex) {
+                        updateIndicators(closestIndex);
+                    }
+                }, 100);
+            }, { passive: true });
+
+            // Soporte para flechas del teclado cuando el carrusel tiene foco
+            track.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    goToSlide(currentIndex - 1);
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    goToSlide(currentIndex + 1);
+                }
+            });
+
+            // Autoplay cada 5 segundos
+            function startAutoplay() {
+                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+                stopAutoplay();
+                autoplayInterval = setInterval(() => {
+                    goToSlide(currentIndex + 1);
+                }, 5500);
+            }
+
+            function stopAutoplay() {
+                if (autoplayInterval) {
+                    clearInterval(autoplayInterval);
+                    autoplayInterval = null;
+                }
+            }
+
+            // Pausar autoplay al hacer hover o tocar el carrusel
+            carouselWrapper.addEventListener('mouseenter', stopAutoplay);
+            carouselWrapper.addEventListener('mouseleave', startAutoplay);
+            carouselWrapper.addEventListener('touchstart', stopAutoplay, { passive: true });
+            carouselWrapper.addEventListener('focusin', stopAutoplay);
+            carouselWrapper.addEventListener('focusout', startAutoplay);
+
+            // Iniciar carrusel
+            startAutoplay();
         });
     </script>
 </body>
