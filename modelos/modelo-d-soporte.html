@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planes de Mantenimiento y Soporte Web | Modelo Marca Blanca</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Google Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+                    },
+                    colors: {
+                        ops: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617',
+                            primary: '#0284c7', // Sky blue de monitoreo
+                            primaryHover: '#0369a1',
+                            success: '#10b981'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-ops-primary selection:text-white">
+
+    <!-- Barra Superior Marca Blanca (Demostración) -->
+    <aside aria-label="Aviso de demostración" class="bg-slate-950 text-slate-400 text-xs py-2 px-4 border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left">
+            <div class="flex items-center gap-2">
+                <span class="inline-block w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+                <span class="font-semibold text-white">Plantilla Marca Blanca:</span>
+                <span class="text-slate-300">Modelo D • Panel de Planes de Mantenimiento, SLA y Changelog</span>
+            </div>
+            <div class="text-[11px] text-slate-400">
+                Ideal para agencias de desarrollo, consultoras IT y webmasters que comercializan abonos mensuales
+            </div>
+        </div>
+    </aside>
+
+    <!-- HEADER / MONITOR DE SISTEMAS -->
+    <header class="bg-white border-b border-slate-200/80 sticky top-8 z-40 transition-all duration-300 shadow-2xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-ops-900 text-white flex items-center justify-center font-mono font-black text-xl shadow-xs">
+                    &lt;/&gt;
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-black text-xl tracking-tight text-slate-900">WebCare<span class="text-ops-primary">Ops</span></span>
+                        <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black uppercase px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                            Sistemas Operativos
+                        </span>
+                    </div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Monitoreo, Seguridad & Mantenimiento Web</span>
+                </div>
+            </div>
+
+            <nav class="hidden md:flex items-center gap-7 text-xs font-bold text-slate-600">
+                <a href="#planes" class="hover:text-ops-primary transition-colors">Planes y Precios</a>
+                <a href="#comparativa" class="hover:text-ops-primary transition-colors">Tabla de Tareas</a>
+                <a href="#changelog" class="hover:text-ops-primary transition-colors">Historial de Mejoras</a>
+                <a href="#contacto" class="hover:text-ops-primary transition-colors">Contacto Técnico</a>
+            </nav>
+
+            <a href="#planes" class="bg-ops-900 hover:bg-ops-primary text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5">
+                <span>Contratar Soporte</span>
+                <span class="material-symbols-outlined text-sm">tune</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- 1. HERO SECTION Y EXPLICACIÓN GENERAL DEL SERVICIO -->
+    <section class="relative pt-14 pb-20 lg:pt-20 lg:pb-28 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-white overflow-hidden">
+        <!-- Rejilla y Glows de Fondo -->
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:32px_32px] opacity-25"></div>
+        <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-sky-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10">
+            <!-- Barra de Estado en Tiempo Real -->
+            <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-slate-800/90 border border-slate-700 text-xs font-semibold mb-6 shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span class="text-slate-300">Uptime Garantizado del <strong>99.98%</strong></span>
+                <span class="text-slate-500">•</span>
+                <span class="text-sky-400">Backups Diarios Cifrados</span>
+            </div>
+
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.15] mb-6">
+                Mantenimiento Web Proactivo, <span class="bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-teal-300 to-emerald-400">Seguridad Continua y Soporte SLA</span>
+            </h1>
+
+            <!-- Explicación General en Lorem Ipsum Extenso -->
+            <p class="text-sm sm:text-base text-slate-300 leading-relaxed font-normal max-w-2xl mx-auto mb-10">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Mantené tu sitio web siempre rápido, blindado contra ataques y actualizado mes a mes.
+            </p>
+
+            <!-- Métricas Clave de Salud del Servicio -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 rounded-3xl bg-slate-800/60 border border-slate-700/80 backdrop-blur-md">
+                <div>
+                    <span class="block text-2xl sm:text-3xl font-mono font-black text-sky-400">&lt; 15 min</span>
+                    <span class="text-[11px] text-slate-400 font-semibold">Tiempo Medio de Respuesta</span>
+                </div>
+                <div>
+                    <span class="block text-2xl sm:text-3xl font-mono font-black text-emerald-400">24/7/365</span>
+                    <span class="text-[11px] text-slate-400 font-semibold">Monitoreo de Caídas</span>
+                </div>
+                <div>
+                    <span class="block text-2xl sm:text-3xl font-mono font-black text-white">0 Malwares</span>
+                    <span class="text-[11px] text-slate-400 font-semibold">Tolerancia Cero Amenazas</span>
+                </div>
+                <div>
+                    <span class="block text-2xl sm:text-3xl font-mono font-black text-amber-400">100%</span>
+                    <span class="text-[11px] text-slate-400 font-semibold">Restauración Inmediata</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. SECCIÓN TARJETAS DE PRECIOS Y PLANES (USD 20 / USD 35 / USD 60) -->
+    <section id="planes" class="py-20 lg:py-28 bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-ops-primary font-extrabold uppercase text-xs tracking-wider bg-sky-50 px-3 py-1 rounded-md border border-sky-100">
+                    Abonos Mensuales Sin Permanencia
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-black text-slate-900 mt-3 mb-4">
+                    Elegí el Nivel de Protección que tu Negocio Necesita
+                </h2>
+                <p class="text-sm sm:text-base text-slate-500 leading-relaxed font-medium">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sin contratos de permanencia: podés cancelar o pausar el servicio en cualquier momento con un solo aviso.
+                </p>
+            </div>
+
+            <!-- Grilla de 3 Tarjetas de Precios Destacadas -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+                
+                <!-- PLAN BÁSICO (USD 20 / mes) -->
+                <div class="bg-white rounded-3xl p-7 sm:p-8 border border-slate-200 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs font-black uppercase tracking-wider text-slate-400">Esencial</span>
+                            <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-md">Sitios Institucionales</span>
+                        </div>
+                        <h3 class="text-2xl font-black text-slate-900 mb-2">Plan Básico</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed font-normal mb-6">
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ideal para sitios web estáticos o blogs que requieren mantenimiento preventivo esencial y copias de seguridad.
+                        </p>
+
+                        <div class="mb-6 pb-6 border-b border-slate-100">
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-4xl font-black text-slate-900 font-mono">USD 20</span>
+                                <span class="text-xs font-semibold text-slate-400">/ mes</span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 block mt-1">Facturación mensual o trimestral</span>
+                        </div>
+
+                        <!-- Listado de Tareas Incluidas -->
+                        <ul class="space-y-3 text-xs text-slate-600 mb-8">
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-emerald-600 text-base shrink-0">check_circle</span>
+                                <span>Copias de seguridad semanales (backups en la nube)</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-emerald-600 text-base shrink-0">check_circle</span>
+                                <span>Actualizaciones mensuales de plugins y núcleo CMS</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-emerald-600 text-base shrink-0">check_circle</span>
+                                <span>Escaneo de malware y virus mensual</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-emerald-600 text-base shrink-0">check_circle</span>
+                                <span>Monitoreo de tiempo de actividad 24/7</span>
+                            </li>
+                            <li class="flex items-start gap-2.5 text-slate-400">
+                                <span class="material-symbols-outlined text-slate-300 text-base shrink-0">cancel</span>
+                                <span>Sin horas de cambios de contenido ni diseño</span>
+                            </li>
+                            <li class="flex items-start gap-2.5 text-slate-400">
+                                <span class="material-symbols-outlined text-slate-300 text-base shrink-0">cancel</span>
+                                <span>Soporte estándar vía ticket (48h hábiles)</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <a href="#contacto" class="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 font-extrabold text-xs border border-slate-300 shadow-2xs transition-all text-center block">
+                        Contratar Plan Básico
+                    </a>
+                </div>
+
+                <!-- PLAN ESTÁNDAR (USD 35 / mes) - MÁS ELEGIDO -->
+                <div class="bg-gradient-to-b from-slate-900 to-slate-950 text-white rounded-3xl p-7 sm:p-8 border-2 border-ops-primary shadow-xl relative flex flex-col justify-between transform md:-translate-y-2">
+                    <span class="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-ops-primary text-white text-[10px] font-black uppercase px-3 py-1 rounded-full shadow-sm tracking-wider">
+                        ★ Más Elegido por Pymes
+                    </span>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-4 mt-1">
+                            <span class="text-xs font-black uppercase tracking-wider text-sky-300">Completo</span>
+                            <span class="bg-slate-800 text-sky-200 text-[10px] font-bold px-2 py-0.5 rounded-md border border-slate-700">Comercios & Servicios</span>
+                        </div>
+                        <h3 class="text-2xl font-black text-white mb-2">Plan Estándar</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed font-normal mb-6">
+                            Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit. Incluye horas de soporte para cambios de textos, banners y optimización de velocidad.
+                        </p>
+
+                        <div class="mb-6 pb-6 border-b border-slate-800">
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-4xl font-black text-white font-mono">USD 35</span>
+                                <span class="text-xs font-semibold text-slate-400">/ mes</span>
+                            </div>
+                            <span class="text-[11px] text-sky-300 block mt-1">SLA preferencial de respuesta en 24h</span>
+                        </div>
+
+                        <!-- Listado de Tareas Incluidas -->
+                        <ul class="space-y-3 text-xs text-slate-300 mb-8">
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-sky-400 text-base shrink-0">check_circle</span>
+                                <span class="font-bold text-white">Copias de seguridad diarias automatizadas</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-sky-400 text-base shrink-0">check_circle</span>
+                                <span>Actualizaciones quincenales de seguridad y plugins</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-sky-400 text-base shrink-0">check_circle</span>
+                                <span>Firewall perimetral y protección anti-fuerza bruta</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-sky-400 text-base shrink-0">check_circle</span>
+                                <span class="font-bold text-sky-200">Hasta 2 horas mensuales de cambios de contenido</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-sky-400 text-base shrink-0">check_circle</span>
+                                <span>Optimización mensual de base de datos y caché</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-sky-400 text-base shrink-0">check_circle</span>
+                                <span>Reporte técnico mensual con Changelog</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <a href="#contacto" class="w-full py-3.5 px-4 rounded-2xl bg-ops-primary hover:bg-sky-500 text-white font-black text-xs shadow-md transition-all text-center block">
+                        Contratar Plan Estándar
+                    </a>
+                </div>
+
+                <!-- PLAN AMPLIO (USD 60 / mes) -->
+                <div class="bg-white rounded-3xl p-7 sm:p-8 border border-slate-200 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs font-black uppercase tracking-wider text-slate-400">Total / E-commerce</span>
+                            <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded-md">Tiendas & Portales</span>
+                        </div>
+                        <h3 class="text-2xl font-black text-slate-900 mb-2">Plan Amplio</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed font-normal mb-6">
+                            At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum. Cobertura crítica, staging y resolución de emergencias en tiempo récord.
+                        </p>
+
+                        <div class="mb-6 pb-6 border-b border-slate-100">
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-4xl font-black text-slate-900 font-mono">USD 60</span>
+                                <span class="text-xs font-semibold text-slate-400">/ mes</span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 block mt-1">SLA crítico de urgencia (&lt; 4 horas)</span>
+                        </div>
+
+                        <!-- Listado de Tareas Incluidas -->
+                        <ul class="space-y-3 text-xs text-slate-600 mb-8">
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-emerald-600 text-base shrink-0">check_circle</span>
+                                <span class="font-bold text-slate-900">Backups en tiempo real antes de cada cambio</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-emerald-600 text-base shrink-0">check_circle</span>
+                                <span>Ambiente Staging para pruebas seguras</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-emerald-600 text-base shrink-0">check_circle</span>
+                                <span class="font-bold text-emerald-700">Hasta 5 horas mensuales de soporte y desarrollo</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-emerald-600 text-base shrink-0">check_circle</span>
+                                <span>Auditoría de velocidad y Core Web Vitals continua</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-emerald-600 text-base shrink-0">check_circle</span>
+                                <span>Canal de WhatsApp prioritario de guardia</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="material-symbols-outlined text-emerald-600 text-base shrink-0">check_circle</span>
+                                <span>Restauración garantizada ante caídas críticas</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <a href="#contacto" class="w-full py-3.5 px-4 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 font-extrabold text-xs border border-slate-300 shadow-2xs transition-all text-center block">
+                        Contratar Plan Amplio
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. TABLA COMPARATIVA DETALLADA DE TAREAS -->
+    <section id="comparativa" class="py-16 bg-slate-50 border-b border-slate-200">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h3 class="text-xl sm:text-2xl font-black text-slate-900 mb-2 text-center">Matriz Comparativa de Alcance Técnico</h3>
+            <p class="text-xs sm:text-sm text-slate-500 mb-8 text-center font-medium">Revisá en detalle cada tarea incluida según el plan seleccionado.</p>
+
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden text-xs">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-900 text-white font-bold border-b border-slate-800">
+                                <th class="p-4 pl-6">Tarea / Servicio de Mantenimiento</th>
+                                <th class="p-4 text-center">Básico ($20)</th>
+                                <th class="p-4 text-center bg-ops-primary">Estándar ($35)</th>
+                                <th class="p-4 text-center pr-6">Amplio ($60)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-600">
+                            <tr>
+                                <td class="p-4 pl-6 font-bold text-slate-800">Frecuencia de Copias de Seguridad</td>
+                                <td class="p-4 text-center">Semanal</td>
+                                <td class="p-4 text-center font-bold text-ops-primary bg-sky-50/50">Diaria</td>
+                                <td class="p-4 text-center pr-6 font-bold">Tiempo Real</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 pl-6 font-bold text-slate-800">Actualización de Plugins y Core</td>
+                                <td class="p-4 text-center">Mensual</td>
+                                <td class="p-4 text-center font-bold text-ops-primary bg-sky-50/50">Quincenal</td>
+                                <td class="p-4 text-center pr-6 font-bold">Semanal / Inmediata</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 pl-6 font-bold text-slate-800">Horas de cambios de contenido incluidas</td>
+                                <td class="p-4 text-center text-slate-400">—</td>
+                                <td class="p-4 text-center font-bold text-ops-primary bg-sky-50/50">2 horas / mes</td>
+                                <td class="p-4 text-center pr-6 font-bold">5 horas / mes</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 pl-6 font-bold text-slate-800">Tiempo de respuesta ante caídas (SLA)</td>
+                                <td class="p-4 text-center">48 hs hábiles</td>
+                                <td class="p-4 text-center font-bold text-ops-primary bg-sky-50/50">&lt; 24 hs</td>
+                                <td class="p-4 text-center pr-6 font-bold">&lt; 4 hs (Prioritario)</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 pl-6 font-bold text-slate-800">Ambiente de Pruebas (Staging)</td>
+                                <td class="p-4 text-center text-slate-400">—</td>
+                                <td class="p-4 text-center text-slate-400 bg-sky-50/50">—</td>
+                                <td class="p-4 text-center pr-6 font-bold text-emerald-600">✓ Incluido</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 pl-6 font-bold text-slate-800">Reporte mensual con Changelog al cliente</td>
+                                <td class="p-4 text-center text-slate-400">—</td>
+                                <td class="p-4 text-center font-bold text-ops-primary bg-sky-50/50">✓ Incluido</td>
+                                <td class="p-4 text-center pr-6 font-bold text-emerald-600">✓ Incluido</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. HISTORIAL DE ACTUALIZACIONES / CHANGELOG (Demostrativo para Clientes) -->
+    <section id="changelog" class="py-20 lg:py-28 bg-white border-b border-slate-200">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <span class="text-ops-primary font-extrabold uppercase text-xs tracking-wider bg-sky-50 px-3 py-1 rounded-md border border-sky-100">
+                    Transparencia Total
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-black text-slate-900 mt-3 mb-4">
+                    Historial de Actualizaciones (Changelog de Mantenimiento)
+                </h2>
+                <p class="text-sm text-slate-500 font-medium">
+                    Demostración visual de cómo se reportan mes a mes las mejoras, parches de seguridad y tareas aplicadas al sitio del cliente.
+                </p>
+            </div>
+
+            <!-- Timeline de Changelog -->
+            <div class="relative pl-6 sm:pl-8 border-l-2 border-slate-200 space-y-10">
+                
+                <!-- Reporte Mes Actual -->
+                <div class="relative">
+                    <span class="absolute -left-[31px] sm:-left-[39px] top-1 w-5 h-5 rounded-full bg-ops-primary border-4 border-white shadow-xs"></span>
+                    
+                    <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200/90 shadow-2xs space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-sky-100 text-sky-800 font-mono text-[11px] font-black px-2 py-0.5 rounded-md">v2.4.0</span>
+                                <h4 class="font-extrabold text-sm sm:text-base text-slate-900">Mantenimiento Mensual: Octubre 2026</h4>
+                            </div>
+                            <span class="text-xs text-slate-400 font-medium">Ejecutado el 28/10/2026</span>
+                        </div>
+
+                        <!-- Texto Descriptivo en Lorem Ipsum -->
+                        <p class="text-xs text-slate-600 leading-relaxed font-normal">
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                        </p>
+
+                        <!-- Tareas Ejecutadas -->
+                        <div class="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700">
+                            <div class="flex items-center gap-1.5"><span class="text-emerald-600 font-bold">✓</span> <span>Actualización de 14 extensiones de seguridad</span></div>
+                            <div class="flex items-center gap-1.5"><span class="text-emerald-600 font-bold">✓</span> <span>Compresión y optimización de 128 imágenes</span></div>
+                            <div class="flex items-center gap-1.5"><span class="text-emerald-600 font-bold">✓</span> <span>Depuración de tablas SQL y caché de servidor</span></div>
+                            <div class="flex items-center gap-1.5"><span class="text-emerald-600 font-bold">✓</span> <span>Backup integral off-site almacenado en AWS</span></div>
+                        </div>
+
+                        <div class="mt-2 pt-3 border-t border-slate-200 flex items-center justify-between text-[11px] font-semibold text-slate-500">
+                            <span>Estado post-mantenimiento: <strong class="text-emerald-600 font-bold">100% Estable</strong></span>
+                            <span>Velocidad GTmetrix: <strong class="text-slate-800">Grade A (97%)</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reporte Mes Anterior -->
+                <div class="relative">
+                    <span class="absolute -left-[31px] sm:-left-[39px] top-1 w-5 h-5 rounded-full bg-slate-300 border-4 border-white shadow-xs"></span>
+                    
+                    <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200/90 shadow-2xs space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-slate-200 text-slate-700 font-mono text-[11px] font-black px-2 py-0.5 rounded-md">v2.3.1</span>
+                                <h4 class="font-extrabold text-sm sm:text-base text-slate-900">Mantenimiento y Parche de Seguridad: Septiembre 2026</h4>
+                            </div>
+                            <span class="text-xs text-slate-400 font-medium">Ejecutado el 29/09/2026</span>
+                        </div>
+
+                        <!-- Texto Descriptivo en Lorem Ipsum -->
+                        <p class="text-xs text-slate-600 leading-relaxed font-normal">
+                            Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                        </p>
+
+                        <div class="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700">
+                            <div class="flex items-center gap-1.5"><span class="text-emerald-600 font-bold">✓</span> <span>Renovación de certificado SSL Let's Encrypt</span></div>
+                            <div class="flex items-center gap-1.5"><span class="text-emerald-600 font-bold">✓</span> <span>Parche contra vulnerabilidad crítica de formularios</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reporte Hace Dos Meses -->
+                <div class="relative">
+                    <span class="absolute -left-[31px] sm:-left-[39px] top-1 w-5 h-5 rounded-full bg-slate-300 border-4 border-white shadow-xs"></span>
+                    
+                    <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200/90 shadow-2xs space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-slate-200 text-slate-700 font-mono text-[11px] font-black px-2 py-0.5 rounded-md">v2.2.0</span>
+                                <h4 class="font-extrabold text-sm sm:text-base text-slate-900">Puesta a Punto Inicial y Migración: Agosto 2026</h4>
+                            </div>
+                            <span class="text-xs text-slate-400 font-medium">Ejecutado el 30/08/2026</span>
+                        </div>
+
+                        <p class="text-xs text-slate-600 leading-relaxed font-normal">
+                            At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. CONTACTO TÉCNICO Y CONTRATACIÓN -->
+    <section id="contacto" class="py-20 lg:py-28 bg-slate-50">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6">
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-xl p-7 sm:p-10">
+                <div class="text-center mb-8">
+                    <span class="text-ops-primary font-extrabold uppercase text-xs tracking-wider bg-sky-50 px-3 py-1 rounded-md border border-sky-100">
+                        Atención Técnica
+                    </span>
+                    <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mt-2 mb-2">Comenzar Cobertura Mensual</h3>
+                    <p class="text-xs sm:text-sm text-slate-500 font-medium">Seleccioná tu plan y dejanos la URL de tu sitio para una auditoría inicial gratuita.</p>
+                </div>
+
+                <form id="supportForm" onsubmit="handleSupportSubmit(event)" class="space-y-4 text-xs sm:text-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">Nombre o Empresa *</label>
+                            <input type="text" required placeholder="Ej: Juan Pérez / Tech S.A." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-ops-primary focus:bg-white transition-all font-medium">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">URL de tu Sitio Web *</label>
+                            <input type="url" required placeholder="https://tusitio.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-ops-primary focus:bg-white transition-all font-medium">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">Plan de Interés *</label>
+                            <select required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-ops-primary focus:bg-white transition-all font-bold text-slate-800">
+                                <option value="estandar" selected>Plan Estándar (USD 35/mes) - Más Elegido</option>
+                                <option value="basico">Plan Básico (USD 20/mes)</option>
+                                <option value="amplio">Plan Amplio (USD 60/mes)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">WhatsApp / Email de Contacto *</label>
+                            <input type="text" required placeholder="+54 9 11 0000-0000 / email" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-ops-primary focus:bg-white transition-all font-medium">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1.5">Detalles Adicionales o Problemas Actuales</label>
+                        <textarea rows="3" placeholder="Lorem ipsum dolor sit amet, indicá si tu sitio presenta caídas, virus o lentitud actual..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 outline-none focus:border-ops-primary focus:bg-white transition-all font-medium"></textarea>
+                    </div>
+
+                    <!-- Mensaje de éxito -->
+                    <div id="supportSuccessAlert" class="hidden p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold text-center">
+                        ✓ Solicitud de soporte recibida. Realizaremos la auditoría preliminar de tu web y nos pondremos en contacto en breve.
+                    </div>
+
+                    <button type="submit" id="btnSupportSubmit" class="w-full py-3.5 px-6 rounded-2xl bg-ops-900 hover:bg-ops-primary text-white font-black text-sm shadow-md transition-all flex items-center justify-center gap-2">
+                        <span>Solicitar Auditoría y Alta del Plan</span>
+                        <span class="material-symbols-outlined text-[18px]">verified</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER TÉCNICO -->
+    <footer class="bg-slate-900 text-slate-400 py-10 text-xs border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+            <div>
+                <span class="font-extrabold text-white text-sm">WebCare<span class="text-ops-primary">Ops</span></span>
+                <span class="text-slate-400 ml-1">• Modelo D (Mantenimiento & Changelog Marca Blanca)</span>
+                <p class="text-[11px] text-slate-500 mt-1">© 2026 Todos los derechos reservados. Listo para agencias de desarrollo web.</p>
+            </div>
+            <div class="flex items-center gap-4 text-slate-400">
+                <a href="#planes" class="hover:text-white transition-colors">Planes USD 20/35/60</a>
+                <a href="#changelog" class="hover:text-white transition-colors">Changelog</a>
+                <a href="#contacto" class="hover:text-white transition-colors">Soporte</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT VANILLA -->
+    <script>
+        function handleSupportSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSupportSubmit');
+            const alert = document.getElementById('supportSuccessAlert');
+            const orig = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Procesando solicitud de cobertura...';
+
+            setTimeout(() => {
+                btn.innerHTML = '✓ Auditoría Solicitada';
+                btn.classList.remove('bg-ops-900', 'hover:bg-ops-primary');
+                btn.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+                alert.classList.remove('hidden');
+
+                setTimeout(() => {
+                    e.target.reset();
+                    btn.disabled = false;
+                    btn.innerHTML = orig;
+                    btn.classList.add('bg-ops-900', 'hover:bg-ops-primary');
+                    btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+                    alert.classList.add('hidden');
+                }, 4000);
+            }, 800);
+        }
+    </script>
+</body>
+</html>
