@@ -228,7 +228,9 @@ try {
         'hora_descanso_inicio' => 'VARCHAR(10) DEFAULT NULL',
         'hora_descanso_fin' => 'VARCHAR(10) DEFAULT NULL',
         'dias_trabajo' => "VARCHAR(50) DEFAULT '1,2,3,4,5,6'",
-        'horarios_detallados_json' => 'LONGTEXT DEFAULT NULL'
+        'horarios_detallados_json' => 'LONGTEXT DEFAULT NULL',
+        'intervalo_turnos' => "VARCHAR(50) DEFAULT 'servicio'",
+        'tiempo_entre_turnos' => 'INT DEFAULT 0'
     ];
 
     foreach ($configWebCols as $col => $def) {
@@ -345,8 +347,8 @@ try {
 
     try {
         $stmtConfigWeb = $pdo->prepare("INSERT INTO configuracion_web 
-            (id_negocio, titulo_banner, subtitulo_banner, color_primario, limite_eliminacion_dias, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json) 
-            VALUES (:id_n, :titulo, 'Bienvenido a nuestra agenda online', '#d11149', 30, :h_ap, :h_ci, :h_di, :h_df, :dias, :h_detallados)
+            (id_negocio, titulo_banner, subtitulo_banner, color_primario, limite_eliminacion_dias, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json, intervalo_turnos, tiempo_entre_turnos) 
+            VALUES (:id_n, :titulo, 'Bienvenido a nuestra agenda online', '#d11149', 30, :h_ap, :h_ci, :h_di, :h_df, :dias, :h_detallados, 'servicio', 0)
             ON DUPLICATE KEY UPDATE 
             titulo_banner = COALESCE(VALUES(titulo_banner), titulo_banner),
             hora_apertura = VALUES(hora_apertura),

@@ -173,7 +173,7 @@
                             <span class="material-symbols-outlined text-indigo-600 text-[20px]">dvr</span>
                             <span>Página Web & Colores</span>
                         </span>
-                        <span id="badge-web" class="text-[10px] font-extrabold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md shrink-0">Premium</span>
+                        <span id="badge-web" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Profesional+</span>
                     </button>
 
                     <button onclick="switchTab('estadisticas')" id="tab-estadisticas" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
@@ -293,7 +293,10 @@
                                 <span class="material-symbols-outlined text-3xl">edit_calendar</span>
                             </div>
                             <div class="flex-1">
-                                <h3 class="text-xl font-extrabold text-slate-900 mb-2">1. Gestionar Calendario</h3>
+                                <div class="flex flex-wrap items-center gap-2 mb-2">
+                                    <h3 class="text-xl font-extrabold text-slate-900">1. Gestionar Calendario</h3>
+                                    <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">Todos los Planes (Incluido en Plan Básico / Simple)</span>
+                                </div>
                                 <p class="text-slate-700 text-base leading-relaxed mb-3">
                                     <strong>¿Qué podés hacer?</strong> Administrar la grilla temporal de reservas de tu negocio en vista mensual o semanal.
                                 </p>
@@ -310,9 +313,12 @@
                                 <span class="material-symbols-outlined text-3xl">menu_book</span>
                             </div>
                             <div class="flex-1">
-                                <h3 class="text-xl font-extrabold text-slate-900 mb-2">2. Mi Agenda Virtual</h3>
+                                <div class="flex flex-wrap items-center gap-2 mb-2">
+                                    <h3 class="text-xl font-extrabold text-slate-900">2. Mi Agenda Virtual</h3>
+                                    <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-rose-100 text-[#D11149] border border-rose-200">Exclusivo Plan Profesional y Premium</span>
+                                </div>
                                 <p class="text-slate-700 text-base leading-relaxed mb-3">
-                                    <strong>¿Qué podés hacer?</strong> Es tu centro diario de recepción y control de los turnos de tus clientes.
+                                    <strong>¿Qué podés hacer?</strong> Es tu centro diario de recepción y control de los turnos de tus clientes. <strong>Disponible para Plan Profesional y Plan Premium</strong> (el Plan Básico / Simple cuenta exclusivamente con el módulo de Calendario).
                                 </p>
                                 <ul class="text-sm text-slate-600 space-y-2 font-medium list-disc list-inside">
                                     <li><strong>Filtros por Profesional:</strong> Los administradores pueden ver todos los turnos del negocio o filtrar por colaborador. Los profesionales ven únicamente su propia agenda.</li>
@@ -361,9 +367,12 @@
                                 <span class="material-symbols-outlined text-3xl">group</span>
                             </div>
                             <div class="flex-1">
-                                <h3 class="text-xl font-extrabold text-slate-900 mb-2">5. Equipo de Trabajo</h3>
+                                <div class="flex flex-wrap items-center gap-2 mb-2">
+                                    <h3 class="text-xl font-extrabold text-slate-900">5. Equipo y Profesionales</h3>
+                                    <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">Disponible en Todos los Niveles (Simple, Profesional y Premium)</span>
+                                </div>
                                 <p class="text-slate-700 text-base leading-relaxed mb-3">
-                                    <strong>¿Qué podés hacer?</strong> Dar de alta a los profesionales y asignar sus accesos.
+                                    <strong>¿Qué podés hacer?</strong> Dar de alta a los profesionales de tu negocio (de 1 a +5 profesionales según tu suscripción) en <strong>todos los niveles (Plan Básico/Simple, Profesional y Premium)</strong> y organizar la agenda de cada integrante.
                                 </p>
                                 <ul class="text-sm text-slate-600 space-y-2 font-medium list-disc list-inside">
                                     <li>Hacer clic en la tarjeta del profesional o en el botón <code>✏️ Editar</code> para configurar sus permisos.</li>
@@ -579,7 +588,7 @@
                                 Controlá cada cuánto tiempo se generan las opciones de turno en tu web:
                             </p>
                             <ul class="text-xs sm:text-sm text-indigo-950 space-y-2 font-medium list-disc list-inside">
-                                <li><strong>Frecuencia de reserva:</strong> Podés armar bloques cada 15, 30 o 60 minutos según tu ritmo de trabajo.</li>
+                                <li><strong>Según la duración del servicio (Por defecto):</strong> Los bloques horarios se adaptan automáticamente a la duración de tus servicios (+ el tiempo de descanso entre turnos que elijas en Ajustes). Si tenés varios servicios de distinta duración, el calendario genera bloques tomando el más largo y se reajusta dinámicamente si reservan uno más corto.</li>
                                 <li><strong>Anticipación mínima:</strong> Configurá con cuántas horas de anticipación te pueden reservar (ej. exigir reserva 2 horas antes para darte tiempo a prepararte).</li>
                             </ul>
                         </div>
@@ -709,8 +718,9 @@
                         <div class="flex items-start gap-3">
                             <span class="material-symbols-outlined text-purple-600 text-2xl">workspace_premium</span>
                             <div>
-                                <h3 class="font-bold text-purple-900 text-sm mb-1">Página Web Integrada Exclusiva del Plan Premium</h3>
-                                <p class="text-xs text-purple-800 leading-relaxed mb-3">La creación y edición de tu Página Web propia e independiente está reservada para cuentas con Plan Premium activo.</p>
+                                <h3 class="font-bold text-purple-900 text-sm mb-1">Página Web Propia para Plan Profesional y Premium</h3>
+                                <p class="text-xs text-purple-800 leading-relaxed mb-3">La creación y edición de tu Página Web propia e independiente está habilitada para cuentas con Plan Profesional y Plan Premium.</p>
+
                                 <button onclick="switchTab('planes')" class="inline-flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white font-extrabold px-4 py-2 rounded-xl text-xs shadow-xs transition-all border-none cursor-pointer">
                                     <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Ver Alcance Plan Premium
                                 </button>

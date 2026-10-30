@@ -151,8 +151,116 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicializar estado del ayuda del intervalo de turnos
     if (typeof window.updateIntervalHelpText === 'function') {
         window.updateIntervalHelpText();
+        if (typeof window.updateTiempoEntreTurnosHelp === 'function') window.updateTiempoEntreTurnosHelp();
+        if (typeof window.initAjustesCardsStyling === 'function') window.initAjustesCardsStyling();
     }
 });
+
+window.currentAjustesCat = 'all';
+
+window.initAjustesCardsStyling = function() {
+    const markers = document.querySelectorAll('[data-ajustes-marker]');
+    markers.forEach((m) => {
+        const cat = m.getAttribute('data-ajustes-marker');
+        const card = m.closest('.bg-white.rounded-2xl');
+        if (card && cat) {
+            card.setAttribute('data-ajustes-card', cat);
+            const useSecondary = (cat === 'horarios' || cat === 'pagos' || cat === 'fidelizacion');
+            card.style.borderTop = useSecondary
+                ? '4px solid var(--color-secundario, #fc8712)'
+                : '4px solid var(--color-primario, #d11149)';
+        }
+    });
+};
+
+window.selectAjustesCategory = function(cat) {
+    window.currentAjustesCat = cat || 'all';
+    const chips = document.querySelectorAll('#ajustesCategoryChips .ajustes-chip');
+    chips.forEach(chip => {
+        const c = chip.getAttribute('data-cat');
+        const icon = chip.querySelector('.material-symbols-outlined');
+        if (c === window.currentAjustesCat) {
+            chip.className = 'ajustes-chip px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 shadow-sm text-white cursor-pointer';
+            chip.style.backgroundColor = 'var(--color-primario, #d11149)';
+            if (icon) icon.style.color = '#ffffff';
+        } else {
+            chip.className = 'ajustes-chip px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 cursor-pointer';
+            chip.style.backgroundColor = '';
+            if (icon) {
+                const useSec = (c === 'horarios' || c === 'pagos' || c === 'fidelizacion');
+                icon.style.color = useSec ? 'var(--color-secundario, #fc8712)' : 'var(--color-primario, #d11149)';
+            }
+        }
+    });
+    window.filterAjustesSections();
+};
+
+window.filterAjustesSections = function() {
+    const inp = document.getElementById('ajustesSearchInput');
+    const clearBtn = document.getElementById('btnClearAjustesSearch');
+    const query = (inp ? inp.value : '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (clearBtn) {
+        clearBtn.classList.toggle('hidden', query.length === 0);
+    }
+
+    const cards = document.querySelectorAll('[data-ajustes-card]');
+    let visibleCount = 0;
+    cards.forEach(card => {
+        const cat = card.getAttribute('data-ajustes-card');
+        const matchesCat = (window.currentAjustesCat === 'all' || cat === window.currentAjustesCat);
+        let matchesQuery = true;
+        if (query.length > 0) {
+            const textContent = (card.innerText || card.textContent || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            matchesQuery = textContent.includes(query);
+        }
+        if (matchesCat && matchesQuery) {
+            card.classList.remove('hidden');
+            visibleCount++;
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+
+    const noRes = document.getElementById('ajustesNoSearchResults');
+    if (noRes) {
+        noRes.classList.toggle('hidden', visibleCount > 0);
+    }
+};
+
+window.clearAjustesSearch = function() {
+    const inp = document.getElementById('ajustesSearchInput');
+    if (inp) inp.value = '';
+    window.selectAjustesCategory('all');
+};
+
+window.updateTiempoEntreTurnosHelp = function() {
+    const select = document.getElementById('configTiempoEntreTurnos');
+    const customDiv = document.getElementById('divTiempoEntreTurnosCustom');
+    const customInp = document.getElementById('inputTiempoEntreTurnosCustom');
+    const helpText = document.getElementById('tiempoEntreTurnosHelpText');
+    if (!select) return;
+
+    const val = select.value;
+    if (val === 'custom') {
+        if (customDiv) customDiv.classList.remove('hidden');
+        const customMins = Math.max(0, parseInt(customInp?.value, 10) || 10);
+        if (helpText) {
+            helpText.innerHTML = `☕ <strong>+${customMins} minutos de descanso entre turnos:</strong> Al generar los horarios en tu calendario, cada bloque sumará <strong>Duración del Servicio + ${customMins} min de descanso</strong>. En el último turno de la mañana o del día, el turno podrá reservarse igualmente aunque el descanso posterior caiga después del horario de cierre.`;
+        }
+    } else {
+        if (customDiv) customDiv.classList.add('hidden');
+        const mins = Math.max(0, parseInt(val, 10) || 0);
+        if (mins === 0) {
+            if (helpText) {
+                helpText.innerHTML = `💡 <strong>Turnos continuos (0 min de descanso):</strong> Los turnos se generarán uno inmediatamente después del otro según la duración del servicio. Si deseas dejar unos minutos libres entre clientes, selecciona un tiempo arriba.`;
+            }
+        } else {
+            if (helpText) {
+                helpText.innerHTML = `☕ <strong>+${mins} minutos de descanso entre turnos:</strong> Por ejemplo, si un servicio dura 45 min y eliges ${mins} min de descanso, el siguiente turno disponible será a los ${45 + mins} min. En el último turno del turno/día no habrá problema con el descanso posterior al cierre.`;
+            }
+        }
+    }
+};
 
 window.updateIntervalHelpText = function() {
     const select = document.getElementById('configIntervalo');
@@ -317,6 +425,22 @@ window.applyCalendarConfigToForm = function(data) {
             if (customInp) customInp.value = valInter;
         }
         window.updateIntervalHelpText();
+        if (typeof window.updateTiempoEntreTurnosHelp === 'function') window.updateTiempoEntreTurnosHelp();
+        if (typeof window.initAjustesCardsStyling === 'function') window.initAjustesCardsStyling();
+    }
+
+    const selectDescanso = form.querySelector('#configTiempoEntreTurnos');
+    if (selectDescanso) {
+        const valDesc = (data.tiempo_entre_turnos !== undefined && data.tiempo_entre_turnos !== null) ? String(parseInt(data.tiempo_entre_turnos, 10) || 0) : '0';
+        const knownDesc = ['0', '5', '10', '15', '20', '30', '45', '60'];
+        if (knownDesc.includes(valDesc)) {
+            selectDescanso.value = valDesc;
+        } else {
+            selectDescanso.value = 'custom';
+            const customDescInp = form.querySelector('#inputTiempoEntreTurnosCustom');
+            if (customDescInp) customDescInp.value = valDesc;
+        }
+        if (typeof window.updateTiempoEntreTurnosHelp === 'function') window.updateTiempoEntreTurnosHelp();
     }
 
     if (data.limite_eliminacion_dias !== undefined) {
@@ -391,11 +515,21 @@ window.setPrimerDiaSemana = function(val) {
     const btnDomingo = document.getElementById('btnPrimerDiaDomingo');
     if (btnLunes && btnDomingo) {
         if (cleanVal === '1') {
-            btnLunes.className = 'px-5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white text-slate-900 shadow-xs';
-            btnDomingo.className = 'px-5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-500 hover:text-slate-800';
+            btnLunes.className = 'px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all flex items-center gap-1.5 text-white shadow-md cursor-pointer';
+            btnLunes.style.backgroundColor = 'var(--color-primario, #d11149)';
+            btnLunes.innerHTML = '<span class="material-symbols-outlined text-[16px]">check_circle</span> Lunes';
+            btnDomingo.className = 'px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-white/60 cursor-pointer';
+            btnDomingo.style.backgroundColor = '';
+            btnDomingo.innerHTML = '<span class="material-symbols-outlined text-[16px] opacity-50">radio_button_unchecked</span> Domingo';
+            // Domingo inactivo
         } else {
-            btnDomingo.className = 'px-5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white text-slate-900 shadow-xs';
-            btnLunes.className = 'px-5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-500 hover:text-slate-800';
+            btnDomingo.className = 'px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all flex items-center gap-1.5 text-white shadow-md cursor-pointer';
+            btnDomingo.style.backgroundColor = 'var(--color-primario, #d11149)';
+            btnDomingo.innerHTML = '<span class="material-symbols-outlined text-[16px]">check_circle</span> Domingo';
+            btnLunes.className = 'px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-white/60 cursor-pointer';
+            btnLunes.style.backgroundColor = '';
+            btnLunes.innerHTML = '<span class="material-symbols-outlined text-[16px] opacity-50">radio_button_unchecked</span> Lunes';
+            // Lunes inactivo
         }
     }
 };
@@ -1171,6 +1305,12 @@ function handleCalendarConfigSubmit(e) {
     if (intervalo === 'custom') {
         intervalo = form.querySelector('#inputIntervaloCustom')?.value || 30;
     }
+    let rawTiempoEntre = form.querySelector('#configTiempoEntreTurnos')?.value || '0';
+    let tiempoEntreTurnos = (rawTiempoEntre === 'custom')
+        ? Math.max(0, parseInt(form.querySelector('#inputTiempoEntreTurnosCustom')?.value, 10) || 0)
+        : Math.max(0, parseInt(rawTiempoEntre, 10) || 0);
+    if (false) {
+    }
 
     // Recolectar métodos de pago (excluyendo deshabilitados)
     const metodosArr = Array.from(form.querySelectorAll('input[name="metodos_pago_arr"]:checked:not(:disabled)')).map(cb => cb.value);
@@ -1196,7 +1336,8 @@ function handleCalendarConfigSubmit(e) {
         turnos_simultaneos: form.querySelector('#configSimultaneos')?.value,
         confirmacion_automatica: form.querySelector('#configConfirmacionAutomatica')?.value,
         anticipacion_turno_min: form.querySelector('#configAnticipacionMin')?.value,
-        intervalo_turnos: intervalo,
+        intervalo_turnos: intervalo || 'servicio',
+        tiempo_entre_turnos: tiempoEntreTurnos,
         tipo_calendario: tipoCalendario,
         usar_fondo_degrade: form.querySelector('#configFondoDegrade')?.checked ? 1 : 0,
         notificaciones_email: form.querySelector('#notificacionesEmail')?.checked ? 1 : 0,

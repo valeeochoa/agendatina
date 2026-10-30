@@ -190,7 +190,8 @@ foreach ([
     'datos_transferencia' => 'TEXT DEFAULT NULL',
     'porcentaje_sena' => 'INT DEFAULT 50',
     'usar_cupones_descuento' => 'TINYINT(1) DEFAULT 0',
-    'whatsapp_contacto' => 'VARCHAR(50) DEFAULT NULL'
+    'whatsapp_contacto' => 'VARCHAR(50) DEFAULT NULL',
+    'tiempo_entre_turnos' => 'INT DEFAULT 0'
 ] as $colCw => $defCw) {
     try { $pdo->query("SELECT $colCw FROM configuracion_web LIMIT 1"); }
     catch(Exception $eCw) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN $colCw $defCw"); } catch(Exception $eCw2) {} }
@@ -235,7 +236,7 @@ try {
         exit;
     }
 
-    $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, reserva_sena_1h, whatsapp_comprobante, datos_transferencia, porcentaje_sena, usar_cupones_descuento, whatsapp_contacto FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
+    $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos, tiempo_entre_turnos, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, reserva_sena_1h, whatsapp_comprobante, datos_transferencia, porcentaje_sena, usar_cupones_descuento, whatsapp_contacto FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
     $stmtConfig->execute(['id' => $id_negocio]);
     $configWeb = $stmtConfig->fetch(PDO::FETCH_ASSOC);
 
@@ -332,6 +333,7 @@ try {
 
         $nuevoInicio = strtotime("$fecha $hora:00");
         $nuevoFin = $nuevoInicio + ($duracion_nuevo * 60);
+        $bufferSec = max(0, (int)($configWeb['tiempo_entre_turnos'] ?? 0)) * 60;
 
         $choque = false;
         $cuposOcupados = 0;
@@ -342,7 +344,7 @@ try {
             $tFin = $tInicio + ($duracion_existente * 60);
 
             // Superposición: Si el nuevo turno inicia antes de que termine el otro, y termina después de que el otro inicie
-            if ($nuevoInicio < $tFin && $nuevoFin > $tInicio) {
+            if ($nuevoInicio < ($tFin + $bufferSec) && ($nuevoFin + $bufferSec) > $tInicio) {
                 if ($te['id_servicio'] == $id_servicio && $tInicio == $nuevoInicio && $capacidad_nuevo > 1) {
                     $cuposOcupados++;
                 } else {

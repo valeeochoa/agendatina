@@ -55,7 +55,6 @@
                     <span class="hidden sm:inline">Guardar Ajustes</span>
                 </button>
             </div>
-            </div>
         </div>
     </nav>
 
@@ -63,10 +62,62 @@
         <div class="mb-10">
             <h1 class="text-3xl font-extrabold font-display mb-2">Ajustes del Sistema</h1>
             <p class="text-slate-500">Configura colores, horarios de atención y la modalidad de tus turnos.</p>
+
+            <!-- Buscador y Chips / Clips de Segmentos de Ajustes (ID #36) -->
+            <div class="mt-6 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
+                    <input type="text" id="ajustesSearchInput" oninput="filterAjustesSections()" placeholder="Buscar en ajustes (ej: descanso entre turnos, horarios, seña, alias, cupones, lunes...)" class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-10 py-3 text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 outline-none transition-all" style="--tw-ring-color: var(--color-primario, #d11149);">
+                    <button type="button" id="btnClearAjustesSearch" onclick="clearAjustesSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1 rounded-lg">
+                        <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                </div>
+
+                <div>
+                    <span class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-400 mb-2">Segmentos de Configuración:</span>
+                    <div class="flex flex-wrap items-center gap-2" id="ajustesCategoryChips">
+                        <button type="button" data-cat="all" onclick="selectAjustesCategory('all')" class="ajustes-chip px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all flex items-center gap-1.5 shadow-sm text-white cursor-pointer" style="background-color: var(--color-primario, #d11149);">
+                            <span class="material-symbols-outlined text-[16px]">apps</span> Todo
+                        </button>
+                        <button type="button" data-cat="diseno" onclick="selectAjustesCategory('diseno')" class="ajustes-chip px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]" style="color: var(--color-primario, #d11149);">calendar_view_month</span> Calendario y Diseño
+                        </button>
+                        <button type="button" data-cat="horarios" onclick="selectAjustesCategory('horarios')" class="ajustes-chip px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]" style="color: var(--color-secundario, #fc8712);">schedule</span> Horarios
+                        </button>
+                        <button type="button" data-cat="turnos" onclick="selectAjustesCategory('turnos')" class="ajustes-chip px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]" style="color: var(--color-primario, #d11149);">event_repeat</span> Turnos y Descansos
+                        </button>
+                        <button type="button" data-cat="pagos" onclick="selectAjustesCategory('pagos')" class="ajustes-chip px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]" style="color: var(--color-secundario, #fc8712);">payments</span> Pagos y Señas
+                        </button>
+                        <button type="button" data-cat="modalidad" onclick="selectAjustesCategory('modalidad')" class="ajustes-chip px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]" style="color: var(--color-primario, #d11149);">groups</span> Modalidad y Cupos
+                        </button>
+                        <button type="button" data-cat="fidelizacion" onclick="selectAjustesCategory('fidelizacion')" class="ajustes-chip px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]" style="color: var(--color-secundario, #fc8712);">loyalty</span> Fidelización y Cupones
+                        </button>
+                        <button type="button" data-cat="notificaciones" onclick="selectAjustesCategory('notificaciones')" class="ajustes-chip px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200/80 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]" style="color: var(--color-primario, #d11149);">notifications_active</span> Notificaciones
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ajustesNoSearchResults" class="hidden mt-4 p-8 bg-white rounded-2xl border border-dashed border-slate-300 text-center">
+                <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">search_off</span>
+                <p class="text-sm font-bold text-slate-700">No encontramos opciones que coincidan con tu búsqueda.</p>
+                <button type="button" onclick="clearAjustesSearch()" class="mt-3 text-xs font-extrabold px-4 py-2 rounded-xl text-white cursor-pointer" style="background-color: var(--color-primario, #d11149);">Mostrar todos los ajustes</button>
+            </div>
         </div>
 
         <form id="calendarConfigForm" class="space-y-8">
             <div class="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-slate-200">
+                <div data-ajustes-marker="diseno" class="flex items-center gap-2 mb-3">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider text-white shadow-2xs flex items-center gap-1" style="background-color: var(--color-primario, #d11149);">
+                        <span class="material-symbols-outlined text-[14px]">calendar_view_month</span> Calendario y Diseño
+                    </span>
+                </div>
                 <label class="block text-sm font-semibold text-slate-600 mb-2">Diseño del Calendario</label>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <!-- Radio Clásico -->
@@ -87,18 +138,19 @@
                     </label>
                 </div>
 
-                <!-- Primer día de la semana -->
+                <!-- Primer día de la semana (ID #30) -->
                 <div class="mt-5 pt-5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <label class="block text-sm font-extrabold text-slate-800">Primer día de la semana</label>
                         <span class="block text-xs text-slate-500 mt-0.5">Define con qué día inicia la grilla de tu calendario.</span>
                     </div>
-                    <div class="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200/80 self-start sm:self-auto">
-                        <button type="button" id="btnPrimerDiaLunes" onclick="setPrimerDiaSemana('1')" class="px-5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all bg-white text-slate-900 shadow-xs">
-                            Lunes
+
+                    <div class="inline-flex bg-slate-200/80 p-1.5 rounded-2xl border border-slate-300/80 self-start sm:self-auto gap-1 shadow-inner">
+                        <button type="button" id="btnPrimerDiaLunes" onclick="setPrimerDiaSemana('1')" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all flex items-center gap-1.5 text-white shadow-md cursor-pointer" style="background-color: var(--color-primario, #d11149);">
+                            <span class="material-symbols-outlined text-[16px]">check_circle</span> Lunes
                         </button>
-                        <button type="button" id="btnPrimerDiaDomingo" onclick="setPrimerDiaSemana('0')" class="px-5 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all text-slate-500 hover:text-slate-800">
-                            Domingo
+                        <button type="button" id="btnPrimerDiaDomingo" onclick="setPrimerDiaSemana('0')" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 text-slate-600 hover:text-slate-900 hover:bg-white/60 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px] opacity-50">radio_button_unchecked</span> Domingo
                         </button>
                     </div>
                     <input type="hidden" id="configPrimerDiaSemana" name="primer_dia_semana" value="1">
@@ -124,6 +176,11 @@
             <div class="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-slate-200">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-4 border-b border-slate-100">
                     <div>
+                        <div data-ajustes-marker="horarios" class="flex items-center gap-2 mb-1.5">
+                            <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-white shadow-2xs flex items-center gap-1" style="background-color: var(--color-secundario, #fc8712);">
+                                <span class="material-symbols-outlined text-[13px]">schedule</span> Horarios
+                            </span>
+                        </div>
                         <h2 class="text-xl font-bold text-slate-800">Horarios de Atención</h2>
                         <p class="text-sm text-slate-500 mt-0.5">Define los días y franjas de trabajo de tu negocio.</p>
                     </div>
@@ -137,7 +194,6 @@
                 
                 <!-- Resumen Visual de Horarios Personalizados por Día (Lunes a Domingo) -->
                 <div id="horariosDetalladosResumenContainer" class="mb-6 hidden bg-purple-50/80 border border-purple-200/80 rounded-2xl p-4 transition-all"></div>
-                
                 
                 <div class="grid grid-cols-2 gap-3 sm:gap-6">
                     <div class="min-w-0">
@@ -170,6 +226,11 @@
                         <span class="material-symbols-outlined text-xl">payments</span>
                     </div>
                     <div>
+                        <div data-ajustes-marker="pagos" class="flex items-center gap-2 mb-1">
+                            <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-white shadow-2xs flex items-center gap-1" style="background-color: var(--color-secundario, #fc8712);">
+                                <span class="material-symbols-outlined text-[13px]">payments</span> Pagos y Señas
+                            </span>
+                        </div>
                         <h2 class="text-xl font-bold text-slate-800">Métodos de Pago Aceptados</h2>
                         <p class="text-sm text-slate-500">Selecciona cómo tus clientes pueden abonar o dejar seña por sus turnos.</p>
                     </div>
@@ -276,6 +337,11 @@
             </div>
 
             <div class="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-slate-200">
+                <div data-ajustes-marker="turnos" class="flex items-center gap-2 mb-2">
+                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider text-white shadow-2xs flex items-center gap-1" style="background-color: var(--color-primario, #d11149);">
+                        <span class="material-symbols-outlined text-[14px]">event_repeat</span> Turnos y Descansos
+                    </span>
+                </div>
                 <h2 class="text-xl font-bold mb-4">Modalidad de Turnos</h2>
                 <p class="text-sm text-slate-500 mb-6">Configura cómo y cada cuánto tiempo pueden reservar tus clientes.</p>
                 <div class="space-y-6">
@@ -303,6 +369,39 @@
                             </span>
                         </div>
                     </div>
+
+                    <!-- Tiempo de descanso / preparación entre turnos (ID #37) -->
+                    <div class="p-4 sm:p-5 bg-slate-50/90 border border-slate-200 rounded-2xl space-y-3" style="border-left: 4px solid var(--color-secundario, #fc8712);">
+                        <div class="flex items-center justify-between gap-2">
+                            <label class="block text-sm font-extrabold text-slate-800 flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[20px]" style="color: var(--color-secundario, #fc8712);">coffee</span>
+                                <span>Tiempo de descanso / preparación entre turnos</span>
+                            </label>
+                            <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 shrink-0">Opcional</span>
+                        </div>
+                        <p class="text-xs text-slate-500">Elige cuántos minutos libres deseas dejar entre un turno y el siguiente para descansar, higienizar el gabinete o preparar materiales.</p>
+                        <select id="configTiempoEntreTurnos" name="tiempo_entre_turnos" onchange="updateTiempoEntreTurnosHelp()" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 outline-none transition-all font-bold text-slate-800" style="--tw-ring-color: var(--color-secundario, #fc8712);">
+                            <option value="0" selected>Sin descanso adicional entre turnos (0 min - Continuos)</option>
+                            <option value="5">☕ + 5 minutos de descanso entre turnos</option>
+                            <option value="10">☕ + 10 minutos de descanso entre turnos</option>
+                            <option value="15">☕ + 15 minutos de descanso entre turnos</option>
+                            <option value="20">☕ + 20 minutos de descanso entre turnos</option>
+                            <option value="30">☕ + 30 minutos de descanso entre turnos</option>
+                            <option value="45">☕ + 45 minutos de descanso entre turnos</option>
+                            <option value="60">☕ + 1 hora (60 min) de descanso entre turnos</option>
+                            <option value="custom">⚙️ Personalizado (Elegir minutos exactos)...</option>
+                        </select>
+                        <div id="divTiempoEntreTurnosCustom" class="hidden p-3 bg-white border border-amber-200 rounded-xl">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Minutos de descanso entre turnos:</label>
+                            <input type="number" id="inputTiempoEntreTurnosCustom" min="1" max="240" placeholder="Ej: 12" oninput="updateTiempoEntreTurnosHelp()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-800 outline-none">
+                        </div>
+                        <div class="text-xs text-slate-600 bg-white border border-slate-200/80 rounded-xl p-3 leading-relaxed">
+                            <span id="tiempoEntreTurnosHelpText">
+                                💡 <strong>¿Cómo funciona?</strong> Al generar los horarios en tu calendario, cada bloque sumará <strong>Duración del Servicio + Tiempo de Descanso</strong>. En el último turno de la mañana o del día, el turno podrá reservarse igualmente aunque el tiempo de descanso posterior caiga después del horario de cierre.
+                            </span>
+                        </div>
+                    </div>
+
                     <div>
                         <div class="flex items-center justify-between gap-2 mb-1">
                             <label class="block text-sm font-semibold text-slate-700">¿Permitir turnos simultáneos por profesional?</label>
@@ -378,6 +477,11 @@
             <!-- Modalidad de Reserva y Registro de Clientes -->
             <div class="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-slate-200 mb-6">
                 <div class="mb-6">
+                    <div data-ajustes-marker="modalidad" class="flex items-center gap-2 mb-2">
+                        <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-white shadow-2xs flex items-center gap-1" style="background-color: var(--color-primario, #d11149);">
+                            <span class="material-symbols-outlined text-[13px]">groups</span> Modalidad y Cupos
+                        </span>
+                    </div>
                     <h2 class="text-xl font-bold mb-1 text-slate-900">Modalidad de Reserva y Registro de Clientes</h2>
                     <p class="text-sm text-slate-500">Elige cómo interactúan tus clientes al solicitar un turno o clase en tu negocio.</p>
                 </div>
@@ -455,6 +559,11 @@
                             <span class="material-symbols-outlined text-xl">loyalty</span>
                         </div>
                         <div>
+                            <div data-ajustes-marker="fidelizacion" class="flex items-center gap-2 mb-1">
+                                <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-white shadow-2xs flex items-center gap-1" style="background-color: var(--color-secundario, #fc8712);">
+                                    <span class="material-symbols-outlined text-[13px]">loyalty</span> Fidelización y Cupones
+                                </span>
+                            </div>
                             <h2 class="text-lg sm:text-xl font-bold text-slate-900">Fidelización, Mensajes Automáticos y Cupones</h2>
                             <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Elige si deseas preparar recordatorios de retorno para tus clientes y habilitar cupones de descuento.</p>
                         </div>
@@ -509,6 +618,11 @@
                             <span class="material-symbols-outlined text-xl">mail</span>
                         </div>
                         <div>
+                            <div data-ajustes-marker="notificaciones" class="flex items-center gap-2 mb-1">
+                                <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-white shadow-2xs flex items-center gap-1" style="background-color: var(--color-primario, #d11149);">
+                                    <span class="material-symbols-outlined text-[13px]">notifications_active</span> Notificaciones
+                                </span>
+                            </div>
                             <h3 class="text-base font-extrabold text-slate-900">Activar Notificaciones por Email</h3>
                             <p class="text-xs text-slate-500 font-medium mt-0.5">Envía avisos y comprobantes por correo electrónico de manera automática cuando se reserve, confirme o cancele un turno.</p>
                         </div>
@@ -642,6 +756,6 @@
     </div>
 
     <script src="assets/js/script.js?v=1.6.0" defer></script>
-    <script src="assets/js/ajustes.js?v=1.6.1" defer></script>
+    <script src="assets/js/ajustes.js?v=1.7.0" defer></script>
 </body>
 </html>

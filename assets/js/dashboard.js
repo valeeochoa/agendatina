@@ -503,6 +503,13 @@ window.startTour = function() {
     if(!overlay || !tooltip || !highlight) return;
     
     document.body.style.overflow = '';
+    document.querySelectorAll('.fade-up').forEach(el => {
+        el.style.animation = 'none';
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+        el.style.position = '';
+        el.style.zIndex = '';
+    });
 
     overlay.classList.remove('hidden');
     highlight.classList.remove('hidden');
@@ -548,6 +555,13 @@ window.endTour = function() {
     if (overlay) overlay.classList.add('opacity-0');
 
     document.body.style.overflow = '';
+    document.querySelectorAll('.fade-up').forEach(el => {
+        el.style.animation = 'none';
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+        el.style.position = '';
+        el.style.zIndex = '';
+    });
     window.removeEventListener('resize', tourResizeListener);
     window.removeEventListener('scroll', tourResizeListener, true);
     isAutoScrolling = false;
@@ -634,8 +648,11 @@ function showLegacyTourStep(index, doScroll = true) {
     const nav = target.closest('nav');
     const fadeParent = target.closest('.fade-up');
     if (fadeParent && fadeParent !== target) {
-        fadeParent.style.position = 'relative';
-        fadeParent.style.zIndex = '202';
+        fadeParent.style.animation = 'none';
+        fadeParent.style.opacity = '1';
+        fadeParent.style.transform = 'none';
+        fadeParent.style.position = '';
+        fadeParent.style.zIndex = '';
     }
     if (nav) nav.style.zIndex = '202';
 

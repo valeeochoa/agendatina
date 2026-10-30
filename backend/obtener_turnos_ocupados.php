@@ -32,7 +32,9 @@ try {
    // Obtener configuración web del negocio (horarios, días laborables, etc.)
     try { $pdo->query("SELECT usar_cupones_descuento FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN usar_cupones_descuento TINYINT(1) DEFAULT 0"); } catch (Exception $eCol2) {} }
     try { $pdo->query("SELECT reserva_sena_1h FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN reserva_sena_1h TINYINT(1) DEFAULT 0"); } catch (Exception $eCol2) {} }
-    $stmtConf = $pdo->prepare("SELECT hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json, intervalo_turnos, primer_dia_semana, turnos_simultaneos, modo_reservas, usar_cupones_descuento, reserva_sena_1h FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");
+    try { $pdo->query("SELECT reserva_sena_1h FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN reserva_sena_1h TINYINT(1) DEFAULT 0"); } catch (Exception $eCol2) {} }
+    try { $pdo->query("SELECT tiempo_entre_turnos FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN tiempo_entre_turnos INT DEFAULT 0"); } catch (Exception $eCol2) {} }
+    $stmtConf = $pdo->prepare("SELECT hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json, intervalo_turnos, tiempo_entre_turnos, primer_dia_semana, turnos_simultaneos, modo_reservas, usar_cupones_descuento, reserva_sena_1h FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");
     $stmtConf->execute(['id_negocio' => $id_negocio]);
     $conf = $stmtConf->fetch(PDO::FETCH_ASSOC);
 
@@ -49,7 +51,8 @@ try {
         'hora_descanso_fin' => $conf['hora_descanso_fin'] ?? '',
         'dias_trabajo' => $diasTrabajo,
         'horarios_detallados_json' => !empty($conf['horarios_detallados_json']) ? $conf['horarios_detallados_json'] : '{}',
-        'intervalo_turnos' => !empty($conf['intervalo_turnos']) ? $conf['intervalo_turnos'] : '30',
+        'intervalo_turnos' => !empty($conf['intervalo_turnos']) ? $conf['intervalo_turnos'] : 'servicio',
+        'tiempo_entre_turnos' => max(0, (int)($conf['tiempo_entre_turnos'] ?? 0)),
         'primer_dia_semana' => (int)($conf['primer_dia_semana'] ?? 1),
         'turnos_simultaneos' => $permiteSimultaneos ? 'si' : 'no',
         'modo_reservas' => $conf['modo_reservas'] ?? 'libre',
@@ -113,12 +116,15 @@ try {
         list($endH, $endM) = explode(':', $hEnd);
         $startMins = ((int)$startH * 60) + (int)$startM;
         $endMins = ((int)$endH * 60) + (int)$endM;
+        $tiempoEntreTurnos = max(0, (int)($conf['tiempo_entre_turnos'] ?? 0));
+        $endMinsWithBuffer = $endMins + $tiempoEntreTurnos;
 
         $ocupados['_details'][$f][] = [
             'start' => $hStart,
             'end' => $hEnd,
             'startMins' => $startMins,
             'endMins' => $endMins,
+            'endMinsWithBuffer' => $endMinsWithBuffer,
             'duracion' => $duracionMin,
             'cupo_maximo' => $cupo,
             'profesional' => $prof,
@@ -149,7 +155,7 @@ try {
         // Agregar los cortes de tiempo ocupados durante la atención
         if (!$permiteSimultaneos) {
             // El negocio NO permite simultáneos: admite una sola persona por horario en todo el negocio
-            for ($subMins = $startMins; $subMins < $endMins; $subMins += $sliceStep) {
+            for ($subMins = $startMins; $subMins < $endMinsWithBuffer; $subMins += $sliceStep) {
                 $curH = str_pad((string)floor($subMins / 60), 2, '0', STR_PAD_LEFT);
                 $curM = str_pad((string)($subMins % 60), 2, '0', STR_PAD_LEFT);
                 $slotHora = "{$curH}:{$curM}";
@@ -172,7 +178,7 @@ try {
             if (!isset($ocupados['_by_service'][$servId])) $ocupados['_by_service'][$servId] = [];
             if (!isset($ocupados['_by_service'][$servId][$f])) $ocupados['_by_service'][$servId][$f] = [];
 
-            for ($subMins = $startMins; $subMins < $endMins; $subMins += $sliceStep) {
+            for ($subMins = $startMins; $subMins < $endMinsWithBuffer; $subMins += $sliceStep) {
                 $curH = str_pad((string)floor($subMins / 60), 2, '0', STR_PAD_LEFT);
                 $curM = str_pad((string)($subMins % 60), 2, '0', STR_PAD_LEFT);
                 $slotHora = "{$curH}:{$curM}";

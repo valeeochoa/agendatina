@@ -326,6 +326,16 @@ function getServiceDuration(serviceName = null, profName = null) {
     if (!match && cleanName) {
         match = services.find(s => String(s.nombre || '').trim().toLowerCase() === cleanName);
     }
+    if (!match && !cleanName) {
+        const candidateServices = cleanProf
+            ? services.filter(s => String(s.profesional || '').trim().toLowerCase() === cleanProf)
+            : services;
+        const list = (candidateServices && candidateServices.length > 0) ? candidateServices : services;
+        const durations = list.map(s => parseInt(s.duracion || s.duracion_minutos, 10)).filter(d => !isNaN(d) && d > 0);
+        if (durations.length > 0) {
+            return Math.max(...durations);
+        }
+    }
     if (!match && cleanProf) {
         match = services.find(s => String(s.profesional || '').trim().toLowerCase() === cleanProf);
     }
@@ -364,6 +374,8 @@ function isSlotAvailableForDuration(dateString, timeStr, durationMin, capacity, 
     const startMins = h * 60 + m;
     const dur = Math.max(15, parseInt(durationMin, 10) || 30);
     const endMins = startMins + dur;
+    const bufferMins = Math.max(0, parseInt(window.businessWebConfig?.tiempo_entre_turnos, 10) || 0);
+    const endMinsWithBuffer = endMins + bufferMins;
 
     // VALIDACIÓN CLAVE: El servicio debe entrar completamente dentro de al menos un tramo de atención de este día
     const fitsInTramo = sched.tramos.some(t => startMins >= t.start && endMins <= t.end);
@@ -384,7 +396,8 @@ function isSlotAvailableForDuration(dateString, timeStr, durationMin, capacity, 
             const overlaps = profBookings.some(b => {
                 const bStart = b.startMins;
                 const bEnd = b.endMins;
-                return Math.max(startMins, bStart) < Math.min(endMins, bEnd);
+                const bEndWithBuf = (b.endMinsWithBuffer !== undefined) ? b.endMinsWithBuffer : (b.endMins + bufferMins);
+                return Math.max(startMins, bStart) < Math.min(endMinsWithBuffer, bEndWithBuf);
             });
             return !overlaps;
         });
@@ -488,7 +501,8 @@ function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration =
     }).sort((a, b) => a.startMins - b.startMins);
 
     const availableSlots = [];
-    const step = isServMode ? dur : (parseInt(window.businessWebConfig?.intervalo_turnos, 10) || 30);
+    const bufferMins = Math.max(0, parseInt(window.businessWebConfig?.tiempo_entre_turnos, 10) || 0);
+    const step = isServMode ? (dur + bufferMins) : ((parseInt(window.businessWebConfig?.intervalo_turnos, 10) || 30) + bufferMins);
 
     tramos.forEach(tramo => {
         let curMins = tramo.start;
@@ -505,7 +519,7 @@ function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration =
                             if (!b.profesional || b.profesional === 'Cualquiera (Sin preferencia)' || b.profesional === '') return true;
                             return String(b.profesional).trim().toLowerCase() === cleanP;
                         });
-                        return !pBookings.some(b => Math.max(curMins, b.startMins) < Math.min(slotEndMins, b.endMins));
+                        return !pBookings.some(b => Math.max(curMins, b.startMins) < Math.min(slotEndMins + bufferMins, (b.endMinsWithBuffer !== undefined ? b.endMinsWithBuffer : b.endMins + bufferMins)));
                     });
 
                     if (hasFreeProf) {
@@ -521,14 +535,25 @@ function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration =
                 }
 
                 // Profesional específico
-                const activeBooking = relevantBookings.find(b => curMins >= b.startMins && curMins < b.endMins);
+                const activeBooking = relevantBookings.find(b => curMins >= b.startMins && curMins < (b.endMins + bufferMins));
                 if (activeBooking) {
+                    curMins = activeBooking.endMins + bufferMins;
+                    continue;
+                }
+
+                const overlappingBooking = relevantBookings.find(b => curMins < b.startMins && (slotEndMins + bufferMins) > b.startMins);
+                if (overlappingBooking) {
+                    curMins = overlappingBooking.endMins + bufferMins;
+                    continue;
+                }
+                const oldActive = null;
+                if (oldActive) {
                     curMins = activeBooking.endMins;
                     continue;
                 }
 
-                const overlappingBooking = relevantBookings.find(b => curMins < b.startMins && slotEndMins > b.startMins);
-                if (overlappingBooking) {
+                const oldOverlapping = relevantBookings.find(b => curMins < b.startMins && slotEndMins > b.startMins);
+                if (false && oldOverlapping) {
                     curMins = overlappingBooking.endMins;
                     continue;
                 }
@@ -583,7 +608,7 @@ function generateTimeSlots(startStr = null, endStr = null, interval = null, targ
             selectedCapacidad = parseInt(matchingService.capacidad || matchingService.cupo_maximo) || 1;
         }
     } else if (services && services.length > 0) {
-        selectedDuration = getServiceDuration(services[0].nombre, profName);
+        selectedDuration = getServiceDuration(null, profName);
         selectedCapacidad = parseInt(services[0].capacidad || services[0].cupo_maximo) || 1;
     } else if (window.businessWebConfig?.intervalo_turnos === 'servicio' || !window.businessWebConfig?.intervalo_turnos) {
         selectedDuration = getServiceDuration(null, null);
@@ -608,6 +633,15 @@ window.refreshCalendarData = function() {
     }
 
     if (isAdmin) {
+        if (document.getElementById('weeklyCalendarView')) {
+            if (false) initWizard();
+        } else if (typeof cal_selectedDate !== 'undefined' && cal_selectedDate) {
+            if (isAdmin && !isPreviewMode && typeof renderAdminDayView === 'function') {
+                renderAdminDayView(toYYYYMMDD(cal_selectedDate));
+            } else if (typeof cal_renderTimeSlots === 'function') {
+                cal_renderTimeSlots();
+            }
+        }
         if (document.getElementById('weeklyCalendarView')) {
             if (!isPreviewMode && document.getElementById('adminWeeklyGrid')) {
                 cal_fetchBookedTimesWeeklyAdmin(); // Esta función ya hace Promise.all internamente
@@ -809,7 +843,7 @@ function cal_renderTimeSlots() {
             selectedCapacidad = parseInt(matchingService.capacidad || matchingService.cupo_maximo) || 1;
         }
     } else if (services && services.length > 0) {
-        selectedDuration = parseInt(services[0].duracion || services[0].duracion_minutos) || 30;
+        selectedDuration = getServiceDuration(null, globalSelectedProfessional);
         selectedCapacidad = parseInt(services[0].capacidad || services[0].cupo_maximo) || 1;
     }
     
@@ -1473,6 +1507,32 @@ function openManualTurnoModal(preselectedTime = null, preselectedProf = null) {
     const uniqueServs = [...new Set(services.map(s => s.nombre))];
     uniqueServs.forEach(s => servSelect.innerHTML += `<option value="${s}">${s}</option>`);
 
+    const updateManualHoursForService = () => {
+        const curServ = servSelect.value;
+        const curProf = profSelect.value || profToSelect;
+        const curDur = getServiceDuration(curServ, curProf);
+        const curMatching = services.find(s => String(s.nombre || '').trim().toLowerCase() === String(curServ || '').trim().toLowerCase());
+        const curCap = curMatching ? (parseInt(curMatching.capacidad || curMatching.cupo_maximo, 10) || 1) : 1;
+        const prevSelectedTime = horaSelect.value || timeToSelect;
+        const dynamicTimes = computeDynamicTimeSlotsForDate(fechaActual, curProf, curDur, curCap, window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre);
+        horaSelect.innerHTML = '';
+        dynamicTimes.forEach(t => {
+            if (window.isTimeInBreak(t, fechaActual)) return;
+            const timeKey = t.substring(0, 5);
+            const isOccupied = horasOcupadas.includes(timeKey);
+            const [hh, mm] = timeKey.split(':').map(Number);
+            const slotDate = new Date(selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate(), hh, mm, 0, 0);
+            const isPastSlot = isPastDay || (isTodaySelected && slotDate.getTime() <= now.getTime());
+            const isDisabled = (isPastSlot || (!simultaneos && isOccupied)) ? 'disabled' : '';
+            const suffix = isPastSlot ? ' (Pasado)' : (isOccupied ? ' (Ocupado)' : '');
+            const isSelected = t === prevSelectedTime ? 'selected' : '';
+            horaSelect.innerHTML += `<option value="${t}" ${isSelected} ${isDisabled}>${t}${suffix}</option>`;
+        });
+    };
+    servSelect.onchange = updateManualHoursForService;
+    profSelect.onchange = updateManualHoursForService;
+    updateManualHoursForService();
+
     const modal = document.getElementById('manualTurnoModal');
     const content = document.getElementById('manualTurnoModalContent');
     setManualModalMode('turno');
@@ -1626,6 +1686,15 @@ function fetchServices() {
             uniqueProfs.forEach(p => profDatalist.innerHTML += `<option value="${p}">`);
         }
         
+        if (document.getElementById('weeklyCalendarView')) {
+            if (false) initWizard();
+        } else if (typeof cal_selectedDate !== 'undefined' && cal_selectedDate) {
+            if (isAdmin && !isPreviewMode && typeof renderAdminDayView === 'function') {
+                renderAdminDayView(toYYYYMMDD(cal_selectedDate));
+            } else if (typeof cal_renderTimeSlots === 'function') {
+                cal_renderTimeSlots();
+            }
+        }
         if (document.getElementById('weeklyCalendarView')) {
             initWizard();
         }
@@ -1979,6 +2048,19 @@ function openServicesModal() {
     modal.classList.remove('hidden', 'opacity-0');
     setTimeout(() => { content.classList.remove('scale-95'); }, 10);
     populateProfessionalSelect();
+    renderServicesList();
+    const capInp = document.getElementById('serviceCapacidad');
+    if (capInp && capInp.parentElement) {
+        const planStr = String(window.businessWebConfig?.plan || window.currentBusinessPlan || '').toLowerCase();
+        const isPrem = planStr.includes('premium') || planStr.includes('completo') || window.businessWebConfig?.is_demo;
+        const hasCupos = window.businessWebConfig && (window.businessWebConfig.modo_reservas === 'cupos_alumnos' || window.businessWebConfig.turnos_simultaneos === 'si');
+        if (isPrem && hasCupos) {
+            capInp.parentElement.classList.remove('hidden');
+        } else {
+            capInp.parentElement.classList.add('hidden');
+            capInp.value = 1;
+        }
+    }
     renderServicesList();
 }
 
