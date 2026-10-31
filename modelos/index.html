@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
     <title>Valentina Ochoa | Modelos de páginas web</title>
-    <!-- Favicon V8A oficial -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231e1e24'/%3E%3Ctext x='32' y='44' font-family='sans-serif' font-weight='700' font-size='28' text-anchor='middle'%3E%3Ctspan fill='%23d11149'%3EV%3C/tspan%3E%3Ctspan fill='%23fc8712'%3E8%3C/tspan%3E%3Ctspan fill='%23d11149'%3EA%3C/tspan%3E%3C/text%3E%3C/svg%3E">
+    <!-- Favicon con Corazón oficial -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='hg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23d11149'/%3E%3Cstop offset='100%25' stop-color='%23fc8712'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='18' fill='%231e1e24'/%3E%3Cpath d='M32 50.5l-2.6-2.37C20.18 40 14 34.4 14 27.5 14 21.98 18.38 17.6 23.9 17.6c3.12 0 6.11 1.45 8.1 3.75 1.99-2.3 4.98-3.75 8.1-3.75 5.52 0 9.9 4.38 9.9 9.9 0 6.9-6.18 12.5-15.4 20.63L32 50.5z' fill='url(%23hg)'/%3E%3C/svg%3E">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,38 +37,38 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
         
-        /* Animación suave de fondo Agendatina */
+        /* Animación suave de fondo Agendatina más alegre y viva */
         .glow-blob {
             position: absolute;
             border-radius: 50%;
-            filter: blur(70px);
-            opacity: 0.28;
+            filter: blur(80px);
             pointer-events: none;
             will-change: transform;
-            animation: pulseGlow 14s infinite alternate ease-in-out;
+            animation: pulseGlow 12s infinite alternate ease-in-out;
         }
         @keyframes pulseGlow {
-            0% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(40px, -25px) scale(1.1); }
-            100% { transform: translate(-30px, 35px) scale(0.95); }
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            50% { transform: translate(60px, -35px) scale(1.15) rotate(15deg); }
+            100% { transform: translate(-45px, 50px) scale(0.92) rotate(-15deg); }
         }
         @media (prefers-reduced-motion: reduce) {
             .glow-blob { animation: none; }
         }
     </style>
 </head>
-<body class="bg-[#fffbf8] text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-brand-pink selection:text-white relative overflow-x-hidden">
+<body class="bg-gradient-to-b from-[#fff6f0] via-[#fffbf9] to-[#fff5ee] text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-brand-pink selection:text-white relative overflow-x-hidden">
 
-    <!-- Blobs decorativos de fondo con colores Agendatina -->
-    <div class="glow-blob w-[450px] h-[450px] bg-brand-pink top-[-80px] left-[-100px]"></div>
-    <div class="glow-blob w-[450px] h-[450px] bg-brand-orange top-[200px] right-[-120px] animation-delay-2000"></div>
+    <!-- Blobs decorativos de fondo con colores Agendatina más alegres y vivos -->
+    <div class="glow-blob w-[550px] h-[550px] bg-gradient-to-br from-[#ff2a6d] to-[#d11149] opacity-40 top-[-100px] left-[-120px]"></div>
+    <div class="glow-blob w-[520px] h-[520px] bg-gradient-to-tr from-[#fc8712] to-[#ffaa00] opacity-35 top-[120px] right-[-140px] animation-delay-2000"></div>
+    <div class="glow-blob w-[480px] h-[480px] bg-gradient-to-tr from-[#ff4d8d] to-[#fc8712] opacity-30 bottom-[160px] left-[10%]"></div>
 
-    <!-- Navegación con logo V8A y estilo Agendatina -->
+    <!-- Navegación con logo de corazón y estilo Agendatina -->
     <header class="border-b border-[#f3e5dc] bg-white/90 backdrop-blur-md sticky top-0 z-30 shadow-2xs">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             <a href="https://valeeochoa.github.io" target="_blank" rel="noopener" class="group flex items-center gap-2.5">
-                <span class="inline-flex items-center font-brand font-bold text-xs bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-xl text-white tracking-wider shadow-sm group-hover:scale-105 transition-transform">
-                    <span class="text-brand-pink">V</span><span class="text-brand-orange">8</span><span class="text-brand-pink">A</span>
+                <span class="w-8 h-8 rounded-xl bg-gradient-to-tr from-brand-pink to-brand-orange text-white flex items-center justify-center shadow-md shadow-brand-pink/20 group-hover:scale-110 transition-transform">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                 </span>
                 <span class="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-brand-pink transition-colors">
                     Valentina Ochoa
@@ -486,8 +486,8 @@
     <footer class="border-t border-[#f3e5dc] bg-white py-8 mt-12 relative z-10">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
             <div class="flex items-center gap-2">
-                <span class="inline-flex items-center font-brand font-bold text-[10px] bg-slate-900 px-2 py-0.5 rounded text-white tracking-wider">
-                    <span class="text-brand-pink">V</span><span class="text-brand-orange">8</span><span class="text-brand-pink">A</span>
+                <span class="w-5 h-5 rounded-md bg-gradient-to-tr from-brand-pink to-brand-orange text-white flex items-center justify-center shadow-xs">
+                    <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                 </span>
                 <span class="font-semibold text-slate-800">Valentina Ochoa</span>
                 <span>·</span>
