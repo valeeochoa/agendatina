@@ -14,9 +14,7 @@
         { id: 'equipo', label: 'Equipo y Profesionales', icon: 'badge', accent: '#8B5CF6', planBadge: 'Básico • Pro • Premium', planTarget: 'Básico' },
         { id: 'cupos', label: 'Alumnos / Clases & Cupos', icon: 'groups', accent: '#F59E0B', planBadge: 'Exclusivo Premium', planTarget: 'Premium' },
         { id: 'web', label: 'Mi Página Web', icon: 'language', accent: '#0284C7', planBadge: 'Profesional y Premium', planTarget: 'Profesional' },
-        { id: 'estadisticas', label: 'Métricas & Gráficos', icon: 'insights', accent: '#0D9488', planBadge: 'Básico • Pro • Premium', planTarget: 'Básico' },
-        { id: 'manual', label: 'Manual & Tour', icon: 'menu_book', accent: '#38BDF8', planBadge: 'Guía Interactiva', planTarget: 'Básico' }
-    ];
+        { id: 'estadisticas', label: 'Métricas & Gráficos', icon: 'insights', accent: '#0D9488', planBadge: 'Básico • Pro • Premium', planTarget: 'Básico' } ];
 
     let currentModuleIndex = 0;
     let rotationTimer = null;
@@ -161,7 +159,7 @@
                         role="tab" 
                         aria-selected="true"
                         style="border-top-color: ${m.accent};"
-                        class="group relative shrink-0 px-4 py-3 bg-white rounded-t-xl sm:rounded-t-2xl border-t-4 border-x border-slate-200/90 -mb-[2px] z-10 shadow-sm flex items-center gap-2 text-slate-900 font-extrabold text-xs sm:text-sm cursor-default transition-all">
+                        class="group relative shrink-0 px-4 py-3 bg-white rounded-t-xl sm:rounded-t-2xl border-t-4 border-x border-slate-200/90 -mb-px z-10 shadow-sm flex items-center gap-2 text-slate-900 font-extrabold text-xs sm:text-sm cursor-default transition-all">
                         <span class="material-symbols-outlined text-[18px]" style="color: ${m.accent};">${m.icon}</span>
                         <span class="whitespace-nowrap">${m.label}</span>
                         <span class="hidden md:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 ml-1">
@@ -232,9 +230,6 @@
                 break;
             case 'estadisticas':
                 container.innerHTML = getSimHtml_Estadisticas();
-                break;
-            case 'manual':
-                container.innerHTML = getSimHtml_Manual();
                 break;
             default:
                 container.innerHTML = getSimHtml_Calendario();
@@ -1697,48 +1692,7 @@
         `;
     }
 
-    // ==========================================
-    // 9. SIMULACIÓN: MANUAL Y TOUR VIRTUAL
-    // ==========================================
-    function getSimHtml_Manual() {
-        return `
-            <div class="space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#38BDF8]"></span>
-                            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">Manual de Uso y Tour Virtual Guiado</h4>
-                            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-sky-100 text-sky-800">Acompañamiento inicial</span>
-                        </div>
-                        <p class="text-xs text-slate-500">Explicaciones claras según tu plan para arrancar sin dudas</p>
-                    </div>
-
-                    <button type="button" onclick="window.openSimCta('¡Comenzá con el Tour Virtual!', 'Al ingresar por primera vez, el sistema te guía paso a paso para configurar tu negocio.', 'Básico')"
-                        class="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-extrabold text-xs shadow-xs transition-all self-start sm:self-auto">
-                        Iniciar Tour Virtual
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                    <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
-                        <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-slate-200 text-slate-700">Paso 1</span>
-                        <h5 class="font-bold text-slate-800">Cargar Horarios</h5>
-                        <p class="text-[11px] text-slate-500">Definí los días y rangos horarios de apertura y descanso.</p>
-                    </div>
-                    <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
-                        <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-slate-200 text-slate-700">Paso 2</span>
-                        <h5 class="font-bold text-slate-800">Crear Servicios</h5>
-                        <p class="text-[11px] text-slate-500">Agregá tus servicios con duración en minutos y precio.</p>
-                    </div>
-                    <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
-                        <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Paso 3</span>
-                        <h5 class="font-bold text-slate-800">Compartir Enlace</h5>
-                        <p class="text-[11px] text-slate-500">Pegá tu link en tu biografía de Instagram y WhatsApp.</p>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
+    
 
     // ==========================================
     // INICIALIZACIÓN AL CARGAR EL DOM

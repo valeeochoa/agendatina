@@ -291,10 +291,18 @@
                         <span class="material-symbols-outlined text-primary">credit_card</span> Estado del Servicio y Pago
                     </h2>
                     
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
                         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 hover:shadow-sm transition-all">
                             <span class="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Plan Actual</span>
                             <span class="text-lg font-black text-slate-800" id="suscripcionPlan">Cargando...</span>
+                        </div>
+                        <div class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200/80 hover:shadow-sm transition-all">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="block text-[11px] font-extrabold text-emerald-800 uppercase tracking-wider">Tarifa Congelada</span>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-200/60 text-emerald-900">Garantizada</span>
+                            </div>
+                            <span class="text-lg font-black text-emerald-900" id="suscripcionPrecioPactado">$0 / mes</span>
+                            <span class="text-[10px] text-emerald-700 font-semibold block mt-0.5">Respetada para tu próxima renovación</span>
                         </div>
                         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 hover:shadow-sm transition-all">
                             <span class="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Estado de Pago</span>
@@ -304,9 +312,20 @@
                             <span class="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Último Pago</span>
                             <span class="text-base font-black text-slate-800" id="suscripcionUltimoPago">---</span>
                         </div>
-                        <div class="bg-purple-50/70 p-4 rounded-2xl border border-purple-200/80 hover:shadow-sm transition-all">
+                        <div class="bg-purple-50/70 p-4 rounded-2xl border border-purple-200/80 hover:shadow-sm transition-all sm:col-span-2 lg:col-span-2">
                             <span class="block text-[11px] font-extrabold text-purple-600 uppercase tracking-wider mb-1">Próximo Período de Facturación</span>
                             <span class="text-base font-black text-purple-950" id="suscripcionVencimiento">---</span>
+                        </div>
+                    </div>
+
+                    <!-- Banner Notificación de Subida de Precios General (Tarifa Protegida) -->
+                    <div id="bannerAvisoSubidaPrecio" class="hidden mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-300 p-4 rounded-2xl text-xs text-amber-950 leading-relaxed flex items-start gap-3 shadow-xs">
+                        <div class="w-8 h-8 rounded-xl bg-amber-200 text-amber-900 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-[20px]">verified_user</span>
+                        </div>
+                        <div>
+                            <strong class="text-amber-950 text-xs block mb-1">Tu precio está congelado frente a subidas de tarifas</strong>
+                            <p class="text-amber-900 leading-normal">Las tarifas públicas de nuevos planes en Agendatina se han actualizado a <strong id="avisoPrecioVigente">---</strong>. <strong>Sin embargo, por haber creado tu cuenta previamente, tu tarifa contratada de <span id="avisoPrecioCongelado" class="font-extrabold underline">---</span> se mantendrá 100% congelada y protegida durante tu período de prueba y tu próxima facturación.</strong> El nuevo valor no se te aplicará sino hasta el período posterior.</p>
                         </div>
                     </div>
 
@@ -490,6 +509,24 @@
                     }
 
                     document.getElementById('suscripcionPlan').textContent = currentPlan;
+                    const precioPactado = parseFloat(data.business.precio_pactado || 0);
+                    const precioVigente = parseFloat(data.business.precio_vigente_sistema || precioPactado);
+                    const precioEl = document.getElementById('suscripcionPrecioPactado');
+                    if (precioEl && precioPactado > 0) {
+                        precioEl.textContent = `${precioPactado.toLocaleString('es-AR')} / mes`;
+                    }
+
+                    if (data.business.hay_subida_precio || (precioVigente > precioPactado && precioPactado > 0)) {
+                        const bannerAviso = document.getElementById('bannerAvisoSubidaPrecio');
+                        const avisoVigente = document.getElementById('avisoPrecioVigente');
+                        const avisoCongelado = document.getElementById('avisoPrecioCongelado');
+                        if (bannerAviso && avisoVigente && avisoCongelado) {
+                            avisoVigente.textContent = `${precioVigente.toLocaleString('es-AR')} / mes`;
+                            avisoCongelado.textContent = `${precioPactado.toLocaleString('es-AR')} / mes`;
+                            bannerAviso.classList.remove('hidden');
+                        }
+                    }
+
 
                     if (data.business.codigo_descuento) {
                         const couponBanner = document.getElementById('activeDiscountCouponBanner');

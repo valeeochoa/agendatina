@@ -169,6 +169,15 @@ try {
     try { $pdo->query("SELECT codigo_descuento FROM negocios LIMIT 1"); } 
     catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN codigo_descuento VARCHAR(50) DEFAULT NULL"); }
 
+    try { $pdo->query("SELECT precio_pactado FROM negocios LIMIT 1"); } 
+    catch(Exception $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN precio_pactado DECIMAL(10,2) DEFAULT NULL"); } catch(Exception $ex) {} }
+
+    try { $pdo->query("SELECT fecha_precio_pactado FROM negocios LIMIT 1"); } 
+    catch(Exception $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN fecha_precio_pactado DATETIME DEFAULT CURRENT_TIMESTAMP"); } catch(Exception $ex) {} }
+
+    try { $pdo->query("SELECT aviso_cambio_precio FROM negocios LIMIT 1"); } 
+    catch(Exception $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN aviso_cambio_precio TINYINT(1) DEFAULT 0"); } catch(Exception $ex) {} }
+
     try { $pdo->query("SELECT descuento_aplicado_pct FROM negocios LIMIT 1"); } 
     catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN descuento_aplicado_pct INT DEFAULT 0"); }
 
@@ -269,7 +278,24 @@ try {
     $idUsuario = $pdo->lastInsertId();
 
     // 5. Crear negocio con plan, límite de profesionales, días de prueba fijos al alta y código de descuento
-    $stmtNegocio = $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago, dias_prueba, codigo_descuento, descuento_aplicado_pct, fecha_alta) VALUES (:nombre, :ruta, :plan, :max_p, 'prueba', :dias_p, :cod_desc, :pct_desc, NOW())");
+    // Resolver precio pactado al momento de alta para garantizar congelamiento en el próximo ciclo
+    $precioPactadoAlta = 8889.0;
+    try {
+        $stmtCfgGlobal = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium FROM configuracion_global ORDER BY id ASC LIMIT 1");
+        $cfgGAlta = $stmtCfgGlobal ? $stmtCfgGlobal->fetch(PDO::FETCH_ASSOC) : null;
+        if ($cfgGAlta) {
+            $pLower = strtolower($plan);
+            if (strpos($pLower, 'premium') !== false) {
+                $precioPactadoAlta = (float)($cfgGAlta['precio_premium'] ?? 16667);
+            } elseif (strpos($pLower, 'profesional') !== false || strpos($pLower, 'intermedio') !== false) {
+                $precioPactadoAlta = (float)($cfgGAlta['precio_intermedio'] ?? 11111);
+            } else {
+                $precioPactadoAlta = (float)($cfgGAlta['precio_basico'] ?? 8889);
+            }
+        }
+    } catch(Throwable $eCfgG) {}
+
+    $stmtNegocio = $pdo->prepare("INSERT INTO negocios (nombre_fantasia, ruta, plan, max_profesionales, estado_pago, dias_prueba, codigo_descuento, descuento_aplicado_pct, precio_pactado, fecha_precio_pactado, fecha_alta) VALUES (:nombre, :ruta, :plan, :max_p, 'prueba', :dias_p, :cod_desc, :pct_desc, :precio_pactado, NOW(), NOW())");
     $stmtNegocio->execute([
         'nombre' => $nombre_fantasia,
         'ruta' => $ruta,
@@ -277,7 +303,8 @@ try {
         'max_p' => $max_profesionales,
         'dias_p' => $diasPrueba,
         'cod_desc' => $codigoCanjeado,
-        'pct_desc' => $descuentoPct
+        'pct_desc' => $descuentoPct,
+        'precio_pactado' => $precioPactadoAlta
     ]);
     $idNegocio = $pdo->lastInsertId();
 

@@ -67,6 +67,19 @@
             animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
+        /* Scrollbar styling */
+        #folderTabsBar {
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+        #folderTabsBar::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
         /* Animación Efecto Lava Agendatina para Sección Comparativa a Ancho Completo */
         .lava-container-comparativa {
             position: absolute;
@@ -412,8 +425,8 @@
 
             <!-- Pestañas de Carpetas (Folder Tabs) y Marco de Simulación Compacto -->
             <div class="relative">
-                <!-- Barra de pestañas estilo carpetas con scroll horizontal en mobile -->
-                <div class="flex items-end gap-1.5 overflow-x-auto scrollbar-none px-2 sm:px-4 border-b-2 border-slate-200" id="folderTabsBar" role="tablist">
+                <!-- Barra de pestañas estilo carpetas con scroll horizontal en mobile (sin scrollbar vertical) -->
+                <div class="flex items-end gap-1.5 overflow-x-auto overflow-y-hidden scrollbar-none px-2 sm:px-4 border-b-2 border-slate-200" id="folderTabsBar" role="tablist" style="overflow-y: hidden !important; scrollbar-width: none !important;">
                     <!-- Generado dinámicamente por assets/js/index_modulos_sim.js -->
                 </div>
 

@@ -27,7 +27,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="assets/css/global.css">
     <style>
-        body { font-family: 'Inter', sans-serif; background: #f1f5f9; }
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
 
         /* Scroll de columna de pendientes en desktop */
         @media (min-width: 1024px) {
@@ -136,8 +136,8 @@
         <div class="flex justify-between items-center flex-wrap gap-3 mb-6">
             <div class="flex items-center gap-3">
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2 font-display">
-                        <span class="material-symbols-outlined text-primary text-[22px]">calendar_month</span>
+                    <h1 class="text-2xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2 font-display">
+                        <span class="material-symbols-outlined text-primary text-[24px]">view_agenda</span>
                         Mi Agenda Virtual
                     </h1>
                     <p class="text-xs text-slate-500 font-medium mt-0.5" id="agendaSubtitle">Gestiona tus turnos en tiempo real</p>
@@ -605,21 +605,20 @@
     </div>
 
 
-    <footer id="agendatinaFooter" class="w-full border-t border-slate-200/80 bg-white/70 backdrop-blur-md py-6 mt-12 px-4 text-center">
-        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-            <a href="index.html" target="_blank" class="inline-flex items-center gap-2 hover:opacity-85 transition-opacity">
-                <img src="public/logo.png" alt="Agendatina" class="h-6 w-auto object-contain">
-                <span class="font-brand font-semibold text-lg tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
-            </a>
-            <div class="flex flex-wrap items-center justify-center gap-3 font-medium">
-                <span>Sistema de Gestión de Turnos Online 24/7</span>
-                <span class="text-slate-300">•</span>
-                <a href="index.html" target="_blank" class="hover:text-[#d11149] font-semibold transition-colors">Conocé Agendatina</a>
-                <span class="text-slate-300">•</span>
-                <a href="terminos.html" target="_blank" class="hover:text-[#d11149] font-semibold transition-colors">Términos y Privacidad</a>
-            </div>
-        </div>
-    </footer>
+    <footer id="agendatinaFooter" class="mt-16 py-10 border-t border-slate-200/80 bg-white/60 backdrop-blur-sm text-center">
+    <div class="max-w-5xl mx-auto px-4 flex flex-col items-center justify-center gap-3">
+      <a href="index.html" target="_blank" class="inline-flex items-center gap-2 hover:opacity-90 transition-all group">
+        <img src="public/logoletras.png" alt="Agendatina" class="h-16 sm:h-20 w-auto opacity-90 group-hover:opacity-100 transition-all drop-shadow-sm group-hover:scale-105">
+      </a>
+      <div class="flex items-center gap-4 text-xs font-extrabold text-slate-400 mt-2">
+        <span>© Agendatina</span>
+        <span>•</span>
+        <a href="index.html" target="_blank" class="text-[#d11149] hover:underline transition-colors flex items-center gap-1">
+          Conoce más sobre Agendatina <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+        </a>
+      </div>
+    </div>
+  </footer>
     <script src="assets/js/script.js?v=2.0.0" defer></script>
     <script src="assets/js/agenda.js?v=2.0.0" defer></script>
 </body>

@@ -2086,36 +2086,81 @@ function renderServicesList() {
     if (!container) return;
     container.innerHTML = '';
     if (services.length === 0) {
-        container.innerHTML = '<p class="text-sm text-slate-500">No hay servicios definidos.</p>';
+        container.innerHTML = '<div class="p-8 text-center text-slate-400 text-sm border border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">No hay servicios registrados en tu catálogo.</div>';
         return;
     }
+
+    const safeEscape = (str) => {
+        if (!str) return '';
+        return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
+    };
+
+    let html = '';
     services.forEach(service => {
+        const duracionFmt = formatDuracionText(service.duracion || 45);
+        const cuposCount = parseInt(service.cupo_maximo || service.capacidad || 1);
+        const cuposBadge = cuposCount > 1 
+            ? `<span class="bg-orange-100 text-orange-800 text-[11px] font-extrabold px-2 py-0.5 rounded-md border border-orange-200 inline-flex items-center gap-1">👥 Clase (${cuposCount} cupos)</span>`
+            : `<span class="text-slate-500 text-xs font-medium">👤 Individual (1 cupo)</span>`;
+
+        let paquetesBadges = '';
         let pkgs = [];
-        try { pkgs = typeof service.precios_paquetes_json === 'string' ? JSON.parse(service.precios_paquetes_json || '[]') : (service.precios_paquetes_json || []); } catch(e) {}
+        try {
+            pkgs = typeof service.precios_paquetes_json === 'string' ? JSON.parse(service.precios_paquetes_json || '[]') : (service.precios_paquetes_json || []);
+            if (Array.isArray(pkgs) && pkgs.length > 0) {
+                paquetesBadges = '<div class="flex flex-wrap items-center gap-1.5 mt-2">' + pkgs.map(p => 
+                    `<span class="bg-purple-50 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-purple-200/80 dark:border-purple-800/50 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">inventory_2</span> ${p.etiqueta ? safeEscape(p.etiqueta) + ' (' + p.cupos + ' cl.)' : p.cupos + ' clases'} x $${parseFloat(p.precio).toLocaleString('es-AR')}</span>`
+                ).join('') + '</div>';
+            }
+        } catch(e) {}
+
         const tienePases = Array.isArray(pkgs) && pkgs.length > 0;
-        const numP = parseFloat(service.precio || 0);
-        let precioText = '';
-        if (numP > 0) {
-            precioText = ` • $${numP.toLocaleString('es-AR')}`;
+        const numPrecio = parseFloat(service.precio || 0);
+
+        let precioBadgeHtml = '';
+        if (numPrecio > 0) {
+            precioBadgeHtml = `<span class="font-bold text-emerald-700 dark:text-emerald-400">💲 $${numPrecio.toLocaleString('es-AR')}</span>`;
         } else if (tienePases) {
-            precioText = ' • Tarifas por pases';
+            precioBadgeHtml = `<span class="font-extrabold text-orange-700 bg-orange-100/90 border border-orange-200 px-2 py-0.5 rounded-md text-[11px] inline-flex items-center gap-1 shadow-2xs"><span class="material-symbols-outlined text-[13px]">inventory_2</span> Tarifas por Pases</span>`;
+        } else {
+            precioBadgeHtml = `<span class="font-bold text-slate-500">Gratis / Sin costo</span>`;
         }
-        const defaultIcon = `<div class="w-4 h-4 rounded-full bg-purple-200 text-purple-700 flex items-center justify-center shrink-0"><span class="material-symbols-outlined" style="font-size: 12px;">person</span></div>`;
-        const profIcon = service.foto_profesional ? `<img src="${service.foto_profesional}" class="w-4 h-4 rounded-full object-cover border border-purple-200 shrink-0">` : defaultIcon;
-        const linkBtn = service.enlace_agenda ? `<button type="button" onclick="copyProfLink(event, '${service.enlace_agenda}')" class="text-emerald-600 hover:text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md transition-colors inline-flex items-center gap-1 text-[10px] font-bold ml-2 uppercase tracking-wide" title="Copiar enlace"><span class="material-symbols-outlined text-[12px]">link</span> Obtener Enlace de Agenda</button>` : '';
-        container.innerHTML += `
-            <div class="flex items-center justify-between bg-slate-50 p-3 rounded-lg">
-                <div>
-                    <p class="font-bold text-slate-800 flex items-center flex-wrap gap-1">${service.nombre} ${service.profesional ? `<span class="text-xs font-normal text-purple-600 bg-purple-100 px-2 py-0.5 rounded-md inline-flex items-center gap-1 ml-1">${profIcon} <span>${service.profesional}</span></span>${linkBtn}` : ''}</p>
-                    <p class="text-sm text-slate-500">${formatDuracionText(service.duracion)}${precioText}</p>
+
+        const iconToUse = service.icono || 'local_florist';
+        const img = service.imagen1;
+        const iconBox = img 
+            ? `<img src="${img}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0 shadow-xs">` 
+            : `<div class="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 border border-purple-200 dark:border-purple-800/50 shadow-xs"><span class="material-symbols-outlined text-[24px]">${iconToUse}</span></div>`;
+
+        html += `
+            <div class="p-4 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-300 dark:hover:border-slate-500 transition-all">
+                <div class="flex items-center gap-3">
+                    ${iconBox}
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <h4 class="font-bold text-slate-900 dark:text-slate-100 text-sm sm:text-base">${safeEscape(service.nombre)}</h4>
+                            ${cuposBadge}
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 flex flex-wrap items-center gap-2">
+                            <span>⏱️ ${duracionFmt}</span>
+                            ${precioBadgeHtml}
+                            <span>👨‍⚕️ ${safeEscape(service.profesional || 'Cualquiera')}</span>
+                        </p>
+                        ${paquetesBadges}
+                    </div>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="editService('${service.id}')" class="text-blue-500 hover:text-blue-700"><span class="material-symbols-outlined">edit</span></button>
-                    <button onclick="deleteService('${service.id}')" class="text-red-500 hover:text-red-700"><span class="material-symbols-outlined">delete</span></button>
+                <div class="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                    <button type="button" onclick="editService('${service.id}')" class="p-2 rounded-xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-primary border border-slate-200 dark:border-slate-700 hover:border-primary transition-colors cursor-pointer shadow-2xs" title="Editar Servicio">
+                        <span class="material-symbols-outlined text-[18px]">edit</span>
+                    </button>
+                    <button type="button" onclick="deleteService('${service.id}')" class="p-2 rounded-xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-red-600 border border-slate-200 dark:border-slate-700 hover:border-red-300 transition-colors cursor-pointer shadow-2xs" title="Eliminar Servicio">
+                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
                 </div>
             </div>
         `;
     });
+    container.innerHTML = html;
 }
 
 function copyProfLink(e, relativePath) {

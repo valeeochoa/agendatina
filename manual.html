@@ -44,6 +44,26 @@
             background-color: rgba(255, 255, 255, 0.25) !important;
             border: 1px solid rgba(255, 255, 255, 0.4) !important;
         }
+    
+        /* Barra de desplazamiento suave y compacta para el menú lateral */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 9999px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f1f5f9;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased min-h-screen flex flex-col leading-relaxed">
@@ -119,7 +139,7 @@
                     Segmentos del Manual
                 </h2>
 
-                <nav class="space-y-1.5 flex flex-col">
+                <nav id="manualSidebarNav" class="space-y-1.5 flex flex-col max-h-[310px] overflow-y-auto pr-1.5 custom-scrollbar">
                     <button onclick="switchTab('planes')" id="tab-planes" class="manual-nav-item active w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
                         <span class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-primary text-[20px]">verified</span>
@@ -724,36 +744,70 @@
                                 <div class="flex items-center gap-2 mb-1">
                                     <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-md">Todos los Planes</span>
                                 </div>
-                                <h3 class="text-xl sm:text-2xl font-black text-slate-900">Políticas de Seña y Confirmación de Turnos</h3>
-                                <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Retención provisional por 1 hora, aviso bancario previo y verificación de comprobantes.</p>
+                                <h3 class="text-xl sm:text-2xl font-black text-slate-900">Políticas de Seña y Confirmación de Turnos (Reserva de 1 Hora)</h3>
+                                <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Retención provisional por 60 minutos, aviso previo de transferencia y confirmación formal con aviso de WhatsApp.</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    <div class="space-y-6 text-xs sm:text-sm text-slate-600 leading-relaxed">
                         <p>
-                            La configuración de señas protege el horario productivo del profesional frente a ausencias imprevistas. El sistema proporciona un entorno transparente tanto para el usuario final como para el administrador.
+                            El mecanismo de reservas con seña de Agendatina fue diseñado para garantizar la máxima ocupación de tu negocio, protegiendo las horas de tus profesionales frente a cancelaciones imprevistas y asegurando un proceso de pago claro y transparente para tus clientes.
                         </p>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2">
-                                <div class="flex items-center gap-2 text-slate-900 font-extrabold text-xs sm:text-sm">
-                                    <span class="material-symbols-outlined text-amber-600 text-lg">hourglass_top</span>
-                                    <span>Ventana de Reserva Temporal (1 Hora)</span>
+                        <!-- Fases del Flujo de Seña de 1 Hora -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Paso 1 -->
+                            <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/80 space-y-2">
+                                <div class="flex items-center gap-2 text-amber-950 font-extrabold text-xs sm:text-sm">
+                                    <span class="material-symbols-outlined text-amber-600 text-lg">info</span>
+                                    <span>1. Aviso Informativo Previo</span>
                                 </div>
                                 <p class="text-xs text-slate-600">
-                                    Al solicitar una cita sujeta a anticipo, el horario queda apartado provisionalmente en estado pendiente por 60 minutos. Este plazo permite al cliente realizar la transferencia bancaria y enviar el comprobante de pago vía WhatsApp.
+                                    Al elegir un servicio que requiere seña, el cliente visualiza un recuadro explicativo con el monto o porcentaje solicitado (ej. 30% o monto fijo) y el <strong>Alias/CBU oficial</strong> del local con botón de copiado rápido en un clic.
                                 </p>
                             </div>
 
-                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2">
-                                <div class="flex items-center gap-2 text-slate-900 font-extrabold text-xs sm:text-sm">
-                                    <span class="material-symbols-outlined text-blue-600 text-lg">info</span>
-                                    <span>Aviso Previo y Copia de Datos Bancarios</span>
+                            <!-- Paso 2 -->
+                            <div class="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/80 space-y-2">
+                                <div class="flex items-center gap-2 text-amber-950 font-extrabold text-xs sm:text-sm">
+                                    <span class="material-symbols-outlined text-amber-600 text-lg">hourglass_top</span>
+                                    <span>2. Ventana de Retención Temporal (1 Hora)</span>
                                 </div>
                                 <p class="text-xs text-slate-600">
-                                    Antes de asentar la reserva, una ventana modal informa al solicitante el porcentaje exigido y presenta el Alias o CBU con un botón de copiado rápido, asegurando que cuente con toda la información requerida de manera clara y formal.
+                                    Una vez enviada la solicitud, el horario queda temporalmente <strong>bloqueado por 60 minutos</strong> en estado <em>Pendiente de Seña</em>. Durante esa hora ningún otro usuario puede ocupar ese turno, brindándole al cliente el tiempo necesario para transferir desde su billetera virtual o home banking.
                                 </p>
+                            </div>
+
+                            <!-- Paso 3 -->
+                            <div class="p-4 rounded-2xl bg-purple-50/50 border border-purple-200/80 space-y-2">
+                                <div class="flex items-center gap-2 text-purple-950 font-extrabold text-xs sm:text-sm">
+                                    <span class="material-symbols-outlined text-purple-600 text-lg">notifications_active</span>
+                                    <span>3. Alerta en la Agenda del Negocio</span>
+                                </div>
+                                <p class="text-xs text-slate-600">
+                                    El administrador recibe el aviso en tiempo real en la columna <strong>"Por Confirmar"</strong> de la Agenda Virtual y en el Calendario. Cada turno pendiente muestra un contador con los minutos restantes de la reserva provisional.
+                                </p>
+                            </div>
+
+                            <!-- Paso 4 -->
+                            <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-200/80 space-y-2">
+                                <div class="flex items-center gap-2 text-emerald-950 font-extrabold text-xs sm:text-sm">
+                                    <span class="material-symbols-outlined text-emerald-600 text-lg">task_alt</span>
+                                    <span>4. Aprobación y Aviso Directo por WhatsApp</span>
+                                </div>
+                                <p class="text-xs text-slate-600">
+                                    Al constatar la recepción del comprobante bancario, el negocio presiona <strong>"Confirmar Turno"</strong>. La cita pasa a estado confirmado definitivo y se despliega al instante el botón de WhatsApp con el mensaje formal para el cliente: <em>"¡Hola [Nombre]! Tu turno del [Día] a las [Hora] hs ha sido confirmado con éxito. Te esperamos en nuestro local."</em>
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Liberación Automática o Cancelación -->
+                        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-start gap-3">
+                            <span class="material-symbols-outlined text-slate-500 text-xl shrink-0 mt-0.5">verified_user</span>
+                            <div>
+                                <strong class="text-slate-800 text-xs block mb-1">Protección ante Turnos No Abonados</strong>
+                                <p>Si el cliente no realiza la transferencia ni responde durante el transcurso de la hora estipulada, el negocio puede desestimar o cancelar la solicitud con total tranquilidad. El horario se libera inmediatamente en el calendario público para que otros clientes puedan tomarlo, evitando baches y pérdidas económicas.</p>
                             </div>
                         </div>
                     </div>
@@ -1291,7 +1345,11 @@
             });
 
             const targetBtn = document.getElementById(`tab-${tabId}`);
-            const targetSec = document.getElementById(`sec-${tabId}`);
+            const navBtn = document.getElementById(`tab-${tabId}`);
+        if (navBtn) {
+            navBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        const targetSec = document.getElementById(`sec-${tabId}`);
 
             if (targetBtn && targetSec) {
                 targetBtn.classList.add('active');

@@ -105,13 +105,7 @@ if ($method === 'GET') {
         foreach ($servicios as &$serv) {
             if (empty($serv['profesional'])) { $serv['profesional'] = $ownerName; }
             if (empty($serv['icono'])) { $serv['icono'] = 'local_florist'; }
-            if (!empty($serv['profesional'])) {
-                $profKey = strtolower(trim($serv['profesional']));
-                $token = hash('sha256', $id_negocio . '|' . $profKey . '|' . $secret);
-                $serv['enlace_agenda'] = "agenda-profesional.html?n=" . urlencode($ruta_negocio) . "&p=" . urlencode($serv['profesional']) . "&token=" . $token;
-            } else {
-                $serv['enlace_agenda'] = "";
-            }
+            $serv['enlace_agenda'] = "";
         }
 
         echo json_encode($servicios);

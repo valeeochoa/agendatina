@@ -139,12 +139,21 @@ try {
         try { $pdo->query("SELECT codigo_descuento FROM negocios LIMIT 1"); } 
         catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN codigo_descuento VARCHAR(50) DEFAULT NULL"); } catch(Throwable $ex) {} }
         
+        try { $pdo->query("SELECT precio_pactado FROM negocios LIMIT 1"); } 
+        catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN precio_pactado DECIMAL(10,2) DEFAULT NULL"); } catch(Throwable $ex) {} }
+
+        try { $pdo->query("SELECT fecha_precio_pactado FROM negocios LIMIT 1"); } 
+        catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN fecha_precio_pactado DATETIME DEFAULT CURRENT_TIMESTAMP"); } catch(Throwable $ex) {} }
+
+        try { $pdo->query("SELECT aviso_cambio_precio FROM negocios LIMIT 1"); } 
+        catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN aviso_cambio_precio TINYINT(1) DEFAULT 0"); } catch(Throwable $ex) {} }
+
         try { $pdo->query("SELECT descuento_aplicado_pct FROM negocios LIMIT 1"); } 
         catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN descuento_aplicado_pct INT DEFAULT 0"); } catch(Throwable $ex) {} }
 
         // Reseteo mensual automático si cambió el mes (YYYY-MM)
         $currentMonthStr = date('Y-m');
-        $stmtN = $pdo->prepare("SELECT nombre_fantasia, ruta, plan, max_profesionales, estado_pago, ultimo_pago, fecha_alta, comprobante, wpp_enviados_mes, mes_wpp_contador, codigo_descuento, descuento_aplicado_pct FROM negocios WHERE id = ?");
+        $stmtN = $pdo->prepare("SELECT nombre_fantasia, ruta, plan, max_profesionales, estado_pago, ultimo_pago, fecha_alta, comprobante, wpp_enviados_mes, mes_wpp_contador, codigo_descuento, descuento_aplicado_pct, precio_pactado, fecha_precio_pactado, aviso_cambio_precio FROM negocios WHERE id = ?");
         $stmtN->execute([$id_negocio]);
         $business = $stmtN->fetch(PDO::FETCH_ASSOC);
 
@@ -236,6 +245,34 @@ try {
                 'excedentes' => $wppExcedentes,
                 'costo_extra_ars' => $wppCostoExtra
             ];
+
+            // Cálculo de precio pactado (congelado) vs precio vigente de plataforma
+            $precioVigenteSistema = 8889.0;
+            try {
+                $stmtGlobal = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium FROM configuracion_global ORDER BY id ASC LIMIT 1");
+                $cfgG = $stmtGlobal ? $stmtGlobal->fetch(PDO::FETCH_ASSOC) : null;
+                if ($cfgG) {
+                    if ($isPremium) {
+                        $precioVigenteSistema = (float)($cfgG['precio_premium'] ?? 16667);
+                    } elseif (!$isBasic) {
+                        $precioVigenteSistema = (float)($cfgG['precio_intermedio'] ?? 11111);
+                    } else {
+                        $precioVigenteSistema = (float)($cfgG['precio_basico'] ?? 8889);
+                    }
+                }
+            } catch(Throwable $eGl) {}
+
+            if ($business['precio_pactado'] === null || (float)$business['precio_pactado'] <= 0) {
+                $business['precio_pactado'] = $precioVigenteSistema;
+                try {
+                    $pdo->prepare("UPDATE negocios SET precio_pactado = ?, fecha_precio_pactado = NOW() WHERE id = ?")->execute([$precioVigenteSistema, $id_negocio]);
+                } catch(Throwable $eUpP) {}
+            } else {
+                $business['precio_pactado'] = (float)$business['precio_pactado'];
+            }
+
+            $business['precio_vigente_sistema'] = (float)$precioVigenteSistema;
+            $business['hay_subida_precio'] = ($business['precio_vigente_sistema'] > $business['precio_pactado']);
 
             $business['is_demo'] = (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || (isset($business['ruta']) && $business['ruta'] === 'demo') || (isset($user['email']) && strpos($user['email'], 'demo') !== false);
         }
