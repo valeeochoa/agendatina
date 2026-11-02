@@ -227,6 +227,7 @@
 
     // ==========================================
     // 1. SIMULACIÓN: CALENDARIO DE TURNOS
+    // Fiel reflejo de calendarioMensual.html y calendarioSemanal.html
     // ==========================================
     window.toggleSimCalendarView = function(view) {
         simCalendarViewMode = view;
@@ -253,20 +254,23 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-[#FC8712]"></span>
-                            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">Simulación del Calendario de Turnos (Vista Cliente)</h4>
+                            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">Calendario de Turnos Online (Vista del Cliente)</h4>
+                            <span class="text-[10px] font-bold bg-amber-50 text-amber-800 px-2 py-0.5 rounded-md border border-amber-200">En Vivo</span>
                         </div>
-                        <p class="text-xs text-slate-500">Cálculo dinámico según servicio + 15 min de descanso entre turnos</p>
+                        <p class="text-xs text-slate-500">Composición idéntica a ${isMensual ? 'calendarioMensual.html' : 'calendarioSemanal.html'} con cálculo de descansos y selección de horarios</p>
                     </div>
 
                     <!-- Toggle Mensual / Semanal -->
-                    <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 self-start sm:self-auto">
+                    <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 self-start sm:self-auto shadow-2xs">
                         <button type="button" onclick="window.toggleSimCalendarView('mensual')" 
-                            class="px-3 py-1 rounded-lg text-xs font-bold transition-all ${isMensual ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'}">
-                            Vista Mensual
+                            class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 ${isMensual ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'}">
+                            <span class="material-symbols-outlined text-[16px] ${isMensual ? 'text-[#D11149]' : 'text-slate-400'}">calendar_month</span>
+                            <span>Vista Mensual</span>
                         </button>
                         <button type="button" onclick="window.toggleSimCalendarView('semanal')" 
-                            class="px-3 py-1 rounded-lg text-xs font-bold transition-all ${!isMensual ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'}">
-                            Vista Semanal
+                            class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 ${!isMensual ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'}">
+                            <span class="material-symbols-outlined text-[16px] ${!isMensual ? 'text-[#FC8712]' : 'text-slate-400'}">view_week</span>
+                            <span>Vista Semanal</span>
                         </button>
                     </div>
                 </div>
@@ -276,284 +280,511 @@
         `;
     }
 
+    // VISTA MENSUAL (Idéntica a calendarioMensual.html)
     function getSimCalendarMensualHtml() {
         const days = [
-            { d: 10, free: true }, { d: 11, free: true }, { d: 12, free: true },
-            { d: 13, free: true }, { d: 14, free: true }, { d: 15, free: true }, { d: 16, free: false }
+            { d: 1, free: true }, { d: 2, free: true }, { d: 3, free: true }, { d: 4, free: true },
+            { d: 5, free: true }, { d: 6, free: true }, { d: 7, free: false }, { d: 8, free: false },
+            { d: 9, free: true }, { d: 10, free: true }, { d: 11, free: true }, { d: 12, free: true },
+            { d: 13, free: true }, { d: 14, free: true }, { d: 15, free: false }, { d: 16, free: false },
+            { d: 17, free: true }, { d: 18, free: true }, { d: 19, free: true }, { d: 20, free: true },
+            { d: 21, free: true }, { d: 22, free: false }, { d: 23, free: false }, { d: 24, free: true },
+            { d: 25, free: true }, { d: 26, free: true }, { d: 27, free: true }, { d: 28, free: true }
         ];
 
         return `
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-                <!-- Columna Izquierda: Grilla del Mes -->
-                <div class="lg:col-span-6 bg-slate-50/70 p-4 rounded-2xl border border-slate-200/90">
-                    <div class="flex items-center justify-between mb-3 px-1">
-                        <span class="font-extrabold text-xs sm:text-sm text-slate-800">Noviembre 2026</span>
-                        <div class="flex items-center gap-1 text-slate-400">
-                            <span class="material-symbols-outlined text-[18px]">chevron_left</span>
-                            <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+            <div class="space-y-4">
+                <!-- Barra superior de negocio ficticio estilo navbar real -->
+                <div class="bg-white/90 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-slate-200/80 flex items-center justify-between text-xs shadow-2xs">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-[#D11149] to-[#FC8712] text-white flex items-center justify-center font-bold text-xs shadow-2xs">
+                            SE
                         </div>
+                        <span class="font-extrabold text-slate-800">Stetica & Estilo</span>
+                        <span class="text-slate-300">|</span>
+                        <span class="text-slate-500 font-medium hidden sm:inline">Palermo Soho</span>
                     </div>
-
-                    <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-slate-400 mb-2">
-                        <span>LU</span><span>MA</span><span>MI</span><span>JU</span><span>VI</span><span>SA</span><span>DO</span>
-                    </div>
-
-                    <div class="grid grid-cols-7 gap-1.5 text-center text-xs">
-                        <span class="p-2 text-slate-300">27</span>
-                        <span class="p-2 text-slate-300">28</span>
-                        <span class="p-2 text-slate-300">29</span>
-                        <span class="p-2 text-slate-300">30</span>
-                        <span class="p-2 text-slate-300">31</span>
-                        <span class="p-2 font-semibold text-slate-600">1</span>
-                        <span class="p-2 font-semibold text-slate-600">2</span>
-                        <span class="p-2 font-semibold text-slate-600">3</span>
-                        <span class="p-2 font-semibold text-slate-600">4</span>
-                        <span class="p-2 font-semibold text-slate-600">5</span>
-                        <span class="p-2 font-semibold text-slate-600">6</span>
-                        <span class="p-2 font-semibold text-slate-600">7</span>
-                        <span class="p-2 font-semibold text-slate-600">8</span>
-                        <span class="p-2 font-semibold text-slate-600">9</span>
-                        ${days.map(item => `
-                            <button type="button" onclick="window.selectSimDay(${item.d})" 
-                                class="p-2 rounded-xl font-bold transition-all ${item.d === simSelectedDay 
-                                    ? 'bg-[#FC8712] text-white shadow-xs scale-105' 
-                                    : (item.free ? 'bg-white hover:bg-orange-50 text-slate-800 border border-slate-200/80' : 'bg-slate-100 text-slate-400 cursor-not-allowed')}">
-                                ${item.d}
-                            </button>
-                        `).join('')}
-                    </div>
-
-                    <div class="mt-4 pt-3 border-t border-slate-200/80 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#FC8712]"></span> Día Seleccionado</span>
-                        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Horarios Libres</span>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg text-[10px] font-extrabold text-amber-800">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                            Modo Demo
+                        </span>
+                        <a href="javascript:void(0)" onclick="window.selectModuleTab('web', true)" class="text-[11px] font-bold text-slate-600 hover:text-primary flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">language</span>
+                            <span class="hidden sm:inline">Página Web</span>
+                        </a>
                     </div>
                 </div>
 
-                <!-- Columna Derecha: Horarios Disponibles y Formulario -->
-                <div class="lg:col-span-6 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3.5">
-                    <div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-black text-slate-800 uppercase tracking-wider">Horarios para el ${simSelectedDay} de Noviembre</span>
-                            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">3 turnos disponibles</span>
+                <!-- Contenedor Principal (MainCalendarWrapper en 12 columnas) -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                    
+                    <!-- Columna Izquierda (7 cols): Calendario Mensual Box -->
+                    <div class="lg:col-span-7 bg-white/90 backdrop-blur-md rounded-3xl border border-slate-200/90 p-4 sm:p-5 shadow-sm space-y-4">
+                        
+                        <!-- Header Centrado del Calendario -->
+                        <div class="text-center pb-2 border-b border-slate-100">
+                            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Reserva tu cita</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Selecciona el día que mejor te quede.</p>
                         </div>
-                        <p class="text-[11px] text-slate-500 mt-0.5">Servicio: <strong>Corte & Barba Estilizada</strong> (45 min + 15 min pausa)</p>
-                    </div>
 
-                    <div class="grid grid-cols-3 gap-2">
-                        ${['09:00', '10:00', '11:15'].map(t => `
-                            <button type="button" onclick="window.selectSimTime('${t}')"
-                                class="py-2.5 px-2 rounded-xl text-xs font-extrabold transition-all border ${t === simSelectedTime 
-                                    ? 'bg-[#FC8712] text-white border-[#FC8712] shadow-xs' 
-                                    : 'bg-slate-50 hover:bg-orange-50 text-slate-700 border-slate-200'}">
-                                ${t} hs
+                        <!-- Barra de Navegación del Mes -->
+                        <div class="flex items-center justify-between p-2 bg-slate-100/80 rounded-2xl border border-slate-200/70">
+                            <button type="button" class="w-8 h-8 rounded-xl bg-white text-slate-700 hover:bg-[#D11149] hover:text-white flex items-center justify-center font-bold transition-all shadow-2xs border border-slate-200 cursor-pointer">
+                                <span class="material-symbols-outlined text-[18px]">chevron_left</span>
                             </button>
-                        `).join('')}
+                            <div class="flex flex-col items-center">
+                                <span class="text-[9px] font-black uppercase tracking-widest text-[#D11149] bg-rose-100/90 border border-rose-200/80 px-2.5 py-0.5 rounded-full mb-0.5 shadow-2xs">Vista Mensual</span>
+                                <h4 class="font-extrabold text-xs sm:text-sm uppercase tracking-wider text-slate-900">Noviembre 2026</h4>
+                            </div>
+                            <button type="button" class="w-8 h-8 rounded-xl bg-white text-slate-700 hover:bg-[#D11149] hover:text-white flex items-center justify-center font-bold transition-all shadow-2xs border border-slate-200 cursor-pointer">
+                                <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                            </button>
+                        </div>
+
+                        <!-- Días de la Semana (Dom a Sab como en calendarioMensual.html) -->
+                        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-black uppercase tracking-widest text-slate-400 py-1">
+                            <div>Dom</div><div>Lun</div><div>Mar</div><div>Mie</div><div>Jue</div><div>Vie</div><div>Sab</div>
+                        </div>
+
+                        <!-- Grilla de Días del Mes -->
+                        <div class="grid grid-cols-7 gap-1 sm:gap-1.5 p-2 sm:p-2.5 bg-slate-50/80 rounded-2xl border border-slate-200/70 text-xs">
+                            <!-- Días vacíos inicio de mes -->
+                            <span class="p-2 text-slate-300 text-center font-medium">26</span>
+                            <span class="p-2 text-slate-300 text-center font-medium">27</span>
+                            <span class="p-2 text-slate-300 text-center font-medium">28</span>
+                            <span class="p-2 text-slate-300 text-center font-medium">29</span>
+                            <span class="p-2 text-slate-300 text-center font-medium">30</span>
+                            <span class="p-2 text-slate-300 text-center font-medium">31</span>
+
+                            ${days.map(item => `
+                                <button type="button" onclick="window.selectSimDay(${item.d})" 
+                                    class="p-2 rounded-xl font-extrabold transition-all relative flex flex-col items-center justify-center ${item.d === simSelectedDay 
+                                        ? 'bg-gradient-to-tr from-[#D11149] to-[#FC8712] text-white shadow-md scale-105 z-10' 
+                                        : (item.free 
+                                            ? 'bg-white hover:bg-orange-50 text-slate-800 border border-slate-200/80 shadow-2xs' 
+                                            : 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-60')}">
+                                    <span>${item.d}</span>
+                                    ${item.free && item.d !== simSelectedDay ? '<span class="w-1 h-1 rounded-full bg-emerald-500 mt-0.5"></span>' : ''}
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <!-- Indicadores de estado -->
+                        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-semibold">
+                            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#D11149]"></span> Día Seleccionado (${simSelectedDay} de Noviembre)</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Horarios Libres</span>
+                        </div>
                     </div>
 
-                    <!-- Mini Formulario Simulado -->
-                    <div class="bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/90 space-y-2.5">
-                        <div class="grid grid-cols-2 gap-2 text-xs">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Tu Nombre</label>
-                                <input type="text" readonly value="Juan Pérez" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800">
+                    <!-- Columna Derecha (5 cols): DayDetailsContainer & ClientBookingView -->
+                    <div class="lg:col-span-5 bg-white/95 backdrop-blur-md rounded-3xl border-2 border-slate-200/90 p-4 sm:p-5 shadow-sm space-y-4">
+                        
+                        <!-- Header del Día Elegido con Ícono de Schedule Oficial -->
+                        <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+                            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#FC8712] to-[#D11149] text-white flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0">
+                                <span class="material-symbols-outlined text-xl">schedule</span>
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">WhatsApp</label>
-                                <input type="text" readonly value="+54 9 11 5555-1234" class="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-800">
+                                <h4 class="font-extrabold text-base text-slate-900">${simSelectedDay} de Noviembre</h4>
+                                <p class="text-xs text-slate-500">Elige la hora y confirma tu turno</p>
                             </div>
                         </div>
 
+                        <!-- Horarios Disponibles -->
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Cupón de Descuento (Opcional)</label>
-                            <div class="flex items-center gap-1.5">
-                                <input type="text" readonly value="DESC10 (-10% OFF)" class="w-full bg-emerald-50 border border-emerald-200 rounded-lg px-2.5 py-1.5 text-xs font-black text-emerald-800">
-                                <span class="text-[10px] font-extrabold text-emerald-600 shrink-0">Aplicado ✓</span>
+                            <label class="block text-[11px] font-black uppercase tracking-wider text-slate-400 mb-2">Horarios Libres</label>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                ${['09:30', '10:15', '11:00', '14:30', '15:15', '16:00'].map(t => `
+                                    <button type="button" onclick="window.selectSimTime('${t}')"
+                                        class="py-2 px-1.5 rounded-xl text-xs font-extrabold transition-all border ${t === simSelectedTime 
+                                            ? 'bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white border-transparent shadow-xs scale-102' 
+                                            : 'bg-slate-50 hover:bg-orange-50 text-slate-700 border-slate-200'}">
+                                        ${t} hs
+                                    </button>
+                                `).join('')}
                             </div>
                         </div>
 
-                        <div class="pt-1 flex items-center justify-between text-xs font-bold">
-                            <span class="text-slate-600">Total a abonar:</span>
-                            <div class="text-right">
-                                <span class="text-slate-400 line-through text-[11px]">$8.500</span>
-                                <span class="text-slate-900 font-black text-sm ml-1">$7.650</span>
+                        <!-- Tarjeta de Servicio y Precio -->
+                        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/90 space-y-2">
+                            <div class="flex items-center justify-between text-xs">
+                                <div>
+                                    <span class="text-[10px] font-black uppercase text-slate-400 block">Servicio Seleccionado</span>
+                                    <strong class="text-slate-800 text-xs sm:text-sm font-extrabold">Corte & Barba Estilizada</strong>
+                                    <span class="text-[11px] text-slate-500 block">45 min · Atiende: Martín Rossi</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-xs font-black text-slate-900">$8.500</span>
+                                    <span class="block text-[9px] font-bold text-rose-700 bg-rose-100 px-1.5 py-0.2 rounded mt-0.5">Seña 1h</span>
+                                </div>
                             </div>
                         </div>
 
-                        <button type="button" onclick="window.openSimCta('¡Turno simulado con éxito!', 'En tu negocio real, el cliente recibe el comprobante por WhatsApp/email y la cita se sincroniza en tu calendario.', 'Básico')"
-                            class="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#FC8712] to-amber-500 text-white font-extrabold text-xs shadow-xs hover:opacity-95 transition-all flex items-center justify-center gap-1.5">
-                            <span class="material-symbols-outlined text-[16px]">check_circle</span>
-                            <span>Confirmar Reserva de Turno</span>
+                        <!-- Mini Formulario de Reserva del Cliente -->
+                        <div class="space-y-2 text-xs">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Nombre</label>
+                                    <input type="text" readonly value="Juan Pérez" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">WhatsApp</label>
+                                    <input type="text" readonly value="+54 9 11 5555-1234" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Cupón de Descuento</label>
+                                <div class="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-xl px-2.5 py-1.5">
+                                    <span class="text-xs font-extrabold text-emerald-800 flex-1">DESC10 (-10% OFF)</span>
+                                    <span class="text-[10px] font-black text-emerald-600">Aplicado <span class="material-symbols-outlined text-[13px] inline-block align-middle">check</span></span>
+                                </div>
+                            </div>
+
+                            <div class="pt-2 flex items-center justify-between text-xs font-extrabold">
+                                <span class="text-slate-600">Total a abonar:</span>
+                                <div class="text-right">
+                                    <span class="text-slate-400 line-through text-[11px] mr-1">$8.500</span>
+                                    <span class="text-slate-900 text-sm font-black">$7.650</span>
+                                </div>
+                            </div>
+
+                            <button type="button" onclick="window.openSimCta('¡Turno reservado con éxito!', 'El cliente recibe su comprobante por WhatsApp y el turno se sincroniza de inmediato en tu Agenda Virtual.', 'Básico')"
+                                class="w-full py-3 rounded-2xl bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white font-extrabold text-xs shadow-md shadow-rose-500/20 hover:opacity-95 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                <span>Solicitar Turno</span>
+                                <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // VISTA SEMANAL (Idéntica a calendarioSemanal.html)
+    function getSimCalendarSemanalHtml() {
+        const weekDays = [
+            { id: 9, name: 'Dom 09', free: 2 },
+            { id: 10, name: 'Lun 10', free: 6 },
+            { id: 11, name: 'Mar 11', free: 5 },
+            { id: 12, name: 'Mie 12', free: 4 },
+            { id: 13, name: 'Jue 13', free: 5 },
+            { id: 14, name: 'Vie 14', free: 7 },
+            { id: 15, name: 'Sab 15', free: 3 }
+        ];
+
+        return `
+            <div class="space-y-4">
+                <!-- Header y Resúmenes como calendarioSemanal.html -->
+                <div class="bg-white/90 backdrop-blur-md rounded-3xl border border-slate-200/90 p-4 sm:p-5 shadow-sm space-y-4">
+                    
+                    <div class="text-center pb-3 border-b border-slate-100">
+                        <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Reserva tu cita</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Selecciona el día y horario que mejor te quede.</p>
+                    </div>
+
+                    <!-- Dual Summary Pills (Servicio Elegido + Profesional) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto">
+                        <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+                            <div class="w-9 h-9 rounded-xl bg-rose-100 text-[#D11149] flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-[20px]">content_cut</span>
+                            </div>
+                            <div class="truncate">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Servicio Elegido</span>
+                                <strong class="text-xs sm:text-sm font-extrabold text-slate-800 truncate block">Corte & Barba Estilizada</strong>
+                                <span class="text-[11px] text-slate-500">45 min · $8.500</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+                            <div class="w-9 h-9 rounded-xl bg-amber-100 text-[#FC8712] flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-[20px]">person</span>
+                            </div>
+                            <div class="truncate">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Profesional</span>
+                                <strong class="text-xs sm:text-sm font-extrabold text-slate-800 truncate block">Martín Rossi</strong>
+                                <span class="text-[11px] text-slate-500">Barbero & Estilista</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Barra de Navegación Semanal -->
+                    <div class="flex items-center justify-between p-2 bg-slate-100/80 rounded-2xl border border-slate-200/70">
+                        <button type="button" class="w-8 h-8 rounded-xl bg-white text-slate-700 hover:bg-[#D11149] hover:text-white flex items-center justify-center font-bold transition-all shadow-2xs border border-slate-200 cursor-pointer">
+                            <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                        </button>
+                        <div class="flex flex-col items-center">
+                            <span class="text-[9px] font-black uppercase tracking-widest text-[#D11149] bg-rose-100/90 border border-rose-200/80 px-2.5 py-0.5 rounded-full mb-0.5 shadow-2xs">Vista Semanal</span>
+                            <h4 class="font-extrabold text-xs sm:text-sm uppercase tracking-wider text-slate-900">Semana del 9 al 15 de Noviembre</h4>
+                        </div>
+                        <button type="button" class="w-8 h-8 rounded-xl bg-white text-slate-700 hover:bg-[#D11149] hover:text-white flex items-center justify-center font-bold transition-all shadow-2xs border border-slate-200 cursor-pointer">
+                            <span class="material-symbols-outlined text-[18px]">chevron_right</span>
                         </button>
                     </div>
-                </div>
-            </div>
-        `;
-    }
 
-    function getSimCalendarSemanalHtml() {
-        return `
-            <div class="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-extrabold text-slate-800">Semana del 10 al 16 de Noviembre</span>
-                    <span class="text-[11px] font-semibold text-slate-500">Bloques adaptados según duración de servicio</span>
-                </div>
+                    <!-- Selector de los 7 Días de la Semana -->
+                    <div class="grid grid-cols-7 gap-1 sm:gap-2 p-2 bg-slate-50/80 rounded-2xl border border-slate-200/70">
+                        ${weekDays.map(w => `
+                            <button type="button" onclick="window.selectSimDay(${w.id})"
+                                class="p-2 sm:p-2.5 rounded-2xl text-center font-extrabold transition-all cursor-pointer flex flex-col items-center justify-center ${w.id === simSelectedDay 
+                                    ? 'bg-gradient-to-tr from-[#D11149] to-[#FC8712] text-white shadow-md scale-102' 
+                                    : 'bg-white hover:bg-orange-50 text-slate-700 border border-slate-200/80 shadow-2xs'}">
+                                <span class="text-[11px] sm:text-xs block">${w.name}</span>
+                                <span class="text-[10px] mt-1 font-bold ${w.id === simSelectedDay ? 'text-white/90' : 'text-emerald-600'}">${w.free} lib</span>
+                            </button>
+                        `).join('')}
+                    </div>
 
-                <div class="overflow-x-auto">
-                    <div class="min-w-[500px] grid grid-cols-6 gap-2 text-center text-xs">
-                        <div class="font-extrabold text-slate-400 pb-1 border-b border-slate-100">Horario</div>
-                        <div class="font-extrabold text-slate-800 pb-1 border-b border-slate-100">Lunes 10</div>
-                        <div class="font-extrabold text-slate-800 pb-1 border-b border-slate-100">Martes 11</div>
-                        <div class="font-extrabold text-slate-800 pb-1 border-b border-slate-100">Miérc 12</div>
-                        <div class="font-extrabold text-slate-800 pb-1 border-b border-slate-100">Jueves 13</div>
-                        <div class="font-extrabold text-slate-800 pb-1 border-b border-slate-100">Viernes 14</div>
+                    <!-- Grilla Inferior: Horarios y Formulario Final -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-2">
+                        
+                        <!-- Horarios Disponibles -->
+                        <div class="space-y-3">
+                            <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-2 text-xs font-bold text-emerald-900 shadow-2xs">
+                                <span class="material-symbols-outlined text-emerald-600 text-[18px]">bolt</span>
+                                <span>Próximo turno libre: <strong>Hoy a las 10:15 hs</strong></span>
+                            </div>
 
-                        <!-- 09:00 -->
-                        <div class="font-bold text-slate-400 text-[11px] py-2">09:00 hs</div>
-                        <div class="p-2 rounded-lg bg-slate-100 text-slate-400 text-[11px] font-medium">Ocupado</div>
-                        <button onclick="window.openSimCta('¡Turno disponible!', 'Podés agendarte en este bloque libre en un solo clic.', 'Básico')" class="p-2 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold hover:bg-emerald-100 transition-colors">Libre (45m)</button>
-                        <div class="p-2 rounded-lg bg-slate-100 text-slate-400 text-[11px] font-medium">Ocupado</div>
-                        <button onclick="window.openSimCta('¡Turno disponible!', 'Podés agendarte en este bloque libre en un solo clic.', 'Básico')" class="p-2 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold hover:bg-emerald-100 transition-colors">Libre (45m)</button>
-                        <div class="p-2 rounded-lg bg-slate-100 text-slate-400 text-[11px] font-medium">Ocupado</div>
+                            <label class="block text-[11px] font-black uppercase tracking-wider text-slate-400">Horarios para el día ${simSelectedDay}</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                ${['09:30', '10:15', '11:00', '14:30', '15:15', '16:00'].map(t => `
+                                    <button type="button" onclick="window.selectSimTime('${t}')"
+                                        class="py-2.5 px-2 rounded-xl text-xs font-extrabold transition-all border text-center ${t === simSelectedTime 
+                                            ? 'bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white border-transparent shadow-xs scale-102' 
+                                            : 'bg-slate-50 hover:bg-orange-50 text-slate-700 border-slate-200'}">
+                                        ${t} hs
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
 
-                        <!-- 10:00 -->
-                        <div class="font-bold text-slate-400 text-[11px] py-2">10:00 hs</div>
-                        <button onclick="window.openSimCta('¡Turno disponible!', 'Podés agendarte en este bloque libre en un solo clic.', 'Básico')" class="p-2 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold hover:bg-emerald-100 transition-colors">Libre (60m)</button>
-                        <div class="p-2 rounded-lg bg-rose-50 text-[#D11149] border border-rose-200 text-[11px] font-bold">Seña 1h</div>
-                        <button onclick="window.openSimCta('¡Turno disponible!', 'Podés agendarte en este bloque libre en un solo clic.', 'Básico')" class="p-2 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold hover:bg-emerald-100 transition-colors">Libre (60m)</button>
-                        <div class="p-2 rounded-lg bg-slate-100 text-slate-400 text-[11px] font-medium">Ocupado</div>
-                        <button onclick="window.openSimCta('¡Turno disponible!', 'Podés agendarte en este bloque libre en un solo clic.', 'Básico')" class="p-2 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold hover:bg-emerald-100 transition-colors">Libre (60m)</button>
-
-                        <!-- 11:30 -->
-                        <div class="font-bold text-slate-400 text-[11px] py-2">11:30 hs</div>
-                        <div class="p-2 rounded-lg bg-slate-100 text-slate-400 text-[11px] font-medium">Ocupado</div>
-                        <button onclick="window.openSimCta('¡Turno disponible!', 'Podés agendarte en este bloque libre en un solo clic.', 'Básico')" class="p-2 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold hover:bg-emerald-100 transition-colors">Libre (30m)</button>
-                        <div class="p-2 rounded-lg bg-slate-100 text-slate-400 text-[11px] font-medium">Ocupado</div>
-                        <div class="p-2 rounded-lg bg-slate-100 text-slate-400 text-[11px] font-medium">Ocupado</div>
-                        <button onclick="window.openSimCta('¡Turno disponible!', 'Podés agendarte en este bloque libre en un solo clic.', 'Básico')" class="p-2 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-bold hover:bg-emerald-100 transition-colors">Libre (30m)</button>
+                        <!-- Formulario de Confirmación -->
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2.5 text-xs">
+                            <h4 class="font-extrabold text-sm text-slate-900 pb-1 border-b border-slate-200">Tus Datos para Confirmar</h4>
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" readonly value="Juan" placeholder="Nombre" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800">
+                                <input type="text" readonly value="Pérez" placeholder="Apellido" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800">
+                            </div>
+                            <input type="text" readonly value="+54 9 11 5555-1234" placeholder="WhatsApp / Celular" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800">
+                            
+                            <button type="button" onclick="window.openSimCta('¡Turno semanal reservado!', 'Podés configurar tu vista semanal o mensual como predeterminada desde tus ajustes de negocio.', 'Básico')"
+                                class="w-full py-3 rounded-2xl bg-[#D11149] hover:bg-[#b00e3d] text-white font-extrabold text-xs shadow-md shadow-rose-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-1">
+                                <span>Solicitar Turno</span>
+                                <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-
-                <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-slate-500">
-                    <span>💡 Hacé clic en cualquier bloque libre para agendar</span>
-                    <button type="button" onclick="window.openSimCta('¡Configurá tus turnos en tu propia cuenta!', 'Recibí reservas 24/7 sin estar pendiente del teléfono.', 'Básico')" class="text-[#FC8712] font-bold hover:underline">
-                        Crear cuenta gratis →
-                    </button>
-                </div>
             </div>
         `;
     }
 
-    // ==========================================
-    // 2. SIMULACIÓN: AGENDA VIRTUAL (Plan Profesional)
+// ==========================================
+    // 2. SIMULACIÓN: AGENDA VIRTUAL (Plan Profesional & Premium)
+    // Fiel reflejo de agenda.html (Columna Por Confirmar + Pestañas de Turnos)
     // ==========================================
     window.confirmSimAppointment = function(btn) {
         if (!btn) return;
-        btn.innerHTML = '✓ Confirmado';
-        btn.className = 'px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-black text-xs';
+        btn.innerHTML = '<span class="material-symbols-outlined text-[14px] inline-block align-middle mr-1">check</span> Confirmado';
+        btn.className = 'px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 font-black text-xs shadow-2xs cursor-default';
         btn.disabled = true;
-        if (typeof showToast === 'function') {
-            showToast('Turno confirmado y notificación enviada al cliente.', 'success');
-        }
     };
 
     function getSimHtml_Agenda() {
         return `
             <div class="space-y-4">
+                <!-- Header de la Agenda Virtual como agenda.html -->
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#D11149]"></span>
-                            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">Agenda Virtual Interactiva</h4>
-                            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-rose-100 text-[#D11149]">Plan Profesional & Premium</span>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#D11149] to-[#FC8712] text-white flex items-center justify-center shadow-md shadow-rose-500/20">
+                            <span class="material-symbols-outlined text-xl">calendar_month</span>
                         </div>
-                        <p class="text-xs text-slate-500">Administrá tus citas, estados de confirmación y comunicación directa con clientes</p>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-extrabold text-slate-900 text-base">Mi Agenda Virtual</h4>
+                                <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-rose-100 text-[#D11149]">Plan Profesional</span>
+                            </div>
+                            <p class="text-xs text-slate-500">Gestiona tus turnos en tiempo real y coordina señas por WhatsApp</p>
+                        </div>
                     </div>
 
-                    <button type="button" onclick="window.openSimCta('¡Agendá citas manuales en tu negocio!', 'Con el Plan Profesional podés registrar turnos telefónicos o presenciales al instante.', 'Profesional')"
-                        class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white font-extrabold text-xs shadow-xs hover:opacity-95 transition-all flex items-center gap-1.5 self-start sm:self-auto">
-                        <span class="material-symbols-outlined text-[16px]">add</span>
-                        <span>Nuevo Turno Manual</span>
-                    </button>
+                    <!-- Buscador y botón nuevo turno -->
+                    <div class="flex items-center gap-2 self-start sm:self-auto">
+                        <div class="relative hidden sm:block">
+                            <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[16px]">search</span>
+                            <input type="text" readonly value="Buscar cliente o servicio..." class="pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-400 w-48">
+                        </div>
+                        <button type="button" onclick="window.openSimCta('¡Agendá citas manuales en tu negocio!', 'Con el Plan Profesional podés registrar turnos telefónicos o presenciales al instante.', 'Profesional')"
+                            class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white font-extrabold text-xs shadow-md shadow-rose-500/20 hover:opacity-95 transition-all flex items-center gap-1.5 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]">add</span>
+                            <span>Nuevo Turno Manual</span>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Filtros rápidos de estado -->
-                <div class="flex flex-wrap items-center gap-2">
-                    <span class="px-3 py-1 rounded-lg bg-[#D11149] text-white text-xs font-bold shadow-2xs">Todos (3)</span>
-                    <span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-bold cursor-pointer">Confirmados (2)</span>
-                    <span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 text-xs font-bold cursor-pointer">En Espera Seña (1)</span>
+                <!-- Tabs de Profesionales (como agenda.html) -->
+                <div class="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+                    <span class="px-3 py-1.5 rounded-xl bg-slate-900 text-white font-extrabold shadow-2xs">Todos los profesionales (4)</span>
+                    <span class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold border border-slate-200 cursor-pointer">Sofía V. (2)</span>
+                    <span class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold border border-slate-200 cursor-pointer">Martín R. (2)</span>
                 </div>
 
-                <!-- Lista de Turnos Simulados -->
-                <div class="space-y-2.5">
-                    <!-- Turno 1 -->
-                    <div class="p-3.5 bg-slate-50/90 rounded-2xl border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-slate-300 transition-all">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D11149] to-[#FC8712] text-white flex items-center justify-center font-black text-sm shadow-2xs">
-                                MG
+                <!-- Layout Principal en Dos Columnas (4 cols / 8 cols) -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+
+                    <!-- COLUMNA IZQUIERDA (4 cols): POR CONFIRMAR -->
+                    <div class="lg:col-span-4 space-y-3">
+                        <div class="flex items-center justify-between pb-1">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                                <h5 class="text-xs font-black text-amber-900 uppercase tracking-wider">Por Confirmar</h5>
                             </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h5 class="text-xs sm:text-sm font-extrabold text-slate-900">María Gómez</h5>
-                                    <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Confirmado</span>
-                                </div>
-                                <p class="text-xs text-slate-500 font-medium">Coloración & Peinado (90 min) • <strong>$18.500</strong></p>
-                            </div>
+                            <span class="text-xs font-black text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md">1 pendiente</span>
                         </div>
 
-                        <div class="flex items-center gap-2 self-end sm:self-auto">
-                            <span class="text-xs font-black text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200">10:00 hs</span>
-                            <button type="button" onclick="window.openSimCta('¡Envío directo de WhatsApp!', 'En el sistema real abrís el chat de WhatsApp con el mensaje del turno listo para enviar.', 'Profesional')"
-                                class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1 transition-colors">
-                                <span>💬</span> WhatsApp
-                            </button>
+                        <!-- Tarjeta Pendiente de Seña -->
+                        <div class="bg-white rounded-2xl border-2 border-amber-300 p-4 shadow-sm hover:shadow-md transition-all space-y-3">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-xs shadow-2xs">
+                                        CR
+                                    </div>
+                                    <div>
+                                        <h6 class="font-extrabold text-slate-900 text-xs sm:text-sm">Carlos Rossi</h6>
+                                        <span class="text-[11px] text-slate-500 font-medium">+54 9 11 3456-7890</span>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-black text-slate-700 bg-slate-100 px-2 py-0.5 rounded-lg">11:30 hs</span>
+                            </div>
+
+                            <div class="bg-amber-50/70 p-2.5 rounded-xl border border-amber-200 text-xs">
+                                <div class="flex items-center justify-between font-bold text-slate-800">
+                                    <span>Corte Caballero & Barba</span>
+                                    <span>$7.500</span>
+                                </div>
+                                <span class="text-[11px] text-slate-500 block">45 min · Atiende: Martín R.</span>
+                                <div class="mt-2 flex items-center gap-1 text-[10px] font-black text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md w-fit">
+                                    <span><span class="material-symbols-outlined text-[13px] inline-block align-middle mr-0.5">hourglass_top</span> Esperando comprobante de seña (1h)</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2 pt-1">
+                                <button type="button" onclick="window.confirmSimAppointment(this)"
+                                    class="flex-1 py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-2xs transition-all flex items-center justify-center gap-1 cursor-pointer">
+                                    <span class="material-symbols-outlined text-[15px]">check</span>
+                                    <span>Confirmar Seña</span>
+                                </button>
+                                <button type="button" onclick="window.openSimCta('¡Envío directo de WhatsApp!', 'En el sistema real abrís el chat de WhatsApp con el mensaje del turno listo para enviar.', 'Profesional')"
+                                    class="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-colors cursor-pointer" title="Contactar por WhatsApp">
+                                    <span class="material-symbols-outlined text-[17px]">chat</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Turno 2 (Con Seña 1 hora) -->
-                    <div class="p-3.5 bg-slate-50/90 rounded-2xl border border-amber-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-amber-300 transition-all">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-sm shadow-2xs">
-                                CR
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h5 class="text-xs sm:text-sm font-extrabold text-slate-900">Carlos Rossi</h5>
-                                    <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-amber-100 text-amber-900">⏳ Esperando Seña (1h)</span>
-                                </div>
-                                <p class="text-xs text-slate-500 font-medium">Corte Caballero & Barba (45 min) • <strong>$7.500</strong></p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center gap-2 self-end sm:self-auto">
-                            <span class="text-xs font-black text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200">11:30 hs</span>
-                            <button type="button" onclick="window.confirmSimAppointment(this)"
-                                class="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs shadow-2xs transition-all">
-                                Confirmar Seña
+                    <!-- COLUMNA DERECHA (8 cols): TABS INTERNOS Y TURNOS CONFIRMADOS -->
+                    <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+                        
+                        <!-- Barra de Tabs Internos de agenda.html -->
+                        <div class="flex border-b border-slate-200 px-3 pt-2 gap-1 bg-slate-50/80 overflow-x-auto text-xs">
+                            <button type="button" class="px-3.5 py-2 font-extrabold rounded-t-xl text-[#D11149] bg-white border-t border-x border-slate-200 -mb-px flex items-center gap-1.5 shadow-2xs">
+                                <span class="material-symbols-outlined text-[16px]">event_available</span>
+                                <span>Próximos (3)</span>
+                            </button>
+                            <button type="button" class="px-3 py-2 font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1.5 cursor-pointer">
+                                <span class="material-symbols-outlined text-[16px]">history_toggle_off</span>
+                                <span>Vencidos</span>
+                            </button>
+                            <button type="button" class="px-3 py-2 font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1.5 cursor-pointer">
+                                <span class="material-symbols-outlined text-[16px]">history</span>
+                                <span>Historial</span>
+                            </button>
+                            <button type="button" class="px-3 py-2 font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1.5 cursor-pointer">
+                                <span class="material-symbols-outlined text-[16px]">delete</span>
+                                <span>Papelera</span>
                             </button>
                         </div>
-                    </div>
 
-                    <!-- Turno 3 -->
-                    <div class="p-3.5 bg-slate-50/90 rounded-2xl border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-slate-300 transition-all">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-black text-sm shadow-2xs">
-                                LF
+                        <!-- Lista de Turnos Confirmados con Encabezado de Fecha -->
+                        <div class="p-4 sm:p-5 space-y-3">
+                            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                                <span class="text-xs font-extrabold text-slate-800">Hoy · 14 de Noviembre</span>
+                                <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">3 turnos programados</span>
                             </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h5 class="text-xs sm:text-sm font-extrabold text-slate-900">Lucía Fernández</h5>
-                                    <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Confirmado</span>
+
+                            <!-- Turno 1 -->
+                            <div class="p-3 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#D11149] to-[#FC8712] text-white flex items-center justify-center font-black text-xs shadow-2xs shrink-0">
+                                        MG
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <h6 class="text-xs sm:text-sm font-extrabold text-slate-900">María Gómez</h6>
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Confirmado</span>
+                                        </div>
+                                        <p class="text-xs text-slate-500">Coloración & Peinado (90 min) · Atiende: <strong>Sofía V.</strong></p>
+                                    </div>
                                 </div>
-                                <p class="text-xs text-slate-500 font-medium">Tratamiento Capilar Brillo (60 min) • <strong>$12.000</strong></p>
+                                <div class="flex items-center gap-2 self-end sm:self-auto">
+                                    <span class="text-xs font-black text-slate-800 bg-white px-2.5 py-1 rounded-lg border border-slate-200">10:00 hs</span>
+                                    <span class="text-xs font-black text-slate-900">$18.500</span>
+                                    <button type="button" onclick="window.openSimCta('¡Recordatorio por WhatsApp!', 'Envía confirmaciones y avisos previos automáticos a tus clientes.', 'Profesional')" class="px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[14px]">chat</span>
+                                        <span class="hidden sm:inline">WhatsApp</span>
+                                    </button>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="flex items-center gap-2 self-end sm:self-auto">
-                            <span class="text-xs font-black text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200">14:00 hs</span>
-                            <button type="button" onclick="window.openSimCta('¡Envío directo de WhatsApp!', 'En el sistema real abrís el chat de WhatsApp con el mensaje del turno listo para enviar.', 'Profesional')"
-                                class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1 transition-colors">
-                                <span>💬</span> WhatsApp
-                            </button>
+                            <!-- Turno 2 -->
+                            <div class="p-3 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-black text-xs shadow-2xs shrink-0">
+                                        LF
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <h6 class="text-xs sm:text-sm font-extrabold text-slate-900">Lucía Fernández</h6>
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Confirmado</span>
+                                        </div>
+                                        <p class="text-xs text-slate-500">Tratamiento Capilar Brillo (60 min) · Atiende: <strong>Sofía V.</strong></p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 self-end sm:self-auto">
+                                    <span class="text-xs font-black text-slate-800 bg-white px-2.5 py-1 rounded-lg border border-slate-200">12:15 hs</span>
+                                    <span class="text-xs font-black text-slate-900">$12.000</span>
+                                    <button type="button" onclick="window.openSimCta('¡Recordatorio por WhatsApp!', 'Envía confirmaciones y avisos previos automáticos a tus clientes.', 'Profesional')" class="px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[14px]">chat</span>
+                                        <span class="hidden sm:inline">WhatsApp</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Turno 3 -->
+                            <div class="p-3 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-xs shadow-2xs shrink-0">
+                                        EQ
+                                    </div>
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <h6 class="text-xs sm:text-sm font-extrabold text-slate-900">Esteban Quito</h6>
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">Confirmado</span>
+                                        </div>
+                                        <p class="text-xs text-slate-500">Corte Clásico Caballero (40 min) · Atiende: <strong>Martín R.</strong></p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2 self-end sm:self-auto">
+                                    <span class="text-xs font-black text-slate-800 bg-white px-2.5 py-1 rounded-lg border border-slate-200">15:30 hs</span>
+                                    <span class="text-xs font-black text-slate-900">$8.500</span>
+                                    <button type="button" onclick="window.openSimCta('¡Recordatorio por WhatsApp!', 'Envía confirmaciones y avisos previos automáticos a tus clientes.', 'Profesional')" class="px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[14px]">chat</span>
+                                        <span class="hidden sm:inline">WhatsApp</span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -853,7 +1084,8 @@
     }
 
     // ==========================================
-    // 6. SIMULACIÓN: MI PÁGINA WEB (Plan Profesional / Premium)
+    // 6. SIMULACIÓN: MI PÁGINA WEB (Plan Profesional & Premium)
+    // Fiel reflejo de web.html (Hero, Barra Atajos, Catálogo y Paletas Sugeridas)
     // ==========================================
     window.setSimWebTheme = function(theme) {
         simActiveWebTheme = theme;
@@ -861,63 +1093,261 @@
     };
 
     function getSimHtml_Web() {
-        const themeColors = {
-            default: { bg: 'from-[#D11149] via-[#e21a56] to-[#FC8712]', btn: 'bg-[#D11149]', tag: 'Rosa & Naranja' },
-            emerald: { bg: 'from-emerald-700 via-teal-600 to-lime-600', btn: 'bg-emerald-700', tag: 'Esmeralda & Menta' },
-            ocean: { bg: 'from-blue-700 via-cyan-600 to-indigo-700', btn: 'bg-blue-700', tag: 'Océano & Cian' },
-            dark: { bg: 'from-slate-900 via-zinc-800 to-amber-700', btn: 'bg-amber-600', tag: 'Dark & Oro' }
+        const themePresets = {
+            default: {
+                id: 'default',
+                name: 'Agendatina Clásica',
+                tag: 'Rosa & Naranja',
+                heroGradient: 'from-[#D11149] via-[#e21a56] to-[#FC8712]',
+                primaryBtn: 'bg-[#D11149] hover:bg-[#b00e3d]',
+                primaryText: 'text-[#D11149]',
+                accentBadge: 'bg-rose-100 text-[#D11149]',
+                swatches: ['#D11149', '#FC8712']
+            },
+            rosa_verde: {
+                id: 'rosa_verde',
+                name: 'Rosa & Verde Menta',
+                tag: 'Estética & Spa',
+                heroGradient: 'from-[#E9579A] via-[#d44385] to-[#2FA36B]',
+                primaryBtn: 'bg-[#E9579A] hover:bg-[#d44385]',
+                primaryText: 'text-[#E9579A]',
+                accentBadge: 'bg-pink-100 text-[#E9579A]',
+                swatches: ['#E9579A', '#2FA36B']
+            },
+            celeste_marron: {
+                id: 'celeste_marron',
+                name: 'Celeste & Marrón Café',
+                tag: 'Estudio & Relax',
+                heroGradient: 'from-[#52A9C9] via-[#3f8ca8] to-[#6B4A2F]',
+                primaryBtn: 'bg-[#52A9C9] hover:bg-[#3f8ca8]',
+                primaryText: 'text-[#52A9C9]',
+                accentBadge: 'bg-sky-100 text-sky-800',
+                swatches: ['#52A9C9', '#6B4A2F']
+            },
+            azul_amarillo: {
+                id: 'azul_amarillo',
+                name: 'Azul & Amarillo Pastel',
+                tag: 'Barbería & Fitness',
+                heroGradient: 'from-[#1D4ED8] via-[#2563eb] to-[#F59E0B]',
+                primaryBtn: 'bg-[#1D4ED8] hover:bg-[#1e40af]',
+                primaryText: 'text-[#1D4ED8]',
+                accentBadge: 'bg-blue-100 text-[#1D4ED8]',
+                swatches: ['#1D4ED8', '#F59E0B']
+            },
+            dark_oro: {
+                id: 'dark_oro',
+                name: 'Dark Elegance & Ámbar',
+                tag: 'Tattoo & Noche',
+                heroGradient: 'from-slate-900 via-slate-800 to-[#D97706]',
+                primaryBtn: 'bg-[#D97706] hover:bg-[#b45309]',
+                primaryText: 'text-amber-700',
+                accentBadge: 'bg-amber-100 text-amber-900',
+                swatches: ['#0F172A', '#D97706']
+            }
         };
 
-        const currentTh = themeColors[simActiveWebTheme] || themeColors.default;
+        const activePreset = themePresets[simActiveWebTheme] || themePresets.default;
 
         return `
             <div class="space-y-4">
+                <!-- Header con Selector de Paletas Sugeridas en Vivo -->
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-[#0284C7]"></span>
-                            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">Tu Página Web Propia (mi-web)</h4>
-                            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-sky-100 text-sky-800">Profesional y Premium</span>
+                            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">Tu Página Web Pública de Reservas (web.html)</h4>
+                            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-sky-100 text-sky-800">Plan Profesional & Premium</span>
                         </div>
-                        <p class="text-xs text-slate-500">Personalizá tu portada, catálogo, enlaces a Instagram y colores corporativos</p>
+                        <p class="text-xs text-slate-500">Muestra fielmente tu portada, catálogo de servicios, atajos de atención y paleta corporativa</p>
                     </div>
 
-                    <!-- Selector de Paletas en Vivo -->
-                    <div class="flex items-center gap-1.5 self-start sm:self-auto">
-                        <span class="text-xs font-bold text-slate-400 mr-1">Paleta:</span>
-                        <button type="button" onclick="window.setSimWebTheme('default')" title="Rosa & Naranja" class="w-6 h-6 rounded-full bg-gradient-to-r from-[#D11149] to-[#FC8712] border-2 ${simActiveWebTheme === 'default' ? 'border-slate-800 scale-110 shadow-xs' : 'border-white'}"></button>
-                        <button type="button" onclick="window.setSimWebTheme('emerald')" title="Esmeralda" class="w-6 h-6 rounded-full bg-gradient-to-r from-emerald-600 to-teal-500 border-2 ${simActiveWebTheme === 'emerald' ? 'border-slate-800 scale-110 shadow-xs' : 'border-white'}"></button>
-                        <button type="button" onclick="window.setSimWebTheme('ocean')" title="Océano" class="w-6 h-6 rounded-full bg-gradient-to-r from-blue-600 to-cyan-500 border-2 ${simActiveWebTheme === 'ocean' ? 'border-slate-800 scale-110 shadow-xs' : 'border-white'}"></button>
-                        <button type="button" onclick="window.setSimWebTheme('dark')" title="Dark Oro" class="w-6 h-6 rounded-full bg-gradient-to-r from-slate-900 to-amber-600 border-2 ${simActiveWebTheme === 'dark' ? 'border-slate-800 scale-110 shadow-xs' : 'border-white'}"></button>
+                    <!-- Selector de Paletas Sugeridas Más Usadas -->
+                    <div class="flex flex-wrap items-center gap-1.5 self-start sm:self-auto">
+                        <span class="text-xs font-bold text-slate-400 mr-1 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[15px]">palette</span>
+                            Paleta:
+                        </span>
+                        ${Object.values(themePresets).map(preset => `
+                            <button type="button" onclick="window.setSimWebTheme('${preset.id}')" 
+                                title="${preset.name} (${preset.tag})"
+                                class="px-2.5 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border ${preset.id === simActiveWebTheme 
+                                    ? 'bg-slate-900 text-white border-slate-900 shadow-2xs scale-105' 
+                                    : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'}">
+                                <span class="flex -space-x-1">
+                                    <span class="w-3.5 h-3.5 rounded-full border border-white" style="background-color: ${preset.swatches[0]};"></span>
+                                    <span class="w-3.5 h-3.5 rounded-full border border-white" style="background-color: ${preset.swatches[1]};"></span>
+                                </span>
+                                <span class="hidden md:inline">${preset.name.split(' ')[0]}</span>
+                            </button>
+                        `).join('')}
                     </div>
                 </div>
 
-                <!-- Mockup de la Web Pública -->
-                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
-                    <!-- Portada de la web con colores dinámicos -->
-                    <div class="bg-gradient-to-r ${currentTh.bg} p-6 text-white text-center sm:text-left flex flex-col sm:flex-row items-center gap-4 transition-all duration-300">
-                        <div class="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center font-black text-2xl border border-white/30 shrink-0">
-                            ST
-                        </div>
-                        <div>
-                            <div class="flex items-center justify-center sm:justify-start gap-2">
-                                <h5 class="text-xl font-black">SteticaPepito • Salón & Spa</h5>
-                                <span class="bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-black">5.0 ★</span>
+                <!-- Marco de la Página Web Real (Reflejo Fiel de web.html) -->
+                <div class="bg-white rounded-3xl border-2 border-slate-200 overflow-hidden shadow-md">
+                    
+                    <!-- Barra de Navegación de la Web Pública -->
+                    <div class="bg-white/95 backdrop-blur-md px-5 py-3 border-b border-slate-100 flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-xl ${activePreset.primaryBtn} text-white flex items-center justify-center font-black text-xs shadow-2xs">
+                                SE
                             </div>
-                            <p class="text-white/80 text-xs mt-1">Estilismo profesional, tratamientos faciales y corporales en Palermo Soho.</p>
+                            <div>
+                                <span class="font-extrabold text-sm text-slate-900 block leading-tight">Stetica & Estilo</span>
+                                <span class="text-[10px] text-slate-400 font-medium block">agendatina.site/stetica-estilo</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <nav class="hidden sm:flex items-center gap-4 text-xs font-bold text-slate-600">
+                                <a href="javascript:void(0)" class="hover:text-primary transition-colors">Servicios</a>
+                                <a href="javascript:void(0)" class="hover:text-primary transition-colors">Equipo</a>
+                                <a href="javascript:void(0)" class="hover:text-primary transition-colors">Contacto</a>
+                            </nav>
+                            <button type="button" onclick="window.selectModuleTab('calendario', true)"
+                                class="${activePreset.primaryBtn} text-white text-xs font-extrabold px-3.5 py-1.5 rounded-xl shadow-xs transition-all flex items-center gap-1 cursor-pointer">
+                                <span class="material-symbols-outlined text-[15px]">calendar_month</span>
+                                <span>Solicitar Turno</span>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- Catálogo y Botón CTA de la web -->
-                    <div class="p-4 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3">
-                        <div class="text-xs text-slate-600 text-center sm:text-left">
-                            <p class="font-bold text-slate-800">Catálogo interactivo con fotos, precios y mapa de ubicación</p>
-                            <p class="text-[11px] text-slate-400">Tus clientes reservan directamente sin salir de tu link oficial.</p>
+                    <!-- HERO SECTION con degradado dinámico (Idéntico a web.html) -->
+                    <div class="bg-gradient-to-r ${activePreset.heroGradient} px-6 py-10 sm:py-14 text-white text-center relative overflow-hidden transition-all duration-500">
+                        <div class="max-w-2xl mx-auto space-y-3.5 relative z-10">
+                            <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md text-white text-[11px] font-bold border border-white/30 shadow-2xs">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span>Turnos y Reservas Online Disponibles</span>
+                            </div>
+                            <h3 class="text-2xl sm:text-4xl font-extrabold tracking-tight drop-shadow-xs">
+                                Bienvenidos a Stetica & Estilo
+                            </h3>
+                            <p class="text-xs sm:text-base text-white/90 max-w-xl mx-auto font-normal leading-relaxed">
+                                Tu espacio de relax, estética y cuidado personal en Palermo Soho. Reservá tu cita en 3 simples pasos.
+                            </p>
+                            <div class="pt-2 flex flex-wrap items-center justify-center gap-2.5">
+                                <button type="button" onclick="window.selectModuleTab('calendario', true)"
+                                    class="bg-white text-slate-900 hover:bg-slate-100 font-extrabold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer">
+                                    <span class="material-symbols-outlined text-[18px] ${activePreset.primaryText}">calendar_month</span>
+                                    <span>Solicitar Turno Ahora</span>
+                                </button>
+                                <button type="button" onclick="window.openSimCta('¡Configurá tu propia web!', 'Personalizá logo, fotos de servicios, enlaces de Instagram y mapa en tu Plan Profesional.', 'Profesional')"
+                                    class="bg-white/15 hover:bg-white/25 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl border border-white/30 transition-all">
+                                    <span>Ver Catálogo</span>
+                                </button>
+                            </div>
                         </div>
-                        <button type="button" onclick="window.openSimCta('¡Tené tu propia página web!', 'Con el Plan Profesional contás con tu web personalizada en tu propio enlace agendatina.site/tu-negocio.', 'Profesional')"
-                            class="${currentTh.btn} text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-xs hover:opacity-95 transition-all">
-                            Reservar Turno Online →
-                        </button>
+                    </div>
+
+                    <!-- BARRA DE ATAJOS FLOTANTE (Idéntica a web.html) -->
+                    <div class="px-4 -mt-5 relative z-20 max-w-4xl mx-auto">
+                        <div class="bg-white rounded-2xl border border-slate-200/90 p-3 sm:p-4 shadow-md grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-xl bg-orange-100 text-[#FC8712] flex items-center justify-center shrink-0">
+                                    <span class="material-symbols-outlined text-[18px]">schedule</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Atención</span>
+                                    <strong class="text-slate-800 text-[11px] font-bold block">Lun a Sáb 09-20h</strong>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                                    <span class="material-symbols-outlined text-[18px]">verified</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Reserva Online</span>
+                                    <strong class="text-slate-800 text-[11px] font-bold block">Confirmación al Instante</strong>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+                                    <span class="material-symbols-outlined text-[18px]">groups</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Especialistas</span>
+                                    <strong class="text-slate-800 text-[11px] font-bold block">Equipo Calificado</strong>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0">
+                                    <span class="material-symbols-outlined text-[18px]">chat</span>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Consultas</span>
+                                    <strong class="text-slate-800 text-[11px] font-bold block">WhatsApp Directo</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CATÁLOGO DE SERVICIOS (Idéntico a web.html) -->
+                    <div class="p-5 sm:p-7 space-y-4">
+                        <div class="text-center max-w-sm mx-auto">
+                            <h4 class="text-base sm:text-lg font-extrabold text-slate-900">Nuestros Servicios Destacados</h4>
+                            <div class="w-12 h-1 ${activePreset.primaryBtn} mx-auto rounded-full mt-1.5 mb-2"></div>
+                            <p class="text-xs text-slate-500">Seleccioná un servicio para iniciar tu reserva sin intermediarios</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                            
+                            <!-- Servicio 1 -->
+                            <div class="bg-slate-50 rounded-2xl border border-slate-200/90 p-4 flex flex-col justify-between hover:border-slate-300 transition-all shadow-2xs">
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${activePreset.accentBadge}">Corte & Barba</span>
+                                        <span class="text-xs font-black text-slate-900">$8.500</span>
+                                    </div>
+                                    <h5 class="font-extrabold text-slate-900 text-xs sm:text-sm">Corte de Cabello & Styling</h5>
+                                    <p class="text-[11px] text-slate-500 mt-1">Lavado premium, corte con tijera o máquina y acabado con pomada mate.</p>
+                                    <span class="text-[10px] text-slate-400 block mt-2 font-medium">⏱ 45 min · Atiende: Martín R.</span>
+                                </div>
+                                <button type="button" onclick="window.selectModuleTab('calendario', true)"
+                                    class="mt-3 w-full py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 font-extrabold text-xs shadow-2xs transition-all flex items-center justify-center gap-1 cursor-pointer">
+                                    <span>Agendar Turno</span>
+                                    <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                                </button>
+                            </div>
+
+                            <!-- Servicio 2 -->
+                            <div class="bg-slate-50 rounded-2xl border border-slate-200/90 p-4 flex flex-col justify-between hover:border-slate-300 transition-all shadow-2xs">
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${activePreset.accentBadge}">Estética Facial</span>
+                                        <span class="text-xs font-black text-slate-900">$14.000</span>
+                                    </div>
+                                    <h5 class="font-extrabold text-slate-900 text-xs sm:text-sm">Tratamiento Facial Glow</h5>
+                                    <p class="text-[11px] text-slate-500 mt-1">Limpieza profunda, exfoliación ultrasónica y máscara de hidratación intensiva.</p>
+                                    <span class="text-[10px] text-slate-400 block mt-2 font-medium">⏱ 60 min · Atiende: Sofía V.</span>
+                                </div>
+                                <button type="button" onclick="window.selectModuleTab('calendario', true)"
+                                    class="mt-3 w-full py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 font-extrabold text-xs shadow-2xs transition-all flex items-center justify-center gap-1 cursor-pointer">
+                                    <span>Agendar Turno</span>
+                                    <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                                </button>
+                            </div>
+
+                            <!-- Servicio 3 -->
+                            <div class="bg-slate-50 rounded-2xl border border-slate-200/90 p-4 flex flex-col justify-between hover:border-slate-300 transition-all shadow-2xs">
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${activePreset.accentBadge}">Color & Pelo</span>
+                                        <span class="text-xs font-black text-slate-900">$22.000</span>
+                                    </div>
+                                    <h5 class="font-extrabold text-slate-900 text-xs sm:text-sm">Balayage & Nutrición</h5>
+                                    <p class="text-[11px] text-slate-500 mt-1">Efecto de iluminación natural esfumada más baño de nutrición celular.</p>
+                                    <span class="text-[10px] text-slate-400 block mt-2 font-medium">⏱ 90 min · Atiende: Sofía V.</span>
+                                </div>
+                                <button type="button" onclick="window.selectModuleTab('calendario', true)"
+                                    class="mt-3 w-full py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 font-extrabold text-xs shadow-2xs transition-all flex items-center justify-center gap-1 cursor-pointer">
+                                    <span>Agendar Turno</span>
+                                    <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -744,3 +744,47 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// ==========================================
+// PALETAS SUGERIDAS MÁS USADAS (mi-web.html)
+// ==========================================
+window.applySuggestedWebPalette = function(primario, secundario, fondo, paletteKey, btnEl) {
+    const inputPrimario = document.getElementById('webColorPrimario');
+    const inputSecundario = document.getElementById('webColorSecundario');
+    const inputFondo = document.getElementById('webColorFondo');
+
+    if (inputPrimario) {
+        inputPrimario.value = primario;
+        inputPrimario.dispatchEvent(new Event('input', { bubbles: true }));
+        inputPrimario.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    if (inputSecundario) {
+        inputSecundario.value = secundario;
+        inputSecundario.dispatchEvent(new Event('input', { bubbles: true }));
+        inputSecundario.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    if (inputFondo) {
+        inputFondo.value = fondo;
+        inputFondo.dispatchEvent(new Event('input', { bubbles: true }));
+        inputFondo.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    // Actualizar estado visual de las tarjetas sugeridas
+    document.querySelectorAll('.suggested-palette-card').forEach(card => {
+        card.classList.remove('ring-2', 'ring-primary', 'border-primary', 'bg-rose-50/20');
+        const check = card.querySelector('.palette-active-check');
+        if (check) check.remove();
+    });
+
+    if (btnEl) {
+        btnEl.classList.add('ring-2', 'ring-primary', 'border-primary', 'bg-rose-50/20');
+        const badge = document.createElement('span');
+        badge.className = 'palette-active-check absolute top-2 right-2 flex items-center justify-center w-5 h-5 rounded-full bg-primary text-white text-[11px] shadow-xs';
+        badge.innerHTML = '<span class="material-symbols-outlined text-[13px]">check</span>';
+        btnEl.appendChild(badge);
+    }
+
+    if (typeof showToast === 'function') {
+        showToast('Paleta aplicada. Recuerda hacer clic en "Guardar Cambios" para publicarla.', 'success');
+    }
+};

@@ -182,10 +182,121 @@
                 </div>
             </div>
 
-             <!-- Sección Colores (Futuro) -->
+            <!-- Sección Colores -->
             <div class="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-slate-200">
-                <h2 class="text-xl font-bold mb-4">Paleta de Colores</h2>
-                <p class="text-sm text-slate-500 mb-6">Personaliza los colores de tu página para que coincidan con tu marca.</p>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                    <h2 class="text-xl font-bold text-slate-900">Paleta de Colores de tu Página Web</h2>
+                    <span class="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full w-fit">Personalización en Vivo</span>
+                </div>
+                <p class="text-sm text-slate-500 mb-6">Elige una de las paletas sugeridas más usadas o personaliza libremente cada tono para que coincida con tu marca.</p>
+
+                <!-- Paletas Sugeridas Más Usadas (Presets Fijos) -->
+                <div class="mb-8 p-4 sm:p-6 bg-slate-50/80 rounded-2xl border border-slate-200/90">
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="material-symbols-outlined text-primary text-[20px]">auto_awesome</span>
+                        <h3 class="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Paletas Sugeridas Más Usadas</h3>
+                        <span class="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-md border border-amber-200">Recomendadas</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-4">Haz clic en cualquiera de estas combinaciones para aplicarla instantáneamente a tus colores:</p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" id="suggestedPalettesContainer">
+                        <!-- 1. Agendatina Clásica -->
+                        <button type="button" onclick="applySuggestedWebPalette('#D11149', '#FC8712', '#FFFBF9', 'agendatina', this)" class="suggested-palette-card group text-left p-3.5 rounded-xl bg-white border-2 border-slate-200 hover:border-primary transition-all shadow-2xs hover:shadow-sm cursor-pointer relative">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-extrabold text-xs text-slate-800 group-hover:text-primary transition-colors">Agendatina Clásica</span>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-50 text-rose-700">Oficial</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="flex -space-x-1.5">
+                                    <span class="w-6 h-6 rounded-full border-2 border-white shadow-2xs inline-block" style="background-color: #D11149;" title="Color Principal"></span>
+                                    <span class="w-6 h-6 rounded-full border-2 border-white shadow-2xs inline-block" style="background-color: #FC8712;" title="Color Secundario"></span>
+                                    <span class="w-6 h-6 rounded-full border border-slate-200 shadow-2xs inline-block" style="background-color: #FFFBF9;" title="Fondo"></span>
+                                </div>
+                                <span class="text-[11px] font-semibold text-slate-500">Rosa & Naranja</span>
+                            </div>
+                        </button>
+
+                        <!-- 2. Rosa Fucsia & Verde Menta -->
+                        <button type="button" onclick="applySuggestedWebPalette('#E9579A', '#2FA36B', '#FDFBF7', 'rosa_verde', this)" class="suggested-palette-card group text-left p-3.5 rounded-xl bg-white border-2 border-slate-200 hover:border-primary transition-all shadow-2xs hover:shadow-sm cursor-pointer relative">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-extrabold text-xs text-slate-800 group-hover:text-primary transition-colors">Rosa & Verde Menta</span>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-pink-50 text-pink-700">Estética & Spa</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="flex -space-x-1.5">
+                                    <span class="w-6 h-6 rounded-full border-2 border-white shadow-2xs inline-block" style="background-color: #E9579A;" title="Color Principal"></span>
+                                    <span class="w-6 h-6 rounded-full border-2 border-white shadow-2xs inline-block" style="background-color: #2FA36B;" title="Color Secundario"></span>
+                                    <span class="w-6 h-6 rounded-full border border-slate-200 shadow-2xs inline-block" style="background-color: #FDFBF7;" title="Fondo"></span>
+                                </div>
+                                <span class="text-[11px] font-semibold text-slate-500">Fucsia & Frescura</span>
+                            </div>
+                        </button>
+
+                        <!-- 3. Celeste Cielo & Marrón Café -->
+                        <button type="button" onclick="applySuggestedWebPalette('#52A9C9', '#6B4A2F', '#FBF8F5', 'celeste_marron', this)" class="suggested-palette-card group text-left p-3.5 rounded-xl bg-white border-2 border-slate-200 hover:border-primary transition-all shadow-2xs hover:shadow-sm cursor-pointer relative">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-extrabold text-xs text-slate-800 group-hover:text-primary transition-colors">Celeste & Marrón</span>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-50 text-sky-700">Estudio & Relax</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="flex -space-x-1.5">
+                                    <span class="w-6 h-6 rounded-full border-2 border-white shadow-2xs inline-block" style="background-color: #52A9C9;" title="Color Principal"></span>
+                                    <span class="w-6 h-6 rounded-full border-2 border-white shadow-2xs inline-block" style="background-color: #6B4A2F;" title="Color Secundario"></span>
+                                    <span class="w-6 h-6 rounded-full border border-slate-200 shadow-2xs inline-block" style="background-color: #FBF8F5;" title="Fondo"></span>
+                                </div>
+                                <span class="text-[11px] font-semibold text-slate-500">Cielo & Café</span>
+                            </div>
+                        </button>
+
+                        <!-- 4. Azul Real & Amarillo Pastel -->
+                        <button type="button" onclick="applySuggestedWebPalette('#1D4ED8', '#F59E0B', '#F8FAFC', 'azul_amarillo', this)" class="suggested-palette-card group text-left p-3.5 rounded-xl bg-white border-2 border-slate-200 hover:border-primary transition-all shadow-2xs hover:shadow-sm cursor-pointer relative">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-extrabold text-xs text-slate-800 group-hover:text-primary transition-colors">Azul & Amarillo Pastel</span>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">Barbería & Fitness</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="flex -space-x-1.5">
+                                    <span class="w-6 h-6 rounded-full border-2 border-white shadow-2xs inline-block" style="background-color: #1D4ED8;" title="Color Principal"></span>
+                                    <span class="w-6 h-6 rounded-full border-2 border-white shadow-2xs inline-block" style="background-color: #F59E0B;" title="Color Secundario"></span>
+                                    <span class="w-6 h-6 rounded-full border border-slate-200 shadow-2xs inline-block" style="background-color: #F8FAFC;" title="Fondo"></span>
+                                </div>
+                                <span class="text-[11px] font-semibold text-slate-500">Azul & Dorado</span>
+                            </div>
+                        </button>
+
+                        <!-- 5. Esmeralda & Oro Cálido -->
+                        <button type="button" onclick="applySuggestedWebPalette('#059669', '#D97706', '#F6FCF8', 'esmeralda_oro', this)" class="suggested-palette-card group text-left p-3.5 rounded-xl bg-white border-2 border-slate-200 hover:border-primary transition-all shadow-2xs hover:shadow-sm cursor-pointer relative">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-extrabold text-xs text-slate-800 group-hover:text-primary transition-colors">Esmeralda & Oro</span>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700">Salud & Armonía</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="flex -space-x-1.5">
+                                    <span class="w-6 h-6 rounded-full border-2 border-white shadow-2xs inline-block" style="background-color: #059669;" title="Color Principal"></span>
+                                    <span class="w-6 h-6 rounded-full border-2 border-white shadow-2xs inline-block" style="background-color: #D97706;" title="Color Secundario"></span>
+                                    <span class="w-6 h-6 rounded-full border border-slate-200 shadow-2xs inline-block" style="background-color: #F6FCF8;" title="Fondo"></span>
+                                </div>
+                                <span class="text-[11px] font-semibold text-slate-500">Verde & Ámbar</span>
+                            </div>
+                        </button>
+
+                        <!-- 6. Dark Elegance & Ámbar -->
+                        <button type="button" onclick="applySuggestedWebPalette('#0F172A', '#F59E0B', '#F8FAFC', 'dark_oro', this)" class="suggested-palette-card group text-left p-3.5 rounded-xl bg-white border-2 border-slate-200 hover:border-primary transition-all shadow-2xs hover:shadow-sm cursor-pointer relative">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="font-extrabold text-xs text-slate-800 group-hover:text-primary transition-colors">Dark Elegance</span>
+                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-800">Tattoo & Noche</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="flex -space-x-1.5">
+                                    <span class="w-6 h-6 rounded-full border-2 border-white shadow-2xs inline-block" style="background-color: #0F172A;" title="Color Principal"></span>
+                                    <span class="w-6 h-6 rounded-full border-2 border-white shadow-2xs inline-block" style="background-color: #F59E0B;" title="Color Secundario"></span>
+                                    <span class="w-6 h-6 rounded-full border border-slate-200 shadow-2xs inline-block" style="background-color: #F8FAFC;" title="Fondo"></span>
+                                </div>
+                                <span class="text-[11px] font-semibold text-slate-500">Grafito & Oro</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8">
                     <div class="flex items-center gap-4">
                         <input type="color" id="webColorPrimario" value="#D11149" class="w-12 h-12 rounded-lg border-none cursor-pointer p-0 bg-transparent">
