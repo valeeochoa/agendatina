@@ -527,6 +527,9 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                                 ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
                                 <p class="text-sm mb-5 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">${tIcon}</span> <span class="font-medium">${t.servicio}</span></p>
                                 <div class="flex items-center gap-3 pt-4 border-t" style="border-color: #e2e8f0;">
+                                    <button onclick="window.enviarAvisoConfirmacion('${t.id}')" class="text-xs sm:text-sm font-bold py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 border bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100 shadow-2xs cursor-pointer" title="Avisar al cliente que su turno está confirmado">
+                                        <span class="material-symbols-outlined text-[17px] text-emerald-600">mark_chat_read</span> Avisar
+                                    </button>
                                     <button onclick="window.recordatorioWhatsApp('${t.id}')" class="flex-1 text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 border" style="background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;" title="Enviar recordatorio">
                                         <span class="material-symbols-outlined text-[18px]">notifications_active</span> Recordar
                                     </button>
@@ -768,7 +771,66 @@ window.cancelarTurnoAdmin = function(id) {
     }
 };
 
+window.enviarAvisoConfirmacion = function(id, customTurno = null) {
+    const t = customTurno || (window.allAppointments || []).find(x => String(x.id) === String(id));
+    if (!t) return;
+    const rawTel = (t.cliente_celular || t.celular || '').replace(/\D/g, '');
+    if (!rawTel) {
+        if (typeof showToast === 'function') showToast('El cliente no tiene un celular registrado.', 'error');
+        return;
+    }
+    const tel = rawTel.startsWith('54') ? rawTel : (rawTel.length === 10 ? '549' + rawTel : rawTel);
+    const [yyyy, mm, dd] = (t.fecha || '').split('-');
+    const fechaFormat = (dd && mm && yyyy) ? `${dd}/${mm}/${yyyy}` : t.fecha;
+    const clientName = (t.cliente_nombre || (t.nombre + ' ' + (t.apellido || '')) || 'Cliente').trim();
+    const bizName = (window.businessWebConfig && (window.businessWebConfig.nombre_fantasia || window.businessWebConfig.nombre_negocio)) || 'nuestro local';
+    
+    const msg = `¡Hola ${clientName}! 👋 Te confirmamos que tu turno para *${t.servicio}* quedó confirmado con éxito para el día *${fechaFormat}* a las *${t.hora} hs* en ${bizName}. ¡Te esperamos!`;
+    
+    window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`, '_blank');
+};
+
 window.confirmarTurnoAdmin = function(id) {
+    const doConfirm = () => {
+        return fetch('backend/confirmar_turno.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ id: id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                if (typeof showToast === 'function') showToast('Turno confirmado exitosamente y agendado', 'success');
+                window.cargarAgenda(true);
+                if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
+                
+                // Ofrecer de inmediato avisarle al cliente por WhatsApp
+                if (data.turno && (data.turno.celular || data.turno.cliente_celular)) {
+                    setTimeout(() => {
+                        if (typeof showConfirm === 'function') {
+                            showConfirm('Avisar al Cliente', `¿Deseas enviar un WhatsApp a ${data.turno.nombre || 'el cliente'} avisándole que ya se le confirmó el turno y que se le espera el día ${data.turno.fecha} a las ${data.turno.hora} hs?`, 'Avisar por WhatsApp', 'bg-emerald-600 hover:bg-emerald-700', () => {
+                                window.enviarAvisoConfirmacion(id, data.turno);
+                            });
+                        }
+                    }, 400);
+                }
+            } else {
+                if (typeof showToast === 'function') showToast(data.error || 'No se pudo confirmar el turno.', 'error');
+            }
+        })
+        .catch(() => {
+            if (typeof showToast === 'function') showToast('Error de conexión', 'error');
+        });
+    };
+
+    if (typeof showConfirm === 'function') {
+        showConfirm('Confirmar Turno', '¿Agendar y confirmar este turno? Aparecerá como reservado en tu calendario.', 'Confirmar', 'bg-amber-500 hover:bg-amber-600', doConfirm);
+    } else {
+        doConfirm();
+    }
+};
+
+window._old_confirmarTurnoAdmin_backup = function(id) {
     if (typeof showConfirm === 'function') {
         showConfirm('Confirmar Turno', '¿Agendar y confirmar este turno? Aparecerá como reservado en tu calendario.', 'Confirmar', 'bg-amber-500 hover:bg-amber-600', () => {
             return fetch('backend/confirmar_turno.php', {

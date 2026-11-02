@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tareas del Administrador | Agendatina SuperAdmin</title>
-    <link rel="icon" href="../public/logo.png">
+    <link rel="icon" href="../public/logo.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <script>
+        tailwind.config = { theme: { extend: { fontFamily: { brand: ['Fredoka', 'sans-serif'] } } } };
+    </script>
     <link rel="stylesheet" href="../assets/css/global.css">
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -16,22 +19,19 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col md:flex-row">
 
-    <!-- Sidebar Menú Izquierdo (Colapsable en Mobile, Fijo en Desktop) -->
+    <!-- Sidebar Menú Izquierdo (Fijo) -->
     <aside class="w-full md:w-64 bg-slate-900 text-white shrink-0 md:h-screen md:sticky md:top-0 flex flex-col justify-between p-4 sm:p-6 shadow-xl overflow-y-auto z-40">
         <div>
             <!-- Header Brand -->
-            <div class="flex items-center justify-between md:justify-start gap-3 md:mb-8 md:pb-4 md:border-b border-slate-800">
+            <div class="flex items-center justify-between md:justify-start gap-3 mb-8 pb-4 border-b border-slate-800">
                 <a href="index.html" class="flex items-center gap-2">
                     <img src="../public/logo.png" alt="Agendatina" class="h-8 w-auto">
-                    <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span> <span class="text-xs text-slate-400 font-sans font-bold inline md:block ml-1 md:ml-0">SuperAdmin</span></span>
+                    <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span> <span class="text-xs text-slate-400 font-sans font-bold block">SuperAdmin</span></span>
                 </a>
-                <button type="button" onclick="document.getElementById('adminMobileNav').classList.toggle('hidden'); document.getElementById('adminMobileFooter').classList.toggle('hidden');" class="md:hidden px-3 py-2 rounded-xl bg-slate-800 text-slate-200 hover:bg-slate-700 flex items-center gap-1.5 text-xs font-bold border border-slate-700">
-                    <span class="material-symbols-outlined text-[18px]">menu</span> Menú
-                </button>
             </div>
 
             <!-- Navegación -->
-            <nav id="adminMobileNav" class="hidden md:block space-y-1 mt-4 pt-3 border-t border-slate-800 md:mt-0 md:pt-0 md:border-t-0">
+            <nav class="space-y-1">
                 <a href="index.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-2xl font-bold text-sm transition-all">
                     <span class="material-symbols-outlined text-[22px]">dashboard</span> Dashboard (Resumen)
                 </a>
@@ -68,7 +68,7 @@
         </div>
 
         <!-- Footer Logout -->
-        <div id="adminMobileFooter" class="hidden md:block pt-4 md:pt-6 border-t border-slate-800 mt-4 md:mt-6">
+        <div class="pt-6 border-t border-slate-800 mt-6">
             <button onclick="logoutAdmin()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-red-600/20 text-slate-300 hover:text-red-400 rounded-xl text-xs font-bold transition-all">
                 <span class="material-symbols-outlined text-[18px]">logout</span> Cerrar Sesión
             </button>
@@ -76,7 +76,7 @@
     </aside>
 
     <!-- Contenido Principal -->
-    <main class="flex-1 p-3.5 sm:p-8 max-w-5xl w-full min-w-0 overflow-x-hidden">
+    <main class="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full min-w-0 overflow-x-hidden">
         <!-- Encabezado -->
         <div class="mb-5 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>

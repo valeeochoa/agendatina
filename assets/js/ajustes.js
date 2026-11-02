@@ -1444,3 +1444,238 @@ function handleCalendarConfigSubmit(e) {
         });
     });
 }
+
+// ==========================================
+// GESTOR DE CUPONES ADMINISTRABLES
+// ==========================================
+window.cargarCuponesNegocio = function() {
+    const container = document.getElementById('listaCuponesContainer');
+    if (!container) return;
+
+    fetch('backend/cupones_negocio.php')
+    .then(res => res.json())
+    .then(data => {
+        if (!data.success || !data.cupones || data.cupones.length === 0) {
+            container.innerHTML = `
+                <div class="p-6 text-center text-slate-400 text-xs">
+                    <span class="material-symbols-outlined text-3xl mb-1 text-slate-300 block">confirmation_number</span>
+                    Aún no tienes cupones creados. Haz clic en "Crear Cupón" para comenzar.
+                </div>
+            `;
+            return;
+        }
+
+        const now = new Date();
+
+        let html = `
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-extrabold uppercase text-[10px] tracking-wider">
+                            <th class="py-2.5 px-3">Cupón / Nombre</th>
+                            <th class="py-2.5 px-3">Código</th>
+                            <th class="py-2.5 px-3 text-center">Descuento</th>
+                            <th class="py-2.5 px-3">Fecha Máxima</th>
+                            <th class="py-2.5 px-3 text-center">Usos</th>
+                            <th class="py-2.5 px-3 text-center">Estado</th>
+                            <th class="py-2.5 px-3 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+        `;
+
+        data.cupones.forEach(c => {
+            const expDate = c.fecha_expiracion ? new Date(c.fecha_expiracion.replace(/-/g, '/')) : null;
+            const isExpired = expDate && expDate < now;
+            const usosMax = c.usos_maximos ? parseInt(c.usos_maximos) : 1;
+            const usosAct = parseInt(c.usos_actuales) || 0;
+            const isUsadoTotal = usosAct >= usosMax;
+
+            let estadoBadge = '';
+            if (isExpired) {
+                estadoBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-700">Vencido</span>';
+            } else if (isUsadoTotal) {
+                estadoBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-600">Agotado</span>';
+            } else if (parseInt(c.activo) === 1) {
+                estadoBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-700">Activo</span>';
+            } else {
+                estadoBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-700">Pausado</span>';
+            }
+
+            const formatExp = c.fecha_expiracion ? c.fecha_expiracion.split(' ')[0].split('-').reverse().join('/') : 'Sin límite';
+
+            html += `
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="py-2.5 px-3 font-extrabold text-slate-900">${c.nombre || 'Cupón ' + c.porcentaje_descuento + '%'}</td>
+                    <td class="py-2.5 px-3"><span class="font-black tracking-wider text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">${c.codigo}</span></td>
+                    <td class="py-2.5 px-3 text-center font-black text-emerald-600">${c.porcentaje_descuento}% OFF</td>
+                    <td class="py-2.5 px-3 text-slate-600">${formatExp}</td>
+                    <td class="py-2.5 px-3 text-center text-slate-600 font-bold">${usosAct}/${usosMax}</td>
+                    <td class="py-2.5 px-3 text-center">${estadoBadge}</td>
+                    <td class="py-2.5 px-3 text-right">
+                        <div class="flex items-center justify-end gap-1">
+                            <button type="button" onclick="window.toggleActivoCupon(${c.id}, ${parseInt(c.activo) === 1 ? 0 : 1})" class="p-1 rounded text-slate-400 hover:text-slate-700 transition-colors cursor-pointer" title="${parseInt(c.activo) === 1 ? 'Pausar' : 'Activar'}">
+                                <span class="material-symbols-outlined text-[17px]">${parseInt(c.activo) === 1 ? 'pause_circle' : 'play_circle'}</span>
+                            </button>
+                            <button type="button" onclick="window.abrirModalEliminarCupon(${c.id}, '${c.codigo}')" class="p-1 rounded text-slate-400 hover:text-red-600 transition-colors cursor-pointer" title="Eliminar cupón">
+                                <span class="material-symbols-outlined text-[17px]">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        container.innerHTML = html;
+    })
+    .catch(() => {
+        container.innerHTML = `<div class="p-4 text-center text-xs text-red-500">Error al cargar cupones.</div>`;
+    });
+};
+
+window.abrirModalCrearCupon = function() {
+    const modal = document.getElementById('modalCrearCupon');
+    if (!modal) return;
+    const errDiv = document.getElementById('nuevoCuponErrorMsg');
+    if (errDiv) errDiv.classList.add('hidden');
+    
+    // Set default expiration date to 30 days ahead
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    const expInput = document.getElementById('nuevoCuponFechaExp');
+    if (expInput) expInput.value = d.toISOString().split('T')[0];
+
+    window.generarCodigoAleatorioCupon();
+    modal.classList.remove('hidden');
+};
+
+window.cerrarModalCrearCupon = function() {
+    const modal = document.getElementById('modalCrearCupon');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.generarCodigoAleatorioCupon = function() {
+    const input = document.getElementById('nuevoCuponCodigo');
+    if (!input) return;
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = 'PROMO';
+    for (let i = 0; i < 4; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    input.value = code;
+};
+
+window.guardarNuevoCupon = function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnGuardarCupon');
+    const errDiv = document.getElementById('nuevoCuponErrorMsg');
+    if (errDiv) errDiv.classList.add('hidden');
+
+    const nombre = document.getElementById('nuevoCuponNombre').value.trim();
+    const codigo = document.getElementById('nuevoCuponCodigo').value.trim().toUpperCase();
+    const pct = parseInt(document.getElementById('nuevoCuponPct').value) || 10;
+    const fechaExp = document.getElementById('nuevoCuponFechaExp').value;
+    const usos = parseInt(document.getElementById('nuevoCuponUsos').value) || 1;
+
+    if (!codigo) {
+        if (errDiv) { errDiv.textContent = 'Ingresa un código para el cupón.'; errDiv.classList.remove('hidden'); }
+        return;
+    }
+
+    if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+
+    fetch('backend/cupones_negocio.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            action: 'crear',
+            nombre: nombre,
+            codigo: codigo,
+            porcentaje_descuento: pct,
+            fecha_expiracion: fechaExp,
+            usos_maximos: usos
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (typeof showToast === 'function') showToast('Cupón creado exitosamente.', 'success');
+            window.cerrarModalCrearCupon();
+            window.cargarCuponesNegocio();
+        } else {
+            if (errDiv) { errDiv.textContent = data.error || 'No se pudo crear el cupón.'; errDiv.classList.remove('hidden'); }
+        }
+    })
+    .catch(() => {
+        if (errDiv) { errDiv.textContent = 'Error de conexión.'; errDiv.classList.remove('hidden'); }
+    })
+    .finally(() => {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">check</span> Guardar Cupón'; }
+    });
+};
+
+window.toggleActivoCupon = function(id, nuevoEstado) {
+    fetch('backend/cupones_negocio.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'toggle_activo', id: id, activo: nuevoEstado })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.cargarCuponesNegocio();
+        } else {
+            if (typeof showToast === 'function') showToast(data.error || 'Error al cambiar estado.', 'error');
+        }
+    });
+};
+
+window._cuponIdAEliminar = null;
+window.abrirModalEliminarCupon = function(id, codigo) {
+    window._cuponIdAEliminar = id;
+    const modal = document.getElementById('modalConfirmEliminarCupon');
+    const txt = document.getElementById('txtConfirmEliminarCupon');
+    if (txt) txt.textContent = `¿Seguro que deseas eliminar el cupón "${codigo}"? Ya no podrá ser canjeado por clientes.`;
+    if (modal) modal.classList.remove('hidden');
+
+    const btnConfirm = document.getElementById('btnConfirmarBorradoCupon');
+    if (btnConfirm) {
+        btnConfirm.onclick = () => {
+            fetch('backend/cupones_negocio.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'eliminar', id: window._cuponIdAEliminar })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    if (typeof showToast === 'function') showToast('Cupón eliminado con éxito.', 'success');
+                    window.cerrarModalEliminarCupon();
+                    window.cargarCuponesNegocio();
+                } else {
+                    if (typeof showToast === 'function') showToast(data.error || 'Error al eliminar.', 'error');
+                }
+            });
+        };
+    }
+};
+
+window.cerrarModalEliminarCupon = function() {
+    window._cuponIdAEliminar = null;
+    const modal = document.getElementById('modalConfirmEliminarCupon');
+    if (modal) modal.classList.add('hidden');
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        if (typeof window.cargarCuponesNegocio === 'function') {
+            window.cargarCuponesNegocio();
+        }
+    }, 600);
+});

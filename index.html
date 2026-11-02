@@ -99,6 +99,26 @@
             animation: lavaMove1 22s ease-in-out infinite alternate;
         }
 
+        /* Scrollbar suave con colores de marca para el simulador interactivo */
+        #simModuleWorkspace::-webkit-scrollbar {
+            width: 6px;
+        }
+        #simModuleWorkspace::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 9999px;
+        }
+        #simModuleWorkspace::-webkit-scrollbar-thumb {
+            background: #fc8712;
+            border-radius: 9999px;
+        }
+        #simModuleWorkspace::-webkit-scrollbar-thumb:hover {
+            background: #d11149;
+        }
+        #simModuleWorkspace {
+            scrollbar-width: thin;
+            scrollbar-color: #fc8712 #f1f5f9;
+        }
+
         .lava-container-comparativa .lava-2 {
             bottom: 10%;
             right: 10%;
@@ -424,8 +444,8 @@
                         </div>
                     </div>
 
-                    <!-- Espacio de Trabajo de la Simulación Activa (Mínimo alto controlado para evitar saltos) -->
-                    <div id="simModuleWorkspace" class="p-4 sm:p-7 min-h-[380px] flex flex-col justify-center">
+                    <!-- Espacio de Trabajo de la Simulación Activa (Alto fijo uniforme con scroll vertical para todas las pestañas) -->
+                    <div id="simModuleWorkspace" class="p-4 sm:p-6 h-[580px] sm:h-[640px] max-h-[640px] overflow-y-auto block relative bg-slate-50/50">
                         <!-- Renderizado dinámicamente por assets/js/index_modulos_sim.js -->
                     </div>
 
@@ -435,8 +455,8 @@
                             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" id="modCarouselStatusDot"></span>
                             <span id="modCarouselStatusText">Rotación automática activa (hacé clic en cualquier pestaña para pausar y explorar)</span>
                         </div>
-                        <button type="button" onclick="window.openSimCta('¡Creá tu cuenta gratis!', 'Probá todas las funciones de Agendatina gratis por 30 días sin tarjeta de crédito.', 'Básico')" class="text-[#D11149] font-extrabold hover:underline flex items-center gap-1 cursor-pointer">
-                            <span>Comenzar prueba gratis de 30 días</span>
+                        <button type="button" onclick="window.openSimCta('¡Creá tu cuenta gratis!', 'Probá todas las funciones de Agendatina gratis sin tarjeta de crédito.', 'Básico')" class="text-[#D11149] font-extrabold hover:underline flex items-center gap-1 cursor-pointer">
+                            <span>Comenzar prueba gratis de <span class="trial-days-display">30</span> días</span>
                             <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
                         </button>
                     </div>
@@ -452,12 +472,12 @@
                     <div>
                         <h3 id="simCtaTitle" class="text-xl font-black text-slate-900">Creá tu cuenta gratis</h3>
                         <p id="simCtaText" class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
-                            Esta es una simulación interactiva. Para guardar tus propios servicios, horarios y recibir reservas reales de tus clientes, comenzá tu prueba gratuita de 30 días.
+                            Esta es una simulación interactiva. Para guardar tus propios servicios, horarios y recibir reservas reales de tus clientes, comenzá tu prueba gratuita de <span class="trial-days-display">30</span> días.
                         </p>
                     </div>
                     <div class="pt-2 space-y-2">
                         <a id="simCtaPrimaryBtn" href="registro.html?plan=Plan+Profesional" class="w-full py-3 px-5 rounded-xl bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white font-extrabold text-sm hover:opacity-95 transition-all shadow-md flex items-center justify-center gap-2">
-                            <span>Comenzar prueba gratis de 30 días</span>
+                            <span>Comenzar prueba gratis de <span class="trial-days-display">30</span> días</span>
                             <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
                         </a>
                         <button type="button" onclick="window.closeSimCta()" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer">

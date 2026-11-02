@@ -425,20 +425,30 @@ try {
     ]);
 
     if (!empty($cupon_descuento) && !empty($configWeb['usar_cupones_descuento'])) {
-        $stmtCup = $pdo->prepare("SELECT id, codigo, porcentaje_descuento FROM cupones_descuento WHERE id_negocio = :id_neg AND UPPER(codigo) = :cod AND usado = 0 AND fecha_expiracion > NOW() LIMIT 1 FOR UPDATE");
+        $stmtCup = $pdo->prepare("SELECT id, codigo, porcentaje_descuento, usos_maximos, usos_actuales 
+                                  FROM cupones_descuento 
+                                  WHERE id_negocio = :id_neg 
+                                    AND UPPER(codigo) = :cod 
+                                    AND (activo IS NULL OR activo = 1)
+                                    AND (usado = 0 OR (usos_maximos IS NOT NULL AND usos_actuales < usos_maximos)) 
+                                    AND (fecha_expiracion IS NULL OR fecha_expiracion >= NOW()) 
+                                  LIMIT 1 FOR UPDATE");
         $stmtCup->execute(['id_neg' => $id_negocio, 'cod' => $cupon_descuento]);
         $rowCup = $stmtCup->fetch(PDO::FETCH_ASSOC);
         if (!$rowCup) {
             $pdo->rollBack();
             http_response_code(400);
-            $durH = (int)($configWeb['cupon_duracion_horas'] ?? 24);
-            $durTexto = ($durH >= 24 && $durH % 24 === 0) ? (($durH / 24 === 1) ? '24 hs' : ($durH / 24) . ' días') : "{$durH} hs";
-            echo json_encode(['success' => false, 'error' => "El cupón de descuento ingresado no es válido, ya fue utilizado o ha expirado (validez de {$durTexto})."]);
+            echo json_encode(['success' => false, 'error' => "El cupón de descuento ingresado no es válido, ha alcanzado el límite de usos, se encuentra inactivo o ha superado su fecha máxima de vigencia."]);
             exit;
         }
         $cuponAplicadoCodigo = $rowCup['codigo'];
         $descuentoAplicadoPct = (int)($rowCup['porcentaje_descuento'] ?? ($configWeb['cupon_descuento_pct'] ?? 10));
-        $pdo->prepare("UPDATE cupones_descuento SET usado = 1, fecha_uso = NOW() WHERE id = ?")->execute([$rowCup['id']]);
+        
+        $newUsos = (int)($rowCup['usos_actuales'] ?? 0) + 1;
+        $maxUsos = (int)($rowCup['usos_maximos'] ?? 1);
+        $isUsadoNow = ($newUsos >= $maxUsos) ? 1 : 0;
+        $pdo->prepare("UPDATE cupones_descuento SET usos_actuales = ?, usado = ?, fecha_uso = NOW() WHERE id = ?")->execute([$newUsos, $isUsadoNow, $rowCup['id']]);
+        
         $lastTurnoId = $pdo->lastInsertId();
         if ($lastTurnoId) {
             try {

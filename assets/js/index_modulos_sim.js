@@ -39,8 +39,16 @@
 
         if (!modal) return;
 
+        const trialDays = (window.pricingData && window.pricingData.dias_prueba_defecto) ? window.pricingData.dias_prueba_defecto : 30;
+
         if (modalTitle && title) modalTitle.textContent = title;
-        if (modalText && text) modalText.textContent = text;
+        if (modalText && text) {
+            modalText.textContent = text.replace(/30\s*días/gi, `${trialDays} días`);
+        }
+        if (modal) {
+            modal.querySelectorAll('.trial-days-display').forEach(el => el.textContent = trialDays);
+        }
+
         if (primaryBtn) {
             let targetPlan = 'Profesional';
             const pLower = (planName || '').toLowerCase();
@@ -49,7 +57,7 @@
             else targetPlan = 'Plan Profesional';
 
             primaryBtn.href = `registro.html?plan=${encodeURIComponent(targetPlan)}`;
-            primaryBtn.innerHTML = `<span>Crear Cuenta Gratis (${targetPlan})</span><span class="material-symbols-outlined text-[18px]">arrow_forward</span>`;
+            primaryBtn.innerHTML = `<span>Comenzar prueba gratis de <span class="trial-days-display">${trialDays}</span> días (${targetPlan})</span><span class="material-symbols-outlined text-[18px]">arrow_forward</span>`;
         }
 
         modal.classList.remove('hidden');
@@ -248,7 +256,43 @@
         const isMensual = simCalendarViewMode === 'mensual';
 
         return `
-            <div class="space-y-4">
+            <div class="space-y-3.5">
+                <!-- Navbar Auténtico del Calendario (Fiel a calendarioMensual.html) -->
+                <div class="bg-white border border-slate-200/90 rounded-2xl p-2.5 sm:p-3 shadow-xs flex flex-wrap items-center justify-between gap-2.5">
+                    <div class="flex items-center gap-2.5">
+                        <div class="flex items-center gap-2">
+                            <span class="font-brand font-semibold text-lg sm:text-xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
+                        </div>
+                        <span class="h-4 w-px bg-slate-200 hidden sm:inline"></span>
+                        <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-xl">
+                            <span class="material-symbols-outlined text-[17px] text-[#d11149]">storefront</span>
+                            <span class="text-xs font-bold text-slate-800">Studio Glam</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <button type="button" onclick="window.openSimCta('Panel de Control', 'Desde tu panel podrás administrar tus turnos, servicios, equipo y finanzas en tiempo real.', 'Básico')" 
+                            class="bg-[#d11149] hover:bg-[#b00e3d] text-white text-[11px] font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 shadow-2xs transition-all cursor-pointer">
+                            <span class="material-symbols-outlined text-[15px]">arrow_back</span>
+                            <span class="hidden sm:inline">Volver al panel</span>
+                        </button>
+                        <button type="button" onclick="window.openSimCta('Enlace Directo para tus Clientes', 'Cada negocio tiene su enlace único listo para compartir en Instagram, WhatsApp o tu bio.', 'Básico')" 
+                            class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer">
+                            <span class="material-symbols-outlined text-[15px]">share</span>
+                            <span class="hidden sm:inline">Copiar enlace</span>
+                        </button>
+                        <button type="button" onclick="window.openSimCta('Vista Cliente Real', 'Tus clientes reservan turnos en segundos desde cualquier celular o computadora sin registrarse.', 'Básico')" 
+                            class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer">
+                            <span class="material-symbols-outlined text-[15px]">visibility</span>
+                            <span class="hidden sm:inline">Vista Cliente</span>
+                        </button>
+                        <button type="button" onclick="window.openSimCta('Bloqueo Flexible de Fechas', 'Bloqueá días festivos, vacaciones o franjas horarias específicas con un solo clic.', 'Básico')" 
+                            class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[11px] font-bold px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer">
+                            <span class="material-symbols-outlined text-[15px]">block</span>
+                            <span class="hidden md:inline">Bloquear días</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Header del Simulador con Toggle Mensual / Semanal -->
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
                     <div>
@@ -594,7 +638,38 @@
 
     function getSimHtml_Agenda() {
         return `
-            <div class="space-y-4">
+            <div class="space-y-3.5">
+                <!-- Navbar Auténtico de la Agenda Virtual (Fiel a agenda.html) -->
+                <div class="bg-white border border-slate-200/90 rounded-2xl p-2.5 sm:p-3 shadow-xs flex flex-wrap items-center justify-between gap-2.5">
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <button type="button" onclick="window.openSimCta('Panel de Control', 'Volvé a tu panel central con un solo clic.', 'Profesional')"
+                            class="bg-[#d11149] hover:bg-[#b00e3d] text-white font-bold py-1.5 px-3 rounded-lg flex items-center gap-1.5 text-xs shadow-2xs transition-all cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+                            <span class="hidden sm:inline">Volver al panel</span>
+                        </button>
+                        <span class="text-slate-300 font-light text-base hidden sm:inline">|</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-brand font-semibold text-lg sm:text-xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
+                        </div>
+                        <span class="text-slate-300 font-light text-base hidden sm:inline">|</span>
+                        <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg">
+                            <span class="material-symbols-outlined text-[16px] text-[#d11149]">storefront</span>
+                            <span class="text-xs font-bold text-slate-800">Studio Glam</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-md text-[11px] font-extrabold text-amber-800">
+                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                            <span>Agenda Activa</span>
+                        </div>
+                        <button type="button" onclick="window.openSimCta('Reporte de Inconvenientes', 'Canal directo para reportar cualquier incidencia técnica de tu agenda.', 'Profesional')"
+                            class="text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 px-2.5 py-1.5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer">
+                            <span class="material-symbols-outlined text-[14px]">bug_report</span>
+                            <span class="hidden md:inline">Reportar Error</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Header de la Agenda Virtual como agenda.html -->
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
                     <div class="flex items-center gap-3">

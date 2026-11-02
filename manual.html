@@ -136,20 +136,36 @@
                         <span id="badge-cards" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Incluido</span>
                     </button>
 
+                    <button onclick="switchTab('calendario')" id="tab-calendario" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
+                        <span class="flex items-center gap-2.5">
+                            <span class="material-symbols-outlined text-sky-600 text-[20px]">calendar_month</span>
+                            <span>Calendario Mensual / Semanal</span>
+                        </span>
+                        <span id="badge-calendario" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Incluido</span>
+                    </button>
+
                     <button onclick="switchTab('agenda')" id="tab-agenda" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
                         <span class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-emerald-600 text-[20px]">menu_book</span>
                             <span>Agenda Virtual & Asistencia</span>
                         </span>
-                        <span id="badge-agenda" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Incluido</span>
+                        <span id="badge-agenda" class="text-[10px] font-extrabold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md shrink-0">Profesional+</span>
                     </button>
 
-                    <button onclick="switchTab('calendario')" id="tab-calendario" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
+                    <button onclick="switchTab('cupones')" id="tab-cupones" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
                         <span class="flex items-center gap-2.5">
-                            <span class="material-symbols-outlined text-sky-600 text-[20px]">edit_calendar</span>
-                            <span>Horarios & Bloqueos 24hs</span>
+                            <span class="material-symbols-outlined text-purple-600 text-[20px]">local_activity</span>
+                            <span>Cupones de Descuento</span>
                         </span>
-                        <span id="badge-calendario" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Incluido</span>
+                        <span id="badge-cupones" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Incluido</span>
+                    </button>
+
+                    <button onclick="switchTab('sena')" id="tab-sena" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
+                        <span class="flex items-center gap-2.5">
+                            <span class="material-symbols-outlined text-amber-600 text-[20px]">payments</span>
+                            <span>Seña & Confirmación</span>
+                        </span>
+                        <span id="badge-sena" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Incluido</span>
                     </button>
 
                     <button onclick="switchTab('servicios')" id="tab-servicios" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
@@ -552,17 +568,59 @@
                 <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-8">
                     <div>
                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 border border-sky-200 text-sky-700 text-xs font-bold uppercase tracking-wider mb-3">
-                            <span class="material-symbols-outlined text-[16px]">edit_calendar</span> Configuración de atención
+                            <span class="material-symbols-outlined text-[16px]">calendar_month</span> Calendario Completo
                         </div>
                         <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3 flex items-center gap-3 font-display">
-                            Organizá tus Horarios de Atención y Días Libres
+                            Calendario Mensual / Semanal y Bloqueos
                         </h2>
                         <p class="text-slate-600 text-base sm:text-lg leading-relaxed">
-                            Definir cuándo atiende tu comercio es súper fácil. En Agendatina tenés flexibilidad total para configurar tus franjas horarias de Lunes a Domingo, agregar descansos al mediodía y bloquear días feriados.
+                            El Calendario es el núcleo visual donde tú y tus clientes interactúan con los horarios y turnos de tu negocio. Está disponible en <strong>todos los planes (Básico, Profesional y Premium)</strong>.
                         </p>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Banner Informativo Específico sobre Plan Básico vs Agenda Virtual -->
+                    <div class="bg-emerald-50/90 border-2 border-emerald-300 rounded-3xl p-5 sm:p-6 space-y-2">
+                        <div class="flex items-center gap-2 text-emerald-950 font-black text-sm sm:text-base">
+                            <span class="material-symbols-outlined text-emerald-700 text-[22px]">info</span>
+                            <span>Tu Módulo Incluido en el Plan Básico / Simple</span>
+                        </div>
+                        <p class="text-xs sm:text-sm text-emerald-900 leading-relaxed font-medium">
+                            En el <strong>Plan Básico</strong> disponés del <strong>Calendario de turnos completo</strong> (vista mensual y semanal), donde podés ver en cada día qué clientes reservaron, qué servicio solicitaron y qué horarios tenés ocupados o libres, así como bloquear fechas y horas. La <strong>Agenda Virtual</strong> interactiva (con columnas de pendientes, confirmación de señas y control de asistencia) es un módulo exclusivo de los planes <strong>Profesional y Premium</strong>.
+                        </p>
+                    </div>
+
+                    <!-- Vistas Mensual y Semanal -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-2">
+                            <span class="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center font-bold mb-2">
+                                <span class="material-symbols-outlined text-[22px]">calendar_view_month</span>
+                            </span>
+                            <h4 class="font-extrabold text-slate-900 text-sm">Vista Mensual</h4>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Cuadrícula clásica de mes entero con puntos indicadores de ocupación. Al hacer clic en cualquier día, se despliegan abajo las reservas y turnos de esa fecha.
+                            </p>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-2">
+                            <span class="w-10 h-10 rounded-xl bg-orange-100 text-[#fc8712] flex items-center justify-center font-bold mb-2">
+                                <span class="material-symbols-outlined text-[22px]">view_week</span>
+                            </span>
+                            <h4 class="font-extrabold text-slate-900 text-sm">Vista Semanal</h4>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Formato de 7 columnas correlativas (Lunes a Domingo) que te permite visualizar la carga horaria semanal de un vistazo y navegar entre semanas.
+                            </p>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-2">
+                            <span class="w-10 h-10 rounded-xl bg-rose-100 text-[#d11149] flex items-center justify-center font-bold mb-2">
+                                <span class="material-symbols-outlined text-[22px]">block</span>
+                            </span>
+                            <h4 class="font-extrabold text-slate-900 text-sm">Bloquear Varios Días</h4>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Activa el selector múltiple para marcar varios días a la vez (por vacaciones o reformas) e inhabilitarlos simultáneamente ante tus clientes.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                         <!-- Formato 24hs y Tramos -->
                         <div class="bg-sky-50/70 border border-sky-200 rounded-3xl p-6 space-y-3">
                             <h3 class="font-extrabold text-sky-950 text-base flex items-center gap-2">

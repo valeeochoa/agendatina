@@ -18,7 +18,7 @@ var services = [];
 var allAppointments = [];
 var teamProfessionals = [];
 // Si se accede mediante el enlace público del negocio (?n=tu-negocio o /tu-negocio, salvo demo o ?admin=1), se inicia en modo Cliente
-var isPublicClientSlug = Boolean(negocioSlug && !negocioSlug.toLowerCase().startsWith('demo') && urlParams.get('admin') !== '1');
+var isPublicClientSlug = Boolean(negocioSlug && !negocioSlug.toLowerCase().startsWith('demo') && urlParams.get('admin') !== '1' && sessionStorage.getItem('agendatina_session') !== 'active');
 var isAdmin = !isPublicClientSlug && (sessionStorage.getItem('agendatina_session') === 'active' || (negocioSlug === '') || negocioSlug.toLowerCase().startsWith('demo'));
 
 window.hasWebPagePlan = function(planStr) {
@@ -3677,6 +3677,99 @@ window.updateBookingSuccessModalContent = function(data) {
     }
 };
 
+window.verificarAvisoPrevioSena = function(config, onContinue) {
+    const cfg = config || window.businessWebConfig || {};
+    const tieneSena = (cfg.reserva_sena_1h == 1 || cfg.reserva_sena_1h === '1' || cfg.reserva_sena_1h === true) || 
+                      (cfg.datos_transferencia && cfg.datos_transferencia.trim() !== '' && parseInt(cfg.porcentaje_sena) > 0);
+    
+    if (!tieneSena) {
+        onContinue();
+        return;
+    }
+
+    const pct = parseInt(cfg.porcentaje_sena) || 50;
+    const alias = (cfg.datos_transferencia || '').trim();
+
+    let modal = document.getElementById('modalPrevioSena');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'modalPrevioSena';
+        modal.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 transition-opacity duration-300';
+        document.body.appendChild(modal);
+    }
+
+    const safeAlias = alias.replace(/'/g, "\\'").replace(/\r?\n/g, ' ');
+
+    modal.innerHTML = `
+        <div class="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-amber-200 text-center space-y-4">
+            <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+                <span class="material-symbols-outlined text-3xl">payments</span>
+            </div>
+            <div>
+                <span class="bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-2">
+                    Seña Requerida
+                </span>
+                <h3 class="text-xl font-extrabold text-slate-900">
+                    Información Importante de Seña
+                </h3>
+                <p class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+                    Para asegurar tu turno es necesario transferir el <strong>${pct}%</strong> del valor a modo de seña al siguiente Alias / CBU:
+                </p>
+            </div>
+
+            ${alias ? `
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-left">
+                    <div class="flex items-center justify-between gap-2 mb-1">
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Alias / Datos Bancarios</span>
+                        <button type="button" id="btnCopiarAliasPrevio" class="text-[11px] font-bold text-[#D11149] hover:underline flex items-center gap-0.5 cursor-pointer">
+                            <span class="material-symbols-outlined text-[14px]">content_copy</span> Copiar
+                        </button>
+                    </div>
+                    <p class="text-xs sm:text-sm font-extrabold text-slate-800 break-words whitespace-pre-line">${alias}</p>
+                </div>
+            ` : ''}
+
+            <p class="text-[11px] text-slate-500 font-medium">
+                Al continuar, se registrará tu reserva y podrás enviar el comprobante de transferencia al negocio por WhatsApp para su confirmación.
+            </p>
+
+            <div class="pt-2 space-y-2">
+                <button type="button" id="btnContinuarConSena" class="w-full py-3 px-5 rounded-xl bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white font-extrabold text-sm shadow-md hover:opacity-95 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    <span>Entendido, Continuar y Solicitar</span>
+                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </button>
+                <button type="button" id="btnCancelarPrevioSena" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer">
+                    Volver y Modificar
+                </button>
+            </div>
+        </div>
+    `;
+
+    modal.classList.remove('hidden');
+
+    const copyBtn = modal.querySelector('#btnCopiarAliasPrevio');
+    if (copyBtn && alias) {
+        copyBtn.onclick = () => {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(alias);
+                copyBtn.innerHTML = '<span class="material-symbols-outlined text-[14px]">check</span> ¡Copiado!';
+                setTimeout(() => {
+                    copyBtn.innerHTML = '<span class="material-symbols-outlined text-[14px]">content_copy</span> Copiar';
+                }, 2000);
+            }
+        };
+    }
+
+    modal.querySelector('#btnCancelarPrevioSena').onclick = () => {
+        modal.classList.add('hidden');
+    };
+
+    modal.querySelector('#btnContinuarConSena').onclick = () => {
+        modal.classList.add('hidden');
+        onContinue();
+    };
+};
+
 function toYYYYMMDD(date) {
     return new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
 }
@@ -3709,26 +3802,30 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!weeklySelectedService) return showToast('Por favor, selecciona un servicio.', 'error');
             if (!cal2_selectedTime) return showToast('Por favor, selecciona un horario en la grilla.', 'error');
             
-            const btn = document.getElementById('btnWeeklySubmit');
-            const formData = new FormData(this);
-            formData.append('negocio', negocioSlug);
-            btn.disabled = true; btn.textContent = 'Enviando...';
-            
-            fetch('backend/enviar_turno.php', { method: 'POST', body: formData })
-            .then(async res => {
-                const text = await res.text();
-                try {
-                    return JSON.parse(text);
-                } catch(e) {
-                    return { success: false, error: (text && text.length < 250) ? text : 'Ocurrió un error en el servidor.' };
-                }
-            }).then(data => {
-                if (data.success) {
-                    if (typeof window.updateBookingSuccessModalContent === 'function') window.updateBookingSuccessModalContent(data);
-                    document.getElementById('bookingSuccessModal').classList.remove('hidden');
-                    setTimeout(() => { document.getElementById('bookingSuccessModal').classList.remove('opacity-0'); document.getElementById('bookingSuccessModalContent').classList.remove('scale-95'); }, 10);
-                } else showToast(data.error || 'Ocurrió un error.', 'error');
-            }).catch(err => showToast('Error de conexión.', 'error')).finally(() => { btn.disabled = false; btn.innerHTML = 'Confirmar Reserva <span class="material-symbols-outlined text-xl">check_circle</span>'; });
+            const doSubmitWeekly = () => {
+                const btn = document.getElementById('btnWeeklySubmit');
+                const formData = new FormData(form);
+                formData.append('negocio', negocioSlug);
+                btn.disabled = true; btn.textContent = 'Enviando...';
+                
+                fetch('backend/enviar_turno.php', { method: 'POST', body: formData })
+                .then(async res => {
+                    const text = await res.text();
+                    try {
+                        return JSON.parse(text);
+                    } catch(e) {
+                        return { success: false, error: (text && text.length < 250) ? text : 'Ocurrió un error en el servidor.' };
+                    }
+                }).then(data => {
+                    if (data.success) {
+                        if (typeof window.updateBookingSuccessModalContent === 'function') window.updateBookingSuccessModalContent(data);
+                        document.getElementById('bookingSuccessModal').classList.remove('hidden');
+                        setTimeout(() => { document.getElementById('bookingSuccessModal').classList.remove('opacity-0'); document.getElementById('bookingSuccessModalContent').classList.remove('scale-95'); }, 10);
+                    } else showToast(data.error || 'Ocurrió un error.', 'error');
+                }).catch(err => showToast('Error de conexión.', 'error')).finally(() => { btn.disabled = false; btn.innerHTML = 'Confirmar Reserva <span class="material-symbols-outlined text-xl">check_circle</span>'; });
+            };
+
+            window.verificarAvisoPrevioSena(window.businessWebConfig, doSubmitWeekly);
         });
         
         const prevClientBtnWeekly = document.getElementById('previewClientBtnWeekly');
@@ -3985,46 +4082,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const btnSubmit = document.getElementById('btnSubmit');
-            const formData = new FormData(this);
-            formData.append('negocio', negocioSlug);
-            
-            btnSubmit.disabled = true;
-            btnSubmit.textContent = 'Enviando...';
-            
-            fetch('backend/enviar_turno.php', { method: 'POST', body: formData })
-            .then(async res => {
-                const text = await res.text();
-                try {
-                    return JSON.parse(text);
-                } catch(e) {
-                    return { success: false, error: (text && text.length < 250) ? text : 'Ocurrió un error en el servidor al procesar el turno.' };
-                }
-            })
-            .then(data => {
-                if (data.success) {
-                    const modal = document.getElementById('bookingSuccessModal');
-                    const content = document.getElementById('bookingSuccessModalContent');
-                    if (modal && content) {
-                        if (typeof window.updateBookingSuccessModalContent === 'function') window.updateBookingSuccessModalContent(data);
-                        modal.classList.remove('hidden');
-                        setTimeout(() => {
-                            modal.classList.remove('opacity-0');
-                            content.classList.remove('scale-95');
-                        }, 10);
-                    } else {
-                        window.location.reload();
+            const doSubmitMonthly = () => {
+                const btnSubmit = document.getElementById('btnSubmit');
+                const formData = new FormData(bookingForm);
+                formData.append('negocio', negocioSlug);
+                
+                btnSubmit.disabled = true;
+                btnSubmit.textContent = 'Enviando...';
+                
+                fetch('backend/enviar_turno.php', { method: 'POST', body: formData })
+                .then(async res => {
+                    const text = await res.text();
+                    try {
+                        return JSON.parse(text);
+                    } catch(e) {
+                        return { success: false, error: (text && text.length < 250) ? text : 'Ocurrió un error en el servidor al procesar el turno.' };
                     }
-                } else {
+                })
+                .then(data => {
+                    if (data.success) {
+                        const modal = document.getElementById('bookingSuccessModal');
+                        const content = document.getElementById('bookingSuccessModalContent');
+                        if (modal && content) {
+                            if (typeof window.updateBookingSuccessModalContent === 'function') window.updateBookingSuccessModalContent(data);
+                            modal.classList.remove('hidden');
+                            setTimeout(() => {
+                                modal.classList.remove('opacity-0');
+                                content.classList.remove('scale-95');
+                            }, 10);
+                        } else {
+                            window.location.reload();
+                        }
+                    } else {
+                        msgDiv.className = 'p-4 rounded-xl text-sm mt-2 font-medium bg-red-100 text-red-800';
+                        msgDiv.classList.remove('hidden');
+                        msgDiv.textContent = data.error || 'Ocurrió un error al procesar el turno.';
+                    }
+                }).catch((err) => {
                     msgDiv.className = 'p-4 rounded-xl text-sm mt-2 font-medium bg-red-100 text-red-800';
                     msgDiv.classList.remove('hidden');
-                    msgDiv.textContent = data.error || 'Ocurrió un error al procesar el turno.';
-                }
-            }).catch((err) => {
-                msgDiv.className = 'p-4 rounded-xl text-sm mt-2 font-medium bg-red-100 text-red-800';
-                msgDiv.classList.remove('hidden');
-                msgDiv.textContent = 'Error de conexión. Intenta nuevamente.';
-            }).finally(() => { btnSubmit.disabled = false; btnSubmit.textContent = 'Solicitar Turno'; });
+                    msgDiv.textContent = 'Error de conexión. Intenta nuevamente.';
+                }).finally(() => { btnSubmit.disabled = false; btnSubmit.textContent = 'Solicitar Turno'; });
+            };
+
+            window.verificarAvisoPrevioSena(window.businessWebConfig, doSubmitMonthly);
         });
 
         window.cargarConfiguracionAjustes().finally(() => {
@@ -4244,27 +4345,11 @@ function checkAdminCalendarSession(config = null) {
         headerEl.style.visibility = 'visible';
     }
 
-    // Si es un enlace público de cliente (?n=negocio), forzar vista cliente limpia sin botones de admin
-    if (isPublicClientSlug) {
-        isAdmin = false;
-        window._verifiedCalendarAdmin = false;
-        window._verifiedCalendarDemo = false;
-        window.syncCalendarNavbarMode(config);
-        return;
-    }
-
     fetch('backend/perfil.php')
     .then(res => res.json())
     .then(data => {
         let isDemo = false;
         let isUserAdmin = false;
-
-        if ((!data || !data.success) && !negocioSlug) {
-            const errReason = (data && data.error) ? data.error : 'Sin respuesta válida de sesión en calendario';
-            console.error('⚠️ [Error de Carga - Calendario] No se pudo volver a cargar la sesión del negocio. Motivo:', errReason);
-            window.location.href = 'login.html';
-            return;
-        }
 
         if (data && data.success && data.business) {
             const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
@@ -4284,6 +4369,9 @@ function checkAdminCalendarSession(config = null) {
             }
 
             if (isUserAdmin) {
+                isAdmin = true;
+                isPublicClientSlug = false;
+                sessionStorage.setItem('agendatina_session', 'active');
                 window.currentBusinessData = data.business;
                 const mergedCfg = Object.assign({}, config || window.businessWebConfig || {}, {
                     nombre_fantasia: data.business.nombre_fantasia || (config && config.nombre_fantasia),
@@ -4298,11 +4386,25 @@ function checkAdminCalendarSession(config = null) {
 
         window._verifiedCalendarAdmin = isUserAdmin;
         window._verifiedCalendarDemo = isDemo;
-        if (!isUserAdmin) {
+        if (isUserAdmin) {
+            isAdmin = true;
+            isPublicClientSlug = false;
+            sessionStorage.setItem('agendatina_session', 'active');
+            window.syncCalendarNavbarMode(config);
+            if (typeof cal_renderCalendar === 'function') cal_renderCalendar();
+            if (typeof cal_fetchBookedTimes === 'function') cal_fetchBookedTimes();
+            if (typeof renderWeeklyCalendar === 'function') renderWeeklyCalendar();
+        } else {
+            // Usuario visitante no autenticado o cliente de la tienda pública
+            if (!negocioSlug) {
+                window.location.href = 'login.html';
+                return;
+            }
             isAdmin = false;
+            isPublicClientSlug = true;
             sessionStorage.removeItem('agendatina_session');
+            window.syncCalendarNavbarMode(config);
         }
-        window.syncCalendarNavbarMode(config);
     })
     .catch(err => {
         if (!negocioSlug) {
