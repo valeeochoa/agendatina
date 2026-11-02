@@ -6,11 +6,20 @@ require_once __DIR__ . '/conexion.php';
 $id_negocio = $_SESSION['id_negocio'] ?? null;
 if (!$id_negocio && $_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['n']) && !empty($_GET['n'])) {
     $slug = trim($_GET['n']);
-    $stmtSlug = $pdo->prepare("SELECT id_negocio FROM configuracion_web WHERE url_logo LIKE :s OR id_negocio = :id LIMIT 1");
-    $stmtSlug->execute(['s' => "%$slug%", 'id' => (int)$slug]);
-    $rowSlug = $stmtSlug->fetch(PDO::FETCH_ASSOC);
-    if ($rowSlug) {
-        $id_negocio = (int)$rowSlug['id_negocio'];
+    // 1. Buscar directamente en negocios por ruta o ID numérico
+    $stmtSlug = $pdo->prepare("SELECT id FROM negocios WHERE ruta = :s OR id = :id LIMIT 1");
+    $stmtSlug->execute(['s' => $slug, 'id' => (int)$slug]);
+    $idFound = $stmtSlug->fetchColumn();
+    if ($idFound) {
+        $id_negocio = (int)$idFound;
+    } else {
+        // Fallback a configuracion_web
+        $stmtCfg = $pdo->prepare("SELECT id_negocio FROM configuracion_web WHERE url_logo LIKE :s OR id_negocio = :id LIMIT 1");
+        $stmtCfg->execute(['s' => "%$slug%", 'id' => (int)$slug]);
+        $rowCfg = $stmtCfg->fetch(PDO::FETCH_ASSOC);
+        if ($rowCfg) {
+            $id_negocio = (int)$rowCfg['id_negocio'];
+        }
     }
 }
 

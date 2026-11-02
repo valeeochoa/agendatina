@@ -1,11 +1,13 @@
 <?php
 use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\Exception as PHPMailerException;
 use PHPMailer\PHPMailer\SMTP;
 
-require 'phpmailer/Exception.php';
-require 'phpmailer/PHPMailer.php';
-require 'phpmailer/SMTP.php';
+if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+    if (file_exists(__DIR__ . '/phpmailer/Exception.php')) @require_once __DIR__ . '/phpmailer/Exception.php';
+    if (file_exists(__DIR__ . '/phpmailer/PHPMailer.php')) @require_once __DIR__ . '/phpmailer/PHPMailer.php';
+    if (file_exists(__DIR__ . '/phpmailer/SMTP.php')) @require_once __DIR__ . '/phpmailer/SMTP.php';
+}
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -38,25 +40,53 @@ if (empty($nombre) || empty($apellido) || empty($celular) || empty($fecha) || em
 require_once __DIR__ . '/conexion.php';
 
 try { $pdo->query("SELECT ultimo_pago FROM negocios LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN ultimo_pago DATETIME DEFAULT NULL"); }
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN ultimo_pago DATETIME DEFAULT NULL"); } catch(\Throwable $ex) {} }
 
 try { $pdo->query("SELECT estado_pago FROM negocios LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN estado_pago VARCHAR(50) DEFAULT 'prueba'"); }
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN estado_pago VARCHAR(50) DEFAULT 'prueba'"); } catch(\Throwable $ex) {} }
 
 try { $pdo->query("SELECT metodo_pago FROM turnos LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN metodo_pago VARCHAR(100) DEFAULT NULL"); }
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN metodo_pago VARCHAR(100) DEFAULT NULL"); } catch(\Throwable $ex) {} }
 
 try { $pdo->query("SELECT fecha_alta FROM negocios LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN fecha_alta DATETIME DEFAULT CURRENT_TIMESTAMP"); }
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN fecha_alta DATETIME DEFAULT CURRENT_TIMESTAMP"); } catch(\Throwable $ex) {} }
+
+// Auto-migraciones para tabla servicios
+try { $pdo->query("SELECT cupo_maximo FROM servicios LIMIT 1"); } 
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE servicios ADD COLUMN cupo_maximo INT DEFAULT 1"); } catch(\Throwable $ex) {} }
+
+try { $pdo->query("SELECT capacidad FROM servicios LIMIT 1"); } 
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE servicios ADD COLUMN capacidad INT DEFAULT 1"); } catch(\Throwable $ex) {} }
+
+try { $pdo->query("SELECT email_profesional FROM servicios LIMIT 1"); } 
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE servicios ADD COLUMN email_profesional VARCHAR(255) DEFAULT ''"); } catch(\Throwable $ex) {} }
+
+try { $pdo->query("SELECT duracion_minutos FROM servicios LIMIT 1"); } 
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE servicios ADD COLUMN duracion_minutos INT DEFAULT 30"); } catch(\Throwable $ex) {} }
+
+// Auto-migración tabla dias_bloqueados
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS dias_bloqueados (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        id_negocio INT NOT NULL,
+        fecha DATE NOT NULL,
+        profesional VARCHAR(255) DEFAULT '',
+        motivo VARCHAR(255) DEFAULT NULL,
+        INDEX (id_negocio),
+        INDEX (fecha)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+} catch (\Throwable $eTblBloq) {}
 
 // --- OBTENER DATOS DEL NEGOCIO DESDE LA BASE DE DATOS ---
+$subVal = $ruta;
+$idVal = (is_numeric($ruta) && (int)$ruta > 0) ? (int)$ruta : 0;
 $stmtNegocio = $pdo->prepare("
     SELECT n.id, n.nombre_fantasia, n.estado_pago, n.ultimo_pago, n.fecha_alta, u.email 
     FROM negocios n 
     LEFT JOIN personal_negocio pn ON n.id = pn.id_negocio AND pn.rol_en_local = 'admin'
     LEFT JOIN usuarios u ON pn.id_usuario = u.id
-    WHERE n.ruta = :sub LIMIT 1");
-$stmtNegocio->execute(['sub' => $ruta]);
+    WHERE n.ruta = :sub OR (n.id = :id AND :id > 0) LIMIT 1");
+$stmtNegocio->execute(['sub' => $subVal, 'id' => $idVal]);
 $negocioBD = $stmtNegocio->fetch();
 
 if (!$negocioBD) {
@@ -150,22 +180,22 @@ $message = "
 
 // --- GUARDAR EN BASE DE DATOS PARA LA AGENDA VIRTUAL ---
 try { $pdo->query("SELECT profesional FROM turnos LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN profesional VARCHAR(255) DEFAULT 'Cualquiera (Sin preferencia)'"); }
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN profesional VARCHAR(255) DEFAULT 'Cualquiera (Sin preferencia)'"); } catch(\Throwable $ex) {} }
 
 try { $pdo->query("SELECT id_servicio FROM turnos LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN id_servicio INT DEFAULT NULL"); }
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN id_servicio INT DEFAULT NULL"); } catch(\Throwable $ex) {} }
 
 try { $pdo->query("SELECT cliente_nombre FROM turnos LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_nombre VARCHAR(255) DEFAULT NULL"); }
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_nombre VARCHAR(255) DEFAULT NULL"); } catch(\Throwable $ex) {} }
 
 try { $pdo->query("SELECT cliente_celular FROM turnos LIMIT 1"); } 
-catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_celular VARCHAR(255) DEFAULT NULL"); }
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_celular VARCHAR(255) DEFAULT NULL"); } catch(\Throwable $ex) {} }
 
 try { $pdo->query("SELECT cupon_usado FROM turnos LIMIT 1"); }
-catch(Exception $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN cupon_usado VARCHAR(50) DEFAULT NULL"); } catch(Exception $e2) {} }
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN cupon_usado VARCHAR(50) DEFAULT NULL"); } catch(\Throwable $e2) {} }
 
 try { $pdo->query("SELECT descuento_pct FROM turnos LIMIT 1"); }
-catch(Exception $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN descuento_pct INT DEFAULT 0"); } catch(Exception $e2) {} }
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN descuento_pct INT DEFAULT 0"); } catch(\Throwable $e2) {} }
 
 try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS cupones_descuento (
@@ -182,7 +212,7 @@ try {
         INDEX (id_negocio),
         INDEX (codigo)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-} catch (Exception $eTbl) {}
+} catch (\Throwable $eTbl) {}
 
 foreach ([
     'reserva_sena_1h' => 'TINYINT(1) DEFAULT 0',
@@ -193,10 +223,17 @@ foreach ([
     'cupon_descuento_pct' => 'INT DEFAULT 10',
     'cupon_duracion_horas' => 'INT DEFAULT 24',
     'whatsapp_contacto' => 'VARCHAR(50) DEFAULT NULL',
-    'tiempo_entre_turnos' => 'INT DEFAULT 0'
+    'tiempo_entre_turnos' => 'INT DEFAULT 0',
+    'turnos_simultaneos' => "VARCHAR(10) DEFAULT 'no'",
+    'horarios_detallados_json' => 'TEXT DEFAULT NULL',
+    'dias_trabajo' => "VARCHAR(50) DEFAULT '1,2,3,4,5,6'",
+    'hora_apertura' => "VARCHAR(10) DEFAULT '09:00'",
+    'hora_cierre' => "VARCHAR(10) DEFAULT '19:00'",
+    'hora_descanso_inicio' => "VARCHAR(10) DEFAULT NULL",
+    'hora_descanso_fin' => "VARCHAR(10) DEFAULT NULL"
 ] as $colCw => $defCw) {
     try { $pdo->query("SELECT $colCw FROM configuracion_web LIMIT 1"); }
-    catch(Exception $eCw) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN $colCw $defCw"); } catch(Exception $eCw2) {} }
+    catch(\Throwable $eCw) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN $colCw $defCw"); } catch(\Throwable $eCw2) {} }
 }
 
 /*
@@ -217,8 +254,9 @@ try {
     $cliente_nombre = $nombre . ' ' . $apellido;
 
     // Buscar el ID del servicio en base al nombre para insertarlo como Clave Foránea
-    $stmtServ = $pdo->prepare("SELECT id, precio, duracion_minutos, email_profesional, capacidad, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo FROM servicios WHERE id_negocio = :id_negocio AND nombre_servicio = :servicio LIMIT 1");
-    $stmtServ->execute(['id_negocio' => $id_negocio, 'servicio' => $servicio]);
+    $idServNum = (is_numeric($servicio) && (int)$servicio > 0) ? (int)$servicio : 0;
+    $stmtServ = $pdo->prepare("SELECT id, precio, duracion_minutos, email_profesional, capacidad, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo FROM servicios WHERE id_negocio = :id_negocio AND (nombre_servicio = :servicio OR (id = :id_serv_num AND :id_serv_num > 0)) LIMIT 1");
+    $stmtServ->execute(['id_negocio' => $id_negocio, 'servicio' => $servicio, 'id_serv_num' => $idServNum]);
     $serv = $stmtServ->fetch();
     $id_servicio = $serv ? $serv['id'] : null;
     $duracion_nuevo = $serv && !empty($serv['duracion_minutos']) ? (int)$serv['duracion_minutos'] : 30;
@@ -424,70 +462,72 @@ try {
 
     $pdo->commit();
 
-} catch (PDOException $e) {
-    if ($pdo->inTransaction()) {
+} catch (\Throwable $e) {
+    if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
         $pdo->rollBack();
     }
-    // Si falla la BD, no debería impedir el envío del email, pero sí notificar el error.
-    // Quitamos el error 500 para que el navegador no asuma que el servidor colapsó
-    echo json_encode(['success' => false, 'error' => 'Error al guardar el turno en la base de datos. Detalles: ' . $e->getMessage()]);
+    error_log("Error al procesar reserva de turno: " . $e->getMessage());
+    echo json_encode(['success' => false, 'error' => 'Error al guardar el turno en la base de datos. ' . $e->getMessage()]);
     exit;
 }
 
 $mailEnviado = false;
 
 try {
-    $mail = new PHPMailer(true);
-    $mail->isSMTP();
-    $mail->Host       = 'localhost';
-    $mail->SMTPAuth   = true;
-    $mail->Username   = 'no-reply@agendatina.site';
-    $mail->Password   = 'Tlqb*Er0kQ';
-    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-    $mail->Port       = 587;
-    $mail->CharSet    = 'UTF-8';
-    $mail->SMTPOptions = array('ssl' => array('verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true));
+    if (class_exists('PHPMailer\\PHPMailer\\PHPMailer')) {
+        $mail = new PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host       = 'localhost';
+        $mail->SMTPAuth   = true;
+        $mail->Username   = 'no-reply@agendatina.site';
+        $mail->Password   = 'Tlqb*Er0kQ';
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;
+        $mail->CharSet    = 'UTF-8';
+        $mail->Timeout    = 5;
+        $mail->SMTPOptions = array('ssl' => array('verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true));
 
-    // Mail al dueño
-    $mail->setFrom('no-reply@agendatina.site', 'Agendatina (Turnos)');
-    $mail->addAddress($to);
-    $mail->isHTML(true);
+        // Mail al dueño
+        $mail->setFrom('no-reply@agendatina.site', 'Agendatina (Turnos)');
+        $mail->addAddress($to);
+        $mail->isHTML(true);
 
-    if ($isReservaSena1h) {
-        $bannerSena = "
-        <div style='background-color: #fffbeb; border: 2px solid #f59e0b; padding: 18px; border-radius: 10px; margin-bottom: 22px; text-align: left;'>
-            <p style='margin: 0 0 8px 0; color: #b45309; font-size: 16px; font-weight: 800;'>⏱️ Reserva automática por 1 hora en espera de confirmación</p>
-            <p style='margin: 0; color: #78350f; font-size: 14px; line-height: 1.5;'>
-                El turno ha sido reservado provisoriamente. El cliente está por transferir la seña acordada (" . (!empty($monto_sena) ? "<strong>\$$monto_sena</strong> ($pctSena%)" : "$pctSena%") . ") y enviarte el comprobante por WhatsApp. 
-                Recuerda verificar el pago antes de confirmar definitivamente el turno en tu agenda.
-            </p>
-        </div>";
-        $message = str_replace("<h2 style='color: #1e293b; margin-top: 0;'>¡Nueva Solicitud de Turno!</h2>", $bannerSena . "<h2 style='color: #1e293b; margin-top: 0;'>¡Turno en Espera de Confirmación (Seña)!</h2>", $message);
+        if ($isReservaSena1h) {
+            $bannerSena = "
+            <div style='background-color: #fffbeb; border: 2px solid #f59e0b; padding: 18px; border-radius: 10px; margin-bottom: 22px; text-align: left;'>
+                <p style='margin: 0 0 8px 0; color: #b45309; font-size: 16px; font-weight: 800;'>⏱️ Reserva automática por 1 hora en espera de confirmación</p>
+                <p style='margin: 0; color: #78350f; font-size: 14px; line-height: 1.5;'>
+                    El turno ha sido reservado provisoriamente. El cliente está por transferir la seña acordada (" . (!empty($monto_sena) ? "<strong>\$monto_sena</strong> ($pctSena%)" : "$pctSena%") . ") y enviarte el comprobante por WhatsApp. 
+                    Recuerda verificar el pago antes de confirmar definitivamente el turno en tu agenda.
+                </p>
+            </div>";
+            $message = str_replace("<h2 style='color: #1e293b; margin-top: 0;'>¡Nueva Solicitud de Turno!</h2>", $bannerSena . "<h2 style='color: #1e293b; margin-top: 0;'>¡Turno en Espera de Confirmación (Seña)!</h2>", $message);
+        }
+
+        $mail->Subject = $subject;
+        $mail->Body = $message;
+        @$mail->send();
+        $mailEnviado = true;
+
+        // Mail al profesional (si tiene email configurado)
+        if (!empty($email_profesional)) {
+            $mail->clearAddresses();
+            $mail->addAddress($email_profesional);
+            $profSubject = "Nuevo Turno Asignado - $fecha_display | $businessName";
+            $profMessage = str_replace(
+                "Has recibido una nueva solicitud de reserva desde tu página web.", 
+                "Hola <strong>$profesional</strong>, se te ha asignado un nuevo turno en la agenda de $businessName.", 
+                $message
+            );
+            $profMessage = str_replace("¡Nueva Solicitud de Turno!", "¡Nuevo Turno Asignado!", $profMessage);
+            $mail->Subject = $profSubject;
+            $mail->Body = $profMessage;
+            @$mail->send();
+        }
     }
-
-    $mail->Subject = $subject;
-    $mail->Body = $message;
-    $mail->send();
-    $mailEnviado = true;
-
-    // Mail al profesional (si tiene email configurado)
-    if (!empty($email_profesional)) {
-        $mail->clearAddresses();
-        $mail->addAddress($email_profesional);
-        $profSubject = "Nuevo Turno Asignado - $fecha_display | $businessName";
-        $profMessage = str_replace(
-            "Has recibido una nueva solicitud de reserva desde tu página web.", 
-            "Hola <strong>$profesional</strong>, se te ha asignado un nuevo turno en la agenda de $businessName.", 
-            $message
-        );
-        $profMessage = str_replace("¡Nueva Solicitud de Turno!", "¡Nuevo Turno Asignado!", $profMessage);
-        $mail->Subject = $profSubject;
-        $mail->Body = $profMessage;
-        $mail->send();
-    }
-} catch (Exception $e) {
+} catch (\Throwable $eMail) {
     // Falló correo, pero el turno ya está en la DB
-    error_log("Error al enviar correo de notificación: " . $mail->ErrorInfo);
+    error_log("Error al enviar correo de notificación: " . $eMail->getMessage());
 }
 
 // Envío automático de notificación por WhatsApp vía Meta Cloud API (si está configurada y activa)
@@ -500,7 +540,7 @@ try {
     if (!empty($wppContact)) {
         enviarNotificacionWhatsAppMeta($pdo, $id_negocio, $wppContact, $cliente_nombre, $fecha_display, $hora, $servicio, $profesional);
     }
-} catch (Exception $eWpp) {
+} catch (\Throwable $eWpp) {
     error_log("Error en notificación WhatsApp Meta: " . $eWpp->getMessage());
 }
 

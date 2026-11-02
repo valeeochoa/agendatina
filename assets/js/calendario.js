@@ -3715,7 +3715,14 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true; btn.textContent = 'Enviando...';
             
             fetch('backend/enviar_turno.php', { method: 'POST', body: formData })
-            .then(res => res.json()).then(data => {
+            .then(async res => {
+                const text = await res.text();
+                try {
+                    return JSON.parse(text);
+                } catch(e) {
+                    return { success: false, error: (text && text.length < 250) ? text : 'Ocurrió un error en el servidor.' };
+                }
+            }).then(data => {
                 if (data.success) {
                     if (typeof window.updateBookingSuccessModalContent === 'function') window.updateBookingSuccessModalContent(data);
                     document.getElementById('bookingSuccessModal').classList.remove('hidden');
@@ -3986,7 +3993,14 @@ document.addEventListener('DOMContentLoaded', () => {
             btnSubmit.textContent = 'Enviando...';
             
             fetch('backend/enviar_turno.php', { method: 'POST', body: formData })
-            .then(res => res.json())
+            .then(async res => {
+                const text = await res.text();
+                try {
+                    return JSON.parse(text);
+                } catch(e) {
+                    return { success: false, error: (text && text.length < 250) ? text : 'Ocurrió un error en el servidor al procesar el turno.' };
+                }
+            })
             .then(data => {
                 if (data.success) {
                     const modal = document.getElementById('bookingSuccessModal');
@@ -4004,7 +4018,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     msgDiv.className = 'p-4 rounded-xl text-sm mt-2 font-medium bg-red-100 text-red-800';
                     msgDiv.classList.remove('hidden');
-                    msgDiv.textContent = data.error || 'Ocurrió un error.';
+                    msgDiv.textContent = data.error || 'Ocurrió un error al procesar el turno.';
                 }
             }).catch((err) => {
                 msgDiv.className = 'p-4 rounded-xl text-sm mt-2 font-medium bg-red-100 text-red-800';
