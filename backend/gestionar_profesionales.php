@@ -3,11 +3,11 @@ session_start();
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/conexion.php';
 
-$id_negocio = $_SESSION['id_negocio'] ?? null;
-if (!$id_negocio && $_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['n']) && !empty($_GET['n'])) {
+$id_negocio = null;
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['n']) && !empty($_GET['n'])) {
     $slug = trim($_GET['n']);
-    // 1. Buscar directamente en negocios por ruta o ID numérico
-    $stmtSlug = $pdo->prepare("SELECT id FROM negocios WHERE ruta = :s OR id = :id LIMIT 1");
+    // 1. Buscar directamente en negocios por ruta, subdominio o ID numérico
+    $stmtSlug = $pdo->prepare("SELECT id FROM negocios WHERE ruta = :s OR subdominio = :s OR id = :id LIMIT 1");
     $stmtSlug->execute(['s' => $slug, 'id' => (int)$slug]);
     $idFound = $stmtSlug->fetchColumn();
     if ($idFound) {
@@ -21,6 +21,13 @@ if (!$id_negocio && $_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['n']) &&
             $id_negocio = (int)$rowCfg['id_negocio'];
         }
     }
+    // Si es consulta pública por parámetro 'n' y no se encuentra el negocio, responder lista vacía con 200
+    if (!$id_negocio) {
+        echo json_encode([]);
+        exit;
+    }
+} else {
+    $id_negocio = $_SESSION['id_negocio'] ?? null;
 }
 
 if (!$id_negocio) {

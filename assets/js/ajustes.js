@@ -1452,10 +1452,14 @@ window.cargarCuponesNegocio = function() {
     const container = document.getElementById('listaCuponesContainer');
     if (!container) return;
 
-    fetch('backend/cupones_negocio.php')
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+    fetch('backend/cupones_negocio.php', { signal: controller.signal })
     .then(res => res.json())
     .then(data => {
-        if (!data.success || !data.cupones || data.cupones.length === 0) {
+        clearTimeout(timeoutId);
+        if (!data || !data.success || !data.cupones || data.cupones.length === 0) {
             container.innerHTML = `
                 <div class="p-6 text-center text-slate-400 text-xs">
                     <span class="material-symbols-outlined text-3xl mb-1 text-slate-300 block">confirmation_number</span>
@@ -1534,8 +1538,14 @@ window.cargarCuponesNegocio = function() {
 
         container.innerHTML = html;
     })
-    .catch(() => {
-        container.innerHTML = `<div class="p-4 text-center text-xs text-red-500">Error al cargar cupones.</div>`;
+    .catch(err => {
+        clearTimeout(timeoutId);
+        container.innerHTML = `
+            <div class="p-6 text-center text-slate-400 text-xs">
+                <span class="material-symbols-outlined text-3xl mb-1 text-slate-300 block">confirmation_number</span>
+                Aún no tienes cupones creados. Haz clic en "Crear Cupón" para comenzar.
+            </div>
+        `;
     });
 };
 

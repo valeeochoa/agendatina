@@ -14,8 +14,7 @@
         { id: 'equipo', label: 'Equipo y Profesionales', icon: 'badge', accent: '#8B5CF6', planBadge: 'Básico • Pro • Premium', planTarget: 'Básico' },
         { id: 'cupos', label: 'Alumnos / Clases & Cupos', icon: 'groups', accent: '#F59E0B', planBadge: 'Exclusivo Premium', planTarget: 'Premium' },
         { id: 'web', label: 'Mi Página Web', icon: 'language', accent: '#0284C7', planBadge: 'Profesional y Premium', planTarget: 'Profesional' },
-        { id: 'estadisticas', label: 'Métricas & Cupones', icon: 'insights', accent: '#0D9488', planBadge: 'Básico • Pro • Premium', planTarget: 'Básico' },
-        { id: 'ajustes', label: 'Ajustes de Negocio', icon: 'tune', accent: '#6366F1', planBadge: 'Básico • Pro • Premium', planTarget: 'Básico' },
+        { id: 'estadisticas', label: 'Métricas & Gráficos', icon: 'insights', accent: '#0D9488', planBadge: 'Básico • Pro • Premium', planTarget: 'Básico' },
         { id: 'manual', label: 'Manual & Tour', icon: 'menu_book', accent: '#38BDF8', planBadge: 'Guía Interactiva', planTarget: 'Básico' }
     ];
 
@@ -189,6 +188,18 @@
         if (urlBar) {
             urlBar.textContent = `agendatina.site/demo-negocio/${currentMod.id}`;
         }
+
+        // Auto-desplazamiento suave de la barra horizontal SOLO si la pestaña activa no es visible o desborda
+        setTimeout(() => {
+            const activeTabBtn = tabsBar.querySelector('[aria-selected="true"]');
+            if (activeTabBtn) {
+                const barRect = tabsBar.getBoundingClientRect();
+                const btnRect = activeTabBtn.getBoundingClientRect();
+                if (btnRect.right > barRect.right || btnRect.left < barRect.left) {
+                    activeTabBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                }
+            }
+        }, 30);
     }
 
     // ==========================================
@@ -221,9 +232,6 @@
                 break;
             case 'estadisticas':
                 container.innerHTML = getSimHtml_Estadisticas();
-                break;
-            case 'ajustes':
-                container.innerHTML = getSimHtml_Ajustes();
                 break;
             case 'manual':
                 container.innerHTML = getSimHtml_Manual();
@@ -1449,14 +1457,14 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-[#0D9488]"></span>
-                            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">Métricas, Estadísticas y Retorno de Clientes</h4>
+                            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">Métricas, Estadísticas y Diagramas de Rendimiento</h4>
                             <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-teal-100 text-teal-800">Todos los planes</span>
                         </div>
-                        <p class="text-xs text-slate-500">Ingresos del mes, gráficos de demanda y reactivación de clientes inactivos</p>
+                        <p class="text-xs text-slate-500">Visualización de demanda semanal, desglose por servicios y retención activa</p>
                     </div>
 
                     <button type="button" onclick="window.openSimCta('¡Tomá el control de tus ingresos!', 'Conocé en tiempo real cuánto factura tu negocio y qué profesionales rinden más.', 'Básico')"
-                        class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs shadow-xs transition-all self-start sm:self-auto">
+                        class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-extrabold text-xs shadow-xs transition-all self-start sm:self-auto cursor-pointer">
                         Ver Reportes Completos
                     </button>
                 </div>
@@ -1464,19 +1472,142 @@
                 <!-- KPI Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
-                        <span class="text-[10px] uppercase font-bold text-slate-400">Ingresos Estimados</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400">Ingresos del Mes</span>
                         <p class="text-xl font-black text-slate-900 mt-0.5">$1.480.000</p>
                         <span class="text-[10px] text-emerald-600 font-bold">▲ +24% vs mes anterior</span>
                     </div>
                     <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
-                        <span class="text-[10px] uppercase font-bold text-slate-400">Turnos Atendidos</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400">Turnos Totales</span>
                         <p class="text-xl font-black text-slate-900 mt-0.5">142 citas</p>
-                        <span class="text-[10px] text-slate-500 font-bold">96% asistencia confirmada</span>
+                        <span class="text-[10px] text-teal-700 font-bold">96% asistencia confirmada</span>
                     </div>
                     <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
-                        <span class="text-[10px] uppercase font-bold text-slate-400">Retención de Clientes</span>
+                        <span class="text-[10px] uppercase font-bold text-slate-400">Clientes Fieles</span>
                         <p class="text-xl font-black text-teal-600 mt-0.5">68%</p>
                         <span class="text-[10px] text-teal-700 font-bold">18 listos para volver</span>
+                    </div>
+                </div>
+
+                <!-- DIAGRAMAS VISUALES: Diagrama de Barras (Semana) + Diagrama de Torta (Servicios) -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
+                    <!-- Diagrama de Barras: Demanda por Día -->
+                    <div class="lg:col-span-7 bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[16px] text-teal-600">bar_chart</span>
+                                Turnos por Día de la Semana
+                            </span>
+                            <span class="text-[11px] font-bold text-slate-400">Semana Actual</span>
+                        </div>
+
+                        <div class="h-36 flex items-end justify-between gap-2 pt-4 px-1 pb-1 border-b border-slate-100">
+                            <!-- Lunes -->
+                            <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
+                                <span class="text-[10px] font-extrabold text-slate-600 group-hover:text-teal-600 transition-colors">18</span>
+                                <div class="w-full bg-slate-100 rounded-t-lg overflow-hidden flex items-end h-[60%]">
+                                    <div class="w-full bg-gradient-to-t from-teal-600 to-teal-400 h-full rounded-t-lg transition-all group-hover:opacity-90"></div>
+                                </div>
+                                <span class="text-[10px] font-bold text-slate-400">Lun</span>
+                            </div>
+                            <!-- Martes -->
+                            <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
+                                <span class="text-[10px] font-extrabold text-slate-600 group-hover:text-teal-600 transition-colors">24</span>
+                                <div class="w-full bg-slate-100 rounded-t-lg overflow-hidden flex items-end h-[80%]">
+                                    <div class="w-full bg-gradient-to-t from-teal-600 to-teal-400 h-full rounded-t-lg transition-all group-hover:opacity-90"></div>
+                                </div>
+                                <span class="text-[10px] font-bold text-slate-400">Mar</span>
+                            </div>
+                            <!-- Miércoles -->
+                            <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
+                                <span class="text-[10px] font-extrabold text-slate-600 group-hover:text-teal-600 transition-colors">15</span>
+                                <div class="w-full bg-slate-100 rounded-t-lg overflow-hidden flex items-end h-[50%]">
+                                    <div class="w-full bg-gradient-to-t from-teal-600 to-teal-400 h-full rounded-t-lg transition-all group-hover:opacity-90"></div>
+                                </div>
+                                <span class="text-[10px] font-bold text-slate-400">Mié</span>
+                            </div>
+                            <!-- Jueves -->
+                            <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
+                                <span class="text-[10px] font-extrabold text-slate-600 group-hover:text-teal-600 transition-colors">28</span>
+                                <div class="w-full bg-slate-100 rounded-t-lg overflow-hidden flex items-end h-[90%]">
+                                    <div class="w-full bg-gradient-to-t from-teal-600 to-teal-400 h-full rounded-t-lg transition-all group-hover:opacity-90"></div>
+                                </div>
+                                <span class="text-[10px] font-bold text-slate-400">Jue</span>
+                            </div>
+                            <!-- Viernes (Pico) -->
+                            <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
+                                <span class="text-[10px] font-extrabold text-[#D11149] group-hover:scale-110 transition-transform">32</span>
+                                <div class="w-full bg-slate-100 rounded-t-lg overflow-hidden flex items-end h-[100%]">
+                                    <div class="w-full bg-gradient-to-t from-[#D11149] to-[#FC8712] h-full rounded-t-lg transition-all shadow-xs"></div>
+                                </div>
+                                <span class="text-[10px] font-extrabold text-slate-700">Vie</span>
+                            </div>
+                            <!-- Sábado -->
+                            <div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
+                                <span class="text-[10px] font-extrabold text-slate-600 group-hover:text-teal-600 transition-colors">25</span>
+                                <div class="w-full bg-slate-100 rounded-t-lg overflow-hidden flex items-end h-[82%]">
+                                    <div class="w-full bg-gradient-to-t from-teal-600 to-teal-400 h-full rounded-t-lg transition-all group-hover:opacity-90"></div>
+                                </div>
+                                <span class="text-[10px] font-bold text-slate-400">Sáb</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+                            <span>Día con mayor ocupación: <strong>Viernes (32 citas)</strong></span>
+                            <span class="text-emerald-600 font-extrabold">Promedio: 23,6 citas/día</span>
+                        </div>
+                    </div>
+
+                    <!-- Diagrama de Torta / Donut: Distribución de Servicios -->
+                    <div class="lg:col-span-5 bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3 flex flex-col justify-between">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[16px] text-teal-600">pie_chart</span>
+                                Servicios más Demandados
+                            </span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-700 border border-teal-200">142 citas</span>
+                        </div>
+
+                        <div class="flex items-center gap-4 py-1">
+                            <!-- CSS Conic Gradient Donut -->
+                            <div class="relative w-24 h-24 rounded-full shrink-0 flex items-center justify-center shadow-inner"
+                                style="background: conic-gradient(#0D9488 0% 48%, #FC8712 48% 76%, #8B5CF6 76% 100%);">
+                                <div class="w-14 h-14 bg-white rounded-full flex flex-col items-center justify-center shadow-xs">
+                                    <span class="text-[10px] font-black text-slate-800 leading-tight">142</span>
+                                    <span class="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Turnos</span>
+                                </div>
+                            </div>
+
+                            <!-- Leyenda de Servicios -->
+                            <div class="space-y-1.5 text-xs flex-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="flex items-center gap-1.5 font-bold text-slate-700">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-[#0D9488]"></span>
+                                        Corte & Peinado
+                                    </span>
+                                    <span class="font-black text-slate-900">48%</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="flex items-center gap-1.5 font-bold text-slate-700">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-[#FC8712]"></span>
+                                        Manicuría Spa
+                                    </span>
+                                    <span class="font-black text-slate-900">28%</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="flex items-center gap-1.5 font-bold text-slate-700">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-[#8B5CF6]"></span>
+                                        Color & Spa
+                                    </span>
+                                    <span class="font-black text-slate-900">24%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mini desglose de clientes nuevos vs recurrentes -->
+                        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                            <span class="text-slate-500 font-medium">Clientes Recurrentes:</span>
+                            <span class="font-extrabold text-teal-700">68% (96 clientes)</span>
+                        </div>
                     </div>
                 </div>
 
@@ -1492,7 +1623,7 @@
 
                     <div>
                         <button type="button" onclick="window.generateSimCoupon(this)"
-                            class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-2xs transition-all whitespace-nowrap">
+                            class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-2xs transition-all whitespace-nowrap cursor-pointer">
                             🎁 Generar Cupón 10% OFF
                         </button>
                     </div>

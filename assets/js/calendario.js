@@ -3817,12 +3817,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         return { success: false, error: (text && text.length < 250) ? text : 'Ocurrió un error en el servidor.' };
                     }
                 }).then(data => {
-                    if (data.success) {
+                    if (data && data.success) {
                         if (typeof window.updateBookingSuccessModalContent === 'function') window.updateBookingSuccessModalContent(data);
                         document.getElementById('bookingSuccessModal').classList.remove('hidden');
                         setTimeout(() => { document.getElementById('bookingSuccessModal').classList.remove('opacity-0'); document.getElementById('bookingSuccessModalContent').classList.remove('scale-95'); }, 10);
-                    } else showToast(data.error || 'Ocurrió un error.', 'error');
-                }).catch(err => showToast('Error de conexión.', 'error')).finally(() => { btn.disabled = false; btn.innerHTML = 'Confirmar Reserva <span class="material-symbols-outlined text-xl">check_circle</span>'; });
+                    } else showToast((data && data.error) ? data.error : 'Ocurrió un error al procesar el turno.', 'error');
+                }).catch(err => showToast((err && err.message) ? err.message : 'Error de conexión.', 'error')).finally(() => { btn.disabled = false; btn.innerHTML = 'Confirmar Reserva <span class="material-symbols-outlined text-xl">check_circle</span>'; });
             };
 
             window.verificarAvisoPrevioSena(window.businessWebConfig, doSubmitWeekly);
@@ -4100,7 +4100,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 })
                 .then(data => {
-                    if (data.success) {
+                    if (data && data.success) {
                         const modal = document.getElementById('bookingSuccessModal');
                         const content = document.getElementById('bookingSuccessModalContent');
                         if (modal && content) {
@@ -4116,12 +4116,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         msgDiv.className = 'p-4 rounded-xl text-sm mt-2 font-medium bg-red-100 text-red-800';
                         msgDiv.classList.remove('hidden');
-                        msgDiv.textContent = data.error || 'Ocurrió un error al procesar el turno.';
+                        msgDiv.textContent = (data && data.error) ? data.error : 'Ocurrió un error al procesar el turno.';
                     }
                 }).catch((err) => {
                     msgDiv.className = 'p-4 rounded-xl text-sm mt-2 font-medium bg-red-100 text-red-800';
                     msgDiv.classList.remove('hidden');
-                    msgDiv.textContent = 'Error de conexión. Intenta nuevamente.';
+                    msgDiv.textContent = (err && err.message) ? err.message : 'Error de conexión. Intenta nuevamente.';
                 }).finally(() => { btnSubmit.disabled = false; btnSubmit.textContent = 'Solicitar Turno'; });
             };
 
@@ -4361,10 +4361,12 @@ function checkAdminCalendarSession(config = null) {
                      (config && config.is_demo === true) ||
                      currentRuta.startsWith('demo');
 
-            // Solo considerar modo Demo si la ruta actual también es demo o está vacía
             isDemo = backendIsDemo && (!currentRuta || currentRuta.startsWith('demo'));
 
-            if (isDemo || (!currentRuta && data.business.id) || (currentRuta && loggedRuta === currentRuta) || (config && config.id_negocio && data.business.id == config.id_negocio)) {
+            // El usuario autenticado es administrador de su propio negocio
+            // Solo se considera vista cliente si está navegando explícitamente la tienda de OTRO negocio
+            const isVisitingOtherBusiness = Boolean(currentRuta && loggedRuta && currentRuta !== loggedRuta && !isDemo);
+            if (!isVisitingOtherBusiness) {
                 isUserAdmin = true;
             }
 
@@ -4395,26 +4397,29 @@ function checkAdminCalendarSession(config = null) {
             if (typeof cal_fetchBookedTimes === 'function') cal_fetchBookedTimes();
             if (typeof renderWeeklyCalendar === 'function') renderWeeklyCalendar();
         } else {
-            // Usuario visitante no autenticado o cliente de la tienda pública
-            if (!negocioSlug) {
+            // Si el usuario no está autenticado y no hay slug de negocio, redirigir solo si el servidor confirmó explícitamente no autenticado
+            const isExplicitlyLoggedOut = data && data.success === false && (data.error && (data.error.includes('sesión') || data.error.includes('autentic')));
+            if (!negocioSlug && isExplicitlyLoggedOut && sessionStorage.getItem('agendatina_session') !== 'active') {
                 window.location.href = 'login.html';
                 return;
             }
-            isAdmin = false;
-            isPublicClientSlug = true;
-            sessionStorage.removeItem('agendatina_session');
+            if (negocioSlug) {
+                isAdmin = false;
+                isPublicClientSlug = true;
+            }
             window.syncCalendarNavbarMode(config);
         }
     })
     .catch(err => {
-        if (!negocioSlug) {
-            console.error('⚠️ [Error de Carga - Calendario] Desconexión de red o fallo al volver a cargar información:', err);
-            window.location.href = 'login.html';
-            return;
+        console.warn('⚠️ [Calendario] Consulta de perfil diferida:', err);
+        // En caso de error de red transitorio, no expulsar al usuario logueado
+        if (sessionStorage.getItem('agendatina_session') === 'active') {
+            isAdmin = true;
+            window._verifiedCalendarAdmin = true;
+        } else if (!negocioSlug) {
+            // Mantenerse en la vista sin bucle agresivo de redirección
+            isAdmin = false;
         }
-        isAdmin = false;
-        window._verifiedCalendarAdmin = false;
-        window._verifiedCalendarDemo = false;
         window.syncCalendarNavbarMode(config);
     });
 }

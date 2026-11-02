@@ -11,6 +11,8 @@ if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
 
 header('Content-Type: application/json; charset=utf-8');
 
+try {
+
 // Permitir solo método POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -85,9 +87,21 @@ $stmtNegocio = $pdo->prepare("
     FROM negocios n 
     LEFT JOIN personal_negocio pn ON n.id = pn.id_negocio AND pn.rol_en_local = 'admin'
     LEFT JOIN usuarios u ON pn.id_usuario = u.id
-    WHERE n.ruta = :sub OR (n.id = :id AND :id > 0) LIMIT 1");
+    WHERE n.ruta = :sub OR n.subdominio = :sub OR (n.id = :id AND :id > 0) LIMIT 1");
 $stmtNegocio->execute(['sub' => $subVal, 'id' => $idVal]);
 $negocioBD = $stmtNegocio->fetch();
+
+if (!$negocioBD && !empty($subVal)) {
+    try {
+        $stmtCfg = $pdo->prepare("SELECT id_negocio FROM configuracion_web WHERE url_logo LIKE :s LIMIT 1");
+        $stmtCfg->execute(['s' => "%$subVal%"]);
+        $idFromCfg = $stmtCfg->fetchColumn();
+        if ($idFromCfg) {
+            $stmtNegocio->execute(['sub' => '', 'id' => (int)$idFromCfg]);
+            $negocioBD = $stmtNegocio->fetch();
+        }
+    } catch (\Throwable $eCfg) {}
+}
 
 if (!$negocioBD) {
     http_response_code(404);
@@ -191,11 +205,28 @@ catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_n
 try { $pdo->query("SELECT cliente_celular FROM turnos LIMIT 1"); } 
 catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_celular VARCHAR(255) DEFAULT NULL"); } catch(\Throwable $ex) {} }
 
+try { $pdo->query("SELECT nombre FROM turnos LIMIT 1"); } 
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN nombre VARCHAR(255) DEFAULT NULL"); } catch(\Throwable $ex) {} }
+
+try { $pdo->query("SELECT apellido FROM turnos LIMIT 1"); } 
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN apellido VARCHAR(255) DEFAULT NULL"); } catch(\Throwable $ex) {} }
+
+try { $pdo->query("SELECT celular FROM turnos LIMIT 1"); } 
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN celular VARCHAR(255) DEFAULT NULL"); } catch(\Throwable $ex) {} }
+
 try { $pdo->query("SELECT cupon_usado FROM turnos LIMIT 1"); }
 catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN cupon_usado VARCHAR(50) DEFAULT NULL"); } catch(\Throwable $e2) {} }
 
 try { $pdo->query("SELECT descuento_pct FROM turnos LIMIT 1"); }
 catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN descuento_pct INT DEFAULT 0"); } catch(\Throwable $e2) {} }
+
+// Asegurar compatibilidad de tipos nullables en tabla turnos
+try { $pdo->exec("ALTER TABLE turnos MODIFY COLUMN id_servicio INT NULL DEFAULT NULL"); } catch(\Throwable $ex) {}
+try { $pdo->exec("ALTER TABLE turnos MODIFY COLUMN nombre VARCHAR(255) NULL DEFAULT NULL"); } catch(\Throwable $ex) {}
+try { $pdo->exec("ALTER TABLE turnos MODIFY COLUMN apellido VARCHAR(255) NULL DEFAULT NULL"); } catch(\Throwable $ex) {}
+try { $pdo->exec("ALTER TABLE turnos MODIFY COLUMN celular VARCHAR(255) NULL DEFAULT NULL"); } catch(\Throwable $ex) {}
+try { $pdo->exec("ALTER TABLE turnos MODIFY COLUMN cliente_nombre VARCHAR(255) NULL DEFAULT NULL"); } catch(\Throwable $ex) {}
+try { $pdo->exec("ALTER TABLE turnos MODIFY COLUMN cliente_celular VARCHAR(255) NULL DEFAULT NULL"); } catch(\Throwable $ex) {}
 
 try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS cupones_descuento (
@@ -213,6 +244,18 @@ try {
         INDEX (codigo)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 } catch (\Throwable $eTbl) {}
+
+try { $pdo->query("SELECT nombre FROM cupones_descuento LIMIT 1"); } 
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE cupones_descuento ADD COLUMN nombre VARCHAR(150) DEFAULT NULL"); } catch(\Throwable $ex) {} }
+
+try { $pdo->query("SELECT usos_maximos FROM cupones_descuento LIMIT 1"); } 
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE cupones_descuento ADD COLUMN usos_maximos INT DEFAULT 1"); } catch(\Throwable $ex) {} }
+
+try { $pdo->query("SELECT usos_actuales FROM cupones_descuento LIMIT 1"); } 
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE cupones_descuento ADD COLUMN usos_actuales INT DEFAULT 0"); } catch(\Throwable $ex) {} }
+
+try { $pdo->query("SELECT activo FROM cupones_descuento LIMIT 1"); } 
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE cupones_descuento ADD COLUMN activo TINYINT(1) DEFAULT 1"); } catch(\Throwable $ex) {} }
 
 foreach ([
     'reserva_sena_1h' => 'TINYINT(1) DEFAULT 0',
@@ -279,6 +322,7 @@ try {
     $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos, tiempo_entre_turnos, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, reserva_sena_1h, whatsapp_comprobante, datos_transferencia, porcentaje_sena, usar_cupones_descuento, cupon_descuento_pct, cupon_duracion_horas, whatsapp_contacto FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
     $stmtConfig->execute(['id' => $id_negocio]);
     $configWeb = $stmtConfig->fetch(PDO::FETCH_ASSOC);
+    if (!is_array($configWeb)) $configWeb = [];
 
     if ($configWeb) {
         $dayOfWeek = (int)date('w', strtotime($fecha)); // 0 = Domingo, 1 = Lunes...
@@ -407,12 +451,15 @@ try {
     }
 
     $stmt = $pdo->prepare(
-        "INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, metodo_pago, estado) 
-         VALUES (:id_negocio, :cliente_nombre, :cliente_celular, :fecha, :hora, :servicio, :profesional, :id_servicio, :metodo_pago, :estado)"
+        "INSERT INTO turnos (id_negocio, nombre, apellido, celular, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, metodo_pago, estado) 
+         VALUES (:id_negocio, :nombre, :apellido, :celular, :cliente_nombre, :cliente_celular, :fecha, :hora, :servicio, :profesional, :id_servicio, :metodo_pago, :estado)"
     );
 
     $stmt->execute([
         'id_negocio' => $id_negocio,
+        'nombre' => $nombre,
+        'apellido' => $apellido,
+        'celular' => $celular,
         'cliente_nombre' => $cliente_nombre,
         'cliente_celular' => $celular,
         'fecha' => $fecha,
@@ -574,4 +621,17 @@ echo json_encode([
     'servicio' => $servicio,
     'cliente_nombre' => $nombre . ' ' . $apellido
 ]);
+
+} catch (\Throwable $fatalErr) {
+    if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
+        try { $pdo->rollBack(); } catch (\Throwable $eRb) {}
+    }
+    error_log("Error crítico en enviar_turno: " . $fatalErr->getMessage() . " en " . $fatalErr->getFile() . ":" . $fatalErr->getLine());
+    http_response_code(200);
+    echo json_encode([
+        'success' => false,
+        'error' => 'No se pudo completar la reserva del turno: ' . $fatalErr->getMessage()
+    ]);
+    exit;
+}
 ?>

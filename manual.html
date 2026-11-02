@@ -189,7 +189,7 @@
                             <span class="material-symbols-outlined text-indigo-600 text-[20px]">dvr</span>
                             <span>Página Web & Colores</span>
                         </span>
-                        <span id="badge-web" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md shrink-0">Profesional+</span>
+                        <span id="badge-web" class="text-[10px] font-extrabold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md shrink-0">Profesional+</span>
                     </button>
 
                     <button onclick="switchTab('estadisticas')" id="tab-estadisticas" class="manual-nav-item w-full px-4 py-3 rounded-2xl text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between gap-2 bg-slate-50 border border-slate-200/80 text-slate-700 hover:bg-slate-100">
@@ -655,6 +655,111 @@
             </div>
 
             <!-- SECCIÓN 5: SERVICIOS -->
+            
+            <!-- ======================================================== -->
+            <!-- SEGMENTO: CUPONES DE DESCUENTO Y FIDELIZACIÓN             -->
+            <!-- ======================================================== -->
+            <div id="sec-cupones" class="tab-content space-y-8 hidden">
+                <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0 shadow-xs">
+                                <span class="material-symbols-outlined text-2xl">local_activity</span>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-md">Todos los Planes</span>
+                                </div>
+                                <h3 class="text-xl sm:text-2xl font-black text-slate-900">Gestión de Cupones y Fidelización de Clientes</h3>
+                                <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Creación de bonificaciones personalizadas, control de vigencia y campañas de retorno.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        <p>
+                            El módulo de cupones de descuento constituye una solución estratégica orientada a incentivar la recurrencia del público y reactivar clientes inactivos. Cada cupón cuenta con validación matemática en tiempo real al momento de formalizar la reserva en línea.
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2">
+                                <div class="flex items-center gap-2 text-slate-900 font-extrabold text-xs sm:text-sm">
+                                    <span class="material-symbols-outlined text-purple-600 text-lg">confirmation_number</span>
+                                    <span>Parámetros Configurables</span>
+                                </div>
+                                <ul class="space-y-1.5 text-xs text-slate-600 pl-4 list-disc">
+                                    <li><strong>Código Identificador:</strong> Clave alfanumérica única (ej. BIENVENIDA10).</li>
+                                    <li><strong>Porcentaje de Descuento:</strong> Rebaja aplicada sobre la tarifa base del servicio contratado.</li>
+                                    <li><strong>Límite de Usos:</strong> Control de usos máximos permitidos antes de su clausura automática.</li>
+                                    <li><strong>Fecha de Caducidad:</strong> Establecimiento de límite temporal con expiración precisa.</li>
+                                    <li><strong>Interruptor de Estado:</strong> Posibilidad de pausar o reactivar cupones con efecto inmediato.</li>
+                                </ul>
+                            </div>
+
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2">
+                                <div class="flex items-center gap-2 text-slate-900 font-extrabold text-xs sm:text-sm">
+                                    <span class="material-symbols-outlined text-teal-600 text-lg">autorenew</span>
+                                    <span>Cupones Automáticos de Retorno</span>
+                                </div>
+                                <p class="text-xs text-slate-600">
+                                    Mediante el monitor de inactividad, el sistema detecta a aquellos clientes cuyo último turno superó el umbral configurado (ej. 30 días) y permite generar un cupón individual para adjuntar directamente en un recordatorio por WhatsApp.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ======================================================== -->
+            <!-- SEGMENTO: SEÑAS Y CONFIRMACIÓN DE RESERVAS                -->
+            <!-- ======================================================== -->
+            <div id="sec-sena" class="tab-content space-y-8 hidden">
+                <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+                        <div class="flex items-center gap-3.5">
+                            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 shadow-xs">
+                                <span class="material-symbols-outlined text-2xl">payments</span>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-md">Todos los Planes</span>
+                                </div>
+                                <h3 class="text-xl sm:text-2xl font-black text-slate-900">Políticas de Seña y Confirmación de Turnos</h3>
+                                <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Retención provisional por 1 hora, aviso bancario previo y verificación de comprobantes.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        <p>
+                            La configuración de señas protege el horario productivo del profesional frente a ausencias imprevistas. El sistema proporciona un entorno transparente tanto para el usuario final como para el administrador.
+                        </p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2">
+                                <div class="flex items-center gap-2 text-slate-900 font-extrabold text-xs sm:text-sm">
+                                    <span class="material-symbols-outlined text-amber-600 text-lg">hourglass_top</span>
+                                    <span>Ventana de Reserva Temporal (1 Hora)</span>
+                                </div>
+                                <p class="text-xs text-slate-600">
+                                    Al solicitar una cita sujeta a anticipo, el horario queda apartado provisionalmente en estado pendiente por 60 minutos. Este plazo permite al cliente realizar la transferencia bancaria y enviar el comprobante de pago vía WhatsApp.
+                                </p>
+                            </div>
+
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2">
+                                <div class="flex items-center gap-2 text-slate-900 font-extrabold text-xs sm:text-sm">
+                                    <span class="material-symbols-outlined text-blue-600 text-lg">info</span>
+                                    <span>Aviso Previo y Copia de Datos Bancarios</span>
+                                </div>
+                                <p class="text-xs text-slate-600">
+                                    Antes de asentar la reserva, una ventana modal informa al solicitante el porcentaje exigido y presenta el Alias o CBU con un botón de copiado rápido, asegurando que cuente con toda la información requerida de manera clara y formal.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div id="sec-servicios" class="tab-content space-y-8 hidden">
                 <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm space-y-8">
                     <div>
@@ -1034,10 +1139,20 @@
 
     </main>
 
-    <footer class="mt-12 py-8 text-center border-t border-slate-200 flex justify-center bg-white">
-        <a href="index.html" target="_blank" class="inline-block hover:opacity-90 transition-opacity">
-            <img src="public/logoletras.png" alt="Agendatina" class="h-12 sm:h-14 w-auto opacity-90 hover:opacity-100 transition-all drop-shadow-sm">
-        </a>
+    <footer id="agendatinaFooter" class="w-full border-t border-slate-200/80 bg-white/70 backdrop-blur-md py-6 mt-12 px-4 text-center">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <a href="index.html" target="_blank" class="inline-flex items-center gap-2 hover:opacity-85 transition-opacity">
+                <img src="public/logo.png" alt="Agendatina" class="h-6 w-auto object-contain">
+                <span class="font-brand font-semibold text-lg tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
+            </a>
+            <div class="flex flex-wrap items-center justify-center gap-3 font-medium">
+                <span>Sistema de Gestión de Turnos Online 24/7</span>
+                <span class="text-slate-300">•</span>
+                <a href="index.html" target="_blank" class="hover:text-[#d11149] font-semibold transition-colors">Conocé Agendatina</a>
+                <span class="text-slate-300">•</span>
+                <a href="terminos.html" target="_blank" class="hover:text-[#d11149] font-semibold transition-colors">Términos y Privacidad</a>
+            </div>
+        </div>
     </footer>
 
     <!-- Modal Reportar Error -->
@@ -1163,8 +1278,7 @@
                         if (planTextEl) planTextEl.textContent = `Tu Plan: ${displayPlan}`;
                     }
                 }).catch(err => {
-                    console.error('⚠️ [Error de Carga - Manual] Desconexión de red o fallo al volver a cargar información:', err);
-                    window.location.href = 'login.html';
+                    console.warn('⚠️ [Manual] Error transitorio al sincronizar sesión:', err);
                 });
         });
 
