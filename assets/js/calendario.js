@@ -1,3 +1,31 @@
+
+window.onCalendarServiceTipoChange = function(tipo) {
+    const lblCal = document.getElementById('lblCalDestinoCalendario');
+    const lblAlu = document.getElementById('lblCalDestinoAlumnos');
+    const capInp = document.getElementById('serviceCapacidad');
+    const capBox = capInp ? capInp.parentElement : null;
+
+    if (tipo === 'alumnos') {
+        if (lblAlu) {
+            lblAlu.className = 'flex items-center gap-2 p-2.5 rounded-xl border-2 border-purple-600 bg-purple-50 dark:bg-purple-900/30 cursor-pointer text-xs font-bold text-slate-800 dark:text-slate-100 transition-all';
+        }
+        if (lblCal) {
+            lblCal.className = 'flex items-center gap-2 p-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer text-xs font-bold text-slate-800 dark:text-slate-100 transition-all';
+        }
+        if (capBox) capBox.classList.remove('hidden');
+        if (capInp && parseInt(capInp.value || 1) <= 1) capInp.value = 10;
+    } else {
+        if (lblCal) {
+            lblCal.className = 'flex items-center gap-2 p-2.5 rounded-xl border-2 border-primary bg-primary/5 cursor-pointer text-xs font-bold text-slate-800 dark:text-slate-100 transition-all';
+        }
+        if (lblAlu) {
+            lblAlu.className = 'flex items-center gap-2 p-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer text-xs font-bold text-slate-800 dark:text-slate-100 transition-all';
+        }
+        if (capBox) capBox.classList.add('hidden');
+        if (capInp) capInp.value = 1;
+    }
+};
+
 // backend/js/calendario.js
 let negocioSlug = '';
 const urlParams = new URLSearchParams(window.location.search);
@@ -1927,10 +1955,10 @@ function updateServiceDropdown() {
     serviceSelect.innerHTML = '<option value="" disabled selected>¿Qué servicio deseas?</option>';
     
     const prof = globalSelectedProfessional;
-    let availableServices = services;
+    let availableServices = services.filter(s => s.tipo_servicio !== 'alumnos' && !(s.tipo_servicio === undefined && (parseInt(s.cupo_maximo) > 1 || parseInt(s.capacidad) > 1)));
     
     if (prof && prof !== 'columnas' && prof !== 'Cualquiera (Sin preferencia)' && prof !== 'Cualquiera') {
-        availableServices = services.filter(s => s.profesional === prof);
+        availableServices = availableServices.filter(s => s.profesional === prof);
     }
     
     const uniqueNames = new Set();
@@ -2062,18 +2090,7 @@ function openServicesModal() {
     setTimeout(() => { content.classList.remove('scale-95'); }, 10);
     populateProfessionalSelect();
     renderServicesList();
-    const capInp = document.getElementById('serviceCapacidad');
-    if (capInp && capInp.parentElement) {
-        const planStr = String(window.businessWebConfig?.plan || window.currentBusinessPlan || '').toLowerCase();
-        const isPrem = planStr.includes('premium') || planStr.includes('completo') || window.businessWebConfig?.is_demo;
-        const hasCupos = window.businessWebConfig && (window.businessWebConfig.modo_reservas === 'cupos_alumnos' || window.businessWebConfig.turnos_simultaneos === 'si');
-        if (isPrem && hasCupos) {
-            capInp.parentElement.classList.remove('hidden');
-        } else {
-            capInp.parentElement.classList.add('hidden');
-            capInp.value = 1;
-        }
-    }
+    resetServiceForm();
     renderServicesList();
 }
 
@@ -2103,9 +2120,10 @@ function renderServicesList() {
     services.forEach(service => {
         const duracionFmt = formatDuracionText(service.duracion || 45);
         const cuposCount = parseInt(service.cupo_maximo || service.capacidad || 1);
-        const cuposBadge = cuposCount > 1 
-            ? `<span class="bg-orange-100 text-orange-800 text-[11px] font-extrabold px-2 py-0.5 rounded-md border border-orange-200 inline-flex items-center gap-1">👥 Clase (${cuposCount} cupos)</span>`
-            : `<span class="text-slate-500 text-xs font-medium">👤 Individual (1 cupo)</span>`;
+        const isAlumnos = (service.tipo_servicio === 'alumnos' || (!service.tipo_servicio && (parseInt(service.cupo_maximo) > 1 || parseInt(service.capacidad) > 1)));
+        const cuposBadge = isAlumnos 
+            ? `<span class="bg-purple-100 text-purple-800 text-[11px] font-black px-2.5 py-0.5 rounded-full border border-purple-200 inline-flex items-center gap-1 shadow-2xs"><span class="material-symbols-outlined text-[13px]">school</span> Portal Alumnos (${cuposCount} cupos)</span>`
+            : `<span class="bg-blue-50 text-blue-700 text-[11px] font-black px-2.5 py-0.5 rounded-full border border-blue-200 inline-flex items-center gap-1 shadow-2xs"><span class="material-symbols-outlined text-[13px]">calendar_month</span> Calendario Turnos</span>`;
 
         let paquetesBadges = '';
         let pkgs = [];
@@ -2373,6 +2391,10 @@ function editService(id) {
         if (document.getElementById('serviceDuration')) document.getElementById('serviceDuration').value = d;
         document.getElementById('servicePrice').value = service.precio || '';
         if (document.getElementById('serviceCapacidad')) document.getElementById('serviceCapacidad').value = service.capacidad || 1;
+        const tipoSvc = (service.tipo_servicio === 'alumnos' || (!service.tipo_servicio && (parseInt(service.cupo_maximo) > 1 || parseInt(service.capacidad) > 1))) ? 'alumnos' : 'calendario';
+        const radCalEdit = document.getElementById(tipoSvc === 'alumnos' ? 'radioDestinoAlumnos' : 'radioDestinoCalendario');
+        if (radCalEdit) radCalEdit.checked = true;
+        if (typeof window.onCalendarServiceTipoChange === 'function') window.onCalendarServiceTipoChange(tipoSvc);
         if(document.getElementById('serviceProfessional')) document.getElementById('serviceProfessional').value = service.profesional || '';
         if(document.getElementById('serviceProfessionalEmail')) document.getElementById('serviceProfessionalEmail').value = service.email_profesional || '';
         if(document.getElementById('serviceProfessionalPhoto')) document.getElementById('serviceProfessionalPhoto').value = service.foto_profesional || '';
@@ -2408,6 +2430,9 @@ function resetServiceForm() {
     const serviceIdInput = document.getElementById('serviceId');
     if (serviceIdInput) serviceIdInput.value = '';
     if (document.getElementById('serviceCapacidad')) document.getElementById('serviceCapacidad').value = 1;
+    const radCalReset = document.getElementById('radioDestinoCalendario');
+    if (radCalReset) radCalReset.checked = true;
+    if (typeof window.onCalendarServiceTipoChange === 'function') window.onCalendarServiceTipoChange('calendario');
     if(document.getElementById('serviceProfessional')) document.getElementById('serviceProfessional').value = '';
     if(document.getElementById('serviceProfessionalEmail')) document.getElementById('serviceProfessionalEmail').value = '';
     if(document.getElementById('serviceProfessionalPhoto')) document.getElementById('serviceProfessionalPhoto').value = '';

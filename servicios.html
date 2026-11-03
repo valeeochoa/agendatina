@@ -147,6 +147,36 @@
             <form id="serviceForm" class="space-y-5">
                 <input type="hidden" name="id" id="svcId">
 
+                <!-- Selector de Destino / Uso Exclusivo del Servicio -->
+                <div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 shadow-2xs">
+                    <label class="block text-xs font-black uppercase tracking-wider text-slate-500 mb-2.5 flex items-center justify-between">
+                        <span>¿Dónde estará disponible este servicio? *</span>
+                        <span class="text-[10px] font-bold text-slate-400 normal-case">(Exclusivo por servicio)</span>
+                    </label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="selectorTipoServicio">
+                        <label id="labelTipoCalendario" class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all border-primary bg-primary/5 text-slate-800 shadow-xs">
+                            <input type="radio" name="tipo_servicio" id="tipoServicioCalendario" value="calendario" checked class="mt-0.5 accent-primary" onchange="onTipoServicioChange('calendario')">
+                            <div class="min-w-0">
+                                <span class="block text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-[17px] text-blue-600">calendar_month</span>
+                                    Calendario de Turnos
+                                </span>
+                                <span class="block text-[11px] text-slate-500 font-medium leading-tight mt-1">Cita individual 1 a 1 para reserva directa de fechas y horarios en la web y agenda.</span>
+                            </div>
+                        </label>
+                        <label id="labelTipoAlumnos" class="flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all border-slate-200 bg-white hover:border-slate-300 text-slate-800 shadow-2xs">
+                            <input type="radio" name="tipo_servicio" id="tipoServicioAlumnos" value="alumnos" class="mt-0.5 accent-primary" onchange="onTipoServicioChange('alumnos')">
+                            <div class="min-w-0">
+                                <span class="block text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-[17px] text-purple-600">school</span>
+                                    Portal de Alumnos
+                                </span>
+                                <span class="block text-[11px] text-slate-500 font-medium leading-tight mt-1">Clase o actividad grupal con cupos y reservas mediante pases de alumnos.</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 <!-- Grid de 2 Columnas para información principal -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     <!-- Columna Izquierda: Datos Principales de Turno -->
@@ -325,6 +355,51 @@
         let professionalsData = [];
 
         let currentOwnerName = '';
+
+        window.onTipoServicioChange = function(tipo) {
+            const lblCal = document.getElementById('labelTipoCalendario');
+            const lblAlu = document.getElementById('labelTipoAlumnos');
+            const boxCupo = document.getElementById('lblCupoMaximoServicio')?.parentElement;
+            const gridPrecioCupo = document.getElementById('gridPrecioCupoServicio');
+            const tipCupo = document.getElementById('tipCupoMaximoServicio');
+            const boxPaquetes = document.getElementById('boxPaquetesPasesServicio');
+            const hintPrecio = document.getElementById('hintSvcPrecio');
+            const inpCap = document.getElementById('svcCapacidad');
+
+            if (tipo === 'alumnos') {
+                if (lblAlu) {
+                    lblAlu.className = 'flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all border-purple-600 bg-purple-50/70 text-slate-900 shadow-xs';
+                }
+                if (lblCal) {
+                    lblCal.className = 'flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all border-slate-200 bg-white hover:border-slate-300 text-slate-800 shadow-2xs';
+                }
+                if (boxCupo) boxCupo.classList.remove('hidden');
+                if (gridPrecioCupo) { gridPrecioCupo.classList.remove('grid-cols-1'); gridPrecioCupo.classList.add('grid-cols-2'); }
+                if (tipCupo) tipCupo.classList.remove('hidden');
+                if (boxPaquetes) boxPaquetes.classList.remove('hidden');
+                if (hintPrecio) hintPrecio.classList.remove('hidden');
+                if (inpCap && parseInt(inpCap.value || 1) <= 1) inpCap.value = 10;
+                
+                const pkgsRaw = document.getElementById('svcPreciosPaquetesJson')?.value || '[]';
+                let pkgsList = [];
+                try { pkgsList = JSON.parse(pkgsRaw); } catch(e) {}
+                actualizarRequisitoPrecio(pkgsList.length > 0);
+            } else {
+                if (lblCal) {
+                    lblCal.className = 'flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all border-primary bg-primary/5 text-slate-900 shadow-xs';
+                }
+                if (lblAlu) {
+                    lblAlu.className = 'flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all border-slate-200 bg-white hover:border-slate-300 text-slate-800 shadow-2xs';
+                }
+                if (boxCupo) boxCupo.classList.add('hidden');
+                if (gridPrecioCupo) { gridPrecioCupo.classList.remove('grid-cols-2'); gridPrecioCupo.classList.add('grid-cols-1'); }
+                if (tipCupo) tipCupo.classList.add('hidden');
+                if (boxPaquetes) boxPaquetes.classList.add('hidden');
+                if (hintPrecio) hintPrecio.classList.add('hidden');
+                if (inpCap) inpCap.value = 1;
+                actualizarRequisitoPrecio(false);
+            }
+        };
 
         document.addEventListener('DOMContentLoaded', () => {
             fetch('backend/perfil.php')
@@ -541,9 +616,10 @@
             list.forEach(s => {
                 const duracionFmt = formatDuracionText(s.duracion || 45);
                 const cuposCount = parseInt(s.cupo_maximo || s.capacidad || 1);
-                const cuposBadge = !window.canManageCuposServicio ? '' : (cuposCount > 1 
-                    ? `<span class="bg-orange-100 text-orange-800 text-[11px] font-extrabold px-2 py-0.5 rounded-md border border-orange-200 inline-flex items-center gap-1">👥 Clase (${cuposCount} cupos)</span>`
-                    : `<span class="text-slate-500 text-xs font-medium">👤 Individual (1 cupo)</span>`);
+                const isAlumnos = (s.tipo_servicio === 'alumnos' || (!s.tipo_servicio && (parseInt(s.cupo_maximo) > 1 || parseInt(s.capacidad) > 1)));
+                const cuposBadge = isAlumnos 
+                    ? `<span class="bg-purple-100 text-purple-800 text-[11px] font-black px-2.5 py-0.5 rounded-full border border-purple-200 inline-flex items-center gap-1 shadow-2xs"><span class="material-symbols-outlined text-[14px]">school</span> Portal de Alumnos (${cuposCount} cupos)</span>`
+                    : `<span class="bg-blue-50 text-blue-700 text-[11px] font-black px-2.5 py-0.5 rounded-full border border-blue-200/80 inline-flex items-center gap-1 shadow-2xs"><span class="material-symbols-outlined text-[14px]">calendar_month</span> Calendario de Turnos</span>`;
 
                 let paquetesBadges = '';
                 let pkgs = [];
@@ -643,6 +719,9 @@
         function openServiceModal() {
             document.getElementById('serviceForm').reset();
             document.getElementById('svcId').value = '';
+            const radioCal = document.getElementById('tipoServicioCalendario');
+            if (radioCal) radioCal.checked = true;
+            if (typeof window.onTipoServicioChange === 'function') window.onTipoServicioChange('calendario');
             document.getElementById('svcHoras').value = 0;
             document.getElementById('svcMinutos').value = 45;
             document.getElementById('svcDuracion').value = 45;
@@ -670,6 +749,10 @@
             populateProfSelect(professionalsData);
             document.getElementById('svcId').value = s.id;
             document.getElementById('svcNombre').value = s.nombre;
+            const tipo = (s.tipo_servicio === 'alumnos' || (!s.tipo_servicio && (parseInt(s.cupo_maximo) > 1 || parseInt(s.capacidad) > 1))) ? 'alumnos' : 'calendario';
+            const radioTarget = document.getElementById(tipo === 'alumnos' ? 'tipoServicioAlumnos' : 'tipoServicioCalendario');
+            if (radioTarget) radioTarget.checked = true;
+            if (typeof window.onTipoServicioChange === 'function') window.onTipoServicioChange(tipo);
             if (document.getElementById('svcIcono')) {
                 document.getElementById('svcIcono').value = s.icono || 'local_florist';
                 if (typeof window.syncIconDisplay === 'function') window.syncIconDisplay('svcIcono');

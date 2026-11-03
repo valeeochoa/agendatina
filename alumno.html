@@ -1796,11 +1796,12 @@
             }
 
             Promise.all([
-                fetch('backend/gestionar_servicios.php?n=' + encodeURIComponent(ruta)).then(r => r.json()),
+                fetch('backend/gestionar_servicios.php?n=' + encodeURIComponent(ruta) + '&destino=alumnos').then(r => r.json()),
                 fetch('backend/obtener_turnos_ocupados.php?n=' + encodeURIComponent(ruta)).then(r => r.json())
             ])
             .then(([serviciosData, ocupadosData]) => {
-                const servicios = Array.isArray(serviciosData) ? serviciosData : (serviciosData.servicios || []);
+                const rawServicios = Array.isArray(serviciosData) ? serviciosData : (serviciosData.servicios || []);
+                const servicios = rawServicios.filter(s => s.tipo_servicio === 'alumnos' || (!s.tipo_servicio && (parseInt(s.cupo_maximo) > 1 || parseInt(s.capacidad) > 1)));
                 const bizConfig = (ocupadosData && ocupadosData['_config']) ? ocupadosData['_config'] : {};
 
                 if (servicios.length === 0) {
