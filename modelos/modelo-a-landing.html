@@ -126,17 +126,17 @@
 <body class="bg-white text-slate-800 font-sans antialiased selection:bg-brand-pink selection:text-white">
 
     <!-- Barra de demostración sobria -->
-    <aside aria-label="Aviso de demostración" class="bg-slate-900 text-slate-300 text-xs py-2 px-4 border-b border-slate-800 sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
-            <div class="flex items-center gap-2.5">
-                <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-white border border-slate-700 text-[#d11149] shadow-xs">
+    <aside aria-label="Aviso de demostración" class="bg-slate-900 text-slate-300 text-xs py-2 px-3 sm:px-4 border-b border-slate-800 relative z-30">
+        <div class="max-w-6xl mx-auto flex items-center justify-between gap-2 text-[11px] sm:text-xs">
+            <div class="flex items-center gap-2 min-w-0">
+                <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-white border border-slate-700 text-[#d11149] shadow-xs shrink-0">
                     <svg class="w-3 h-3 fill-[#d11149]" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                 </span>
-                <span class="inline-block w-1.5 h-1.5 rounded-full bg-brand-green"></span>
-                <span class="font-medium text-white">Modelo 1: Landing Page</span>
+                <span class="inline-block w-1.5 h-1.5 rounded-full bg-brand-green shrink-0"></span>
+                <span class="font-medium text-white truncate">Modelo 1: Landing Page</span>
                 <span class="hidden sm:inline text-slate-400">· Paleta Rosa & Verde · Fondo Lava</span>
             </div>
-            <a href="index.html" class="inline-flex items-center gap-1 text-slate-300 hover:text-white transition-colors underline underline-offset-2">
+            <a href="index.html" class="inline-flex items-center gap-1 text-slate-300 hover:text-white transition-colors underline underline-offset-2 shrink-0">
                 <span>Volver a modelos</span>
                 <span class="material-symbols-outlined text-[14px]">arrow_back</span>
             </a>
@@ -144,13 +144,13 @@
     </aside>
 
     <!-- Header / Navbar -->
-    <header class="bg-white/90 backdrop-blur-md border-b border-slate-200/80 sticky top-8 z-40">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-            <a href="#inicio" class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-lg bg-brand-pink text-white flex items-center justify-center font-bold text-sm shadow-xs">
+    <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
+            <a href="#inicio" class="flex items-center gap-2">
+                <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-brand-pink text-white flex items-center justify-center font-bold text-xs sm:text-sm shadow-xs">
                     ME
                 </div>
-                <span class="font-bold text-xl tracking-tight text-slate-900">Marca <span class="text-brand-pink">Ejemplo</span></span>
+                <span class="font-bold text-base sm:text-xl tracking-tight text-slate-900">Marca <span class="text-brand-pink">Ejemplo</span></span>
             </a>
 
             <nav class="hidden md:flex items-center gap-7 text-xs font-bold text-slate-600">
@@ -168,7 +168,7 @@
     </header>
 
     <!-- 1. HERO SECTION CON FONDO LAVA -->
-    <section id="inicio" class="relative pt-16 pb-20 md:pt-24 md:pb-32 overflow-hidden border-b border-slate-200/60">
+    <section id="inicio" class="relative pt-10 pb-14 sm:pt-16 sm:pb-20 md:pt-24 md:pb-32 overflow-hidden border-b border-slate-200/60">
         
         <!-- Animación Lava Lamp -->
         <div class="lava-wrap">
@@ -188,7 +188,7 @@
             </div>
 
             <!-- Titular Fuerte -->
-            <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15] mb-6">
+            <h1 class="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight mb-5">
                 Captá más consultas con una <span class="text-brand-pink">landing page</span> pensada para convertir
             </h1>
 
@@ -470,7 +470,7 @@
     <!-- 5. SECCIÓN DE CONTACTO CON FORMULARIO DE EJEMPLO -->
     <section id="contacto" class="py-20 bg-slate-50 relative overflow-hidden">
         <div class="max-w-4xl mx-auto px-4 sm:px-6">
-            <div class="bg-white rounded-3xl border border-slate-200/90 shadow-xl p-7 sm:p-10 md:p-12">
+            <div class="bg-white rounded-3xl border border-slate-200/90 shadow-xl p-4 sm:p-8 md:p-12">
                 <div class="text-center max-w-xl mx-auto mb-9">
                     <span class="text-brand-pink font-bold uppercase text-xs tracking-wider bg-brand-pinkLight px-3 py-1 rounded-md border border-brand-pink/20">
                         Contacto
@@ -536,7 +536,7 @@
                 <span class="font-bold text-slate-900 text-sm">Marca <span class="text-brand-pink">Ejemplo</span></span>
                 <span class="text-slate-400">· Modelo de demostración</span>
             </div>
-            <p>© 2026 Marca Ejemplo. Plantilla lista para personalizar.</p>
+            <p>© 2026 Marca Ejemplo. Todos los derechos reservados.</p>
         </div>
     </footer>
 
@@ -545,7 +545,7 @@
        target="_blank" 
        rel="noopener noreferrer"
        aria-label="Contactar por WhatsApp"
-       class="fixed bottom-6 right-6 z-50 w-14 h-14 bg-brand-green hover:bg-brand-greenHover text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-brand-green/40 hover:scale-110 active:scale-95 transition-all group">
+       class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-12 h-12 sm:w-14 sm:h-14 bg-brand-green hover:bg-brand-greenHover text-white rounded-full flex items-center justify-center shadow-lg hover:shadow-brand-green/40 hover:scale-110 active:scale-95 transition-all group">
         <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24">
             <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
         </svg>
