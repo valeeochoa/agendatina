@@ -222,39 +222,39 @@
             <div class="lg:col-span-8 xl:col-span-8">
                 <!-- Tabs internos -->
                 <div class="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
-                    <!-- Tab Bar -->
-                    <div class="flex border-b border-slate-200 px-2 pt-2 gap-1 bg-slate-50/70 overflow-x-auto tabs-scroll">
+                    <!-- Tab Bar Segmentado de Alto Contraste -->
+                    <div class="p-1.5 bg-slate-100/90 border-b border-slate-200 flex flex-wrap sm:flex-nowrap gap-1 overflow-x-auto tabs-scroll rounded-t-xl">
                         <button id="tabProximos"
-                            class="flex-1 sm:flex-none sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-t-lg text-primary bg-white border border-slate-200 border-b-white -mb-px flex items-center justify-center gap-1.5 transition-all"
+                            class="flex-1 sm:flex-none px-4 py-2 text-sm font-extrabold rounded-xl flex items-center justify-center gap-1.5 transition-all bg-white text-slate-900 shadow-xs border border-slate-200/90"
                             onclick="switchAgendaTab('proximos')">
-                            <span class="material-symbols-outlined text-[17px]">event_available</span>
+                            <span class="material-symbols-outlined text-[18px] text-[#d11149]">event_available</span>
                             <span>Próximos</span>
                         </button>
                         <button id="tabVencidos"
-                            class="flex-1 sm:flex-none sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-t-lg text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 transition-all"
+                            class="flex-1 sm:flex-none px-4 py-2 text-sm font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 border border-transparent"
                             onclick="switchAgendaTab('vencidos')">
-                            <span class="material-symbols-outlined text-[17px]">history_toggle_off</span>
+                            <span class="material-symbols-outlined text-[18px] text-slate-400">history_toggle_off</span>
                             <span>Vencidos</span>
                         </button>
                         <button id="tabHistorial"
-                            class="flex-1 sm:flex-none sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-t-lg text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 transition-all"
+                            class="flex-1 sm:flex-none px-4 py-2 text-sm font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 border border-transparent"
                             onclick="switchAgendaTab('historial')">
-                            <span class="material-symbols-outlined text-[17px]">history</span>
+                            <span class="material-symbols-outlined text-[18px] text-slate-400">history</span>
                             <span>Historial</span>
                         </button>
                         <button id="tabPapelera"
-                            class="flex-1 sm:flex-none sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-t-lg text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 transition-all relative"
+                            class="flex-1 sm:flex-none px-4 py-2 text-sm font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 border border-transparent relative"
                             onclick="switchAgendaTab('papelera')">
-                            <span class="material-symbols-outlined text-[17px]">delete</span>
+                            <span class="material-symbols-outlined text-[18px] text-slate-400">delete</span>
                             <span>Papelera</span>
                             <span id="trashBadgeDot" class="w-2 h-2 rounded-full bg-red-500 hidden animate-pulse ml-0.5"></span>
                         </button>
                         <button id="tabRetorno"
-                            class="flex-1 sm:flex-none sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-t-lg text-slate-500 hover:text-slate-800 flex items-center justify-center gap-1.5 transition-all whitespace-nowrap relative"
+                            class="flex-1 sm:flex-none px-4 py-2 text-sm font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 border border-transparent whitespace-nowrap relative"
                             onclick="switchAgendaTab('retorno')">
-                            <span class="material-symbols-outlined text-[17px] text-amber-600">loyalty</span>
+                            <span class="material-symbols-outlined text-[18px] text-amber-600">loyalty</span>
                             <span>Retorno / Cupones</span>
-                            <span id="retornoCountBadge" class="hidden bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-extrabold px-1.5 py-0.2 rounded-full">0</span>
+                            <span id="retornoCountBadge" class="hidden bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-extrabold px-1.5 py-0.2 rounded-full">0</span>
                         </button>
                     </div>
 
@@ -363,8 +363,8 @@
                 papelera: document.getElementById('tabPapelera'),
                 retorno: document.getElementById('tabRetorno')
             };
-            var activeClass = 'flex-1 sm:flex-none sm:px-5 py-2.5 text-sm font-bold rounded-t-xl flex items-center justify-center gap-1.5 transition-all text-primary bg-white border border-slate-200 border-b-white -mb-px';
-            var inactiveClass = 'flex-1 sm:flex-none sm:px-5 py-2.5 text-sm font-bold rounded-t-xl flex items-center justify-center gap-1.5 transition-all text-slate-400 hover:text-slate-600 border-transparent';
+            var activeClass = 'flex-1 sm:flex-none px-4 py-2 text-sm font-extrabold rounded-xl flex items-center justify-center gap-1.5 transition-all bg-white text-slate-900 shadow-xs border border-slate-200/90';
+            var inactiveClass = 'flex-1 sm:flex-none px-4 py-2 text-sm font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 border border-transparent';
 
             Object.keys(panels).forEach(function(key) {
                 if (!panels[key]) return;

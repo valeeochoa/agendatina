@@ -308,15 +308,15 @@ window.openDemoWelcomeNoticeModal = function(force = false) {
             <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full p-6 sm:p-8 text-center relative overflow-hidden transform scale-95 transition-transform duration-300" id="demoNoticeContent">
                 <div class="absolute -top-12 -right-12 w-36 h-36 bg-gradient-to-br from-amber-400/20 to-orange-500/20 rounded-full blur-2xl pointer-events-none"></div>
                 
-                <div class="w-16 h-16 rounded-3xl bg-amber-50 text-[#fc8712] flex items-center justify-center mx-auto mb-4 shadow-sm border border-amber-200">
-                    <span class="material-symbols-outlined text-4xl">visibility</span>
+                <div class="w-14 h-14 rounded-2xl bg-amber-50 text-[#fc8712] flex items-center justify-center mx-auto mb-4 border border-amber-200 shadow-2xs">
+                    <span class="material-symbols-outlined text-3xl">storefront</span>
                 </div>
 
-                <span class="bg-amber-100 text-amber-900 border border-amber-300 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-3">Modo Demostración Activo</span>
+                <span class="bg-amber-100/90 text-amber-900 border border-amber-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-3">Modo Demostración Activo</span>
 
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Estás en una cuenta DEMO 🚀</h2>
-                <p class="text-xs sm:text-sm text-slate-600 mb-6 leading-relaxed">
-                    Esta es una versión de prueba interactiva con todas las funciones del <strong>Plan Premium</strong> habilitadas para que explores la plataforma. A continuación puedes iniciar el tour guiado por la aplicación.
+                <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mb-2 tracking-tight">Entorno de Demostración del Sistema</h2>
+                <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+                    Estás accediendo a un entorno interactivo con todas las funciones del <strong>Plan Premium</strong> habilitadas para explorar la gestión de turnos, el calendario en vivo y las herramientas administrativas en tiempo real.
                 </p>
 
                 <div class="flex flex-col gap-3">

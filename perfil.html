@@ -105,8 +105,8 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <!-- Ajustes del Perfil (7 Columnas) -->
-            <div class="lg:col-span-7 space-y-6">
+            <!-- Ajustes del Perfil (6 Columnas) -->
+            <div class="lg:col-span-6 space-y-6">
                 <!-- Formulario 1: Datos del Perfil -->
                 <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-6 sm:p-8">
                     <h2 class="font-extrabold text-xl mb-6 border-b border-slate-100 pb-4 flex items-center gap-2.5 text-slate-800">
@@ -271,8 +271,8 @@
                 </div>
             </div>
             
-            <!-- Lateral: Suscripción y Estado de Pago (5 Columnas anchas) -->
-            <div class="lg:col-span-5 space-y-6">
+            <!-- Lateral: Suscripción y Estado de Pago (6 Columnas) -->
+            <div class="lg:col-span-6 space-y-6">
                 <!-- Banner de Alerta cuando el Plan está Vencido / Suspendido -->
                 <div id="planExpiredAlertBanner" class="hidden p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
                     <div class="flex items-center gap-3">
@@ -285,34 +285,56 @@
                     <a href="pago.html" class="bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all shadow-sm shrink-0">Renovar / Pagar</a>
                 </div>
 
+                <!-- Cartel Modo Demo (Sin pagos ni precios reales) -->
+                <div id="perfilDemoNoticeCard" class="hidden p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-300 shadow-sm space-y-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-200 text-amber-900 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-[24px]">storefront</span>
+                        </div>
+                        <div>
+                            <span class="text-[11px] font-bold text-amber-800 uppercase tracking-wider">Modo Demostración Activo</span>
+                            <h3 class="text-base sm:text-lg font-extrabold text-amber-950 leading-tight">Cuenta de Prueba Interactiva</h3>
+                        </div>
+                    </div>
+                    <p class="text-xs sm:text-sm text-amber-900 leading-relaxed">
+                        Estás explorando Agendatina en modo de prueba con todas las funciones del <strong>Plan Premium</strong> habilitadas. En esta cuenta no se efectúan cargos, pagos ni renovaciones automáticas.
+                    </p>
+                    <div class="pt-1">
+                        <a href="registro.html" class="inline-flex items-center justify-center gap-2 w-full px-5 py-3 rounded-xl bg-[#fc8712] hover:bg-[#e0750b] text-white font-extrabold text-xs sm:text-sm shadow-md transition-all">
+                            <span>Crear mi cuenta oficial de negocio</span>
+                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                        </a>
+                    </div>
+                </div>
+
                 <!-- Estado de Suscripción -->
                 <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-6 sm:p-8">
                     <h2 class="font-extrabold text-xl mb-6 border-b border-slate-100 pb-4 flex items-center gap-2.5 text-slate-800">
                         <span class="material-symbols-outlined text-primary">credit_card</span> Estado del Servicio y Pago
                     </h2>
                     
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
                         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 hover:shadow-sm transition-all">
                             <span class="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Plan Actual</span>
-                            <span class="text-lg font-black text-slate-800" id="suscripcionPlan">Cargando...</span>
+                            <span class="text-base font-black text-slate-800" id="suscripcionPlan">Cargando...</span>
                         </div>
-                        <div class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200/80 hover:shadow-sm transition-all">
-                            <div class="flex items-center justify-between mb-1">
+                        <div id="boxTarifaCongelada" class="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200/80 hover:shadow-sm transition-all">
+                            <div class="flex items-center justify-between gap-1 mb-1">
                                 <span class="block text-[11px] font-extrabold text-emerald-800 uppercase tracking-wider">Tarifa Congelada</span>
-                                <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-200/60 text-emerald-900">Garantizada</span>
+                                <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-200 text-emerald-950 whitespace-nowrap shrink-0">Garantizada</span>
                             </div>
-                            <span class="text-lg font-black text-emerald-900" id="suscripcionPrecioPactado">$0 / mes</span>
-                            <span class="text-[10px] text-emerald-700 font-semibold block mt-0.5">Respetada para tu próxima renovación</span>
+                            <span class="text-base font-black text-emerald-900" id="suscripcionPrecioPactado">$0 / mes</span>
+                            <span class="text-[11px] text-emerald-700 font-semibold block mt-0.5">Respetada para tu próxima renovación</span>
                         </div>
                         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 hover:shadow-sm transition-all">
                             <span class="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Estado de Pago</span>
-                            <span class="text-base font-black text-amber-600 block" id="suscripcionComprobante">En revisión o pendiente</span>
+                            <span class="text-sm font-black text-amber-600 block" id="suscripcionComprobante">En revisión o pendiente</span>
                         </div>
                         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 hover:shadow-sm transition-all">
                             <span class="block text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Último Pago</span>
-                            <span class="text-base font-black text-slate-800" id="suscripcionUltimoPago">---</span>
+                            <span class="text-sm font-black text-slate-800" id="suscripcionUltimoPago">---</span>
                         </div>
-                        <div class="bg-purple-50/70 p-4 rounded-2xl border border-purple-200/80 hover:shadow-sm transition-all sm:col-span-2 lg:col-span-2">
+                        <div class="bg-purple-50/70 p-4 rounded-2xl border border-purple-200/80 hover:shadow-sm transition-all sm:col-span-2">
                             <span class="block text-[11px] font-extrabold text-purple-600 uppercase tracking-wider mb-1">Próximo Período de Facturación</span>
                             <span class="text-base font-black text-purple-950" id="suscripcionVencimiento">---</span>
                         </div>
@@ -351,7 +373,7 @@
                     </div>
 
                     <div class="space-y-3">
-                        <button type="button" onclick="openUpgradePlanModal()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-extrabold py-3.5 px-6 rounded-2xl transition-all text-sm shadow-md shadow-purple-600/20 hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer">
+                        <button type="button" id="btnMejorarPlan" onclick="openUpgradePlanModal()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-extrabold py-3.5 px-6 rounded-2xl transition-all text-sm shadow-md shadow-purple-600/20 hover:-translate-y-0.5 flex items-center justify-center gap-2 cursor-pointer">
                             <span class="material-symbols-outlined text-[20px]">workspace_premium</span> Mejorar o Cambiar de Plan
                         </button>
 

@@ -68,16 +68,28 @@
         }
 
         /* Scrollbar styling */
+        /* Scrollbar Horizontal Visible y Estilizada para Pestañas de Módulos */
         #folderTabsBar {
             overflow-x: auto !important;
             overflow-y: hidden !important;
-            scrollbar-width: none !important;
-            -ms-overflow-style: none !important;
+            scrollbar-width: thin !important;
+            scrollbar-color: #cbd5e1 #f8fafc !important;
+            padding-bottom: 3px;
         }
         #folderTabsBar::-webkit-scrollbar {
-            display: none !important;
-            width: 0 !important;
-            height: 0 !important;
+            height: 6px !important;
+            display: block !important;
+        }
+        #folderTabsBar::-webkit-scrollbar-track {
+            background: #f1f5f9 !important;
+            border-radius: 9999px !important;
+        }
+        #folderTabsBar::-webkit-scrollbar-thumb {
+            background: #cbd5e1 !important;
+            border-radius: 9999px !important;
+        }
+        #folderTabsBar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8 !important;
         }
 
         /* Animación Efecto Lava Agendatina para Sección Comparativa a Ancho Completo */
@@ -426,7 +438,7 @@
             <!-- Pestañas de Carpetas (Folder Tabs) y Marco de Simulación Compacto -->
             <div class="relative">
                 <!-- Barra de pestañas estilo carpetas con scroll horizontal en mobile (sin scrollbar vertical) -->
-                <div class="flex items-end gap-1.5 overflow-x-auto overflow-y-hidden scrollbar-none px-2 sm:px-4 border-b-2 border-slate-200" id="folderTabsBar" role="tablist" style="overflow-y: hidden !important; scrollbar-width: none !important;">
+                <div class="flex items-end gap-1.5 overflow-x-auto overflow-y-hidden px-2 sm:px-4 border-b-2 border-slate-200" id="folderTabsBar" role="tablist" style="overflow-y: hidden !important;">
                     <!-- Generado dinámicamente por assets/js/index_modulos_sim.js -->
                 </div>
 

@@ -2034,15 +2034,19 @@ function updateProfServicesDisplay() {
 function populateProfessionalSelect() {
     const sel = document.getElementById('serviceProfessional');
     if (!sel) return;
-    fetch('backend/gestionar_profesionales.php')
+    const queryParam = businessSlug ? `?n=${encodeURIComponent(businessSlug)}` : '';
+    fetch('backend/gestionar_profesionales.php' + queryParam)
         .then(r => r.json())
-        .then(data => {
-            if (data.success && Array.isArray(data.profesionales)) {
+        .then(res => {
+            const list = (res && (res.data || res.profesionales)) || [];
+            if (Array.isArray(list)) {
                 const currentVal = sel.value;
-                let html = '<option value="">Todos / Sin Asignar</option>';
-                data.profesionales.forEach(p => {
-                    const name = p.nombre_completo || p.email || 'Profesional';
-                    html += `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`;
+                let html = '<option value="">Cualquiera (Sin preferencia)</option>';
+                list.forEach(p => {
+                    const name = (p.nombre_completo || p.email || 'Profesional').trim();
+                    if (name) {
+                        html += `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`;
+                    }
                 });
                 sel.innerHTML = html;
                 if (currentVal) sel.value = currentVal;

@@ -1073,28 +1073,38 @@ window.loadMoreTrash = function() {
 };
 
 window.switchAgendaTab = function(tab) {
-    // Guardar el tab activo para que renderAgendaTurnos pueda restaurarlo
     window.activeAgendaTab = tab;
+    
+    if (tab === 'retorno' && typeof window.loadClientesRetorno === 'function') {
+        window.loadClientesRetorno();
+    }
+    if (tab === 'papelera') {
+        localStorage.removeItem('agendatina_unread_trash');
+        const dot = document.getElementById('trashBadgeDot');
+        if (dot) dot.classList.add('hidden');
+    }
     
     const tabs = {
         proximos: document.getElementById('tabProximos'),
         vencidos: document.getElementById('tabVencidos'),
         historial: document.getElementById('tabHistorial'),
         papelera: document.getElementById('tabPapelera'),
+        retorno: document.getElementById('tabRetorno'),
     };
     const panels = {
         proximos: document.getElementById('lista-confirmados'),
         vencidos: document.getElementById('lista-vencidos'),
         historial: document.getElementById('lista-historial'),
         papelera: document.getElementById('lista-eliminados'),
+        retorno: document.getElementById('lista-retorno'),
     };
 
-    const activeClass = 'text-primary bg-white border border-slate-200 border-b-white -mb-px';
-    const inactiveClass = 'text-slate-400 hover:text-slate-600 border-transparent';
+    const activeClass = 'flex-1 sm:flex-none px-4 py-2 text-sm font-extrabold rounded-xl flex items-center justify-center gap-1.5 transition-all bg-white text-slate-900 shadow-xs border border-slate-200/90';
+    const inactiveClass = 'flex-1 sm:flex-none px-4 py-2 text-sm font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 border border-transparent';
 
     Object.keys(tabs).forEach(key => {
         if (!tabs[key]) return;
-        tabs[key].className = `flex-1 sm:flex-none sm:px-5 py-2.5 text-sm font-bold rounded-t-xl flex items-center justify-center gap-1.5 transition-all ${key === tab ? activeClass : inactiveClass}`;
+        tabs[key].className = key === tab ? activeClass : inactiveClass;
     });
 
     Object.keys(panels).forEach(key => {
