@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Planes de Mantenimiento y Soporte Web | Marca Blanca</title>
+    <!-- Favicon plano rosa con fondo blanco -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23ffffff' stroke='%23f3e5dc' stroke-width='2'/%3E%3Cpath d='M32 50.5l-2.6-2.37C20.18 40 14 34.4 14 27.5 14 21.98 18.38 17.6 23.9 17.6c3.12 0 6.11 1.45 8.1 3.75 1.99-2.3 4.98-3.75 8.1-3.75 5.52 0 9.9 4.38 9.9 9.9 0 6.9-6.18 12.5-15.4 20.63L32 50.5z' fill='%23d11149'/%3E%3C/svg%3E">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            pink: '#d11149',
+                            pinkHover: '#b50e3e',
+                            pinkLight: '#fde8ef',
+                            orange: '#fc8712',
+                            orangeHover: '#e0760d',
+                            orangeLight: '#fff2e6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+                        brand: ['"Fredoka"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-[#fff6f0] via-[#fffbf9] to-[#fff5ee] text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-brand-pink selection:text-white">
+
+    <!-- Barra de demostración sobria Marca Blanca -->
+    <aside aria-label="Aviso de demostración" class="bg-slate-900 text-slate-300 text-xs py-2 px-4 border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+                <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-white border border-slate-700 text-[#d11149] shadow-xs">
+                    <svg class="w-3 h-3 fill-[#d11149]" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                </span>
+                <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span class="font-medium text-white">Modelo: Planes de Mantenimiento</span>
+                <span class="hidden sm:inline text-slate-400">· Modalidad Marca Blanca</span>
+            </div>
+            <a href="index.html" class="inline-flex items-center gap-1 text-slate-300 hover:text-white transition-colors underline underline-offset-2">
+                <span>Volver a modelos</span>
+                <span class="material-symbols-outlined text-[14px]">arrow_back</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Encabezado de la página -->
+    <header class="border-b border-[#f3e5dc] bg-white/90 backdrop-blur-md sticky top-9 z-30 shadow-2xs">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-white border border-[#f3e5dc] text-brand-pink flex items-center justify-center shadow-xs">
+                    <span class="material-symbols-outlined text-[20px]">build</span>
+                </div>
+                <div>
+                    <span class="font-extrabold text-base tracking-tight text-slate-900 block leading-tight">
+                        Mantenimiento Web
+                    </span>
+                    <span class="text-[11px] font-semibold text-slate-400 block">Soporte y Actualización de Contenidos</span>
+                </div>
+            </div>
+            <div>
+                <a href="#planes" class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-800 bg-brand-orangeLight border border-brand-orange/30 hover:bg-brand-orange hover:text-white px-4 py-2 rounded-full transition-all shadow-2xs">
+                    <span>Ver Planes</span>
+                    <span class="material-symbols-outlined text-[16px]">expand_more</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido principal -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 flex-1 w-full relative z-10">
+
+        <!-- Hero de Introducción -->
+        <div class="max-w-3xl mb-12 sm:mb-16">
+            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-orangeLight border border-brand-orange/30 text-brand-orange text-xs font-bold mb-4 shadow-2xs">
+                <span class="material-symbols-outlined text-[16px]">verified</span>
+                <span>Cobertura Técnica y Contenido al Día</span>
+            </div>
+            
+            <h1 class="text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.15] mb-5">
+                Planes de Mantenimiento y Soporte
+            </h1>
+            
+            <p class="text-slate-600 text-base sm:text-lg leading-relaxed max-w-2xl font-normal">
+                Servicios mensuales diseñados para mantener el sitio web actualizado, operativo y con respuesta técnica organizada ante cualquier consulta o modificación en la estructura existente.
+            </p>
+        </div>
+
+        <!-- Grilla de los 3 Planes Oficiales -->
+        <div id="planes" class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-7 items-stretch mb-12">
+            
+            <!-- PLAN BÁSICO — USD 20/mes -->
+            <div class="bg-white rounded-3xl border-2 border-slate-200 hover:border-emerald-500 p-6 sm:p-7 flex flex-col justify-between shadow-sm hover:shadow-xl transition-all duration-300 relative group">
+                <div class="absolute -top-3.5 left-6 bg-slate-800 text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-full tracking-wider shadow-xs">
+                    Preventivo
+                </div>
+
+                <div>
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xl mb-4 mt-2 border border-emerald-100 group-hover:scale-105 transition-transform">
+                        <span class="material-symbols-outlined text-2xl">verified_user</span>
+                    </div>
+                    
+                    <h2 class="text-xl font-extrabold text-slate-900 mb-1">Plan Básico</h2>
+                    <div class="flex items-baseline gap-1 mb-2">
+                        <span class="text-3xl font-black text-slate-900">USD 20</span>
+                        <span class="text-xs font-bold text-slate-400">/ mes</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-6 leading-relaxed">
+                        Revisión periódica recomendada para sitios con bajo volumen de cambios pero que requieren verificar su funcionamiento regular.
+                    </p>
+                    
+                    <div class="space-y-3.5 mb-6">
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                                <span class="material-symbols-outlined text-[15px]">check</span>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-700">Revisión mensual de enlaces y formularios de contacto.</span>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                                <span class="material-symbols-outlined text-[15px]">check</span>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-700">Cambios menores en textos, teléfonos, direcciones u horarios de atención.</span>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                                <span class="material-symbols-outlined text-[15px]">check</span>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-700">Soporte ante incidencias técnicas simples.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100">
+                    <span class="text-[11px] font-bold text-slate-600 block text-center bg-slate-50 py-2.5 px-3 rounded-xl border border-slate-200">
+                        Revisión técnica mensual
+                    </span>
+                </div>
+            </div>
+
+            <!-- PLAN ESTÁNDAR — USD 35/mes -->
+            <div class="bg-white rounded-3xl border-2 border-brand-orange hover:border-brand-orangeHover p-6 sm:p-7 flex flex-col justify-between shadow-md hover:shadow-xl transition-all duration-300 relative group">
+                <div class="absolute -top-3.5 right-6 bg-brand-orange text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-full tracking-wider shadow-xs">
+                    Más Elegido
+                </div>
+
+                <div>
+                    <div class="w-12 h-12 rounded-2xl bg-brand-orangeLight text-brand-orange flex items-center justify-center font-bold text-xl mb-4 mt-2 border border-brand-orange/20 group-hover:scale-105 transition-transform">
+                        <span class="material-symbols-outlined text-2xl">edit_note</span>
+                    </div>
+                    
+                    <h2 class="text-xl font-extrabold text-slate-900 mb-1">Plan Estándar</h2>
+                    <div class="flex items-baseline gap-1 mb-2">
+                        <span class="text-3xl font-black text-slate-900">USD 35</span>
+                        <span class="text-xs font-bold text-slate-400">/ mes</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-6 leading-relaxed">
+                        La alternativa equilibrada para negocios que actualizan precios, promociones, fotos o avisos comerciales periódicamente.
+                    </p>
+                    
+                    <div class="space-y-3.5 mb-6">
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-lg bg-brand-orangeLight text-brand-orange flex items-center justify-center shrink-0 mt-0.5">
+                                <span class="material-symbols-outlined text-[15px]">check</span>
+                            </div>
+                            <span class="text-xs font-bold text-slate-800">Incluye todo lo del Plan Básico.</span>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-lg bg-brand-orangeLight text-brand-orange flex items-center justify-center shrink-0 mt-0.5">
+                                <span class="material-symbols-outlined text-[15px]">check</span>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-700">Actualización de textos, imágenes, precios y banners promocionales.</span>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-lg bg-brand-orangeLight text-brand-orange flex items-center justify-center shrink-0 mt-0.5">
+                                <span class="material-symbols-outlined text-[15px]">check</span>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-700">Modificaciones de contenido dentro de las secciones ya existentes.</span>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-lg bg-brand-orangeLight text-brand-orange flex items-center justify-center shrink-0 mt-0.5">
+                                <span class="material-symbols-outlined text-[15px]">check</span>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-700">Soporte técnico correctivo regular.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100">
+                    <span class="text-[11px] font-bold text-brand-orange block text-center bg-brand-orangeLight py-2.5 px-3 rounded-xl border border-brand-orange/20">
+                        Actualizaciones de contenido regulares
+                    </span>
+                </div>
+            </div>
+
+            <!-- PLAN AMPLIO — USD 60/mes -->
+            <div class="bg-white rounded-3xl border-2 border-brand-pink/40 hover:border-brand-pink p-6 sm:p-7 flex flex-col justify-between shadow-sm hover:shadow-xl transition-all duration-300 relative group">
+                <div class="absolute -top-3.5 left-6 bg-brand-pink text-white text-[10px] font-extrabold uppercase px-3 py-1 rounded-full tracking-wider shadow-xs">
+                    Completo
+                </div>
+
+                <div>
+                    <div class="w-12 h-12 rounded-2xl bg-brand-pinkLight text-brand-pink flex items-center justify-center font-bold text-xl mb-4 mt-2 border border-brand-pink/20 group-hover:scale-105 transition-transform">
+                        <span class="material-symbols-outlined text-2xl">sync_saved_locally</span>
+                    </div>
+                    
+                    <h2 class="text-xl font-extrabold text-slate-900 mb-1">Plan Amplio</h2>
+                    <div class="flex items-baseline gap-1 mb-2">
+                        <span class="text-3xl font-black text-slate-900">USD 60</span>
+                        <span class="text-xs font-bold text-slate-400">/ mes</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-6 leading-relaxed">
+                        Diseñado para catálogos y marcas con alto dinamismo de artículos, recambios de productos y requerimientos frecuentes.
+                    </p>
+                    
+                    <div class="space-y-3.5 mb-6">
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-lg bg-brand-pinkLight text-brand-pink flex items-center justify-center shrink-0 mt-0.5">
+                                <span class="material-symbols-outlined text-[15px]">check</span>
+                            </div>
+                            <span class="text-xs font-bold text-slate-800">Incluye todo lo del Plan Estándar.</span>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-lg bg-brand-pinkLight text-brand-pink flex items-center justify-center shrink-0 mt-0.5">
+                                <span class="material-symbols-outlined text-[15px]">check</span>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-700">Actualizaciones de contenido con mayor frecuencia durante el mes.</span>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-lg bg-brand-pinkLight text-brand-pink flex items-center justify-center shrink-0 mt-0.5">
+                                <span class="material-symbols-outlined text-[15px]">check</span>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-700">Carga o recambio de productos e imágenes en catálogos digitales.</span>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-6 h-6 rounded-lg bg-brand-pinkLight text-brand-pink flex items-center justify-center shrink-0 mt-0.5">
+                                <span class="material-symbols-outlined text-[15px]">check</span>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-700">Ajustes visuales menores y prioridad en los tiempos de atención.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100">
+                    <span class="text-[11px] font-bold text-brand-pink block text-center bg-brand-pinkLight py-2.5 px-3 rounded-xl border border-brand-pink/20">
+                        Mayor frecuencia y gestión de catálogo
+                    </span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- BLOQUE DE ACLARACIONES Y ALCANCE (OBLIGATORIO Y VISIBLE) -->
+        <section aria-labelledby="aclaraciones-title" class="bg-white border border-[#f3e5dc] rounded-3xl p-6 sm:p-8 max-w-4xl mx-auto shadow-sm mb-8">
+            <div class="flex items-start gap-3.5 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">
+                    <span class="material-symbols-outlined text-[22px]">info</span>
+                </div>
+                <div>
+                    <h3 id="aclaraciones-title" class="text-base sm:text-lg font-extrabold text-slate-900">
+                        Aclaraciones y Alcance del Servicio
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Definición clara de responsabilidades y condiciones de cobertura técnica.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-5">
+                <div class="space-y-3">
+                    <p>
+                        <strong class="text-slate-900">Alcance cubierto:</strong> Los planes contemplan mantenimiento preventivo, soporte correctivo y actualización de información sobre la estructura existente del sitio web o catálogo.
+                    </p>
+                    <p>
+                        <strong class="text-slate-900">Hosting y dominio:</strong> La contratación y renovación anual del hosting y del nombre de dominio corren por cuenta del cliente o de la agencia contratante, salvo acuerdo adicional explícito.
+                    </p>
+                </div>
+                <div>
+                    <p class="mb-1.5 font-bold text-slate-900">No están incluidos en los abonos mensuales:</p>
+                    <ul class="list-disc list-inside space-y-1 text-slate-600">
+                        <li>Armado de páginas o landing pages nuevas.</li>
+                        <li>Creación de secciones completas no existentes.</li>
+                        <li>Nuevas funcionalidades o rediseños integrales.</li>
+                        <li>Campañas de SEO avanzado o integraciones complejas.</li>
+                    </ul>
+                    <p class="text-[11px] text-slate-400 mt-2.5">
+                        <em>Cualquiera de estos requerimientos adicionales se presupuesta y programa de forma independiente.</em>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer sobrio Marca Blanca (sin firma de desarrollador) -->
+    <footer class="border-t border-[#f3e5dc] bg-white py-6 relative z-10 text-xs text-slate-500">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <p class="font-medium text-slate-600">Planes de Mantenimiento y Soporte Web · Modalidad Marca Blanca</p>
+            <p class="text-slate-400 text-[11px]">Material de muestra para agencias y profesionales.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
