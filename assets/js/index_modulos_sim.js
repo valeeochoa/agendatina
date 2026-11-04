@@ -271,99 +271,38 @@
         renderActiveSimulation();
     };
 
-    function getSimHtml_Calendario() {
+        function getSimHtml_Calendario() {
         const isMensual = simCalendarViewMode === 'mensual';
 
         return `
             <div class="space-y-4">
-                <!-- Header Navbar Oficial idéntico a calendarioMensual.html -->
-                <div class="bg-white/95 border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
-                    <!-- Barra de acento con degradé oficial de Agendatina -->
-                    <div class="h-1 bg-gradient-to-r from-[#D11149] via-[#f44979] to-[#FC8712]"></div>
-                    
-                    <div class="px-3 sm:px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-                        <!-- Izquierda: Volver al panel + Marca Agendatina + Nombre de Negocio -->
-                        <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
-                            <button type="button" onclick="window.openSimCta('¡Panel de Control Administrativo!', 'Desde el panel principal gestionás turnos, caja, clientes y métricas.', 'Básico')"
-                                class="bg-[#d11149] hover:bg-[#b00e3d] text-white font-extrabold py-1.5 px-3 sm:px-3.5 rounded-xl transition-all flex items-center gap-1.5 text-xs shadow-xs hover:scale-[1.02] active:scale-95 cursor-pointer">
-                                <span class="material-symbols-outlined text-[17px]">arrow_back</span>
-                                <span class="hidden sm:inline">Volver al panel</span>
-                            </button>
-                            <span class="text-slate-300 font-light text-base hidden sm:inline">|</span>
+                <!-- Barra Superior de Navegación del Calendario (Vista Cliente) -->
+                <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3 shadow-xs flex flex-wrap items-center justify-between gap-3">
+                    <!-- Datos del Negocio -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#D11149] to-[#FC8712] text-white flex items-center justify-center font-extrabold text-xs shadow-2xs">
+                            SG
+                        </div>
+                        <div>
                             <div class="flex items-center gap-2">
-                                <img src="public/logo.png" alt="Agendatina" class="h-7 w-auto drop-shadow-xs">
-                                <span class="font-brand font-semibold text-xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
+                                <h4 class="font-extrabold text-sm text-slate-900 leading-tight">Studio Glam</h4>
+                                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">Abierto hoy</span>
                             </div>
-                            <span class="text-slate-300 font-light text-base hidden md:inline">|</span>
-                            <div class="flex items-center gap-2 bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-xl shadow-2xs">
-                                <span class="material-symbols-outlined text-[17px] text-[#d11149]">storefront</span>
-                                <span class="text-xs font-extrabold text-slate-800">Studio Glam</span>
-                            </div>
-                        </div>
-
-                        <!-- Derecha: Página Web + Modo Demo + Reportar Error -->
-                        <div class="flex items-center gap-2 sm:gap-2.5">
-                            <button type="button" onclick="window.selectModuleTab('web', true)"
-                                class="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-3 py-1.5 rounded-xl text-xs transition-all border border-slate-200/80 shadow-2xs cursor-pointer">
-                                <span class="material-symbols-outlined text-[16px] text-[#d11149]">language</span>
-                                <span class="hidden sm:inline">Página Web</span>
-                            </button>
-                            <div class="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-xl shadow-2xs">
-                                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                                <span class="text-[11px] font-extrabold text-amber-800 uppercase tracking-wider hidden sm:inline">Modo Demo</span>
-                            </div>
-                            <button type="button" onclick="window.openSimCta('¡Soporte Técnico Directo!', 'Contás con soporte técnico por WhatsApp y mesa de ayuda 24/7.', 'Básico')"
-                                class="text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 border border-red-200/70 px-2.5 py-1.5 rounded-xl flex items-center gap-1 transition-colors cursor-pointer" title="Reportar Error">
-                                <span class="material-symbols-outlined text-[16px]">bug_report</span>
-                                <span class="hidden lg:inline">Reportar Error</span>
-                            </button>
+                            <p class="text-[11px] text-slate-500 font-medium">Palermo Soho • Turnos y Reservas Online</p>
                         </div>
                     </div>
-                </div>
 
-                <!-- Barra de Herramientas del Calendario (Navegación + Modos de Vista + Acciones) -->
-                <div class="bg-white border border-slate-200/90 rounded-2xl p-3 shadow-xs flex flex-wrap items-center justify-between gap-3">
-                    <div class="flex items-center gap-2">
-                        <div class="flex items-center bg-slate-100 rounded-xl p-0.5 border border-slate-200">
-                            <button type="button" onclick="window.openSimCta('¡Navegación de Fechas en Tiempo Real!', 'Podés avanzar o retroceder de mes y bloquear feriados al instante.', 'Básico')" class="p-1 text-slate-600 hover:text-slate-900 rounded-lg">
-                                <span class="material-symbols-outlined text-[18px]">chevron_left</span>
-                            </button>
-                            <span class="px-2 text-xs font-black text-slate-800">Agosto 2026</span>
-                            <button type="button" onclick="window.openSimCta('¡Navegación de Fechas en Tiempo Real!', 'Podés avanzar o retroceder de mes y bloquear feriados al instante.', 'Básico')" class="p-1 text-slate-600 hover:text-slate-900 rounded-lg">
-                                <span class="material-symbols-outlined text-[18px]">chevron_right</span>
-                            </button>
-                        </div>
-                        <span class="text-xs font-bold px-2.5 py-1 rounded-xl bg-slate-100 text-slate-600">Hoy</span>
-                    </div>
-
-                    <!-- Selector Mensual / Semanal interactivo en vivo -->
-                    <div class="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200">
+                    <!-- Selector de Vista: Mensual / Semanal -->
+                    <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 shadow-2xs">
                         <button type="button" onclick="window.setSimCalendarView('mensual')"
-                            class="px-3 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${isMensual ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'}">
-                            Vista Mensual
+                            class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer ${isMensual ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'}">
+                            <span class="material-symbols-outlined text-[16px] ${isMensual ? 'text-[#D11149]' : 'text-slate-400'}">calendar_month</span>
+                            <span>Vista Mensual</span>
                         </button>
                         <button type="button" onclick="window.setSimCalendarView('semanal')"
-                            class="px-3 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${!isMensual ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'}">
-                            Vista Semanal
-                        </button>
-                    </div>
-
-                    <!-- Botones de Acción Operativa -->
-                    <div class="flex items-center gap-2">
-                        <button type="button" onclick="window.openSimCta('¡Bloqueo de Días y Horarios!', 'Con un solo clic bloqueás francos, vacaciones o turnos sobre la marcha.', 'Básico')"
-                            class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 flex items-center gap-1 transition-colors">
-                            <span class="material-symbols-outlined text-[16px] text-amber-600">event_busy</span>
-                            <span class="hidden sm:inline">Bloquear Horarios</span>
-                        </button>
-                        <button type="button" onclick="window.openSimCta('¡Gestión de Catálogo de Servicios!', 'Creá servicios, definí precios y asigná profesionales específicos.', 'Básico')"
-                            class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 flex items-center gap-1 transition-colors">
-                            <span class="material-symbols-outlined text-[16px] text-teal-600">content_cut</span>
-                            <span class="hidden sm:inline">Gestionar Servicios</span>
-                        </button>
-                        <button type="button" onclick="window.copySimCalendarLink(this)"
-                            class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold flex items-center gap-1 shadow-2xs transition-all cursor-pointer">
-                            <span class="material-symbols-outlined text-[16px]">share</span>
-                            <span>Copiar Enlace</span>
+                            class="px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer ${!isMensual ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'}">
+                            <span class="material-symbols-outlined text-[16px] ${!isMensual ? 'text-[#FC8712]' : 'text-slate-400'}">view_week</span>
+                            <span>Vista Semanal</span>
                         </button>
                     </div>
                 </div>
@@ -387,28 +326,6 @@
 
         return `
             <div class="space-y-4">
-                <!-- Barra superior de negocio ficticio estilo navbar real -->
-                <div class="bg-white/90 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-slate-200/80 flex items-center justify-between text-xs shadow-2xs">
-                    <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-[#D11149] to-[#FC8712] text-white flex items-center justify-center font-bold text-xs shadow-2xs">
-                            SE
-                        </div>
-                        <span class="font-extrabold text-slate-800">Stetica & Estilo</span>
-                        <span class="text-slate-300">|</span>
-                        <span class="text-slate-500 font-medium hidden sm:inline">Palermo Soho</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg text-[10px] font-extrabold text-amber-800">
-                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                            Modo Demo
-                        </span>
-                        <a href="javascript:void(0)" onclick="window.selectModuleTab('web', true)" class="text-[11px] font-bold text-slate-600 hover:text-primary flex items-center gap-1">
-                            <span class="material-symbols-outlined text-[14px]">language</span>
-                            <span class="hidden sm:inline">Página Web</span>
-                        </a>
-                    </div>
-                </div>
-
                 <!-- Contenedor Principal (MainCalendarWrapper en 12 columnas) -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
                     
