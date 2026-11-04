@@ -353,7 +353,7 @@
                 </a>
 
                 <!-- Card 2: Cupos y Alumnos -->
-                <div onclick="if(window.goToModuleTab){window.goToModuleTab('cupos');}else{document.getElementById('modulos-detallados')?.scrollIntoView({behavior:'smooth'});}"
+                <a href="#modulos-detallados" onclick="if(window.goToModuleTab){window.goToModuleTab('cupos');return false;}"
                     class="bg-white p-6 rounded-xl border border-slate-200/90 hover:border-orange-300 shadow-2xs hover:shadow-md transition-all group flex flex-col justify-between cursor-pointer">
                     <div>
                         <div
@@ -362,7 +362,7 @@
                         </div>
                         <h3 class="text-lg font-bold text-slate-900 mb-2 font-display flex items-center gap-2">
                             Cupos y Alumnos
-                            <span onclick="event.stopPropagation(); window.location.href='alumno.html'"
+                            <span onclick="event.stopPropagation(); event.preventDefault(); window.location.href='alumno.html'; return false;"
                                 class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-md bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-600 hover:text-white transition-colors">Portal</span>
                         </h3>
                         <p class="text-xs text-slate-600 leading-relaxed font-medium">
@@ -375,7 +375,7 @@
                         <span>Ver detalle y Portal</span> <span
                             class="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_downward</span>
                     </div>
-                </div>
+                </a>
 
                 <!-- Card 3: Métricas y Reportes -->
                 <a href="#modulos-detallados" onclick="if(window.goToModuleTab){window.goToModuleTab('estadisticas');return false;}"

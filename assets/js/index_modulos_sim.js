@@ -114,8 +114,24 @@
 
     window.goToModuleTab = function(moduleId) {
         window.selectModuleTab(moduleId, true);
-        const sec = document.getElementById('modulos-detallados');
-        if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        // Desplazamiento inteligente para encuadrar completamente las pestañas y el simulador
+        setTimeout(() => {
+            const target = document.getElementById('folderTabsBar') || document.getElementById('moduleSimulatorFrame') || document.getElementById('modulos-detallados');
+            if (target) {
+                const nav = document.getElementById('mainNav');
+                const navHeight = nav ? nav.offsetHeight : 70;
+                const targetRect = target.getBoundingClientRect();
+                const absoluteTargetTop = targetRect.top + window.pageYOffset;
+                // Margen de 14px debajo de la barra de navegación fija
+                const scrollY = Math.max(0, absoluteTargetTop - navHeight - 14);
+
+                window.scrollTo({
+                    top: scrollY,
+                    behavior: 'smooth'
+                });
+            }
+        }, 50);
     };
 
     function startAutoRotation() {
