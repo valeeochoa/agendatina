@@ -101,9 +101,94 @@ try {
 
 try {
     // ---------------------------------------------------------
-    // OBTENER LISTADO DE ALUMNOS (GET)
+    // OBTENER LISTADO DE ALUMNOS O CLASES DE LA SEMANA (GET)
     // ---------------------------------------------------------
     if ($method === 'GET') {
+        $action = $_GET['action'] ?? '';
+
+        // Acción especial: Obtener clases y ocupación de la semana para la Grilla Semanal
+        if ($action === 'clases_semana') {
+            session_write_close();
+
+            $fecha_inicio = $_GET['fecha_inicio'] ?? '';
+            $fecha_fin = $_GET['fecha_fin'] ?? '';
+
+            if (empty($fecha_inicio) || empty($fecha_fin)) {
+                $tsHoy = time();
+                $diaSemana = (int)date('w', $tsHoy); // 0 = dom, 1 = lun, etc.
+                $diasHastaLunes = ($diaSemana === 0) ? -6 : (1 - $diaSemana);
+                $fecha_inicio = date('Y-m-d', strtotime("{$diasHastaLunes} days", $tsHoy));
+                $fecha_fin = date('Y-m-d', strtotime("+6 days", strtotime($fecha_inicio)));
+            }
+
+            // 1. Configuración de horarios del negocio
+            $stmtConf = $pdo->prepare("
+                SELECT hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, 
+                       dias_trabajo, horarios_detallados_json, intervalo_turnos, 
+                       turnos_simultaneos, modo_reservas, tiempo_entre_turnos, primer_dia_semana
+                FROM configuracion_web 
+                WHERE id_negocio = :id_negocio 
+                LIMIT 1
+            ");
+            $stmtConf->execute(['id_negocio' => $id_negocio]);
+            $confWeb = $stmtConf->fetch(PDO::FETCH_ASSOC) ?: [];
+
+            // 2. Servicios del negocio
+            $stmtServ = $pdo->prepare("
+                SELECT id, nombre_servicio AS nombre, nombre_servicio, 
+                       COALESCE(duracion_minutos, 30) AS duracion, 
+                       COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo, 
+                       profesional, tipo_servicio, precios_paquetes_json, icono
+                FROM servicios 
+                WHERE id_negocio = :id_negocio 
+                ORDER BY orden ASC, id ASC
+            ");
+            $stmtServ->execute(['id_negocio' => $id_negocio]);
+            $serviciosList = $stmtServ->fetchAll(PDO::FETCH_ASSOC);
+
+            // 3. Turnos e inscriptos para el rango de fechas solicitado
+            $stmtTurnos = $pdo->prepare("
+                SELECT t.id AS id_turno, t.id_servicio, t.servicio, t.profesional, 
+                       t.fecha, t.hora, t.cliente_nombre, t.cliente_celular, 
+                       COALESCE(t.asistio, 0) AS asistio, t.metodo_pago, t.estado,
+                       c.id AS id_cliente_negocio, c.telefono AS cliente_telefono, 
+                       c.email AS cliente_email, COALESCE(c.pases_disponibles, 0) AS pases_disponibles
+                FROM turnos t
+                LEFT JOIN clientes_negocio c ON (
+                    c.id_negocio = t.id_negocio 
+                    AND (
+                        (c.email IS NOT NULL AND c.email != '' AND LOWER(TRIM(c.email)) = LOWER(TRIM(t.cliente_celular)))
+                        OR (c.nombre_completo IS NOT NULL AND c.nombre_completo != '' AND LOWER(TRIM(c.nombre_completo)) = LOWER(TRIM(t.cliente_nombre)))
+                        OR (c.telefono IS NOT NULL AND c.telefono != '' AND LOWER(TRIM(c.telefono)) = LOWER(TRIM(t.cliente_celular)))
+                    )
+                )
+                WHERE t.id_negocio = :id_negocio 
+                  AND t.fecha >= :fecha_inicio 
+                  AND t.fecha <= :fecha_fin 
+                  AND t.estado IN ('confirmado', 'pendiente')
+                ORDER BY t.fecha ASC, t.hora ASC
+            ");
+            $stmtTurnos->execute([
+                'id_negocio' => $id_negocio,
+                'fecha_inicio' => $fecha_inicio,
+                'fecha_fin' => $fecha_fin
+            ]);
+            $turnosSemana = $stmtTurnos->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode([
+                'success' => true,
+                'fecha_inicio' => $fecha_inicio,
+                'fecha_fin' => $fecha_fin,
+                'config' => $confWeb,
+                'servicios' => $serviciosList,
+                'turnos' => $turnosSemana,
+                'is_premium' => $is_premium,
+                'negocio_nombre' => $negocio_nombre,
+                'negocio_ruta' => $negocio_ruta
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
         session_write_close();
 
         try {
@@ -206,6 +291,265 @@ try {
 
         $id = !empty($data['id']) ? (int)$data['id'] : (!empty($_POST['id']) ? (int)$_POST['id'] : null);
         $action = $data['action'] ?? $_POST['action'] ?? '';
+
+        // Acción especial: Inscribir alumno a una clase específica desde la grilla
+        if ($action === 'inscribir_alumno_clase') {
+            $id_cliente = (int)($data['id_cliente'] ?? 0);
+            $id_servicio = (int)($data['id_servicio'] ?? 0);
+            $servicio = trim($data['servicio'] ?? '');
+            $fecha = trim($data['fecha'] ?? '');
+            $hora = trim($data['hora'] ?? '');
+            $profesional = trim($data['profesional'] ?? 'Instructor');
+
+            if (!$id_cliente || empty($fecha) || empty($hora) || (empty($servicio) && !$id_servicio)) {
+                echo json_encode(['success' => false, 'error' => 'Por favor completa todos los campos para inscribir al alumno.']);
+                exit;
+            }
+
+            // Consultar datos del alumno
+            $stmtC = $pdo->prepare("SELECT id, nombre_completo, email, telefono, pases_disponibles, pases_totales, servicios_pases_json FROM clientes_negocio WHERE id = :id AND id_negocio = :id_negocio LIMIT 1");
+            $stmtC->execute(['id' => $id_cliente, 'id_negocio' => $id_negocio]);
+            $alumno = $stmtC->fetch(PDO::FETCH_ASSOC);
+
+            if (!$alumno) {
+                echo json_encode(['success' => false, 'error' => 'El alumno seleccionado no pertenece a este negocio.']);
+                exit;
+            }
+
+            // Resolver nombre del servicio si vino vacío
+            if ($id_servicio > 0 && empty($servicio)) {
+                $stmtSrv = $pdo->prepare("SELECT nombre_servicio FROM servicios WHERE id = :id AND id_negocio = :id_negocio LIMIT 1");
+                $stmtSrv->execute(['id' => $id_servicio, 'id_negocio' => $id_negocio]);
+                $servicio = $stmtSrv->fetchColumn() ?: 'Clase';
+            }
+
+            $nombreAlumno = trim($alumno['nombre_completo']);
+            $emailAlumno = strtolower(trim($alumno['email']));
+            $telAlumno = trim($alumno['telefono']);
+            $contactoTurno = !empty($telAlumno) ? $telAlumno : $emailAlumno;
+
+            // Verificar si el alumno ya está inscripto en este horario
+            $stmtDup = $pdo->prepare("
+                SELECT id FROM turnos 
+                WHERE id_negocio = :id_negocio 
+                  AND fecha = :fecha 
+                  AND hora LIKE :hora 
+                  AND (id_servicio = :id_serv OR servicio = :serv) 
+                  AND (
+                    LOWER(TRIM(cliente_nombre)) = :nombre 
+                    OR LOWER(TRIM(cliente_celular)) = :email 
+                    OR (:tel != '' AND LOWER(TRIM(cliente_celular)) = :tel)
+                  ) 
+                  AND estado != 'cancelado' 
+                LIMIT 1
+            ");
+            $stmtDup->execute([
+                'id_negocio' => $id_negocio,
+                'fecha' => $fecha,
+                'hora' => substr($hora, 0, 5) . '%',
+                'id_serv' => $id_servicio ?: 0,
+                'serv' => $servicio,
+                'nombre' => strtolower($nombreAlumno),
+                'email' => $emailAlumno,
+                'tel' => strtolower($telAlumno)
+            ]);
+            if ($stmtDup->fetch()) {
+                echo json_encode(['success' => false, 'error' => 'Este alumno ya se encuentra inscripto en esta clase y horario.']);
+                exit;
+            }
+
+            // Descontar pase del alumno si cuenta con pases
+            $serviciosJson = $alumno['servicios_pases_json'] ?? null;
+            $serviciosList = $serviciosJson ? json_decode($serviciosJson, true) : null;
+            $pasesDispGen = (int)($alumno['pases_disponibles'] ?? 0);
+
+            if (is_array($serviciosList) && count($serviciosList) > 0) {
+                $targetIndex = 0;
+                $foundMatch = false;
+
+                if ($id_servicio > 0) {
+                    foreach ($serviciosList as $idx => $sItem) {
+                        if ((int)($sItem['id_servicio'] ?? 0) === $id_servicio) {
+                            $targetIndex = $idx;
+                            $foundMatch = true;
+                            break;
+                        }
+                    }
+                }
+                if (!$foundMatch && !empty($servicio)) {
+                    $servLower = strtolower($servicio);
+                    foreach ($serviciosList as $idx => $sItem) {
+                        if (strtolower(trim($sItem['servicio'] ?? '')) === $servLower) {
+                            $targetIndex = $idx;
+                            $foundMatch = true;
+                            break;
+                        }
+                    }
+                }
+                if (!$foundMatch) {
+                    foreach ($serviciosList as $idx => $sItem) {
+                        if ((int)($sItem['pases_disponibles'] ?? 0) > 0) {
+                            $targetIndex = $idx;
+                            $foundMatch = true;
+                            break;
+                        }
+                    }
+                }
+
+                $curDisp = (int)($serviciosList[$targetIndex]['pases_disponibles'] ?? 0);
+                $serviciosList[$targetIndex]['pases_disponibles'] = max(0, $curDisp - 1);
+
+                $nuevoTotal = 0;
+                foreach ($serviciosList as $sItem) {
+                    $nuevoTotal += (int)($sItem['pases_disponibles'] ?? 0);
+                }
+
+                $pdo->prepare("
+                    UPDATE clientes_negocio 
+                    SET pases_disponibles = :disp, 
+                        servicios_pases_json = :json 
+                    WHERE id = :id AND id_negocio = :id_negocio
+                ")->execute([
+                    'disp' => $nuevoTotal,
+                    'json' => json_encode($serviciosList, JSON_UNESCAPED_UNICODE),
+                    'id' => $alumno['id'],
+                    'id_negocio' => $id_negocio
+                ]);
+            } else {
+                $nuevoDisp = max(0, $pasesDispGen - 1);
+                $pdo->prepare("
+                    UPDATE clientes_negocio 
+                    SET pases_disponibles = :disp 
+                    WHERE id = :id AND id_negocio = :id_negocio
+                ")->execute([
+                    'disp' => $nuevoDisp,
+                    'id' => $alumno['id'],
+                    'id_negocio' => $id_negocio
+                ]);
+            }
+
+            // Insertar reserva en la tabla turnos
+            $stmtIns = $pdo->prepare("
+                INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, metodo_pago, estado, asistio) 
+                VALUES (:id_negocio, :nombre, :contacto, :fecha, :hora, :servicio, :profesional, :id_servicio, 'Pase de Alumno', 'confirmado', 0)
+            ");
+            $stmtIns->execute([
+                'id_negocio' => $id_negocio,
+                'nombre' => $nombreAlumno,
+                'contacto' => $contactoTurno,
+                'fecha' => $fecha,
+                'hora' => substr($hora, 0, 5),
+                'servicio' => $servicio,
+                'profesional' => $profesional,
+                'id_servicio' => $id_servicio ?: null
+            ]);
+            $newTurnoId = (int)$pdo->lastInsertId();
+
+            echo json_encode([
+                'success' => true,
+                'id_turno' => $newTurnoId,
+                'message' => "{$nombreAlumno} fue inscripto/a correctamente a la clase."
+            ]);
+            exit;
+        }
+
+        // Acción especial: Remover alumno de una clase y opcionalmente reintegrarle el pase
+        if ($action === 'remover_alumno_clase') {
+            $id_turno = (int)($data['id_turno'] ?? 0);
+            $devolver_pase = isset($data['devolver_pase']) ? (bool)$data['devolver_pase'] : true;
+
+            if (!$id_turno) {
+                echo json_encode(['success' => false, 'error' => 'ID de turno no proporcionado.']);
+                exit;
+            }
+
+            $stmtT = $pdo->prepare("SELECT id, id_servicio, servicio, cliente_nombre, cliente_celular FROM turnos WHERE id = :id AND id_negocio = :id_negocio LIMIT 1");
+            $stmtT->execute(['id' => $id_turno, 'id_negocio' => $id_negocio]);
+            $turno = $stmtT->fetch(PDO::FETCH_ASSOC);
+
+            if (!$turno) {
+                echo json_encode(['success' => false, 'error' => 'Turno no encontrado en este negocio.']);
+                exit;
+            }
+
+            // Marcar turno como cancelado
+            $stmtCanc = $pdo->prepare("UPDATE turnos SET estado = 'cancelado', fecha_eliminado = NOW() WHERE id = :id AND id_negocio = :id_negocio");
+            $stmtCanc->execute(['id' => $id_turno, 'id_negocio' => $id_negocio]);
+
+            // Reintegrar pase si corresponde
+            if ($devolver_pase) {
+                $cNom = trim($turno['cliente_nombre'] ?? '');
+                $cContact = trim($turno['cliente_celular'] ?? '');
+                $tServId = (int)($turno['id_servicio'] ?? 0);
+                $tServNom = trim($turno['servicio'] ?? '');
+
+                $stmtAl = $pdo->prepare("
+                    SELECT id, pases_disponibles, pases_totales, servicios_pases_json 
+                    FROM clientes_negocio 
+                    WHERE id_negocio = :id_negocio 
+                      AND (
+                        (LOWER(TRIM(email)) = :cContact OR LOWER(TRIM(telefono)) = :cContact)
+                        OR LOWER(TRIM(nombre_completo)) = :cNom
+                      )
+                    LIMIT 1
+                ");
+                $stmtAl->execute([
+                    'id_negocio' => $id_negocio,
+                    'cContact' => strtolower($cContact),
+                    'cNom' => strtolower($cNom)
+                ]);
+                $alTarget = $stmtAl->fetch(PDO::FETCH_ASSOC);
+
+                if ($alTarget) {
+                    $serviciosJson = $alTarget['servicios_pases_json'] ?? null;
+                    $serviciosList = $serviciosJson ? json_decode($serviciosJson, true) : null;
+
+                    if (is_array($serviciosList) && count($serviciosList) > 0) {
+                        $targetIndex = 0;
+                        $found = false;
+                        if ($tServId > 0) {
+                            foreach ($serviciosList as $idx => $sItem) {
+                                if ((int)($sItem['id_servicio'] ?? 0) === $tServId) {
+                                    $targetIndex = $idx;
+                                    $found = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!$found && !empty($tServNom)) {
+                            $sLow = strtolower($tServNom);
+                            foreach ($serviciosList as $idx => $sItem) {
+                                if (strtolower(trim($sItem['servicio'] ?? '')) === $sLow) {
+                                    $targetIndex = $idx;
+                                    $found = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        $serviciosList[$targetIndex]['pases_disponibles'] = (int)($serviciosList[$targetIndex]['pases_disponibles'] ?? 0) + 1;
+                        $newTot = 0;
+                        foreach ($serviciosList as $sItem) {
+                            $newTot += (int)($sItem['pases_disponibles'] ?? 0);
+                        }
+
+                        $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = :disp, servicios_pases_json = :json WHERE id = :id AND id_negocio = :id_negocio")
+                            ->execute([
+                                'disp' => $newTot,
+                                'json' => json_encode($serviciosList, JSON_UNESCAPED_UNICODE),
+                                'id' => $alTarget['id'],
+                                'id_negocio' => $id_negocio
+                            ]);
+                    } else {
+                        $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + 1 WHERE id = :id AND id_negocio = :id_negocio")
+                            ->execute(['id' => $alTarget['id'], 'id_negocio' => $id_negocio]);
+                    }
+                }
+            }
+
+            echo json_encode(['success' => true, 'message' => 'Inscripción eliminada y pase actualizado.']);
+            exit;
+        }
 
         // Acción especial: Eliminar Alumno (POST delete)
         if (($action === 'delete' || $action === 'eliminar') && $id) {

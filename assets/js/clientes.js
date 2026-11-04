@@ -1092,3 +1092,836 @@ function compartirWhatsAppEnlaceUnico() {
 }
 
 
+
+
+/* =========================================================
+   MÓDULO DE CLASES Y CUPOS: GRILLA SEMANAL & ASISTENCIA
+   ========================================================= */
+
+let activeModuloAlumnosTab = 'padron';
+let currentWeekOffset = 0;
+let semanaData = {
+    fecha_inicio: '',
+    fecha_fin: '',
+    config: {},
+    servicios: [],
+    turnos: []
+};
+let filtroClaseGrilla = 'todos';
+let claseActivaModal = null;
+
+function switchModuloAlumnosTab(tabName) {
+    activeModuloAlumnosTab = tabName;
+    const btnPadron = document.getElementById('tabBtnPadron');
+    const btnGrilla = document.getElementById('tabBtnGrilla');
+    const vistaPadron = document.getElementById('vistaPadron');
+    const vistaGrilla = document.getElementById('vistaGrillaSemanal');
+
+    if (tabName === 'padron') {
+        if (btnPadron) {
+            btnPadron.className = 'px-5 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer bg-white text-slate-900 shadow-sm';
+        }
+        if (btnGrilla) {
+            btnGrilla.className = 'px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-white/50';
+        }
+        if (vistaPadron) vistaPadron.classList.remove('hidden');
+        if (vistaGrilla) vistaGrilla.classList.add('hidden');
+    } else {
+        if (btnPadron) {
+            btnPadron.className = 'px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-white/50';
+        }
+        if (btnGrilla) {
+            btnGrilla.className = 'px-5 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer bg-white text-slate-900 shadow-sm';
+        }
+        if (vistaPadron) vistaPadron.classList.add('hidden');
+        if (vistaGrilla) vistaGrilla.classList.remove('hidden');
+
+        // Cargar clases de la semana
+        cargarClasesSemana();
+    }
+}
+
+function cambiarSemana(delta) {
+    currentWeekOffset += delta;
+    cargarClasesSemana();
+}
+
+function irSemanaActual() {
+    currentWeekOffset = 0;
+    cargarClasesSemana();
+}
+
+function onFiltroClaseGrillaChange() {
+    const sel = document.getElementById('selectFiltroClaseGrilla');
+    if (sel) {
+        filtroClaseGrilla = sel.value;
+        renderGrillaSemanal();
+    }
+}
+
+function getRangoSemanaDates(offset) {
+    const hoy = new Date();
+    const dayOfWeek = hoy.getDay(); // 0 = dom, 1 = lun, etc.
+    const diffToMonday = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek;
+    const lunes = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + diffToMonday + (offset * 7));
+    
+    const dias = [];
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate() + i);
+        dias.push(d);
+    }
+    return dias;
+}
+
+function formatLocalDateStr(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+function cargarClasesSemana() {
+    const dias = getRangoSemanaDates(currentWeekOffset);
+    const fInicio = formatLocalDateStr(dias[0]);
+    const fFin = formatLocalDateStr(dias[6]);
+
+    // Actualizar indicador de texto de la semana
+    const labelRango = document.getElementById('labelRangoSemana');
+    if (labelRango) {
+        const opLunes = dias[0].toLocaleDateString('es-AR', { day: 'numeric', month: 'short' });
+        const opDomingo = dias[6].toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' });
+        labelRango.textContent = `Semana del ${opLunes} al ${opDomingo}`;
+    }
+
+    fetch(`backend/gestionar_clientes.php?action=clases_semana&fecha_inicio=${fInicio}&fecha_fin=${fFin}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                semanaData = data;
+                poblarFiltroClasesDropdown(data.servicios || []);
+                renderGrillaSemanal();
+            } else {
+                console.error('Error al cargar clases de la semana:', data.error);
+                if (typeof showToast === 'function') showToast(data.error || 'Error al cargar grilla de clases', 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Error de red al cargar clases de la semana:', err);
+        });
+}
+
+function poblarFiltroClasesDropdown(servicios) {
+    const sel = document.getElementById('selectFiltroClaseGrilla');
+    if (!sel) return;
+
+    const currentVal = sel.value || 'todos';
+    sel.innerHTML = '<option value="todos">Todas las clases y servicios</option>';
+
+    servicios.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = `${s.nombre_servicio || s.nombre} (Cupo: ${s.cupo_maximo || 1})`;
+        sel.appendChild(opt);
+    });
+
+    if (currentVal && Array.from(sel.options).some(o => o.value === currentVal)) {
+        sel.value = currentVal;
+    }
+}
+
+function isNegocioOpenOnDay(dateObj, config) {
+    if (!config) return true;
+    let diasTrabajo = config.dias_trabajo || '';
+    if (typeof diasTrabajo === 'string' && diasTrabajo.trim()) {
+        try {
+            if (diasTrabajo.startsWith('[') || diasTrabajo.startsWith('{')) {
+                const parsed = JSON.parse(diasTrabajo);
+                if (Array.isArray(parsed)) {
+                    diasTrabajo = parsed;
+                }
+            }
+        } catch(e) {}
+    }
+
+    const dayNum = dateObj.getDay(); // 0 = dom, 1 = lun, etc.
+    const dayNames = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
+    const currentName = dayNames[dayNum];
+
+    // Verificar si hay horarios detallados con activo: false
+    if (config.horarios_detallados_json) {
+        try {
+            const hDet = typeof config.horarios_detallados_json === 'string'
+                ? JSON.parse(config.horarios_detallados_json)
+                : config.horarios_detallados_json;
+            const dayKeyMap = { 1: 'lun', 2: 'mar', 3: 'mie', 4: 'jue', 5: 'vie', 6: 'sab', 0: 'dom' };
+            const textKey = dayKeyMap[dayNum];
+            const diaData = (hDet && (hDet[String(dayNum)] !== undefined ? hDet[String(dayNum)] : (textKey ? hDet[textKey] : null)));
+            if (diaData && diaData.activo === false) {
+                return false;
+            }
+        } catch(e) {}
+    }
+
+    if (Array.isArray(diasTrabajo) && diasTrabajo.length > 0) {
+        const lowerList = diasTrabajo.map(d => String(d).toLowerCase().trim());
+        return lowerList.includes(currentName) || lowerList.includes(String(dayNum));
+    } else if (typeof diasTrabajo === 'string' && diasTrabajo.trim()) {
+        const lowerStr = diasTrabajo.toLowerCase();
+        return lowerStr.includes(currentName) || lowerStr.includes(String(dayNum));
+    }
+
+    return true;
+}
+
+function getServiceSlotsForDayBusiness(servicio, dateObj, config) {
+    const duracion = parseInt(servicio.duracion || servicio.duracion_minutos || 60, 10) || 60;
+    let step = duracion;
+    if (config && config.intervalo_turnos && config.intervalo_turnos !== 'servicio') {
+        const parsedInt = parseInt(config.intervalo_turnos, 10);
+        if (!isNaN(parsedInt) && parsedInt > 0) step = parsedInt;
+    }
+
+    let tramos = [];
+    if (config && config.horarios_detallados_json) {
+        try {
+            const hDet = typeof config.horarios_detallados_json === 'string'
+                ? JSON.parse(config.horarios_detallados_json)
+                : config.horarios_detallados_json;
+            const dayKeyMap = { 1: 'lun', 2: 'mar', 3: 'mie', 4: 'jue', 5: 'vie', 6: 'sab', 0: 'dom' };
+            const textKey = dayKeyMap[dateObj.getDay()];
+            const diaData = (hDet && (hDet[String(dateObj.getDay())] !== undefined ? hDet[String(dateObj.getDay())] : (textKey ? hDet[textKey] : null)));
+            if (diaData && diaData.activo !== false && Array.isArray(diaData.tramos) && diaData.tramos.length > 0) {
+                tramos = diaData.tramos.map(t => {
+                    let [sh, sm] = (t.inicio || '09:00').split(':').map(Number);
+                    let [eh, em] = (t.fin || '18:00').split(':').map(Number);
+                    return { start: sh * 60 + sm, end: eh * 60 + em };
+                });
+            }
+        } catch(e) {}
+    }
+
+    if (tramos.length === 0) {
+        let [sh, sm] = (config.hora_apertura || '09:00').split(':').map(Number);
+        let [eh, em] = (config.hora_cierre || '18:00').split(':').map(Number);
+        let openMins = sh * 60 + sm;
+        let closeMins = eh * 60 + em;
+
+        if (config.hora_descanso_inicio && config.hora_descanso_fin) {
+            let [dh1, dm1] = config.hora_descanso_inicio.split(':').map(Number);
+            let [dh2, dm2] = config.hora_descanso_fin.split(':').map(Number);
+            let breakStart = dh1 * 60 + dm1;
+            let breakEnd = dh2 * 60 + dm2;
+            if (breakStart > openMins && breakStart < closeMins) {
+                tramos.push({ start: openMins, end: breakStart });
+                if (breakEnd < closeMins) tramos.push({ start: breakEnd, end: closeMins });
+            } else {
+                tramos.push({ start: openMins, end: closeMins });
+            }
+        } else {
+            tramos.push({ start: openMins, end: closeMins });
+        }
+    }
+
+    const slots = [];
+    tramos.forEach(tramo => {
+        for (let m = tramo.start; m + duracion <= tramo.end; m += step) {
+            let hh = String(Math.floor(m / 60)).padStart(2, '0');
+            let mm = String(m % 60).padStart(2, '0');
+            slots.push(`${hh}:${mm}`);
+        }
+    });
+
+    return slots;
+}
+
+function renderGrillaSemanal() {
+    const container = document.getElementById('grillaSemanaContainer');
+    if (!container) return;
+
+    const dias = getRangoSemanaDates(currentWeekOffset);
+    const hoyStr = formatLocalDateStr(new Date());
+    const servicios = semanaData.servicios || [];
+    const turnos = semanaData.turnos || [];
+    const config = semanaData.config || {};
+
+    let totalClasesSemana = 0;
+    let totalInscriptosSemana = 0;
+    let totalCapacidadSemana = 0;
+
+    const diasHtml = dias.map(dateObj => {
+        const fechaStr = formatLocalDateStr(dateObj);
+        const isHoy = fechaStr === hoyStr;
+
+        const dayNameCap = dateObj.toLocaleDateString('es-AR', { weekday: 'short' }).toUpperCase().replace('.', '');
+        const dayNum = dateObj.getDate();
+        const monthShort = dateObj.toLocaleDateString('es-AR', { month: 'short' });
+
+        const isOpen = isNegocioOpenOnDay(dateObj, config);
+
+        // Agrupar turnos que caen en este día
+        const turnosDelDia = turnos.filter(t => t.fecha === fechaStr);
+
+        // Construir lista de clases para este día
+        let clasesDelDia = [];
+        let scheduledSlotsKeys = new Set();
+
+        // 1. Obtener slots configurados para cada servicio
+        servicios.forEach(s => {
+            if (filtroClaseGrilla !== 'todos' && String(s.id) !== String(filtroClaseGrilla)) {
+                return;
+            }
+
+            const cupoMax = parseInt(s.cupo_maximo || 10, 10) || 10;
+            const sNombre = s.nombre_servicio || s.nombre || 'Clase';
+            const prof = s.profesional || 'Instructor';
+
+            if (isOpen) {
+                const slots = getServiceSlotsForDayBusiness(s, dateObj, config);
+                slots.forEach(horaSlot => {
+                    const key = `${s.id}_${horaSlot}`;
+                    scheduledSlotsKeys.add(key);
+
+                    // Alumnos inscriptos en este slot
+                    const inscriptos = turnosDelDia.filter(t => {
+                        const matchServ = (t.id_servicio && parseInt(t.id_servicio) === parseInt(s.id)) ||
+                                          (t.servicio && t.servicio.toLowerCase().trim() === sNombre.toLowerCase().trim());
+                        const matchHora = String(t.hora).substring(0, 5) === horaSlot;
+                        return matchServ && matchHora;
+                    });
+
+                    clasesDelDia.push({
+                        servicioId: s.id,
+                        servicioNombre: sNombre,
+                        hora: horaSlot,
+                        profesional: prof,
+                        cupoMaximo: cupoMax,
+                        inscriptos: inscriptos
+                    });
+                });
+            }
+        });
+
+        // 2. Incluir cualquier turno adicional que exista en la base de datos para este día (incluso fuera de los slots habituales)
+        turnosDelDia.forEach(t => {
+            const tHora = String(t.hora).substring(0, 5);
+            const tServId = t.id_servicio || 0;
+            const key = `${tServId}_${tHora}`;
+
+            if (filtroClaseGrilla !== 'todos' && tServId && String(tServId) !== String(filtroClaseGrilla)) {
+                return;
+            }
+
+            if (!scheduledSlotsKeys.has(key)) {
+                scheduledSlotsKeys.add(key);
+
+                // Buscar servicio
+                const sObj = servicios.find(s => parseInt(s.id) === parseInt(tServId)) || {
+                    id: tServId,
+                    nombre_servicio: t.servicio || 'Clase',
+                    cupo_maximo: 10,
+                    profesional: t.profesional || 'Instructor'
+                };
+
+                const inscriptos = turnosDelDia.filter(other => {
+                    const matchServ = (other.id_servicio && parseInt(other.id_servicio) === parseInt(tServId)) ||
+                                      (other.servicio && other.servicio.toLowerCase().trim() === String(t.servicio).toLowerCase().trim());
+                    const matchHora = String(other.hora).substring(0, 5) === tHora;
+                    return matchServ && matchHora;
+                });
+
+                clasesDelDia.push({
+                    servicioId: sObj.id,
+                    servicioNombre: sObj.nombre_servicio || t.servicio || 'Clase',
+                    hora: tHora,
+                    profesional: t.profesional || sObj.profesional || 'Instructor',
+                    cupoMaximo: parseInt(sObj.cupo_maximo || 10, 10) || 10,
+                    inscriptos: inscriptos
+                });
+            }
+        });
+
+        // Ordenar clases del día cronológicamente
+        clasesDelDia.sort((a, b) => a.hora.localeCompare(b.hora));
+
+        // Acumular estadísticas
+        clasesDelDia.forEach(c => {
+            totalClasesSemana++;
+            totalInscriptosSemana += c.inscriptos.length;
+            totalCapacidadSemana += c.cupoMaximo;
+        });
+
+        // Renderizar columna del día
+        const dayHeaderBg = isHoy 
+            ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-md' 
+            : 'bg-white border-b border-slate-200 text-slate-800';
+
+        let clasesHtml = '';
+        if (!isOpen && clasesDelDia.length === 0) {
+            clasesHtml = `
+                <div class="py-8 px-3 text-center text-slate-400 bg-slate-50/60 rounded-2xl border border-slate-200/60 my-2">
+                    <span class="material-symbols-outlined text-2xl text-slate-300 block mb-1">event_busy</span>
+                    <span class="text-[11px] font-bold block">Cerrado</span>
+                </div>
+            `;
+        } else if (clasesDelDia.length === 0) {
+            clasesHtml = `
+                <div class="py-8 px-3 text-center text-slate-400 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 my-2">
+                    <span class="material-symbols-outlined text-2xl text-slate-300 block mb-1">schedule</span>
+                    <span class="text-[11px] font-bold block">Sin clases</span>
+                </div>
+            `;
+        } else {
+            clasesHtml = clasesDelDia.map(c => {
+                const ocupados = c.inscriptos.length;
+                const cupoMax = c.cupoMaximo;
+                const libres = Math.max(0, cupoMax - ocupados);
+
+                let badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+                let badgeDot = 'bg-emerald-500';
+                let badgeText = `${ocupados} / ${cupoMax} alumnos`;
+
+                if (ocupados >= cupoMax) {
+                    badgeColor = 'bg-rose-100 text-rose-800 border-rose-200';
+                    badgeDot = 'bg-rose-500';
+                    badgeText = `COMPLETO (${ocupados}/${cupoMax})`;
+                } else if (ocupados > 0 && libres <= 2) {
+                    badgeColor = 'bg-amber-100 text-amber-800 border-amber-200';
+                    badgeDot = 'bg-amber-500';
+                    badgeText = `${ocupados} / ${cupoMax} (Últimos cupos)`;
+                } else if (ocupados === 0) {
+                    badgeColor = 'bg-slate-100 text-slate-600 border-slate-200';
+                    badgeDot = 'bg-slate-400';
+                    badgeText = `0 / ${cupoMax} alumnos`;
+                }
+
+                // Generar chips rápidos de alumnos inscriptos
+                let inscriptosChipsHtml = '';
+                if (ocupados > 0) {
+                    const topChips = c.inscriptos.slice(0, 3).map(al => {
+                        const shortName = al.cliente_nombre ? al.cliente_nombre.split(' ')[0] : 'Alumno';
+                        const asistBadge = al.asistio == 1 
+                            ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block mr-0.5" title="Presente"></span>' 
+                            : '';
+                        return `<span class="inline-flex items-center px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-700 shadow-2xs truncate max-w-[85px]">${asistBadge}${escapeHtml(shortName)}</span>`;
+                    }).join('');
+
+                    const extraCount = ocupados > 3 ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-orange-100 text-[10px] font-black text-orange-700">+${ocupados - 3}</span>` : '';
+                    inscriptosChipsHtml = `<div class="flex flex-wrap items-center gap-1 mt-2">${topChips}${extraCount}</div>`;
+                } else {
+                    inscriptosChipsHtml = `<p class="text-[10px] text-slate-400 italic mt-2">Sin inscriptos aún</p>`;
+                }
+
+                // Preparar argumentos para modal
+                const jsonCardData = JSON.stringify({
+                    servicioId: c.servicioId,
+                    servicioNombre: c.servicioNombre,
+                    fecha: fechaStr,
+                    hora: c.hora,
+                    profesional: c.profesional,
+                    cupoMaximo: c.cupoMaximo
+                }).replace(/"/g, '&quot;');
+
+                return `
+                    <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" class="bg-white hover:bg-orange-50/40 border border-slate-200/90 hover:border-orange-300 rounded-2xl p-3 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group">
+                        <div>
+                            <div class="flex items-start justify-between gap-1 mb-1">
+                                <h4 class="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-orange-600 transition-colors line-clamp-1">${escapeHtml(c.servicioNombre)}</h4>
+                            </div>
+                            <p class="text-[11px] font-bold text-slate-600 flex items-center gap-1.5">
+                                <span class="text-orange-600 flex items-center gap-0.5"><span class="material-symbols-outlined text-[13px]">schedule</span> ${c.hora} hs</span>
+                                <span class="text-slate-400">·</span>
+                                <span class="text-slate-500 truncate">${escapeHtml(c.profesional)}</span>
+                            </p>
+                            ${inscriptosChipsHtml}
+                        </div>
+
+                        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-1">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${badgeColor}">
+                                <span class="w-1.5 h-1.5 rounded-full ${badgeDot}"></span>
+                                <span>${badgeText}</span>
+                            </span>
+                            <span class="material-symbols-outlined text-slate-400 group-hover:text-orange-600 group-hover:translate-x-0.5 transition-all text-[16px]">chevron_right</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        return `
+            <div class="bg-slate-100/70 border border-slate-200 rounded-3xl overflow-hidden flex flex-col min-h-[300px]">
+                <!-- Header del Día -->
+                <div class="p-3 sm:p-3.5 ${dayHeaderBg} text-center select-none">
+                    <span class="text-[11px] font-black tracking-wider uppercase block">${dayNameCap}</span>
+                    <span class="text-lg font-black block leading-tight">${dayNum} ${monthShort}</span>
+                    ${isHoy ? '<span class="inline-block mt-0.5 px-2 py-0.2 rounded-full text-[9px] font-black uppercase bg-white/20 tracking-wider">Hoy</span>' : ''}
+                </div>
+
+                <!-- Lista de Clases del Día -->
+                <div class="p-2 sm:p-2.5 space-y-2 flex-1 overflow-y-auto">
+                    ${clasesHtml}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    container.innerHTML = diasHtml;
+
+    // Actualizar métricas superiores de la semana
+    const statClases = document.getElementById('statSemanaTotalClases');
+    const statAlumnos = document.getElementById('statSemanaTotalAlumnos');
+    const statLibres = document.getElementById('statSemanaCuposLibres');
+    const statPct = document.getElementById('statSemanaOcupacionPct');
+    const badgeTab = document.getElementById('badgeSemanaInscriptosCount');
+
+    if (statClases) statClases.textContent = totalClasesSemana;
+    if (statAlumnos) statAlumnos.textContent = totalInscriptosSemana;
+    if (statLibres) statLibres.textContent = Math.max(0, totalCapacidadSemana - totalInscriptosSemana);
+    
+    const pct = totalCapacidadSemana > 0 ? Math.round((totalInscriptosSemana / totalCapacidadSemana) * 100) : 0;
+    if (statPct) statPct.textContent = `${pct}%`;
+    if (badgeTab) badgeTab.textContent = totalInscriptosSemana;
+}
+
+function abrirModalDetalleClaseFromCard(jsonStr) {
+    try {
+        const data = JSON.parse(jsonStr);
+        abrirModalDetalleClase(data);
+    } catch(e) {
+        console.error('Error al abrir modal detalle clase:', e);
+    }
+}
+
+function abrirModalDetalleClase(data) {
+    claseActivaModal = data;
+
+    const modal = document.getElementById('modalDetalleClaseAsistencia');
+    if (!modal) return;
+
+    // Título y encabezado
+    document.getElementById('modalDetalleClaseServicioNombre').textContent = data.servicioNombre;
+    document.getElementById('modalDetalleClaseTitulo').textContent = data.servicioNombre;
+    document.getElementById('modalDetalleClaseHora').textContent = data.hora;
+    document.getElementById('modalDetalleClaseProf').textContent = data.profesional || 'Instructor';
+
+    // Formatear fecha bonita
+    const [y, m, d] = data.fecha.split('-').map(Number);
+    const dateObj = new Date(y, m - 1, d);
+    const fBonita = dateObj.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+    document.getElementById('modalDetalleClaseFecha').textContent = fBonita.charAt(0).toUpperCase() + fBonita.slice(1);
+
+    renderAlumnosInscriptosModal();
+    poblarSelectAlumnosParaInscribir();
+
+    modal.classList.remove('hidden');
+}
+
+function closeModalDetalleClaseAsistencia() {
+    const modal = document.getElementById('modalDetalleClaseAsistencia');
+    if (modal) modal.classList.add('hidden');
+    claseActivaModal = null;
+}
+
+function renderAlumnosInscriptosModal() {
+    if (!claseActivaModal) return;
+
+    const turnos = semanaData.turnos || [];
+    const inscriptos = turnos.filter(t => {
+        const matchFecha = t.fecha === claseActivaModal.fecha;
+        const matchHora = String(t.hora).substring(0, 5) === claseActivaModal.hora;
+        const matchServ = (t.id_servicio && parseInt(t.id_servicio) === parseInt(claseActivaModal.servicioId)) ||
+                          (t.servicio && t.servicio.toLowerCase().trim() === claseActivaModal.servicioNombre.toLowerCase().trim());
+        return matchFecha && matchHora && matchServ;
+    });
+
+    const ocupados = inscriptos.length;
+    const cupoMax = claseActivaModal.cupoMaximo;
+    const libres = Math.max(0, cupoMax - ocupados);
+
+    // Actualizar badges de cupo
+    const cupoBadge = document.getElementById('modalDetalleClaseCupoBadge');
+    if (cupoBadge) {
+        if (ocupados >= cupoMax) {
+            cupoBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 border border-rose-200';
+            cupoBadge.textContent = `COMPLETO (${ocupados}/${cupoMax})`;
+        } else {
+            cupoBadge.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200';
+            cupoBadge.textContent = `${ocupados} de ${cupoMax} cupos ocupados (${libres} libres)`;
+        }
+    }
+
+    const countBadge = document.getElementById('modalDetalleClaseInscriptosCountBadge');
+    if (countBadge) countBadge.textContent = ocupados;
+
+    const restText = document.getElementById('modalDetalleClaseCuposRestantesText');
+    if (restText) restText.textContent = `Cupos disponibles: ${libres}`;
+
+    const listContainer = document.getElementById('modalDetalleClaseInscriptosList');
+    if (!listContainer) return;
+
+    if (inscriptos.length === 0) {
+        listContainer.innerHTML = `
+            <div class="py-8 text-center text-slate-400 bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+                <span class="material-symbols-outlined text-3xl mb-1 text-slate-300">person_off</span>
+                <p class="text-xs font-bold text-slate-600">Aún no hay alumnos inscriptos en este horario</p>
+                <p class="text-[11px] text-slate-400">Podés sumar alumnos utilizando el recuadro inferior.</p>
+            </div>
+        `;
+        return;
+    }
+
+    listContainer.innerHTML = inscriptos.map(al => {
+        const isPresente = al.asistio == 1;
+        const tel = al.cliente_telefono || al.cliente_celular || '';
+        const email = al.cliente_email || '';
+        const contacto = tel || email || 'Sin contacto';
+
+        // Enlace WhatsApp
+        let wppBtn = '';
+        if (tel && tel.replace(/\D/g, '').length >= 7) {
+            const cleanPhone = tel.replace(/\D/g, '');
+            const wppMsg = encodeURIComponent(`¡Hola ${al.cliente_nombre}! Te recordamos tu clase de ${claseActivaModal.servicioNombre} para el día ${claseActivaModal.fecha} a las ${claseActivaModal.hora} hs en ${negocioNombreUnico || 'nuestro centro'}.`);
+            wppBtn = `
+                <a href="https://wa.me/${cleanPhone}?text=${wppMsg}" target="_blank" class="w-8 h-8 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-600 flex items-center justify-center transition-colors shadow-2xs" title="Escribir por WhatsApp">
+                    <span class="material-symbols-outlined text-[16px]">chat</span>
+                </a>
+            `;
+        }
+
+        // Botón Asistencia Toggle
+        const asistBtnClass = isPresente 
+            ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs' 
+            : 'bg-slate-100 hover:bg-slate-200 text-slate-600';
+        const asistIcon = isPresente ? 'check_circle' : 'radio_button_unchecked';
+        const asistLabel = isPresente ? 'Presente' : 'Marcar Presente';
+        const nextState = isPresente ? 0 : 1;
+
+        const safeStudentName = String(al.cliente_nombre).replace(/'/g, "\\'");
+
+        return `
+            <div class="bg-white border border-slate-200 rounded-2xl p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs hover:border-slate-300 transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl ${isPresente ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'} flex items-center justify-center font-bold text-sm shrink-0">
+                        ${escapeHtml((al.cliente_nombre || 'A').charAt(0).toUpperCase())}
+                    </div>
+                    <div>
+                        <h5 class="text-xs sm:text-sm font-extrabold text-slate-900">${escapeHtml(al.cliente_nombre)}</h5>
+                        <p class="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+                            <span class="material-symbols-outlined text-[14px] text-slate-400">call</span>
+                            <span>${escapeHtml(contacto)}</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 shrink-0">
+                    ${wppBtn}
+
+                    <!-- Botón Asistencia -->
+                    <button type="button" onclick="marcarAsistenciaModal(${al.id_turno}, ${nextState}, this)" class="px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-1 transition-all cursor-pointer ${asistBtnClass}">
+                        <span class="material-symbols-outlined text-[16px]">${asistIcon}</span>
+                        <span>${asistLabel}</span>
+                    </button>
+
+                    <!-- Botón Quitar Alumno -->
+                    <button type="button" onclick="confirmarRemoverAlumnoClase(${al.id_turno}, '${safeStudentName}')" class="w-8 h-8 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition-colors cursor-pointer" title="Quitar de esta clase">
+                        <span class="material-symbols-outlined text-[16px]">close</span>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function poblarSelectAlumnosParaInscribir() {
+    const sel = document.getElementById('modalDetalleSelectAlumno');
+    if (!sel) return;
+
+    sel.innerHTML = '<option value="">-- Seleccionar Alumno del Padrón --</option>';
+
+    if (!allClientes || allClientes.length === 0) return;
+
+    // Ordenar alfabéticamente por nombre
+    const ordenados = [...allClientes].sort((a, b) => (a.nombre_completo || '').localeCompare(b.nombre_completo || ''));
+
+    ordenados.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        const pDisp = c.pases_disponibles !== undefined ? c.pases_disponibles : 0;
+        opt.textContent = `${c.nombre_completo} (${pDisp} clases disponibles)`;
+        sel.appendChild(opt);
+    });
+}
+
+function marcarAsistenciaModal(turnoId, nuevoEstado, btnElem) {
+    if (!turnoId) return;
+
+    if (btnElem) {
+        btnElem.disabled = true;
+        btnElem.classList.add('opacity-50');
+    }
+
+    fetch('backend/marcar_asistencia.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_turno: turnoId, asistio: nuevoEstado })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Actualizar localmente en semanaData.turnos
+            if (semanaData && Array.isArray(semanaData.turnos)) {
+                const target = semanaData.turnos.find(t => parseInt(t.id_turno) === parseInt(turnoId));
+                if (target) target.asistio = nuevoEstado;
+            }
+
+            renderAlumnosInscriptosModal();
+            renderGrillaSemanal();
+            if (typeof showToast === 'function') {
+                showToast(nuevoEstado === 1 ? '✓ Asistencia marcada correctamente' : 'Asistencia removida', 'success');
+            }
+        } else {
+            if (typeof showToast === 'function') showToast(data.error || 'No se pudo actualizar la asistencia', 'error');
+            if (btnElem) {
+                btnElem.disabled = false;
+                btnElem.classList.remove('opacity-50');
+            }
+        }
+    })
+    .catch(err => {
+        console.error('Error de red al marcar asistencia:', err);
+        if (btnElem) {
+            btnElem.disabled = false;
+            btnElem.classList.remove('opacity-50');
+        }
+    });
+}
+
+function confirmarRemoverAlumnoClase(turnoId, nombreAlumno) {
+    document.getElementById('removerAlumnoTurnoId').value = turnoId;
+    document.getElementById('removerAlumnoNombreText').textContent = nombreAlumno || 'este alumno';
+    document.getElementById('chkReintegrarPaseRemover').checked = true;
+
+    const modal = document.getElementById('modalConfirmRemoverAlumnoClase');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function closeModalConfirmRemoverAlumnoClase() {
+    const modal = document.getElementById('modalConfirmRemoverAlumnoClase');
+    if (modal) modal.classList.add('hidden');
+}
+
+function ejecutarRemoverAlumnoClase() {
+    const turnoId = document.getElementById('removerAlumnoTurnoId').value;
+    const devolverPase = document.getElementById('chkReintegrarPaseRemover').checked ? 1 : 0;
+    const btn = document.getElementById('btnConfirmRemoverAlumnoClase');
+
+    if (!turnoId) return;
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">refresh</span> Desinscribiendo...';
+    }
+
+    fetch('backend/gestionar_clientes.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            action: 'remover_alumno_clase',
+            id_turno: turnoId,
+            devolver_pase: devolverPase
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check</span><span>Sí, Desinscribir</span>';
+        }
+
+        if (data.success) {
+            closeModalConfirmRemoverAlumnoClase();
+
+            // Quitar turno localmente
+            if (semanaData && Array.isArray(semanaData.turnos)) {
+                semanaData.turnos = semanaData.turnos.filter(t => parseInt(t.id_turno) !== parseInt(turnoId));
+            }
+
+            renderAlumnosInscriptosModal();
+            renderGrillaSemanal();
+            cargarClientes(); // Refrescar padrón de alumnos para ver pases actualizados
+
+            if (typeof showToast === 'function') showToast(data.message || 'Alumno desinscripto correctamente', 'success');
+        } else {
+            if (typeof showToast === 'function') showToast(data.error || 'No se pudo desinscribir al alumno', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error al remover alumno de clase:', err);
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check</span><span>Sí, Desinscribir</span>';
+        }
+    });
+}
+
+function ejecutarInscripcionManualClase() {
+    if (!claseActivaModal) return;
+
+    const sel = document.getElementById('modalDetalleSelectAlumno');
+    const idCliente = sel ? sel.value : '';
+    const btn = document.getElementById('btnInscribirManual');
+
+    if (!idCliente) {
+        if (typeof showToast === 'function') showToast('Selecciona a un alumno del padrón para inscribirlo.', 'error');
+        if (sel) sel.focus();
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">refresh</span> Inscribiendo...';
+    }
+
+    fetch('backend/gestionar_clientes.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            action: 'inscribir_alumno_clase',
+            id_cliente: idCliente,
+            id_servicio: claseActivaModal.servicioId,
+            servicio: claseActivaModal.servicioNombre,
+            fecha: claseActivaModal.fecha,
+            hora: claseActivaModal.hora,
+            profesional: claseActivaModal.profesional
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span><span>Inscribir</span>';
+        }
+
+        if (data.success) {
+            if (sel) sel.value = '';
+            if (typeof showToast === 'function') showToast(data.message || 'Alumno inscripto con éxito', 'success');
+
+            // Recargar datos actualizados de la semana y padrón
+            cargarClasesSemana();
+            cargarClientes();
+
+            // Simular actualización inmediata en modal
+            setTimeout(() => {
+                if (claseActivaModal) renderAlumnosInscriptosModal();
+            }, 300);
+        } else {
+            if (typeof showToast === 'function') showToast(data.error || 'No se pudo inscribir al alumno', 'error');
+        }
+    })
+    .catch(err => {
+        console.error('Error al inscribir alumno a clase:', err);
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span><span>Inscribir</span>';
+        }
+    });
+}

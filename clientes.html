@@ -89,6 +89,21 @@
         </div>
 
 
+        <!-- Selector de Pestañas: Padrón de Alumnos vs Grilla Semanal de Clases -->
+        <div class="flex items-center gap-2 mb-6 bg-slate-200/80 p-1.5 rounded-2xl w-fit border border-slate-300/60 shadow-xs">
+            <button type="button" id="tabBtnPadron" onclick="switchModuloAlumnosTab('padron')" class="px-5 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer bg-white text-slate-900 shadow-sm">
+                <span class="material-symbols-outlined text-[19px] text-[#FC8712]">group</span>
+                <span>Padrón de Alumnos</span>
+            </button>
+            <button type="button" id="tabBtnGrilla" onclick="switchModuloAlumnosTab('grilla')" class="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-white/50">
+                <span class="material-symbols-outlined text-[19px] text-orange-600">calendar_view_week</span>
+                <span>Grilla Semanal de Clases</span>
+                <span id="badgeSemanaInscriptosCount" class="ml-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-orange-100 text-orange-700">0</span>
+            </button>
+        </div>
+
+        <!-- VISTA 1: PADRÓN DE ALUMNOS (Existente) -->
+        <div id="vistaPadron" class="space-y-6">
         <!-- Tarjetas de Métricas -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
@@ -177,6 +192,80 @@
                 </table>
             </div>
         </div>
+        </div>
+        <!-- FIN VISTA 1: PADRÓN DE ALUMNOS -->
+
+        <!-- VISTA 2: GRILLA SEMANAL DE CLASES Y CUPOS -->
+        <div id="vistaGrillaSemanal" class="space-y-6 hidden">
+            <!-- Barra de Navegación y Filtros de la Semana -->
+            <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <!-- Controles de Semana -->
+                    <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                        <div class="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200">
+                            <button type="button" onclick="cambiarSemana(-1)" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer" title="Semana Anterior">
+                                <span class="material-symbols-outlined text-[20px]">chevron_left</span>
+                            </button>
+                            <button type="button" onclick="irSemanaActual()" class="px-3.5 py-1.5 rounded-xl text-xs font-black text-slate-700 hover:text-orange-600 hover:bg-white transition-all cursor-pointer" title="Ir a la semana actual">
+                                Esta Semana
+                            </button>
+                            <button type="button" onclick="cambiarSemana(1)" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer" title="Semana Siguiente">
+                                <span class="material-symbols-outlined text-[20px]">chevron_right</span>
+                            </button>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-orange-500 text-[22px]">calendar_month</span>
+                            <h2 class="text-base sm:text-lg font-black text-slate-900" id="labelRangoSemana">Cargando semana...</h2>
+                        </div>
+                    </div>
+
+                    <!-- Filtro por Servicio / Clase y Estado -->
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <label class="text-xs font-extrabold text-slate-500 uppercase tracking-wider shrink-0">Clase / Servicio:</label>
+                            <select id="selectFiltroClaseGrilla" onchange="onFiltroClaseGrillaChange()" class="w-full sm:w-64 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-orange-500">
+                                <option value="todos">Todas las clases y servicios</option>
+                            </select>
+                        </div>
+
+                        <button type="button" onclick="cargarClasesSemana()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer" title="Recargar Grilla">
+                            <span class="material-symbols-outlined text-[18px]">refresh</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Resumen Rápido de la Semana -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-100 text-xs">
+                    <div class="bg-orange-50/60 p-3 rounded-2xl border border-orange-100">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-orange-600 block">Clases Programadas</span>
+                        <span class="text-lg font-black text-slate-900" id="statSemanaTotalClases">0</span>
+                    </div>
+                    <div class="bg-emerald-50/60 p-3 rounded-2xl border border-emerald-100">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-600 block">Alumnos Inscriptos</span>
+                        <span class="text-lg font-black text-emerald-700" id="statSemanaTotalAlumnos">0</span>
+                    </div>
+                    <div class="bg-blue-50/60 p-3 rounded-2xl border border-blue-100">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-blue-600 block">Cupos Libres</span>
+                        <span class="text-lg font-black text-blue-700" id="statSemanaCuposLibres">0</span>
+                    </div>
+                    <div class="bg-purple-50/60 p-3 rounded-2xl border border-purple-100">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-600 block">Ocupación Semanal</span>
+                        <span class="text-lg font-black text-purple-700" id="statSemanaOcupacionPct">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grilla Semanal: Columnas de Lunes a Domingo -->
+            <div id="grillaSemanaContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3 sm:gap-4 items-start">
+                <!-- Se puebla dinámicamente con los 7 días de la semana -->
+                <div class="col-span-full py-16 text-center text-slate-400 bg-white rounded-3xl border border-slate-200">
+                    <span class="material-symbols-outlined text-4xl animate-spin text-orange-500 mb-2">refresh</span>
+                    <p class="font-bold text-slate-600 text-sm">Cargando grilla semanal de clases...</p>
+                </div>
+            </div>
+        </div>
+        <!-- FIN VISTA 2: GRILLA SEMANAL -->
     </main>
 
     <!-- Modal Crear / Editar Alumno -->
@@ -348,6 +437,104 @@
         </div>
     </div>
 
+    <!-- Modal Detalle de Clase & Lista de Asistencia -->
+    <div id="modalDetalleClaseAsistencia" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl relative max-h-[92vh] my-auto overflow-y-auto custom-scrollbar">
+            <button type="button" onclick="closeModalDetalleClaseAsistencia()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2 rounded-full cursor-pointer"><span class="material-symbols-outlined">close</span></button>
+
+            <!-- Encabezado de la Clase -->
+            <div class="flex items-start gap-4 mb-6 pb-4 border-b border-slate-100">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white flex items-center justify-center font-bold shrink-0 shadow-md shadow-orange-500/25">
+                    <span class="material-symbols-outlined text-3xl">sports_gymnastics</span>
+                </div>
+                <div class="flex-1 pr-6">
+                    <div class="flex items-center gap-2 flex-wrap mb-1">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-100 text-orange-800" id="modalDetalleClaseServicioNombre">Clase</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black" id="modalDetalleClaseCupoBadge">0 / 0 cupos</span>
+                    </div>
+                    <h3 class="text-xl sm:text-2xl font-black text-slate-900 leading-snug" id="modalDetalleClaseTitulo">Detalle de la Clase</h3>
+                    <p class="text-xs font-bold text-slate-500 flex items-center gap-2 mt-1 flex-wrap">
+                        <span class="text-orange-600 flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">event</span> <span id="modalDetalleClaseFecha">Fecha</span></span>
+                        <span class="text-slate-700 flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">schedule</span> <span id="modalDetalleClaseHora">Hora</span> hs</span>
+                        <span class="text-slate-500 flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">person</span> <span id="modalDetalleClaseProf">Instructor</span></span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Listado de Alumnos Inscriptos -->
+            <div class="space-y-4 mb-6">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-orange-500 text-[18px]">how_to_reg</span>
+                        <span>Alumnos Inscriptos en esta Clase</span>
+                        <span id="modalDetalleClaseInscriptosCountBadge" class="ml-1 bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-[11px] font-black">0</span>
+                    </h4>
+                </div>
+
+                <div id="modalDetalleClaseInscriptosList" class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                    <!-- Se puebla dinámicamente con las filas de inscriptos -->
+                </div>
+            </div>
+
+            <!-- Sección: Sumar Alumno Manualmente a esta Clase -->
+            <div class="bg-orange-50/70 border border-orange-200/90 rounded-2xl p-4 sm:p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-orange-900 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[18px]">person_add</span>
+                        <span>+ Inscribir Alumno a esta Clase</span>
+                    </span>
+                    <span class="text-[11px] font-semibold text-slate-500" id="modalDetalleClaseCuposRestantesText">Cupos disponibles: -</span>
+                </div>
+                <p class="text-[11px] text-slate-600">Seleccioná a un alumno registrado en el sistema. Al anotarlo se le descontará 1 clase de sus créditos disponibles.</p>
+
+                <div class="flex flex-col sm:flex-row items-center gap-2">
+                    <select id="modalDetalleSelectAlumno" class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-orange-500">
+                        <option value="">-- Seleccionar Alumno del Padrón --</option>
+                    </select>
+                    <button type="button" onclick="ejecutarInscripcionManualClase()" id="btnInscribirManual" class="w-full sm:w-auto px-5 py-2.5 bg-orange-600 hover:bg-orange-700 active:scale-95 text-white font-extrabold text-xs rounded-xl shadow-md shadow-orange-600/20 transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                        <span>Inscribir</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirmar Remover Alumno de la Clase -->
+    <div id="modalConfirmRemoverAlumnoClase" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[99999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative my-auto text-center">
+            <button type="button" onclick="closeModalConfirmRemoverAlumnoClase()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-2 rounded-full cursor-pointer"><span class="material-symbols-outlined">close</span></button>
+
+            <div class="w-16 h-16 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <span class="material-symbols-outlined text-3xl">person_remove</span>
+            </div>
+
+            <h3 class="text-xl font-extrabold text-slate-900 mb-2">¿Desinscribir Alumno?</h3>
+            <p class="text-xs sm:text-sm text-slate-600 mb-4 leading-relaxed">
+                ¿Estás seguro de quitar a <strong id="removerAlumnoNombreText" class="text-slate-900"></strong> de esta clase?
+            </p>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 mb-6 text-left">
+                <label class="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-slate-700 select-none">
+                    <input type="checkbox" id="chkReintegrarPaseRemover" checked class="w-4 h-4 text-orange-600 rounded focus:ring-orange-500 border-slate-300 cursor-pointer">
+                    <span>Reintegrar 1 clase al saldo de pases del alumno</span>
+                </label>
+            </div>
+
+            <input type="hidden" id="removerAlumnoTurnoId" value="">
+
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" onclick="closeModalConfirmRemoverAlumnoClase()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold py-3.5 rounded-2xl text-xs transition-all cursor-pointer">
+                    Cancelar
+                </button>
+                <button type="button" id="btnConfirmRemoverAlumnoClase" onclick="ejecutarRemoverAlumnoClase()" class="w-full bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-extrabold py-3.5 rounded-2xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-rose-600/25 cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">check</span>
+                    <span>Sí, Desinscribir</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Confirmar Eliminación de Alumno -->
     <div id="modalConfirmDeleteAlumno" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[99999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl relative my-auto text-center">
@@ -416,6 +603,6 @@
     </div>
 
     <script src="assets/js/script.js?v=1.6.0" defer></script>
-    <script src="assets/js/clientes.js?v=1.1.0" defer></script>
+    <script src="assets/js/clientes.js?v=1.2.0" defer></script>
 </body>
 </html>
