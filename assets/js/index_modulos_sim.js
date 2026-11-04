@@ -369,10 +369,323 @@
                 </div>
 
                 <!-- Contenido Dinámico: Vista Mensual o Vista Semanal -->
-                ${isMensual ? getSimCalendarHtml_Mensual() : getSimCalendarHtml_Semanal()}
+                ${isMensual ? getSimCalendarMensualHtml() : getSimCalendarSemanalHtml()}
             </div>
         `;
     }
+
+    function getSimCalendarMensualHtml() {
+        const days = [
+            { d: 1, free: true }, { d: 2, free: true }, { d: 3, free: true }, { d: 4, free: true },
+            { d: 5, free: true }, { d: 6, free: true }, { d: 7, free: false }, { d: 8, free: false },
+            { d: 9, free: true }, { d: 10, free: true }, { d: 11, free: true }, { d: 12, free: true },
+            { d: 13, free: true }, { d: 14, free: true }, { d: 15, free: false }, { d: 16, free: false },
+            { d: 17, free: true }, { d: 18, free: true }, { d: 19, free: true }, { d: 20, free: true },
+            { d: 21, free: true }, { d: 22, free: false }, { d: 23, free: false }, { d: 24, free: true },
+            { d: 25, free: true }, { d: 26, free: true }, { d: 27, free: true }, { d: 28, free: true }
+        ];
+
+        return `
+            <div class="space-y-4">
+                <!-- Barra superior de negocio ficticio estilo navbar real -->
+                <div class="bg-white/90 backdrop-blur-md px-3.5 py-2 rounded-2xl border border-slate-200/80 flex items-center justify-between text-xs shadow-2xs">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-xl bg-gradient-to-tr from-[#D11149] to-[#FC8712] text-white flex items-center justify-center font-bold text-xs shadow-2xs">
+                            SE
+                        </div>
+                        <span class="font-extrabold text-slate-800">Stetica & Estilo</span>
+                        <span class="text-slate-300">|</span>
+                        <span class="text-slate-500 font-medium hidden sm:inline">Palermo Soho</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg text-[10px] font-extrabold text-amber-800">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                            Modo Demo
+                        </span>
+                        <a href="javascript:void(0)" onclick="window.selectModuleTab('web', true)" class="text-[11px] font-bold text-slate-600 hover:text-primary flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">language</span>
+                            <span class="hidden sm:inline">Página Web</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Contenedor Principal (MainCalendarWrapper en 12 columnas) -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                    
+                    <!-- Columna Izquierda (7 cols): Calendario Mensual Box -->
+                    <div class="lg:col-span-7 bg-white/90 backdrop-blur-md rounded-3xl border border-slate-200/90 p-4 sm:p-5 shadow-sm space-y-4">
+                        
+                        <!-- Header Centrado del Calendario -->
+                        <div class="text-center pb-2 border-b border-slate-100">
+                            <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Reserva tu cita</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Selecciona el día que mejor te quede.</p>
+                        </div>
+
+                        <!-- Barra de Navegación del Mes -->
+                        <div class="flex items-center justify-between p-2 bg-slate-100/80 rounded-2xl border border-slate-200/70">
+                            <button type="button" class="w-8 h-8 rounded-xl bg-white text-slate-700 hover:bg-[#D11149] hover:text-white flex items-center justify-center font-bold transition-all shadow-2xs border border-slate-200 cursor-pointer">
+                                <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                            </button>
+                            <div class="flex flex-col items-center">
+                                <span class="text-[9px] font-black uppercase tracking-widest text-[#D11149] bg-rose-100/90 border border-rose-200/80 px-2.5 py-0.5 rounded-full mb-0.5 shadow-2xs">Vista Mensual</span>
+                                <h4 class="font-extrabold text-xs sm:text-sm uppercase tracking-wider text-slate-900">Noviembre 2026</h4>
+                            </div>
+                            <button type="button" class="w-8 h-8 rounded-xl bg-white text-slate-700 hover:bg-[#D11149] hover:text-white flex items-center justify-center font-bold transition-all shadow-2xs border border-slate-200 cursor-pointer">
+                                <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                            </button>
+                        </div>
+
+                        <!-- Días de la Semana (Dom a Sab como en calendarioMensual.html) -->
+                        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-black uppercase tracking-widest text-slate-400 py-1">
+                            <div>Dom</div><div>Lun</div><div>Mar</div><div>Mie</div><div>Jue</div><div>Vie</div><div>Sab</div>
+                        </div>
+
+                        <!-- Grilla de Días del Mes -->
+                        <div class="grid grid-cols-7 gap-1 sm:gap-1.5 p-2 sm:p-2.5 bg-slate-50/80 rounded-2xl border border-slate-200/70 text-xs">
+                            <!-- Días vacíos inicio de mes -->
+                            <span class="p-2 text-slate-300 text-center font-medium">26</span>
+                            <span class="p-2 text-slate-300 text-center font-medium">27</span>
+                            <span class="p-2 text-slate-300 text-center font-medium">28</span>
+                            <span class="p-2 text-slate-300 text-center font-medium">29</span>
+                            <span class="p-2 text-slate-300 text-center font-medium">30</span>
+                            <span class="p-2 text-slate-300 text-center font-medium">31</span>
+
+                            ${days.map(item => `
+                                <button type="button" onclick="window.selectSimDay(${item.d})" 
+                                    class="p-2 rounded-xl font-extrabold transition-all relative flex flex-col items-center justify-center ${item.d === simSelectedDay 
+                                        ? 'bg-gradient-to-tr from-[#D11149] to-[#FC8712] text-white shadow-md scale-105 z-10' 
+                                        : (item.free 
+                                            ? 'bg-white hover:bg-orange-50 text-slate-800 border border-slate-200/80 shadow-2xs' 
+                                            : 'bg-slate-100 text-slate-400 cursor-not-allowed opacity-60')}">
+                                    <span>${item.d}</span>
+                                    ${item.free && item.d !== simSelectedDay ? '<span class="w-1 h-1 rounded-full bg-emerald-500 mt-0.5"></span>' : ''}
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <!-- Indicadores de estado -->
+                        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-semibold">
+                            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-[#D11149]"></span> Día Seleccionado (${simSelectedDay} de Noviembre)</span>
+                            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Horarios Libres</span>
+                        </div>
+                    </div>
+
+                    <!-- Columna Derecha (5 cols): DayDetailsContainer & ClientBookingView -->
+                    <div class="lg:col-span-5 bg-white/95 backdrop-blur-md rounded-3xl border-2 border-slate-200/90 p-4 sm:p-5 shadow-sm space-y-4">
+                        
+                        <!-- Header del Día Elegido con Ícono de Schedule Oficial -->
+                        <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+                            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#FC8712] to-[#D11149] text-white flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0">
+                                <span class="material-symbols-outlined text-xl">schedule</span>
+                            </div>
+                            <div>
+                                <h4 class="font-extrabold text-base text-slate-900">${simSelectedDay} de Noviembre</h4>
+                                <p class="text-xs text-slate-500">Elige la hora y confirma tu turno</p>
+                            </div>
+                        </div>
+
+                        <!-- Horarios Disponibles -->
+                        <div>
+                            <label class="block text-[11px] font-black uppercase tracking-wider text-slate-400 mb-2">Horarios Libres</label>
+                            <div class="grid grid-cols-3 gap-1.5">
+                                ${['09:30', '10:15', '11:00', '14:30', '15:15', '16:00'].map(t => `
+                                    <button type="button" onclick="window.selectSimTime('${t}')"
+                                        class="py-2 px-1.5 rounded-xl text-xs font-extrabold transition-all border ${t === simSelectedTime 
+                                            ? 'bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white border-transparent shadow-xs scale-102' 
+                                            : 'bg-slate-50 hover:bg-orange-50 text-slate-700 border-slate-200'}">
+                                        ${t} hs
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Tarjeta de Servicio y Precio -->
+                        <div class="p-3 bg-slate-50 rounded-2xl border border-slate-200/90 space-y-2">
+                            <div class="flex items-center justify-between text-xs">
+                                <div>
+                                    <span class="text-[10px] font-black uppercase text-slate-400 block">Servicio Seleccionado</span>
+                                    <strong class="text-slate-800 text-xs sm:text-sm font-extrabold">Corte & Barba Estilizada</strong>
+                                    <span class="text-[11px] text-slate-500 block">45 min · Atiende: Martín Rossi</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-xs font-black text-slate-900">$8.500</span>
+                                    <span class="block text-[9px] font-bold text-rose-700 bg-rose-100 px-1.5 py-0.2 rounded mt-0.5">Seña 1h</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mini Formulario de Reserva del Cliente -->
+                        <div class="space-y-2 text-xs">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Nombre</label>
+                                    <input type="text" readonly value="Juan Pérez" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">WhatsApp</label>
+                                    <input type="text" readonly value="+54 9 11 5555-1234" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-800">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Cupón de Descuento</label>
+                                <div class="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 rounded-xl px-2.5 py-1.5">
+                                    <span class="text-xs font-extrabold text-emerald-800 flex-1">DESC10 (-10% OFF)</span>
+                                    <span class="text-[10px] font-black text-emerald-600">Aplicado <span class="material-symbols-outlined text-[13px] inline-block align-middle">check</span></span>
+                                </div>
+                            </div>
+
+                            <div class="pt-2 flex items-center justify-between text-xs font-extrabold">
+                                <span class="text-slate-600">Total a abonar:</span>
+                                <div class="text-right">
+                                    <span class="text-slate-400 line-through text-[11px] mr-1">$8.500</span>
+                                    <span class="text-slate-900 text-sm font-black">$7.650</span>
+                                </div>
+                            </div>
+
+                            <button type="button" onclick="window.openSimCta('¡Turno reservado con éxito!', 'El cliente recibe su comprobante por WhatsApp y el turno se sincroniza de inmediato en tu Agenda Virtual.', 'Básico')"
+                                class="w-full py-3 rounded-2xl bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white font-extrabold text-xs shadow-md shadow-rose-500/20 hover:opacity-95 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                <span>Solicitar Turno</span>
+                                <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // VISTA SEMANAL (Idéntica a calendarioSemanal.html)
+    function getSimCalendarSemanalHtml() {
+        const weekDays = [
+            { id: 9, name: 'Dom 09', free: 2 },
+            { id: 10, name: 'Lun 10', free: 6 },
+            { id: 11, name: 'Mar 11', free: 5 },
+            { id: 12, name: 'Mie 12', free: 4 },
+            { id: 13, name: 'Jue 13', free: 5 },
+            { id: 14, name: 'Vie 14', free: 7 },
+            { id: 15, name: 'Sab 15', free: 3 }
+        ];
+
+        return `
+            <div class="space-y-4">
+                <!-- Header y Resúmenes como calendarioSemanal.html -->
+                <div class="bg-white/90 backdrop-blur-md rounded-3xl border border-slate-200/90 p-4 sm:p-5 shadow-sm space-y-4">
+                    
+                    <div class="text-center pb-3 border-b border-slate-100">
+                        <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Reserva tu cita</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Selecciona el día y horario que mejor te quede.</p>
+                    </div>
+
+                    <!-- Dual Summary Pills (Servicio Elegido + Profesional) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto">
+                        <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+                            <div class="w-9 h-9 rounded-xl bg-rose-100 text-[#D11149] flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-[20px]">content_cut</span>
+                            </div>
+                            <div class="truncate">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Servicio Elegido</span>
+                                <strong class="text-xs sm:text-sm font-extrabold text-slate-800 truncate block">Corte & Barba Estilizada</strong>
+                                <span class="text-[11px] text-slate-500">45 min · $8.500</span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+                            <div class="w-9 h-9 rounded-xl bg-amber-100 text-[#FC8712] flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-[20px]">person</span>
+                            </div>
+                            <div class="truncate">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 block">Profesional</span>
+                                <strong class="text-xs sm:text-sm font-extrabold text-slate-800 truncate block">Martín Rossi</strong>
+                                <span class="text-[11px] text-slate-500">Barbero & Estilista</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Barra de Navegación Semanal -->
+                    <div class="flex items-center justify-between p-2 bg-slate-100/80 rounded-2xl border border-slate-200/70">
+                        <button type="button" class="w-8 h-8 rounded-xl bg-white text-slate-700 hover:bg-[#D11149] hover:text-white flex items-center justify-center font-bold transition-all shadow-2xs border border-slate-200 cursor-pointer">
+                            <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                        </button>
+                        <div class="flex flex-col items-center">
+                            <span class="text-[9px] font-black uppercase tracking-widest text-[#D11149] bg-rose-100/90 border border-rose-200/80 px-2.5 py-0.5 rounded-full mb-0.5 shadow-2xs">Vista Semanal</span>
+                            <h4 class="font-extrabold text-xs sm:text-sm uppercase tracking-wider text-slate-900">Semana del 9 al 15 de Noviembre</h4>
+                        </div>
+                        <button type="button" class="w-8 h-8 rounded-xl bg-white text-slate-700 hover:bg-[#D11149] hover:text-white flex items-center justify-center font-bold transition-all shadow-2xs border border-slate-200 cursor-pointer">
+                            <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                        </button>
+                    </div>
+
+                    <!-- Selector de los 7 Días de la Semana -->
+                    <div class="grid grid-cols-7 gap-1 sm:gap-2 p-2 bg-slate-50/80 rounded-2xl border border-slate-200/70">
+                        ${weekDays.map(w => `
+                            <button type="button" onclick="window.selectSimDay(${w.id})"
+                                class="p-2 sm:p-2.5 rounded-2xl text-center font-extrabold transition-all cursor-pointer flex flex-col items-center justify-center ${w.id === simSelectedDay 
+                                    ? 'bg-gradient-to-tr from-[#D11149] to-[#FC8712] text-white shadow-md scale-102' 
+                                    : 'bg-white hover:bg-orange-50 text-slate-700 border border-slate-200/80 shadow-2xs'}">
+                                <span class="text-[11px] sm:text-xs block">${w.name}</span>
+                                <span class="text-[10px] mt-1 font-bold ${w.id === simSelectedDay ? 'text-white/90' : 'text-emerald-600'}">${w.free} lib</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <!-- Grilla Inferior: Horarios y Formulario Final -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-2">
+                        
+                        <!-- Horarios Disponibles -->
+                        <div class="space-y-3">
+                            <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-2 text-xs font-bold text-emerald-900 shadow-2xs">
+                                <span class="material-symbols-outlined text-emerald-600 text-[18px]">bolt</span>
+                                <span>Próximo turno libre: <strong>Hoy a las 10:15 hs</strong></span>
+                            </div>
+
+                            <label class="block text-[11px] font-black uppercase tracking-wider text-slate-400">Horarios para el día ${simSelectedDay}</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                ${['09:30', '10:15', '11:00', '14:30', '15:15', '16:00'].map(t => `
+                                    <button type="button" onclick="window.selectSimTime('${t}')"
+                                        class="py-2.5 px-2 rounded-xl text-xs font-extrabold transition-all border text-center ${t === simSelectedTime 
+                                            ? 'bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white border-transparent shadow-xs scale-102' 
+                                            : 'bg-slate-50 hover:bg-orange-50 text-slate-700 border-slate-200'}">
+                                        ${t} hs
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Formulario de Confirmación -->
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2.5 text-xs">
+                            <h4 class="font-extrabold text-sm text-slate-900 pb-1 border-b border-slate-200">Tus Datos para Confirmar</h4>
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" readonly value="Juan" placeholder="Nombre" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800">
+                                <input type="text" readonly value="Pérez" placeholder="Apellido" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800">
+                            </div>
+                            <input type="text" readonly value="+54 9 11 5555-1234" placeholder="WhatsApp / Celular" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800">
+                            
+                            <button type="button" onclick="window.openSimCta('¡Turno semanal reservado!', 'Podés configurar tu vista semanal o mensual como predeterminada desde tus ajustes de negocio.', 'Básico')"
+                                class="w-full py-3 rounded-2xl bg-[#D11149] hover:bg-[#b00e3d] text-white font-extrabold text-xs shadow-md shadow-rose-500/20 transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-1">
+                                <span>Solicitar Turno</span>
+                                <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+// ==========================================
+    // 2. SIMULACIÓN: AGENDA VIRTUAL (Plan Profesional & Premium)
+    // Fiel reflejo de agenda.html (Columna Por Confirmar + Pestañas de Turnos)
+    // ==========================================
+    window.confirmSimAppointment = function(btn) {
+        if (!btn) return;
+        btn.innerHTML = '<span class="material-symbols-outlined text-[14px] inline-block align-middle mr-1">check</span> Confirmado';
+        btn.className = 'px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 font-black text-xs shadow-2xs cursor-default';
+        btn.disabled = true;
+    };
+
+    
 
     function getSimHtml_Agenda() {
         return `
