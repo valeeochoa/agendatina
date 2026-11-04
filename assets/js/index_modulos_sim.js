@@ -256,10 +256,11 @@
     // 1. SIMULACIÓN: CALENDARIO DE TURNOS
     // Fiel reflejo de calendarioMensual.html y calendarioSemanal.html
     // ==========================================
-    window.toggleSimCalendarView = function(view) {
+    window.setSimCalendarView = function(view) {
         simCalendarViewMode = view;
         renderActiveSimulation();
     };
+    window.toggleSimCalendarView = window.setSimCalendarView;
 
     window.selectSimDay = function(day) {
         simSelectedDay = day;
@@ -278,17 +279,14 @@
             <div class="space-y-4">
                 <!-- Barra Superior de Navegación del Calendario (Vista Cliente) -->
                 <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3 shadow-xs flex flex-wrap items-center justify-between gap-3">
-                    <!-- Datos del Negocio -->
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#D11149] to-[#FC8712] text-white flex items-center justify-center font-extrabold text-xs shadow-2xs">
-                            SG
+                    <!-- Datos del Negocio (símbolo de negocio y nombre asociado a Tina) -->
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-rose-50 text-[#D11149] border border-rose-200 flex items-center justify-center shadow-2xs shrink-0">
+                            <span class="material-symbols-outlined text-[19px]">storefront</span>
                         </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h4 class="font-extrabold text-sm text-slate-900 leading-tight">Studio Glam</h4>
-                                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">Abierto hoy</span>
-                            </div>
-                            <p class="text-[11px] text-slate-500 font-medium">Palermo Soho • Turnos y Reservas Online</p>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h4 class="font-extrabold text-sm sm:text-base text-slate-900 tracking-tight">Tina Estética</h4>
+                            <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">Abierto hoy</span>
                         </div>
                     </div>
 
@@ -622,7 +620,7 @@
                         <span class="text-slate-300 font-light text-base hidden sm:inline">|</span>
                         <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg">
                             <span class="material-symbols-outlined text-[16px] text-[#d11149]">storefront</span>
-                            <span class="text-xs font-bold text-slate-800">Studio Glam</span>
+                            <span class="text-xs font-bold text-slate-800">Tina Estética</span>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
@@ -1236,8 +1234,8 @@
                                 SE
                             </div>
                             <div>
-                                <span class="font-extrabold text-sm text-slate-900 block leading-tight">Stetica & Estilo</span>
-                                <span class="text-[10px] text-slate-400 font-medium block">agendatina.site/stetica-estilo</span>
+                                <span class="font-extrabold text-sm text-slate-900 block leading-tight">Tina Estética</span>
+                                <span class="text-[10px] text-slate-400 font-medium block">agendatina.site/tina-estetica</span>
                             </div>
                         </div>
 
@@ -1263,7 +1261,7 @@
                                 <span>Turnos y Reservas Online Disponibles</span>
                             </div>
                             <h3 class="text-2xl sm:text-4xl font-extrabold tracking-tight drop-shadow-xs">
-                                Bienvenidos a Stetica & Estilo
+                                Bienvenidos a Tina Estética
                             </h3>
                             <p class="text-xs sm:text-base text-white/90 max-w-xl mx-auto font-normal leading-relaxed">
                                 Tu espacio de relax, estética y cuidado personal en Palermo Soho. Reservá tu cita en 3 simples pasos.
