@@ -325,16 +325,13 @@ if ($method === 'GET') {
         $roleInBiz = $stmtCheck->fetchColumn();
 
         if (!$roleInBiz) {
-            $stmtCheckPn = $pdo->prepare("SELECT rol_en_local FROM personal_negocio WHERE id_usuario = ? LIMIT 1");
-            $stmtCheckPn->execute([$id_usuario]);
-            $roleInBiz = $stmtCheckPn->fetchColumn();
+            throw new Exception("El profesional no pertenece a este negocio.");
         }
 
         if ($roleInBiz === 'admin') {
             throw new Exception("No es posible eliminar la cuenta del Administrador/Dueño principal del negocio.");
         } else {
             $pdo->prepare("DELETE FROM personal_negocio WHERE id_usuario = ? AND id_negocio = ?")->execute([$id_usuario, $id_negocio]);
-            $pdo->prepare("DELETE FROM personal_negocio WHERE id_usuario = ? AND rol_en_local = 'profesional'")->execute([$id_usuario]);
             
             $stmtCheckOther = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_usuario = ?");
             $stmtCheckOther->execute([$id_usuario]);

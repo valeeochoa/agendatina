@@ -23,6 +23,9 @@ if (empty($ruta)) {
     $id_negocio = $negocio['id'];
 }
 
+// Determinar si quien consulta es el dueño/admin autenticado del negocio
+$esAdminDelNegocio = (isset($_SESSION['id_negocio']) && (int)$_SESSION['id_negocio'] === (int)$id_negocio);
+
 // Liberar el archivo de sesión para que el dashboard no se quede colgado
 session_write_close();
 
@@ -132,8 +135,8 @@ try {
             'cupo_maximo' => $cupo,
             'profesional' => $prof,
             'id_servicio' => $t['id_servicio'] ?? null,
-            'servicio' => $t['servicio'] ?? null,
-            'cliente_nombre' => $cliNom
+            'servicio' => $esAdminDelNegocio ? ($t['servicio'] ?? null) : 'Reservado',
+            'cliente_nombre' => $esAdminDelNegocio ? $cliNom : 'Ocupado'
         ];
 
         // Guardar conteo exacto por servicio y hora para el calendario de clases

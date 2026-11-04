@@ -206,6 +206,8 @@ try {
 // Petición GET: Devolver los datos actuales desde la BD
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
+    $sessionNegocioId = $_SESSION['id_negocio'] ?? null;
+
     // Liberar la sesión para permitir peticiones concurrentes
     session_write_close();
 
@@ -254,16 +256,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $stmtN->execute(['id' => $id_negocio]);
         $n = $stmtN->fetch();
         
+        $isOwnerSession = ($sessionNegocioId !== null && (int)$sessionNegocioId === (int)$id_negocio);
+
         if ($n) {
             if (empty($config['titulo']) && !empty($n['nombre_fantasia'])) {
                 $config['titulo'] = $n['nombre_fantasia'];
             }
             $config['plan'] = $n['plan'] ?? 'Basico';
-            $config['estado_pago'] = $n['estado_pago'] ?? 'prueba';
-            $config['ultimo_pago'] = $n['ultimo_pago'] ?? null;
-            $config['fecha_alta'] = $n['fecha_alta'] ?? null;
-            $config['dias_prueba'] = $n['dias_prueba'] ?? 15;
             $config['ruta'] = $n['ruta'] ?? '';
+
+            if ($isOwnerSession) {
+                $config['estado_pago'] = $n['estado_pago'] ?? 'prueba';
+                $config['ultimo_pago'] = $n['ultimo_pago'] ?? null;
+                $config['fecha_alta'] = $n['fecha_alta'] ?? null;
+                $config['dias_prueba'] = $n['dias_prueba'] ?? 15;
+            }
         }
         
         $config['is_demo'] = false;
@@ -275,54 +282,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             }
         }
 
-        // Cargar estadísticas de notificaciones WhatsApp para la bolsa global del negocio
-        try {
-            $currentMonthStr = date('Y-m');
-            $stmtNW = $pdo->prepare("SELECT plan, wpp_enviados_mes, mes_wpp_contador FROM negocios WHERE id = ?");
-            $stmtNW->execute([$id_negocio]);
-            $bizW = $stmtNW->fetch(PDO::FETCH_ASSOC);
+        // Cargar estadísticas de notificaciones WhatsApp para la bolsa global del negocio (solo para el dueño autenticado)
+        if ($isOwnerSession) {
+            try {
+                $currentMonthStr = date('Y-m');
+                $stmtNW = $pdo->prepare("SELECT plan, wpp_enviados_mes, mes_wpp_contador FROM negocios WHERE id = ?");
+                $stmtNW->execute([$id_negocio]);
+                $bizW = $stmtNW->fetch(PDO::FETCH_ASSOC);
 
-            if ($bizW) {
-                if ($bizW['mes_wpp_contador'] !== $currentMonthStr) {
+                if ($bizW) {
+                    if ($bizW['mes_wpp_contador'] !== $currentMonthStr) {
+                        try {
+                            $pdo->prepare("UPDATE negocios SET wpp_enviados_mes = 0, mes_wpp_contador = ? WHERE id = ?")->execute([$currentMonthStr, $id_negocio]);
+                            $bizW['wpp_enviados_mes'] = 0;
+                        } catch(Exception $eUpW) {}
+                    }
+
+                    $profCount = 1;
                     try {
-                        $pdo->prepare("UPDATE negocios SET wpp_enviados_mes = 0, mes_wpp_contador = ? WHERE id = ?")->execute([$currentMonthStr, $id_negocio]);
-                        $bizW['wpp_enviados_mes'] = 0;
-                    } catch(Exception $eUpW) {}
+                        $stmtProf = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_negocio = ?");
+                        $stmtProf->execute([$id_negocio]);
+                        $profCount = max(1, (int)$stmtProf->fetchColumn());
+                    } catch(Exception $eP) {}
+
+                    $planLower = strtolower($bizW['plan'] ?? 'basico');
+                    $isBasic = strpos($planLower, 'básico') !== false || strpos($planLower, 'basico') !== false || strpos($planLower, 'simple') !== false;
+                    $isPremium = strpos($planLower, 'premium') !== false || strpos($planLower, 'completo') !== false;
+
+                    $extraProfs = max(0, $profCount - 1);
+                    $wppBase = $isBasic ? 0 : ($isPremium ? 100 : 50);
+                    $wppBonus = $isBasic ? 0 : ($extraProfs * 10);
+                    $wppLimiteTotal = $wppBase + $wppBonus;
+                    $wppUsados = (int)($bizW['wpp_enviados_mes'] ?? 0);
+                    $wppExcedentes = max(0, $wppUsados - $wppLimiteTotal);
+                    $wppCostoExtra = $wppExcedentes * 60;
+
+                    $config['wpp_stats'] = [
+                        'habilitado' => !$isBasic,
+                        'plan' => $bizW['plan'] ?? 'Básico',
+                        'profesionales_count' => $profCount,
+                        'extra_profesionales' => $extraProfs,
+                        'base' => $wppBase,
+                        'bonus' => $wppBonus,
+                        'limite_total' => $wppLimiteTotal,
+                        'usados' => $wppUsados,
+                        'excedentes' => $wppExcedentes,
+                        'costo_extra_ars' => $wppCostoExtra
+                    ];
                 }
-
-                $profCount = 1;
-                try {
-                    $stmtProf = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_negocio = ?");
-                    $stmtProf->execute([$id_negocio]);
-                    $profCount = max(1, (int)$stmtProf->fetchColumn());
-                } catch(Exception $eP) {}
-
-                $planLower = strtolower($bizW['plan'] ?? 'basico');
-                $isBasic = strpos($planLower, 'básico') !== false || strpos($planLower, 'basico') !== false || strpos($planLower, 'simple') !== false;
-                $isPremium = strpos($planLower, 'premium') !== false || strpos($planLower, 'completo') !== false;
-
-                $extraProfs = max(0, $profCount - 1);
-                $wppBase = $isBasic ? 0 : ($isPremium ? 100 : 50);
-                $wppBonus = $isBasic ? 0 : ($extraProfs * 10);
-                $wppLimiteTotal = $wppBase + $wppBonus;
-                $wppUsados = (int)($bizW['wpp_enviados_mes'] ?? 0);
-                $wppExcedentes = max(0, $wppUsados - $wppLimiteTotal);
-                $wppCostoExtra = $wppExcedentes * 60;
-
-                $config['wpp_stats'] = [
-                    'habilitado' => !$isBasic,
-                    'plan' => $bizW['plan'] ?? 'Básico',
-                    'profesionales_count' => $profCount,
-                    'extra_profesionales' => $extraProfs,
-                    'base' => $wppBase,
-                    'bonus' => $wppBonus,
-                    'limite_total' => $wppLimiteTotal,
-                    'usados' => $wppUsados,
-                    'excedentes' => $wppExcedentes,
-                    'costo_extra_ars' => $wppCostoExtra
-                ];
-            }
-        } catch(Exception $eWppStats) {}
+            } catch(Exception $eWppStats) {}
+        }
 
         // Consolidación del equipo de trabajo (personal_negocio + servicios)
         $profs_array = [];

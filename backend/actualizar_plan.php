@@ -64,8 +64,24 @@ try {
     }
 
     // Actualizar el plan en la base de datos manteniendo el estado 'prueba'
-    $stmtUp = $pdo->prepare("UPDATE negocios SET plan = ? WHERE id = ?");
-    $stmtUp->execute([$planNormalizado, $id_negocio]);
+    $nuevoPrecioPactado = 8889;
+    try {
+        $stmtCfg = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium FROM configuracion_global WHERE id = 1 LIMIT 1");
+        $cfgPrecios = $stmtCfg ? $stmtCfg->fetch(PDO::FETCH_ASSOC) : null;
+        if ($cfgPrecios) {
+            if ($planNormalizado === 'Premium') {
+                $nuevoPrecioPactado = (float)($cfgPrecios['precio_premium'] ?? 16667);
+            } elseif ($planNormalizado === 'Profesional') {
+                $nuevoPrecioPactado = (float)($cfgPrecios['precio_intermedio'] ?? 11111);
+            } else {
+                $nuevoPrecioPactado = (float)($cfgPrecios['precio_basico'] ?? 8889);
+            }
+        }
+    } catch (Exception $ePactado) {}
+    try { $pdo->query("SELECT precio_pactado FROM negocios LIMIT 1"); } 
+    catch(Exception $eCol) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN precio_pactado DECIMAL(10,2) DEFAULT NULL"); } catch(Exception $eCol2) {} }
+    $stmtUp = $pdo->prepare("UPDATE negocios SET plan = ?, precio_pactado = ? WHERE id = ?");
+    $stmtUp->execute([$planNormalizado, $nuevoPrecioPactado, $id_negocio]);
 
     // Notificar al SuperAdmin
     try {

@@ -1,3 +1,6 @@
+function escapeHtml(str) { if (!str && str !== 0) return ""; return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+if (!window.escapeHtml) window.escapeHtml = escapeHtml;
+
 
 window.onCalendarServiceTipoChange = function(tipo) {
     const lblCal = document.getElementById('lblCalDestinoCalendario');
@@ -1159,8 +1162,8 @@ function renderAdminDayView(dateString) {
                             <span class="text-sm font-bold text-slate-700 dark:text-slate-300">${time}</span>
                             <span class="${badgeClass} text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">${badgeText}</span>
                         </div>
-                        <div class="text-xs text-slate-600 dark:text-slate-400 font-medium truncate w-full" title="${clientName}">${clientName}</div>
-                        <div class="text-[9px] opacity-80 truncate w-full">${apt.servicio || ''}</div>
+                        <div class="text-xs text-slate-600 dark:text-slate-400 font-medium truncate w-full" title="${escapeHtml(clientName)}">${escapeHtml(clientName)}</div>
+                        <div class="text-[9px] opacity-80 truncate w-full">${escapeHtml(apt.servicio || "")}</div>
                     `;
                     slotDiv.onclick = () => {
                         if (typeof window.openEditTurnoModal === 'function') {
@@ -1320,8 +1323,8 @@ function renderAdminDayView(dateString) {
                         <span class="text-sm font-bold">${time}</span>
                         <span class="text-[9px] font-bold px-2 py-0.5 rounded uppercase ${badgeClass}">${badgeText}</span>
                     </div>
-                    <div class="text-xs font-bold truncate w-full" title="${clientName}">${clientName}</div>
-                    <div class="text-[10px] opacity-80 truncate w-full">${apt.servicio || ''}</div>
+                    <div class="text-xs font-bold truncate w-full" title="${escapeHtml(clientName)}">${escapeHtml(clientName)}</div>
+                    <div class="text-[10px] opacity-80 truncate w-full">${escapeHtml(apt.servicio || "")}</div>
                 `;
                 slotDiv.onclick = () => {
                     if (typeof window.openEditTurnoModal === 'function') {
@@ -3129,7 +3132,7 @@ function renderAdminWeeklyGrid() {
                             }
                             
                             const profBadge = (isTodos && apt.profesional) ? `<span class="text-[8px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1 py-0.2 rounded border border-slate-200 dark:border-slate-700 ml-1">👤 ${apt.profesional}</span>` : '';
-                            divApt.innerHTML = `<div class="font-bold text-[10px] leading-tight flex items-center justify-between" title="${clientName}"><span class="truncate">${clientName}</span> ${badgePill}</div><div class="truncate text-[9px] opacity-80 mt-0.5">${apt.servicio || ''} ${profBadge}</div>`;
+                            divApt.innerHTML = `<div class="font-bold text-[10px] leading-tight flex items-center justify-between" title="${clientName}"><span class="truncate">${clientName}</span> ${badgePill}</div><div class="truncate text-[9px] opacity-80 mt-0.5">${escapeHtml(apt.servicio || "")} ${profBadge}</div>`;
                             
                             divApt.onclick = (e) => {
                                 e.stopPropagation();

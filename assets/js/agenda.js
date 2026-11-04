@@ -1,3 +1,6 @@
+function escapeHtml(str) { if (!str && str !== 0) return ""; return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+if (!window.escapeHtml) window.escapeHtml = escapeHtml;
+
 // backend/js/agenda.js
 
 // Estilos para las animaciones de carga
@@ -243,13 +246,13 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                         <span class="text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wider" style="background-color: #fef3c7; color: #92400e;">${fDisplay} • ${t.hora} hs</span>
                         ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1" style="background-color: #f1f5f9; color: #475569;"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
                     </div>
-                    <p class="text-lg font-bold mb-1" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                    <p class="text-lg font-bold mb-1" style="color: #1e293b;">${escapeHtml(t.cliente_nombre || (t.nombre + ' ' + (t.apellido || '')))}</p>
                     <div class="flex items-center gap-3 mb-4">
-                        <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: #475569; background-color: #f8fafc; border-color: #e2e8f0;"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular}</p>
+                        <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: #475569; background-color: #f8fafc; border-color: #e2e8f0;"><span class="material-symbols-outlined text-[16px]">call</span> ${escapeHtml(t.cliente_celular || t.celular || '')}</p>
                         <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
                     </div>
                     ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
-                    <p class="text-sm mb-5 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">spa</span> <span class="font-medium">${t.servicio}</span></p>
+                    <p class="text-sm mb-5 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">spa</span> <span class="font-medium">${escapeHtml(t.servicio || '')}</span></p>
                     
                     <div class="flex items-center gap-3 pt-4 border-t" style="border-color: #e2e8f0;">
                         <button onclick="window.confirmarTurnoAdmin('${t.id}')" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 shadow-sm shadow-amber-500/20">
@@ -307,13 +310,13 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                                 <span class="text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wider" style="background-color: #fef3c7; color: #92400e;">${t.hora} hs</span>
                                 ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1" style="background-color: #f1f5f9; color: #475569;"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
                             </div>
-                            <p class="text-lg font-bold mb-1" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                            <p class="text-lg font-bold mb-1" style="color: #1e293b;">${escapeHtml(t.cliente_nombre || (t.nombre + ' ' + (t.apellido || '')))}</p>
                             <div class="flex items-center gap-3 mb-4">
-                                <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: #475569; background-color: #f8fafc; border-color: #e2e8f0;"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular}</p>
+                                <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: #475569; background-color: #f8fafc; border-color: #e2e8f0;"><span class="material-symbols-outlined text-[16px]">call</span> ${escapeHtml(t.cliente_celular || t.celular || '')}</p>
                                 <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
                             </div>
                             ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
-                            <p class="text-sm mb-5 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">spa</span> <span class="font-medium">${t.servicio}</span></p>
+                            <p class="text-sm mb-5 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">spa</span> <span class="font-medium">${escapeHtml(t.servicio || '')}</span></p>
                             <div class="flex items-center gap-3 pt-4 border-t" style="border-color: #e2e8f0;">
                                 <button onclick="window.confirmarTurnoAdmin('${t.id}')" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 shadow-sm shadow-amber-500/20">
                                     <span class="material-symbols-outlined text-[18px]">check</span> Confirmar
@@ -519,13 +522,13 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                                         ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1" style="background-color: #f1f5f9; color: #475569;"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
                                     </div>
                                 </div>
-                                <p class="text-lg font-bold mb-1" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                                <p class="text-lg font-bold mb-1" style="color: #1e293b;">${escapeHtml(t.cliente_nombre || (t.nombre + ' ' + (t.apellido || '')))}</p>
                                 <div class="flex items-center gap-3 mb-4">
-                                    <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: #475569; background-color: #f8fafc; border-color: #e2e8f0;"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular}</p>
+                                    <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: #475569; background-color: #f8fafc; border-color: #e2e8f0;"><span class="material-symbols-outlined text-[16px]">call</span> ${escapeHtml(t.cliente_celular || t.celular || '')}</p>
                                     <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
                                 </div>
                                 ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
-                                <p class="text-sm mb-5 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">${tIcon}</span> <span class="font-medium">${t.servicio}</span></p>
+                                <p class="text-sm mb-5 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">${tIcon}</span> <span class="font-medium">${escapeHtml(t.servicio || '')}</span></p>
                                 <div class="flex items-center gap-3 pt-4 border-t" style="border-color: #e2e8f0;">
                                     <button onclick="window.enviarAvisoConfirmacion('${t.id}')" class="text-xs sm:text-sm font-bold py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 border bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100 shadow-2xs cursor-pointer" title="Avisar al cliente que su turno está confirmado">
                                         <span class="material-symbols-outlined text-[17px] text-emerald-600">mark_chat_read</span> Avisar
@@ -604,13 +607,13 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                                     ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1" style="background-color: #f1f5f9; color: #475569;"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
                                 </div>
                             </div>
-                            <p class="text-lg font-bold mb-1" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                            <p class="text-lg font-bold mb-1" style="color: #1e293b;">${escapeHtml(t.cliente_nombre || (t.nombre + ' ' + (t.apellido || '')))}</p>
                             <div class="flex items-center gap-3 mb-3">
-                                <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: #475569; background-color: #f8fafc; border-color: #e2e8f0;"><span class="material-symbols-outlined text-[16px]">call</span> ${t.cliente_celular || t.celular || 'Sin celular'}</p>
+                                <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: #475569; background-color: #f8fafc; border-color: #e2e8f0;"><span class="material-symbols-outlined text-[16px]">call</span> ${escapeHtml(t.cliente_celular || t.celular || 'Sin celular')}</p>
                                 <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
                             </div>
                             ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
-                            <p class="text-sm mb-4 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">${tHistIcon}</span> <span class="font-medium">${t.servicio}</span></p>
+                            <p class="text-sm mb-4 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">${tHistIcon}</span> <span class="font-medium">${escapeHtml(t.servicio || '')}</span></p>
                             <div class="flex items-center gap-3 pt-3 border-t" style="border-color: #e2e8f0;">
                                 <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold py-2 px-3 rounded-xl transition-colors flex items-center justify-center border border-red-100 gap-1" title="Eliminar turno">
                                     <span class="material-symbols-outlined text-[16px]">delete</span> Eliminar
@@ -697,9 +700,9 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                                     <span class="text-[11px] font-bold px-2.5 py-1 rounded-lg inline-flex mb-2 uppercase tracking-wide border items-center gap-1 shadow-2xs" style="background-color: #f1f5f9; color: #475569; border-color: #e2e8f0;">
                                         <span class="material-symbols-outlined text-[14px]">schedule</span> ${fDisplay} • ${t.hora} hs
                                     </span>
-                                    <p class="text-base sm:text-lg font-extrabold mb-1.5 leading-tight tracking-tight line-through opacity-70" style="color: #1e293b;">${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}</p>
+                                    <p class="text-base sm:text-lg font-extrabold mb-1.5 leading-tight tracking-tight line-through opacity-70" style="color: #1e293b;">${escapeHtml(t.cliente_nombre || (t.nombre + ' ' + (t.apellido || '')))}</p>
                                     <div class="p-2 rounded-xl" style="background-color: #f8fafc;">
-                                        <p class="text-xs font-semibold flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[16px] opacity-70">spa</span> <span class="break-words">${t.servicio}</span></p>
+                                        <p class="text-xs font-semibold flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[16px] opacity-70">spa</span> <span class="break-words">${escapeHtml(t.servicio || '')}</span></p>
                                     </div>
                                 </div>
                             </div>
@@ -785,7 +788,7 @@ window.enviarAvisoConfirmacion = function(id, customTurno = null) {
     const clientName = (t.cliente_nombre || (t.nombre + ' ' + (t.apellido || '')) || 'Cliente').trim();
     const bizName = (window.businessWebConfig && (window.businessWebConfig.nombre_fantasia || window.businessWebConfig.nombre_negocio)) || 'nuestro local';
     
-    const msg = `¡Hola ${clientName}! 👋 Te confirmamos que tu turno para *${t.servicio}* quedó confirmado con éxito para el día *${fechaFormat}* a las *${t.hora} hs* en ${bizName}. ¡Te esperamos!`;
+    const msg = `¡Hola ${clientName}! 👋 Te confirmamos que tu turno para *${escapeHtml(t.servicio || '')}* quedó confirmado con éxito para el día *${fechaFormat}* a las *${t.hora} hs* en ${bizName}. ¡Te esperamos!`;
     
     window.open(`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`, '_blank');
 };
@@ -980,7 +983,7 @@ function renderPapeleraModalList(list) {
                     <h4 class="font-bold text-slate-900 text-sm sm:text-base line-through opacity-80">${clienteName}</h4>
                     <p class="text-[11px] text-slate-500 font-medium mt-0.5 flex flex-wrap items-center gap-2">
                         <span>📅 ${t.fecha} • ${t.hora} hs</span>
-                        <span>✂️ ${t.servicio}</span>
+                        <span>✂️ ${escapeHtml(t.servicio || '')}</span>
                         ${celular ? `<span>📱 ${celular}</span>` : ''}
                     </p>
                 </div>

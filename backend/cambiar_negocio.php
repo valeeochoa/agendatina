@@ -6,10 +6,10 @@ require_once __DIR__ . '/conexion.php';
 $inputData = json_decode(file_get_contents('php://input'), true) ?: $_POST;
 $id_negocio = (int)($inputData['id_negocio'] ?? 0);
 
-$user_id = $_SESSION['user_id'] ?? $_SESSION['pending_user_id'] ?? (int)($inputData['user_id'] ?? 0);
+$user_id = $_SESSION['user_id'] ?? $_SESSION['pending_user_id'] ?? null;
 
 if (!$user_id || !$id_negocio) {
-    http_response_code(400);
+    http_response_code(401);
     echo json_encode(['success' => false, 'error' => 'Sesión o ID de negocio no válido.']);
     exit;
 }
