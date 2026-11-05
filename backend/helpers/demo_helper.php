@@ -14,6 +14,9 @@ if (!function_exists('asegurarDatosDemo')) {
             try { $pdo->query("SELECT precios_paquetes_json FROM servicios LIMIT 1"); } 
             catch(Throwable $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN precios_paquetes_json LONGTEXT DEFAULT NULL"); }
 
+            try { $pdo->query("SELECT color FROM servicios LIMIT 1"); } 
+            catch(Throwable $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN color VARCHAR(30) DEFAULT '#d11149'"); }
+
             try { $pdo->query("SELECT asistio FROM turnos LIMIT 1"); } 
             catch(Throwable $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN asistio TINYINT DEFAULT 0"); }
 
@@ -42,6 +45,15 @@ if (!function_exists('asegurarDatosDemo')) {
             $horariosJson = json_encode($defaultHorarios, JSON_UNESCAPED_UNICODE);
 
             // 1. Asegurar la existencia de servicios de prueba (incluyendo clases con cupos)
+            // 1. Asignar colores por defecto si hay servicios en la demo que aún no lo tienen configurado
+            try {
+                $pdo->prepare("UPDATE servicios SET color = '#d11149' WHERE id_negocio = ? AND (color IS NULL OR color = '' OR color = '#d11149') AND nombre_servicio LIKE '%Pilates%'")->execute([$negocioId]);
+                $pdo->prepare("UPDATE servicios SET color = '#0d9488' WHERE id_negocio = ? AND (color IS NULL OR color = '' OR color = '#d11149') AND nombre_servicio LIKE '%Yoga%'")->execute([$negocioId]);
+                $pdo->prepare("UPDATE servicios SET color = '#4f46e5' WHERE id_negocio = ? AND (color IS NULL OR color = '' OR color = '#d11149') AND nombre_servicio LIKE '%Funcional%'")->execute([$negocioId]);
+                $pdo->prepare("UPDATE servicios SET color = '#d97706' WHERE id_negocio = ? AND (color IS NULL OR color = '' OR color = '#d11149') AND nombre_servicio LIKE '%Masaje%'")->execute([$negocioId]);
+                $pdo->prepare("UPDATE servicios SET color = '#9333ea' WHERE id_negocio = ? AND (color IS NULL OR color = '' OR color = '#d11149') AND nombre_servicio LIKE '%Facial%'")->execute([$negocioId]);
+            } catch(Throwable $eColUp) {}
+
             $stmtServ = $pdo->prepare("SELECT id, nombre_servicio, tipo_servicio, cupo_maximo FROM servicios WHERE id_negocio = ?");
             $stmtServ->execute([$negocioId]);
             $servs = $stmtServ->fetchAll(PDO::FETCH_ASSOC);
@@ -87,12 +99,12 @@ if (!function_exists('asegurarDatosDemo')) {
                 $paqueteFuncional = json_encode([['pases' => 4, 'precio' => 22000, 'nombre' => 'Pase 4 Clases'], ['pases' => 8, 'precio' => 38000, 'nombre' => 'Pase 8 Clases']], JSON_UNESCAPED_UNICODE);
 
                 $stmtInsServ = $pdo->prepare("
-                    INSERT INTO servicios (id_negocio, nombre_servicio, duracion_minutos, precio, descripcion, profesional, icono, tipo_servicio, cupo_maximo, capacidad, precios_paquetes_json) VALUES 
-                    (?, 'Pilates Reformer', 50, 6000, 'Clases grupales en cama Reformer para tonificación muscular y postura.', 'Valentina Ochoa', 'sports_gymnastics', 'alumnos', 8, 8, ?),
-                    (?, 'Yoga Dinámico & Flow', 60, 5000, 'Secuencias fluidas de Vinyasa Yoga para fuerza, flexibilidad y respiración.', 'Camila Benítez', 'self_improvement', 'alumnos', 10, 10, ?),
-                    (?, 'Entrenamiento Funcional', 45, 5500, 'Circuito de alta intensidad para quemar calorías y acondicionamiento general.', 'Marcos Gómez', 'fitness_center', 'alumnos', 12, 12, ?),
-                    (?, 'Masaje Relajante & Descontracturante', 60, 15000, 'Sesión individual de masajes con aceites esenciales.', 'Valentina Ochoa', 'spa', 'calendario', 1, 1, NULL),
-                    (?, 'Limpieza Facial Profunda', 45, 12000, 'Higiene facial con punta de diamante y productos premium.', 'Camila Benítez', 'face_retouching_natural', 'calendario', 1, 1, NULL)
+                    INSERT INTO servicios (id_negocio, nombre_servicio, duracion_minutos, precio, descripcion, profesional, icono, color, tipo_servicio, cupo_maximo, capacidad, precios_paquetes_json) VALUES 
+                    (?, 'Pilates Reformer', 50, 6000, 'Clases grupales en cama Reformer para tonificación muscular y postura.', 'Valentina Ochoa', 'sports_gymnastics', '#d11149', 'alumnos', 8, 8, ?),
+                    (?, 'Yoga Dinámico & Flow', 60, 5000, 'Secuencias fluidas de Vinyasa Yoga para fuerza, flexibilidad y respiración.', 'Camila Benítez', 'self_improvement', '#0d9488', 'alumnos', 10, 10, ?),
+                    (?, 'Entrenamiento Funcional', 45, 5500, 'Circuito de alta intensidad para quemar calorías y acondicionamiento general.', 'Marcos Gómez', 'fitness_center', '#4f46e5', 'alumnos', 12, 12, ?),
+                    (?, 'Masaje Relajante & Descontracturante', 60, 15000, 'Sesión individual de masajes con aceites esenciales.', 'Valentina Ochoa', 'spa', '#d97706', 'calendario', 1, 1, NULL),
+                    (?, 'Limpieza Facial Profunda', 45, 12000, 'Higiene facial con punta de diamante y productos premium.', 'Camila Benítez', 'face_retouching_natural', '#9333ea', 'calendario', 1, 1, NULL)
                 ");
                 $stmtInsServ->execute([
                     $negocioId, $paquetePilates,
