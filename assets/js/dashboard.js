@@ -254,17 +254,19 @@ let isAutoScrolling = false;
 const legacyTourSteps = [
     { target: 'cardCalendario', title: '1. Gestionar Calendario', text: 'Define tus días de atención, franjas horarias de apertura/cierre, descansos y modalidad de turnos.', position: 'right' },
     { target: 'cardAgenda', title: '2. Mi Agenda Virtual', text: 'Administra y confirma turnos en tiempo real, filtra por cliente o servicio e interactúa con el historial y papelera.', position: 'right' },
-    { target: 'cardWeb', title: '3. Mi Página Web', text: 'Personaliza la página pública que verán tus clientes al reservar. Sube fotos, logotipo y ajusta tus colores.', position: 'left' },
-    { target: 'cardServicios', title: '4. Servicios', text: 'Carga todos los servicios de tu negocio, sus precios, duraciones en horas/minutos y profesionales asociados.', position: 'right' },
-    { target: 'cardEquipo', title: '5. Equipo de Trabajo', text: 'Gestiona los profesionales de tu equipo, asigna servicios y administra cuentas de acceso.', position: 'right' },
-    { target: 'cardEstadisticas', title: '6. Estadísticas', text: 'Visualiza el rendimiento de tu negocio, volumen de reservas e ingresos generados.', position: 'left' },
-    { target: 'cardAjustes', title: '7. Ajustes', text: 'Configura colores de marca, modalidad de intervalo (por servicio o fija) y notificaciones por correo.', position: 'right' },
-    { target: 'cardManual', title: '8. Manual de Uso', text: 'Guía interactiva completa con explicaciones paso a paso de cada módulo y alcance por plan.', position: 'left' },
-    { target: 'cardFaq', title: '9. Consultas Frecuentes', text: 'Accede a preguntas frecuentes y respuestas rápidas sobre la plataforma.', position: 'left' },
-    { target: 'cardMejora', title: '10. Sugerencias y Mejoras', text: 'Envía comentarios o sugerencias directamente a nuestro equipo de desarrollo.', position: 'top' },
-    { target: 'navAvatar', title: '11. Mi Perfil', text: 'Haz clic en tu perfil para configurar tus datos de usuario, ver estadísticas rápidas y cambiar tu contraseña.', position: 'bottom' },
-    { target: 'navNotifBtn', title: '12. Notificaciones 🔔', text: 'Consulta en tiempo real las notificaciones de nuevas reservas, cancelaciones o cambios en tus turnos.', position: 'bottom' },
-    { target: 'navLogoutBtn', title: '13. Cerrar Sesión 🚪', text: 'Haz clic aquí para salir de tu cuenta de forma segura al finalizar tus tareas.', position: 'bottom' }
+    { target: 'cardClientes', title: '3. Gestión de Alumnos', text: 'Registra a tus alumnos, asigna paquetes o pases de clases y controla en tiempo real sus créditos disponibles, vencimientos y asistencias.', position: 'right' },
+    { target: 'cardClientes', title: '4. Clases con Cupos y Grilla Semanal', text: 'Configura clases grupales con horarios semanales y límite máximo de cupos por clase (a diferencia de los turnos 1 a 1), controlando inscriptos y asistencia en vivo.', position: 'right' },
+    { target: 'cardWeb', title: '5. Mi Página Web', text: 'Personaliza la página pública que verán tus clientes al reservar. Sube fotos, logotipo y ajusta tus colores.', position: 'left' },
+    { target: 'cardServicios', title: '6. Servicios', text: 'Carga todos los servicios de tu negocio, sus precios, duraciones en horas/minutos, cupos máximos y profesionales asociados.', position: 'right' },
+    { target: 'cardEquipo', title: '7. Equipo de Trabajo', text: 'Gestiona los profesionales de tu equipo, asigna servicios y administra cuentas de acceso.', position: 'right' },
+    { target: 'cardEstadisticas', title: '8. Estadísticas', text: 'Visualiza el rendimiento de tu negocio, volumen de reservas e ingresos generados.', position: 'left' },
+    { target: 'cardAjustes', title: '9. Ajustes', text: 'Configura colores de marca, modalidad de intervalo (por servicio o fija) y notificaciones por correo.', position: 'right' },
+    { target: 'cardManual', title: '10. Manual de Uso', text: 'Guía interactiva completa con explicaciones paso a paso de cada módulo y alcance por plan.', position: 'left' },
+    { target: 'cardFaq', title: '11. Consultas Frecuentes', text: 'Accede a preguntas frecuentes y respuestas rápidas sobre la plataforma.', position: 'left' },
+    { target: 'cardMejora', title: '12. Sugerencias y Mejoras', text: 'Envía comentarios o sugerencias directamente a nuestro equipo de desarrollo.', position: 'top' },
+    { target: 'navAvatar', title: '13. Mi Perfil', text: 'Haz clic en tu perfil para configurar tus datos de usuario, ver estadísticas rápidas y cambiar tu contraseña.', position: 'bottom' },
+    { target: 'navNotifBtn', title: '14. Notificaciones 🔔', text: 'Consulta en tiempo real las notificaciones de nuevas reservas, cancelaciones o cambios en tus turnos.', position: 'bottom' },
+    { target: 'navLogoutBtn', title: '15. Cerrar Sesión 🚪', text: 'Haz clic aquí para salir de tu cuenta de forma segura al finalizar tus tareas.', position: 'bottom' }
 ];
 
 window.markOnboardingStepComplete = function(stepNumber, isCompleted) {

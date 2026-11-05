@@ -90,78 +90,7 @@ try {
     // Vincular usuario como administrador del negocio demo
     $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'admin')")->execute([$negocioId, $userId]);
 
-    // Recrear Servicios por defecto en este entorno
-    $pdo->prepare("INSERT INTO servicios (id_negocio, nombre_servicio, duracion_minutos, precio, descripcion, profesional, icono) VALUES 
-        (?, 'Corte de Demostración', 30, 8000, 'Servicio de prueba para corte y estilismo.', 'Valentina', 'content_cut'),
-        (?, 'Masaje Relajante', 60, 15000, 'Relájate con nuestros masajes de prueba.', 'Valentina', 'spa'),
-        (?, 'Limpieza Facial Profunda', 45, 12000, 'Cuidado de la piel con productos premium.', 'Camila', 'face_retouching_natural'),
-        (?, 'Manicura Semipermanente', 40, 9000, 'Diseños exclusivos y larga duración.', 'Sofía', 'brush'),
-        (?, 'Perfilado de Cejas', 20, 5000, 'Dale forma y estilo a tu mirada.', 'Marcos', 'visibility')")->execute([$negocioId, $negocioId, $negocioId, $negocioId, $negocioId]);
-
-    // Recrear integrantes del equipo (Profesionales Demo)
-    $profsDemo = [
-        ['nombre' => 'Valentina Ochoa', 'email' => 'valentina_' . $token . '@agendatina.site'],
-        ['nombre' => 'Camila Benítez', 'email' => 'camila_' . $token . '@agendatina.site'],
-        ['nombre' => 'Sofía Pérez', 'email' => 'sofia_' . $token . '@agendatina.site'],
-        ['nombre' => 'Marcos Gómez', 'email' => 'marcos_' . $token . '@agendatina.site']
-    ];
-
-    foreach ($profsDemo as $pDemo) {
-        try {
-            $hashP = password_hash('demo1234', PASSWORD_DEFAULT);
-            $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, role) VALUES (?, ?, ?, 'profesional')")->execute([$pDemo['nombre'], $pDemo['email'], $hashP]);
-            $pId = $pdo->lastInsertId();
-            $pdo->prepare("INSERT INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, 'profesional')")->execute([$negocioId, $pId]);
-        } catch (Exception $eP) {}
-    }
-
-    // Obtener IDs de servicios para turnos de muestra
-    $stmtServ = $pdo->prepare("SELECT id FROM servicios WHERE id_negocio = ?");
-    $stmtServ->execute([$negocioId]);
-    $servs = $stmtServ->fetchAll();
-    $idServ1 = $servs[0]['id'] ?? null;
-    $idServ2 = $servs[1]['id'] ?? null;
-    $idServ3 = $servs[2]['id'] ?? null;
-    $idServ4 = $servs[3]['id'] ?? null;
-    $idServ5 = $servs[4]['id'] ?? null;
-
-    // Cargar turnos iniciales de prueba
-    $t_hoy = date('Y-m-d');
-    $t_m1 = date('Y-m-d', strtotime('+1 day'));
-    $t_m2 = date('Y-m-d', strtotime('+2 days'));
-    $t_m3 = date('Y-m-d', strtotime('+3 days'));
-    $t_m4 = date('Y-m-d', strtotime('+4 days'));
-    $t_p1 = date('Y-m-d', strtotime('-1 day'));
-    $t_p3 = date('Y-m-d', strtotime('-3 days'));
-    $t_p5 = date('Y-m-d', strtotime('-5 days'));
-
-    $pdo->prepare("INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, estado, asistio, precio) VALUES 
-        (?, 'María Gómez', '1123456789', ?, '10:00', 'Corte de Demostración', 'Valentina', ?, 'confirmado', 0, 8000),
-        (?, 'Juan Pérez', '1198765432', ?, '11:30', 'Masaje Relajante', 'Valentina', ?, 'confirmado', 0, 15000),
-        (?, 'Ana Martínez', '1155443322', ?, '16:00', 'Manicura Semipermanente', 'Sofía', ?, 'pendiente', 0, 9000),
-        (?, 'Laura Díaz', '1166667777', ?, '09:30', 'Limpieza Facial Profunda', 'Camila', ?, 'confirmado', 0, 12000),
-        (?, 'Carlos Sánchez', '1133334444', ?, '15:00', 'Perfilado de Cejas', 'Marcos', ?, 'confirmado', 0, 5000),
-        (?, 'Lucía Fernández', '1144332211', ?, '10:00', 'Masaje Relajante', 'Valentina', ?, 'confirmado', 1, 15000),
-        (?, 'Diego Romero', '1155667788', ?, '14:30', 'Corte de Demostración', 'Valentina', ?, 'confirmado', 1, 8000)
-    ")->execute([
-        $negocioId, $t_m1, $idServ1,
-        $negocioId, $t_m1, $idServ2,
-        $negocioId, $t_hoy, $idServ4,
-        $negocioId, $t_m1, $idServ3,
-        $negocioId, $t_m1, $idServ5,
-        $negocioId, $t_p1, $idServ2,
-        $negocioId, $t_p3, $idServ1
-    ]);
-
-    // Cargar alumnos iniciales de prueba (Clientes / Alumnos con pases)
-    try {
-        $pdo->prepare("INSERT INTO clientes_negocio (id_negocio, nombre_completo, email, telefono, pases_disponibles, pases_totales, fecha_vencimiento, notas, estado) VALUES 
-            (?, 'María García', 'maria.demo@agendatina.site', '11 2345 6789', 6, 8, DATE_ADD(CURRENT_DATE, INTERVAL 15 DAY), 'Alumna de Pilates nivel intermedio.', 'activo'),
-            (?, 'Lucas Fernández', 'lucas.demo@agendatina.site', '11 9876 5432', 12, 12, DATE_ADD(CURRENT_DATE, INTERVAL 30 DAY), 'Abonó pase libre mensual.', 'activo'),
-            (?, 'Ana Martínez', 'ana.demo@agendatina.site', '11 5555 4444', 0, 8, DATE_ADD(CURRENT_DATE, INTERVAL 5 DAY), 'Sin clases disponibles. Recargar pase.', 'activo')
-        ")->execute([$negocioId, $negocioId, $negocioId]);
-    } catch(Throwable $eCliDemo) {}
-
+    // Inicializar Servicios, Clases con Cupos, Alumnos y Turnos mediante demo_helper
     require_once __DIR__ . '/backend/helpers/demo_helper.php';
     asegurarDatosDemo($pdo, $negocioId);
 

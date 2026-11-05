@@ -55,16 +55,40 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN servic
 
 
 
-if (!isset($_SESSION['id_negocio'])) {
+$id_negocio = $_SESSION['id_negocio'] ?? null;
+$ruta_param = trim($_GET['n'] ?? $_POST['n'] ?? '');
+$negRow = null;
+
+// Resolver id_negocio si viene por ruta amigable (ej: ?n=demo) o por parámetro
+if (!empty($ruta_param)) {
+    try {
+        $stmtRuta = $pdo->prepare("SELECT id, plan, ruta, nombre_fantasia FROM negocios WHERE LOWER(TRIM(ruta)) = LOWER(TRIM(:ruta)) LIMIT 1");
+        $stmtRuta->execute(['ruta' => $ruta_param]);
+        $negRow = $stmtRuta->fetch(PDO::FETCH_ASSOC);
+        if ($negRow) {
+            $id_negocio = (int)$negRow['id'];
+        }
+    } catch (Exception $eR) {}
+}
+
+if (!$id_negocio && !empty($_GET['id_negocio'])) {
+    $id_negocio = (int)$_GET['id_negocio'];
+}
+
+if (!$id_negocio) {
     http_response_code(403);
     echo json_encode(['success' => false, 'error' => 'No autorizado. Inicia sesión.']);
     exit;
 }
 
-$id_negocio = $_SESSION['id_negocio'];
 $method = $_SERVER['REQUEST_METHOD'];
 
-if (isset($_SESSION['is_demo']) && $_SESSION['is_demo']) {
+// Detectar si es entorno demo
+$is_demo = (isset($_SESSION['is_demo']) && $_SESSION['is_demo']) 
+        || (isset($negRow['ruta']) && strpos(strtolower($negRow['ruta']), 'demo') !== false)
+        || (!empty($_SESSION['nombre_completo']) && strpos(strtolower($_SESSION['nombre_completo']), 'demo') !== false);
+
+if ($is_demo) {
     require_once __DIR__ . '/helpers/demo_helper.php';
     if (function_exists('asegurarDatosDemo')) {
         asegurarDatosDemo($pdo, $id_negocio);

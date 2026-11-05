@@ -25,7 +25,7 @@ ServerSignature Off
 </IfModule>
 
 # 4. Bloqueo de archivos sensibles
-<FilesMatch "(?i)^(\.env|\.git.*|schema\.sql|init_db\.php|migrar\.php|web_data\.json|composer\.(json|lock)|package\.(json|lock)|conexion\.php|admin_auth\.php|crear_usuario\.php|demo_reset\.txt)$">
+<FilesMatch "(?i)^(\.env|\.git.*|schema\.sql|init_db\.php|migrar\.php|web_data\.json|composer\.(json|lock)|package\.(json|lock)|conexion\.php|crear_usuario\.php|demo_reset\.txt)$">
     Require all denied
 </FilesMatch>
 

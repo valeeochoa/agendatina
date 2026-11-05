@@ -1193,7 +1193,12 @@ function cargarClasesSemana() {
         labelRango.textContent = `Semana del ${opLunes} al ${opDomingo}`;
     }
 
-    fetch(`backend/gestionar_clientes.php?action=clases_semana&fecha_inicio=${fInicio}&fecha_fin=${fFin}`)
+    const urlParams = new URLSearchParams(window.location.search);
+    const rutaFromUrl = urlParams.get('n') || '';
+    const rutaFinal = negocioRutaUnica || rutaFromUrl || '';
+    const nParam = rutaFinal ? `&n=${encodeURIComponent(rutaFinal)}` : '';
+
+    fetch(`backend/gestionar_clientes.php?action=clases_semana&fecha_inicio=${fInicio}&fecha_fin=${fFin}${nParam}`)
         .then(res => res.json())
         .then(data => {
             if (data.success) {
