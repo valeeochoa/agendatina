@@ -174,9 +174,48 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
         }
     }
 
-    let pendientes = data.filter(t => t.estado === 'pendiente');
-    let confirmados = data.filter(t => t.estado === 'confirmado');
-    let eliminados = data.filter(t => t.estado === 'eliminado' || t.estado === 'cancelado');
+    // La Agenda Virtual gestiona exclusivamente turnos individuales clásicos.
+    // Las clases grupales con cupos se gestionan exclusivamente en el módulo Clases y Cupos (clientes.html).
+    const tieneClasesEnNegocio = Array.isArray(data) && data.some(esTurnoDeClase);
+    const turnosClasicos = Array.isArray(data) ? data.filter(t => !esTurnoDeClase(t)) : [];
+
+    // Mostrar banner informativo si el establecimiento tiene clases con cupos
+    let bannerClases = document.getElementById('bannerAvisoClasesAgenda');
+    if (!bannerClases) {
+        const mainContainer = document.querySelector('.max-w-7xl');
+        if (mainContainer) {
+            bannerClases = document.createElement('div');
+            bannerClases.id = 'bannerAvisoClasesAgenda';
+            mainContainer.insertBefore(bannerClases, mainContainer.children[1] || mainContainer.firstChild);
+        }
+    }
+    if (bannerClases) {
+        if (tieneClasesEnNegocio) {
+            bannerClases.className = 'mb-6 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200/90 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs';
+            bannerClases.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold shrink-0">
+                        <span class="material-symbols-outlined text-[22px]">calendar_view_week</span>
+                    </div>
+                    <div>
+                        <p class="text-xs sm:text-sm font-black text-slate-800">Tenés clases con cupos y alumnos inscriptos</p>
+                        <p class="text-[11px] text-slate-500">Para ver las grillas semanales por servicio, ocupación y tomar asistencia, ingresá a Clases y Cupos.</p>
+                    </div>
+                </div>
+                <a href="clientes.html" class="px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 shrink-0 self-start sm:self-center cursor-pointer">
+                    <span>Ir a Clases y Cupos</span>
+                    <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </a>
+            `;
+        } else {
+            bannerClases.className = 'hidden';
+            bannerClases.innerHTML = '';
+        }
+    }
+
+    let pendientes = turnosClasicos.filter(t => t.estado === 'pendiente');
+    let confirmados = turnosClasicos.filter(t => t.estado === 'confirmado');
+    let eliminados = turnosClasicos.filter(t => t.estado === 'eliminado' || t.estado === 'cancelado');
     
     if (searchTerm || profTerm) {
         const term = (searchTerm || '').toLowerCase();
@@ -376,175 +415,46 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                         </h3>
                         <div class="space-y-3">
                 `;
-                
-                // Agrupar los turnos del día por horario, servicio y profesional para visualizar clases con múltiples alumnos
-                const slotsDelDia = {};
+
+                // Renderizar cada turno clásico individualmente de manera limpia
                 gruposConf[fecha].forEach(t => {
-                    const servKey = (t.id_servicio && parseInt(t.id_servicio) > 0) ? ('s_' + t.id_servicio) : (t.servicio || '').trim().toLowerCase();
-                    const horaKey = (t.hora || '').substring(0, 5);
-                    const profKey = (t.profesional || 'c').trim().toLowerCase();
-                    const slotId = 'slot_' + fecha.replace(/-/g, '') + '_' + servKey.replace(/[^a-zA-Z0-9_]/g, '') + '_' + horaKey.replace(':', '') + '_' + profKey.replace(/[^a-zA-Z0-9_]/g, '');
+                    const tIcon = window.getAgendaServiceIcon(t);
+                    const isAttended = parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio';
+                    const asistBtn = isAttended
+                        ? `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 0)" class="text-xs font-extrabold px-3 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all flex items-center gap-1 shadow-xs" title="Asistencia confirmada. Click para desmarcar"><span class="material-symbols-outlined text-[15px]">check_circle</span> Asistió</button>`
+                        : `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 1)" class="text-xs font-extrabold px-3 py-1 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcar si asistió al turno"><span class="material-symbols-outlined text-[15px]">how_to_reg</span> ¿Asistió?</button>`;
 
-                    if (!slotsDelDia[slotId]) {
-                        // Buscar cupo_maximo del servicio
-                        let cupoMax = parseInt(t.cupo_maximo || 0);
-                        if ((!cupoMax || cupoMax <= 0) && window.services && Array.isArray(window.services)) {
-                            const foundS = window.services.find(s => s.id == t.id_servicio || (s.nombre && s.nombre.trim().toLowerCase() === (t.servicio || '').trim().toLowerCase()));
-                            if (foundS) cupoMax = parseInt(foundS.cupo_maximo || foundS.capacidad || 10);
-                        }
-                        if (!cupoMax || cupoMax <= 0) cupoMax = 10;
-
-                        slotsDelDia[slotId] = {
-                            id: slotId,
-                            fecha: fecha,
-                            formatFecha: formatFecha,
-                            servicio: t.servicio,
-                            hora: horaKey,
-                            profesional: t.profesional,
-                            cupo_maximo: cupoMax,
-                            icono: window.getAgendaServiceIcon(t),
-                            imagen: t.servicio_imagen || '',
-                            turnos: []
-                        };
-                    }
-                    slotsDelDia[slotId].turnos.push(t);
-                });
-
-                // Guardar slots globalmente para uso en modalDetalleClase
-                if (!window.agendaSlotsMap) window.agendaSlotsMap = {};
-
-                Object.values(slotsDelDia).forEach(slot => {
-                    window.agendaSlotsMap[slot.id] = slot;
-                    const totalAlumnos = slot.turnos.length;
-                    const cupoMax = slot.cupo_maximo || 10;
-                    const cupoRatio = `${totalAlumnos}/${cupoMax}`;
-                    const pctOcupado = Math.min(100, Math.round((totalAlumnos / cupoMax) * 100));
-                    const isFull = totalAlumnos >= cupoMax;
-
-                    if (slot.turnos.length > 1 || slot.turnos[0].metodo_pago === 'Pase de Alumno') {
-                        // TARJETA DE CLASE (Grupal o con reserva de pase)
-                        // Mostrar los últimos 3 inscriptos
-                        const ultimos3 = [...slot.turnos].slice(-3);
-                        const restantes = totalAlumnos - ultimos3.length;
-
-                        let alumnosHtml = ultimos3.map(t => {
-                            const isAttended = parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio';
-                            const asistBtn = isAttended
-                                ? `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 0)" class="text-xs font-extrabold px-2.5 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all flex items-center gap-1 shrink-0" title="Asistencia confirmada. Click para desmarcar"><span class="material-symbols-outlined text-[14px]">check_circle</span> Asistió</button>`
-                                : `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 1)" class="text-xs font-extrabold px-2.5 py-1 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shrink-0" title="Marcar si asistió al turno"><span class="material-symbols-outlined text-[14px]">how_to_reg</span> ¿Asistió?</button>`;
-                            
-                            const alumnoNombre = t.cliente_nombre || (t.nombre + ' ' + (t.apellido || '')) || 'Alumno';
-                            const alumnoTel = t.cliente_celular || t.celular || '';
-
-                            return `
-                                <div id="turno-${t.id}" class="p-2.5 bg-slate-50/90 border border-slate-200/80 rounded-xl flex items-center justify-between gap-2 hover:bg-white hover:shadow-xs transition-all">
-                                    <div class="flex items-center gap-2.5 min-w-0">
-                                        <div class="w-7 h-7 rounded-full bg-purple-100 text-purple-700 font-black text-xs flex items-center justify-center shrink-0">
-                                            ${alumnoNombre.charAt(0).toUpperCase()}
-                                        </div>
-                                        <div class="min-w-0">
-                                            <span class="text-xs font-black text-slate-800 truncate block">${alumnoNombre}</span>
-                                            <span class="text-[10px] text-slate-500 flex items-center gap-1.5">
-                                                ${alumnoTel ? `<span>📱 ${alumnoTel}</span>` : ''}
-                                                ${t.metodo_pago ? `<span class="bg-purple-100 text-purple-700 font-bold px-1.5 py-0.2 rounded">${t.metodo_pago}</span>` : ''}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-1 shrink-0">
-                                        ${asistBtn}
-                                        <button onclick="event.stopPropagation(); window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1 rounded-lg border border-emerald-200 transition-colors" title="WhatsApp"><span class="material-symbols-outlined text-[15px]">chat</span></button>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('');
-
-                        htmlDia += `
-                            <div id="slotcard-${slot.id}" onclick="window.openClassDetailModal('${slot.id}')" class="bg-white border-2 border-purple-200 hover:border-purple-400 shadow-sm rounded-2xl p-4 sm:p-5 hover:shadow-xl cursor-pointer transition-all relative overflow-hidden space-y-3 mb-4 group">
-                                <div class="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-purple-500 to-indigo-600"></div>
-                                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs font-black px-3 py-1 rounded-xl bg-purple-100 text-purple-900 border border-purple-200 flex items-center gap-1">
-                                            <span class="material-symbols-outlined text-[15px]">schedule</span> ${slot.hora} hs
-                                        </span>
-                                        <!-- BADGE DE CANTIDAD RESERVADA X/Y -->
-                                        <span class="text-xs font-black px-3 py-1 rounded-xl flex items-center gap-1.5 shadow-2xs ${isFull ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'}">
-                                            <span class="material-symbols-outlined text-[15px]">groups</span>
-                                            <span>${cupoRatio} ${isFull ? 'Completo' : 'Inscriptos'}</span>
-                                        </span>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        ${slot.profesional && slot.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">person</span> ${slot.profesional}</span>` : ''}
-                                        <span class="text-primary group-hover:translate-x-0.5 transition-transform material-symbols-outlined text-[20px]" title="Ver detalles y todos los inscriptos">open_in_new</span>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h4 class="font-black text-slate-900 text-base sm:text-lg flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-primary text-[20px]">${slot.icono || 'event_available'}</span>
-                                        <span>${slot.servicio}</span>
-                                    </h4>
-                                    <p class="text-[11px] font-bold text-slate-400 mt-0.5 flex items-center justify-between">
-                                        <span>Últimos registrados (${ultimos3.length} de ${totalAlumnos})</span>
-                                        <span class="text-primary font-extrabold text-[11px] group-hover:underline">Click para ver todos</span>
-                                    </p>
-                                </div>
-                                <!-- CONTENEDOR CON BARRA DESPLAZADORA -->
-                                <div class="max-h-48 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                                    ${alumnosHtml}
-                                </div>
-                                ${restantes > 0 ? `
-                                    <div class="pt-1 text-center">
-                                        <span class="text-xs font-black text-purple-700 bg-purple-50 border border-purple-200/80 px-3 py-1 rounded-xl inline-flex items-center gap-1">
-                                            <span class="material-symbols-outlined text-[14px]">more_horiz</span> +${restantes} alumno(s) más inscripto(s) en esta clase
-                                        </span>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        `;
-                    } else {
-                        // TARJETA DE TURNO INDIVIDUAL (1 alumno con turno simple)
-                        const t = slot.turnos[0];
-                        const tIcon = window.getAgendaServiceIcon(t);
-                        const isAttended = parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio';
-                        const asistBtn = isAttended
-                            ? `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 0)" class="text-xs font-extrabold px-3 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all flex items-center gap-1 shadow-xs" title="Asistencia confirmada. Click para desmarcar"><span class="material-symbols-outlined text-[15px]">check_circle</span> Asistió</button>`
-                            : `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 1)" class="text-xs font-extrabold px-3 py-1 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcar si asistió al turno"><span class="material-symbols-outlined text-[15px]">how_to_reg</span> ¿Asistió?</button>`;
-
-                        htmlDia += `
-                            <div id="turno-${t.id}" onclick="if(!event.target.closest('button')) window.openClassDetailModal('${slot.id}')" class="shadow-sm rounded-2xl p-5 hover:shadow-lg cursor-pointer transition-shadow relative overflow-hidden" style="background-color: #ffffff; border: 1px solid #e2e8f0;">
-                                <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
-                                <div class="flex justify-between items-start mb-3">
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wider" style="background-color: #eff6ff; color: #1d4ed8;">${t.hora} hs</span>
-                                        <span class="text-xs font-bold px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200">1/${cupoMax} cupos</span>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        ${asistBtn}
-                                        ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1" style="background-color: #f1f5f9; color: #475569;"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
-                                    </div>
-                                </div>
-                                <p class="text-lg font-bold mb-1" style="color: #1e293b;">${escapeHtml(t.cliente_nombre || (t.nombre + ' ' + (t.apellido || '')))}</p>
-                                <div class="flex items-center gap-3 mb-4">
-                                    <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: #475569; background-color: #f8fafc; border-color: #e2e8f0;"><span class="material-symbols-outlined text-[16px]">call</span> ${escapeHtml(t.cliente_celular || t.celular || '')}</p>
-                                    <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
-                                </div>
-                                ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
-                                <p class="text-sm mb-5 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">${tIcon}</span> <span class="font-medium">${escapeHtml(t.servicio || '')}</span></p>
-                                <div class="flex items-center gap-3 pt-4 border-t" style="border-color: #e2e8f0;">
-                                    <button onclick="window.enviarAvisoConfirmacion('${t.id}')" class="text-xs sm:text-sm font-bold py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 border bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100 shadow-2xs cursor-pointer" title="Avisar al cliente que su turno está confirmado">
-                                        <span class="material-symbols-outlined text-[17px] text-emerald-600">mark_chat_read</span> Avisar
-                                    </button>
-                                    <button onclick="window.recordatorioWhatsApp('${t.id}')" class="flex-1 text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 border" style="background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;" title="Enviar recordatorio">
-                                        <span class="material-symbols-outlined text-[18px]">notifications_active</span> Recordar
-                                    </button>
-                                    <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-sm font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center border border-red-100" title="Eliminar turno">
-                                        <span class="material-symbols-outlined text-[18px]">delete</span>
-                                    </button>
+                    htmlDia += `
+                        <div id="turno-${t.id}" onclick="if(!event.target.closest('button')) window.openEditTurnoModal('${t.id}')" class="shadow-sm rounded-2xl p-5 hover:shadow-lg cursor-pointer transition-shadow relative overflow-hidden" style="background-color: #ffffff; border: 1px solid #e2e8f0;">
+                            <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
+                            <div class="flex justify-between items-start mb-3">
+                                <span class="text-xs font-bold px-3 py-1 rounded-lg uppercase tracking-wider" style="background-color: #eff6ff; color: #1d4ed8;">${t.hora} hs</span>
+                                <div class="flex items-center gap-2">
+                                    ${asistBtn}
+                                    ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1" style="background-color: #f1f5f9; color: #475569;"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
                                 </div>
                             </div>
-                        `;
-                    }
+                            <p class="text-lg font-bold mb-1" style="color: #1e293b;">${escapeHtml(t.cliente_nombre || (t.nombre + ' ' + (t.apellido || '')))}</p>
+                            <div class="flex items-center gap-3 mb-4">
+                                <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: #475569; background-color: #f8fafc; border-color: #e2e8f0;"><span class="material-symbols-outlined text-[16px]">call</span> ${escapeHtml(t.cliente_celular || t.celular || '')}</p>
+                                <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
+                            </div>
+                            ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
+                            <p class="text-sm mb-5 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">${tIcon}</span> <span class="font-medium">${escapeHtml(t.servicio || '')}</span></p>
+                            <div class="flex items-center gap-3 pt-4 border-t" style="border-color: #e2e8f0;">
+                                <button onclick="window.enviarAvisoConfirmacion('${t.id}')" class="text-xs sm:text-sm font-bold py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 border bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100 shadow-2xs cursor-pointer" title="Avisar al cliente que su turno está confirmado">
+                                    <span class="material-symbols-outlined text-[17px] text-emerald-600">mark_chat_read</span> Avisar
+                                </button>
+                                <button onclick="window.recordatorioWhatsApp('${t.id}')" class="flex-1 text-sm font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1 border" style="background-color: #eff6ff; color: #1d4ed8; border-color: #bfdbfe;" title="Enviar recordatorio">
+                                    <span class="material-symbols-outlined text-[18px]">notifications_active</span> Recordar
+                                </button>
+                                <button onclick="window.cancelarTurnoAdmin('${t.id}')" class="bg-red-50 hover:bg-red-100 text-red-600 text-sm font-bold py-2.5 px-4 rounded-xl transition-colors flex items-center justify-center border border-red-100" title="Eliminar turno">
+                                    <span class="material-symbols-outlined text-[18px]">close</span>
+                                </button>
+                            </div>
+                        </div>
+                    `;
                 });
-                
                 htmlDia += `</div></div>`;
                 listConf.innerHTML += htmlDia;
             });
