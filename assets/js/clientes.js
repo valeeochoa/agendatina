@@ -1632,33 +1632,53 @@ function renderGrillaSemanal() {
 
         const tieneClases = clasesDelDia.length > 0;
 
-        // Encabezado del día: Tipografía proporcionada, espaciosa y sin superposiciones
+        // Encabezado del día: 2 renglones organizados según solicitud del usuario
+        // Renglón 1: Nombre del día con el número y la abreviación del mes
+        // Renglón 2: En el medio (o centrado/destacado) si es HOY, y del lado derecho cantidad de clases que se dictan en el día
         let headerHtml = '';
+        const clasesBadgeTexto = tieneClases 
+            ? `${clasesDelDia.length} ${clasesDelDia.length === 1 ? 'clase' : 'clases'}` 
+            : 'Sin clases';
+
         if (isHoy) {
             headerHtml = `
-                <div class="bg-gradient-to-r from-orange-600 to-amber-500 text-white px-4 py-3 rounded-t-2xl flex items-center justify-between gap-2 shadow-xs">
-                    <div class="flex items-baseline gap-2 min-w-0">
-                        <span class="text-xs font-black uppercase tracking-wider text-orange-100 truncate">${dayNameDisplay}</span>
-                        <span class="text-base font-black text-white shrink-0">${dayNum} ${monthShort}</span>
+                <div class="bg-gradient-to-r from-orange-600 to-amber-500 text-white px-4 py-3 rounded-t-2xl shadow-xs select-none space-y-1.5">
+                    <!-- Renglón 1: Nombre del día + número y mes -->
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-sm font-black uppercase tracking-wider text-orange-100">${dayNameDisplay}</span>
+                        <span class="text-base font-black text-white">${dayNum} ${monthShort}</span>
                     </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-white text-orange-600 tracking-wider shadow-2xs">Hoy</span>
-                        ${tieneClases ? `<span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 text-white">${clasesDelDia.length} ${clasesDelDia.length === 1 ? 'clase' : 'clases'}</span>` : ''}
+
+                    <!-- Renglón 2: En el medio 'HOY' y a la derecha cantidad de clases -->
+                    <div class="grid grid-cols-3 items-center pt-1 border-t border-white/20">
+                        <div></div>
+                        <div class="text-center">
+                            <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-white text-orange-600 tracking-wider shadow-2xs">Hoy</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-block px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 text-white">${clasesBadgeTexto}</span>
+                        </div>
                     </div>
                 </div>
             `;
         } else {
             headerHtml = `
-                <div class="bg-white border-b border-slate-200/80 px-4 py-3 rounded-t-2xl flex items-center justify-between gap-2">
-                    <div class="flex items-baseline gap-2 min-w-0">
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500 truncate">${dayNameDisplay}</span>
-                        <span class="text-base font-black text-slate-800 shrink-0">${dayNum} ${monthShort}</span>
+                <div class="bg-white border-b border-slate-200/80 px-4 py-3 rounded-t-2xl select-none space-y-1.5">
+                    <!-- Renglón 1: Nombre del día + número y mes -->
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-sm font-bold uppercase tracking-wider text-slate-600">${dayNameDisplay}</span>
+                        <span class="text-base font-black text-slate-800">${dayNum} ${monthShort}</span>
                     </div>
-                    <div class="shrink-0">
-                        ${tieneClases 
-                            ? `<span class="px-2.5 py-0.5 rounded-xl text-[11px] font-bold bg-orange-50 text-orange-700 border border-orange-200/90 shadow-2xs">${clasesDelDia.length} ${clasesDelDia.length === 1 ? 'clase' : 'clases'}</span>`
-                            : `<span class="text-[11px] font-medium text-slate-400">Sin clases</span>`
-                        }
+
+                    <!-- Renglón 2: Del lado derecho cantidad de clases que se dictan en el día -->
+                    <div class="flex items-center justify-between pt-1 border-t border-slate-100">
+                        <div></div>
+                        <div class="text-right">
+                            ${tieneClases 
+                                ? `<span class="inline-block px-2.5 py-0.5 rounded-xl text-[11px] font-bold bg-orange-50 text-orange-700 border border-orange-200/90 shadow-2xs">${clasesBadgeTexto}</span>`
+                                : `<span class="text-[11px] font-medium text-slate-400">Sin clases</span>`
+                            }
+                        </div>
                     </div>
                 </div>
             `;
