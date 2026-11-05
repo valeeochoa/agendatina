@@ -23,6 +23,12 @@ function cargarClientes() {
                 negocioRutaUnica = data.negocio_ruta || '';
                 negocioNombreUnico = data.negocio_nombre || '';
                 
+                // Actualizar inmediatamente la insignia de clases de la semana al entrar al módulo
+                if (data.clases_semana_count !== undefined) {
+                    const badgeTab = document.getElementById('badgeSemanaInscriptosCount');
+                    if (badgeTab) badgeTab.textContent = data.clases_semana_count;
+                }
+
                 poblarServiciosDropdowns();
                 actualizarEnlaceUnicoView();
                 verificarRestriccionPremium();

@@ -337,6 +337,31 @@ try {
             }
         }
 
+        // Calcular clases de la semana actual para precargar la insignia del selector
+        $clases_semana_count = 0;
+        try {
+            $tsHoy = time();
+            $diaSemana = (int)date('w', $tsHoy); // 0 = dom, 1 = lun, etc.
+            $diasHastaLunes = ($diaSemana === 0) ? -6 : (1 - $diaSemana);
+            $fIniSemana = date('Y-m-d', strtotime("{$diasHastaLunes} days", $tsHoy));
+            $fFinSemana = date('Y-m-d', strtotime("+6 days", strtotime($fIniSemana)));
+
+            $stmtCountSemana = $pdo->prepare("
+                SELECT COUNT(DISTINCT CONCAT(COALESCE(id_servicio, 0), '_', fecha, '_', SUBSTRING(hora, 1, 5))) AS total_clases
+                FROM turnos 
+                WHERE id_negocio = :id_negocio 
+                  AND fecha >= :f_ini 
+                  AND fecha <= :f_fin 
+                  AND estado IN ('confirmado', 'pendiente')
+            ");
+            $stmtCountSemana->execute([
+                'id_negocio' => $id_negocio,
+                'f_ini' => $fIniSemana,
+                'f_fin' => $fFinSemana
+            ]);
+            $clases_semana_count = (int)$stmtCountSemana->fetchColumn();
+        } catch(Exception $eCountSem) {}
+
         echo json_encode([
             'success' => true, 
             'data' => $clientes,
@@ -344,7 +369,8 @@ try {
             'is_premium' => $is_premium,
             'plan' => $plan_negocio,
             'negocio_ruta' => $negocio_ruta,
-            'negocio_nombre' => $negocio_nombre
+            'negocio_nombre' => $negocio_nombre,
+            'clases_semana_count' => $clases_semana_count
         ]);
         exit;
     }
