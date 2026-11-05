@@ -168,24 +168,39 @@
 
         <!-- Gráficos interactivos -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <!-- Gráfico 1: Evolución de Turnos -->
-            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
-                <h3 class="font-bold text-slate-800 text-lg mb-1 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary">bar_chart</span> Demanda por Día de la Semana
-                </h3>
-                <p class="text-xs text-slate-500 mb-6">Identifica los días con mayor flujo de reservas en tu local.</p>
-                <div class="h-64 relative">
+            <!-- Gráfico 1: Demanda por Día de la Semana con Gradiente y Estética SaaS -->
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xs hover:shadow-md transition-shadow relative">
+                <div class="flex items-start justify-between gap-4 mb-6">
+                    <div>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-100 text-[#d11149] text-[11px] font-black uppercase tracking-wider mb-2">
+                            <span class="material-symbols-outlined text-[14px]">bar_chart</span> Afluencia Semanal
+                        </div>
+                        <h3 class="font-black text-slate-900 text-lg sm:text-xl">Demanda por Día de la Semana</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Identifica los días pico de reservas y turnos de tus clientes.</p>
+                    </div>
+                    <span id="badgeDiaPico" class="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span id="badgeDiaPicoTexto">Pico: -</span>
+                    </span>
+                </div>
+                <div class="h-72 relative">
                     <canvas id="chartDays"></canvas>
                 </div>
             </div>
 
-            <!-- Gráfico 2: Top Servicios -->
-            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
-                <h3 class="font-bold text-slate-800 text-lg mb-1 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-secondary">pie_chart</span> Servicios Más Vendidos
-                </h3>
-                <p class="text-xs text-slate-500 mb-6">Distribución porcentual de los tratamientos agendados.</p>
-                <div class="h-64 relative flex items-center justify-center">
+            <!-- Gráfico 2: Top Servicios Donut con Centro Informativo -->
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xs hover:shadow-md transition-shadow relative">
+                <div class="flex items-start justify-between gap-4 mb-6">
+                    <div>
+                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-100 text-amber-700 text-[11px] font-black uppercase tracking-wider mb-2">
+                            <span class="material-symbols-outlined text-[14px]">donut_small</span> Distribución
+                        </div>
+                        <h3 class="font-black text-slate-900 text-lg sm:text-xl">Servicios Más Vendidos</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Proporción de demanda por tratamiento o actividad.</p>
+                    </div>
+                    <span class="text-xs font-extrabold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-100" id="totalServiciosTiposLabel">0 tipos</span>
+                </div>
+                <div class="h-72 relative flex items-center justify-center">
                     <canvas id="chartServices"></canvas>
                 </div>
             </div>
@@ -365,25 +380,100 @@
                 dayCounts[dayIdx]++;
             });
 
-            const ctx = document.getElementById('chartDays').getContext('2d');
+            // Encontrar día pico
+            let maxVal = -1;
+            let maxIdx = -1;
+            dayCounts.forEach((cnt, idx) => {
+                if (cnt > maxVal) { maxVal = cnt; maxIdx = idx; }
+            });
+
+            const badgePico = document.getElementById('badgeDiaPico');
+            const badgeTexto = document.getElementById('badgeDiaPicoTexto');
+            if (badgePico && badgeTexto) {
+                if (maxVal > 0) {
+                    badgeTexto.textContent = `Pico: ${dayLabels[maxIdx]} (${maxVal})`;
+                    badgePico.classList.remove('hidden');
+                } else {
+                    badgePico.classList.add('hidden');
+                }
+            }
+
+            const canvas = document.getElementById('chartDays');
+            const ctx = canvas.getContext('2d');
             if (chartDaysInstance) chartDaysInstance.destroy();
+
+            // Gradiente moderno para las barras
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, '#d11149');
+            gradient.addColorStop(1, '#fc8712');
+
+            const gradientHover = ctx.createLinearGradient(0, 0, 0, 300);
+            gradientHover.addColorStop(0, '#b00e3e');
+            gradientHover.addColorStop(1, '#e0760c');
 
             chartDaysInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: dayLabels,
                     datasets: [{
-                        label: 'Turnos Atendidos',
+                        label: 'Turnos / Reservas',
                         data: dayCounts,
-                        backgroundColor: '#d11149',
-                        borderRadius: 8
+                        backgroundColor: gradient,
+                        hoverBackgroundColor: gradientHover,
+                        borderRadius: 12,
+                        borderSkipped: false,
+                        barThickness: 28,
+                        maxBarThickness: 36
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                    animation: {
+                        duration: 800,
+                        easing: 'easeOutQuart'
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            titleFont: { size: 13, weight: 'bold', family: 'Inter' },
+                            bodyFont: { size: 12, family: 'Inter' },
+                            padding: 12,
+                            cornerRadius: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    const val = context.parsed.y || 0;
+                                    return ` ${val} ${val === 1 ? 'turno realizado' : 'turnos realizados'}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: {
+                                font: { size: 12, weight: '600', family: 'Inter' },
+                                color: '#64748b'
+                            },
+                            border: { display: false }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(226, 232, 240, 0.6)',
+                                strokeDashArray: [4, 4]
+                            },
+                            ticks: {
+                                precision: 0,
+                                font: { size: 11, family: 'Inter' },
+                                color: '#94a3b8',
+                                padding: 8
+                            },
+                            border: { display: false }
+                        }
+                    }
                 }
             });
         }
@@ -391,10 +481,45 @@
         function renderChartServices(counts) {
             const labels = Object.keys(counts);
             const data = Object.values(counts);
-            const colors = ['#d11149', '#fc8712', '#3b82f6', '#10b981', '#8b5cf6', '#f59e0b', '#ec4899'];
+            const totalReservas = data.reduce((a, b) => a + b, 0);
+
+            const countTiposLabel = document.getElementById('totalServiciosTiposLabel');
+            if (countTiposLabel) {
+                countTiposLabel.textContent = `${labels.length} ${labels.length === 1 ? 'servicio' : 'servicios'}`;
+            }
+
+            // Paleta estética moderna y armónica
+            const modernPalette = [
+                '#d11149', '#fc8712', '#0d9488', '#4f46e5', 
+                '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ec4899'
+            ];
 
             const ctx = document.getElementById('chartServices').getContext('2d');
             if (chartServicesInstance) chartServicesInstance.destroy();
+
+            if (labels.length === 0 || totalReservas === 0) {
+                chartServicesInstance = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Sin turnos asistidos aún'],
+                        datasets: [{
+                            data: [1],
+                            backgroundColor: ['#e2e8f0'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '72%',
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: { enabled: false }
+                        }
+                    }
+                });
+                return;
+            }
 
             chartServicesInstance = new Chart(ctx, {
                 type: 'doughnut',
@@ -402,13 +527,53 @@
                     labels: labels,
                     datasets: [{
                         data: data,
-                        backgroundColor: colors.slice(0, labels.length)
+                        backgroundColor: modernPalette.slice(0, labels.length),
+                        borderColor: '#ffffff',
+                        borderWidth: 3,
+                        hoverOffset: 6
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { position: 'right' } }
+                    cutout: '68%',
+                    animation: {
+                        animateRotate: true,
+                        duration: 900
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                boxHeight: 12,
+                                borderRadius: 6,
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                padding: 14,
+                                font: {
+                                    size: 11,
+                                    weight: '600',
+                                    family: 'Inter'
+                                },
+                                color: '#334155'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            titleFont: { size: 13, weight: 'bold', family: 'Inter' },
+                            bodyFont: { size: 12, family: 'Inter' },
+                            padding: 12,
+                            cornerRadius: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    const val = context.parsed || 0;
+                                    const pct = totalReservas > 0 ? Math.round((val / totalReservas) * 100) : 0;
+                                    return ` ${val} reservas (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
                 }
             });
         }
