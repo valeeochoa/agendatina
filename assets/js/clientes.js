@@ -1632,32 +1632,34 @@ function renderGrillaSemanal() {
 
         const tieneClases = clasesDelDia.length > 0;
 
-        // Encabezado del día: Tipografía proporcionada, refinada y legible
+        // Encabezado del día: Tipografía proporcionada, espaciosa y sin superposiciones
         let headerHtml = '';
         if (isHoy) {
             headerHtml = `
-                <div class="bg-gradient-to-r from-orange-600 to-amber-500 text-white px-4 py-3 flex items-center justify-between select-none shadow-xs rounded-t-2xl">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-black uppercase tracking-wider text-orange-100">${dayNameDisplay}</span>
-                        <span class="text-sm font-black text-white">${dayNum} ${monthShort}</span>
+                <div class="bg-gradient-to-r from-orange-600 to-amber-500 text-white px-4 py-3 rounded-t-2xl flex items-center justify-between gap-2 shadow-xs">
+                    <div class="flex items-baseline gap-2 min-w-0">
+                        <span class="text-xs font-black uppercase tracking-wider text-orange-100 truncate">${dayNameDisplay}</span>
+                        <span class="text-base font-black text-white shrink-0">${dayNum} ${monthShort}</span>
                     </div>
-                    <div class="flex items-center gap-1.5">
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-white text-orange-600 tracking-wider shadow-2xs">Hoy</span>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-white text-orange-600 tracking-wider shadow-2xs">Hoy</span>
                         ${tieneClases ? `<span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-white/20 text-white">${clasesDelDia.length} ${clasesDelDia.length === 1 ? 'clase' : 'clases'}</span>` : ''}
                     </div>
                 </div>
             `;
         } else {
             headerHtml = `
-                <div class="bg-white border-b border-slate-200/80 px-4 py-3 flex items-center justify-between select-none rounded-t-2xl">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">${dayNameDisplay}</span>
-                        <span class="text-sm font-black text-slate-800">${dayNum} ${monthShort}</span>
+                <div class="bg-white border-b border-slate-200/80 px-4 py-3 rounded-t-2xl flex items-center justify-between gap-2">
+                    <div class="flex items-baseline gap-2 min-w-0">
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-500 truncate">${dayNameDisplay}</span>
+                        <span class="text-base font-black text-slate-800 shrink-0">${dayNum} ${monthShort}</span>
                     </div>
-                    ${tieneClases 
-                        ? `<span class="px-2.5 py-0.5 rounded-xl text-[11px] font-extrabold bg-orange-50 text-orange-700 border border-orange-200/90 shadow-2xs">${clasesDelDia.length} ${clasesDelDia.length === 1 ? 'clase' : 'clases'}</span>`
-                        : `<span class="text-[11px] font-bold text-slate-400">Sin clases</span>`
-                    }
+                    <div class="shrink-0">
+                        ${tieneClases 
+                            ? `<span class="px-2.5 py-0.5 rounded-xl text-[11px] font-bold bg-orange-50 text-orange-700 border border-orange-200/90 shadow-2xs">${clasesDelDia.length} ${clasesDelDia.length === 1 ? 'clase' : 'clases'}</span>`
+                            : `<span class="text-[11px] font-medium text-slate-400">Sin clases</span>`
+                        }
+                    </div>
                 </div>
             `;
         }
@@ -1701,33 +1703,11 @@ function renderGrillaSemanal() {
 
                 // Badge de superposición horaria
                 const superpuestaBadge = esSuperpuesta ? `
-                    <span class="inline-flex items-center gap-1 text-[10px] font-black text-amber-900 bg-amber-100/90 px-2 py-0.5 rounded-lg border border-amber-300 shrink-0 shadow-2xs" title="Horario compartido con otra actividad simultánea">
+                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-md border border-amber-200 shrink-0" title="Horario compartido con otra actividad simultánea">
                         <span class="material-symbols-outlined text-[13px]">layers</span>
                         <span>Simultánea</span>
                     </span>
                 ` : '';
-
-                // Chips de alumnos inscriptos
-                let inscriptosChipsHtml = '';
-                if (ocupados > 0) {
-                    const topChips = c.inscriptos.slice(0, 4).map(al => {
-                        const shortName = al.cliente_nombre ? al.cliente_nombre.split(' ')[0] : 'Alumno';
-                        const asistBadge = al.asistio == 1 
-                            ? '<span class="w-2 h-2 rounded-full bg-emerald-500 inline-block mr-1 shrink-0" title="Presente"></span>' 
-                            : '<span class="w-1.5 h-1.5 rounded-full bg-slate-300 inline-block mr-1 shrink-0" title="Pendiente"></span>';
-                        return `<span class="inline-flex items-center px-2.5 py-1 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 truncate max-w-[120px] shadow-2xs">${asistBadge}<span class="truncate">${escapeHtml(shortName)}</span></span>`;
-                    }).join('');
-
-                    const extraCount = ocupados > 4 ? `<span class="inline-flex items-center px-2 py-1 rounded-xl bg-orange-100 text-xs font-black text-orange-800 shadow-2xs">+ ${ocupados - 4} más</span>` : '';
-                    inscriptosChipsHtml = `<div class="flex flex-wrap items-center gap-1.5 mt-2.5">${topChips}${extraCount}</div>`;
-                } else {
-                    inscriptosChipsHtml = `
-                        <div class="mt-2.5 flex items-center justify-between text-xs text-slate-400 bg-slate-50/60 p-2 rounded-xl border border-slate-100">
-                            <span class="italic text-[11px]">Sin alumnos inscriptos aún</span>
-                            <span class="font-black text-orange-600 text-xs flex items-center gap-0.5 hover:underline">+ Anotar Alumno</span>
-                        </div>
-                    `;
-                }
 
                 const jsonCardData = JSON.stringify({
                     servicioId: c.servicioId,
@@ -1738,57 +1718,53 @@ function renderGrillaSemanal() {
                     cupoMaximo: c.cupoMaximo
                 }).replace(/"/g, '&quot;');
 
-                // RECUADRO DE CLASE MODERNO, LUMINOSO Y DE ALTO CONTRASTE (SIN COLOR OSCURO EN LA HORA)
+                // RECUADRO DE CLASE MODERNO, LIMPIO Y ESPACIOSO
+                // REGLAS DEL USUARIO:
+                // 1. Tipografía sutil y proporcionada para la hora (text-xs / text-[13px])
+                // 2. Nombre del servicio en tamaño moderado (text-sm font-bold), no gigante
+                // 3. No listar los nombres de los alumnos en la tarjeta: al hacer click abren la lista completa y asistencia
+                // 4. Espaciado limpio y balanceado
                 return `
-                    <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" class="bg-white hover:bg-slate-50/50 border border-slate-200/90 hover:border-orange-300 ${cConf.border} border-l-[5px] rounded-2xl p-4 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group relative overflow-hidden">
-                        <div>
-                            <!-- Header de la tarjeta: Hora luminosa en tono cálido y badge de simultánea -->
-                            <div class="flex items-center justify-between gap-2 mb-2.5">
-                                <span class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black text-orange-700 bg-orange-50/90 border border-orange-200/90 flex items-center gap-1.5 shadow-2xs">
-                                    <span class="material-symbols-outlined text-[16px] text-orange-500">schedule</span>
+                    <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" class="bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-orange-300 ${cConf.border} border-l-4 rounded-xl p-3.5 shadow-2xs hover:shadow-xs transition-all cursor-pointer flex flex-col justify-between group">
+                        <div class="space-y-2">
+                            <!-- Fila superior: Hora proporcionada + Badge simultánea si aplica -->
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-orange-700 bg-orange-50 border border-orange-200/80">
+                                    <span class="material-symbols-outlined text-[14px] text-orange-500">schedule</span>
                                     <span>${c.hora} hs</span>
                                 </span>
                                 ${superpuestaBadge}
                             </div>
 
-                            <!-- Título del Servicio en grande y destacado -->
-                            <h4 class="text-sm sm:text-base font-black text-slate-900 group-hover:text-orange-600 transition-colors leading-tight mb-1.5">
-                                ${escapeHtml(c.servicioNombre)}
-                            </h4>
-
-                            <!-- Cupos y Profesor -->
-                            <div class="flex items-center justify-between gap-2 mb-3">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-xs font-black border ${cConf.badgeServ}">
-                                    <span class="w-2 h-2 rounded-full ${cConf.dot} shrink-0"></span>
-                                    <span>Cupo máx: ${cupoMax}</span>
-                                </span>
-                                <span class="text-xs font-semibold text-slate-500 truncate flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-[15px] text-slate-400">person</span>
+                            <!-- Nombre del Servicio: Tamaño moderado, equilibrado y prolijo -->
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-800 group-hover:text-orange-600 transition-colors leading-snug line-clamp-2">
+                                    ${escapeHtml(c.servicioNombre)}
+                                </h4>
+                                <div class="flex items-center gap-1 text-[11px] text-slate-400 mt-0.5">
+                                    <span class="material-symbols-outlined text-[13px]">person</span>
                                     <span class="truncate">${escapeHtml(c.profesional)}</span>
-                                </span>
+                                </div>
                             </div>
 
-                            <!-- Barra de ocupación visual destacada -->
-                            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 mb-2">
-                                <div class="flex items-center justify-between text-xs font-black mb-1.5">
-                                    <span class="text-slate-700">${ocupados} de ${cupoMax} alumnos</span>
-                                    <span class="${ocupados >= cupoMax ? 'text-rose-600' : 'text-slate-500'}">${pctOcupacion}%</span>
+                            <!-- Estado de ocupación y cupos -->
+                            <div class="pt-1">
+                                <div class="flex items-center justify-between text-xs font-medium text-slate-600 mb-1">
+                                    <span class="text-[11px] font-bold text-slate-700">${ocupados} / ${cupoMax} inscriptos</span>
+                                    <span class="text-[11px] ${ocupados >= cupoMax ? 'text-rose-600 font-bold' : 'text-slate-400'}">${pctOcupacion}%</span>
                                 </div>
-                                <div class="w-full bg-slate-200/80 h-2 rounded-full overflow-hidden">
+                                <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
                                     <div class="${barraColor} h-full rounded-full transition-all duration-300" style="width: ${pctOcupacion}%"></div>
                                 </div>
                             </div>
-
-                            <!-- Chips de alumnos -->
-                            ${inscriptosChipsHtml}
                         </div>
 
-                        <!-- Footer del Recuadro de la clase -->
-                        <div class="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
-                            ${badgeOcupacion}
-                            <span class="text-xs font-black ${cConf.text} flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                                <span>Ver lista y asistencia</span>
-                                <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+                        <!-- Footer: Badge de estado + acción clara "Ver lista" sin saturar -->
+                        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                            <div>${badgeOcupacion}</div>
+                            <span class="text-xs font-bold ${cConf.text} flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                                <span>Ver lista</span>
+                                <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
                             </span>
                         </div>
                     </div>
