@@ -1288,6 +1288,26 @@ const PALETA_SERVICIOS = [
 ];
 
 function getServiceColorConfig(serviceId) {
+    // Si el servicio tiene un color configurado por el usuario en la BD, lo usamos
+    if (semanaData && Array.isArray(semanaData.servicios)) {
+        const found = semanaData.servicios.find(s => String(s.id) === String(serviceId));
+        if (found && found.color && found.color.startsWith('#')) {
+            const hex = found.color;
+            return {
+                id: 'custom_' + serviceId,
+                border: 'border-l-[' + hex + ']',
+                customHex: hex,
+                bgHeader: 'bg-slate-50 text-slate-800',
+                bgCard: 'bg-white',
+                badgeServ: 'border-slate-200 text-slate-800',
+                dot: 'bg-[' + hex + ']',
+                text: 'text-slate-800',
+                progressBar: 'bg-[' + hex + ']',
+                activePill: 'text-white shadow-sm'
+            };
+        }
+    }
+
     const num = Math.abs(parseInt(serviceId, 10) || 0);
     return PALETA_SERVICIOS[num % PALETA_SERVICIOS.length];
 }
@@ -1347,13 +1367,20 @@ function renderPillsServiciosGrilla(servicios) {
                    (t.servicio && t.servicio.toLowerCase().trim() === sNombre.toLowerCase().trim());
         }).length;
 
+        const isCustom = Boolean(cConf.customHex);
         const pillClass = isActive 
-            ? `${cConf.activePill} font-black` 
+            ? (isCustom ? 'text-white shadow-sm font-black' : `${cConf.activePill} font-black`)
             : `bg-slate-50 hover:bg-white text-slate-700 border border-slate-200 hover:border-slate-300 font-bold`;
 
+        const pillStyle = (isActive && isCustom) 
+            ? `style="background-color: ${cConf.customHex};"` 
+            : '';
+        const dotStyle = isCustom ? `style="background-color: ${cConf.customHex};"` : '';
+        const dotClass = isCustom ? 'w-2.5 h-2.5 rounded-full shrink-0' : `w-2.5 h-2.5 rounded-full ${cConf.dot} shrink-0`;
+
         html += `
-            <button type="button" onclick="filtrarPorPillServicio('${sId}')" class="px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${pillClass}">
-                <span class="w-2.5 h-2.5 rounded-full ${cConf.dot}"></span>
+            <button type="button" onclick="filtrarPorPillServicio('${sId}')" ${pillStyle} class="px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${pillClass}">
+                <span class="${dotClass}" ${dotStyle}></span>
                 <span>${escapeHtml(sNombre)}</span>
                 <span class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] ${isActive ? 'bg-white/20 text-white' : 'bg-white text-slate-600 border border-slate-200'}">${countInscriptosServ}</span>
             </button>
@@ -1738,6 +1765,17 @@ function renderGrillaSemanal() {
                     cupoMaximo: c.cupoMaximo
                 }).replace(/"/g, '&quot;');
 
+                const isCustom = Boolean(cConf.customHex);
+                const cardBorderStyle = isCustom 
+                    ? `style="border-left-color: ${cConf.customHex}; border-left-width: 4px;"` 
+                    : '';
+                const cardBorderClass = isCustom ? '' : `${cConf.border} border-l-4`;
+
+                const barStyle = isCustom 
+                    ? `style="width: ${pctOcupacion}%; background-color: ${cConf.customHex};"` 
+                    : `style="width: ${pctOcupacion}%;"`;
+                const barClass = isCustom ? 'h-full rounded-full transition-all duration-300' : `${barraColor} h-full rounded-full transition-all duration-300`;
+
                 // RECUADRO DE CLASE MODERNO, LIMPIO Y ESPACIOSO
                 // REGLAS DEL USUARIO:
                 // 1. Tipografía sutil y proporcionada para la hora (text-xs / text-[13px])
@@ -1745,7 +1783,7 @@ function renderGrillaSemanal() {
                 // 3. No listar los nombres de los alumnos en la tarjeta: al hacer click abren la lista completa y asistencia
                 // 4. Espaciado limpio y balanceado
                 return `
-                    <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" class="bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-orange-300 ${cConf.border} border-l-4 rounded-xl p-3.5 shadow-2xs hover:shadow-xs transition-all cursor-pointer flex flex-col justify-between group">
+                    <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" ${cardBorderStyle} class="bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-orange-300 ${cardBorderClass} rounded-xl p-3.5 shadow-2xs hover:shadow-xs transition-all cursor-pointer flex flex-col justify-between group">
                         <div class="space-y-2">
                             <!-- Fila superior: Hora proporcionada + Badge simultánea si aplica -->
                             <div class="flex items-center justify-between gap-2">
@@ -1774,7 +1812,7 @@ function renderGrillaSemanal() {
                                     <span class="text-[11px] ${ocupados >= cupoMax ? 'text-rose-600 font-bold' : 'text-slate-400'}">${pctOcupacion}%</span>
                                 </div>
                                 <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                                    <div class="${barraColor} h-full rounded-full transition-all duration-300" style="width: ${pctOcupacion}%"></div>
+                                    <div class="${barClass}" ${barStyle}></div>
                                 </div>
                             </div>
                         </div>
@@ -1782,7 +1820,7 @@ function renderGrillaSemanal() {
                         <!-- Footer: Badge de estado + acción clara "Ver lista" sin saturar -->
                         <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
                             <div>${badgeOcupacion}</div>
-                            <span class="text-xs font-bold ${cConf.text} flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                            <span class="text-xs font-bold ${cConf.text} flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform" ${isCustom ? `style="color: ${cConf.customHex};"` : ''}>
                                 <span>Ver lista</span>
                                 <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
                             </span>

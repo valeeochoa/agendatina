@@ -1840,61 +1840,20 @@ function populateCalendarViewFilter() {
     if (!filterContainer) {
         filterContainer = document.createElement('div');
         filterContainer.id = 'calendarViewFilterContainer';
-        filterContainer.className = 'mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-white dark:bg-white/5 p-4 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm';
+        // Diseño moderno: barra estética estilizada tipo pastillas/segmentos
+        filterContainer.className = 'mb-6 p-2 bg-slate-100/90 dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3';
         
-        const label = document.createElement('label');
-        label.className = 'text-sm font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap flex items-center gap-1.5';
-        label.innerHTML = '<span class="material-symbols-outlined text-[18px] text-primary">calendar_month</span> Calendario:';
-        
-        const select = document.createElement('select');
-        select.id = 'calendarViewFilter';
-        select.className = 'bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2 text-sm font-semibold outline-none focus:ring-2 focus:ring-primary w-full sm:w-auto cursor-pointer';
-        
-        select.addEventListener('change', (e) => {
-            const val = e.target.value;
-            globalSelectedProfessional = val;
-            
-            // Si hace click en Calendario -> Todos los profesionales, limpiar el formulario de reserva
-            if (!val || val === '' || val === 'columnas') {
-                const bForm = document.getElementById('bookingForm');
-                if (bForm) {
-                    bForm.reset();
-                }
-                const horaInput = document.getElementById('horaSeleccionada');
-                if (horaInput) horaInput.value = '';
-                cal_selectedTime = null;
-                document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('selected'));
-                const pSelect = document.getElementById('profesionalSelect');
-                if (pSelect) pSelect.value = 'Cualquiera';
-                if (typeof updateSelectedServicePriceDisplay === 'function') {
-                    updateSelectedServicePriceDisplay();
-                }
-            } else {
-                const profSelect = document.getElementById('profesionalSelect');
-                if (profSelect) {
-                    const optExists = Array.from(profSelect.options).some(opt => opt.value === val);
-                    profSelect.value = optExists ? val : 'Cualquiera (Sin preferencia)';
-                }
-            }
-            
-            updateServiceDropdown();
-            updateProfServicesDisplay();
-            cal_fetchBookedTimes();
-            if (cal_selectedDate) {
-                const effectiveIsAdmin = isAdmin && !isPreviewMode;
-                if (effectiveIsAdmin) {
-                    renderAdminDayView(toYYYYMMDD(cal_selectedDate));
-                    if (typeof renderAdminWeeklyGrid === 'function' && document.getElementById('adminWeeklyGrid')) {
-                        renderAdminWeeklyGrid();
-                    }
-                } else {
-                    cal_renderTimeSlots();
-                }
-            }
-        });
+        // Elemento select oculto para preservar retrocompatibilidad con scripts existentes
+        const hiddenSelect = document.createElement('select');
+        hiddenSelect.id = 'calendarViewFilter';
+        hiddenSelect.className = 'hidden';
+        filterContainer.appendChild(hiddenSelect);
 
-        filterContainer.appendChild(label);
-        filterContainer.appendChild(select);
+        // Contenedor visual de píldoras / pestañas modernas
+        const pillsWrapper = document.createElement('div');
+        pillsWrapper.id = 'calendarViewFilterPills';
+        pillsWrapper.className = 'flex items-center gap-1.5 overflow-x-auto w-full pb-1 sm:pb-0 custom-scrollbar';
+        filterContainer.appendChild(pillsWrapper);
         
         if (titleContainer && titleContainer.parentElement) {
             titleContainer.parentElement.insertBefore(filterContainer, titleContainer.nextSibling);
@@ -1902,11 +1861,13 @@ function populateCalendarViewFilter() {
     }
 
     const select = document.getElementById('calendarViewFilter');
+    const pillsWrapper = document.getElementById('calendarViewFilterPills');
     const uniqueProfs = getUniqueProfessionals();
     const profDisplayMap = window.formatProfDisplayNames(uniqueProfs);
     
-    if (uniqueProfs.length === 1 && (!isAdmin || isPreviewMode)) {
+    if (uniqueProfs.length <= 1 && (!isAdmin || isPreviewMode)) {
         filterContainer.style.display = 'none';
+        return;
     } else if (uniqueProfs.length === 0) {
         filterContainer.style.display = 'none';
         return;
@@ -1914,24 +1875,91 @@ function populateCalendarViewFilter() {
         filterContainer.style.display = 'flex';
     }
     
-    select.innerHTML = '';
+    if (select) select.innerHTML = '';
+
     const effectiveIsAdmin = isAdmin && !isPreviewMode;
-    
+    const items = [];
+
     if (effectiveIsAdmin) {
-        const isSelectedGeneral = (!globalSelectedProfessional || globalSelectedProfessional === '') ? 'selected' : '';
-        select.innerHTML += `<option value="" ${isSelectedGeneral}>🏢 Todos los Profesionales (General)</option>`;
-        const isSelectedCol = globalSelectedProfessional === 'columnas' ? 'selected' : '';
-        select.innerHTML += `<option value="columnas" ${isSelectedCol}>📊 Todos en Columnas (Modo Admin)</option>`;
+        items.push({ id: '', label: 'General (Todos)', icon: 'groups' });
+        items.push({ id: 'columnas', label: 'Columnas', icon: 'view_column' });
     } else {
-        const isSelectedAll = (!globalSelectedProfessional || globalSelectedProfessional === '') ? 'selected' : '';
-        select.innerHTML += `<option value="" ${isSelectedAll}>🏢 Todos los profesionales</option>`;
+        items.push({ id: '', label: 'Todos los profesionales', icon: 'groups' });
     }
-    
+
     uniqueProfs.forEach(prof => {
-        const isSelected = prof === globalSelectedProfessional ? 'selected' : '';
-        const displayLabel = profDisplayMap[prof] || prof;
-        select.innerHTML += `<option value="${prof}" ${isSelected}>👤 ${displayLabel}</option>`;
+        items.push({
+            id: prof,
+            label: profDisplayMap[prof] || prof,
+            icon: 'person'
+        });
     });
+
+    // Rellenar select oculto
+    if (select) {
+        items.forEach(it => {
+            const isSel = (it.id === globalSelectedProfessional) ? 'selected' : '';
+            select.innerHTML += `<option value="${escapeHtml(it.id)}" ${isSel}>${escapeHtml(it.label)}</option>`;
+        });
+    }
+
+    // Renderizar botones de píldora elegantes
+    if (pillsWrapper) {
+        pillsWrapper.innerHTML = '';
+        items.forEach(it => {
+            const isActive = (it.id === (globalSelectedProfessional || ''));
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = isActive
+                ? 'px-3.5 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 text-primary dark:text-white shadow-xs border border-slate-200 dark:border-slate-700 flex items-center gap-1.5 shrink-0 transition-all cursor-pointer'
+                : 'px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/60 flex items-center gap-1.5 shrink-0 transition-all cursor-pointer';
+
+            btn.innerHTML = `<span class="material-symbols-outlined text-[16px]">${it.icon}</span><span>${escapeHtml(it.label)}</span>`;
+            
+            btn.onclick = () => {
+                const val = it.id;
+                globalSelectedProfessional = val;
+                if (select) select.value = val;
+
+                if (!val || val === '' || val === 'columnas') {
+                    const bForm = document.getElementById('bookingForm');
+                    if (bForm) bForm.reset();
+                    const horaInput = document.getElementById('horaSeleccionada');
+                    if (horaInput) horaInput.value = '';
+                    cal_selectedTime = null;
+                    document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('selected'));
+                    const pSelect = document.getElementById('profesionalSelect');
+                    if (pSelect) pSelect.value = 'Cualquiera';
+                    if (typeof updateSelectedServicePriceDisplay === 'function') {
+                        updateSelectedServicePriceDisplay();
+                    }
+                } else {
+                    const profSelect = document.getElementById('profesionalSelect');
+                    if (profSelect) {
+                        const optExists = Array.from(profSelect.options).some(opt => opt.value === val);
+                        profSelect.value = optExists ? val : 'Cualquiera (Sin preferencia)';
+                    }
+                }
+
+                updateServiceDropdown();
+                updateProfServicesDisplay();
+                cal_fetchBookedTimes();
+                if (cal_selectedDate) {
+                    if (effectiveIsAdmin) {
+                        renderAdminDayView(toYYYYMMDD(cal_selectedDate));
+                        if (typeof renderAdminWeeklyGrid === 'function' && document.getElementById('adminWeeklyGrid')) {
+                            renderAdminWeeklyGrid();
+                        }
+                    } else {
+                        cal_renderTimeSlots();
+                    }
+                }
+                populateCalendarViewFilter();
+            };
+
+            pillsWrapper.appendChild(btn);
+        });
+    }
 }
 
 function populateServiceSelect() {

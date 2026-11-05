@@ -52,6 +52,9 @@ catch(Exception $e) { try { $pdo->exec("ALTER TABLE servicios ADD COLUMN tipo_se
 try { $pdo->query("SELECT icono FROM servicios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN icono VARCHAR(255) DEFAULT 'local_florist'"); }
 
+try { $pdo->query("SELECT color FROM servicios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN color VARCHAR(30) DEFAULT '#d11149'"); }
+
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -89,7 +92,7 @@ if ($method === 'GET') {
 
         // 4. Obtener solo los servicios que pertenecen a ese negocio
         $destino = isset($_GET['destino']) ? trim($_GET['destino']) : '';
-        $querySql = "SELECT id, id_negocio, nombre_servicio AS nombre, descripcion, duracion_minutos AS duracion, precio, precio_sena, capacidad, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo, profesional, email_profesional, foto_profesional, imagen1, imagen2, imagen3, icono, precios_paquetes_json, COALESCE(tipo_servicio, 'calendario') AS tipo_servicio FROM servicios WHERE id_negocio = :id_negocio";
+        $querySql = "SELECT id, id_negocio, nombre_servicio AS nombre, descripcion, duracion_minutos AS duracion, precio, precio_sena, capacidad, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo, profesional, email_profesional, foto_profesional, imagen1, imagen2, imagen3, icono, COALESCE(color, '#d11149') AS color, precios_paquetes_json, COALESCE(tipo_servicio, 'calendario') AS tipo_servicio FROM servicios WHERE id_negocio = :id_negocio";
         
         if ($destino === 'calendario') {
             $querySql .= " AND (tipo_servicio IS NULL OR tipo_servicio = 'calendario' OR tipo_servicio = '')";
@@ -202,6 +205,7 @@ if ($method === 'POST') {
     $imagen2 = $data['imagen2'] ?? $_POST['imagen2'] ?? '';
     $imagen3 = $data['imagen3'] ?? $_POST['imagen3'] ?? '';
     $icono = $data['icono'] ?? $_POST['icono'] ?? 'local_florist';
+    $color = !empty($data['color']) ? trim($data['color']) : (!empty($_POST['color']) ? trim($_POST['color']) : '#d11149');
     $precios_paquetes_json = $data['precios_paquetes_json'] ?? $_POST['precios_paquetes_json'] ?? '[]';
 
     // Validar que precios_paquetes_json sea JSON válido
@@ -320,11 +324,11 @@ if ($method === 'POST') {
         }
 
         if ($id) {
-            $stmt = $pdo->prepare("UPDATE servicios SET nombre_servicio = :nombre, duracion_minutos = :duracion, precio = :precio, precio_sena = :precio_sena, capacidad = :capacidad, cupo_maximo = :cupo_maximo, descripcion = :descripcion, profesional = :profesional, email_profesional = :email_profesional, foto_profesional = :foto_profesional, imagen1 = :imagen1, imagen2 = :imagen2, imagen3 = :imagen3, icono = :icono, precios_paquetes_json = :paquetes, tipo_servicio = :tipo_servicio WHERE id = :id AND id_negocio = :id_negocio");
-            $stmt->execute(['nombre' => $nombre, 'duracion' => $duracion, 'precio' => $precio, 'precio_sena' => $precio_sena, 'capacidad' => $capacidad, 'cupo_maximo' => $cupo_maximo, 'descripcion' => $descripcion, 'profesional' => $profesional, 'email_profesional' => $email_profesional, 'foto_profesional' => $foto_profesional, 'imagen1' => $imagen1, 'imagen2' => $imagen2, 'imagen3' => $imagen3, 'icono' => $icono, 'paquetes' => $precios_paquetes_json, 'tipo_servicio' => $tipo_servicio, 'id' => $id, 'id_negocio' => $id_negocio]);
+            $stmt = $pdo->prepare("UPDATE servicios SET nombre_servicio = :nombre, duracion_minutos = :duracion, precio = :precio, precio_sena = :precio_sena, capacidad = :capacidad, cupo_maximo = :cupo_maximo, descripcion = :descripcion, profesional = :profesional, email_profesional = :email_profesional, foto_profesional = :foto_profesional, imagen1 = :imagen1, imagen2 = :imagen2, imagen3 = :imagen3, icono = :icono, color = :color, precios_paquetes_json = :paquetes, tipo_servicio = :tipo_servicio WHERE id = :id AND id_negocio = :id_negocio");
+            $stmt->execute(['nombre' => $nombre, 'duracion' => $duracion, 'precio' => $precio, 'precio_sena' => $precio_sena, 'capacidad' => $capacidad, 'cupo_maximo' => $cupo_maximo, 'descripcion' => $descripcion, 'profesional' => $profesional, 'email_profesional' => $email_profesional, 'foto_profesional' => $foto_profesional, 'imagen1' => $imagen1, 'imagen2' => $imagen2, 'imagen3' => $imagen3, 'icono' => $icono, 'color' => $color, 'paquetes' => $precios_paquetes_json, 'tipo_servicio' => $tipo_servicio, 'id' => $id, 'id_negocio' => $id_negocio]);
         } else {
-            $stmt = $pdo->prepare("INSERT INTO servicios (id_negocio, nombre_servicio, duracion_minutos, precio, precio_sena, capacidad, cupo_maximo, descripcion, profesional, email_profesional, foto_profesional, imagen1, imagen2, imagen3, icono, precios_paquetes_json, tipo_servicio) VALUES (:id_negocio, :nombre, :duracion, :precio, :precio_sena, :capacidad, :cupo_maximo, :descripcion, :profesional, :email_profesional, :foto_profesional, :imagen1, :imagen2, :imagen3, :icono, :paquetes, :tipo_servicio)");
-            $stmt->execute(['id_negocio' => $id_negocio, 'nombre' => $nombre, 'duracion' => $duracion, 'precio' => $precio, 'precio_sena' => $precio_sena, 'capacidad' => $capacidad, 'cupo_maximo' => $cupo_maximo, 'descripcion' => $descripcion, 'profesional' => $profesional, 'email_profesional' => $email_profesional, 'foto_profesional' => $foto_profesional, 'imagen1' => $imagen1, 'imagen2' => $imagen2, 'imagen3' => $imagen3, 'icono' => $icono, 'paquetes' => $precios_paquetes_json, 'tipo_servicio' => $tipo_servicio]);
+            $stmt = $pdo->prepare("INSERT INTO servicios (id_negocio, nombre_servicio, duracion_minutos, precio, precio_sena, capacidad, cupo_maximo, descripcion, profesional, email_profesional, foto_profesional, imagen1, imagen2, imagen3, icono, color, precios_paquetes_json, tipo_servicio) VALUES (:id_negocio, :nombre, :duracion, :precio, :precio_sena, :capacidad, :cupo_maximo, :descripcion, :profesional, :email_profesional, :foto_profesional, :imagen1, :imagen2, :imagen3, :icono, :color, :paquetes, :tipo_servicio)");
+            $stmt->execute(['id_negocio' => $id_negocio, 'nombre' => $nombre, 'duracion' => $duracion, 'precio' => $precio, 'precio_sena' => $precio_sena, 'capacidad' => $capacidad, 'cupo_maximo' => $cupo_maximo, 'descripcion' => $descripcion, 'profesional' => $profesional, 'email_profesional' => $email_profesional, 'foto_profesional' => $foto_profesional, 'imagen1' => $imagen1, 'imagen2' => $imagen2, 'imagen3' => $imagen3, 'icono' => $icono, 'color' => $color, 'paquetes' => $precios_paquetes_json, 'tipo_servicio' => $tipo_servicio]);
         }
 
         // Auto-sincronizar el profesional a la tabla personal_negocio y usuarios (Mi Equipo)

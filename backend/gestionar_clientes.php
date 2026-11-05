@@ -27,6 +27,9 @@ try {
 } catch(Exception $e) {}
 
 // Asegurar existencia de nuevas columnas por si la tabla ya existía anteriormente
+try { $pdo->query("SELECT color FROM servicios LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN color VARCHAR(30) DEFAULT '#d11149'"); }
+
 try { $pdo->query("SELECT pases_totales FROM clientes_negocio LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN pases_totales INT DEFAULT 0"); }
 
@@ -162,7 +165,8 @@ try {
                 SELECT id, nombre_servicio AS nombre, nombre_servicio, 
                        COALESCE(duracion_minutos, 30) AS duracion, 
                        COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo, 
-                       profesional, tipo_servicio, precios_paquetes_json, icono
+                       profesional, tipo_servicio, precios_paquetes_json, icono,
+                       COALESCE(color, '#d11149') AS color
                 FROM servicios 
                 WHERE id_negocio = :id_negocio 
                 ORDER BY orden ASC, id ASC
