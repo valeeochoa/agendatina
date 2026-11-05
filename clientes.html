@@ -197,87 +197,68 @@
 
         <!-- VISTA 2: GRILLA SEMANAL DE CLASES Y CUPOS -->
         <div id="vistaGrillaSemanal" class="space-y-6 hidden">
-            <!-- Barra de Navegación y Filtros de la Semana -->
+            <!-- Panel Único de Control de la Semana: Navegación, Métricas Inline y Filtros -->
             <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+                <!-- Fila 1: Selector de Semana + Métricas Rápidas Inline + Botón Recargar -->
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <!-- Controles de Semana -->
-                    <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                    <div class="flex items-center gap-3 flex-wrap">
                         <div class="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200">
-                            <button type="button" onclick="cambiarSemana(-1)" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer" title="Semana Anterior">
-                                <span class="material-symbols-outlined text-[20px]">chevron_left</span>
+                            <button type="button" onclick="cambiarSemana(-1)" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer" title="Semana Anterior">
+                                <span class="material-symbols-outlined text-[18px]">chevron_left</span>
                             </button>
-                            <button type="button" onclick="irSemanaActual()" class="px-3.5 py-1.5 rounded-xl text-xs font-black text-slate-700 hover:text-orange-600 hover:bg-white transition-all cursor-pointer" title="Ir a la semana actual">
+                            <button type="button" onclick="irSemanaActual()" class="px-3 py-1 rounded-xl text-xs font-black text-slate-700 hover:text-orange-600 hover:bg-white transition-all cursor-pointer">
                                 Esta Semana
                             </button>
-                            <button type="button" onclick="cambiarSemana(1)" class="w-9 h-9 rounded-xl flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer" title="Semana Siguiente">
-                                <span class="material-symbols-outlined text-[20px]">chevron_right</span>
+                            <button type="button" onclick="cambiarSemana(1)" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-600 hover:text-slate-900 hover:bg-white transition-all cursor-pointer" title="Semana Siguiente">
+                                <span class="material-symbols-outlined text-[18px]">chevron_right</span>
                             </button>
                         </div>
 
                         <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-orange-500 text-[22px]">calendar_month</span>
-                            <h2 class="text-base sm:text-lg font-black text-slate-900" id="labelRangoSemana">Cargando semana...</h2>
+                            <span class="material-symbols-outlined text-orange-500 text-[20px]">calendar_month</span>
+                            <h2 class="text-sm sm:text-base font-black text-slate-900" id="labelRangoSemana">Cargando semana...</h2>
                         </div>
                     </div>
 
-                    <!-- Filtro por Servicio / Clase y Estado -->
-                    <div class="flex items-center gap-3 flex-wrap">
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <label class="text-xs font-extrabold text-slate-500 uppercase tracking-wider shrink-0">Clase / Servicio:</label>
-                            <select id="selectFiltroClaseGrilla" onchange="onFiltroClaseGrillaChange()" class="w-full sm:w-64 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-orange-500">
-                                <option value="todos">Todas las clases y servicios</option>
-                            </select>
-                        </div>
+                    <!-- Métricas de la semana compactas en una sola línea (sin carteles gigantes) -->
+                    <div class="flex items-center gap-2 flex-wrap text-xs">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-50 text-orange-800 border border-orange-200/90 font-bold">
+                            <span class="font-black text-orange-600" id="statSemanaTotalClases">0</span> clases
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200/90 font-bold">
+                            <span class="font-black text-emerald-600" id="statSemanaTotalAlumnos">0</span> alumnos
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 text-blue-800 border border-blue-200/90 font-bold">
+                            <span class="font-black text-blue-600" id="statSemanaCuposLibres">0</span> cupos libres
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 text-purple-800 border border-purple-200/90 font-bold">
+                            <span class="font-black text-purple-600" id="statSemanaOcupacionPct">0%</span> ocupación
+                        </span>
 
-                        <button type="button" onclick="cargarClasesSemana()" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer" title="Recargar Grilla">
-                            <span class="material-symbols-outlined text-[18px]">refresh</span>
+                        <button type="button" onclick="cargarClasesSemana()" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer ml-1" title="Recargar Grilla">
+                            <span class="material-symbols-outlined text-[17px]">refresh</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Resumen Rápido de la Semana -->
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-100 text-xs">
-                    <div class="bg-orange-50/60 p-3 rounded-2xl border border-orange-100">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-orange-600 block">Clases Programadas</span>
-                        <span class="text-lg font-black text-slate-900" id="statSemanaTotalClases">0</span>
+                <!-- Fila 2: Filtro por Servicio (Píldoras) + Toggle "Solo clases con inscriptos" -->
+                <div class="pt-3 border-t border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 custom-scrollbar flex-1" id="pillsServiciosGrilla">
+                        <!-- Píldoras inyectadas por JS -->
                     </div>
-                    <div class="bg-emerald-50/60 p-3 rounded-2xl border border-emerald-100">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-600 block">Alumnos Inscriptos</span>
-                        <span class="text-lg font-black text-emerald-700" id="statSemanaTotalAlumnos">0</span>
-                    </div>
-                    <div class="bg-blue-50/60 p-3 rounded-2xl border border-blue-100">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-blue-600 block">Cupos Libres</span>
-                        <span class="text-lg font-black text-blue-700" id="statSemanaCuposLibres">0</span>
-                    </div>
-                    <div class="bg-purple-50/60 p-3 rounded-2xl border border-purple-100">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-purple-600 block">Ocupación Semanal</span>
-                        <span class="text-lg font-black text-purple-700" id="statSemanaOcupacionPct">0%</span>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Barra de Píldoras por Servicio y Control de Superposición -->
-            <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div class="flex-1 overflow-hidden">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-[11px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                            <span class="material-symbols-outlined text-[15px] text-orange-500">category</span>
-                            Filtrar por Servicio / Actividad
-                        </span>
-                        <span class="text-[10px] text-slate-400 font-semibold" id="labelResumenFiltroServicio">Mostrando todas</span>
-                    </div>
-                    <!-- Píldoras dinámicas generadas en clientes.js -->
-                    <div class="flex items-center gap-2 overflow-x-auto pb-1.5 custom-scrollbar" id="pillsServiciosGrilla">
-                        <!-- Botones de píldora inyectados por JS -->
-                    </div>
-                </div>
+                    <div class="flex items-center gap-2 shrink-0 self-end md:self-center">
+                        <!-- Select original oculto para retrocompatibilidad total -->
+                        <select id="selectFiltroClaseGrilla" onchange="onFiltroClaseGrillaChange()" class="hidden">
+                            <option value="todos">Todas las clases y servicios</option>
+                        </select>
 
-                <!-- Toggle inteligente: Solo clases con alumnos o activas -->
-                <div class="flex items-center gap-3 shrink-0 border-t md:border-t-0 pt-3 md:pt-0 border-slate-100 self-end md:self-center">
-                    <label for="toggleSoloConInscriptos" class="flex items-center gap-2 text-xs font-extrabold text-slate-700 cursor-pointer select-none bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-2 rounded-xl transition-colors">
-                        <input type="checkbox" id="toggleSoloConInscriptos" checked onchange="onToggleSoloConInscriptosChange()" class="w-4 h-4 text-orange-500 rounded border-slate-300 focus:ring-orange-400 cursor-pointer">
-                        <span>Solo clases con inscriptos</span>
-                    </label>
+                        <label for="toggleSoloConInscriptos" class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer select-none bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl transition-colors">
+                            <input type="checkbox" id="toggleSoloConInscriptos" checked onchange="onToggleSoloConInscriptosChange()" class="w-4 h-4 text-orange-500 rounded border-slate-300 focus:ring-orange-400 cursor-pointer">
+                            <span>Solo clases con inscriptos</span>
+                        </label>
+                    </div>
                 </div>
             </div>
 
