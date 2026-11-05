@@ -1559,7 +1559,7 @@ function renderGrillaSemanal() {
             }
         });
 
-        // 2. Si el usuario desea ver todos los horarios programados del día (o si filtró por un servicio específico)
+        // 2. Si el usuario desea ver todos los horarios del día (o si filtró por un servicio específico)
         if (!soloConInscriptos || filtroClaseGrilla !== 'todos') {
             if (isOpen) {
                 servicios.forEach(s => {
@@ -1584,7 +1584,6 @@ function renderGrillaSemanal() {
                                 return matchServ && matchHora;
                             });
 
-                            // Si soloConInscriptos está activo y estamos filtrando, solo mostrar si hay inscriptos o si el usuario quiere ver los slots del servicio
                             if (!soloConInscriptos || inscriptos.length > 0) {
                                 clasesDelDia.push({
                                     servicioId: s.id,
@@ -1601,45 +1600,71 @@ function renderGrillaSemanal() {
             }
         }
 
-        // Ordenar clases del día cronológicamente por hora y luego por nombre de servicio
+        // Ordenar clases cronológicamente
         clasesDelDia.sort((a, b) => {
             const cmpHora = a.hora.localeCompare(b.hora);
             if (cmpHora !== 0) return cmpHora;
             return a.servicioNombre.localeCompare(b.servicioNombre);
         });
 
-        // Detectar superposición de horarios en el mismo día
+        // Detectar superposición de horarios
         const horasCount = {};
         clasesDelDia.forEach(c => {
             horasCount[c.hora] = (horasCount[c.hora] || 0) + 1;
         });
 
-        // Acumular estadísticas
+        // Acumular métricas
         clasesDelDia.forEach(c => {
             totalClasesSemana++;
             totalInscriptosSemana += c.inscriptos.length;
             totalCapacidadSemana += c.cupoMaximo;
         });
 
-        // Encabezado del día
-        const dayHeaderBg = isHoy 
-            ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-md' 
-            : 'bg-white border-b border-slate-200 text-slate-800';
+        const tieneClases = clasesDelDia.length > 0;
+
+        // Header del día estilizado y proporcionado (sin letras gigantes)
+        let headerHtml = '';
+        if (isHoy) {
+            headerHtml = `
+                <div class="bg-gradient-to-r from-orange-600 to-amber-500 text-white px-3 py-2.5 flex items-center justify-between select-none shadow-xs">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-orange-100">${dayNameCap}</span>
+                        <span class="text-xs font-black text-white">${dayNum} ${monthShort}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-white text-orange-600 tracking-wider shadow-2xs">Hoy</span>
+                        ${tieneClases ? `<span class="px-1.5 py-0.5 rounded-md text-[9px] font-bold bg-white/20 text-white">${clasesDelDia.length} cl.</span>` : ''}
+                    </div>
+                </div>
+            `;
+        } else {
+            headerHtml = `
+                <div class="bg-white border-b border-slate-100 px-3 py-2.5 flex items-center justify-between select-none">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">${dayNameCap}</span>
+                        <span class="text-xs font-black text-slate-800">${dayNum} ${monthShort}</span>
+                    </div>
+                    ${tieneClases 
+                        ? `<span class="px-2 py-0.5 rounded-lg text-[10px] font-extrabold bg-orange-50 text-orange-700 border border-orange-200/80">${clasesDelDia.length} ${clasesDelDia.length === 1 ? 'clase' : 'clases'}</span>`
+                        : `<span class="text-[10px] font-semibold text-slate-400">Libre</span>`
+                    }
+                </div>
+            `;
+        }
 
         let clasesHtml = '';
         if (!isOpen && clasesDelDia.length === 0) {
             clasesHtml = `
-                <div class="py-10 px-3 text-center text-slate-400 bg-slate-50/60 rounded-2xl border border-slate-200/60 my-2">
-                    <span class="material-symbols-outlined text-2xl text-slate-300 block mb-1">event_busy</span>
-                    <span class="text-[11px] font-bold block">Cerrado</span>
+                <div class="py-6 px-2 text-center text-slate-400 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 my-1">
+                    <span class="material-symbols-outlined text-lg text-slate-300 block mb-0.5">event_busy</span>
+                    <span class="text-[11px] font-bold block text-slate-400">Cerrado</span>
                 </div>
             `;
         } else if (clasesDelDia.length === 0) {
             clasesHtml = `
-                <div class="py-10 px-3 text-center text-slate-400 bg-white/70 rounded-2xl border border-dashed border-slate-200 my-2">
-                    <span class="material-symbols-outlined text-2xl text-slate-300 block mb-1">event_available</span>
-                    <span class="text-[11px] font-bold text-slate-600 block">Sin clases agendadas</span>
-                    <p class="text-[10px] text-slate-400 mt-1">Desmarca "Solo clases con inscriptos" para ver los horarios disponibles.</p>
+                <div class="py-6 px-2 text-center text-slate-400 bg-slate-50/40 rounded-2xl border border-dashed border-slate-200/80 my-1">
+                    <span class="material-symbols-outlined text-lg text-slate-300 block mb-0.5">schedule</span>
+                    <span class="text-[11px] font-bold text-slate-400 block">Sin clases</span>
                 </div>
             `;
         } else {
@@ -1657,28 +1682,28 @@ function renderGrillaSemanal() {
                 let barraColor = cConf.progressBar;
 
                 if (ocupados >= cupoMax) {
-                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 border border-rose-200">COMPLETO</span>`;
+                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-100 text-rose-800 border border-rose-200">COMPLETO</span>`;
                     barraColor = 'bg-rose-500';
                 } else if (ocupados > 0 && libres <= 2) {
-                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-200">Últimos ${libres} cupos</span>`;
+                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-200">${libres} libres</span>`;
                     barraColor = 'bg-amber-500';
                 } else if (ocupados > 0) {
-                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">${libres} cupos libres</span>`;
+                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">${libres} libres</span>`;
                     barraColor = 'bg-emerald-500';
                 } else {
-                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">Sin alumnos</span>`;
+                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">Disponible</span>`;
                     barraColor = 'bg-slate-300';
                 }
 
-                // Badge de superposición horaria
+                // Badge de superposición
                 const superpuestaBadge = esSuperpuesta ? `
-                    <span class="inline-flex items-center gap-1 text-[10px] font-black text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md border border-amber-300 shrink-0" title="Horario con múltiples actividades simultáneas">
+                    <span class="inline-flex items-center gap-0.5 text-[10px] font-black text-amber-900 bg-amber-100/90 px-1.5 py-0.5 rounded border border-amber-300 shrink-0" title="Horario compartido con otra actividad">
                         <span class="material-symbols-outlined text-[12px]">layers</span>
                         <span>Paralela</span>
                     </span>
                 ` : '';
 
-                // Chips de alumnos inscriptos
+                // Chips de alumnos
                 let inscriptosChipsHtml = '';
                 if (ocupados > 0) {
                     const topChips = c.inscriptos.slice(0, 3).map(al => {
@@ -1686,7 +1711,7 @@ function renderGrillaSemanal() {
                         const asistBadge = al.asistio == 1 
                             ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block mr-1" title="Presente"></span>' 
                             : '';
-                        return `<span class="inline-flex items-center px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-extrabold text-slate-700 shadow-2xs truncate max-w-[85px]">${asistBadge}${escapeHtml(shortName)}</span>`;
+                        return `<span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-50 border border-slate-200/90 text-[10px] font-extrabold text-slate-700 truncate max-w-[90px] shadow-2xs">${asistBadge}${escapeHtml(shortName)}</span>`;
                     }).join('');
 
                     const extraCount = ocupados > 3 ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-orange-100 text-[10px] font-black text-orange-700">+ ${ocupados - 3}</span>` : '';
@@ -1694,7 +1719,7 @@ function renderGrillaSemanal() {
                 } else {
                     inscriptosChipsHtml = `
                         <div class="mt-2 flex items-center justify-between text-[11px] text-slate-400">
-                            <span class="italic">Disponible para agendar</span>
+                            <span class="italic text-[10px]">Sin alumnos aún</span>
                             <span class="font-extrabold text-orange-600 text-[10px] flex items-center gap-0.5">+ Anotar</span>
                         </div>
                     `;
@@ -1709,66 +1734,72 @@ function renderGrillaSemanal() {
                     cupoMaximo: c.cupoMaximo
                 }).replace(/"/g, '&quot;');
 
+                // Recuadro de la clase con alto contraste y diseño destacado
                 return `
-                    <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" class="bg-white hover:shadow-md border border-slate-200/90 ${cConf.border} border-l-[5px] rounded-2xl p-3 sm:p-3.5 shadow-2xs transition-all cursor-pointer flex flex-col justify-between group relative overflow-hidden">
+                    <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" class="bg-white hover:bg-slate-50/70 border border-slate-200/90 hover:border-slate-300 ${cConf.border} border-l-[4px] rounded-2xl p-3 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group relative overflow-hidden">
                         <div>
-                            <!-- Header de la tarjeta: Hora y Badge Simultánea -->
-                            <div class="flex items-center justify-between gap-1 mb-1.5">
-                                <span class="font-black text-slate-900 text-xs sm:text-sm flex items-center gap-1 group-hover:text-orange-600 transition-colors">
-                                    <span class="material-symbols-outlined text-orange-500 text-[15px]">schedule</span>
+                            <!-- Header del Recuadro: Hora destacada y badge de simultánea -->
+                            <div class="flex items-center justify-between gap-1 mb-2">
+                                <span class="px-2.5 py-1 rounded-lg text-xs font-black bg-slate-900 text-white flex items-center gap-1 shadow-2xs">
+                                    <span class="material-symbols-outlined text-[13px] text-orange-400">schedule</span>
                                     <span>${c.hora} hs</span>
                                 </span>
                                 ${superpuestaBadge}
                             </div>
 
-                            <!-- Etiqueta del Servicio y Profesional -->
-                            <div class="mb-2">
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black border ${cConf.badgeServ} mb-1 truncate max-w-full">
+                            <!-- Título del Servicio en negrita y profesional -->
+                            <h5 class="text-xs sm:text-sm font-black text-slate-900 group-hover:text-orange-600 transition-colors leading-snug mb-1 line-clamp-1">
+                                ${escapeHtml(c.servicioNombre)}
+                            </h5>
+
+                            <div class="flex items-center justify-between gap-1 mb-2">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold border ${cConf.badgeServ}">
                                     <span class="w-1.5 h-1.5 rounded-full ${cConf.dot} shrink-0"></span>
-                                    <span class="truncate">${escapeHtml(c.servicioNombre)}</span>
+                                    <span>${cupoMax} cupos</span>
                                 </span>
-                                <p class="text-[11px] font-semibold text-slate-500 truncate flex items-center gap-1">
+                                <span class="text-[11px] font-semibold text-slate-500 truncate max-w-[90px] flex items-center gap-0.5">
                                     <span class="material-symbols-outlined text-[13px] text-slate-400">person</span>
-                                    <span>${escapeHtml(c.profesional)}</span>
-                                </p>
+                                    <span class="truncate">${escapeHtml(c.profesional)}</span>
+                                </span>
                             </div>
 
-                            <!-- Barra de progreso de llenado -->
-                            <div class="mt-2">
-                                <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-1">
-                                    <span>Ocupación (${ocupados}/${cupoMax})</span>
-                                    <span>${pctOcupacion}%</span>
+                            <!-- Barra de ocupación visual -->
+                            <div class="bg-slate-50 p-2 rounded-xl border border-slate-100 mb-1">
+                                <div class="flex items-center justify-between text-[10px] font-black mb-1">
+                                    <span class="text-slate-700">${ocupados} inscriptos</span>
+                                    <span class="${ocupados >= cupoMax ? 'text-rose-600' : 'text-slate-500'}">${pctOcupacion}%</span>
                                 </div>
-                                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                    <div class="${barraColor} h-1.5 rounded-full transition-all duration-300" style="width: ${pctOcupacion}%"></div>
+                                <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                                    <div class="${barraColor} h-full rounded-full transition-all duration-300" style="width: ${pctOcupacion}%"></div>
                                 </div>
                             </div>
 
-                            <!-- Chips de alumnos o aviso disponible -->
+                            <!-- Chips de alumnos -->
                             ${inscriptosChipsHtml}
                         </div>
 
-                        <!-- Footer de la tarjeta -->
-                        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <!-- Footer del Recuadro -->
+                        <div class="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
                             ${badgeOcupacion}
-                            <span class="material-symbols-outlined text-slate-400 group-hover:text-orange-600 group-hover:translate-x-0.5 transition-all text-[16px]">arrow_forward</span>
+                            <span class="text-[11px] font-extrabold ${cConf.text} flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                                <span>Detalles</span>
+                                <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                            </span>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        return `
-            <div class="bg-slate-100/60 border border-slate-200/90 rounded-3xl overflow-hidden flex flex-col min-h-[320px]">
-                <!-- Header del Día -->
-                <div class="p-3.5 ${dayHeaderBg} text-center select-none">
-                    <span class="text-[11px] font-black tracking-wider uppercase block">${dayNameCap}</span>
-                    <span class="text-xl font-black block leading-tight">${dayNum} ${monthShort}</span>
-                    ${isHoy ? '<span class="inline-block mt-0.5 px-2.5 py-0.2 rounded-full text-[9px] font-black uppercase bg-white/20 tracking-wider">Hoy</span>' : ''}
-                </div>
+        // Columna del día: si tiene clases resalta con borde nítido, si no es más tenue
+        const colContainerClass = tieneClases
+            ? 'bg-slate-50/80 border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden flex flex-col min-h-[280px]'
+            : 'bg-slate-50/40 border border-dashed border-slate-200/80 rounded-2xl overflow-hidden flex flex-col min-h-[140px] opacity-80';
 
-                <!-- Lista de Clases del Día -->
-                <div class="p-2.5 space-y-2.5 flex-1 overflow-y-auto">
+        return `
+            <div class="${colContainerClass}">
+                ${headerHtml}
+                <div class="p-2 space-y-2 flex-1 overflow-y-auto">
                     ${clasesHtml}
                 </div>
             </div>
