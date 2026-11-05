@@ -256,6 +256,31 @@
                 </div>
             </div>
 
+            <!-- Barra de Píldoras por Servicio y Control de Superposición -->
+            <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex-1 overflow-hidden">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[11px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[15px] text-orange-500">category</span>
+                            Filtrar por Servicio / Actividad
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-semibold" id="labelResumenFiltroServicio">Mostrando todas</span>
+                    </div>
+                    <!-- Píldoras dinámicas generadas en clientes.js -->
+                    <div class="flex items-center gap-2 overflow-x-auto pb-1.5 custom-scrollbar" id="pillsServiciosGrilla">
+                        <!-- Botones de píldora inyectados por JS -->
+                    </div>
+                </div>
+
+                <!-- Toggle inteligente: Solo clases con alumnos o activas -->
+                <div class="flex items-center gap-3 shrink-0 border-t md:border-t-0 pt-3 md:pt-0 border-slate-100 self-end md:self-center">
+                    <label for="toggleSoloConInscriptos" class="flex items-center gap-2 text-xs font-extrabold text-slate-700 cursor-pointer select-none bg-slate-50 hover:bg-slate-100 border border-slate-200 px-3 py-2 rounded-xl transition-colors">
+                        <input type="checkbox" id="toggleSoloConInscriptos" checked onchange="onToggleSoloConInscriptosChange()" class="w-4 h-4 text-orange-500 rounded border-slate-300 focus:ring-orange-400 cursor-pointer">
+                        <span>Solo clases con inscriptos</span>
+                    </label>
+                </div>
+            </div>
+
             <!-- Grilla Semanal: Columnas de Lunes a Domingo -->
             <div id="grillaSemanaContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3 sm:gap-4 items-start">
                 <!-- Se puebla dinámicamente con los 7 días de la semana -->

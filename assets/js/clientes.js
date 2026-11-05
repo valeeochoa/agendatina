@@ -1215,23 +1215,174 @@ function cargarClasesSemana() {
         });
 }
 
+/* =========================================================
+   SISTEMA CROMÁTICO Y VISUAL POR SERVICIO / ACTIVIDAD
+   ========================================================= */
+const PALETA_SERVICIOS = [
+    { 
+        id: 'indigo',
+        border: 'border-l-indigo-500', 
+        bgHeader: 'bg-indigo-50/70 text-indigo-900', 
+        bgCard: 'bg-white hover:bg-indigo-50/30',
+        badgeServ: 'bg-indigo-50 text-indigo-700 border-indigo-200', 
+        dot: 'bg-indigo-500', 
+        text: 'text-indigo-700',
+        progressBar: 'bg-indigo-500',
+        activePill: 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/20'
+    },
+    { 
+        id: 'teal',
+        border: 'border-l-teal-500', 
+        bgHeader: 'bg-teal-50/70 text-teal-900', 
+        bgCard: 'bg-white hover:bg-teal-50/30',
+        badgeServ: 'bg-teal-50 text-teal-700 border-teal-200', 
+        dot: 'bg-teal-500', 
+        text: 'text-teal-700',
+        progressBar: 'bg-teal-500',
+        activePill: 'bg-teal-600 text-white shadow-sm shadow-teal-600/20'
+    },
+    { 
+        id: 'amber',
+        border: 'border-l-amber-500', 
+        bgHeader: 'bg-amber-50/70 text-amber-900', 
+        bgCard: 'bg-white hover:bg-amber-50/30',
+        badgeServ: 'bg-amber-50 text-amber-900 border-amber-200', 
+        dot: 'bg-amber-500', 
+        text: 'text-amber-700',
+        progressBar: 'bg-amber-500',
+        activePill: 'bg-amber-600 text-white shadow-sm shadow-amber-600/20'
+    },
+    { 
+        id: 'rose',
+        border: 'border-l-rose-500', 
+        bgHeader: 'bg-rose-50/70 text-rose-900', 
+        bgCard: 'bg-white hover:bg-rose-50/30',
+        badgeServ: 'bg-rose-50 text-rose-700 border-rose-200', 
+        dot: 'bg-rose-500', 
+        text: 'text-rose-700',
+        progressBar: 'bg-rose-500',
+        activePill: 'bg-rose-600 text-white shadow-sm shadow-rose-600/20'
+    },
+    { 
+        id: 'sky',
+        border: 'border-l-sky-500', 
+        bgHeader: 'bg-sky-50/70 text-sky-900', 
+        bgCard: 'bg-white hover:bg-sky-50/30',
+        badgeServ: 'bg-sky-50 text-sky-700 border-sky-200', 
+        dot: 'bg-sky-500', 
+        text: 'text-sky-700',
+        progressBar: 'bg-sky-500',
+        activePill: 'bg-sky-600 text-white shadow-sm shadow-sky-600/20'
+    },
+    { 
+        id: 'purple',
+        border: 'border-l-purple-500', 
+        bgHeader: 'bg-purple-50/70 text-purple-900', 
+        bgCard: 'bg-white hover:bg-purple-50/30',
+        badgeServ: 'bg-purple-50 text-purple-700 border-purple-200', 
+        dot: 'bg-purple-500', 
+        text: 'text-purple-700',
+        progressBar: 'bg-purple-500',
+        activePill: 'bg-purple-600 text-white shadow-sm shadow-purple-600/20'
+    }
+];
+
+function getServiceColorConfig(serviceId) {
+    const num = Math.abs(parseInt(serviceId, 10) || 0);
+    return PALETA_SERVICIOS[num % PALETA_SERVICIOS.length];
+}
+
 function poblarFiltroClasesDropdown(servicios) {
     const sel = document.getElementById('selectFiltroClaseGrilla');
-    if (!sel) return;
+    if (sel) {
+        const currentVal = sel.value || 'todos';
+        sel.innerHTML = '<option value="todos">Todas las clases y servicios</option>';
 
-    const currentVal = sel.value || 'todos';
-    sel.innerHTML = '<option value="todos">Todas las clases y servicios</option>';
+        servicios.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = `${s.nombre_servicio || s.nombre} (Cupo: ${s.cupo_maximo || 1})`;
+            sel.appendChild(opt);
+        });
+
+        if (currentVal && Array.from(sel.options).some(o => o.value === currentVal)) {
+            sel.value = currentVal;
+        }
+    }
+
+    renderPillsServiciosGrilla(servicios);
+}
+
+function renderPillsServiciosGrilla(servicios) {
+    const container = document.getElementById('pillsServiciosGrilla');
+    if (!container) return;
+
+    const turnos = (semanaData && Array.isArray(semanaData.turnos)) ? semanaData.turnos : [];
+    const totalInscriptosSemana = turnos.length;
+
+    let html = '';
+
+    // Píldora: Todas las actividades
+    const isAllActive = (filtroClaseGrilla === 'todos');
+    const allBtnClass = isAllActive 
+        ? 'bg-slate-900 text-white shadow-sm font-black' 
+        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold';
+
+    html += `
+        <button type="button" onclick="filtrarPorPillServicio('todos')" class="px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${allBtnClass}">
+            <span class="material-symbols-outlined text-[15px]">apps</span>
+            <span>Todas las Actividades</span>
+            <span class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] ${isAllActive ? 'bg-white/20 text-white' : 'bg-white text-slate-700 border border-slate-200'}">${totalInscriptosSemana}</span>
+        </button>
+    `;
 
     servicios.forEach(s => {
-        const opt = document.createElement('option');
-        opt.value = s.id;
-        opt.textContent = `${s.nombre_servicio || s.nombre} (Cupo: ${s.cupo_maximo || 1})`;
-        sel.appendChild(opt);
+        const sId = String(s.id);
+        const isActive = (filtroClaseGrilla === sId);
+        const sNombre = s.nombre_servicio || s.nombre || 'Servicio';
+        const cConf = getServiceColorConfig(s.id);
+
+        const countInscriptosServ = turnos.filter(t => {
+            return (t.id_servicio && String(t.id_servicio) === sId) ||
+                   (t.servicio && t.servicio.toLowerCase().trim() === sNombre.toLowerCase().trim());
+        }).length;
+
+        const pillClass = isActive 
+            ? `${cConf.activePill} font-black` 
+            : `bg-slate-50 hover:bg-white text-slate-700 border border-slate-200 hover:border-slate-300 font-bold`;
+
+        html += `
+            <button type="button" onclick="filtrarPorPillServicio('${sId}')" class="px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${pillClass}">
+                <span class="w-2.5 h-2.5 rounded-full ${cConf.dot}"></span>
+                <span>${escapeHtml(sNombre)}</span>
+                <span class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] ${isActive ? 'bg-white/20 text-white' : 'bg-white text-slate-600 border border-slate-200'}">${countInscriptosServ}</span>
+            </button>
+        `;
     });
 
-    if (currentVal && Array.from(sel.options).some(o => o.value === currentVal)) {
-        sel.value = currentVal;
+    container.innerHTML = html;
+
+    const lblResumen = document.getElementById('labelResumenFiltroServicio');
+    if (lblResumen) {
+        if (filtroClaseGrilla === 'todos') {
+            lblResumen.textContent = `Mostrando ${servicios.length} actividades combinadas`;
+        } else {
+            const servEncontrado = servicios.find(s => String(s.id) === String(filtroClaseGrilla));
+            lblResumen.textContent = `Filtrando por: ${servEncontrado ? (servEncontrado.nombre_servicio || servEncontrado.nombre) : 'Servicio'}`;
+        }
     }
+}
+
+function filtrarPorPillServicio(servicioId) {
+    filtroClaseGrilla = String(servicioId);
+    const sel = document.getElementById('selectFiltroClaseGrilla');
+    if (sel) sel.value = filtroClaseGrilla;
+    renderPillsServiciosGrilla(semanaData.servicios || []);
+    renderGrillaSemanal();
+}
+
+function onToggleSoloConInscriptosChange() {
+    renderGrillaSemanal();
 }
 
 function isNegocioOpenOnDay(dateObj, config) {
@@ -1345,9 +1496,12 @@ function renderGrillaSemanal() {
 
     const dias = getRangoSemanaDates(currentWeekOffset);
     const hoyStr = formatLocalDateStr(new Date());
-    const servicios = semanaData.servicios || [];
-    const turnos = semanaData.turnos || [];
+    const servicios = (semanaData && Array.isArray(semanaData.servicios)) ? semanaData.servicios : [];
+    const turnos = (semanaData && Array.isArray(semanaData.turnos)) ? semanaData.turnos : [];
     const config = semanaData.config || {};
+
+    const toggleSoloInscriptos = document.getElementById('toggleSoloConInscriptos');
+    const soloConInscriptos = toggleSoloInscriptos ? toggleSoloInscriptos.checked : true;
 
     let totalClasesSemana = 0;
     let totalInscriptosSemana = 0;
@@ -1362,64 +1516,24 @@ function renderGrillaSemanal() {
         const monthShort = dateObj.toLocaleDateString('es-AR', { month: 'short' });
 
         const isOpen = isNegocioOpenOnDay(dateObj, config);
-
-        // Agrupar turnos que caen en este día
         const turnosDelDia = turnos.filter(t => t.fecha === fechaStr);
 
-        // Construir lista de clases para este día
         let clasesDelDia = [];
         let scheduledSlotsKeys = new Set();
 
-        // 1. Obtener slots configurados para cada servicio
-        servicios.forEach(s => {
-            if (filtroClaseGrilla !== 'todos' && String(s.id) !== String(filtroClaseGrilla)) {
-                return;
-            }
-
-            const cupoMax = parseInt(s.cupo_maximo || 10, 10) || 10;
-            const sNombre = s.nombre_servicio || s.nombre || 'Clase';
-            const prof = s.profesional || 'Instructor';
-
-            if (isOpen) {
-                const slots = getServiceSlotsForDayBusiness(s, dateObj, config);
-                slots.forEach(horaSlot => {
-                    const key = `${s.id}_${horaSlot}`;
-                    scheduledSlotsKeys.add(key);
-
-                    // Alumnos inscriptos en este slot
-                    const inscriptos = turnosDelDia.filter(t => {
-                        const matchServ = (t.id_servicio && parseInt(t.id_servicio) === parseInt(s.id)) ||
-                                          (t.servicio && t.servicio.toLowerCase().trim() === sNombre.toLowerCase().trim());
-                        const matchHora = String(t.hora).substring(0, 5) === horaSlot;
-                        return matchServ && matchHora;
-                    });
-
-                    clasesDelDia.push({
-                        servicioId: s.id,
-                        servicioNombre: sNombre,
-                        hora: horaSlot,
-                        profesional: prof,
-                        cupoMaximo: cupoMax,
-                        inscriptos: inscriptos
-                    });
-                });
-            }
-        });
-
-        // 2. Incluir cualquier turno adicional que exista en la base de datos para este día (incluso fuera de los slots habituales)
+        // 1. Identificar todas las clases con alumnos en la base de datos para este día
         turnosDelDia.forEach(t => {
             const tHora = String(t.hora).substring(0, 5);
             const tServId = t.id_servicio || 0;
-            const key = `${tServId}_${tHora}`;
 
             if (filtroClaseGrilla !== 'todos' && tServId && String(tServId) !== String(filtroClaseGrilla)) {
                 return;
             }
 
+            const key = `${tServId}_${tHora}`;
             if (!scheduledSlotsKeys.has(key)) {
                 scheduledSlotsKeys.add(key);
 
-                // Buscar servicio
                 const sObj = servicios.find(s => parseInt(s.id) === parseInt(tServId)) || {
                     id: tServId,
                     nombre_servicio: t.servicio || 'Clase',
@@ -1445,8 +1559,60 @@ function renderGrillaSemanal() {
             }
         });
 
-        // Ordenar clases del día cronológicamente
-        clasesDelDia.sort((a, b) => a.hora.localeCompare(b.hora));
+        // 2. Si el usuario desea ver todos los horarios programados del día (o si filtró por un servicio específico)
+        if (!soloConInscriptos || filtroClaseGrilla !== 'todos') {
+            if (isOpen) {
+                servicios.forEach(s => {
+                    if (filtroClaseGrilla !== 'todos' && String(s.id) !== String(filtroClaseGrilla)) {
+                        return;
+                    }
+
+                    const cupoMax = parseInt(s.cupo_maximo || 10, 10) || 10;
+                    const sNombre = s.nombre_servicio || s.nombre || 'Clase';
+                    const prof = s.profesional || 'Instructor';
+
+                    const slots = getServiceSlotsForDayBusiness(s, dateObj, config);
+                    slots.forEach(horaSlot => {
+                        const key = `${s.id}_${horaSlot}`;
+                        if (!scheduledSlotsKeys.has(key)) {
+                            scheduledSlotsKeys.add(key);
+
+                            const inscriptos = turnosDelDia.filter(t => {
+                                const matchServ = (t.id_servicio && parseInt(t.id_servicio) === parseInt(s.id)) ||
+                                                  (t.servicio && t.servicio.toLowerCase().trim() === sNombre.toLowerCase().trim());
+                                const matchHora = String(t.hora).substring(0, 5) === horaSlot;
+                                return matchServ && matchHora;
+                            });
+
+                            // Si soloConInscriptos está activo y estamos filtrando, solo mostrar si hay inscriptos o si el usuario quiere ver los slots del servicio
+                            if (!soloConInscriptos || inscriptos.length > 0) {
+                                clasesDelDia.push({
+                                    servicioId: s.id,
+                                    servicioNombre: sNombre,
+                                    hora: horaSlot,
+                                    profesional: prof,
+                                    cupoMaximo: cupoMax,
+                                    inscriptos: inscriptos
+                                });
+                            }
+                        }
+                    });
+                });
+            }
+        }
+
+        // Ordenar clases del día cronológicamente por hora y luego por nombre de servicio
+        clasesDelDia.sort((a, b) => {
+            const cmpHora = a.hora.localeCompare(b.hora);
+            if (cmpHora !== 0) return cmpHora;
+            return a.servicioNombre.localeCompare(b.servicioNombre);
+        });
+
+        // Detectar superposición de horarios en el mismo día
+        const horasCount = {};
+        clasesDelDia.forEach(c => {
+            horasCount[c.hora] = (horasCount[c.hora] || 0) + 1;
+        });
 
         // Acumular estadísticas
         clasesDelDia.forEach(c => {
@@ -1455,7 +1621,7 @@ function renderGrillaSemanal() {
             totalCapacidadSemana += c.cupoMaximo;
         });
 
-        // Renderizar columna del día
+        // Encabezado del día
         const dayHeaderBg = isHoy 
             ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-md' 
             : 'bg-white border-b border-slate-200 text-slate-800';
@@ -1463,16 +1629,17 @@ function renderGrillaSemanal() {
         let clasesHtml = '';
         if (!isOpen && clasesDelDia.length === 0) {
             clasesHtml = `
-                <div class="py-8 px-3 text-center text-slate-400 bg-slate-50/60 rounded-2xl border border-slate-200/60 my-2">
+                <div class="py-10 px-3 text-center text-slate-400 bg-slate-50/60 rounded-2xl border border-slate-200/60 my-2">
                     <span class="material-symbols-outlined text-2xl text-slate-300 block mb-1">event_busy</span>
                     <span class="text-[11px] font-bold block">Cerrado</span>
                 </div>
             `;
         } else if (clasesDelDia.length === 0) {
             clasesHtml = `
-                <div class="py-8 px-3 text-center text-slate-400 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 my-2">
-                    <span class="material-symbols-outlined text-2xl text-slate-300 block mb-1">schedule</span>
-                    <span class="text-[11px] font-bold block">Sin clases</span>
+                <div class="py-10 px-3 text-center text-slate-400 bg-white/70 rounded-2xl border border-dashed border-slate-200 my-2">
+                    <span class="material-symbols-outlined text-2xl text-slate-300 block mb-1">event_available</span>
+                    <span class="text-[11px] font-bold text-slate-600 block">Sin clases agendadas</span>
+                    <p class="text-[10px] text-slate-400 mt-1">Desmarca "Solo clases con inscriptos" para ver los horarios disponibles.</p>
                 </div>
             `;
         } else {
@@ -1480,43 +1647,59 @@ function renderGrillaSemanal() {
                 const ocupados = c.inscriptos.length;
                 const cupoMax = c.cupoMaximo;
                 const libres = Math.max(0, cupoMax - ocupados);
+                const pctOcupacion = cupoMax > 0 ? Math.min(100, Math.round((ocupados / cupoMax) * 100)) : 0;
+                const esSuperpuesta = (horasCount[c.hora] > 1);
 
-                let badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
-                let badgeDot = 'bg-emerald-500';
-                let badgeText = `${ocupados} / ${cupoMax} alumnos`;
+                const cConf = getServiceColorConfig(c.servicioId);
+
+                // Badge de ocupación
+                let badgeOcupacion = '';
+                let barraColor = cConf.progressBar;
 
                 if (ocupados >= cupoMax) {
-                    badgeColor = 'bg-rose-100 text-rose-800 border-rose-200';
-                    badgeDot = 'bg-rose-500';
-                    badgeText = `COMPLETO (${ocupados}/${cupoMax})`;
+                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 border border-rose-200">COMPLETO</span>`;
+                    barraColor = 'bg-rose-500';
                 } else if (ocupados > 0 && libres <= 2) {
-                    badgeColor = 'bg-amber-100 text-amber-800 border-amber-200';
-                    badgeDot = 'bg-amber-500';
-                    badgeText = `${ocupados} / ${cupoMax} (Últimos cupos)`;
-                } else if (ocupados === 0) {
-                    badgeColor = 'bg-slate-100 text-slate-600 border-slate-200';
-                    badgeDot = 'bg-slate-400';
-                    badgeText = `0 / ${cupoMax} alumnos`;
+                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-200">Últimos ${libres} cupos</span>`;
+                    barraColor = 'bg-amber-500';
+                } else if (ocupados > 0) {
+                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">${libres} cupos libres</span>`;
+                    barraColor = 'bg-emerald-500';
+                } else {
+                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">Sin alumnos</span>`;
+                    barraColor = 'bg-slate-300';
                 }
 
-                // Generar chips rápidos de alumnos inscriptos
+                // Badge de superposición horaria
+                const superpuestaBadge = esSuperpuesta ? `
+                    <span class="inline-flex items-center gap-1 text-[10px] font-black text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded-md border border-amber-300 shrink-0" title="Horario con múltiples actividades simultáneas">
+                        <span class="material-symbols-outlined text-[12px]">layers</span>
+                        <span>Paralela</span>
+                    </span>
+                ` : '';
+
+                // Chips de alumnos inscriptos
                 let inscriptosChipsHtml = '';
                 if (ocupados > 0) {
                     const topChips = c.inscriptos.slice(0, 3).map(al => {
                         const shortName = al.cliente_nombre ? al.cliente_nombre.split(' ')[0] : 'Alumno';
                         const asistBadge = al.asistio == 1 
-                            ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block mr-0.5" title="Presente"></span>' 
+                            ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block mr-1" title="Presente"></span>' 
                             : '';
-                        return `<span class="inline-flex items-center px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-700 shadow-2xs truncate max-w-[85px]">${asistBadge}${escapeHtml(shortName)}</span>`;
+                        return `<span class="inline-flex items-center px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-extrabold text-slate-700 shadow-2xs truncate max-w-[85px]">${asistBadge}${escapeHtml(shortName)}</span>`;
                     }).join('');
 
-                    const extraCount = ocupados > 3 ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-orange-100 text-[10px] font-black text-orange-700">+${ocupados - 3}</span>` : '';
+                    const extraCount = ocupados > 3 ? `<span class="inline-flex items-center px-1.5 py-0.5 rounded-md bg-orange-100 text-[10px] font-black text-orange-700">+ ${ocupados - 3}</span>` : '';
                     inscriptosChipsHtml = `<div class="flex flex-wrap items-center gap-1 mt-2">${topChips}${extraCount}</div>`;
                 } else {
-                    inscriptosChipsHtml = `<p class="text-[10px] text-slate-400 italic mt-2">Sin inscriptos aún</p>`;
+                    inscriptosChipsHtml = `
+                        <div class="mt-2 flex items-center justify-between text-[11px] text-slate-400">
+                            <span class="italic">Disponible para agendar</span>
+                            <span class="font-extrabold text-orange-600 text-[10px] flex items-center gap-0.5">+ Anotar</span>
+                        </div>
+                    `;
                 }
 
-                // Preparar argumentos para modal
                 const jsonCardData = JSON.stringify({
                     servicioId: c.servicioId,
                     servicioNombre: c.servicioNombre,
@@ -1527,25 +1710,48 @@ function renderGrillaSemanal() {
                 }).replace(/"/g, '&quot;');
 
                 return `
-                    <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" class="bg-white hover:bg-orange-50/40 border border-slate-200/90 hover:border-orange-300 rounded-2xl p-3 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group">
+                    <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" class="bg-white hover:shadow-md border border-slate-200/90 ${cConf.border} border-l-[5px] rounded-2xl p-3 sm:p-3.5 shadow-2xs transition-all cursor-pointer flex flex-col justify-between group relative overflow-hidden">
                         <div>
-                            <div class="flex items-start justify-between gap-1 mb-1">
-                                <h4 class="font-extrabold text-slate-900 text-xs sm:text-sm group-hover:text-orange-600 transition-colors line-clamp-1">${escapeHtml(c.servicioNombre)}</h4>
+                            <!-- Header de la tarjeta: Hora y Badge Simultánea -->
+                            <div class="flex items-center justify-between gap-1 mb-1.5">
+                                <span class="font-black text-slate-900 text-xs sm:text-sm flex items-center gap-1 group-hover:text-orange-600 transition-colors">
+                                    <span class="material-symbols-outlined text-orange-500 text-[15px]">schedule</span>
+                                    <span>${c.hora} hs</span>
+                                </span>
+                                ${superpuestaBadge}
                             </div>
-                            <p class="text-[11px] font-bold text-slate-600 flex items-center gap-1.5">
-                                <span class="text-orange-600 flex items-center gap-0.5"><span class="material-symbols-outlined text-[13px]">schedule</span> ${c.hora} hs</span>
-                                <span class="text-slate-400">·</span>
-                                <span class="text-slate-500 truncate">${escapeHtml(c.profesional)}</span>
-                            </p>
+
+                            <!-- Etiqueta del Servicio y Profesional -->
+                            <div class="mb-2">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black border ${cConf.badgeServ} mb-1 truncate max-w-full">
+                                    <span class="w-1.5 h-1.5 rounded-full ${cConf.dot} shrink-0"></span>
+                                    <span class="truncate">${escapeHtml(c.servicioNombre)}</span>
+                                </span>
+                                <p class="text-[11px] font-semibold text-slate-500 truncate flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[13px] text-slate-400">person</span>
+                                    <span>${escapeHtml(c.profesional)}</span>
+                                </p>
+                            </div>
+
+                            <!-- Barra de progreso de llenado -->
+                            <div class="mt-2">
+                                <div class="flex items-center justify-between text-[10px] font-bold text-slate-500 mb-1">
+                                    <span>Ocupación (${ocupados}/${cupoMax})</span>
+                                    <span>${pctOcupacion}%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                    <div class="${barraColor} h-1.5 rounded-full transition-all duration-300" style="width: ${pctOcupacion}%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Chips de alumnos o aviso disponible -->
                             ${inscriptosChipsHtml}
                         </div>
 
-                        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-1">
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${badgeColor}">
-                                <span class="w-1.5 h-1.5 rounded-full ${badgeDot}"></span>
-                                <span>${badgeText}</span>
-                            </span>
-                            <span class="material-symbols-outlined text-slate-400 group-hover:text-orange-600 group-hover:translate-x-0.5 transition-all text-[16px]">chevron_right</span>
+                        <!-- Footer de la tarjeta -->
+                        <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                            ${badgeOcupacion}
+                            <span class="material-symbols-outlined text-slate-400 group-hover:text-orange-600 group-hover:translate-x-0.5 transition-all text-[16px]">arrow_forward</span>
                         </div>
                     </div>
                 `;
@@ -1553,16 +1759,16 @@ function renderGrillaSemanal() {
         }
 
         return `
-            <div class="bg-slate-100/70 border border-slate-200 rounded-3xl overflow-hidden flex flex-col min-h-[300px]">
+            <div class="bg-slate-100/60 border border-slate-200/90 rounded-3xl overflow-hidden flex flex-col min-h-[320px]">
                 <!-- Header del Día -->
-                <div class="p-3 sm:p-3.5 ${dayHeaderBg} text-center select-none">
+                <div class="p-3.5 ${dayHeaderBg} text-center select-none">
                     <span class="text-[11px] font-black tracking-wider uppercase block">${dayNameCap}</span>
-                    <span class="text-lg font-black block leading-tight">${dayNum} ${monthShort}</span>
-                    ${isHoy ? '<span class="inline-block mt-0.5 px-2 py-0.2 rounded-full text-[9px] font-black uppercase bg-white/20 tracking-wider">Hoy</span>' : ''}
+                    <span class="text-xl font-black block leading-tight">${dayNum} ${monthShort}</span>
+                    ${isHoy ? '<span class="inline-block mt-0.5 px-2.5 py-0.2 rounded-full text-[9px] font-black uppercase bg-white/20 tracking-wider">Hoy</span>' : ''}
                 </div>
 
                 <!-- Lista de Clases del Día -->
-                <div class="p-2 sm:p-2.5 space-y-2 flex-1 overflow-y-auto">
+                <div class="p-2.5 space-y-2.5 flex-1 overflow-y-auto">
                     ${clasesHtml}
                 </div>
             </div>
