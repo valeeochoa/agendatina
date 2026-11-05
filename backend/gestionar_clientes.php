@@ -171,33 +171,85 @@ try {
             $serviciosList = $stmtServ->fetchAll(PDO::FETCH_ASSOC);
 
             // 3. Turnos e inscriptos para el rango de fechas solicitado
-            $stmtTurnos = $pdo->prepare("
-                SELECT t.id AS id_turno, t.id_servicio, t.servicio, t.profesional, 
-                       t.fecha, t.hora, t.cliente_nombre, t.cliente_celular, 
-                       COALESCE(t.asistio, 0) AS asistio, t.metodo_pago, t.estado,
-                       c.id AS id_cliente_negocio, c.telefono AS cliente_telefono, 
-                       c.email AS cliente_email, COALESCE(c.pases_disponibles, 0) AS pases_disponibles
-                FROM turnos t
-                LEFT JOIN clientes_negocio c ON (
-                    c.id_negocio = t.id_negocio 
-                    AND (
-                        (c.email IS NOT NULL AND c.email != '' AND LOWER(TRIM(c.email)) = LOWER(TRIM(t.cliente_celular)))
-                        OR (c.nombre_completo IS NOT NULL AND c.nombre_completo != '' AND LOWER(TRIM(c.nombre_completo)) = LOWER(TRIM(t.cliente_nombre)))
-                        OR (c.telefono IS NOT NULL AND c.telefono != '' AND LOWER(TRIM(c.telefono)) = LOWER(TRIM(t.cliente_celular)))
+            $turnosSemana = [];
+            try {
+                $stmtTurnos = $pdo->prepare("
+                    SELECT t.id AS id_turno, t.id_servicio, t.servicio, t.profesional, 
+                           t.fecha, t.hora, t.cliente_nombre, t.cliente_celular, 
+                           COALESCE(t.asistio, 0) AS asistio, t.metodo_pago, t.estado,
+                           c.id AS id_cliente_negocio, c.telefono AS cliente_telefono, 
+                           c.email AS cliente_email, COALESCE(c.pases_disponibles, 0) AS pases_disponibles
+                    FROM turnos t
+                    LEFT JOIN clientes_negocio c ON (
+                        c.id_negocio = t.id_negocio 
+                        AND (
+                            (c.email IS NOT NULL AND c.email != '' AND LOWER(TRIM(c.email)) COLLATE utf8mb4_general_ci = LOWER(TRIM(t.cliente_celular)) COLLATE utf8mb4_general_ci)
+                            OR (c.nombre_completo IS NOT NULL AND c.nombre_completo != '' AND LOWER(TRIM(c.nombre_completo)) COLLATE utf8mb4_general_ci = LOWER(TRIM(t.cliente_nombre)) COLLATE utf8mb4_general_ci)
+                            OR (c.telefono IS NOT NULL AND c.telefono != '' AND LOWER(TRIM(c.telefono)) COLLATE utf8mb4_general_ci = LOWER(TRIM(t.cliente_celular)) COLLATE utf8mb4_general_ci)
+                        )
                     )
-                )
-                WHERE t.id_negocio = :id_negocio 
-                  AND t.fecha >= :fecha_inicio 
-                  AND t.fecha <= :fecha_fin 
-                  AND t.estado IN ('confirmado', 'pendiente')
-                ORDER BY t.fecha ASC, t.hora ASC
-            ");
-            $stmtTurnos->execute([
-                'id_negocio' => $id_negocio,
-                'fecha_inicio' => $fecha_inicio,
-                'fecha_fin' => $fecha_fin
-            ]);
-            $turnosSemana = $stmtTurnos->fetchAll(PDO::FETCH_ASSOC);
+                    WHERE t.id_negocio = :id_negocio 
+                      AND t.fecha >= :fecha_inicio 
+                      AND t.fecha <= :fecha_fin 
+                      AND t.estado IN ('confirmado', 'pendiente')
+                    ORDER BY t.fecha ASC, t.hora ASC
+                ");
+                $stmtTurnos->execute([
+                    'id_negocio' => $id_negocio,
+                    'fecha_inicio' => $fecha_inicio,
+                    'fecha_fin' => $fecha_fin
+                ]);
+                $turnosSemana = $stmtTurnos->fetchAll(PDO::FETCH_ASSOC);
+            } catch (Exception $eTurnosCollation) {
+                // Fallback 100% seguro si las tablas difieren en collation o collation no admite join
+                try {
+                    $stmtTurnosFallback = $pdo->prepare("
+                        SELECT t.id AS id_turno, t.id_servicio, t.servicio, t.profesional, 
+                               t.fecha, t.hora, t.cliente_nombre, t.cliente_celular, 
+                               COALESCE(t.asistio, 0) AS asistio, t.metodo_pago, t.estado,
+                               NULL AS id_cliente_negocio, NULL AS cliente_telefono, 
+                               NULL AS cliente_email, 0 AS pases_disponibles
+                        FROM turnos t
+                        WHERE t.id_negocio = :id_negocio 
+                          AND t.fecha >= :fecha_inicio 
+                          AND t.fecha <= :fecha_fin 
+                          AND t.estado IN ('confirmado', 'pendiente')
+                        ORDER BY t.fecha ASC, t.hora ASC
+                    ");
+                    $stmtTurnosFallback->execute([
+                        'id_negocio' => $id_negocio,
+                        'fecha_inicio' => $fecha_inicio,
+                        'fecha_fin' => $fecha_fin
+                    ]);
+                    $turnosSemana = $stmtTurnosFallback->fetchAll(PDO::FETCH_ASSOC);
+
+                    // Hidratación en memoria PHP sin dependencia de collations SQL
+                    $stmtCliMem = $pdo->prepare("SELECT id, nombre_completo, email, telefono, COALESCE(pases_disponibles, 0) AS pases_disponibles FROM clientes_negocio WHERE id_negocio = :id_negocio");
+                    $stmtCliMem->execute(['id_negocio' => $id_negocio]);
+                    $alumnosMem = $stmtCliMem->fetchAll(PDO::FETCH_ASSOC);
+                    if (!empty($alumnosMem) && !empty($turnosSemana)) {
+                        foreach ($turnosSemana as &$trk) {
+                            $cNombre = mb_strtolower(trim($trk['cliente_nombre'] ?? ''));
+                            $cCel = mb_strtolower(trim($trk['cliente_celular'] ?? ''));
+                            foreach ($alumnosMem as $alm) {
+                                $aEmail = mb_strtolower(trim($alm['email'] ?? ''));
+                                $aNom = mb_strtolower(trim($alm['nombre_completo'] ?? ''));
+                                $aTel = mb_strtolower(trim($alm['telefono'] ?? ''));
+                                if (($aEmail !== '' && $aEmail === $cCel) || ($aNom !== '' && $aNom === $cNombre) || ($aTel !== '' && $aTel === $cCel)) {
+                                    $trk['id_cliente_negocio'] = $alm['id'];
+                                    $trk['cliente_telefono'] = $alm['telefono'];
+                                    $trk['cliente_email'] = $alm['email'];
+                                    $trk['pases_disponibles'] = $alm['pases_disponibles'];
+                                    break;
+                                }
+                            }
+                        }
+                        unset($trk);
+                    }
+                } catch (Exception $eFallbackFail) {
+                    $turnosSemana = [];
+                }
+            }
 
             echo json_encode([
                 'success' => true,
