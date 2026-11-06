@@ -1096,7 +1096,7 @@ function loadDashboardData() {
             if (paymentPrice) {
                 let discountBadge = '';
                 if (profCount > 1) {
-                    const volDisc = Math.min(50, profCount * 10);
+                    const volDisc = Math.min(50, profCount * 5);
                     discountBadge = `<div class="flex flex-wrap items-center justify-center gap-2 mb-1"><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-${volDisc}% OFF EQUIPO (${profCount} prof.)</span></div>`;
                 } else if (pData && pData.success && parseInt(pData.data.descuento_porcentaje) > 0) {
                     const discount = parseInt(pData.data.descuento_porcentaje);
@@ -4628,7 +4628,7 @@ window.openUpgradePlanModal = function(defaultTarget) {
             const profBadge = document.getElementById('upgradeProfCountBadge');
             if (profBadge) {
                 if (profCount > 1) {
-                    const volDisc = Math.min(50, profCount * 10);
+                    const volDisc = Math.min(50, profCount * 5);
                     profBadge.textContent = `${profCount} Profesionales (-${volDisc}% OFF equipo)`;
                     profBadge.classList.remove('hidden');
                 } else {

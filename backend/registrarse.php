@@ -281,16 +281,33 @@ try {
     // Resolver precio pactado al momento de alta para garantizar congelamiento en el próximo ciclo
     $precioPactadoAlta = 8889.0;
     try {
-        $stmtCfgGlobal = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium FROM configuracion_global ORDER BY id ASC LIMIT 1");
+        $stmtCfgGlobal = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta FROM configuracion_global ORDER BY id ASC LIMIT 1");
         $cfgGAlta = $stmtCfgGlobal ? $stmtCfgGlobal->fetch(PDO::FETCH_ASSOC) : null;
         if ($cfgGAlta) {
             $pLower = strtolower($plan);
             if (strpos($pLower, 'premium') !== false) {
-                $precioPactadoAlta = (float)($cfgGAlta['precio_premium'] ?? 16667);
+                $rawBaseAlta = (float)($cfgGAlta['precio_premium'] ?? 16667);
             } elseif (strpos($pLower, 'profesional') !== false || strpos($pLower, 'intermedio') !== false) {
-                $precioPactadoAlta = (float)($cfgGAlta['precio_intermedio'] ?? 11111);
+                $rawBaseAlta = (float)($cfgGAlta['precio_intermedio'] ?? 11111);
             } else {
-                $precioPactadoAlta = (float)($cfgGAlta['precio_basico'] ?? 8889);
+                $rawBaseAlta = (float)($cfgGAlta['precio_basico'] ?? 8889);
+            }
+
+            $discPctAlta = isset($cfgGAlta['descuento_porcentaje']) ? (int)$cfgGAlta['descuento_porcentaje'] : 10;
+            if (!empty($cfgGAlta['descuento_hasta']) && strtotime($cfgGAlta['descuento_hasta']) < time()) {
+                $discPctAlta = 0;
+            }
+            if ($descuentoPct > 0) {
+                $discPctAlta = max($discPctAlta, $descuentoPct);
+            }
+
+            $precioUno = round($rawBaseAlta * (100 - $discPctAlta) / 100);
+            $profCountAlta = max(1, (int)$max_profesionales);
+            if ($profCountAlta === 1) {
+                $precioPactadoAlta = $precioUno;
+            } else {
+                $volDiscAlta = min(50, $profCountAlta * 5); // 5% por profesional
+                $precioPactadoAlta = round(($precioUno * $profCountAlta) * (1 - $volDiscAlta / 100));
             }
         }
     } catch(Throwable $eCfgG) {}
@@ -476,7 +493,8 @@ try {
             $mailAdmin->addAddress('reportes@agendatina.site');
             $mailAdmin->isHTML(true);
             $mailAdmin->Subject = "¡Nueva Cuenta Creada! - $nombre_fantasia";
-            $mailAdmin->Body = "<div style='font-family: Arial, sans-serif; padding: 20px;'><h2 style='color: #22c55e;'>¡Nueva Cuenta Registrada!</h2><p><strong>Nombre:</strong> $nombre_completo</p><p><strong>Email:</strong> $email</p><p><strong>Emprendimiento:</strong> $nombre_fantasia</p><p><strong>Plan Elegido:</strong> $plan ($max_profesionales prof.)</p></div>";
+            $precioFormat = number_format($precioPactadoAlta, 0, ',', '.');
+            $mailAdmin->Body = "<div style='font-family: Arial, sans-serif; padding: 20px;'><h2 style='color: #22c55e;'>¡Nueva Cuenta Registrada!</h2><p><strong>Nombre:</strong> $nombre_completo</p><p><strong>Email:</strong> $email</p><p><strong>Emprendimiento:</strong> $nombre_fantasia</p><p><strong>Plan Elegido:</strong> $plan ($max_profesionales prof.)</p><p><strong>Precio Inicial:</strong> $$precioFormat / mes</p></div>";
             $mailAdmin->send();
         } catch (\Throwable $mEx) {
             error_log("Error al enviar correos de bienvenida: " . $mEx->getMessage());

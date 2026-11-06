@@ -249,15 +249,27 @@ try {
             // Cálculo de precio pactado (congelado) vs precio vigente de plataforma
             $precioVigenteSistema = 8889.0;
             try {
-                $stmtGlobal = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium FROM configuracion_global ORDER BY id ASC LIMIT 1");
+                $stmtGlobal = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta FROM configuracion_global ORDER BY id ASC LIMIT 1");
                 $cfgG = $stmtGlobal ? $stmtGlobal->fetch(PDO::FETCH_ASSOC) : null;
                 if ($cfgG) {
                     if ($isPremium) {
-                        $precioVigenteSistema = (float)($cfgG['precio_premium'] ?? 16667);
+                        $rawVigente = (float)($cfgG['precio_premium'] ?? 16667);
                     } elseif (!$isBasic) {
-                        $precioVigenteSistema = (float)($cfgG['precio_intermedio'] ?? 11111);
+                        $rawVigente = (float)($cfgG['precio_intermedio'] ?? 11111);
                     } else {
-                        $precioVigenteSistema = (float)($cfgG['precio_basico'] ?? 8889);
+                        $rawVigente = (float)($cfgG['precio_basico'] ?? 8889);
+                    }
+
+                    $discVig = isset($cfgG['descuento_porcentaje']) ? (int)$cfgG['descuento_porcentaje'] : 10;
+                    if (!empty($cfgG['descuento_hasta']) && strtotime($cfgG['descuento_hasta']) < time()) {
+                        $discVig = 0;
+                    }
+                    $pUnoVig = round($rawVigente * (100 - $discVig) / 100);
+                    if ($profCount === 1) {
+                        $precioVigenteSistema = $pUnoVig;
+                    } else {
+                        $volDisc = min(50, $profCount * 5); // 5% por profesional
+                        $precioVigenteSistema = round(($pUnoVig * $profCount) * (1 - $volDisc / 100));
                     }
                 }
             } catch(Throwable $eGl) {}

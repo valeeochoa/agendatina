@@ -525,7 +525,7 @@
                     badgeText: discPct > 0 ? `-${discPct}% OFF` : ''
                 };
             } else {
-                let volDisc = Math.min(count * 10, 50);
+                let volDisc = Math.min(count * 5, 50);
                 let totalBeforeVol = priceForOne * count;
                 let final = totalBeforeVol * (1 - volDisc / 100);
                 return { 
