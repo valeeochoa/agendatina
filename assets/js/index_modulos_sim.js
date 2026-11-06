@@ -1036,7 +1036,7 @@
                 </div>
 
                 <div class="bg-purple-50/70 p-3.5 rounded-xl border border-purple-200/80 flex items-center justify-between text-xs">
-                    <span class="text-purple-900 font-bold">💡 Descuento automático por volumen en equipos de 2 a 5 integrantes (hasta -50% OFF)</span>
+                    <span class="text-purple-900 font-bold">💡 Descuento automático por volumen en equipos de 2 a 5 integrantes (5% OFF por cada profesional)</span>
                     <button type="button" onclick="window.openSimCta('¡Cotizá tu equipo en segundos!', 'Probá gratis cualquier plan por 30 días sin tarjeta.', 'Básico')" class="text-purple-700 font-black hover:underline shrink-0">
                         Probar gratis →
                     </button>

@@ -3082,7 +3082,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             showOldPrice: discPct > 0
                         };
                     } else {
-                        let volumeDiscount = count * 10;
+                        let volumeDiscount = count * 5;
                         if (volumeDiscount > 50) volumeDiscount = 50;
                         
                         let totalBeforeVol = finalPriceForOne * count;
@@ -3122,7 +3122,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (perPerson) {
                         if (count > 1) {
                             let pricePerPerson = info.final / count;
-                            perPerson.innerHTML = `¡Queda en $${pricePerPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} p/persona!<br><span class="text-xs font-normal text-slate-500 mt-1 block">Ya incluye 10% OFF base + descuento por equipo</span>`;
+                            perPerson.innerHTML = `¡Queda en $${pricePerPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} p/persona!<br><span class="text-xs font-normal text-slate-500 mt-1 block">Ya incluye ${discPct > 0 ? `${discPct}% OFF base + ` : ''}descuento por equipo (5% por prof.)</span>`;
                             perPerson.classList.remove('hidden');
                         } else {
                             perPerson.classList.add('hidden');
@@ -4488,8 +4488,8 @@ window.getEffectivePrice = function(planName, profCount = 1) {
         return finalOne;
     }
 
-    // Descuento por equipo según cantidad de integrantes (10% adicional por profesional, máx 50%)
-    let volumeDiscount = Math.min(50, count * 10);
+    // Descuento por equipo según cantidad de integrantes (5% adicional por profesional, máx 50%)
+    let volumeDiscount = Math.min(50, count * 5);
     let totalBeforeVol = finalOne * count;
     let finalTotal = Math.round(totalBeforeVol * (1 - volumeDiscount / 100));
 
