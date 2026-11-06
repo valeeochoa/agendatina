@@ -627,8 +627,8 @@ function generateTimeSlots(startStr = null, endStr = null, interval = null, targ
     const dateStr = targetDateStr || (typeof cal_selectedDate !== 'undefined' && cal_selectedDate ? toYYYYMMDD(cal_selectedDate) : (typeof cal2_selectedDate !== 'undefined' && cal2_selectedDate ? toYYYYMMDD(cal2_selectedDate) : null));
     const profName = targetProfName || (typeof adminWeeklySelectedProf !== 'undefined' && adminWeeklySelectedProf) || (typeof globalSelectedProfessional !== 'undefined' && globalSelectedProfessional) || null;
 
-    const selectedServName = (typeof adminWeeklySelectedService !== 'undefined' && adminWeeklySelectedService) 
-        || (typeof weeklySelectedService !== 'undefined' && weeklySelectedService) 
+    const selectedServName = (typeof adminWeeklySelectedService !== 'undefined' && adminWeeklySelectedService && adminWeeklySelectedService !== 'todos') 
+        || (typeof weeklySelectedService !== 'undefined' && weeklySelectedService && weeklySelectedService !== 'todos') 
         || (document.getElementById('serviceSelect')?.value) 
         || (document.getElementById('manualServicio')?.value);
 
@@ -2762,10 +2762,6 @@ function renderAdminWeeklyServices() {
         return;
     }
 
-    if (!adminWeeklySelectedService || !uniqueServices.includes(adminWeeklySelectedService)) {
-        adminWeeklySelectedService = uniqueServices[0];
-    }
-
     const isSpecificProf = adminWeeklySelectedProf && adminWeeklySelectedProf !== 'todos' && adminWeeklySelectedProf !== 'Cualquiera (Sin preferencia)';
 
     let profServicesNames = [];
@@ -2775,9 +2771,29 @@ function renderAdminWeeklyServices() {
             .map(s => s.nombre);
     }
 
+    // Si adminWeeklySelectedService es 'todos' o null (o no coincide), no forzar uno obligatorio cuando está en 'todos los profesionales'
+    if (adminWeeklySelectedService && !uniqueServices.includes(adminWeeklySelectedService) && adminWeeklySelectedService !== 'todos') {
+        adminWeeklySelectedService = null;
+    }
+
+    // Botón "Todos los servicios" para no obligar a filtrar por un único servicio
+    const isTodosServiciosActive = !adminWeeklySelectedService || adminWeeklySelectedService === 'todos';
+    const btnTodosServ = document.createElement('button');
+    btnTodosServ.className = isTodosServiciosActive
+        ? 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-md bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white border-transparent scale-[1.02] ring-2 ring-rose-500/20'
+        : 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold flex items-center gap-1.5 shrink-0 cursor-pointer transition-all border shadow-2xs bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200/90 dark:border-slate-700/80 hover:border-[#D11149]';
+    btnTodosServ.innerHTML = `<span class="material-symbols-outlined text-[16px]">apps</span> <span>Todos los servicios</span>`;
+    btnTodosServ.onclick = () => {
+        adminWeeklySelectedService = 'todos';
+        renderAdminWeeklyServices();
+        renderAdminWeeklyProfs();
+        cal_fetchBookedTimesWeeklyAdmin();
+    };
+    container.appendChild(btnTodosServ);
+
     uniqueServices.forEach(sName => {
         const btn = document.createElement('button');
-        const isActive = sName === adminWeeklySelectedService;
+        const isActive = (sName === adminWeeklySelectedService);
         const isOfferedByCurrentProf = isSpecificProf && profServicesNames.includes(sName);
         
         let btnStyle = '';
@@ -2811,21 +2827,25 @@ function renderAdminWeeklyServices() {
         btn.innerHTML = `${iconHtml} <span>${sName}</span> ${extraBadge}`;
         
         btn.onclick = () => {
-            adminWeeklySelectedService = sName;
-            
-            if (isSpecificProf && !profServicesNames.includes(sName)) {
-                const rawMatching = services
-                    .filter(s => s.nombre === sName && s.profesional && s.profesional.trim() !== '' && s.profesional !== 'Cualquiera (Sin preferencia)')
-                    .map(s => s.profesional.trim());
-                const allProfs = getUniqueProfessionals();
-                const matchedProfs = allProfs.filter(p => rawMatching.some(m => window.isSameProf(m, p)));
+            if (adminWeeklySelectedService === sName) {
+                adminWeeklySelectedService = 'todos';
+            } else {
+                adminWeeklySelectedService = sName;
                 
-                if (matchedProfs.length > 0) {
-                    adminWeeklySelectedProf = matchedProfs[0];
-                    globalSelectedProfessional = matchedProfs[0];
-                } else {
-                    adminWeeklySelectedProf = 'todos';
-                    globalSelectedProfessional = '';
+                if (isSpecificProf && !profServicesNames.includes(sName)) {
+                    const rawMatching = services
+                        .filter(s => s.nombre === sName && s.profesional && s.profesional.trim() !== '' && s.profesional !== 'Cualquiera (Sin preferencia)')
+                        .map(s => s.profesional.trim());
+                    const allProfs = getUniqueProfessionals();
+                    const matchedProfs = allProfs.filter(p => rawMatching.some(m => window.isSameProf(m, p)));
+                    
+                    if (matchedProfs.length > 0) {
+                        adminWeeklySelectedProf = matchedProfs[0];
+                        globalSelectedProfessional = matchedProfs[0];
+                    } else {
+                        adminWeeklySelectedProf = 'todos';
+                        globalSelectedProfessional = '';
+                    }
                 }
             }
 
@@ -2838,6 +2858,8 @@ function renderAdminWeeklyServices() {
 }
 
 function initAdminWeeklyServices() {
+    if (!adminWeeklySelectedProf) adminWeeklySelectedProf = 'todos';
+    if (!adminWeeklySelectedService) adminWeeklySelectedService = 'todos';
     renderAdminWeeklyServices();
     renderAdminWeeklyProfs();
     cal_fetchBookedTimesWeeklyAdmin();
@@ -2875,6 +2897,7 @@ function renderAdminWeeklyProfs() {
     btnTodos.innerHTML = `<span class="material-symbols-outlined text-[16px]">groups</span> <span>Todos los profesionales</span>`;
     btnTodos.onclick = () => {
         adminWeeklySelectedProf = 'todos';
+        adminWeeklySelectedService = 'todos';
         globalSelectedProfessional = '';
         renderAdminWeeklyServices();
         renderAdminWeeklyProfs();
@@ -2971,48 +2994,87 @@ function renderAdminWeeklyGrid() {
         monthYearEl.textContent = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(majorityDate);
     }
     const today = new Date(); today.setHours(0,0,0,0);
+    const now = new Date();
     
     if (!adminWeeklySelectedProf) {
         adminWeeklySelectedProf = 'todos';
     }
+    if (!adminWeeklySelectedService) {
+        adminWeeklySelectedService = 'todos';
+    }
     
-    const isTodos = adminWeeklySelectedProf === 'todos' || !adminWeeklySelectedProf;
+    const isTodosProf = adminWeeklySelectedProf === 'todos' || !adminWeeklySelectedProf;
+    const isTodosServ = adminWeeklySelectedService === 'todos' || !adminWeeklySelectedService;
+
     let selectedDuration = 30;
     let selectedCapacidad = 1;
-    if (adminWeeklySelectedService) {
-        selectedDuration = getServiceDuration(adminWeeklySelectedService, isTodos ? null : adminWeeklySelectedProf);
-        const matchingService = services.find(s => String(s.nombre || '').trim().toLowerCase() === String(adminWeeklySelectedService).trim().toLowerCase() && (isTodos || s.profesional === adminWeeklySelectedProf || !adminWeeklySelectedProf));
+    if (!isTodosServ) {
+        selectedDuration = getServiceDuration(adminWeeklySelectedService, isTodosProf ? null : adminWeeklySelectedProf);
+        const matchingService = services.find(s => String(s.nombre || '').trim().toLowerCase() === String(adminWeeklySelectedService).trim().toLowerCase() && (isTodosProf || s.profesional === adminWeeklySelectedProf || !adminWeeklySelectedProf));
         if (matchingService) {
             selectedCapacidad = parseInt(matchingService.capacidad || matchingService.cupo_maximo) || 1;
         }
     }
     
     let interval = 30;
-    if (window.businessWebConfig && window.businessWebConfig.intervalo_turnos) interval = window.businessWebConfig.intervalo_turnos === 'servicio' ? selectedDuration : (parseInt(window.businessWebConfig.intervalo_turnos) || 30);
+    if (window.businessWebConfig && window.businessWebConfig.intervalo_turnos) {
+        interval = window.businessWebConfig.intervalo_turnos === 'servicio' 
+            ? (!isTodosServ ? selectedDuration : 30) 
+            : (parseInt(window.businessWebConfig.intervalo_turnos) || 30);
+    }
+    if (isNaN(interval) || interval <= 0) interval = 30;
 
     for (let i = 0; i < 7; i++) {
         const date = new Date(weekStartDate); date.setDate(weekStartDate.getDate() + i);
-        const dateString = toYYYYMMDD(date); const isPast = date < today;
-        const dayName = new Intl.DateTimeFormat('es-ES', { weekday: 'short' }).format(date).toUpperCase();
+        const dateString = toYYYYMMDD(date);
+        const isPast = date < today;
         const isToday = date.getTime() === today.getTime();
-        
+        const dayName = new Intl.DateTimeFormat('es-ES', { weekday: 'short' }).format(date).toUpperCase();
         const isMultiSelected = isMultiSelectMode && selectedDates.includes(dateString);
 
-        let colCardClass = 'bg-white/90 dark:bg-slate-900/90 border-slate-200/80 dark:border-slate-800/80 shadow-2xs hover:shadow-xs';
-        let headerBgClass = 'bg-slate-100/80 dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 hover:bg-slate-200/80';
-        let dayNameClass = 'text-slate-400 dark:text-slate-400 font-bold';
+        // Turnos del día filtrados por profesional
+        const dayApts = allAppointments.filter(a => {
+            if (a.fecha !== dateString) return false;
+            if (a.estado === 'cancelado' || a.estado === 'rechazado') return false;
+            if (!isTodosProf && a.profesional && adminWeeklySelectedProf) {
+                if (!window.isSameProf(a.profesional, adminWeeklySelectedProf)) return false;
+            }
+            return true;
+        });
+
+        const dayAptsParsed = dayApts.map(a => {
+            const rawHora = (a.hora || '00:00').substring(0, 5);
+            const [ah, am] = rawHora.split(':').map(Number);
+            const startMins = (isNaN(ah) ? 0 : ah) * 60 + (isNaN(am) ? 0 : am);
+            const dur = parseInt(a.duracion_minutos || a.duracion || 30, 10) || 30;
+            return {
+                ...a,
+                _rawHora: rawHora,
+                _startMins: startMins,
+                _dur: dur,
+                _endMins: startMins + dur
+            };
+        });
+
+        const realAptsCount = dayAptsParsed.filter(a => a.estado !== 'bloqueado').length;
+
+        // Estilos de la columna de día
+        let colCardClass = 'bg-white/95 dark:bg-slate-900/95 border-slate-200/90 dark:border-slate-800/90 shadow-sm hover:shadow-md';
+        let headerBgClass = 'bg-slate-100/90 dark:bg-slate-800/90 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200/90';
+        let dayNameClass = 'text-slate-500 dark:text-slate-400 font-extrabold';
         let dateNumContent = '';
 
         if (isMultiSelected) {
             headerBgClass = 'bg-gradient-to-tr from-[#D11149] to-[#FC8712] border-transparent text-white shadow-md shadow-rose-500/25';
-            dayNameClass = 'text-white/80 font-bold';
+            dayNameClass = 'text-white/90 font-black';
             dateNumContent = `<div class="text-sm sm:text-base text-white font-black py-0.5">${date.getDate()}</div>`;
         } else if (isToday) {
-            headerBgClass = 'bg-slate-100/90 dark:bg-slate-800/90 border-slate-200/90 dark:border-slate-700/90 text-slate-800 dark:text-slate-100 shadow-2xs';
+            colCardClass = 'bg-rose-50/30 dark:bg-rose-950/20 border-rose-300 dark:border-rose-900/50 shadow-md ring-1 ring-rose-500/20';
+            headerBgClass = 'bg-white dark:bg-slate-800 border-rose-300 dark:border-rose-800 text-slate-800 dark:text-slate-100 shadow-2xs';
             dayNameClass = 'text-[#D11149] dark:text-[#fc8712] font-black';
             dateNumContent = `<div class="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#D11149] text-white font-black flex items-center justify-center mx-auto text-xs sm:text-sm shadow-xs my-0.5">${date.getDate()}</div>`;
         } else if (isPast) {
-            colCardClass = 'bg-slate-100/60 dark:bg-slate-900/50 border-slate-200/60 dark:border-slate-800/60 shadow-2xs opacity-85';
+            colCardClass = 'bg-slate-50/70 dark:bg-slate-900/40 border-slate-200/60 dark:border-slate-800/60 shadow-2xs opacity-85';
             headerBgClass = 'bg-slate-200/60 dark:bg-slate-800/60 border-slate-300/60 dark:border-slate-700/60 text-slate-500 dark:text-slate-400 hover:bg-slate-300/60';
             dayNameClass = 'text-slate-400 dark:text-slate-500 font-bold';
             dateNumContent = `<div class="text-sm sm:text-base text-slate-600 dark:text-slate-300 font-black py-0.5">${date.getDate()}</div>`;
@@ -3021,23 +3083,28 @@ function renderAdminWeeklyGrid() {
         }
 
         const col = document.createElement('div');
-        col.className = `w-full min-w-0 flex flex-col gap-1.5 p-1.5 sm:p-2 backdrop-blur-md rounded-2xl border transition-all duration-300 ${colCardClass}`;
+        col.className = `w-full min-w-0 flex flex-col gap-2 p-1.5 sm:p-2.5 backdrop-blur-md rounded-2xl border transition-all duration-300 ${colCardClass}`;
 
         const colHeader = document.createElement('div');
-        colHeader.className = `text-center py-1.5 px-1 rounded-xl border transition-all duration-300 cursor-pointer w-full shrink-0 ${headerBgClass}`;
+        colHeader.className = `text-center py-2 px-1 rounded-xl border transition-all duration-300 cursor-pointer w-full shrink-0 flex flex-col items-center justify-center relative ${headerBgClass}`;
         
         let pastTag = '';
         if (isPast && !isMultiSelected) {
-            pastTag = '<span class="inline-block text-[8px] font-bold tracking-widest px-1.5 py-0.2 rounded-full bg-slate-200/60 dark:bg-slate-700/60 text-slate-500 dark:text-slate-400 mb-0.5 uppercase">Pasado</span>';
+            pastTag = '<span class="inline-block text-[8px] font-bold tracking-widest px-1.5 py-0.2 rounded-full bg-slate-200/70 dark:bg-slate-700/70 text-slate-500 dark:text-slate-400 mb-0.5 uppercase">Pasado</span>';
         }
 
-        colHeader.innerHTML = `${pastTag}<div class="text-[9px] sm:text-[10px] font-black tracking-wider uppercase ${dayNameClass}">${dayName}</div>${dateNumContent}`;
+        let countPill = '';
+        if (realAptsCount > 0) {
+            countPill = `<span class="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-full ${isToday ? 'bg-rose-100 dark:bg-rose-950/60 text-[#D11149]' : 'bg-slate-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-300'} mt-0.5 shadow-2xs">${realAptsCount} ${realAptsCount === 1 ? 'turno' : 'turnos'}</span>`;
+        }
+
+        colHeader.innerHTML = `${pastTag}<div class="text-[9px] sm:text-[10px] font-black tracking-wider uppercase ${dayNameClass}">${dayName}</div>${dateNumContent}${countPill}`;
         colHeader.onclick = () => handleDayClick(new Date(date.getTime() + 12*60*60*1000));
         
         if (effectiveIsAdmin && window.isWorkingDay(date)) {
             colHeader.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                colHeader.style.transform = 'scale(1.05)';
+                colHeader.style.transform = 'scale(1.03)';
                 colHeader.style.boxShadow = '0 0 0 2px var(--color-primario, #D11149)';
             });
             colHeader.addEventListener('dragleave', () => {
@@ -3055,130 +3122,227 @@ function renderAdminWeeklyGrid() {
         
         col.appendChild(colHeader);
         
-        const slotsContainer = document.createElement('div'); slotsContainer.className = 'flex flex-col gap-1.5 max-h-[460px] overflow-y-auto pr-0.5 custom-scrollbar w-full flex-1';
+        const slotsContainer = document.createElement('div');
+        slotsContainer.className = 'flex flex-col gap-1.5 max-h-[500px] overflow-y-auto pr-0.5 custom-scrollbar w-full flex-1';
         
         const horasOcupadas = [...(cal_bookedSlots[dateString] || []), ...window.getBreakTimes(dateString)];
         const isGeneralBlock = horasOcupadas.includes('blocked_day');
         let isProfBlock = horasOcupadas.includes('blocked_day_prof');
-        if (isTodos || adminWeeklySelectedProf === 'columnas' || adminWeeklySelectedProf === 'Cualquiera (Sin preferencia)') isProfBlock = false;
+        if (isTodosProf || adminWeeklySelectedProf === 'columnas' || adminWeeklySelectedProf === 'Cualquiera (Sin preferencia)') isProfBlock = false;
         
-        // En vista administrador, NO bloquear la columna por ser un día pasado
         if (!window.isWorkingDay(date) || isGeneralBlock || isProfBlock) {
             slotsContainer.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-6 px-1 text-center h-full min-h-[160px] rounded-xl bg-slate-50/80 dark:bg-slate-800/30 border border-dashed border-slate-200/80 dark:border-slate-700/80 text-slate-400">
-                    <span class="material-symbols-outlined text-[18px] text-slate-300 dark:text-slate-600 mb-0.5">event_busy</span>
-                    <span class="text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">No disponible</span>
+                <div class="flex flex-col items-center justify-center py-8 px-1 text-center h-full min-h-[160px] rounded-xl bg-slate-50/80 dark:bg-slate-800/30 border border-dashed border-slate-200/80 dark:border-slate-700/80 text-slate-400">
+                    <span class="material-symbols-outlined text-[20px] text-slate-300 dark:text-slate-600 mb-1">event_busy</span>
+                    <span class="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">${!window.isWorkingDay(date) ? 'Cerrado' : 'Día Bloqueado'}</span>
                 </div>
             `;
         } else {
-            const availableTimesForDay = generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval, dateString, isTodos ? null : adminWeeklySelectedProf);
-            availableTimesForDay.forEach((time, idx) => {
+            const availableTimesForDay = generateTimeSlots(window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, interval, dateString, isTodosProf ? null : adminWeeklySelectedProf);
+            
+            availableTimesForDay.forEach(time => {
                 if (window.isTimeInBreak(time, dateString)) return;
-                const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), ...time.split(':').map(Number), 0, 0);
-                const baseOcupadas = cal_bookedSlots[dateString] || [];
-                const isAvailable = isSlotAvailableForDuration(dateString, time, selectedDuration, selectedCapacidad, baseOcupadas, isToday, slotDate);
-                const isBooked = !isAvailable;
+                
+                const [sh, sm] = time.split(':').map(Number);
+                const slotStartMins = sh * 60 + sm;
+                const slotEndMins = slotStartMins + interval;
+                const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), sh, sm, 0, 0);
+                const isPastSlot = isPast || (isToday && slotDate.getTime() <= now.getTime());
+                
+                // 1. Turnos que inician en este horario
+                const startingApts = dayAptsParsed.filter(a => a._rawHora === time || (a._startMins >= slotStartMins && a._startMins < slotEndMins));
+                
+                // 2. Turnos en curso (iniciaron antes y continúan en este tramo)
+                const ongoingApts = dayAptsParsed.filter(a => a._startMins < slotStartMins && a._endMins > slotStartMins);
                 
                 const slot = document.createElement('div');
                 
-                let slotStyleClass = isBooked 
-                    ? 'bg-slate-100/70 dark:bg-slate-900/60 border-slate-200/80 dark:border-slate-800/80 text-slate-400 dark:text-slate-600 cursor-not-allowed' 
-                    : (isPast 
-                        ? 'bg-slate-200/60 dark:bg-slate-800/60 border-slate-300/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-400 hover:bg-slate-300/80 hover:text-slate-900 hover:scale-[1.02] cursor-pointer shadow-2xs' 
-                        : 'bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-300/80 dark:border-emerald-700/60 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 hover:scale-[1.03] hover:shadow-md hover:border-emerald-500 cursor-pointer shadow-2xs');
+                // SI HAY TURNOS QUE EMPIEZAN AQUÍ:
+                if (startingApts.length > 0) {
+                    const isAnyBlock = startingApts.every(a => a.estado === 'bloqueado');
+                    const isAnyPend = startingApts.some(a => a.estado === 'pendiente');
+                    
+                    let bgClass = isPast 
+                        ? 'bg-slate-100/90 dark:bg-slate-800/90 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300' 
+                        : (isAnyBlock 
+                            ? 'bg-rose-50/90 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200' 
+                            : (isAnyPend 
+                                ? 'bg-amber-50/90 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-200' 
+                                : 'bg-sky-50/90 dark:bg-sky-950/40 border-sky-300 dark:border-sky-800 text-sky-900 dark:text-sky-200'));
 
-                slot.className = `py-1.5 px-1 text-center text-[10px] sm:text-xs font-black rounded-xl border transition-all duration-200 ${slotStyleClass}`;
-                
-                if (!isBooked) {
-                    slot.textContent = time;
+                    slot.className = `p-2 text-left rounded-xl border transition-all shadow-xs cursor-pointer hover:shadow-md hover:scale-[1.01] ${bgClass} w-full`;
+                    slot.innerHTML = `<div class="font-extrabold text-[11px] mb-1 flex justify-between items-center"><span class="font-black">${time} hs</span></div>`;
+                    
+                    startingApts.forEach(apt => {
+                        const isB = apt.estado === 'bloqueado';
+                        const isP = apt.estado === 'pendiente';
+                        const isAttended = (parseInt(apt.asistio) === 1 || apt.asistio === 'si' || apt.asistio === true || apt.estado === 'atendido');
+                        const clientName = apt.cliente_nombre || (apt.nombre + ' ' + (apt.apellido || '')) || (isB ? 'Bloqueo Manual' : 'Sin Nombre');
+
+                        let badgePill = isB
+                            ? '<span class="text-[8px] font-black uppercase px-1.5 py-0.2 rounded-md bg-rose-200 dark:bg-rose-900 text-rose-900 dark:text-rose-200 shrink-0">🚫 Bloqueo</span>'
+                            : (isAttended
+                                ? '<span class="text-[8px] font-black uppercase px-1.5 py-0.2 rounded-md bg-emerald-200 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-200 shrink-0">✓ Asistió</span>'
+                                : (isP
+                                    ? '<span class="text-[8px] font-black uppercase px-1.5 py-0.2 rounded-md bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 shrink-0">⏳ Pendiente</span>'
+                                    : '<span class="text-[8px] font-black uppercase px-1.5 py-0.2 rounded-md bg-sky-200 dark:bg-sky-900 text-sky-900 dark:text-sky-200 shrink-0">✅ Reservado</span>'));
+
+                        const divApt = document.createElement('div');
+                        divApt.className = "pt-1 mt-1 border-t border-black/10 dark:border-white/10 hover:opacity-90 transition-opacity";
+                        
+                        if (effectiveIsAdmin && !isB) {
+                            divApt.draggable = true;
+                            divApt.title = "Haz clic para editar, cobrar, marcar asistencia o cancelar turno";
+                            divApt.addEventListener('dragstart', (e) => {
+                                e.stopPropagation();
+                                e.dataTransfer.setData('text/plain', apt.id);
+                                setTimeout(() => divApt.classList.add('opacity-50'), 0);
+                            });
+                            divApt.addEventListener('dragend', () => { divApt.classList.remove('opacity-50'); });
+                        }
+
+                        const profBadge = (isTodosProf && apt.profesional) ? `<span class="text-[8px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1 py-0.2 rounded border border-slate-200 dark:border-slate-700 ml-1">👤 ${apt.profesional}</span>` : '';
+                        const durText = apt._dur ? `<span class="text-[8px] opacity-75 font-semibold">(${apt._dur}m)</span>` : '';
+                        
+                        divApt.innerHTML = `
+                            <div class="font-black text-[10px] leading-tight flex items-center justify-between gap-1" title="${escapeHtml(clientName)}">
+                                <span class="truncate">${escapeHtml(clientName)}</span> 
+                                ${badgePill}
+                            </div>
+                            <div class="truncate text-[9px] opacity-85 mt-0.5 flex items-center gap-1">
+                                <span class="truncate">${escapeHtml(apt.servicio || (isB ? 'Horario bloqueado' : 'Servicio'))}</span>
+                                ${durText}
+                                ${profBadge}
+                            </div>
+                        `;
+
+                        divApt.onclick = (e) => {
+                            e.stopPropagation();
+                            if (typeof window.openEditTurnoModal === 'function') {
+                                window.openEditTurnoModal(apt.id);
+                            }
+                        };
+                        slot.appendChild(divApt);
+                    });
+
+                    // Si hay capacidad disponible adicional o profesionales libres, permitir agregar otro turno
+                    const baseOcupadas = cal_bookedSlots[dateString] || [];
+                    const isExtraAvailable = !isPastSlot && isSlotAvailableForDuration(dateString, time, selectedDuration, selectedCapacidad, baseOcupadas, false, slotDate);
+                    if (isExtraAvailable) {
+                        const addMoreBtn = document.createElement('button');
+                        addMoreBtn.className = "w-full text-center text-[9px] font-extrabold text-emerald-700 dark:text-emerald-300 hover:text-emerald-900 bg-emerald-100/70 hover:bg-emerald-200/80 dark:bg-emerald-950/40 py-1 rounded-lg mt-1.5 transition-colors flex items-center justify-center gap-1 border border-emerald-300/60 cursor-pointer";
+                        addMoreBtn.innerHTML = `<span class="material-symbols-outlined text-[12px]">add</span> Agregar otro`;
+                        addMoreBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            cal_selectedDate = date;
+                            globalSelectedProfessional = isTodosProf ? '' : adminWeeklySelectedProf;
+                            openManualTurnoModal(time);
+                            setTimeout(() => {
+                                const servSelect = document.getElementById('manualServicio');
+                                if (servSelect && !isTodosServ) servSelect.value = adminWeeklySelectedService;
+                                const profSelect = document.getElementById('manualProfesional');
+                                if (profSelect && !isTodosProf) profSelect.value = adminWeeklySelectedProf;
+                            }, 100);
+                        };
+                        slot.appendChild(addMoreBtn);
+                    }
+                } 
+                // SI ESTÁ CUBIERTO POR UN TURNO EN CURSO
+                else if (ongoingApts.length > 0) {
+                    const firstOngoing = ongoingApts[0];
+                    const ongoingClient = firstOngoing.cliente_nombre || (firstOngoing.nombre + ' ' + (firstOngoing.apellido || '')) || 'Turno';
+                    
+                    slot.className = 'py-1 px-2 rounded-xl bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 text-[10px] text-slate-500 dark:text-slate-400 flex items-center justify-between cursor-pointer hover:bg-slate-200/80 hover:text-slate-800 transition-all shadow-2xs';
+                    slot.title = `Turno en curso iniciado a las ${firstOngoing._rawHora} hs. Haz clic para ver detalles.`;
+                    slot.innerHTML = `
+                        <span class="font-extrabold text-[10px] text-slate-700 dark:text-slate-300">${time}</span>
+                        <span class="truncate ml-1 font-semibold text-[9px] max-w-[85px]">↳ ${escapeHtml(ongoingClient)}</span>
+                        <span class="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 shrink-0">Ocupado</span>
+                    `;
                     slot.onclick = () => {
-                        if (!adminWeeklySelectedService) { showToast('Selecciona un servicio primero', 'error'); return; }
-                        cal_selectedDate = date; 
-                        globalSelectedProfessional = isTodos ? '' : adminWeeklySelectedProf;
+                        if (typeof window.openEditTurnoModal === 'function') {
+                            window.openEditTurnoModal(firstOngoing.id);
+                        }
+                    };
+                }
+                // SI ES UN HORARIO PASADO (Sin turnos)
+                else if (isPastSlot) {
+                    slot.className = 'py-1.5 px-2 rounded-xl border border-slate-200/60 dark:border-slate-800/60 bg-slate-100/40 dark:bg-slate-900/40 text-slate-400 dark:text-slate-500 text-center text-[10px] sm:text-xs font-semibold flex items-center justify-between cursor-pointer hover:bg-slate-200/60 hover:text-slate-700 transition-colors shadow-2xs';
+                    slot.title = 'Horario libre pasado. Haz clic si deseas registrar un turno histórico.';
+                    slot.innerHTML = `
+                        <span class="font-bold">${time}</span>
+                        <span class="text-[8px] uppercase tracking-wider font-extrabold text-slate-400 dark:text-slate-500">Pasado</span>
+                    `;
+                    slot.onclick = () => {
+                        cal_selectedDate = date;
+                        globalSelectedProfessional = isTodosProf ? '' : adminWeeklySelectedProf;
                         openManualTurnoModal(time);
-                        setTimeout(() => { 
-                            const servSelect = document.getElementById('manualServicio'); 
-                            if (servSelect) servSelect.value = adminWeeklySelectedService; 
+                        setTimeout(() => {
+                            const servSelect = document.getElementById('manualServicio');
+                            if (servSelect && !isTodosServ) servSelect.value = adminWeeklySelectedService;
                             const profSelect = document.getElementById('manualProfesional');
-                            if (profSelect && !isTodos) profSelect.value = adminWeeklySelectedProf;
+                            if (profSelect && !isTodosProf) profSelect.value = adminWeeklySelectedProf;
                         }, 100);
                     };
+                }
+                // SI ES UN HORARIO FUTURO (O de hoy más tarde)
+                else {
+                    const baseOcupadas = cal_bookedSlots[dateString] || [];
+                    const isAvailable = isSlotAvailableForDuration(dateString, time, selectedDuration, selectedCapacidad, baseOcupadas, false, slotDate);
                     
-                    if (effectiveIsAdmin) {
-                        slot.addEventListener('dragover', (e) => {
-                            e.preventDefault();
-                            slot.classList.add('border-primary', 'border-dashed');
-                        });
-                        slot.addEventListener('dragleave', () => {
-                            slot.classList.remove('border-primary', 'border-dashed');
-                        });
-                        slot.addEventListener('drop', (e) => {
-                            e.preventDefault();
-                            slot.classList.remove('border-primary', 'border-dashed');
-                            const aptId = e.dataTransfer.getData('text/plain');
-                            if (aptId && typeof moveAppointmentToDate === 'function') moveAppointmentToDate(aptId, dateString, time);
-                        });
-                    }
-                } else { 
-                    const apts = allAppointments.filter(a => a.fecha === dateString && a.hora.substring(0,5) === time && (isTodos || a.profesional === adminWeeklySelectedProf || !a.profesional));
-                    
-                    if (apts.length > 0) {
-                        const isPend = apts.some(a => a.estado === 'pendiente');
-                        const isBlock = apts.some(a => a.estado === 'bloqueado');
+                    if (isAvailable) {
+                        slot.className = 'py-1.5 px-2 rounded-xl border border-emerald-300/80 dark:border-emerald-700/60 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 text-center text-[10px] sm:text-xs font-black hover:bg-emerald-100 dark:hover:bg-emerald-900/60 hover:scale-[1.02] hover:shadow-xs transition-all cursor-pointer flex items-center justify-between group shadow-2xs';
+                        slot.title = 'Horario disponible. Haz clic para agendar un turno.';
+                        slot.innerHTML = `
+                            <span class="font-extrabold text-slate-800 dark:text-slate-100 group-hover:text-emerald-700 transition-colors">${time}</span>
+                            <span class="inline-flex items-center gap-0.5 text-[9px] font-bold bg-emerald-200/70 dark:bg-emerald-800/70 text-emerald-900 dark:text-emerald-200 px-1.5 py-0.2 rounded-md group-hover:bg-emerald-300/80 shadow-2xs transition-colors">+ Libre</span>
+                        `;
+                        slot.onclick = () => {
+                            cal_selectedDate = date;
+                            globalSelectedProfessional = isTodosProf ? '' : adminWeeklySelectedProf;
+                            openManualTurnoModal(time);
+                            setTimeout(() => {
+                                const servSelect = document.getElementById('manualServicio');
+                                if (servSelect && !isTodosServ) servSelect.value = adminWeeklySelectedService;
+                                const profSelect = document.getElementById('manualProfesional');
+                                if (profSelect && !isTodosProf) profSelect.value = adminWeeklySelectedProf;
+                            }, 100);
+                        };
                         
-                        let bgClass = isPast 
-                            ? 'bg-slate-200/80 dark:bg-slate-800/80 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300' 
-                            : (isPend ? 'bg-amber-50 dark:bg-amber-950/50 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200' : (isBlock ? 'bg-rose-50 dark:bg-rose-950/50 border-rose-300 dark:border-rose-700 text-rose-900 dark:text-rose-200' : 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200'));
-
-                        slot.className = `p-1.5 text-left text-xs rounded-xl border transition-all shadow-xs cursor-pointer hover:shadow-md hover:scale-[1.02] ${bgClass}`;
-                        slot.innerHTML = `<div class="font-extrabold text-[11px] mb-0.5 flex justify-between items-center"><span>${time}</span></div>`;
-                        
-                        apts.forEach(apt => {
-                            const clientName = apt.cliente_nombre || (apt.nombre + ' ' + (apt.apellido || '')) || 'Sin Nombre';
-                            const isP = apt.estado === 'pendiente';
-                            const isB = apt.estado === 'bloqueado';
-                            const isAttended = (parseInt(apt.asistio) === 1 || apt.asistio === 'si' || apt.asistio === true || apt.estado === 'atendido');
-
-                            let badgePill = isAttended 
-                                ? '<span class="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-emerald-200 text-emerald-900 ml-1">✓ Asistió</span>' 
-                                : (isP ? '<span class="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-amber-200 text-amber-900 ml-1">⏳ Pendiente</span>' : (isB ? '<span class="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-rose-200 text-rose-900 ml-1">🚫 Bloqueado</span>' : '<span class="text-[8px] font-black uppercase px-1 py-0.2 rounded bg-blue-200 text-blue-900 ml-1">✅ Reservado</span>'));
-                            
-                            const divApt = document.createElement('div');
-                            divApt.className = "mt-1 pt-1 border-t border-black/10 dark:border-white/10 cursor-pointer hover:opacity-90 transition-opacity";
-                            
-                            if (effectiveIsAdmin && !isB) {
-                                divApt.draggable = true;
-                                divApt.title = "Haz clic para ver detalles, marcar asistencia o borrar turno";
-                                divApt.addEventListener('dragstart', (e) => {
-                                    e.stopPropagation();
-                                    e.dataTransfer.setData('text/plain', apt.id);
-                                    setTimeout(() => divApt.classList.add('opacity-50'), 0);
-                                });
-                                divApt.addEventListener('dragend', () => { divApt.classList.remove('opacity-50'); });
-                            } else {
-                                divApt.title = "Haz clic para ver detalles del turno";
-                            }
-                            
-                            const profBadge = (isTodos && apt.profesional) ? `<span class="text-[8px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1 py-0.2 rounded border border-slate-200 dark:border-slate-700 ml-1">👤 ${apt.profesional}</span>` : '';
-                            divApt.innerHTML = `<div class="font-bold text-[10px] leading-tight flex items-center justify-between" title="${clientName}"><span class="truncate">${clientName}</span> ${badgePill}</div><div class="truncate text-[9px] opacity-80 mt-0.5">${escapeHtml(apt.servicio || "")} ${profBadge}</div>`;
-                            
-                            divApt.onclick = (e) => {
-                                e.stopPropagation();
-                                if (typeof window.openEditTurnoModal === 'function') {
-                                    window.openEditTurnoModal(apt.id);
-                                }
-                            };
-                            slot.appendChild(divApt);
-                        });
+                        if (effectiveIsAdmin) {
+                            slot.addEventListener('dragover', (e) => {
+                                e.preventDefault();
+                                slot.classList.add('border-primary', 'border-dashed');
+                            });
+                            slot.addEventListener('dragleave', () => {
+                                slot.classList.remove('border-primary', 'border-dashed');
+                            });
+                            slot.addEventListener('drop', (e) => {
+                                e.preventDefault();
+                                slot.classList.remove('border-primary', 'border-dashed');
+                                const aptId = e.dataTransfer.getData('text/plain');
+                                if (aptId && typeof moveAppointmentToDate === 'function') moveAppointmentToDate(aptId, dateString, time);
+                            });
+                        }
                     } else {
-                        slot.innerHTML = `${time} <span class="block text-[8px] font-bold mt-0.5 opacity-80">Bloqueado</span>`; 
+                        const isTimeBlocked = baseOcupadas.includes(time);
+                        slot.className = 'py-1.5 px-2 rounded-xl border border-slate-200/60 dark:border-slate-800/60 bg-slate-100/50 dark:bg-slate-900/50 text-slate-400 text-center text-[10px] font-semibold flex items-center justify-between cursor-not-allowed shadow-2xs';
+                        slot.innerHTML = `
+                            <span>${time}</span>
+                            <span class="text-[8px] uppercase tracking-wider font-extrabold ${isTimeBlocked ? 'text-rose-500' : 'text-slate-400'}">${isTimeBlocked ? 'Bloqueado' : 'Sin cupo'}</span>
+                        `;
                     }
                 }
                 slotsContainer.appendChild(slot);
             });
-            if (cal_availableTimes.length === 0) slotsContainer.innerHTML = `<div class="text-center p-4 text-xs font-bold text-slate-400 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">Sin horarios</div>`;
+            
+            if (availableTimesForDay.length === 0) {
+                slotsContainer.innerHTML = `<div class="text-center p-4 text-xs font-bold text-slate-400 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">Sin horarios disponibles</div>`;
+            }
         }
-        col.appendChild(slotsContainer); grid.appendChild(col);
+        
+        col.appendChild(slotsContainer);
+        grid.appendChild(col);
     }
 }
 
