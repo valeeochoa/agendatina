@@ -24,7 +24,7 @@
         .font-brand { font-family: 'Fredoka', cursive, sans-serif !important; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col md:flex-row antialiased hidden">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col md:flex-row antialiased">
 
     <!-- Sidebar Menú Izquierdo (Fijo) -->
     <aside class="w-full md:w-64 bg-slate-900 text-white shrink-0 md:h-screen md:sticky md:top-0 flex flex-col justify-between p-4 sm:p-6 shadow-xl overflow-y-auto z-40">
@@ -185,7 +185,6 @@
                     if (!data.logged_in) {
                         window.location.href = 'login.html';
                     } else {
-                        document.body.classList.remove('hidden');
                         loadNotes();
                         loadBusinessesDropdown();
                     }
