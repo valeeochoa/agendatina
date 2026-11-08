@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
@@ -11,34 +11,63 @@
     <script src="assets/js/csrf.js"></script>
     <script>
         tailwind.config = {
-            theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Manrope', 'sans-serif'], brand: ['Fredoka', 'sans-serif'] }, colors: { primary: '#D11149', secondary: '#FC8712' } } }
+            theme: { 
+                extend: { 
+                    fontFamily: { 
+                        sans: ['Inter', 'sans-serif'], 
+                        display: ['Manrope', 'sans-serif'], 
+                        brand: ['Fredoka', 'sans-serif'] 
+                    }, 
+                    colors: { 
+                        primary: '#D11149', 
+                        secondary: '#FC8712' 
+                    } 
+                } 
+            }
         }
     </script>
     <style>
         .font-brand { font-family: 'Fredoka', sans-serif !important; }
         input[type="file"] { width: auto !important; max-width: 100%; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .suggested-palette-card {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .suggested-palette-card:hover {
+            transform: translateY(-2px);
+        }
+        .service-card-item {
+            transition: all 0.2s ease-in-out;
+        }
+        .service-card-item:hover {
+            transform: translateY(-2px);
+        }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-900 antialiased">
+<body class="bg-slate-50/70 text-slate-900 antialiased min-h-screen flex flex-col font-sans selection:bg-rose-100 selection:text-rose-900">
 
-    <!-- Navbar del Dashboard / Editar Web (Siempre Visible - Sin opción de Cerrar Sesión) -->
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-[200] shadow-xs px-4 sm:px-6 py-3.5">
+    <!-- Navbar del Dashboard / Editar Web (Siempre Visible) -->
+    <nav class="bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-[200] shadow-xs px-4 sm:px-6 py-3">
         <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
             <div class="flex items-center gap-2 sm:gap-3">
-                <a href="dashboard.html" id="btnVolverPanel" class="bg-primary hover:bg-primary/90 text-white font-extrabold py-2 px-3 sm:px-4 rounded-xl transition-all flex items-center gap-1.5 text-xs sm:text-sm shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-95 cursor-pointer" title="Volver al Panel" onclick="if(window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)){ event.preventDefault(); window.history.back(); }">
+                <a href="dashboard.html" id="btnVolverPanel" class="bg-primary hover:bg-primary/90 text-white font-extrabold py-2 px-3 sm:px-4 rounded-xl transition-all flex items-center gap-1.5 text-xs sm:text-sm shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-95 cursor-pointer shrink-0" title="Volver al Panel" onclick="if(window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)){ event.preventDefault(); window.history.back(); }">
                     <span class="material-symbols-outlined text-[18px]">arrow_back</span>
                     <span class="hidden sm:inline">Volver al panel</span>
                 </a>
                 <span id="navBrandSeparator" class="text-slate-300 font-light text-lg hidden sm:inline">|</span>
-                <a href="dashboard.html" id="navAgendatinaBrand" class="flex items-center gap-2 tracking-tighter hover:opacity-90 transition-opacity">
+                <a href="dashboard.html" id="navAgendatinaBrand" class="flex items-center gap-2 tracking-tighter hover:opacity-90 transition-opacity shrink-0">
                     <img src="public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
                     <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149] hidden sm:inline">Agenda<span class="text-[#fc8712]">tina</span></span>
                 </a>
-                <span class="text-slate-300 font-light text-lg hidden sm:inline">|</span>
-                <div id="navBusinessNameHeader" class="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-2xl shadow-xs">
-                    <img id="navBusinessLogoImg" src="" alt="Logo Negocio" class="hidden h-6 w-6 object-cover rounded-full border border-slate-300">
-                    <span id="navBusinessIcon" class="material-symbols-outlined text-[18px] text-[#d11149]">storefront</span>
-                    <span id="navBusinessNameText" class="text-xs sm:text-sm font-extrabold text-slate-800">Mi Negocio</span>
+                <span id="navBizSeparator" class="text-slate-300 font-light text-lg hidden sm:inline">|</span>
+                <div id="navBusinessNameHeader" class="flex items-center gap-2 bg-slate-100 border border-slate-200/80 px-3 py-1.5 rounded-2xl shadow-2xs">
+                    <img id="navBusinessLogoImg" src="" alt="Logo Negocio" class="hidden h-6 w-6 object-cover rounded-full border border-slate-300 shrink-0">
+                    <span id="navBusinessIcon" class="material-symbols-outlined text-[18px] text-[#d11149] shrink-0">storefront</span>
+                    <span id="navBusinessNameText" class="text-xs sm:text-sm font-extrabold text-slate-800 truncate max-w-[120px] sm:max-w-xs">Mi Negocio</span>
                 </div>
             </div>
 
@@ -48,58 +77,108 @@
                     <span id="adminSessionBadgeText" class="text-[11px] font-extrabold text-amber-700 uppercase tracking-wider hidden md:inline">Modo Demo</span>
                 </div>
 
-                <button id="navSaveWebDataBtn" class="bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold py-2 px-4 rounded-xl shadow-md shadow-[#d11149]/20 transition-all flex items-center gap-1.5 text-xs sm:text-sm">
-                    <span class="material-symbols-outlined text-[18px]">save</span>
-                    <span>Guardar</span>
-                </button>
-
-                <button id="navReportBugBtn" onclick="openReportErrorModal('Editor Web')" class="text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl flex items-center gap-1 transition-colors" title="Reportar Error">
+                <button type="button" id="navReportBugBtn" onclick="openReportErrorModal('Editor Web')" class="text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200/80 px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all shadow-2xs hover:scale-[1.02] active:scale-95 cursor-pointer shrink-0" title="Reportar Error">
                     <span class="material-symbols-outlined text-[16px]">bug_report</span>
                     <span class="hidden md:inline">Reportar Error</span>
+                </button>
+
+                <button type="button" id="navSaveWebDataBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-2 px-3.5 sm:px-4 rounded-xl shadow-md shadow-emerald-600/20 transition-all flex items-center gap-1.5 text-xs sm:text-sm cursor-pointer hover:scale-[1.02] active:scale-95 shrink-0">
+                    <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                    <span>Guardar Cambios</span>
                 </button>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 overflow-x-hidden">
+    <main class="max-w-5xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10 flex-1 overflow-x-hidden">
         <!-- Estado de Carga Inicial -->
-        <div id="webLoader" class="flex flex-col items-center justify-center py-24 text-slate-400 transition-all duration-300">
-            <span class="material-symbols-outlined text-5xl animate-spin mb-4 text-primary">refresh</span>
-            <p class="font-bold text-lg text-slate-600">Cargando tu configuración...</p>
+        <div id="webLoader" class="flex flex-col items-center justify-center py-28 text-slate-400 transition-all duration-300">
+            <div class="w-14 h-14 rounded-2xl bg-rose-50 text-primary flex items-center justify-center mb-4 shadow-sm">
+                <span class="material-symbols-outlined text-3xl animate-spin text-primary">sync</span>
+            </div>
+            <p class="font-extrabold text-lg text-slate-700">Cargando tu página web...</p>
+            <p class="text-xs text-slate-400 mt-1">Sincronizando información y catálogo de servicios</p>
         </div>
 
-        <div id="webMainContent" class="hidden opacity-0 transition-opacity duration-500">
-            <div class="flex justify-between items-center mb-10">
-                <div>
-                    <h1 class="text-3xl font-extrabold font-display mb-2">Editor de mi Página Web</h1>
-                    <p class="text-slate-500">Personaliza cómo los clientes ven tu página de presentación.</p>
+        <div id="webMainContent" class="hidden opacity-0 transition-opacity duration-500 space-y-8">
+            
+            <!-- ========================================== -->
+            <!-- HERO HEADER DEL EDITOR                     -->
+            <!-- ========================================== -->
+            <div class="relative bg-gradient-to-br from-white via-slate-50 to-rose-50/30 rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm overflow-hidden">
+                <div class="absolute -right-8 -bottom-8 w-44 h-44 bg-rose-500/5 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="absolute -left-8 -top-8 w-44 h-44 bg-amber-500/5 rounded-full blur-2xl pointer-events-none"></div>
+
+                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-2.5">
+                            <span class="inline-flex items-center gap-1.5 bg-gradient-to-r from-rose-500/10 to-orange-500/10 text-primary border border-rose-200/60 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider">
+                                <span class="material-symbols-outlined text-[14px]">language</span> Página Web Propia
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full text-[11px] font-extrabold">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> En Vivo
+                            </span>
+                        </div>
+                        <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-display">Editor de mi Página Web</h1>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-xl">
+                            Personaliza la portada, paleta de colores, catálogo de servicios y equipo de tu negocio para tus clientes.
+                        </p>
+                    </div>
+
+                    <!-- Botones de Acción Rápida -->
+                    <div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5">
+                        <button type="button" onclick="copyPublicWebLink()" id="btnCopiarLinkWeb" class="w-full sm:w-auto bg-white hover:bg-slate-100 text-slate-700 font-extrabold py-2.5 px-4 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition-all text-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95" title="Copiar enlace público de la web">
+                            <span class="material-symbols-outlined text-[17px] text-slate-500">content_copy</span>
+                            <span>Copiar Enlace</span>
+                        </button>
+
+                        <a id="btnVerMiPagina" href="web.html?from=mi-web" target="_blank" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black py-2.5 px-5 rounded-xl shadow-md shadow-emerald-600/20 hover:shadow-emerald-600/30 transition-all text-xs flex items-center justify-center gap-2 hover:-translate-y-0.5 active:scale-95 cursor-pointer">
+                            <span class="material-symbols-outlined text-[18px]">visibility</span>
+                            <span>Ver mi Página</span>
+                        </a>
+                    </div>
                 </div>
-                <a id="btnVerMiPagina" href="web.html?from=mi-web" onclick="sessionStorage.setItem('agendatina_nav_from', 'mi-web')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg text-sm flex items-center gap-2">
-                    <span class="material-symbols-outlined text-base">visibility</span>
-                    Ver mi página
-                </a>
+
+                <!-- Barra de Navegación Rápida por Secciones (Anchor Pills) -->
+                <div class="relative z-10 flex items-center gap-2 mt-6 pt-5 border-t border-slate-200/70 overflow-x-auto pb-1 text-xs">
+                    <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px] shrink-0 mr-1">Ir a:</span>
+                    <a href="#seccion-identidad" class="shrink-0 px-3 py-1.5 rounded-xl bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 text-slate-700 hover:text-primary font-bold transition-colors flex items-center gap-1.5 shadow-2xs">
+                        <span class="material-symbols-outlined text-[15px] text-rose-500">storefront</span> 1. Identidad
+                    </a>
+                    <a href="#seccion-colores" class="shrink-0 px-3 py-1.5 rounded-xl bg-white hover:bg-amber-50 border border-slate-200 hover:border-amber-200 text-slate-700 hover:text-amber-700 font-bold transition-colors flex items-center gap-1.5 shadow-2xs">
+                        <span class="material-symbols-outlined text-[15px] text-amber-500">palette</span> 2. Colores
+                    </a>
+                    <a href="#seccion-servicios" class="shrink-0 px-3 py-1.5 rounded-xl bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-200 text-slate-700 hover:text-indigo-700 font-bold transition-colors flex items-center gap-1.5 shadow-2xs">
+                        <span class="material-symbols-outlined text-[15px] text-indigo-500">design_services</span> 3. Servicios
+                    </a>
+                    <a href="#seccion-equipo" class="shrink-0 px-3 py-1.5 rounded-xl bg-white hover:bg-teal-50 border border-slate-200 hover:border-teal-200 text-slate-700 hover:text-teal-700 font-bold transition-colors flex items-center gap-1.5 shadow-2xs">
+                        <span class="material-symbols-outlined text-[15px] text-teal-500">verified_user</span> 4. Equipo y Diplomas
+                    </a>
+                </div>
             </div>
 
-            <div class="space-y-8">
             <!-- ========================================== -->
             <!-- CARD 1: IDENTIDAD Y MARCA                  -->
             <!-- ========================================== -->
-            <div class="bg-white rounded-3xl p-6 sm:p-8 md:p-10 shadow-xs border border-slate-100 transition-all">
+            <div id="seccion-identidad" class="bg-white rounded-3xl p-6 sm:p-8 md:p-10 shadow-xs border border-slate-200/90 transition-all scroll-mt-24">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-                    <div class="w-10 h-10 rounded-2xl bg-rose-50 text-primary flex items-center justify-center font-bold">
+                    <div class="w-10 h-10 rounded-2xl bg-rose-50 text-primary flex items-center justify-center font-bold shrink-0">
                         <span class="material-symbols-outlined text-2xl">storefront</span>
                     </div>
                     <div>
                         <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">1. Identidad y Marca</h2>
-                        <p class="text-xs sm:text-sm text-slate-500">Define el nombre, slogan, logo y medios de contacto de tu negocio.</p>
+                        <p class="text-xs sm:text-sm text-slate-500">Define el nombre, slogan, logo, portada y canales de contacto de tu negocio.</p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                     <!-- Título Principal -->
                     <div>
-                        <label for="webTitulo" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Título Principal de la Web</label>
-                        <input type="text" id="webTitulo" value="Mi Centro de Estética" class="w-full bg-slate-50/70 hover:bg-slate-50 border border-slate-200 focus:border-primary rounded-2xl px-4 py-3 text-slate-800 font-medium focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-slate-400">
+                        <label for="webTitulo" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Título Principal de la Web</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3.5 top-3.5 text-slate-400 text-lg">badge</span>
+                            <input type="text" id="webTitulo" value="Mi Centro de Estética" class="w-full bg-slate-50/70 hover:bg-slate-50 border border-slate-200 focus:border-primary rounded-2xl pl-11 pr-4 py-3 text-slate-800 font-medium focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-slate-400">
+                        </div>
                         <p class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
                             <span class="material-symbols-outlined text-[14px]">info</span> El nombre que encabeza tu portada en tamaño destacado.
                         </p>
@@ -107,80 +186,122 @@
 
                     <!-- Subtítulo / Slogan -->
                     <div>
-                        <label for="webSubtitulo" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Subtítulo o Slogan</label>
-                        <input type="text" id="webSubtitulo" value="Expertos en realzar tu belleza natural." class="w-full bg-slate-50/70 hover:bg-slate-50 border border-slate-200 focus:border-primary rounded-2xl px-4 py-3 text-slate-800 font-medium focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-slate-400">
+                        <label for="webSubtitulo" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Subtítulo o Slogan</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-3.5 top-3.5 text-slate-400 text-lg">short_text</span>
+                            <input type="text" id="webSubtitulo" value="Expertos en realzar tu belleza natural." class="w-full bg-slate-50/70 hover:bg-slate-50 border border-slate-200 focus:border-primary rounded-2xl pl-11 pr-4 py-3 text-slate-800 font-medium focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-slate-400">
+                        </div>
                         <p class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
                             <span class="material-symbols-outlined text-[14px]">info</span> Una frase corta y memorable que resuma tu propuesta.
                         </p>
                     </div>
 
-                    <!-- Logo del Negocio (Dropzone) -->
-                    <div class="bg-slate-50/60 p-5 rounded-2xl border border-slate-200/80">
-                        <div class="flex items-center justify-between mb-2">
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">Logo de tu Negocio</label>
-                            <span class="text-[10px] font-semibold text-slate-400 bg-white px-2 py-0.5 rounded-full border border-slate-200">Recomendado PNG transparente</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <div class="flex-1">
-                                <input type="file" id="webLogo" accept="image/png, image/jpeg, image/svg+xml" class="w-full text-xs text-slate-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer cursor-pointer bg-white border border-slate-200 rounded-xl p-1.5">
+                    <!-- Logo del Negocio con Preview Visual -->
+                    <div class="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/90 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-800">Logo de tu Negocio</label>
+                                <span class="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">PNG / JPG / WEBP</span>
                             </div>
-                            <button type="button" onclick="document.getElementById('webLogo').value=''; document.getElementById('webLogoRemoved').value='1'; if(typeof showToast==='function') showToast('Logo marcado para eliminar al guardar', 'info');" class="text-rose-500 hover:text-rose-700 bg-white hover:bg-rose-50 p-2.5 rounded-xl border border-slate-200 transition-colors shadow-2xs" title="Eliminar logo">
-                                <span class="material-symbols-outlined text-[20px]">delete</span>
-                            </button>
+                            <p class="text-[11px] text-slate-500 mb-3">Se mostrará en la barra superior de tu página web y en las confirmaciones.</p>
+                            
+                            <!-- Caja Preview si hay logo -->
+                            <div id="webLogoPreviewBox" class="hidden mb-3 p-3 bg-white rounded-xl border border-slate-200 flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-3">
+                                    <img id="webLogoPreviewImg" src="" alt="Logo actual" class="w-12 h-12 rounded-xl object-contain border border-slate-100 bg-slate-50 p-1">
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-800">Logo configurado</p>
+                                        <p class="text-[11px] text-emerald-600 font-medium">Visible en tu web</p>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="removeLogoAction()" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 cursor-pointer" title="Eliminar logo">
+                                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                                    <span class="hidden sm:inline">Eliminar</span>
+                                </button>
+                            </div>
+
+                            <!-- Caja vacía / Placeholder -->
+                            <div id="webLogoEmptyBox" class="mb-3 p-3 bg-white rounded-xl border border-dashed border-slate-300 text-center">
+                                <span class="material-symbols-outlined text-slate-400 text-2xl">add_photo_alternate</span>
+                                <p class="text-xs font-medium text-slate-500 mt-1">Sin logo cargado aún</p>
+                            </div>
                         </div>
-                        <input type="hidden" id="webLogoRemoved" value="0">
-                        <p class="text-[11px] text-slate-400 mt-2">Se mostrará en la barra superior de tu página y en las confirmaciones.</p>
+
+                        <div>
+                            <input type="file" id="webLogo" accept="image/png, image/jpeg, image/webp, image/svg+xml" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer cursor-pointer bg-white border border-slate-200 rounded-xl p-1.5 shadow-2xs">
+                            <input type="hidden" id="webLogoRemoved" value="0">
+                        </div>
                     </div>
 
-                    <!-- Imagen de Portada (Fondo) -->
-                    <div class="bg-slate-50/60 p-5 rounded-2xl border border-slate-200/80">
-                        <div class="flex items-center justify-between mb-2">
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">Fondo de Portada (Hero Banner)</label>
-                            <span class="text-[10px] font-semibold text-slate-400 bg-white px-2 py-0.5 rounded-full border border-slate-200">JPG / WEBP / PNG</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <div class="flex-1">
-                                <input type="file" id="webFondoFile" accept="image/png, image/jpeg, image/webp" class="w-full text-xs text-slate-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer cursor-pointer bg-white border border-slate-200 rounded-xl p-1.5">
+                    <!-- Imagen de Portada (Fondo Hero) con Preview Visual -->
+                    <div class="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/90 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-800">Fondo de Portada (Hero Banner)</label>
+                                <span class="text-[10px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-full border border-slate-200">Recomendado 1920x600</span>
                             </div>
-                            <button type="button" onclick="document.getElementById('webFondoFile').value=''; document.getElementById('webFondo').value=''; document.getElementById('webFondoRemoved').value='1'; if(typeof showToast==='function') showToast('Portada marcada para eliminar al guardar', 'info');" class="text-rose-500 hover:text-rose-700 bg-white hover:bg-rose-50 p-2.5 rounded-xl border border-slate-200 transition-colors shadow-2xs" title="Eliminar fondo">
-                                <span class="material-symbols-outlined text-[20px]">delete</span>
-                            </button>
+                            <p class="text-[11px] text-slate-500 mb-3">Imagen de alto impacto que ilustra el fondo de tu cabecera principal.</p>
+
+                            <!-- Caja Preview si hay portada -->
+                            <div id="webFondoPreviewBox" class="hidden mb-3 relative rounded-xl overflow-hidden border border-slate-200 h-20 bg-slate-900 group">
+                                <img id="webFondoPreviewImg" src="" alt="Portada actual" class="w-full h-full object-cover opacity-80">
+                                <div class="absolute inset-0 bg-black/40 flex items-center justify-between px-3">
+                                    <span class="text-[11px] font-extrabold text-white flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[16px] text-emerald-400">check_circle</span> Portada actual
+                                    </span>
+                                    <button type="button" onclick="removeFondoAction()" class="bg-white/90 hover:bg-white text-red-600 hover:text-red-700 px-2.5 py-1 rounded-lg text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer">
+                                        <span class="material-symbols-outlined text-[16px]">delete</span>
+                                        <span>Quitar</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Caja vacía / Placeholder -->
+                            <div id="webFondoEmptyBox" class="mb-3 p-3 bg-white rounded-xl border border-dashed border-slate-300 text-center">
+                                <span class="material-symbols-outlined text-slate-400 text-2xl">panorama</span>
+                                <p class="text-xs font-medium text-slate-500 mt-1">Se usará un degradado cromático con los colores de tu marca</p>
+                            </div>
                         </div>
-                        <input type="hidden" id="webFondo">
-                        <input type="hidden" id="webFondoRemoved" value="0">
-                        <p class="text-[11px] text-slate-400 mt-2">Imagen de alto impacto que ilustra el fondo de tu cabecera principal.</p>
+
+                        <div>
+                            <input type="file" id="webFondoFile" accept="image/png, image/jpeg, image/webp" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer cursor-pointer bg-white border border-slate-200 rounded-xl p-1.5 shadow-2xs">
+                            <input type="hidden" id="webFondo">
+                            <input type="hidden" id="webFondoRemoved" value="0">
+                        </div>
                     </div>
 
                     <!-- Descripción del Local -->
                     <div class="md:col-span-2">
-                        <label for="webTextoLocal" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Descripción del Local (Sobre Nosotros)</label>
+                        <label for="webTextoLocal" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Descripción del Local (Sobre Nosotros)</label>
                         <textarea id="webTextoLocal" rows="3" class="w-full bg-slate-50/70 hover:bg-slate-50 border border-slate-200 focus:border-primary rounded-2xl px-4 py-3 text-slate-800 font-medium focus:ring-4 focus:ring-primary/10 outline-none transition-all resize-none placeholder:text-slate-400" placeholder="Cuéntale a tus clientes sobre tu historia, el ambiente del salón, valores y qué te hace único..."></textarea>
                     </div>
 
                     <!-- Ubicación Google Maps -->
                     <div class="md:col-span-2">
-                        <label for="webUbicacionMaps" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Ubicación (Enlace o Iframe de Google Maps)</label>
+                        <label for="webUbicacionMaps" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Ubicación (Enlace de Google Maps)</label>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-4 top-3.5 text-slate-400 text-lg">pin_drop</span>
-                            <input type="text" id="webUbicacionMaps" class="w-full bg-slate-50/70 hover:bg-slate-50 border border-slate-200 focus:border-primary rounded-2xl pl-11 pr-4 py-3 text-slate-800 font-medium focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-slate-400" placeholder="Pega aquí el enlace 'Compartir' de Google Maps o el código de inserción">
+                            <span class="material-symbols-outlined absolute left-3.5 top-3.5 text-slate-400 text-lg">pin_drop</span>
+                            <input type="text" id="webUbicacionMaps" class="w-full bg-slate-50/70 hover:bg-slate-50 border border-slate-200 focus:border-primary rounded-2xl pl-11 pr-4 py-3 text-slate-800 font-medium focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-slate-400" placeholder="Pega aquí el enlace de Google Maps (ej: https://maps.app.goo.gl/...)">
                         </div>
-                        <p class="text-[11px] text-slate-400 mt-1.5">Permite a tus clientes abrir directamente la ubicación en GPS desde tu web.</p>
+                        <p class="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">open_in_new</span> Permite a tus clientes abrir directamente la ubicación en GPS desde su celular.
+                        </p>
                     </div>
 
                     <!-- Instagram -->
                     <div>
-                        <label for="webInstagramUrl" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Enlace a Instagram</label>
+                        <label for="webInstagramUrl" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Enlace a Instagram</label>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-4 top-3.5 text-slate-400 text-lg">photo_camera</span>
+                            <span class="material-symbols-outlined absolute left-3.5 top-3.5 text-pink-500 text-lg">photo_camera</span>
                             <input type="url" id="webInstagramUrl" class="w-full bg-slate-50/70 hover:bg-slate-50 border border-slate-200 focus:border-primary rounded-2xl pl-11 pr-4 py-3 text-slate-800 font-medium focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-slate-400" placeholder="https://instagram.com/tu_negocio">
                         </div>
                     </div>
 
                     <!-- WhatsApp -->
                     <div>
-                        <label for="webWhatsappContacto" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">WhatsApp de Contacto Directo</label>
+                        <label for="webWhatsappContacto" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">WhatsApp de Contacto Directo</label>
                         <div class="relative">
-                            <span class="material-symbols-outlined absolute left-4 top-3.5 text-slate-400 text-lg">chat</span>
+                            <span class="material-symbols-outlined absolute left-3.5 top-3.5 text-emerald-500 text-lg">chat</span>
                             <input type="tel" id="webWhatsappContacto" class="w-full bg-slate-50/70 hover:bg-slate-50 border border-slate-200 focus:border-primary rounded-2xl pl-11 pr-4 py-3 text-slate-800 font-medium focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-slate-400" placeholder="+5491123456789">
                         </div>
                     </div>
@@ -190,27 +311,60 @@
             <!-- ========================================== -->
             <!-- CARD 2: PALETA DE COLORES                  -->
             <!-- ========================================== -->
-            <div class="bg-white rounded-3xl p-6 sm:p-8 md:p-10 shadow-xs border border-slate-100 transition-all">
+            <div id="seccion-colores" class="bg-white rounded-3xl p-6 sm:p-8 md:p-10 shadow-xs border border-slate-200/90 transition-all scroll-mt-24">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                        <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold shrink-0">
                             <span class="material-symbols-outlined text-2xl">palette</span>
                         </div>
                         <div>
                             <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">2. Paleta de Colores de tu Marca</h2>
-                            <p class="text-xs sm:text-sm text-slate-500">Aplica paletas profesionales en un clic o personaliza cada código de color.</p>
+                            <p class="text-xs sm:text-sm text-slate-500">Aplica paletas profesionales en un clic o personaliza cada código cromático.</p>
                         </div>
                     </div>
-                    <span class="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full w-fit flex items-center gap-1 self-start sm:self-center">
+                    <span class="text-xs font-extrabold text-primary bg-primary/10 px-3 py-1.5 rounded-full w-fit flex items-center gap-1.5 self-start sm:self-center shadow-2xs">
                         <span class="material-symbols-outlined text-[15px]">auto_fix_high</span> Vista previa en vivo
                     </span>
                 </div>
 
+                <!-- Mini Widget de Vista Previa de Componentes en Vivo -->
+                <div class="mb-8 p-5 rounded-2xl border border-slate-200 bg-slate-50/80">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-base text-primary">visibility</span>
+                            Previsualización de Componentes en Tu Web
+                        </span>
+                        <span class="text-[11px] font-semibold text-slate-400">Se actualiza al instante</span>
+                    </div>
+
+                    <div id="livePreviewCard" class="p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs transition-colors duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-4" style="background-color: #F8FAFC;">
+                        <div class="flex items-center gap-3">
+                            <div id="livePreviewPill" class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black shadow-xs" style="background-color: #D11149;">
+                                <span class="material-symbols-outlined text-xl">star</span>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="font-extrabold text-slate-900 text-sm">Corte & Peinado de Autor</h4>
+                                    <span id="livePreviewBadge" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full border" style="background-color: #FC871218; color: #FC8712; border-color: #FC871235;">Recomendado</span>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-0.5">45 min • Incluye lavado y estilizado</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 self-end sm:self-center">
+                            <span class="text-sm font-black text-slate-800">$12.500</span>
+                            <button type="button" id="livePreviewBtn" class="text-white font-extrabold text-xs px-4 py-2 rounded-xl transition-all shadow-md pointer-events-none" style="background-color: #D11149; box-shadow: 0 4px 14px #D1114933;">
+                                Agendar Turno
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Paletas Sugeridas Más Usadas (Presets Fijos) -->
-                <div class="mb-8 p-5 sm:p-6 bg-slate-50/80 rounded-2xl border border-slate-200/80">
+                <div class="mb-8 p-5 sm:p-6 bg-slate-50/80 rounded-2xl border border-slate-200/90">
                     <div class="flex items-center gap-2 mb-1.5">
                         <span class="material-symbols-outlined text-primary text-[20px]">auto_awesome</span>
-                        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Paletas Sugeridas Más Populares</h3>
+                        <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider">Paletas Sugeridas Más Populares</h3>
                         <span class="text-[10px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-md border border-amber-200">Recomendadas</span>
                     </div>
                     <p class="text-xs text-slate-500 mb-4">Haz clic sobre cualquier combinación para aplicarla al instante a tus selectores:</p>
@@ -320,7 +474,7 @@
                     <div class="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/90 flex items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
                             <div class="relative w-12 h-12 rounded-xl overflow-hidden shadow-xs border border-slate-200 shrink-0">
-                                <input type="color" id="webColorPrimario" value="#D11149" class="absolute -top-3 -left-3 w-20 h-20 cursor-pointer border-0 p-0" oninput="document.getElementById('hexPreviewPrimario').textContent = this.value.toUpperCase()">
+                                <input type="color" id="webColorPrimario" value="#D11149" class="absolute -top-3 -left-3 w-20 h-20 cursor-pointer border-0 p-0" oninput="document.getElementById('hexPreviewPrimario').textContent = this.value.toUpperCase(); if(typeof updateLiveComponentsPreview==='function') updateLiveComponentsPreview();">
                             </div>
                             <div>
                                 <label for="webColorPrimario" class="block text-xs font-bold text-slate-800">Color Principal</label>
@@ -334,7 +488,7 @@
                     <div class="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/90 flex items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
                             <div class="relative w-12 h-12 rounded-xl overflow-hidden shadow-xs border border-slate-200 shrink-0">
-                                <input type="color" id="webColorSecundario" value="#FC8712" class="absolute -top-3 -left-3 w-20 h-20 cursor-pointer border-0 p-0" oninput="document.getElementById('hexPreviewSecundario').textContent = this.value.toUpperCase()">
+                                <input type="color" id="webColorSecundario" value="#FC8712" class="absolute -top-3 -left-3 w-20 h-20 cursor-pointer border-0 p-0" oninput="document.getElementById('hexPreviewSecundario').textContent = this.value.toUpperCase(); if(typeof updateLiveComponentsPreview==='function') updateLiveComponentsPreview();">
                             </div>
                             <div>
                                 <label for="webColorSecundario" class="block text-xs font-bold text-slate-800">Color Secundario</label>
@@ -348,7 +502,7 @@
                     <div class="p-4 rounded-2xl bg-slate-50/70 border border-slate-200/90 flex items-center justify-between gap-4">
                         <div class="flex items-center gap-3">
                             <div class="relative w-12 h-12 rounded-xl overflow-hidden shadow-xs border border-slate-200 shrink-0">
-                                <input type="color" id="webColorFondo" value="#f8fafc" class="absolute -top-3 -left-3 w-20 h-20 cursor-pointer border-0 p-0" oninput="document.getElementById('hexPreviewFondo').textContent = this.value.toUpperCase()">
+                                <input type="color" id="webColorFondo" value="#F8FAFC" class="absolute -top-3 -left-3 w-20 h-20 cursor-pointer border-0 p-0" oninput="document.getElementById('hexPreviewFondo').textContent = this.value.toUpperCase(); if(typeof updateLiveComponentsPreview==='function') updateLiveComponentsPreview();">
                             </div>
                             <div>
                                 <label for="webColorFondo" class="block text-xs font-bold text-slate-800">Color de Fondo</label>
@@ -363,9 +517,9 @@
             <!-- ========================================== -->
             <!-- CARD 3: DISPOSICIÓN Y SERVICIOS            -->
             <!-- ========================================== -->
-            <div class="bg-white rounded-3xl p-6 sm:p-8 md:p-10 shadow-xs border border-slate-100 transition-all">
+            <div id="seccion-servicios" class="bg-white rounded-3xl p-6 sm:p-8 md:p-10 shadow-xs border border-slate-200/90 transition-all scroll-mt-24">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                    <div class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold shrink-0">
                         <span class="material-symbols-outlined text-2xl">design_services</span>
                     </div>
                     <div>
@@ -375,10 +529,10 @@
                 </div>
 
                 <!-- Alineación de Elementos con Botones Visuales -->
-                <div class="mb-8 p-5 bg-slate-50/70 rounded-2xl border border-slate-200/80">
+                <div class="mb-8 p-5 bg-slate-50/70 rounded-2xl border border-slate-200/90">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">Alineación de Tarjetas y Secciones</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-800">Alineación de Tarjetas y Secciones</label>
                             <p class="text-xs text-slate-500">Elige la orientación en pantalla de tus servicios y datos.</p>
                         </div>
                         <!-- Select original sincronizado para 100% retrocompatibilidad -->
@@ -412,17 +566,17 @@
                 <div>
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                         <div>
-                            <h3 class="text-base font-extrabold text-slate-800">Servicios Destacados</h3>
-                            <p class="text-xs text-slate-500">Arrastra para reordenar o haz clic en cualquier servicio para editarlo.</p>
+                            <h3 class="text-base font-extrabold text-slate-800">Servicios Destacados en la Web</h3>
+                            <p class="text-xs text-slate-500">Arrastra para reordenar la posición o haz clic sobre cualquier tarjeta para editarla.</p>
                         </div>
-                        <button id="addServiceBtn" class="bg-primary hover:bg-primary/90 text-white font-extrabold py-2.5 px-5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer">
+                        <button type="button" id="addServiceBtn" class="bg-primary hover:bg-primary/90 text-white font-extrabold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer shrink-0">
                             <span class="material-symbols-outlined text-base">add_circle</span>
                             <span>Añadir Servicio</span>
                         </button>
                     </div>
 
                     <!-- Contenedor dinámico de servicios inyectado por mi-web.js -->
-                    <div id="servicesList" class="space-y-3 min-h-[80px]">
+                    <div id="servicesList" class="flex flex-wrap justify-center gap-4 w-full min-h-[80px]">
                         <!-- Se cargará aquí dinámicamente -->
                     </div>
                 </div>
@@ -431,14 +585,14 @@
             <!-- ========================================== -->
             <!-- CARD 4: EQUIPO Y CERTIFICADOS              -->
             <!-- ========================================== -->
-            <div class="bg-white rounded-3xl p-6 sm:p-8 md:p-10 shadow-xs border border-slate-100 transition-all">
+            <div id="seccion-equipo" class="bg-white rounded-3xl p-6 sm:p-8 md:p-10 shadow-xs border border-slate-200/90 transition-all scroll-mt-24">
                 <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-                    <div class="w-10 h-10 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold">
+                    <div class="w-10 h-10 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center font-bold shrink-0">
                         <span class="material-symbols-outlined text-2xl">verified_user</span>
                     </div>
                     <div>
                         <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">4. Equipo Profesional y Certificados</h2>
-                        <p class="text-xs sm:text-sm text-slate-500">Da a conocer al personal de tu negocio y muestra tus diplomas o cursos.</p>
+                        <p class="text-xs sm:text-sm text-slate-500">Da a conocer al personal de tu negocio y muestra tus diplomas, títulos o cursos.</p>
                     </div>
                 </div>
 
@@ -450,7 +604,7 @@
                                 <h3 class="text-base font-extrabold text-slate-800">Nuestro Equipo (Profesionales)</h3>
                                 <p class="text-xs text-slate-500">Fotos de perfil, nombres y especialidades visibles en tu web pública.</p>
                             </div>
-                            <button type="button" id="addProfWebBtn" class="bg-teal-600 hover:bg-teal-700 text-white font-extrabold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer">
+                            <button type="button" id="addProfWebBtn" class="bg-teal-600 hover:bg-teal-700 text-white font-extrabold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md shadow-teal-600/20 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer shrink-0">
                                 <span class="material-symbols-outlined text-base">person_add</span>
                                 <span>Añadir Profesional</span>
                             </button>
@@ -467,9 +621,9 @@
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                             <div>
                                 <h3 class="text-base font-extrabold text-slate-800">Cursos, Títulos y Certificaciones</h3>
-                                <p class="text-xs text-slate-500">Genera confianza mostrando diplomas, capacitaciones y trayectoria.</p>
+                                <p class="text-xs text-slate-500">Genera confianza mostrando diplomas, capacitaciones y trayectoria profesional.</p>
                             </div>
-                            <button type="button" id="addCursoWebBtn" onclick="openCursoWebModal(-1)" class="bg-slate-800 hover:bg-slate-900 text-white font-extrabold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer">
+                            <button type="button" id="addCursoWebBtn" onclick="openCursoWebModal(-1)" class="bg-slate-800 hover:bg-slate-900 text-white font-extrabold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md shadow-slate-900/20 hover:scale-[1.02] active:scale-95 transition-all cursor-pointer shrink-0">
                                 <span class="material-symbols-outlined text-base">school</span>
                                 <span>Añadir Certificado</span>
                             </button>
@@ -480,16 +634,26 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Botón Inferior de Guardar Cambios -->
-        <div class="mt-10 flex flex-col sm:flex-row items-center justify-end gap-4 p-4 bg-white rounded-3xl border border-slate-100 shadow-xs">
-            <span class="text-xs font-semibold text-slate-500">¿Hiciste cambios? No olvides guardarlos para publicarlos en tu web.</span>
-            <button id="saveWebDataBtn" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-extrabold py-3.5 px-8 rounded-2xl text-sm shadow-md shadow-green-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                <span class="material-symbols-outlined text-lg">check_circle</span>
-                <span>Guardar Cambios</span>
-            </button>
-        </div>
+            <!-- ========================================== -->
+            <!-- BOTÓN INFERIOR DE GUARDAR CAMBIOS          -->
+            <!-- ========================================== -->
+            <div class="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 p-5 sm:p-6 bg-white rounded-3xl border border-slate-200/90 shadow-sm">
+                <div class="flex items-center gap-3 text-left">
+                    <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-2xl">published_with_changes</span>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-extrabold text-slate-800">Publicar cambios en tiempo real</h4>
+                        <p class="text-xs text-slate-500">Tus clientes verán las modificaciones al instante en tu página de reservas.</p>
+                    </div>
+                </div>
+                <button type="button" id="saveWebDataBtn" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 px-8 rounded-2xl text-sm shadow-md shadow-emerald-600/25 hover:shadow-emerald-600/35 transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5 active:scale-95 cursor-pointer">
+                    <span class="material-symbols-outlined text-lg">check_circle</span>
+                    <span>Guardar Cambios</span>
+                </button>
+            </div>
+
         </div>
     </main>
 
@@ -541,53 +705,59 @@
         const pSec = document.getElementById('webColorSecundario');
         const pFon = document.getElementById('webColorFondo');
         if (pPrim) {
-            pPrim.addEventListener('input', () => { const h = document.getElementById('hexPreviewPrimario'); if(h) h.textContent = pPrim.value.toUpperCase(); });
+            pPrim.addEventListener('input', () => { 
+                const h = document.getElementById('hexPreviewPrimario'); if(h) h.textContent = pPrim.value.toUpperCase(); 
+            });
             const h = document.getElementById('hexPreviewPrimario'); if(h) h.textContent = pPrim.value.toUpperCase();
         }
         if (pSec) {
-            pSec.addEventListener('input', () => { const h = document.getElementById('hexPreviewSecundario'); if(h) h.textContent = pSec.value.toUpperCase(); });
+            pSec.addEventListener('input', () => { 
+                const h = document.getElementById('hexPreviewSecundario'); if(h) h.textContent = pSec.value.toUpperCase(); 
+            });
             const h = document.getElementById('hexPreviewSecundario'); if(h) h.textContent = pSec.value.toUpperCase();
         }
         if (pFon) {
-            pFon.addEventListener('input', () => { const h = document.getElementById('hexPreviewFondo'); if(h) h.textContent = pFon.value.toUpperCase(); });
+            pFon.addEventListener('input', () => { 
+                const h = document.getElementById('hexPreviewFondo'); if(h) h.textContent = pFon.value.toUpperCase(); 
+            });
             const h = document.getElementById('hexPreviewFondo'); if(h) h.textContent = pFon.value.toUpperCase();
         }
     });
     </script>
 
     <!-- Modal para Editar/Añadir Servicio -->
-    <div id="serviceDetailModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-4 sm:p-6 md:p-8 transform scale-95 transition-transform duration-300 my-auto max-h-[90vh] overflow-y-auto" id="serviceDetailModalContent">
-            <div class="flex justify-between items-center mb-6">
-                <h2 id="serviceModalTitle" class="text-2xl font-bold font-display text-slate-800">Editar Servicio</h2>
-                <button id="closeServiceModalBtn" class="text-slate-400 hover:text-red-500 transition-colors">
-                    <span class="material-symbols-outlined">close</span>
+    <div id="serviceDetailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 my-auto max-h-[90vh] overflow-y-auto border border-slate-100" id="serviceDetailModalContent">
+            <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-100">
+                <h2 id="serviceModalTitle" class="text-xl sm:text-2xl font-black font-display text-slate-800">Editar Servicio</h2>
+                <button type="button" id="closeServiceModalBtn" class="text-slate-400 hover:text-red-500 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-2xl">close</span>
                 </button>
             </div>
             <form id="serviceDetailForm" class="flex flex-col gap-4 max-h-[70vh] overflow-y-auto pr-2">
                 <input type="hidden" name="id" id="serviceIdInput">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Nombre</label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nombre</label>
                         <input type="text" name="nombre" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Profesional (Opcional)</label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Profesional (Opcional)</label>
                         <input type="text" name="profesional" placeholder="Ej: Ana" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Email del Profesional</label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Email del Profesional</label>
                         <input type="email" name="email_profesional" placeholder="ana@ejemplo.com" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all text-sm">
                     </div>
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Foto del Profesional</label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Foto del Profesional</label>
                         <div class="space-y-2">
                             <input type="file" name="foto_profesional_file" accept="image/png, image/jpeg, image/webp" class="text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
                             <input type="text" name="foto_profesional" placeholder="O pega una URL directa..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all text-sm">
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Duración</label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Duración</label>
                         <div class="flex items-center gap-2">
                             <input type="number" id="duracionH" min="0" placeholder="Horas" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all">
                             <span class="text-sm font-bold text-slate-500">h</span>
@@ -597,20 +767,20 @@
                         <input type="hidden" name="duracion" id="duracionFinal">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Precio ($)</label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Precio ($)</label>
                         <input type="number" name="precio" min="0" step="0.01" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Seña / Adelanto ($)</label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Seña / Adelanto ($)</label>
                         <input type="number" name="precio_sena" min="0" step="0.01" placeholder="Opcional. Ej: 5000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all">
                     </div>
                     <div class="md:col-span-2">
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">Capacidad (Cupos por turno)</label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Capacidad (Cupos por turno)</label>
                         <input type="number" name="capacidad" min="1" value="1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all">
                     </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Descripción Detallada</label>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Descripción Detallada</label>
                     <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
                         <div class="bg-slate-200 p-2 flex gap-2 border-b border-slate-300">
                             <button type="button" onmousedown="event.preventDefault();" onclick="document.execCommand('bold',false,null)" class="p-1 hover:bg-white rounded px-2 font-bold transition-colors">B</button>
@@ -625,7 +795,7 @@
                     <input type="hidden" name="descripcion" id="hiddenDesc">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Imágenes del Servicio (Máx 3 fotos)</label>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Imágenes del Servicio (Máx 3 fotos)</label>
                     <div class="space-y-2">
                         <input type="hidden" name="imagen1" id="hiddenImagen1">
                         <input type="hidden" name="imagen2" id="hiddenImagen2">
@@ -645,92 +815,113 @@
                     </div>
                 </div>
                 <div class="mt-4 text-right">
-                    <button type="submit" class="bg-primary text-white font-bold py-2.5 px-6 rounded-lg">Guardar Servicio</button>
+                    <button type="submit" class="bg-primary hover:bg-primary/90 text-white font-extrabold py-2.5 px-6 rounded-xl shadow-md shadow-primary/20 transition-all cursor-pointer">Guardar Servicio</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Modal para Añadir/Editar Profesionales (Web) -->
-    <div id="profWebModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-4 sm:p-6 md:p-8 transform scale-95 transition-transform duration-300 my-auto max-h-[90vh] overflow-y-auto" id="profWebModalContent">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold text-slate-800">Detalles del Profesional</h2>
-                <button type="button" onclick="closeProfWebModal()" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined">close</span></button>
+    <div id="profWebModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 my-auto max-h-[90vh] overflow-y-auto border border-slate-100" id="profWebModalContent">
+            <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-100">
+                <h2 class="text-xl font-black font-display text-slate-800">Detalles del Profesional</h2>
+                <button type="button" onclick="closeProfWebModal()" class="text-slate-400 hover:text-red-500 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"><span class="material-symbols-outlined text-2xl">close</span></button>
             </div>
             <form id="profWebForm" class="flex flex-col gap-4">
                 <input type="hidden" id="profWebIndex">
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nombre del Profesional</label>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nombre del Profesional</label>
                     <input type="text" id="profWebName" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Descripción / A qué se dedica</label>
-                    <textarea id="profWebDesc" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none resize-none" placeholder="Breve descripción de su especialidad y experiencia..."></textarea>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Descripción / A qué se dedica</label>
+                    <textarea id="profWebDesc" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none resize-none text-sm" placeholder="Breve descripción de su especialidad y experiencia..."></textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">URL de Foto de Perfil</label>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Foto de Perfil</label>
                     <input type="file" id="profWebPhotoFile" accept="image/png, image/jpeg, image/webp" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
                     <input type="hidden" id="profWebPhotoBase64">
                     <input type="url" id="profWebPhoto" placeholder="O pega una URL: https://ejemplo.com/foto.jpg" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 mt-2 focus:ring-2 focus:ring-primary outline-none text-sm">
                 </div>
-                <button type="submit" class="w-full bg-primary text-white font-bold py-3 rounded-xl mt-2 hover:bg-primary/90 transition-colors">Guardar Profesional</button>
+                <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold py-3 rounded-xl mt-2 shadow-md shadow-teal-600/20 transition-all cursor-pointer">Guardar Profesional</button>
             </form>
         </div>
     </div>
 
     <!-- Modal para Añadir/Editar Cursos (Web) -->
-    <div id="cursoWebModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-4 sm:p-6 md:p-8 transform scale-95 transition-transform duration-300 my-auto max-h-[90vh] overflow-y-auto" id="cursoWebModalContent">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold text-slate-800">Detalles del Certificado</h2>
-                <button type="button" onclick="closeCursoWebModal()" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined">close</span></button>
+    <div id="cursoWebModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 my-auto max-h-[90vh] overflow-y-auto border border-slate-100" id="cursoWebModalContent">
+            <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-100">
+                <h2 class="text-xl font-black font-display text-slate-800">Detalles del Certificado</h2>
+                <button type="button" onclick="closeCursoWebModal()" class="text-slate-400 hover:text-red-500 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"><span class="material-symbols-outlined text-2xl">close</span></button>
             </div>
             <form id="cursoWebForm" class="flex flex-col gap-4">
                 <input type="hidden" id="cursoWebIndex">
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nombre del Curso / Certificado</label>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nombre del Curso / Certificado</label>
                     <input type="text" id="cursoWebName" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Descripción (Opcional)</label>
-                    <textarea id="cursoWebDesc" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none resize-none" placeholder="Breve descripción..."></textarea>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Descripción (Opcional)</label>
+                    <textarea id="cursoWebDesc" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none resize-none text-sm" placeholder="Breve descripción o institución emisora..."></textarea>
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-1">Foto del Certificado</label>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Foto del Certificado</label>
                     <input type="file" id="cursoWebPhoto" accept="image/png, image/jpeg, image/webp" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
                     <input type="hidden" id="cursoWebPhotoBase64">
                 </div>
-                <button type="submit" class="w-full bg-primary text-white font-bold py-3 rounded-xl mt-2 hover:bg-primary/90 transition-colors">Guardar Certificado</button>
+                <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-extrabold py-3 rounded-xl mt-2 shadow-md transition-all cursor-pointer">Guardar Certificado</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal Moderno de Confirmación para Acciones Destructivas (Regla AGENTS.md) -->
+    <div id="webConfirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[99999] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-sm w-full p-6 sm:p-7 transform scale-95 transition-transform duration-200 text-center" id="webConfirmModalContent">
+            <div class="w-14 h-14 bg-red-50 border border-red-200 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xs">
+                <span class="material-symbols-outlined text-3xl">delete_forever</span>
+            </div>
+            <h3 id="webConfirmModalTitle" class="text-lg font-black text-slate-900 mb-1.5">¿Eliminar elemento?</h3>
+            <p id="webConfirmModalMessage" class="text-xs sm:text-sm text-slate-500 mb-6 leading-relaxed">Esta acción quitará el elemento de tu página web pública.</p>
+            <div class="flex items-center gap-2.5">
+                <button type="button" onclick="closeWebConfirmModal()" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold py-3 rounded-xl text-xs transition-colors cursor-pointer">
+                    Cancelar
+                </button>
+                <button type="button" id="webConfirmModalBtn" class="w-1/2 bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 rounded-xl text-xs transition-all shadow-md shadow-red-600/20 cursor-pointer">
+                    Sí, eliminar
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- Modal Reportar Error -->
-    <div id="reportErrorModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 max-w-md w-full p-8 transform scale-95 transition-transform duration-300" id="reportErrorModalContent">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold font-display text-slate-800 flex items-center gap-2">
+    <div id="reportErrorModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[150] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300" id="reportErrorModalContent">
+            <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-100">
+                <h2 class="text-xl font-black font-display text-slate-800 flex items-center gap-2">
                     <span class="material-symbols-outlined text-red-500">bug_report</span> Reportar Error
                 </h2>
-                <button onclick="closeReportErrorModal()" class="text-slate-400 hover:text-red-500 transition-colors"><span class="material-symbols-outlined">close</span></button>
+                <button type="button" onclick="closeReportErrorModal()" class="text-slate-400 hover:text-red-500 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"><span class="material-symbols-outlined text-2xl">close</span></button>
             </div>
             <form id="reportErrorForm" class="space-y-4">
                 <input type="hidden" id="reportSegment" name="segmento" value="">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Sección donde ocurrió:</label>
-                    <input type="text" id="reportSegmentDisplay" class="w-full bg-slate-100 text-slate-500 px-4 py-3 rounded-xl cursor-not-allowed border-none font-medium text-sm" readonly>
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Sección donde ocurrió:</label>
+                    <input type="text" id="reportSegmentDisplay" class="w-full bg-slate-100 text-slate-600 px-4 py-3 rounded-xl cursor-not-allowed border-none font-bold text-xs" readonly>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Describe el problema:</label>
-                    <textarea name="mensaje" rows="4" required placeholder="¿Qué estabas intentando hacer y qué ocurrió?" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700 resize-none"></textarea>
+                    <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1">Describe el problema:</label>
+                    <textarea name="mensaje" rows="4" required placeholder="¿Qué estabas intentando hacer y qué ocurrió?" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-xs text-slate-700 resize-none placeholder:text-slate-400"></textarea>
                 </div>
-                <button type="submit" id="btnReportSubmit" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3.5 rounded-xl mt-2 transition-all flex items-center justify-center gap-2">Enviar Reporte</button>
+                <button type="submit" id="btnReportSubmit" class="w-full bg-red-500 hover:bg-red-600 text-white font-extrabold py-3.5 rounded-xl mt-2 shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    <span class="material-symbols-outlined text-lg">send</span> Enviar Reporte
+                </button>
             </form>
         </div>
     </div>
 
-    <script src="assets/js/script.js?v=1.2.5" defer></script>
-    <script src="assets/js/mi-web.js?v=1.2.5" defer></script>
+    <script src="assets/js/script.js?v=1.4.0" defer></script>
+    <script src="assets/js/mi-web.js?v=1.4.0" defer></script>
 </body>
 </html>

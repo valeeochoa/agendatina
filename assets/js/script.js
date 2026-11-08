@@ -3689,7 +3689,7 @@ function checkAdminGlobalSession(config = null) {
             
             const adminPages = ['dashboard', 'ajustes', 'estadisticas', 'servicios', 'equipo', 'mi-web', 'agenda', 'manual', 'consultas', 'perfil', 'pago', 'clientes', 'mi-cuenta'];
             const currentPath = window.location.pathname.toLowerCase();
-            const isPublicPage = currentPath.includes('web.html') || currentPath.includes('calendario');
+            const isPublicPage = ((currentPath.endsWith('web.html') || currentPath.includes('/web.html')) && !currentPath.includes('mi-web')) || currentPath.includes('calendario');
             const isStrictAdminPage = adminPages.some(page => currentPath.includes(page));
 
             const effectiveIsDemo = isDemo && (!currentRuta || currentRuta.startsWith('demo'));
@@ -3740,7 +3740,7 @@ function checkAdminGlobalSession(config = null) {
         const sep = document.getElementById('navBrandSeparator');
         const bizSep = document.getElementById('navBizSeparator');
         const currentPath = window.location.pathname.toLowerCase();
-        const isPublicPage = currentPath.includes('web.html') || currentPath.includes('calendario');
+        const isPublicPage = ((currentPath.endsWith('web.html') || currentPath.includes('/web.html')) && !currentPath.includes('mi-web')) || currentPath.includes('calendario');
 
         if (isUserAdmin) {
             if (brand) { brand.classList.remove('hidden'); brand.style.display = 'inline-flex'; }
@@ -3891,7 +3891,7 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
 
     // Si estamos en una página oficial institucional de Agendatina o en la web pública de un negocio (web.html),
     // NO debemos inyectar estilos de sesión de administrador para evitar mezclar temas entre negocios.
-    const isPublicWebPage = window.location.pathname.includes('web.html');
+    const isPublicWebPage = (window.location.pathname.endsWith('web.html') || window.location.pathname.includes('/web.html')) && !window.location.pathname.includes('mi-web');
     if ((window.isPublicAgendatinaOfficialPage && window.isPublicAgendatinaOfficialPage()) || isPublicWebPage) {
         if (style) style.remove();
         return;
@@ -4249,7 +4249,7 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-    const isPublicWebPage = window.location.pathname.includes('web.html');
+    const isPublicWebPage = (window.location.pathname.endsWith('web.html') || window.location.pathname.includes('/web.html')) && !window.location.pathname.includes('mi-web');
     if ((window.isPublicAgendatinaOfficialPage && window.isPublicAgendatinaOfficialPage()) || isPublicWebPage) {
         const style = document.getElementById('agendatina-user-custom-colors');
         if (style) style.remove();

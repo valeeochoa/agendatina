@@ -11,7 +11,7 @@ function formatDuracionText(minutosRaw) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Verificar sesión y mostrar badge si es Demo
+    // 0. Sincronización inmediata del Navbar y verificación de sesión
     fetch('backend/perfil.php')
         .then(res => res.json())
         .then(data => {
@@ -22,13 +22,53 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             if (data && data.success && data.business) {
-                const isDemo = (data.business.is_demo === true) || (data.user && data.user.email === 'demo@agendatina.site') || (data.business.ruta === 'demo');
+                const b = data.business;
+                const isDemo = (b.is_demo === true) || (data.user && data.user.email === 'demo@agendatina.site') || (b.ruta === 'demo');
+                
+                // Badge modo demo
                 const badge = document.getElementById('adminSessionBadge');
                 const badgeText = document.getElementById('adminSessionBadgeText');
                 if (badge && isDemo) {
                     badge.classList.remove('hidden');
                     badge.classList.add('flex');
                     if (badgeText) badgeText.textContent = 'Modo Demo';
+                }
+
+                // Sincronizar nombre del negocio en Navbar
+                const bizName = b.nombre_fantasia || (isDemo ? 'Agendatina' : 'Mi Negocio');
+                const navName = document.getElementById('navBusinessNameText');
+                if (navName) navName.textContent = bizName;
+
+                // Sincronizar logo en Navbar
+                const logoUrl = b.logo || b.url_logo;
+                const navLogo = document.getElementById('navBusinessLogoImg');
+                const navIcon = document.getElementById('navBusinessIcon');
+                if (logoUrl && navLogo) {
+                    navLogo.src = logoUrl;
+                    navLogo.classList.remove('hidden');
+                    if (navIcon) navIcon.classList.add('hidden');
+                }
+
+                // Asegurar visibilidad de volver al panel, marca oficial y reportar error
+                const btnVolver = document.getElementById('btnVolverPanel');
+                if (btnVolver) {
+                    btnVolver.classList.remove('hidden');
+                    btnVolver.style.display = 'inline-flex';
+                }
+                const brand = document.getElementById('navAgendatinaBrand');
+                if (brand) {
+                    brand.classList.remove('hidden');
+                    brand.style.display = 'inline-flex';
+                }
+                const sep = document.getElementById('navBrandSeparator');
+                if (sep) {
+                    sep.classList.remove('hidden');
+                    sep.style.display = 'inline';
+                }
+                const btnReport = document.getElementById('navReportBugBtn');
+                if (btnReport && !isDemo) {
+                    btnReport.classList.remove('hidden');
+                    btnReport.style.display = 'inline-flex';
                 }
             }
         }).catch((err) => {
@@ -75,6 +115,111 @@ document.addEventListener('DOMContentLoaded', () => {
         enableImagePreview(formServ.querySelector('input[name="imagen2_file"]'));
         enableImagePreview(formServ.querySelector('input[name="imagen3_file"]'));
     }
+
+    // Funciones auxiliares para previsualización interactiva de Logo y Portada
+    window.updateLogoPreview = function(src) {
+        const previewBox = document.getElementById('webLogoPreviewBox');
+        const emptyBox = document.getElementById('webLogoEmptyBox');
+        const previewImg = document.getElementById('webLogoPreviewImg');
+        if (src && previewBox && emptyBox && previewImg) {
+            previewImg.src = src;
+            previewBox.classList.remove('hidden');
+            emptyBox.classList.add('hidden');
+        } else if (previewBox && emptyBox) {
+            previewBox.classList.add('hidden');
+            emptyBox.classList.remove('hidden');
+        }
+    };
+
+    window.updateFondoPreview = function(src) {
+        const previewBox = document.getElementById('webFondoPreviewBox');
+        const emptyBox = document.getElementById('webFondoEmptyBox');
+        const previewImg = document.getElementById('webFondoPreviewImg');
+        if (src && previewBox && emptyBox && previewImg) {
+            previewImg.src = src;
+            previewBox.classList.remove('hidden');
+            emptyBox.classList.add('hidden');
+        } else if (previewBox && emptyBox) {
+            previewBox.classList.add('hidden');
+            emptyBox.classList.remove('hidden');
+        }
+    };
+
+    const webLogoInput = document.getElementById('webLogo');
+    if (webLogoInput) {
+        webLogoInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    window.updateLogoPreview(e.target.result);
+                    const rm = document.getElementById('webLogoRemoved');
+                    if (rm) rm.value = '0';
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+
+    const webFondoFileInput = document.getElementById('webFondoFile');
+    if (webFondoFileInput) {
+        webFondoFileInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    window.updateFondoPreview(e.target.result);
+                    const rm = document.getElementById('webFondoRemoved');
+                    if (rm) rm.value = '0';
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+
+    window.removeLogoAction = function() {
+        const input = document.getElementById('webLogo');
+        if (input) input.value = '';
+        const rm = document.getElementById('webLogoRemoved');
+        if (rm) rm.value = '1';
+        window.updateLogoPreview(null);
+        if (typeof showToast === 'function') showToast('Logo marcado para eliminar al guardar cambios', 'info');
+    };
+
+    window.removeFondoAction = function() {
+        const input = document.getElementById('webFondoFile');
+        if (input) input.value = '';
+        const hiddenFondo = document.getElementById('webFondo');
+        if (hiddenFondo) hiddenFondo.value = '';
+        const rm = document.getElementById('webFondoRemoved');
+        if (rm) rm.value = '1';
+        window.updateFondoPreview(null);
+        if (typeof showToast === 'function') showToast('Portada marcada para eliminar al guardar cambios', 'info');
+    };
+
+    // Live Components Preview de Paleta de Colores
+    window.updateLiveComponentsPreview = function() {
+        const p = document.getElementById('webColorPrimario')?.value || '#D11149';
+        const s = document.getElementById('webColorSecundario')?.value || '#FC8712';
+        const f = document.getElementById('webColorFondo')?.value || '#F8FAFC';
+
+        const prevCard = document.getElementById('livePreviewCard');
+        const prevBtn = document.getElementById('livePreviewBtn');
+        const prevBadge = document.getElementById('livePreviewBadge');
+        const prevPill = document.getElementById('livePreviewPill');
+
+        if (prevCard) prevCard.style.backgroundColor = f;
+        if (prevBtn) {
+            prevBtn.style.backgroundColor = p;
+            prevBtn.style.boxShadow = `0 4px 14px ${p}33`;
+        }
+        if (prevBadge) {
+            prevBadge.style.backgroundColor = `${s}18`;
+            prevBadge.style.color = s;
+            prevBadge.style.borderColor = `${s}35`;
+        }
+        if (prevPill) {
+            prevPill.style.backgroundColor = p;
+        }
+    };
     if (webAlineacion) {
         webAlineacion.addEventListener('change', () => {
             const alignVal = webAlineacion.value;
@@ -148,7 +293,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.currentWebData = data;
                 if (data.titulo) webTitulo.value = data.titulo;
                 if (data.subtitulo) webSubtitulo.value = data.subtitulo;
-                if (data.fondo && webFondo) webFondo.value = data.fondo;
+                if (data.fondo && webFondo) {
+                    webFondo.value = data.fondo;
+                    window.updateFondoPreview(data.fondo);
+                }
+                if (data.logo) {
+                    window.updateLogoPreview(data.logo);
+                }
                 if (data.texto_local && webTextoLocal) webTextoLocal.value = data.texto_local;
                 if (data.ubicacion_maps && webUbicacionMaps) webUbicacionMaps.value = data.ubicacion_maps;
                 if (data.instagram_url && webInstagramUrl) webInstagramUrl.value = data.instagram_url;
@@ -166,6 +317,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 else if (data.color_secundario) webColorSecundario.value = data.color_secundario;
                 
                 if (data.color_fondo) webColorFondo.value = data.color_fondo;
+
+                // Actualizar previews de colores
+                const hP = document.getElementById('hexPreviewPrimario'); if (hP) hP.textContent = webColorPrimario.value.toUpperCase();
+                const hS = document.getElementById('hexPreviewSecundario'); if (hS) hS.textContent = webColorSecundario.value.toUpperCase();
+                const hF = document.getElementById('hexPreviewFondo'); if (hF) hF.textContent = webColorFondo.value.toUpperCase();
+                window.updateLiveComponentsPreview();
 
                 if (data.profesionales_json) {
                     try { window.profesionalesWebData = JSON.parse(data.profesionales_json); } catch(e) { window.profesionalesWebData = []; }
@@ -271,6 +428,26 @@ document.addEventListener('DOMContentLoaded', () => {
         navSaveWebDataBtn.addEventListener('click', () => saveWebDataBtn.click());
     }
 
+    // Copiar enlace público de la web
+    window.copyPublicWebLink = function() {
+        const btnVer = document.getElementById('btnVerMiPagina');
+        let url = btnVer ? btnVer.href : '';
+        if (!url || url.includes('#')) {
+            const ruta = window.currentWebData?.ruta || '';
+            url = window.location.origin + window.location.pathname.replace('mi-web.html', 'web.html') + (ruta ? `?n=${encodeURIComponent(ruta)}` : '');
+        }
+        url = url.replace('&preview=1', '').replace('preview=1&', '').replace('?preview=1', '');
+        navigator.clipboard.writeText(url).then(() => {
+            if (typeof showToast === 'function') {
+                showToast('¡Enlace de tu página web copiado al portapapeles!', 'success');
+            } else {
+                alert('¡Enlace copiado al portapapeles!');
+            }
+        }).catch(() => {
+            prompt('Copia el enlace de tu web:', url);
+        });
+    };
+
     // ==========================================
     // SECCIÓN EQUIPO (PROFESIONALES)
     // ==========================================
@@ -346,10 +523,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.deleteProfWeb = function(index) {
-        if(confirm('¿Eliminar este profesional del equipo?')) {
-            window.profesionalesWebData.splice(index, 1);
-            renderProfesionalesWeb();
-        }
+        const prof = window.profesionalesWebData[index];
+        const name = prof ? (prof.nombre || 'este profesional') : 'este profesional';
+        window.showWebConfirmModal({
+            title: '¿Eliminar profesional del equipo?',
+            message: `¿Estás seguro de que deseas eliminar a <strong>${escapeHtml(name)}</strong> de la presentación de tu equipo en la web?`,
+            confirmText: 'Sí, eliminar',
+            onConfirm: () => {
+                window.profesionalesWebData.splice(index, 1);
+                renderProfesionalesWeb();
+                if (typeof showToast === 'function') showToast('Profesional eliminado de la lista', 'info');
+            }
+        });
     };
 
     function renderProfesionalesWeb() {
@@ -484,10 +669,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     window.deleteCursoWeb = function(index) {
-        if(confirm('¿Eliminar este certificado?')) {
-            window.cursosWebData.splice(index, 1);
-            renderCursosWeb();
-        }
+        const curso = window.cursosWebData[index];
+        const name = curso ? (curso.nombre || 'este certificado') : 'este certificado';
+        window.showWebConfirmModal({
+            title: '¿Eliminar certificado / diploma?',
+            message: `¿Estás seguro de que deseas eliminar <strong>${escapeHtml(name)}</strong> de tus certificaciones públicas?`,
+            confirmText: 'Sí, eliminar',
+            onConfirm: () => {
+                window.cursosWebData.splice(index, 1);
+                renderCursosWeb();
+                if (typeof showToast === 'function') showToast('Certificado eliminado de la lista', 'info');
+            }
+        });
     };
 
     function renderCursosWeb() {
@@ -787,4 +980,53 @@ window.applySuggestedWebPalette = function(primario, secundario, fondo, paletteK
     if (typeof showToast === 'function') {
         showToast('Paleta aplicada. Recuerda hacer clic en "Guardar Cambios" para publicarla.', 'success');
     }
+};
+
+// ==========================================
+// MODAL DE CONFIRMACIÓN MODERNO (mi-web.html)
+// ==========================================
+function escapeHtml(text) {
+    if (!text) return '';
+    return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+window.showWebConfirmModal = function({ title, message, confirmText, onConfirm }) {
+    const modal = document.getElementById('webConfirmModal');
+    const titleEl = document.getElementById('webConfirmModalTitle');
+    const msgEl = document.getElementById('webConfirmModalMessage');
+    const btnConfirm = document.getElementById('webConfirmModalBtn');
+    if (!modal) {
+        if (confirm(message ? message.replace(/<[^>]*>?/gm, '') : '¿Confirmar?')) {
+            if (typeof onConfirm === 'function') onConfirm();
+        }
+        return;
+    }
+    if (titleEl) titleEl.textContent = title || '¿Confirmar acción?';
+    if (msgEl) msgEl.innerHTML = message || '';
+    if (btnConfirm) {
+        btnConfirm.textContent = confirmText || 'Confirmar';
+        btnConfirm.onclick = () => {
+            closeWebConfirmModal();
+            if (typeof onConfirm === 'function') onConfirm();
+        };
+    }
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        const content = document.getElementById('webConfirmModalContent');
+        if (content) content.classList.remove('scale-95');
+    }, 10);
+};
+
+window.closeWebConfirmModal = function() {
+    const modal = document.getElementById('webConfirmModal');
+    const content = document.getElementById('webConfirmModalContent');
+    if (!modal) return;
+    modal.classList.add('opacity-0');
+    if (content) content.classList.add('scale-95');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 200);
 };
