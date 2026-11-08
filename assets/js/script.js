@@ -1053,8 +1053,15 @@ function loadDashboardData() {
                     cardWeb.style.display = 'none';
                     if (cardClientes) cardClientes.style.display = 'none';
                 } else if (planStr.includes('intermedio') || planStr.includes('profesional')) {
-                    cardWeb.style.display = 'none';    // Plan Profesional/Intermedio: Oculta la Web Pública y Clientes
+                    // Plan Profesional: Incluye Agenda y Página Web (mi-web). Solo Clientes/Alumnos es exclusivo de Premium
+                    cardAgenda.style.display = 'flex';
+                    cardWeb.style.display = 'flex';
                     if (cardClientes) cardClientes.style.display = 'none';
+                } else {
+                    // Plan Premium / Demo
+                    cardAgenda.style.display = 'flex';
+                    cardWeb.style.display = 'flex';
+                    if (cardClientes) cardClientes.style.display = 'flex';
                 }
 
                 if (cardClientes && !isPremAcc) {
@@ -4565,8 +4572,8 @@ window.ensureUpgradePlanModalExists = function() {
                     </div>
                     <ul class="text-xs text-slate-600 space-y-1.5 my-3">
                         <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>3 colores de marca</strong> (2 base + 1 extra)</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Agenda multi-profesional</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Gestión de clientes y asistencias</li>
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>Página Web propia</strong> personalizada</li>
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Agenda virtual y reservas online</li>
                         <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Recordatorios automáticos</li>
                     </ul>
                     <div class="mt-2 text-right">
