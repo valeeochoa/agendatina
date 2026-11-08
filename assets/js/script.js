@@ -4501,7 +4501,7 @@ window.ensureUpgradePlanModalExists = function() {
 
     const modalHtml = `
     <div id="upgradePlanModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto opacity-0 transition-opacity duration-300">
-        <div id="upgradePlanModalContent" class="bg-white rounded-3xl p-4 sm:p-6 md:p-8 max-w-2xl w-full shadow-2xl border border-slate-100 transform scale-95 transition-all duration-300 max-h-[90vh] my-auto overflow-y-auto">
+        <div id="upgradePlanModalContent" class="bg-white rounded-3xl p-4 sm:p-6 md:p-8 max-w-4xl w-full shadow-2xl border border-slate-100 transform scale-95 transition-all duration-300 max-h-[90vh] my-auto overflow-y-auto">
             <!-- Header -->
             <div class="flex justify-between items-start mb-5 border-b border-slate-100 pb-4">
                 <div>
@@ -4511,7 +4511,7 @@ window.ensureUpgradePlanModalExists = function() {
                     </div>
                     <p class="text-xs text-slate-500 mt-1">Elegí el plan que mejor se adapte a tu negocio y conocé los beneficios y el desglose de facturación.</p>
                 </div>
-                <button type="button" onclick="closeUpgradePlanModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+                <button type="button" onclick="closeUpgradePlanModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer">
                     <span class="material-symbols-outlined text-xl">close</span>
                 </button>
             </div>
@@ -4527,7 +4527,30 @@ window.ensureUpgradePlanModalExists = function() {
             </div>
 
             <!-- Comparación de Planes Seleccionables -->
-            <div id="upgradeOptionsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div id="upgradeOptionsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <!-- Tarjeta Plan Simple (Básico) -->
+                <div id="cardPlanBasico" onclick="selectUpgradePlan('Basico')" class="cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-slate-200">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Plan Inicial</span>
+                            <h4 class="text-lg font-black text-slate-800">Simple</h4>
+                        </div>
+                        <div class="text-right">
+                            <span id="priceBadgeBasico" class="text-sm font-black text-slate-900 bg-slate-100 px-2.5 py-1 rounded-xl">$8.000<span class="text-[10px] font-normal text-slate-500">/mes</span></span>
+                            <div id="priceBasicTeamNote" class="hidden text-[10px] font-extrabold text-emerald-600 mt-1"></div>
+                        </div>
+                    </div>
+                    <ul class="text-xs text-slate-600 space-y-1.5 my-3">
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>2 colores de marca</strong></li>
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Calendario de turnos online</li>
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Notificaciones por email</li>
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Horarios personalizados</li>
+                    </ul>
+                    <div class="mt-2 text-right">
+                        <span id="radioLabelBasico" class="text-xs font-extrabold text-purple-600 flex items-center justify-end gap-1"><span class="material-symbols-outlined text-base">radio_button_unchecked</span> Seleccionar</span>
+                    </div>
+                </div>
+
                 <!-- Tarjeta Plan Profesional -->
                 <div id="cardPlanProfesional" onclick="selectUpgradePlan('Profesional')" class="cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-slate-200">
                     <div class="flex justify-between items-start mb-2">
@@ -4543,7 +4566,7 @@ window.ensureUpgradePlanModalExists = function() {
                     <ul class="text-xs text-slate-600 space-y-1.5 my-3">
                         <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>3 colores de marca</strong> (2 base + 1 extra)</li>
                         <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Agenda multi-profesional</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>50 WhatsApps</strong> incluidos/mes</li>
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Gestión de clientes y asistencias</li>
                         <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Recordatorios automáticos</li>
                     </ul>
                     <div class="mt-2 text-right">
@@ -4565,9 +4588,9 @@ window.ensureUpgradePlanModalExists = function() {
                     </div>
                     <ul class="text-xs text-slate-600 space-y-1.5 my-3">
                         <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>5 colores de marca</strong> (2 base + 3 extras)</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>Pases, Créditos y Portal de Alumnos</strong></li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>100 WhatsApps</strong> incluidos/mes</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Soporte prioritario 24/7</li>
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>Pases, Créditos y Portal Alumno</strong></li>
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Mini-sitio web propio</li>
+                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Soporte prioritario y todas las funciones</li>
                     </ul>
                     <div class="mt-2 text-right">
                         <span id="radioLabelPremium" class="text-xs font-extrabold text-purple-600 flex items-center justify-end gap-1"><span class="material-symbols-outlined text-base">radio_button_checked</span> Seleccionado</span>
@@ -4592,7 +4615,7 @@ window.ensureUpgradePlanModalExists = function() {
 
             <!-- Botones de Acción -->
             <div class="flex flex-col sm:flex-row items-center justify-end gap-3">
-                <button type="button" onclick="closeUpgradePlanModal()" class="w-full sm:w-auto px-5 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 text-xs transition-colors">
+                <button type="button" onclick="closeUpgradePlanModal()" class="w-full sm:w-auto px-5 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 text-xs transition-colors cursor-pointer">
                     Cancelar
                 </button>
                 <button type="button" id="btnConfirmUpgradePlan" onclick="confirmPlanUpgradeAction()" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
@@ -4623,7 +4646,7 @@ window.openUpgradePlanModal = function(defaultTarget) {
                                 ((curPlanRaw.toLowerCase().includes('premium') || curPlanRaw.toLowerCase().includes('completo')) ? 'Premium' : 'Basico');
 
             const badge = document.getElementById('upgradeCurrentPlanBadge');
-            if (badge) badge.textContent = (curPlanNorm === 'Basico') ? 'Básico' : curPlanNorm;
+            if (badge) badge.textContent = (curPlanNorm === 'Basico') ? 'Simple (Básico)' : curPlanNorm;
 
             const profBadge = document.getElementById('upgradeProfCountBadge');
             if (profBadge) {
@@ -4636,36 +4659,48 @@ window.openUpgradePlanModal = function(defaultTarget) {
                 }
             }
 
+            // Mostrar todas las opciones de planes (Simple, Profesional, Premium)
+            const cardBas = document.getElementById('cardPlanBasico');
             const cardProf = document.getElementById('cardPlanProfesional');
             const cardPrem = document.getElementById('cardPlanPremium');
+            if (cardBas) cardBas.classList.remove('hidden');
+            if (cardProf) cardProf.classList.remove('hidden');
+            if (cardPrem) cardPrem.classList.remove('hidden');
 
-            if (curPlanNorm === 'Profesional') {
-                if (cardProf) cardProf.classList.add('hidden');
-                window.selectedUpgradeTarget = 'Premium';
+            // Determinar objetivo inicial por defecto
+            if (defaultTarget && defaultTarget !== curPlanNorm) {
+                window.selectedUpgradeTarget = defaultTarget;
             } else if (curPlanNorm === 'Premium') {
-                if (cardProf) cardProf.classList.add('hidden');
+                window.selectedUpgradeTarget = 'Profesional';
+            } else if (curPlanNorm === 'Profesional') {
                 window.selectedUpgradeTarget = 'Premium';
             } else {
-                if (cardProf) cardProf.classList.remove('hidden');
-                window.selectedUpgradeTarget = (defaultTarget === 'Premium') ? 'Premium' : 'Profesional';
+                window.selectedUpgradeTarget = 'Profesional';
             }
 
+            const pBas = window.getEffectivePrice('Basico', profCount);
             const pProf = window.getEffectivePrice('Profesional', profCount);
             const pPrem = window.getEffectivePrice('Premium', profCount);
 
+            const bBas = document.getElementById('priceBadgeBasico');
             const bProf = document.getElementById('priceBadgeProfesional');
             const bPrem = document.getElementById('priceBadgePremium');
+            if (bBas) bBas.innerHTML = `$${pBas.toLocaleString('es-AR')}<span class="text-[10px] font-normal text-slate-500">/mes</span>`;
             if (bProf) bProf.innerHTML = `$${pProf.toLocaleString('es-AR')}<span class="text-[10px] font-normal text-slate-500">/mes</span>`;
             if (bPrem) bPrem.innerHTML = `$${pPrem.toLocaleString('es-AR')}<span class="text-[10px] font-normal text-slate-500">/mes</span>`;
 
+            const noteBas = document.getElementById('priceBasicTeamNote');
             const noteProf = document.getElementById('priceProfTeamNote');
             const notePrem = document.getElementById('pricePremTeamNote');
             if (profCount > 1) {
+                const perPersonBas = Math.round(pBas / profCount);
                 const perPersonProf = Math.round(pProf / profCount);
                 const perPersonPrem = Math.round(pPrem / profCount);
+                if (noteBas) { noteBas.textContent = `($${perPersonBas.toLocaleString('es-AR')} c/u)`; noteBas.classList.remove('hidden'); }
                 if (noteProf) { noteProf.textContent = `($${perPersonProf.toLocaleString('es-AR')} c/u)`; noteProf.classList.remove('hidden'); }
                 if (notePrem) { notePrem.textContent = `($${perPersonPrem.toLocaleString('es-AR')} c/u)`; notePrem.classList.remove('hidden'); }
             } else {
+                if (noteBas) noteBas.classList.add('hidden');
                 if (noteProf) noteProf.classList.add('hidden');
                 if (notePrem) notePrem.classList.add('hidden');
             }
@@ -4703,30 +4738,41 @@ window.closeUpgradePlanModal = function() {
 window.selectUpgradePlan = function(planTarget) {
     window.selectedUpgradeTarget = planTarget;
 
-    const cardProf = document.getElementById('cardPlanProfesional');
-    const cardPrem = document.getElementById('cardPlanPremium');
-    const radioProf = document.getElementById('radioLabelProfesional');
-    const radioPrem = document.getElementById('radioLabelPremium');
+    const b = window.upgradeBusinessData || {};
+    const curPlanRaw = b.plan || 'Basico';
+    const curPlanNorm = (curPlanRaw.toLowerCase().includes('profesional') || curPlanRaw.toLowerCase().includes('intermedio')) ? 'Profesional' : 
+                        ((curPlanRaw.toLowerCase().includes('premium') || curPlanRaw.toLowerCase().includes('completo')) ? 'Premium' : 'Basico');
 
-    if (cardProf) {
-        if (planTarget === 'Profesional') {
-            cardProf.className = 'cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-purple-500 ring-2 ring-purple-500/20';
-            if (radioProf) radioProf.innerHTML = '<span class="material-symbols-outlined text-base">radio_button_checked</span> Seleccionado';
-        } else {
-            cardProf.className = 'cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-slate-200';
-            if (radioProf) radioProf.innerHTML = '<span class="material-symbols-outlined text-base">radio_button_unchecked</span> Seleccionar';
-        }
-    }
+    const plans = [
+        { id: 'Basico', card: document.getElementById('cardPlanBasico'), radio: document.getElementById('radioLabelBasico'), name: 'Simple' },
+        { id: 'Profesional', card: document.getElementById('cardPlanProfesional'), radio: document.getElementById('radioLabelProfesional'), name: 'Profesional' },
+        { id: 'Premium', card: document.getElementById('cardPlanPremium'), radio: document.getElementById('radioLabelPremium'), name: 'Premium' }
+    ];
 
-    if (cardPrem) {
-        if (planTarget === 'Premium') {
-            cardPrem.className = 'cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-purple-500 ring-2 ring-purple-500/20';
-            if (radioPrem) radioPrem.innerHTML = '<span class="material-symbols-outlined text-base">radio_button_checked</span> Seleccionado';
+    plans.forEach(p => {
+        if (!p.card) return;
+        const isCurrent = (p.id === curPlanNorm);
+        const isSelected = (p.id === planTarget);
+
+        if (isSelected) {
+            p.card.className = 'cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-purple-500 ring-2 ring-purple-500/20 shadow-md';
+            if (p.radio) {
+                p.radio.innerHTML = '<span class="material-symbols-outlined text-base">radio_button_checked</span> Seleccionado' + (isCurrent ? ' (Actual)' : '');
+                p.radio.className = 'text-xs font-extrabold text-purple-600 flex items-center justify-end gap-1';
+            }
         } else {
-            cardPrem.className = 'cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-slate-200';
-            if (radioPrem) radioPrem.innerHTML = '<span class="material-symbols-outlined text-base">radio_button_unchecked</span> Seleccionar';
+            p.card.className = 'cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white ' + (isCurrent ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200');
+            if (p.radio) {
+                if (isCurrent) {
+                    p.radio.innerHTML = '<span class="material-symbols-outlined text-base text-amber-600">bookmark</span> <span class="text-amber-700">Tu Plan Actual</span>';
+                    p.radio.className = 'text-xs font-extrabold flex items-center justify-end gap-1';
+                } else {
+                    p.radio.innerHTML = '<span class="material-symbols-outlined text-base">radio_button_unchecked</span> Seleccionar';
+                    p.radio.className = 'text-xs font-extrabold text-slate-400 hover:text-purple-600 flex items-center justify-end gap-1';
+                }
+            }
         }
-    }
+    });
 
     window.renderUpgradeBreakdown();
 };
@@ -4736,7 +4782,7 @@ window.renderUpgradeBreakdown = function() {
 
     const b = window.upgradeBusinessData;
     const profCount = window.upgradeProfCount || 1;
-    const estado = b.estado_pago || 'prueba';
+    const estado = (b.estado_pago || 'prueba').toLowerCase();
     const curPlanRaw = b.plan || 'Basico';
     const curPlanNorm = (curPlanRaw.toLowerCase().includes('profesional') || curPlanRaw.toLowerCase().includes('intermedio')) ? 'Profesional' : 
                         ((curPlanRaw.toLowerCase().includes('premium') || curPlanRaw.toLowerCase().includes('completo')) ? 'Premium' : 'Basico');
@@ -4746,11 +4792,35 @@ window.renderUpgradeBreakdown = function() {
     const btnConfirm = document.getElementById('btnConfirmUpgradePlan');
     const cycleInfoEl = document.getElementById('upgradeTrialOrCycleInfo');
 
+    const targetPlan = window.selectedUpgradeTarget || 'Profesional';
     const priceCurrent = window.getEffectivePrice(curPlanNorm, profCount);
-    const priceTarget = window.getEffectivePrice(window.selectedUpgradeTarget, profCount);
+    const priceTarget = window.getEffectivePrice(targetPlan, profCount);
 
-    if (curPlanNorm === window.selectedUpgradeTarget && curPlanNorm === 'Premium') {
-        if (container) container.innerHTML = '<p class="text-emerald-700 font-bold text-xs">¡Tu negocio ya posee el Plan Premium (nivel máximo)!</p>';
+    const getRank = (p) => {
+        if (p === 'Premium') return 3;
+        if (p === 'Profesional') return 2;
+        return 1;
+    };
+
+    const rankCurrent = getRank(curPlanNorm);
+    const rankTarget = getRank(targetPlan);
+    const isSame = (rankCurrent === rankTarget);
+    const isDowngrade = (rankTarget < rankCurrent);
+    const isUpgrade = (rankTarget > rankCurrent);
+
+    const targetName = (targetPlan === 'Basico') ? 'Simple' : targetPlan;
+    const curName = (curPlanNorm === 'Basico') ? 'Simple' : curPlanNorm;
+    const teamNote = profCount > 1 ? ` (${profCount} integrantes)` : '';
+
+    if (isSame) {
+        if (container) {
+            container.innerHTML = `
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs font-semibold flex items-center gap-2">
+                    <span class="material-symbols-outlined text-amber-600 text-lg">info</span>
+                    <span>Tu cuenta ya posee el <strong>Plan ${curName}</strong> activo. Seleccioná otro plan arriba para cambiar de plan.</span>
+                </div>
+            `;
+        }
         if (totalEl) totalEl.textContent = '$0';
         if (btnConfirm) btnConfirm.classList.add('hidden');
         return;
@@ -4776,8 +4846,6 @@ window.renderUpgradeBreakdown = function() {
 
         if (cycleInfoEl) cycleInfoEl.textContent = `En prueba (${trialDaysRemaining} días restantes)`;
 
-        const teamNote = profCount > 1 ? ` (${profCount} integrantes)` : '';
-
         if (container) {
             container.innerHTML = `
                 <div class="flex justify-between items-center py-1">
@@ -4789,7 +4857,7 @@ window.renderUpgradeBreakdown = function() {
                     <span class="font-extrabold text-slate-800">${trialDaysRemaining} días (de ${totalTrialConfigured} días totales)</span>
                 </div>
                 <div class="bg-emerald-50 border border-emerald-200 text-emerald-900 p-2.5 rounded-xl text-[11px] font-semibold my-1">
-                    ✨ ¡Buenas noticias! Conservás tus <strong>${trialDaysRemaining} días restantes</strong> de prueba con las funciones completas del <strong>Plan ${window.selectedUpgradeTarget}</strong>${teamNote}.
+                    ✨ ${isDowngrade ? 'Al cambiar a' : 'Conservás tus'} <strong>${trialDaysRemaining} días restantes</strong> de prueba con las funciones del <strong>Plan ${targetName}</strong>${teamNote}. El cambio es inmediato y sin costo hoy.
                 </div>
                 <div class="flex justify-between items-center py-1 border-t border-slate-200 pt-2">
                     <span class="text-slate-500 font-semibold">Próximo cobro (${nextBillingStr}):</span>
@@ -4801,12 +4869,11 @@ window.renderUpgradeBreakdown = function() {
         if (totalEl) totalEl.textContent = '$0';
         if (btnConfirm) {
             btnConfirm.className = 'w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-md shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer';
-            btnConfirm.innerHTML = `<span class="material-symbols-outlined text-base">check_circle</span> Activar Upgrade a ${window.selectedUpgradeTarget} ($0 hoy)`;
+            btnConfirm.innerHTML = `<span class="material-symbols-outlined text-base">check_circle</span> Confirmar Cambio a Plan ${targetName} ($0 hoy)`;
         }
 
     } else {
-        window.isTrialUpgrade = false;
-
+        // Cuenta Activa / Pagada
         const fAltaObj = b.fecha_alta ? new Date(b.fecha_alta.replace(/-/g, '/')) : new Date();
         const cycleStart = b.ultimo_pago ? new Date(b.ultimo_pago.replace(/-/g, '/')) : fAltaObj;
         const today = new Date();
@@ -4819,45 +4886,83 @@ window.renderUpgradeBreakdown = function() {
 
         if (cycleInfoEl) cycleInfoEl.textContent = `Ciclo en curso: ${daysUsed}d usados / ${daysRemaining}d restantes`;
 
-        let diffToPay = 0;
-        let creditUnused = 0;
-        let costNewRemaining = 0;
+        if (isDowngrade) {
+            // DOWNGRADE en cuenta activa: sin costo hoy ($0), se aplica de inmediato y la cuota se ajusta en el próximo vencimiento
+            window.isTrialUpgrade = false;
+            window.calculatedUpgradeAmount = 0;
 
-        if (daysRemaining > 0) {
-            creditUnused = Math.round((daysRemaining / 30) * priceCurrent);
-            costNewRemaining = Math.round((daysRemaining / 30) * priceTarget);
-            diffToPay = Math.max(0, costNewRemaining - creditUnused);
+            if (container) {
+                container.innerHTML = `
+                    <div class="flex justify-between items-center py-1">
+                        <span class="text-slate-500 font-semibold">Ciclo de facturación (30 días):</span>
+                        <span class="font-bold text-slate-800">${daysUsed} días consumidos / ${daysRemaining} días restantes</span>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-200 text-blue-900 p-3 rounded-xl text-xs space-y-1 my-1">
+                        <p class="font-bold flex items-center gap-1.5 text-blue-950">
+                            <span class="material-symbols-outlined text-blue-600 text-base">arrow_downward</span> 
+                            Cambio al Plan ${targetName} (Downgrade)
+                        </p>
+                        <p class="text-[11px] leading-relaxed text-blue-800">
+                            Tu cuenta pasará al <strong>Plan ${targetName}</strong>${teamNote}. No tenés que abonar nada hoy ($0). Tu nueva cuota mensual de <strong>$${priceTarget.toLocaleString('es-AR')}/mes</strong> regirá a partir de tu próximo vencimiento (<strong>${nextBillingStr}</strong>).
+                        </p>
+                    </div>
+                    <div class="flex justify-between items-center py-1 border-t border-slate-200 pt-2">
+                        <span class="text-slate-500 font-semibold">Próximo vencimiento (${nextBillingStr}):</span>
+                        <span class="font-bold text-slate-800">$${priceTarget.toLocaleString('es-AR')}/mes</span>
+                    </div>
+                `;
+            }
+
+            if (totalEl) totalEl.textContent = '$0';
+            if (btnConfirm) {
+                btnConfirm.className = 'w-full sm:w-auto px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer';
+                btnConfirm.innerHTML = `<span class="material-symbols-outlined text-base">check_circle</span> Confirmar Cambio a Plan ${targetName} ($0 hoy)`;
+            }
+
         } else {
-            diffToPay = priceTarget;
-        }
+            // UPGRADE en cuenta activa
+            window.isTrialUpgrade = false;
 
-        window.calculatedUpgradeAmount = diffToPay;
+            let diffToPay = 0;
+            let creditUnused = 0;
+            let costNewRemaining = 0;
 
-        if (container) {
-            container.innerHTML = `
-                <div class="flex justify-between items-center py-1">
-                    <span class="text-slate-500 font-semibold">Ciclo de facturación (30 días):</span>
-                    <span class="font-bold text-slate-800">${daysUsed} días consumidos / ${daysRemaining} días restantes</span>
-                </div>
-                <div class="flex justify-between items-center py-1 text-red-600 font-semibold">
-                    <span>Crédito a favor Plan ${curPlanNorm} (${daysRemaining}d restantes):</span>
-                    <span class="font-bold">-$${creditUnused.toLocaleString('es-AR')}</span>
-                </div>
-                <div class="flex justify-between items-center py-1 text-purple-700 font-semibold">
-                    <span>Costo Plan ${window.selectedUpgradeTarget} (${daysRemaining}d restantes):</span>
-                    <span class="font-bold">+$${costNewRemaining.toLocaleString('es-AR')}</span>
-                </div>
-                <div class="flex justify-between items-center py-1 border-t border-slate-200 pt-2">
-                    <span class="text-slate-500 font-semibold">Próximo vencimiento (${nextBillingStr}):</span>
-                    <span class="font-bold text-slate-800">$${priceTarget.toLocaleString('es-AR')}/mes</span>
-                </div>
-            `;
-        }
+            if (daysRemaining > 0) {
+                creditUnused = Math.round((daysRemaining / 30) * priceCurrent);
+                costNewRemaining = Math.round((daysRemaining / 30) * priceTarget);
+                diffToPay = Math.max(0, costNewRemaining - creditUnused);
+            } else {
+                diffToPay = priceTarget;
+            }
 
-        if (totalEl) totalEl.textContent = `$${diffToPay.toLocaleString('es-AR')}`;
-        if (btnConfirm) {
-            btnConfirm.className = 'w-full sm:w-auto px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer';
-            btnConfirm.innerHTML = `<span class="material-symbols-outlined text-base">payments</span> Proceder al Pago ($${diffToPay.toLocaleString('es-AR')})`;
+            window.calculatedUpgradeAmount = diffToPay;
+
+            if (container) {
+                container.innerHTML = `
+                    <div class="flex justify-between items-center py-1">
+                        <span class="text-slate-500 font-semibold">Ciclo de facturación (30 días):</span>
+                        <span class="font-bold text-slate-800">${daysUsed} días consumidos / ${daysRemaining} días restantes</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1 text-red-600 font-semibold">
+                        <span>Crédito a favor Plan ${curName} (${daysRemaining}d restantes):</span>
+                        <span class="font-bold">-$${creditUnused.toLocaleString('es-AR')}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1 text-purple-700 font-semibold">
+                        <span>Costo Plan ${targetName} (${daysRemaining}d restantes):</span>
+                        <span class="font-bold">+$${costNewRemaining.toLocaleString('es-AR')}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1 border-t border-slate-200 pt-2">
+                        <span class="text-slate-500 font-semibold">Próximo vencimiento (${nextBillingStr}):</span>
+                        <span class="font-bold text-slate-800">$${priceTarget.toLocaleString('es-AR')}/mes</span>
+                    </div>
+                `;
+            }
+
+            if (totalEl) totalEl.textContent = `$${diffToPay.toLocaleString('es-AR')}`;
+            if (btnConfirm) {
+                btnConfirm.className = 'w-full sm:w-auto px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-md shadow-purple-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer';
+                btnConfirm.innerHTML = `<span class="material-symbols-outlined text-base">payments</span> Proceder al Pago ($${diffToPay.toLocaleString('es-AR')})`;
+            }
         }
     }
 };
@@ -4882,15 +4987,17 @@ window.confirmPlanUpgradeAction = function() {
                 const modalTitle = document.getElementById('profileNoticeTitle');
                 const modalMsg = document.getElementById('profileNoticeMessage');
                 
+                const planNameDisplay = (res.plan === 'Basico') ? 'Simple' : (res.plan || window.selectedUpgradeTarget);
+
                 if (pModal && pContent) {
                     if (modalTitle) modalTitle.textContent = '¡Plan Actualizado!';
-                    if (modalMsg) modalMsg.textContent = `Tu cuenta ha sido actualizada exitosamente al Plan ${res.plan || window.selectedUpgradeTarget}. Ya podés disfrutar de los nuevos beneficios.`;
+                    if (modalMsg) modalMsg.textContent = res.message || `Tu cuenta ha sido actualizada exitosamente al Plan ${planNameDisplay}.`;
                     pModal.classList.remove('hidden');
                     setTimeout(() => { pModal.classList.remove('opacity-0'); pContent.classList.remove('scale-95'); }, 10);
                 } else if (typeof window.showToast === 'function') {
-                    window.showToast(`¡Plan actualizado exitosamente al Plan ${res.plan || window.selectedUpgradeTarget}!`, 'success');
+                    window.showToast(res.message || `¡Plan actualizado exitosamente al Plan ${planNameDisplay}!`, 'success');
                 } else {
-                    alert(`¡Plan actualizado exitosamente al Plan ${res.plan || window.selectedUpgradeTarget}!`);
+                    alert(res.message || `¡Plan actualizado exitosamente al Plan ${planNameDisplay}!`);
                 }
 
                 setTimeout(() => { location.reload(); }, 1800);
