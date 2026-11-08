@@ -1153,7 +1153,7 @@
         // Las funciones del modal de upgrade (openUpgradePlanModal, getEffectivePrice, etc.)
         // se encuentran implementadas de forma global e unificada en assets/js/script.js
     </script>
-    <script src="assets/js/script.js"></script>
+    <script src="assets/js/script.js?v=1.3.2"></script>
 
     <!-- MODAL MEJORAR / CAMBIAR DE PLAN -->
     <div id="upgradePlanModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto opacity-0 transition-opacity duration-300">
@@ -1172,7 +1172,7 @@
                 </button>
             </div>
 
-            <!-- Plan Actual Badge -->
+            <!-- Plan Actual Badge & Cantidad de Profesionales -->
             <div class="bg-purple-50/70 border border-purple-200/80 p-3.5 rounded-2xl mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <div class="flex flex-wrap items-center gap-2 text-xs">
                     <span class="font-extrabold text-purple-900 uppercase tracking-wider">Plan Actual:</span>
@@ -1185,71 +1185,80 @@
             <!-- Comparación de Planes Seleccionables -->
             <div id="upgradeOptionsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <!-- Tarjeta Plan Simple (Básico) -->
-                <div id="cardPlanBasico" onclick="selectUpgradePlan('Basico')" class="cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-slate-200">
+                <div id="cardPlanBasico" onclick="selectUpgradePlan('Basico')" class="cursor-pointer border-2 rounded-2xl p-4 sm:p-5 transition-all hover:shadow-md relative bg-white border-slate-200">
                     <div class="flex justify-between items-start mb-2">
                         <div>
-                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Plan Inicial</span>
-                            <h4 class="text-lg font-black text-slate-800">Simple</h4>
+                            <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded-md">Plan Inicial</span>
+                            <h4 class="text-lg font-black text-slate-900 mt-1">Simple</h4>
                         </div>
                         <div class="text-right">
                             <span id="priceBadgeBasico" class="text-sm font-black text-slate-900 bg-slate-100 px-2.5 py-1 rounded-xl">$8.000<span class="text-[10px] font-normal text-slate-500">/mes</span></span>
                             <div id="priceBasicTeamNote" class="hidden text-[10px] font-extrabold text-emerald-600 mt-1"></div>
                         </div>
                     </div>
-                    <ul class="text-xs text-slate-600 space-y-1.5 my-3">
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>2 colores de marca</strong></li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Calendario de turnos online</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Notificaciones por email</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Horarios personalizados</li>
+                    <p class="text-[11px] text-slate-500 mb-3 font-medium">Calendario online para organizar turnos sin complicaciones.</p>
+                    <ul class="text-xs text-slate-600 space-y-2 my-3">
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span>Calendario de turnos online 24/7</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span><strong>2 colores base</strong> de marca</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span>Notificaciones automáticas por email</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span>Días, horarios y descansos</span></li>
+                        <li class="flex items-start gap-1.5 text-slate-400"><span class="material-symbols-outlined text-slate-300 text-base shrink-0">block</span> <span>Sin Agenda Virtual (Solo Calendario)</span></li>
+                        <li class="flex items-start gap-1.5 text-slate-400"><span class="material-symbols-outlined text-slate-300 text-base shrink-0">block</span> <span>Sin Página Web propia ('mi-web')</span></li>
                     </ul>
-                    <div class="mt-2 text-right">
-                        <span id="radioLabelBasico" class="text-xs font-extrabold text-purple-600 flex items-center justify-end gap-1"><span class="material-symbols-outlined text-base">radio_button_unchecked</span> Seleccionar</span>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-right">
+                        <span id="radioLabelBasico" class="text-xs font-bold text-slate-400 flex items-center justify-end gap-1"><span class="material-symbols-outlined text-base">radio_button_unchecked</span> <span class="text-slate-500">Seleccionar</span></span>
                     </div>
                 </div>
 
                 <!-- Tarjeta Plan Profesional -->
-                <div id="cardPlanProfesional" onclick="selectUpgradePlan('Profesional')" class="cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-slate-200">
+                <div id="cardPlanProfesional" onclick="selectUpgradePlan('Profesional')" class="cursor-pointer border-2 rounded-2xl p-4 sm:p-5 transition-all hover:shadow-md relative bg-white border-slate-200">
                     <div class="flex justify-between items-start mb-2">
                         <div>
-                            <span class="text-xs font-bold text-purple-600 uppercase tracking-wider">Plan Intermedio</span>
-                            <h4 class="text-lg font-black text-slate-800">Profesional</h4>
+                            <span class="text-[10px] font-extrabold text-[#d11149] uppercase tracking-wider bg-rose-100 px-2 py-0.5 rounded-md">★ Más Elegido</span>
+                            <h4 class="text-lg font-black text-slate-900 mt-1">Profesional</h4>
                         </div>
                         <div class="text-right">
                             <span id="priceBadgeProfesional" class="text-sm font-black text-slate-900 bg-slate-100 px-2.5 py-1 rounded-xl">$10.000<span class="text-[10px] font-normal text-slate-500">/mes</span></span>
                             <div id="priceProfTeamNote" class="hidden text-[10px] font-extrabold text-emerald-600 mt-1"></div>
                         </div>
                     </div>
-                    <ul class="text-xs text-slate-600 space-y-1.5 my-3">
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>3 colores de marca</strong> (2 base + 1 extra)</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>Página Web propia</strong> personalizada</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Agenda virtual y reservas online</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Recordatorios automáticos</li>
+                    <p class="text-[11px] text-slate-500 mb-3 font-medium">Agenda virtual interactiva y página web de reservas propia.</p>
+                    <ul class="text-xs text-slate-600 space-y-2 my-3">
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span class="font-bold text-slate-800">Todo lo del Plan Simple</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span><strong>Agenda Virtual interactiva</strong> con reservas</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span><strong>Página Web propia</strong> de reservas ('mi-web')</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span><strong>3 colores</strong> (2 base + 1 extra a elección)</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span>Equipo con roles y permisos</span></li>
+                        <li class="flex items-start gap-1.5 text-slate-400"><span class="material-symbols-outlined text-slate-300 text-base shrink-0">block</span> <span>Sin Clases por cupos grupales ni pases</span></li>
                     </ul>
-                    <div class="mt-2 text-right">
-                        <span id="radioLabelProfesional" class="text-xs font-extrabold text-purple-600 flex items-center justify-end gap-1"><span class="material-symbols-outlined text-base">radio_button_unchecked</span> Seleccionar</span>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-right">
+                        <span id="radioLabelProfesional" class="text-xs font-bold text-slate-400 flex items-center justify-end gap-1"><span class="material-symbols-outlined text-base">radio_button_unchecked</span> <span class="text-slate-500">Seleccionar</span></span>
                     </div>
                 </div>
 
                 <!-- Tarjeta Plan Premium -->
-                <div id="cardPlanPremium" onclick="selectUpgradePlan('Premium')" class="cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-purple-500 ring-2 ring-purple-500/20">
+                <div id="cardPlanPremium" onclick="selectUpgradePlan('Premium')" class="cursor-pointer border-2 rounded-2xl p-4 sm:p-5 transition-all hover:shadow-md relative bg-white border-slate-200">
                     <div class="flex justify-between items-start mb-2">
                         <div>
-                            <span class="text-xs font-bold text-amber-600 uppercase tracking-wider">El más Completo</span>
-                            <h4 class="text-lg font-black text-slate-800">Premium</h4>
+                            <span class="text-[10px] font-extrabold text-amber-700 uppercase tracking-wider bg-amber-100 px-2 py-0.5 rounded-md">El más Completo</span>
+                            <h4 class="text-lg font-black text-slate-900 mt-1">Premium</h4>
                         </div>
                         <div class="text-right">
                             <span id="priceBadgePremium" class="text-sm font-black text-purple-700 bg-purple-100 px-2.5 py-1 rounded-xl">$15.000<span class="text-[10px] font-normal text-slate-500">/mes</span></span>
                             <div id="pricePremTeamNote" class="hidden text-[10px] font-extrabold text-emerald-600 mt-1"></div>
                         </div>
                     </div>
-                    <ul class="text-xs text-slate-600 space-y-1.5 my-3">
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>5 colores de marca</strong> (2 base + 3 extras)</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>Pases, Créditos y Portal Alumno</strong></li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Mini-sitio web institucional propio</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Soporte prioritario y todas las funciones</li>
+                    <p class="text-[11px] text-slate-500 mb-3 font-medium">Clases grupales por cupos, portal del alumno y pases.</p>
+                    <ul class="text-xs text-slate-600 space-y-2 my-3">
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span class="font-bold text-slate-800">Todo lo del Plan Profesional</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span><strong>Clases por Cupos</strong> y grilla semanal en vivo</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span><strong>Portal del Alumno</strong> ('alumno.html')</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span><strong>Paquetes de Pases</strong> y control de créditos</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span><strong>5 colores</strong> (2 base + hasta 3 extras)</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span>Soporte prioritario 24/7</span></li>
                     </ul>
-                    <div class="mt-2 text-right">
-                        <span id="radioLabelPremium" class="text-xs font-extrabold text-purple-600 flex items-center justify-end gap-1"><span class="material-symbols-outlined text-base">radio_button_checked</span> Seleccionado</span>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-right">
+                        <span id="radioLabelPremium" class="text-xs font-bold text-slate-400 flex items-center justify-end gap-1"><span class="material-symbols-outlined text-base">radio_button_unchecked</span> <span class="text-slate-500">Seleccionar</span></span>
                     </div>
                 </div>
             </div>

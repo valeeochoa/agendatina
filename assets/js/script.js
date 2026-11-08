@@ -4536,71 +4536,80 @@ window.ensureUpgradePlanModalExists = function() {
             <!-- Comparación de Planes Seleccionables -->
             <div id="upgradeOptionsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <!-- Tarjeta Plan Simple (Básico) -->
-                <div id="cardPlanBasico" onclick="selectUpgradePlan('Basico')" class="cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-slate-200">
+                <div id="cardPlanBasico" onclick="selectUpgradePlan('Basico')" class="cursor-pointer border-2 rounded-2xl p-4 sm:p-5 transition-all hover:shadow-md relative bg-white border-slate-200">
                     <div class="flex justify-between items-start mb-2">
                         <div>
-                            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Plan Inicial</span>
-                            <h4 class="text-lg font-black text-slate-800">Simple</h4>
+                            <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded-md">Plan Inicial</span>
+                            <h4 class="text-lg font-black text-slate-900 mt-1">Simple</h4>
                         </div>
                         <div class="text-right">
                             <span id="priceBadgeBasico" class="text-sm font-black text-slate-900 bg-slate-100 px-2.5 py-1 rounded-xl">$8.000<span class="text-[10px] font-normal text-slate-500">/mes</span></span>
                             <div id="priceBasicTeamNote" class="hidden text-[10px] font-extrabold text-emerald-600 mt-1"></div>
                         </div>
                     </div>
-                    <ul class="text-xs text-slate-600 space-y-1.5 my-3">
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>2 colores de marca</strong></li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Calendario de turnos online</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Notificaciones por email</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Horarios personalizados</li>
+                    <p class="text-[11px] text-slate-500 mb-3 font-medium">Calendario online para organizar turnos sin complicaciones.</p>
+                    <ul class="text-xs text-slate-600 space-y-2 my-3">
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span>Calendario de turnos online 24/7</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span><strong>2 colores base</strong> de marca</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span>Notificaciones automáticas por email</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span>Días, horarios y descansos</span></li>
+                        <li class="flex items-start gap-1.5 text-slate-400"><span class="material-symbols-outlined text-slate-300 text-base shrink-0">block</span> <span>Sin Agenda Virtual (Solo Calendario)</span></li>
+                        <li class="flex items-start gap-1.5 text-slate-400"><span class="material-symbols-outlined text-slate-300 text-base shrink-0">block</span> <span>Sin Página Web propia ('mi-web')</span></li>
                     </ul>
-                    <div class="mt-2 text-right">
-                        <span id="radioLabelBasico" class="text-xs font-extrabold text-purple-600 flex items-center justify-end gap-1"><span class="material-symbols-outlined text-base">radio_button_unchecked</span> Seleccionar</span>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-right">
+                        <span id="radioLabelBasico" class="text-xs font-bold text-slate-400 flex items-center justify-end gap-1"><span class="material-symbols-outlined text-base">radio_button_unchecked</span> <span class="text-slate-500">Seleccionar</span></span>
                     </div>
                 </div>
 
                 <!-- Tarjeta Plan Profesional -->
-                <div id="cardPlanProfesional" onclick="selectUpgradePlan('Profesional')" class="cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-slate-200">
+                <div id="cardPlanProfesional" onclick="selectUpgradePlan('Profesional')" class="cursor-pointer border-2 rounded-2xl p-4 sm:p-5 transition-all hover:shadow-md relative bg-white border-slate-200">
                     <div class="flex justify-between items-start mb-2">
                         <div>
-                            <span class="text-xs font-bold text-purple-600 uppercase tracking-wider">Plan Intermedio</span>
-                            <h4 class="text-lg font-black text-slate-800">Profesional</h4>
+                            <span class="text-[10px] font-extrabold text-[#d11149] uppercase tracking-wider bg-rose-100 px-2 py-0.5 rounded-md">★ Más Elegido</span>
+                            <h4 class="text-lg font-black text-slate-900 mt-1">Profesional</h4>
                         </div>
                         <div class="text-right">
                             <span id="priceBadgeProfesional" class="text-sm font-black text-slate-900 bg-slate-100 px-2.5 py-1 rounded-xl">$10.000<span class="text-[10px] font-normal text-slate-500">/mes</span></span>
                             <div id="priceProfTeamNote" class="hidden text-[10px] font-extrabold text-emerald-600 mt-1"></div>
                         </div>
                     </div>
-                    <ul class="text-xs text-slate-600 space-y-1.5 my-3">
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>3 colores de marca</strong> (2 base + 1 extra)</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>Página Web propia</strong> personalizada</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Agenda virtual y reservas online</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Recordatorios automáticos</li>
+                    <p class="text-[11px] text-slate-500 mb-3 font-medium">Agenda virtual interactiva y página web de reservas propia.</p>
+                    <ul class="text-xs text-slate-600 space-y-2 my-3">
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span class="font-bold text-slate-800">Todo lo del Plan Simple</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span><strong>Agenda Virtual interactiva</strong> con reservas</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span><strong>Página Web propia</strong> de reservas ('mi-web')</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span><strong>3 colores</strong> (2 base + 1 extra a elección)</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span>Equipo con roles y permisos</span></li>
+                        <li class="flex items-start gap-1.5 text-slate-400"><span class="material-symbols-outlined text-slate-300 text-base shrink-0">block</span> <span>Sin Clases por cupos grupales ni pases</span></li>
                     </ul>
-                    <div class="mt-2 text-right">
-                        <span id="radioLabelProfesional" class="text-xs font-extrabold text-purple-600 flex items-center justify-end gap-1"><span class="material-symbols-outlined text-base">radio_button_unchecked</span> Seleccionar</span>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-right">
+                        <span id="radioLabelProfesional" class="text-xs font-bold text-slate-400 flex items-center justify-end gap-1"><span class="material-symbols-outlined text-base">radio_button_unchecked</span> <span class="text-slate-500">Seleccionar</span></span>
                     </div>
                 </div>
 
                 <!-- Tarjeta Plan Premium -->
-                <div id="cardPlanPremium" onclick="selectUpgradePlan('Premium')" class="cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-purple-500 ring-2 ring-purple-500/20">
+                <div id="cardPlanPremium" onclick="selectUpgradePlan('Premium')" class="cursor-pointer border-2 rounded-2xl p-4 sm:p-5 transition-all hover:shadow-md relative bg-white border-slate-200">
                     <div class="flex justify-between items-start mb-2">
                         <div>
-                            <span class="text-xs font-bold text-amber-600 uppercase tracking-wider">El más Completo</span>
-                            <h4 class="text-lg font-black text-slate-800">Premium</h4>
+                            <span class="text-[10px] font-extrabold text-amber-700 uppercase tracking-wider bg-amber-100 px-2 py-0.5 rounded-md">El más Completo</span>
+                            <h4 class="text-lg font-black text-slate-900 mt-1">Premium</h4>
                         </div>
                         <div class="text-right">
                             <span id="priceBadgePremium" class="text-sm font-black text-purple-700 bg-purple-100 px-2.5 py-1 rounded-xl">$15.000<span class="text-[10px] font-normal text-slate-500">/mes</span></span>
                             <div id="pricePremTeamNote" class="hidden text-[10px] font-extrabold text-emerald-600 mt-1"></div>
                         </div>
                     </div>
-                    <ul class="text-xs text-slate-600 space-y-1.5 my-3">
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>5 colores de marca</strong> (2 base + 3 extras)</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> <strong>Pases, Créditos y Portal Alumno</strong></li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Mini-sitio web propio</li>
-                        <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base">check_circle</span> Soporte prioritario y todas las funciones</li>
+                    <p class="text-[11px] text-slate-500 mb-3 font-medium">Clases grupales por cupos, portal del alumno y pases.</p>
+                    <ul class="text-xs text-slate-600 space-y-2 my-3">
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span class="font-bold text-slate-800">Todo lo del Plan Profesional</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span><strong>Clases por Cupos</strong> y grilla semanal en vivo</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span><strong>Portal del Alumno</strong> ('alumno.html')</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span><strong>Paquetes de Pases</strong> y control de créditos</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span><strong>5 colores</strong> (2 base + hasta 3 extras)</span></li>
+                        <li class="flex items-start gap-1.5"><span class="material-symbols-outlined text-emerald-500 text-base shrink-0">check_circle</span> <span>Soporte prioritario 24/7</span></li>
                     </ul>
-                    <div class="mt-2 text-right">
-                        <span id="radioLabelPremium" class="text-xs font-extrabold text-purple-600 flex items-center justify-end gap-1"><span class="material-symbols-outlined text-base">radio_button_checked</span> Seleccionado</span>
+                    <div class="mt-4 pt-3 border-t border-slate-100 text-right">
+                        <span id="radioLabelPremium" class="text-xs font-bold text-slate-400 flex items-center justify-end gap-1"><span class="material-symbols-outlined text-base">radio_button_unchecked</span> <span class="text-slate-500">Seleccionar</span></span>
                     </div>
                 </div>
             </div>
@@ -4660,10 +4669,12 @@ window.openUpgradePlanModal = function(defaultTarget) {
                 if (profCount > 1) {
                     const volDisc = Math.min(50, profCount * 5);
                     profBadge.textContent = `${profCount} Profesionales (-${volDisc}% OFF equipo)`;
-                    profBadge.classList.remove('hidden');
+                    profBadge.className = 'font-extrabold text-xs text-emerald-900 bg-emerald-100 border border-emerald-300 px-2.5 py-1 rounded-xl shadow-2xs';
                 } else {
-                    profBadge.classList.add('hidden');
+                    profBadge.textContent = '1 Profesional';
+                    profBadge.className = 'font-bold text-xs text-purple-900 bg-purple-100/80 border border-purple-200 px-2.5 py-1 rounded-xl shadow-2xs';
                 }
+                profBadge.classList.remove('hidden');
             }
 
             // Mostrar todas las opciones de planes (Simple, Profesional, Premium)
@@ -4674,9 +4685,13 @@ window.openUpgradePlanModal = function(defaultTarget) {
             if (cardProf) cardProf.classList.remove('hidden');
             if (cardPrem) cardPrem.classList.remove('hidden');
 
-            // Determinar objetivo inicial por defecto
-            if (defaultTarget && defaultTarget !== curPlanNorm) {
-                window.selectedUpgradeTarget = defaultTarget;
+            // Determinar objetivo inicial por defecto normalizado
+            if (defaultTarget) {
+                let dtNorm = 'Basico';
+                const dt = String(defaultTarget).toLowerCase().trim();
+                if (dt.includes('prem') || dt.includes('completo')) dtNorm = 'Premium';
+                else if (dt.includes('prof') || dt.includes('intermedio')) dtNorm = 'Profesional';
+                window.selectedUpgradeTarget = dtNorm;
             } else if (curPlanNorm === 'Premium') {
                 window.selectedUpgradeTarget = 'Profesional';
             } else if (curPlanNorm === 'Profesional') {
@@ -4700,12 +4715,13 @@ window.openUpgradePlanModal = function(defaultTarget) {
             const noteProf = document.getElementById('priceProfTeamNote');
             const notePrem = document.getElementById('pricePremTeamNote');
             if (profCount > 1) {
+                const volDisc = Math.min(50, profCount * 5);
                 const perPersonBas = Math.round(pBas / profCount);
                 const perPersonProf = Math.round(pProf / profCount);
                 const perPersonPrem = Math.round(pPrem / profCount);
-                if (noteBas) { noteBas.textContent = `($${perPersonBas.toLocaleString('es-AR')} c/u)`; noteBas.classList.remove('hidden'); }
-                if (noteProf) { noteProf.textContent = `($${perPersonProf.toLocaleString('es-AR')} c/u)`; noteProf.classList.remove('hidden'); }
-                if (notePrem) { notePrem.textContent = `($${perPersonPrem.toLocaleString('es-AR')} c/u)`; notePrem.classList.remove('hidden'); }
+                if (noteBas) { noteBas.textContent = `$${perPersonBas.toLocaleString('es-AR')} c/u • -${volDisc}% OFF`; noteBas.classList.remove('hidden'); }
+                if (noteProf) { noteProf.textContent = `$${perPersonProf.toLocaleString('es-AR')} c/u • -${volDisc}% OFF`; noteProf.classList.remove('hidden'); }
+                if (notePrem) { notePrem.textContent = `$${perPersonPrem.toLocaleString('es-AR')} c/u • -${volDisc}% OFF`; notePrem.classList.remove('hidden'); }
             } else {
                 if (noteBas) noteBas.classList.add('hidden');
                 if (noteProf) noteProf.classList.add('hidden');
@@ -4743,7 +4759,14 @@ window.closeUpgradePlanModal = function() {
 };
 
 window.selectUpgradePlan = function(planTarget) {
-    window.selectedUpgradeTarget = planTarget;
+    let targetNorm = 'Basico';
+    if (typeof planTarget === 'string') {
+        const pt = planTarget.toLowerCase().trim();
+        if (pt.includes('prem') || pt.includes('completo')) targetNorm = 'Premium';
+        else if (pt.includes('prof') || pt.includes('intermedio')) targetNorm = 'Profesional';
+        else targetNorm = 'Basico';
+    }
+    window.selectedUpgradeTarget = targetNorm;
 
     const b = window.upgradeBusinessData || {};
     const curPlanRaw = b.plan || 'Basico';
@@ -4759,23 +4782,23 @@ window.selectUpgradePlan = function(planTarget) {
     plans.forEach(p => {
         if (!p.card) return;
         const isCurrent = (p.id === curPlanNorm);
-        const isSelected = (p.id === planTarget);
+        const isSelected = (p.id === targetNorm);
 
         if (isSelected) {
-            p.card.className = 'cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white border-purple-500 ring-2 ring-purple-500/20 shadow-md';
+            p.card.className = 'cursor-pointer border-2 rounded-2xl p-4 sm:p-5 transition-all hover:shadow-md relative bg-white border-purple-600 ring-2 ring-purple-600/30 shadow-md';
             if (p.radio) {
-                p.radio.innerHTML = '<span class="material-symbols-outlined text-base">radio_button_checked</span> Seleccionado' + (isCurrent ? ' (Actual)' : '');
-                p.radio.className = 'text-xs font-extrabold text-purple-600 flex items-center justify-end gap-1';
+                p.radio.innerHTML = '<span class="material-symbols-outlined text-base text-purple-600">check_circle</span> <span class="text-purple-700 font-extrabold">Seleccionado' + (isCurrent ? ' (Tu plan actual)' : '') + '</span>';
+                p.radio.className = 'text-xs font-extrabold flex items-center justify-end gap-1';
             }
         } else {
-            p.card.className = 'cursor-pointer border-2 rounded-2xl p-4 transition-all hover:shadow-md relative bg-white ' + (isCurrent ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200');
+            p.card.className = 'cursor-pointer border-2 rounded-2xl p-4 sm:p-5 transition-all hover:shadow-md relative bg-white ' + (isCurrent ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200');
             if (p.radio) {
                 if (isCurrent) {
-                    p.radio.innerHTML = '<span class="material-symbols-outlined text-base text-amber-600">bookmark</span> <span class="text-amber-700">Tu Plan Actual</span>';
-                    p.radio.className = 'text-xs font-extrabold flex items-center justify-end gap-1';
+                    p.radio.innerHTML = '<span class="material-symbols-outlined text-base text-amber-600">bookmark</span> <span class="text-amber-700 font-bold">Tu Plan Actual</span>';
+                    p.radio.className = 'text-xs font-bold flex items-center justify-end gap-1';
                 } else {
-                    p.radio.innerHTML = '<span class="material-symbols-outlined text-base">radio_button_unchecked</span> Seleccionar';
-                    p.radio.className = 'text-xs font-extrabold text-slate-400 hover:text-purple-600 flex items-center justify-end gap-1';
+                    p.radio.innerHTML = '<span class="material-symbols-outlined text-base">radio_button_unchecked</span> <span class="text-slate-500">Seleccionar</span>';
+                    p.radio.className = 'text-xs font-bold text-slate-400 hover:text-purple-600 flex items-center justify-end gap-1';
                 }
             }
         }
@@ -4817,7 +4840,8 @@ window.renderUpgradeBreakdown = function() {
 
     const targetName = (targetPlan === 'Basico') ? 'Simple' : targetPlan;
     const curName = (curPlanNorm === 'Basico') ? 'Simple' : curPlanNorm;
-    const teamNote = profCount > 1 ? ` (${profCount} integrantes)` : '';
+    const volDisc = profCount > 1 ? Math.min(50, profCount * 5) : 0;
+    const teamNote = profCount > 1 ? ` (${profCount} profesionales con -${volDisc}% OFF)` : ' (1 profesional)';
 
     if (isSame) {
         if (container) {
@@ -4863,11 +4887,15 @@ window.renderUpgradeBreakdown = function() {
                     <span class="text-slate-500 font-semibold">Días de prueba restantes:</span>
                     <span class="font-extrabold text-slate-800">${trialDaysRemaining} días (de ${totalTrialConfigured} días totales)</span>
                 </div>
+                <div class="flex justify-between items-center py-1">
+                    <span class="text-slate-500 font-semibold">Equipo configurado:</span>
+                    <span class="font-extrabold text-purple-700">${profCount} ${profCount > 1 ? `profesionales (-${volDisc}% OFF por equipo)` : 'profesional'}</span>
+                </div>
                 <div class="bg-emerald-50 border border-emerald-200 text-emerald-900 p-2.5 rounded-xl text-[11px] font-semibold my-1">
-                    ✨ ${isDowngrade ? 'Al cambiar a' : 'Conservás tus'} <strong>${trialDaysRemaining} días restantes</strong> de prueba con las funciones del <strong>Plan ${targetName}</strong>${teamNote}. El cambio es inmediato y sin costo hoy.
+                    ✨ ${isDowngrade ? 'Al cambiar al' : 'Conservás tus'} <strong>${trialDaysRemaining} días restantes</strong> de prueba con las funciones y condiciones del <strong>Plan ${targetName}</strong>${teamNote}. El cambio es inmediato y sin costo hoy ($0).
                 </div>
                 <div class="flex justify-between items-center py-1 border-t border-slate-200 pt-2">
-                    <span class="text-slate-500 font-semibold">Próximo cobro (${nextBillingStr}):</span>
+                    <span class="text-slate-500 font-semibold">Próximo cobro al finalizar la prueba (${nextBillingStr}):</span>
                     <span class="font-bold text-purple-700">$${priceTarget.toLocaleString('es-AR')}/mes</span>
                 </div>
             `;
@@ -4901,17 +4929,24 @@ window.renderUpgradeBreakdown = function() {
             if (container) {
                 container.innerHTML = `
                     <div class="flex justify-between items-center py-1">
-                        <span class="text-slate-500 font-semibold">Ciclo de facturación (30 días):</span>
+                        <span class="text-slate-500 font-semibold">Ciclo de facturación actual (30 días):</span>
                         <span class="font-bold text-slate-800">${daysUsed} días consumidos / ${daysRemaining} días restantes</span>
                     </div>
-                    <div class="bg-blue-50 border border-blue-200 text-blue-900 p-3 rounded-xl text-xs space-y-1 my-1">
+                    <div class="flex justify-between items-center py-1">
+                        <span class="text-slate-500 font-semibold">Equipo configurado:</span>
+                        <span class="font-extrabold text-purple-700">${profCount} ${profCount > 1 ? `profesionales (-${volDisc}% OFF por equipo)` : 'profesional'}</span>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-200 text-blue-900 p-3 rounded-xl text-xs space-y-1.5 my-1">
                         <p class="font-bold flex items-center gap-1.5 text-blue-950">
                             <span class="material-symbols-outlined text-blue-600 text-base">arrow_downward</span> 
                             Cambio al Plan ${targetName} (Downgrade)
                         </p>
                         <p class="text-[11px] leading-relaxed text-blue-800">
-                            Tu cuenta pasará al <strong>Plan ${targetName}</strong>${teamNote}. No tenés que abonar nada hoy ($0). Tu nueva cuota mensual de <strong>$${priceTarget.toLocaleString('es-AR')}/mes</strong> regirá a partir de tu próximo vencimiento (<strong>${nextBillingStr}</strong>).
+                            Tu cuenta pasará al <strong>Plan ${targetName}</strong>${teamNote}. No tenés que abonar ninguna diferencia hoy (<strong>$0</strong>). Tu nueva cuota mensual de <strong>$${priceTarget.toLocaleString('es-AR')}/mes</strong> regirá a partir de tu próximo vencimiento (<strong>${nextBillingStr}</strong>).
                         </p>
+                        <div class="text-[10px] text-blue-700 bg-white/70 p-2 rounded-lg border border-blue-100">
+                            💡 <strong>Condiciones del Plan ${targetName}:</strong> Se mantendrán tus profesionales y reservas. Las funciones exclusivas de planes superiores (ej. página web propia o clases grupales por cupos) quedarán deshabilitadas según corresponda al Plan ${targetName}.
+                        </div>
                     </div>
                     <div class="flex justify-between items-center py-1 border-t border-slate-200 pt-2">
                         <span class="text-slate-500 font-semibold">Próximo vencimiento (${nextBillingStr}):</span>
@@ -4947,8 +4982,12 @@ window.renderUpgradeBreakdown = function() {
             if (container) {
                 container.innerHTML = `
                     <div class="flex justify-between items-center py-1">
-                        <span class="text-slate-500 font-semibold">Ciclo de facturación (30 días):</span>
+                        <span class="text-slate-500 font-semibold">Ciclo de facturación actual (30 días):</span>
                         <span class="font-bold text-slate-800">${daysUsed} días consumidos / ${daysRemaining} días restantes</span>
+                    </div>
+                    <div class="flex justify-between items-center py-1">
+                        <span class="text-slate-500 font-semibold">Equipo configurado:</span>
+                        <span class="font-extrabold text-purple-700">${profCount} ${profCount > 1 ? `profesionales (-${volDisc}% OFF por equipo)` : 'profesional'}</span>
                     </div>
                     <div class="flex justify-between items-center py-1 text-red-600 font-semibold">
                         <span>Crédito a favor Plan ${curName} (${daysRemaining}d restantes):</span>
