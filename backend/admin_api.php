@@ -76,6 +76,15 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN codigo_descuen
 try { $pdo->query("SELECT descuento_aplicado_pct FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN descuento_aplicado_pct INT DEFAULT 0"); }
 
+try { $pdo->query("SELECT precio_pactado FROM negocios LIMIT 1"); } 
+catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN precio_pactado DECIMAL(10,2) DEFAULT NULL"); } catch(Throwable $ex) {} }
+
+try { $pdo->query("SELECT fecha_precio_pactado FROM negocios LIMIT 1"); } 
+catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN fecha_precio_pactado DATETIME DEFAULT CURRENT_TIMESTAMP"); } catch(Throwable $ex) {} }
+
+try { $pdo->query("SELECT aviso_cambio_precio FROM negocios LIMIT 1"); } 
+catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN aviso_cambio_precio TINYINT(1) DEFAULT 0"); } catch(Throwable $ex) {} }
+
 try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS `codigos_descuento` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -316,7 +325,9 @@ if ($method === 'GET') {
     } catch(Exception $e) {}
 
     try {
-        $stmt = $pdo->query("
+        $negocios = [];
+        try {
+            $stmt = $pdo->query("
             SELECT n.id, n.nombre_fantasia, n.ruta, n.plan, n.max_profesionales, n.estado_pago, n.fecha_alta, n.dias_prueba,
                    n.ultimo_pago, n.comprobante, n.codigo_descuento, n.descuento_aplicado_pct, n.precio_pactado, u.nombre_completo, u.email, u.id AS id_usuario_admin,
                    COALESCE(cw.tipo_calendario, 'clasico') AS tipo_calendario,
@@ -342,7 +353,54 @@ if ($method === 'GET') {
               AND (n.fecha_eliminado IS NULL)
             ORDER BY n.id DESC
         ");
-        $negocios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $negocios = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    } catch (Throwable $eMainSelect) {
+        // Fallback ultra-seguro y resiliente: consulta sin columnas que puedan no existir aún
+        try {
+            $stmt = $pdo->query("
+                SELECT n.id, n.nombre_fantasia, n.ruta, n.plan, n.max_profesionales, n.estado_pago, n.fecha_alta, n.dias_prueba,
+                       n.ultimo_pago, n.comprobante, u.nombre_completo, u.email, u.id AS id_usuario_admin,
+                       COALESCE(cw.tipo_calendario, 'clasico') AS tipo_calendario,
+                       an.nota AS nota_interna
+                FROM negocios n
+                LEFT JOIN personal_negocio pn ON n.id = pn.id_negocio AND pn.rol_en_local = 'admin'
+                LEFT JOIN usuarios u ON pn.id_usuario = u.id
+                LEFT JOIN configuracion_web cw ON n.id = cw.id_negocio
+                LEFT JOIN (
+                    SELECT an1.id_negocio, an1.nota
+                    FROM admin_notas an1
+                    INNER JOIN (
+                        SELECT id_negocio, MAX(id) AS max_id
+                        FROM admin_notas
+                        WHERE (estado IS NULL OR estado != 'eliminado') AND nota IS NOT NULL AND TRIM(nota) != ''
+                        GROUP BY id_negocio
+                    ) latest ON an1.id = latest.max_id
+                ) an ON n.id = an.id_negocio
+                WHERE (n.ruta IS NULL OR n.ruta NOT LIKE 'demo%') 
+                  AND (u.email IS NULL OR u.email NOT LIKE 'demo%') 
+                  AND (n.nombre_fantasia IS NULL OR n.nombre_fantasia NOT LIKE '%Demo%')
+                  AND (n.estado_pago != 'eliminado' OR n.estado_pago IS NULL)
+                  AND (n.fecha_eliminado IS NULL)
+                ORDER BY n.id DESC
+            ");
+            $negocios = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+        } catch (Throwable $eFallback) {
+            try {
+                $stmt = $pdo->query("SELECT id, nombre_fantasia, ruta, plan, max_profesionales, estado_pago, fecha_alta FROM negocios WHERE (ruta IS NULL OR ruta NOT LIKE 'demo%') AND (fecha_eliminado IS NULL) ORDER BY id DESC");
+                $negocios = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+            } catch (Throwable $eMin) {
+                $negocios = [];
+            }
+        }
+        foreach ($negocios as &$neg) {
+            if (!isset($neg['precio_pactado'])) $neg['precio_pactado'] = null;
+            if (!isset($neg['codigo_descuento'])) $neg['codigo_descuento'] = null;
+            if (!isset($neg['descuento_aplicado_pct'])) $neg['descuento_aplicado_pct'] = 0;
+            if (!isset($neg['tipo_calendario'])) $neg['tipo_calendario'] = 'clasico';
+            if (!isset($neg['nota_interna'])) $neg['nota_interna'] = null;
+        }
+        unset($neg);
+    }
         
         // Obtener la lista de profesionales de cada negocio
         $stmtProfs = $pdo->query("
@@ -953,10 +1011,14 @@ elseif ($method === 'PUT') {
                     $params['max_profesionales'] = $max_profesionales;
                 }
                 if ($descuento_aplicado_pct !== null) {
+                    try { $pdo->query("SELECT descuento_aplicado_pct FROM negocios LIMIT 1"); } 
+                    catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN descuento_aplicado_pct INT DEFAULT 0"); } catch(Throwable $ex) {} }
                     $updates[] = "descuento_aplicado_pct = :descuento_aplicado_pct";
                     $params['descuento_aplicado_pct'] = $descuento_aplicado_pct;
                 }
                 if ($precio_pactado !== null) {
+                    try { $pdo->query("SELECT precio_pactado FROM negocios LIMIT 1"); } 
+                    catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN precio_pactado DECIMAL(10,2) DEFAULT NULL"); } catch(Throwable $ex) {} }
                     $updates[] = "precio_pactado = :precio_pactado";
                     $params['precio_pactado'] = $precio_pactado;
                 }
