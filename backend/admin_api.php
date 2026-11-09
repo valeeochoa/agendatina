@@ -318,7 +318,7 @@ if ($method === 'GET') {
     try {
         $stmt = $pdo->query("
             SELECT n.id, n.nombre_fantasia, n.ruta, n.plan, n.max_profesionales, n.estado_pago, n.fecha_alta, n.dias_prueba,
-                   n.ultimo_pago, n.comprobante, n.codigo_descuento, n.descuento_aplicado_pct, u.nombre_completo, u.email, u.id AS id_usuario_admin,
+                   n.ultimo_pago, n.comprobante, n.codigo_descuento, n.descuento_aplicado_pct, n.precio_pactado, u.nombre_completo, u.email, u.id AS id_usuario_admin,
                    COALESCE(cw.tipo_calendario, 'clasico') AS tipo_calendario,
                    an.nota AS nota_interna
             FROM negocios n
@@ -820,6 +820,8 @@ elseif ($method === 'PUT') {
     $max_profesionales = isset($data['max_profesionales']) ? (int)$data['max_profesionales'] : null;
     $estado_pago = $data['estado_pago'] ?? null;
     $fecha_alta = !empty($data['fecha_alta']) ? trim($data['fecha_alta']) : null;
+    $descuento_aplicado_pct = isset($data['descuento_aplicado_pct']) ? max(0, min(100, (int)$data['descuento_aplicado_pct'])) : null;
+    $precio_pactado = isset($data['precio_pactado']) ? (float)$data['precio_pactado'] : null;
     $motivo_rechazo = trim($data['motivo_rechazo'] ?? '');
     $nota_interna = $data['nota_interna'] ?? null;
 
@@ -949,6 +951,14 @@ elseif ($method === 'PUT') {
                 if ($max_profesionales !== null) {
                     $updates[] = "max_profesionales = :max_profesionales";
                     $params['max_profesionales'] = $max_profesionales;
+                }
+                if ($descuento_aplicado_pct !== null) {
+                    $updates[] = "descuento_aplicado_pct = :descuento_aplicado_pct";
+                    $params['descuento_aplicado_pct'] = $descuento_aplicado_pct;
+                }
+                if ($precio_pactado !== null) {
+                    $updates[] = "precio_pactado = :precio_pactado";
+                    $params['precio_pactado'] = $precio_pactado;
                 }
                 if ($estado_pago !== null) {
                     $updates[] = "estado_pago = :estado_pago";

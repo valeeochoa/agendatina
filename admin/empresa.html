@@ -343,6 +343,56 @@
                     <p class="text-[11px] text-slate-400 mt-1">Modifica esta fecha para simular días restantes de prueba o vencimiento mensual.</p>
                 </div>
 
+                <!-- SECCIÓN DESCUENTO PERSONALIZADO Y PRECIO PACTADO -->
+                <div class="sm:col-span-2 p-5 bg-gradient-to-br from-purple-50/60 to-indigo-50/40 border border-purple-200/80 rounded-2xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                                <span class="material-symbols-outlined text-[18px]">percent</span>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-black text-slate-800">Descuento Especial y Precio Congelado</h4>
+                                <p class="text-[11px] text-slate-500">Ajusta el porcentaje de descuento exclusivo para este negocio.</p>
+                            </div>
+                        </div>
+                        <span id="badgeDescuentoDisplay" class="px-3 py-1 bg-purple-600 text-white font-black text-xs rounded-xl shadow-xs">0% OFF</span>
+                    </div>
+
+                    <!-- Indicador Descuento de Plataforma (index.html) -->
+                    <div class="flex items-center justify-between text-xs bg-white/80 p-2.5 rounded-xl border border-purple-100">
+                        <span class="text-slate-600 font-medium">Descuento base según index.html:</span>
+                        <span class="font-extrabold text-slate-800" id="infoDescIndexText">10% global (+5% por prof.)</span>
+                    </div>
+
+                    <!-- Slider / Barra Deslizable de Descuento -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs font-bold text-slate-700 mb-1.5">
+                            <span>% Descuento personalizado:</span>
+                            <span id="sliderDescValueText" class="text-purple-700 font-black">0%</span>
+                        </div>
+                        <input type="range" id="edit_descuento_range" min="0" max="100" step="5" value="0" class="w-full accent-purple-600 cursor-pointer h-2 bg-slate-200 rounded-lg" oninput="updatePricingCalculationFromModal()">
+                        <div class="flex justify-between text-[10px] font-bold text-slate-400 mt-1">
+                            <span>0% (Sin descuento)</span>
+                            <span>25%</span>
+                            <span>50%</span>
+                            <span>75%</span>
+                            <span>100% (Bonificado)</span>
+                        </div>
+                    </div>
+
+                    <!-- Desglose de Cálculo y Precio Pactado -->
+                    <div class="pt-3 border-t border-purple-200/60 grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                        <div>
+                            <span class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Precio Sugerido Calculado:</span>
+                            <span id="precioCalculadoSugerido" class="text-base font-black text-slate-800">$0 / mes</span>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-purple-900 uppercase tracking-wider mb-1">Precio Final Pactado ($/mes):</label>
+                            <input type="number" id="edit_precio_pactado" step="1" min="0" class="w-full bg-white border border-purple-300 rounded-xl px-3 py-2 text-sm font-black text-purple-900 focus:ring-2 focus:ring-purple-500 outline-none">
+                        </div>
+                    </div>
+                </div>
+
             <div id="editFormMessage" class="hidden p-4 rounded-xl text-sm font-medium text-center"></div>
 
             <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
@@ -429,6 +479,13 @@ let currentEmpresaId = null;
 let currentEmpresaData = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Escuchadores para recalcular precios en modal de suscripción
+    document.getElementById('edit_plan')?.addEventListener('change', updatePricingCalculationFromModal);
+    document.getElementById('edit_max_profesionales')?.addEventListener('input', updatePricingCalculationFromModal);
+    document.getElementById('edit_precio_pactado')?.addEventListener('input', () => {
+        const inp = document.getElementById('edit_precio_pactado');
+        if (inp) inp.dataset.userModified = 'true';
+    });
     // 1. Verificar sesión Super Admin
     fetch('../backend/admin_auth.php?t=' + Date.now())
         .then(res => res.json())
@@ -944,6 +1001,45 @@ function saveNotaInterna() {
 }
 
 // --- Modales para Editar Suscripción y Editar Datos ---
+function updatePricingCalculationFromModal() {
+    const planVal = (document.getElementById('edit_plan')?.value || 'Basico').toLowerCase();
+    const profs = Math.max(1, parseInt(document.getElementById('edit_max_profesionales')?.value || 1));
+    const rangeVal = parseInt(document.getElementById('edit_descuento_range')?.value || 0);
+
+    const sliderText = document.getElementById('sliderDescValueText');
+    const badgeText = document.getElementById('badgeDescuentoDisplay');
+    if (sliderText) sliderText.textContent = `${rangeVal}%`;
+    if (badgeText) badgeText.textContent = `${rangeVal}% OFF`;
+
+    // Obtener precios base
+    let basePrice = 8889;
+    if (planVal.includes('intermedio') || planVal.includes('profesional')) basePrice = 11111;
+    if (planVal.includes('completo') || planVal.includes('premium')) basePrice = 16667;
+
+    // Descuento base según index.html: 10% global + 5% por cada profesional adicional
+    const globalDisc = (window.globalConfig && window.globalConfig.descuento_porcentaje !== undefined) ? window.globalConfig.descuento_porcentaje : 10;
+    const teamDiscIndex = Math.min(50, profs * 5); // 5% por profesional
+    const indexDescText = document.getElementById('infoDescIndexText');
+    if (indexDescText) {
+        indexDescText.textContent = `${globalDisc}% base + ${teamDiscIndex}% por ${profs} prof.`;
+    }
+
+    // Precio sugerido con el descuento seleccionado en el slider
+    const finalPct = Math.max(0, Math.min(100, rangeVal));
+    const precioUnitario = Math.round(basePrice * (100 - finalPct) / 100);
+    const totalSugerido = precioUnitario * profs;
+
+    const sugeridoEl = document.getElementById('precioCalculadoSugerido');
+    if (sugeridoEl) {
+        sugeridoEl.textContent = `$${totalSugerido.toLocaleString('es-AR')} / mes`;
+    }
+
+    const pactadoInput = document.getElementById('edit_precio_pactado');
+    if (pactadoInput && (!pactadoInput.dataset.userModified || pactadoInput.dataset.userModified === 'false')) {
+        pactadoInput.value = totalSugerido;
+    }
+}
+
 function openEditModal() {
     if (!currentEmpresaData) return;
     document.getElementById('edit_id_negocio').value = currentEmpresaData.id;
@@ -955,6 +1051,24 @@ function openEditModal() {
     if (faInput) {
         faInput.value = currentEmpresaData.fecha_alta ? String(currentEmpresaData.fecha_alta).substring(0, 10) : '';
     }
+
+    // Inicializar barra de descuento y precio pactado
+    const discPct = currentEmpresaData.descuento_aplicado_pct !== undefined && currentEmpresaData.descuento_aplicado_pct !== null ? parseInt(currentEmpresaData.descuento_aplicado_pct) : 0;
+    const rangeEl = document.getElementById('edit_descuento_range');
+    if (rangeEl) rangeEl.value = discPct;
+
+    const pactadoInput = document.getElementById('edit_precio_pactado');
+    if (pactadoInput) {
+        pactadoInput.dataset.userModified = 'false';
+        if (currentEmpresaData.precio_pactado !== undefined && currentEmpresaData.precio_pactado !== null && parseFloat(currentEmpresaData.precio_pactado) > 0) {
+            pactadoInput.value = Math.round(parseFloat(currentEmpresaData.precio_pactado));
+            pactadoInput.dataset.userModified = 'true';
+        } else {
+            pactadoInput.value = '';
+        }
+    }
+
+    updatePricingCalculationFromModal();
 
     const modal = document.getElementById('editClientModal');
     const content = document.getElementById('editModalContent');
@@ -979,7 +1093,9 @@ function submitEditClient(e) {
         plan: document.getElementById('edit_plan').value,
         max_profesionales: document.getElementById('edit_max_profesionales').value,
         estado_pago: document.getElementById('edit_estado_pago').value,
-        fecha_alta: document.getElementById('edit_fecha_alta') ? document.getElementById('edit_fecha_alta').value : ''
+        fecha_alta: document.getElementById('edit_fecha_alta') ? document.getElementById('edit_fecha_alta').value : '',
+        descuento_aplicado_pct: document.getElementById('edit_descuento_range') ? parseInt(document.getElementById('edit_descuento_range').value) : 0,
+        precio_pactado: document.getElementById('edit_precio_pactado') ? parseFloat(document.getElementById('edit_precio_pactado').value) : 0
     };
 
     fetch('../backend/admin_api.php', {
