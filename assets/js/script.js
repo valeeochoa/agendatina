@@ -800,7 +800,9 @@ window.iniciarDemo = function() {
 // ==========================================
 
 function loadAdminWebConfig() {
-    fetch(`backend/guardar_web.php?n=${negocioSlug}`)
+    const slug = (typeof negocioSlug !== 'undefined' && negocioSlug) ? negocioSlug : ((window.currentWebData && window.currentWebData.ruta) ? window.currentWebData.ruta : '');
+    const customUrl = slug ? ('backend/guardar_web.php?n=' + encodeURIComponent(slug)) : 'backend/guardar_web.php';
+    fetch(customUrl)
         .then(res => res.json())
         .then(data => {
             if (data && !data.error) {
@@ -3278,7 +3280,9 @@ function isAccountSuspended(dbStatus, lastPaymentStr, fechaAltaStr) {
 }
 
 function applyWebCustomization() {
-    fetch(`backend/guardar_web.php?n=${negocioSlug}`)
+    const slug = (typeof negocioSlug !== 'undefined' && negocioSlug) ? negocioSlug : ((window.currentWebData && window.currentWebData.ruta) ? window.currentWebData.ruta : '');
+    const customUrl = slug ? ('backend/guardar_web.php?n=' + encodeURIComponent(slug)) : 'backend/guardar_web.php';
+    fetch(customUrl)
         .then(res => res.json())
         .then(data => {
             if (data && !data.error) {
@@ -5281,4 +5285,4 @@ window.switchActiveBusiness = function(idNegocio) {
 
 document.addEventListener('DOMContentLoaded', () => {
     window.checkUserMultipleBusinesses();
-});
+});

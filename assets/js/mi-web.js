@@ -273,8 +273,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. CARGAR DATOS WEB AL INICIAR
     fetch('backend/guardar_web.php')
-        .then(res => res.json())
+        .then(async res => {
+            const rawText = await res.text();
+            try {
+                return JSON.parse(rawText);
+            } catch(e) {
+                console.warn('⚠️ [Mi Web] Respuesta no JSON recibida de backend/guardar_web.php:', rawText.substring(0, 150));
+                return null;
+            }
+        })
         .then(data => {
+            if (!data) return;
             if (data && data.error) {
                 if (data.error.toLowerCase().includes('inicia sesión') || data.error.toLowerCase().includes('autorizado')) {
                     window.location.href = 'login.html';
@@ -394,7 +403,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         fetch('backend/guardar_web.php', { method: 'POST', body: formData })
-        .then(res => res.json())
+        .then(async res => {
+            const rawText = await res.text();
+            try {
+                return JSON.parse(rawText);
+            } catch(e) {
+                console.warn('⚠️ [Mi Web] Respuesta no JSON al guardar en backend/guardar_web.php:', rawText.substring(0, 150));
+                return { success: false, error: 'Respuesta inesperada del servidor' };
+            }
+        })
         .then(data => {
             if (data.success) {
                 saveWebDataBtn.textContent = '¡Guardado!';
