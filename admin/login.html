@@ -63,7 +63,24 @@
             msg.classList.add('hidden');
 
             fetch('../backend/admin_auth.php', { method: 'POST', body: new FormData(this) })
-            .then(res => res.json())
+            .then(async res => {
+                const text = await res.text();
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('Respuesta no JSON en admin_auth:', text);
+                    if (text.includes('Demasiados intentos')) {
+                        return { success: false, error: 'Demasiados intentos fallidos. Por seguridad, el acceso está bloqueado temporalmente (5 minutos).' };
+                    }
+                    if (text.includes('incorrectos') || res.status === 401) {
+                        return { success: false, error: 'Usuario o contraseña de administrador incorrectos.' };
+                    }
+                    if (text.includes('One moment') || text.includes('spinner') || text.includes('captcha')) {
+                        return { success: false, error: 'Protección de seguridad activa. Por favor recarga la página (F5) para validarte e intenta nuevamente.' };
+                    }
+                    return { success: false, error: 'Respuesta inválida del servidor (' + res.status + '). Reintenta en unos instantes.' };
+                }
+            })
             .then(data => {
                 if(data.success) {
                     window.location.href = 'index.html';
@@ -73,7 +90,12 @@
                     msg.classList.remove('hidden');
                 }
             })
-            .catch(err => { msg.textContent = 'Error de conexión'; msg.className = 'p-3 rounded-xl text-sm font-medium text-center bg-red-100 text-red-800 border border-red-200 mt-2'; msg.classList.remove('hidden'); })
+            .catch(err => {
+                console.error(err);
+                msg.textContent = 'Error de conexión con el servidor. Por favor reintenta.';
+                msg.className = 'p-3 rounded-xl text-sm font-medium text-center bg-red-100 text-red-800 border border-red-200 mt-2';
+                msg.classList.remove('hidden');
+            })
             .finally(() => { btn.disabled = false; btn.textContent = 'Ingresar al Panel'; });
         });
     </script>

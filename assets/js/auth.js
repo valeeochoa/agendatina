@@ -46,7 +46,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const emailSubmitted = (loginForm.querySelector('input[name="username"]')?.value || '').trim();
 
             fetch('backend/login.php', { method: 'POST', body: new FormData(this) })
-                .then(res => res.json())
+                .then(async res => {
+                    const text = await res.text();
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error('Respuesta no JSON en login.php:', text);
+                        if (text.includes('Demasiados intentos')) {
+                            return { success: false, error: 'Demasiados intentos fallidos. Por seguridad, la cuenta o IP está pausada temporalmente.' };
+                        }
+                        if (text.includes('Error de conexi')) {
+                            return { success: false, error: 'Error de conexión a la base de datos en el servidor.' };
+                        }
+                        if (text.includes('One moment') || text.includes('spinner') || text.includes('captcha')) {
+                            return { success: false, error: 'Protección de seguridad activa. Por favor recarga la página (F5) e intenta nuevamente.' };
+                        }
+                        return { success: false, error: 'Respuesta inválida del servidor (' + res.status + '). Reintenta en unos instantes.' };
+                    }
+                })
                 .then(data => {
                     if (data.require_first_password) {
                         // Usuario requiere establecer su contraseña por primera vez
@@ -88,7 +105,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 })
                 .catch(error => {
-                    msgDiv.textContent = 'Error de conexión con el servidor.';
+                    console.error('Error de red en login:', error);
+                    msgDiv.textContent = 'Error de comunicación con el servidor. Por favor reintenta.';
                     msgDiv.classList.remove('hidden');
                     btnSubmit.disabled = false;
                     btnSubmit.innerHTML = '<span>Ingresar al sistema</span><span class="material-symbols-outlined text-xl">arrow_forward</span>';
@@ -149,7 +167,12 @@ document.addEventListener('DOMContentLoaded', () => {
             msg.classList.add('hidden');
 
             fetch('backend/establecer_primer_password.php', { method: 'POST', body: new FormData(this) })
-                .then(r => r.json())
+                .then(async r => {
+                    const text = await r.text();
+                    try { return JSON.parse(text); } catch (e) {
+                        return { success: false, error: 'Error del servidor al procesar la contraseña.' };
+                    }
+                })
                 .then(data => {
                     if (data.multiple_businesses) {
                         closeFirstPasswordModal();
@@ -168,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 })
                 .catch(() => {
-                    msg.textContent = 'Error de conexión con el servidor.';
+                    msg.textContent = 'Error de comunicación con el servidor.';
                     msg.classList.remove('hidden');
                     btn.disabled = false;
                     btn.innerHTML = '<span>Guardar Contraseña e Iniciar Sesión</span><span class="material-symbols-outlined text-lg">check_circle</span>';
@@ -257,7 +280,12 @@ document.addEventListener('DOMContentLoaded', () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id_negocio: idNegocio, user_id: userId })
         })
-        .then(r => r.json())
+        .then(async r => {
+            const text = await r.text();
+            try { return JSON.parse(text); } catch (e) {
+                return { success: false, error: 'Error del servidor al seleccionar el negocio.' };
+            }
+        })
         .then(data => {
             if (data.success) {
                 sessionStorage.setItem('agendatina_session', 'active');

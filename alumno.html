@@ -823,7 +823,12 @@
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: 'email=' + encodeURIComponent(email) + '&password=' + encodeURIComponent(password)
                 })
-                .then(r => r.json())
+                .then(async r => {
+                    const text = await r.text();
+                    try { return JSON.parse(text); } catch (e) {
+                        return { success: false, error: 'Error de respuesta del servidor. Intenta nuevamente.' };
+                    }
+                })
                 .then(d => {
                     btn.disabled = false;
                     btn.innerHTML = 'Iniciar Sesión <span class="material-symbols-outlined text-[18px]">login</span>';
@@ -841,7 +846,7 @@
                     btn.disabled = false;
                     btn.innerHTML = 'Iniciar Sesión <span class="material-symbols-outlined text-[18px]">login</span>';
                     notice.className = 'text-xs p-3 rounded-xl bg-red-50 text-red-700 border border-red-200';
-                    notice.textContent = 'Error de conexión. Intentá nuevamente.';
+                    notice.textContent = 'Error de comunicación. Intentá nuevamente.';
                     notice.classList.remove('hidden');
                 });
             }

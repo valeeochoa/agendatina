@@ -66,13 +66,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->exec("DELETE FROM login_attempts WHERE ultimo_intento < NOW() - INTERVAL $lockout_time MINUTE");
 
         // 3. Verificar si la IP actual está bloqueada
-        $stmtCheck = $pdo->prepare("SELECT intentos FROM login_attempts WHERE ip_address = :ip");
+        $stmtCheck = $pdo->prepare("SELECT intentos, ultimo_intento FROM login_attempts WHERE ip_address = :ip");
         $stmtCheck->execute(['ip' => $ip_address]);
         $attemptData = $stmtCheck->fetch();
 
         if ($attemptData && $attemptData['intentos'] >= $max_attempts) {
-            http_response_code(429); // Código HTTP 429: Too Many Requests
-            echo json_encode(['success' => false, 'error' => "Demasiados intentos fallidos. Por seguridad, intenta de nuevo en $lockout_time minutos."]);
+            $minsRestantes = $lockout_time;
+            if (!empty($attemptData['ultimo_intento'])) {
+                $elapsed = (time() - strtotime($attemptData['ultimo_intento'])) / 60;
+                $minsRestantes = max(1, ceil($lockout_time - $elapsed));
+            }
+            echo json_encode([
+                'success' => false, 
+                'error' => "Demasiados intentos fallidos. Por seguridad, la cuenta o IP está pausada temporalmente por {$minsRestantes} minutos."
+            ]);
             exit;
         }
 
@@ -210,11 +217,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     } catch (Throwable $e) {
         error_log("Error en login.php: " . $e->getMessage());
-        http_response_code(500);
-        echo json_encode(['success' => false, 'error' => 'Ocurrió un error inesperado al procesar el inicio de sesión. Por favor intenta más tarde.']);
+        echo json_encode(['success' => false, 'error' => 'Ocurrió un error inesperado al procesar el inicio de sesión: ' . $e->getMessage()]);
         exit;
     }
 }
-http_response_code(405);
 echo json_encode(['success' => false, 'error' => 'Método no permitido.']);
 ?>
