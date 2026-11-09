@@ -341,7 +341,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
 
         try {
-            $stmtProfs = $pdo->prepare("SELECT u.nombre_completo FROM usuarios u JOIN personal_negocio pn ON u.id = pn.id_usuario WHERE pn.id_negocio = :id AND pn.rol_en_local = 'profesional'");
+            $stmtProfs = $pdo->prepare("SELECT u.nombre_completo FROM usuarios u JOIN personal_negocio pn ON u.id = pn.id_usuario WHERE pn.id_negocio = :id");
             $stmtProfs->execute(['id' => $id_negocio]);
             $dbProfs = $stmtProfs->fetchAll(PDO::FETCH_COLUMN);
             foreach ($dbProfs as $pName) {

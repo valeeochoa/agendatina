@@ -35,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Sincronizar nombre del negocio en Navbar
+                window.currentBusinessAdminName = (data.user && data.user.nombre_completo) ? data.user.nombre_completo : '';
                 const bizName = b.nombre_fantasia || (isDemo ? 'Agendatina' : 'Mi Negocio');
                 const navName = document.getElementById('navBusinessNameText');
                 if (navName) navName.textContent = bizName;
@@ -471,25 +472,98 @@ document.addEventListener('DOMContentLoaded', () => {
     const profWebModal = document.getElementById('profWebModal');
     const profWebModalContent = document.getElementById('profWebModalContent');
     const profWebForm = document.getElementById('profWebForm');
+    window.registeredTeamList = [];
+
+    // Cargar profesionales e integrantes reales del negocio para el selector rápido
+    async function loadRegisteredTeamForWeb() {
+        try {
+            const res = await fetch('backend/gestionar_profesionales.php');
+            const data = await res.json();
+            if (Array.isArray(data)) {
+                window.registeredTeamList = data;
+            } else if (data && Array.isArray(data.profesionales)) {
+                window.registeredTeamList = data.profesionales;
+            }
+        } catch(e) {
+            window.registeredTeamList = [];
+        }
+
+        // Si tenemos datos del dueño en sesión, asegurar que figure
+        if (window.currentBusinessAdminName) {
+            const adminExists = window.registeredTeamList.some(p => (p.nombre_completo || p.nombre || '').toLowerCase() === window.currentBusinessAdminName.toLowerCase());
+            if (!adminExists) {
+                window.registeredTeamList.unshift({
+                    nombre_completo: window.currentBusinessAdminName,
+                    rol_en_local: 'admin'
+                });
+            }
+        }
+    }
+    loadRegisteredTeamForWeb();
 
     window.openProfWebModal = function(index = -1) {
         if (profWebForm) profWebForm.reset();
         document.getElementById('profWebIndex').value = index;
+
+        const modalTitle = document.getElementById('profWebModalTitle');
+        const quickSec = document.getElementById('profWebQuickSelectSection');
+        const chipsContainer = document.getElementById('profWebRegisteredChips');
+
         if (index > -1 && window.profesionalesWebData[index]) {
             const p = window.profesionalesWebData[index];
+            if (modalTitle) modalTitle.textContent = 'Editar Profesional';
             if (document.getElementById('profWebName')) document.getElementById('profWebName').value = p.nombre || '';
             if (document.getElementById('profWebDesc')) document.getElementById('profWebDesc').value = p.descripcion || '';
             if (document.getElementById('profWebPhoto')) document.getElementById('profWebPhoto').value = p.foto || '';
             if (document.getElementById('profWebPhotoBase64')) document.getElementById('profWebPhotoBase64').value = p.foto || '';
+            if (quickSec) quickSec.classList.add('hidden');
+        } else {
+            if (modalTitle) modalTitle.textContent = 'Añadir al Equipo Web';
+            if (document.getElementById('profWebDesc')) {
+                document.getElementById('profWebDesc').value = 'Especialista en atención y servicios del equipo.';
+            }
+
+            // Filtrar profesionales del negocio que NO se hayan añadido aún a la web
+            const alreadyAddedNames = (window.profesionalesWebData || []).map(p => (p.nombre || '').trim().toLowerCase());
+            const availableProfs = (window.registeredTeamList || []).filter(p => {
+                const name = (p.nombre_completo || p.nombre || '').trim().toLowerCase();
+                return name && !alreadyAddedNames.includes(name);
+            });
+
+            if (quickSec && chipsContainer) {
+                if (availableProfs.length > 0) {
+                    chipsContainer.innerHTML = '';
+                    availableProfs.forEach(p => {
+                        const pName = p.nombre_completo || p.nombre;
+                        const isAdminRole = (p.rol_en_local === 'admin');
+                        const chip = document.createElement('button');
+                        chip.type = 'button';
+                        chip.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-teal-50 border border-slate-200 hover:border-teal-300 rounded-xl text-xs font-bold text-slate-700 hover:text-teal-700 transition-all cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-95';
+                        chip.innerHTML = `
+                            <span class="material-symbols-outlined text-[15px] ${isAdminRole ? 'text-primary' : 'text-teal-600'}">${isAdminRole ? 'shield_person' : 'person'}</span>
+                            <span>${escapeHtml(pName)}</span>
+                            ${isAdminRole ? '<span class="text-[9px] uppercase px-1.5 py-0.2 bg-rose-100 text-rose-700 rounded font-black">Admin</span>' : ''}
+                        `;
+                        chip.onclick = () => {
+                            document.getElementById('profWebName').value = pName;
+                            if (p.descripcion) document.getElementById('profWebDesc').value = p.descripcion;
+                            if (p.foto) document.getElementById('profWebPhoto').value = p.foto;
+                            if (typeof showToast === 'function') showToast(`Datos de ${pName} autocompletados`, 'info');
+                        };
+                        chipsContainer.appendChild(chip);
+                    });
+                    quickSec.classList.remove('hidden');
+                } else {
+                    quickSec.classList.add('hidden');
+                }
+            }
         }
+
         if (profWebModal && profWebModalContent) {
             profWebModal.classList.remove('hidden');
-            setTimeout(() => { profWebModal.classList.remove('opacity-0'); profWebModalContent.classList.remove('scale-95'); }, 10);
             setTimeout(() => { 
                 profWebModal.classList.remove('opacity-0'); 
-                profWebModalContent.classList.remove('scale-95', 'animate-modal-pop'); 
-                void profWebModalContent.offsetWidth;
-                profWebModalContent.classList.add('animate-modal-pop');
+                profWebModalContent.classList.remove('scale-95'); 
             }, 10);
         }
     };
@@ -497,7 +571,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.closeProfWebModal = function() {
         if (profWebModal && profWebModalContent) {
             profWebModal.classList.add('opacity-0');
-            profWebModalContent.classList.remove('animate-modal-pop');
             profWebModalContent.classList.add('scale-95');
             setTimeout(() => profWebModal.classList.add('hidden'), 300);
         }
@@ -509,17 +582,27 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const index = parseInt(document.getElementById('profWebIndex').value);
         const prof = {
-            nombre: document.getElementById('profWebName').value,
-            descripcion: document.getElementById('profWebDesc').value,
-            foto: document.getElementById('profWebPhoto').value // Backup via URL
+            nombre: document.getElementById('profWebName').value.trim(),
+            descripcion: document.getElementById('profWebDesc').value.trim(),
+            foto: document.getElementById('profWebPhoto').value.trim()
         };
+
+        if (!prof.nombre) {
+            if (typeof showToast === 'function') showToast('Ingresa el nombre del profesional', 'error');
+            return;
+        }
         
         let photoBase64 = document.getElementById('profWebPhotoBase64') ? document.getElementById('profWebPhotoBase64').value : '';
 
         const saveProf = (fotoToSave) => {
             prof.foto = fotoToSave;
-            if (index > -1) window.profesionalesWebData[index] = prof;
-            else window.profesionalesWebData.push(prof);
+            if (index > -1) {
+                window.profesionalesWebData[index] = prof;
+                if (typeof showToast === 'function') showToast('Profesional actualizado', 'success');
+            } else {
+                window.profesionalesWebData.push(prof);
+                if (typeof showToast === 'function') showToast('Profesional añadido a la web', 'success');
+            }
             renderProfesionalesWeb();
             closeProfWebModal();
         };
@@ -543,37 +626,65 @@ document.addEventListener('DOMContentLoaded', () => {
         const prof = window.profesionalesWebData[index];
         const name = prof ? (prof.nombre || 'este profesional') : 'este profesional';
         window.showWebConfirmModal({
-            title: '¿Eliminar profesional del equipo?',
-            message: `¿Estás seguro de que deseas eliminar a <strong>${escapeHtml(name)}</strong> de la presentación de tu equipo en la web?`,
-            confirmText: 'Sí, eliminar',
+            title: '¿Ocultar profesional de la web?',
+            message: `¿Deseas quitar a <strong>${escapeHtml(name)}</strong> de la presentación de tu página web?<br><br><span class="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg block text-left"><strong>Nota:</strong> No se eliminará la cuenta del profesional ni su rol en el negocio; únicamente dejará de mostrarse ante los clientes en tu sitio web.</span>`,
+            confirmText: 'Sí, quitar de la web',
             onConfirm: () => {
                 window.profesionalesWebData.splice(index, 1);
                 renderProfesionalesWeb();
-                if (typeof showToast === 'function') showToast('Profesional eliminado de la lista', 'info');
+                if (typeof showToast === 'function') showToast('Profesional quitado de la web', 'info');
             }
         });
     };
 
     function renderProfesionalesWeb() {
         const container = document.getElementById('profesionalesWebList');
-        if(!container) return;
+        if (!container) return;
         container.innerHTML = '';
-        if (window.profesionalesWebData.length === 0) {
-            container.innerHTML = '<div class="col-span-full text-center p-6 text-slate-500 border border-dashed rounded-xl border-slate-300">No has añadido profesionales a tu equipo.</div>';
+
+        if (!Array.isArray(window.profesionalesWebData) || window.profesionalesWebData.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full text-center p-8 bg-slate-50/80 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2">
+                    <div class="w-12 h-12 rounded-full bg-slate-200/70 text-slate-400 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-2xl">group_off</span>
+                    </div>
+                    <p class="font-extrabold text-sm text-slate-700">No has añadido profesionales a tu equipo</p>
+                    <p class="text-xs text-slate-400 max-w-sm">Añade al personal o al administrador del equipo para que tus clientes conozcan a sus especialistas.</p>
+                    <button type="button" onclick="openProfWebModal(-1)" class="mt-2 text-xs font-black text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                        <span class="material-symbols-outlined text-base">add</span> Añadir el Primero
+                    </button>
+                </div>
+            `;
             return;
         }
+
         window.profesionalesWebData.forEach((p, i) => {
-            const img = p.foto ? `<img src="${p.foto}" class="w-12 h-12 rounded-full object-cover shrink-0">` : `<div class="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0"><span class="material-symbols-outlined">person</span></div>`;
+            const img = p.foto 
+                ? `<img src="${p.foto}" alt="${escapeHtml(p.nombre)}" class="w-14 h-14 rounded-2xl object-cover shrink-0 border border-slate-200 shadow-2xs">` 
+                : `<div class="w-14 h-14 rounded-2xl bg-teal-50 text-teal-700 border border-teal-200 flex items-center justify-center shrink-0 font-bold shadow-2xs"><span class="material-symbols-outlined text-2xl">person</span></div>`;
+
             container.innerHTML += `
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-start gap-4 relative group">
-                    ${img}
-                    <div class="flex-1">
-                        <p class="font-bold text-slate-800">${p.nombre}</p>
-                        <p class="text-xs text-slate-500 mt-1 line-clamp-3">${p.descripcion}</p>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all flex items-start justify-between gap-3 relative group">
+                    <div class="flex items-start gap-3.5 min-w-0 flex-1">
+                        ${img}
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-extrabold text-slate-800 text-sm truncate">${escapeHtml(p.nombre)}</h4>
+                                <span class="bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-bold px-2 py-0.2 rounded-full shrink-0">Personal</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">${escapeHtml(p.descripcion || 'Especialista del equipo')}</p>
+                        </div>
                     </div>
-                    <div class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button type="button" onclick="openProfWebModal(${i})" class="w-8 h-8 flex items-center justify-center bg-white rounded shadow text-blue-500 hover:text-blue-700"><span class="material-symbols-outlined text-[16px]">edit</span></button>
-                        <button type="button" onclick="deleteProfWeb(${i})" class="w-8 h-8 flex items-center justify-center bg-white rounded shadow text-red-500 hover:text-red-700"><span class="material-symbols-outlined text-[16px]">delete</span></button>
+                    
+                    <!-- Acciones: Editar y Quitar (-) con botón rojo visible -->
+                    <div class="flex items-center gap-1.5 shrink-0 self-center">
+                        <button type="button" onclick="openProfWebModal(${i})" class="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-teal-50 text-slate-600 hover:text-teal-700 rounded-xl transition-all cursor-pointer" title="Editar presentación">
+                            <span class="material-symbols-outlined text-[17px]">edit</span>
+                        </button>
+                        
+                        <button type="button" onclick="deleteProfWeb(${i})" class="w-8 h-8 flex items-center justify-center bg-red-50 hover:bg-red-600 text-red-600 hover:text-white border border-red-200 hover:border-red-600 rounded-xl transition-all cursor-pointer shadow-2xs" title="Quitar de la web (no elimina la cuenta)">
+                            <span class="material-symbols-outlined text-[17px] font-black">remove</span>
+                        </button>
                     </div>
                 </div>
             `;
@@ -583,29 +694,44 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function syncProfesionalesFromServices(servicesList) {
-        if (!Array.isArray(servicesList) || servicesList.length === 0) return;
         if (!Array.isArray(window.profesionalesWebData)) {
             window.profesionalesWebData = [];
         }
+
         let changed = false;
-        servicesList.forEach(s => {
-            const pName = (s.profesional || '').trim();
-            if (pName && pName !== 'Cualquiera' && !pName.includes('Sin preferencia') && !pName.includes('@')) {
-                const existingIndex = window.profesionalesWebData.findIndex(p => p.nombre && p.nombre.trim().toLowerCase() === pName.toLowerCase());
-                if (existingIndex === -1) {
-                    window.profesionalesWebData.push({
-                        nombre: pName,
-                        descripcion: 'Especialista en servicios del equipo',
-                        foto: s.foto_profesional || ''
-                    });
-                    changed = true;
-                } else if (s.foto_profesional && !window.profesionalesWebData[existingIndex].foto) {
-                    window.profesionalesWebData[existingIndex].foto = s.foto_profesional;
-                    changed = true;
+
+        // 1. Asegurar al Admin / Dueño del negocio si la lista está vacía
+        if (window.profesionalesWebData.length === 0 && window.currentBusinessAdminName) {
+            window.profesionalesWebData.push({
+                nombre: window.currentBusinessAdminName,
+                descripcion: 'Administrador / Profesional del equipo',
+                foto: ''
+            });
+            changed = true;
+        }
+
+        // 2. Sincronizar profesionales con servicios asignados
+        if (Array.isArray(servicesList) && servicesList.length > 0) {
+            servicesList.forEach(s => {
+                const pName = (s.profesional || '').trim();
+                if (pName && pName !== 'Cualquiera' && !pName.includes('Sin preferencia') && !pName.includes('@')) {
+                    const existingIndex = window.profesionalesWebData.findIndex(p => p.nombre && p.nombre.trim().toLowerCase() === pName.toLowerCase());
+                    if (existingIndex === -1) {
+                        window.profesionalesWebData.push({
+                            nombre: pName,
+                            descripcion: 'Especialista en servicios del equipo',
+                            foto: s.foto_profesional || ''
+                        });
+                        changed = true;
+                    } else if (s.foto_profesional && !window.profesionalesWebData[existingIndex].foto) {
+                        window.profesionalesWebData[existingIndex].foto = s.foto_profesional;
+                        changed = true;
+                    }
                 }
-            }
-        });
-        if (changed) {
+            });
+        }
+
+        if (changed || window.profesionalesWebData.length > 0) {
             renderProfesionalesWeb();
         }
     }

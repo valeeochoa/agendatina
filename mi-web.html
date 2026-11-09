@@ -833,27 +833,54 @@
     <!-- Modal para Añadir/Editar Profesionales (Web) -->
     <div id="profWebModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto opacity-0 transition-opacity duration-300">
         <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 my-auto max-h-[90vh] overflow-y-auto border border-slate-100" id="profWebModalContent">
-            <div class="flex justify-between items-center mb-6 pb-3 border-b border-slate-100">
-                <h2 class="text-xl font-black font-display text-slate-800">Detalles del Profesional</h2>
+            <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-100">
+                <div>
+                    <h2 class="text-xl font-black font-display text-slate-800" id="profWebModalTitle">Personal del Equipo</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Perfil visible en la presentación de tu página web</p>
+                </div>
                 <button type="button" onclick="closeProfWebModal()" class="text-slate-400 hover:text-red-500 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"><span class="material-symbols-outlined text-2xl">close</span></button>
             </div>
+
+            <!-- Banner Explicativo: No son cuentas de usuario -->
+            <div class="mb-4 p-3 bg-teal-50/70 border border-teal-200/80 rounded-2xl flex items-start gap-2.5 text-xs text-teal-900 leading-relaxed shadow-2xs">
+                <span class="material-symbols-outlined text-teal-600 text-lg shrink-0 mt-0.5">badge</span>
+                <div>
+                    <span class="font-extrabold">Ficha de presentación web:</span>
+                    <p class="text-[11px] text-teal-800/90 mt-0.5">Este formulario es para mostrar a tu personal ante tus clientes en la web. No crea usuarios con acceso al sistema.</p>
+                </div>
+            </div>
+
+            <!-- Selector Rápido de Profesionales ya registrados en el negocio -->
+            <div id="profWebQuickSelectSection" class="hidden mb-4 p-3 bg-slate-50 border border-slate-200/80 rounded-2xl">
+                <label class="block text-[11px] font-extrabold uppercase tracking-wider text-slate-600 mb-2 flex items-center justify-between">
+                    <span>Elegir del equipo registrado:</span>
+                    <span class="text-primary font-bold text-[10px] lowercase">clic para autocompletar</span>
+                </label>
+                <div id="profWebRegisteredChips" class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1 custom-scrollbar">
+                    <!-- Chips inyectados por JS -->
+                </div>
+            </div>
+
             <form id="profWebForm" class="flex flex-col gap-4">
                 <input type="hidden" id="profWebIndex">
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nombre del Profesional</label>
-                    <input type="text" id="profWebName" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none">
+                    <input type="text" id="profWebName" required placeholder="Ej: Dra. Valentina Ochoa" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-800 font-bold">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Descripción / A qué se dedica</label>
-                    <textarea id="profWebDesc" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none resize-none text-sm" placeholder="Breve descripción de su especialidad y experiencia..."></textarea>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Especialidad / Rol en el negocio</label>
+                    <textarea id="profWebDesc" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none resize-none text-sm text-slate-700" placeholder="Ej: Especialista en Cosmiatría y Estética Integral. Más de 8 años de trayectoria..."></textarea>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Foto de Perfil</label>
-                    <input type="file" id="profWebPhotoFile" accept="image/png, image/jpeg, image/webp" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer">
+                    <input type="file" id="profWebPhotoFile" accept="image/png, image/jpeg, image/webp" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 cursor-pointer">
                     <input type="hidden" id="profWebPhotoBase64">
-                    <input type="url" id="profWebPhoto" placeholder="O pega una URL: https://ejemplo.com/foto.jpg" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 mt-2 focus:ring-2 focus:ring-primary outline-none text-sm">
+                    <input type="url" id="profWebPhoto" placeholder="O pega una URL: https://ejemplo.com/foto.jpg" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 mt-2 focus:ring-2 focus:ring-primary outline-none text-xs text-slate-600">
                 </div>
-                <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold py-3 rounded-xl mt-2 shadow-md shadow-teal-600/20 transition-all cursor-pointer">Guardar Profesional</button>
+                <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-extrabold py-3 rounded-xl mt-2 shadow-md shadow-teal-600/20 transition-all cursor-pointer flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">how_to_reg</span>
+                    <span>Guardar en la Web</span>
+                </button>
             </form>
         </div>
     </div>
