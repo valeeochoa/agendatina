@@ -104,11 +104,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             btnVolverPanel.classList.remove('hidden');
                             btnVolverPanel.style.display = 'inline-flex';
                             
-                            const fromEditor = urlParams.get('from') === 'mi-web' || 
-                                               urlParams.get('from') === 'editor' || 
-                                               (document.referrer && document.referrer.includes('mi-web.html')) ||
-                                               sessionStorage.getItem('agendatina_nav_from') === 'mi-web';
-                            if (fromEditor) {
+                            const isExplicitMiWeb = urlParams.get('from') === 'mi-web' || 
+                                                   urlParams.get('from') === 'editor' || 
+                                                   (document.referrer && document.referrer.includes('mi-web.html'));
+                            if (isExplicitMiWeb) {
                                 btnVolverPanel.href = 'mi-web.html';
                                 btnVolverPanel.title = 'Volver al Editor Web';
                                 const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
@@ -118,6 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 btnVolverPanel.title = 'Volver al Panel';
                                 const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
                                 if (textSpan) textSpan.textContent = 'Volver al panel';
+                                try { sessionStorage.removeItem('agendatina_nav_from'); } catch(e) {}
                             }
                         }
                         if (navAgendatinaBrand) {
