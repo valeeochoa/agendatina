@@ -38,10 +38,11 @@ try {
     try { $pdo->query("SELECT comprobante FROM negocios LIMIT 1"); } 
     catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN comprobante VARCHAR(255) DEFAULT NULL"); }
 
-    // Si se especificó un nuevo plan, actualizarlo también en el negocio
+    // Si se especificó un nuevo plan, actualizarlo también en el negocio y la sesión
     if (!empty($planTarget)) {
         $pdo->prepare("UPDATE negocios SET estado_pago = 'pendiente_revision', comprobante = ?, plan = ? WHERE id = ?")
             ->execute([$urlComprobante, $planTarget, $id_negocio]);
+        $_SESSION['plan'] = $planTarget;
     } else {
         $pdo->prepare("UPDATE negocios SET estado_pago = 'pendiente_revision', comprobante = ? WHERE id = ?")
             ->execute([$urlComprobante, $id_negocio]);

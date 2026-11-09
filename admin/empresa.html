@@ -193,12 +193,16 @@
 
         <!-- Vista Principal con Pestañas -->
         <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 sm:p-8">
-            <div class="flex border-b border-slate-200 mb-6 gap-2">
+            <div class="flex flex-wrap border-b border-slate-200 mb-6 gap-2">
                 <button id="tabBtnComprobantes" onclick="switchTab('comprobantes')" class="px-5 py-3 font-bold text-sm text-[#d11149] border-b-2 border-[#d11149] transition-all flex items-center gap-2">
                     <span class="material-symbols-outlined text-[20px]">receipt_long</span> Comprobantes de Pago
                 </button>
                 <button id="tabBtnEquipo" onclick="switchTab('equipo')" class="px-5 py-3 font-bold text-sm text-slate-400 hover:text-slate-700 transition-all flex items-center gap-2">
                     <span class="material-symbols-outlined text-[20px]">groups</span> Profesionales
+                </button>
+                <button id="tabBtnReportes" onclick="switchTab('reportes')" class="px-5 py-3 font-bold text-sm text-slate-400 hover:text-slate-700 transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px]">support_agent</span> Reportes, Mejoras y Cambios
+                    <span id="badgeCountReportes" class="hidden text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">0</span>
                 </button>
                 <button id="tabBtnNotas" onclick="switchTab('notas')" class="px-5 py-3 font-bold text-sm text-slate-400 hover:text-slate-700 transition-all flex items-center gap-2">
                     <span class="material-symbols-outlined text-[20px]">notes</span> Notas Internas
@@ -275,7 +279,45 @@
                 <div id="equipoList" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
             </div>
 
-            <!-- Tab 3: Notas Internas -->
+            <!-- Tab 3: Reportes, Mejoras y Cambios -->
+            <div id="tabReportes" class="hidden space-y-5">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm">Historial de Reportes, Sugerencias y Solicitudes</h3>
+                        <p class="text-xs text-slate-500">Solicitudes de ampliación de equipo, cambios de plan, tickets de soporte y sugerencias de esta empresa.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="openEditModal()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]">tune</span> Modificar Suscripción
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filtros rápidos por píldora -->
+                <div class="flex flex-wrap items-center gap-2 border-b border-slate-100 pb-2">
+                    <button type="button" onclick="renderReportesEmpresa('todos')" id="filterRepTodos" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-[#d11149] text-white shadow-2xs">
+                        Todos (<span id="countRepTodos">0</span>)
+                    </button>
+                    <button type="button" onclick="renderReportesEmpresa('solicitudes')" id="filterRepSolicitudes" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
+                        Solicitudes y Cambios (<span id="countRepSolicitudes">0</span>)
+                    </button>
+                    <button type="button" onclick="renderReportesEmpresa('mejoras')" id="filterRepMejoras" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
+                        Sugerencias / Mejoras (<span id="countRepMejoras">0</span>)
+                    </button>
+                    <button type="button" onclick="renderReportesEmpresa('errores')" id="filterRepErrores" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
+                        Reportes de Error (<span id="countRepErrores">0</span>)
+                    </button>
+                </div>
+
+                <!-- Lista de Reportes y Solicitudes -->
+                <div id="reportesEmpresaList" class="space-y-3">
+                    <div class="p-8 text-center text-slate-400 text-xs bg-slate-50/60 rounded-2xl border border-dashed border-slate-200">
+                        No hay reportes ni solicitudes registradas para esta empresa.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Notas Internas -->
             <div id="tabNotas" class="hidden space-y-4">
                 <h3 class="font-bold text-slate-800 text-sm mb-1">Notas u Observaciones del Super Admin</h3>
                 <p class="text-xs text-slate-500 mb-3">Estas notas son privadas y solo visibles para el panel de administración.</p>
@@ -290,115 +332,153 @@
     </div>
 </main>
 
-<!-- Modal Editar Suscripción -->
+<!-- Modal Editar Suscripción (Rediseño Amplio y 2 Columnas) -->
 <div id="editClientModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-    <div id="editModalContent" class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 transform scale-95 transition-transform duration-300 max-h-[90vh] overflow-y-auto">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center"><span class="material-symbols-outlined">edit</span></div>
-                Editar Suscripción
+    <div id="editModalContent" class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[92vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+            <h2 class="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center"><span class="material-symbols-outlined text-2xl">edit</span></div>
+                <span>Editar Suscripción y Tarifas</span>
             </h2>
-            <button onclick="closeEditModal()" class="text-slate-400 hover:text-red-500 bg-slate-100 hover:bg-red-50 rounded-full p-1.5 transition-colors">
-                <span class="material-symbols-outlined">close</span>
+            <button onclick="closeEditModal()" class="text-slate-400 hover:text-red-500 bg-slate-100 hover:bg-red-50 rounded-xl p-2 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-xl">close</span>
             </button>
         </div>
 
         <form id="editClientForm" onsubmit="submitEditClient(event)" class="space-y-6">
             <input type="hidden" name="id_negocio" id="edit_id_negocio">
             
-            <div>
-                <label class="block text-sm font-semibold text-slate-600 mb-1.5">Negocio</label>
-                <input type="text" id="edit_nombre_fantasia" disabled class="w-full bg-slate-100 text-slate-500 border border-slate-200 rounded-xl px-4 py-2.5 font-medium cursor-not-allowed">
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Plan Contratado</label>
-                    <select name="plan" id="edit_plan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
-                        <option value="Basico">Básico</option>
-                        <option value="Intermedio">Intermedio</option>
-                        <option value="Completo">Completo</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Límite Profesionales</label>
-                    <input type="number" name="max_profesionales" id="edit_max_profesionales" min="1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
-                </div>
-                <div class="sm:col-span-2">
-                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Estado de Pago</label>
-                    <select name="estado_pago" id="edit_estado_pago" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
-                        <option value="prueba">Prueba (Trial)</option>
-                        <option value="beta">Plan Beta Exclusivo (30 días)</option>
-                        <option value="pendiente_revision">En Revisión (Subió comprobante)</option>
-                        <option value="activo">Activo (Pagado)</option>
-                        <option value="vencido">Impago (Vencido)</option>
-                        <option value="suspendido">Suspendido (Bloqueado)</option>
-                    </select>
-                </div>
-            </div>
-
-                <div class="sm:col-span-2">
-                    <label class="block text-sm font-semibold text-slate-600 mb-1.5">Fecha de Creación / Alta (Para probar avisos "Por Vencer")</label>
-                    <input type="date" name="fecha_alta" id="edit_fecha_alta" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
-                    <p class="text-[11px] text-slate-400 mt-1">Modifica esta fecha para simular días restantes de prueba o vencimiento mensual.</p>
-                </div>
-
-                <!-- SECCIÓN DESCUENTO PERSONALIZADO Y PRECIO PACTADO -->
-                <div class="sm:col-span-2 p-5 bg-gradient-to-br from-purple-50/60 to-indigo-50/40 border border-purple-200/80 rounded-2xl space-y-4">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
-                                <span class="material-symbols-outlined text-[18px]">percent</span>
-                            </div>
-                            <div>
-                                <h4 class="text-sm font-black text-slate-800">Descuento Especial y Precio Congelado</h4>
-                                <p class="text-[11px] text-slate-500">Ajusta el porcentaje de descuento exclusivo para este negocio.</p>
-                            </div>
-                        </div>
-                        <span id="badgeDescuentoDisplay" class="px-3 py-1 bg-purple-600 text-white font-black text-xs rounded-xl shadow-xs">0% OFF</span>
-                    </div>
-
-                    <!-- Indicador Descuento de Plataforma (index.html) -->
-                    <div class="flex items-center justify-between text-xs bg-white/80 p-2.5 rounded-xl border border-purple-100">
-                        <span class="text-slate-600 font-medium">Descuento base según index.html:</span>
-                        <span class="font-extrabold text-slate-800" id="infoDescIndexText">10% global (+5% por prof.)</span>
-                    </div>
-
-                    <!-- Slider / Barra Deslizable de Descuento -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- COLUMNA IZQUIERDA: PLAN Y CUPOS -->
+                <div class="space-y-4">
                     <div>
-                        <div class="flex justify-between items-center text-xs font-bold text-slate-700 mb-1.5">
-                            <span>% Descuento personalizado:</span>
-                            <span id="sliderDescValueText" class="text-purple-700 font-black">0%</span>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Nombre del Negocio</label>
+                        <input type="text" id="edit_nombre_fantasia" disabled class="w-full bg-slate-100 text-slate-500 border border-slate-200 rounded-xl px-4 py-2.5 font-bold text-sm cursor-not-allowed">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Plan Contratado</label>
+                        <select name="plan" id="edit_plan" onchange="updatePricingCalculationFromModal()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-800 text-sm">
+                            <option value="Basico">Plan Básico (Simple)</option>
+                            <option value="Profesional">Plan Profesional (Intermedio)</option>
+                            <option value="Premium">Plan Premium (Completo)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Límite de Profesionales (Cupo)</label>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="adjustProfLimit(-1)" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer text-lg">-</button>
+                            <input type="number" name="max_profesionales" id="edit_max_profesionales" min="1" required class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-center font-black text-slate-800 text-base focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePricingCalculationFromModal()">
+                            <button type="button" onclick="adjustProfLimit(1)" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer text-lg">+</button>
                         </div>
-                        <input type="range" id="edit_descuento_range" min="0" max="100" step="5" value="0" class="w-full accent-purple-600 cursor-pointer h-2 bg-slate-200 rounded-lg" oninput="updatePricingCalculationFromModal()">
-                        <div class="flex justify-between text-[10px] font-bold text-slate-400 mt-1">
-                            <span>0% (Sin descuento)</span>
-                            <span>25%</span>
-                            <span>50%</span>
-                            <span>75%</span>
-                            <span>100% (Bonificado)</span>
+                        <p class="text-[11px] text-slate-400 mt-1 flex items-center justify-between">
+                            <span>Cupo total de profesionales habilitados</span>
+                            <span id="labelProfsActualesUso" class="font-bold text-purple-700"></span>
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Estado de Pago</label>
+                        <select name="estado_pago" id="edit_estado_pago" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-semibold text-slate-800 text-sm">
+                            <option value="prueba">Prueba (Trial)</option>
+                            <option value="beta">Plan Beta Exclusivo (30 días)</option>
+                            <option value="pendiente_revision">En Revisión (Subió comprobante)</option>
+                            <option value="activo">Activo (Pagado)</option>
+                            <option value="vencido">Impago (Vencido)</option>
+                            <option value="suspendido">Suspendido (Bloqueado)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Fecha de Creación / Alta</label>
+                        <input type="date" name="fecha_alta" id="edit_fecha_alta" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-sm">
+                        <p class="text-[11px] text-slate-400 mt-1">Sirve para simular días restantes de prueba o fecha de corte mensual.</p>
+                    </div>
+                </div>
+
+                <!-- COLUMNA DERECHA: DESCUENTO Y PRECIO PACTADO -->
+                <div class="p-5 bg-gradient-to-br from-purple-50/70 via-indigo-50/40 to-slate-50 border border-purple-200 rounded-3xl flex flex-col justify-between space-y-4">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                                    <span class="material-symbols-outlined text-[18px]">percent</span>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-black text-slate-800">Descuento Especial & Tarifa</h4>
+                                    <p class="text-[11px] text-slate-500">Configuración comercial exclusiva</p>
+                                </div>
+                            </div>
+                            <span id="badgeDescuentoDisplay" class="px-3 py-1 bg-purple-600 text-white font-black text-xs rounded-xl shadow-xs">0% OFF</span>
+                        </div>
+
+                        <!-- Aclaración Destacada: Descuento sobre el total -->
+                        <div class="p-3 bg-purple-100/70 border border-purple-200 text-purple-950 rounded-2xl text-xs font-medium leading-relaxed mb-3">
+                            <span class="font-extrabold block text-purple-900 mb-0.5">📌 Alcance del Descuento:</span>
+                            El porcentaje configurado se aplica directamente sobre el <strong>monto total mensual</strong> de la suscripción (incluyendo a todos los profesionales del equipo).
+                        </div>
+
+                        <!-- Indicador Descuento de Plataforma (index.html) -->
+                        <div class="flex items-center justify-between text-xs bg-white/90 p-2.5 rounded-xl border border-purple-100 mb-3 shadow-2xs">
+                            <span class="text-slate-600 font-medium">Descuento base según index.html:</span>
+                            <span class="font-extrabold text-slate-800" id="infoDescIndexText">10% global (+5% por prof.)</span>
+                        </div>
+
+                        <!-- Slider / Barra Deslizable de Descuento -->
+                        <div class="space-y-1.5">
+                            <div class="flex justify-between items-center text-xs font-bold text-slate-700">
+                                <span>% Descuento aplicado al total:</span>
+                                <span id="sliderDescValueText" class="text-purple-700 font-black text-sm">0%</span>
+                            </div>
+                            <input type="range" id="edit_descuento_range" min="0" max="100" step="5" value="0" class="w-full accent-purple-600 cursor-pointer h-2 bg-slate-200 rounded-lg" oninput="updatePricingCalculationFromModal()">
+                            <div class="flex justify-between text-[10px] font-bold text-slate-400">
+                                <span>0% (Sin desc.)</span>
+                                <span>25%</span>
+                                <span>50%</span>
+                                <span>75%</span>
+                                <span>100% (Bonificado)</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Desglose de Cálculo y Precio Pactado -->
-                    <div class="pt-3 border-t border-purple-200/60 grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
-                        <div>
-                            <span class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Precio Sugerido Calculado:</span>
-                            <span id="precioCalculadoSugerido" class="text-base font-black text-slate-800">$0 / mes</span>
+                    <!-- Tarjeta de Desglose de Precios (Unitario por profesional + Total sugerido) -->
+                    <div class="bg-white/95 p-4 rounded-2xl border border-purple-200 shadow-xs space-y-2.5">
+                        <div class="flex items-center justify-between text-xs border-b border-slate-100 pb-2">
+                            <span class="text-slate-500 font-bold uppercase tracking-wider text-[11px]">Valor por cada profesional:</span>
+                            <span id="precioUnitarioDescText" class="font-black text-sm text-purple-700">$0 / mes por prof.</span>
                         </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-purple-900 uppercase tracking-wider mb-1">Precio Final Pactado ($/mes):</label>
-                            <input type="number" id="edit_precio_pactado" step="1" min="0" class="w-full bg-white border border-purple-300 rounded-xl px-3 py-2 text-sm font-black text-purple-900 focus:ring-2 focus:ring-purple-500 outline-none">
+                        <div class="flex items-center justify-between text-xs border-b border-slate-100 pb-2">
+                            <span class="text-slate-500 font-bold uppercase tracking-wider text-[11px]">Cantidad de profesionales:</span>
+                            <span id="cantProfsDescText" class="font-black text-xs text-slate-800">1 prof.</span>
+                        </div>
+                        <div class="flex items-center justify-between pt-1">
+                            <span class="text-slate-600 font-extrabold uppercase tracking-wider text-[11px]">Total Mensual Sugerido:</span>
+                            <span id="precioCalculadoSugerido" class="text-base font-black text-slate-900">$0 / mes</span>
                         </div>
                     </div>
+
+                    <!-- Precio Final Pactado Editable -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-xs font-black text-purple-900 uppercase tracking-wider">Precio Final Pactado ($/mes):</label>
+                            <button type="button" onclick="applySuggestedPriceToInput()" class="text-[11px] font-bold text-purple-700 hover:text-purple-900 underline cursor-pointer">Usar valor sugerido</button>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute left-3.5 top-2.5 text-slate-400 font-bold text-sm">$</span>
+                            <input type="number" id="edit_precio_pactado" step="1" min="0" class="w-full bg-white border border-purple-300 rounded-xl pl-8 pr-4 py-2.5 text-sm font-black text-purple-950 focus:ring-2 focus:ring-purple-500 outline-none shadow-xs">
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">Este monto fijo se congelará y será el valor exacto a pagar en <span class="font-mono text-slate-600">pago.html</span>.</p>
+                    </div>
                 </div>
+            </div>
 
             <div id="editFormMessage" class="hidden p-4 rounded-xl text-sm font-medium text-center"></div>
 
             <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                <button type="button" onclick="closeEditModal()" class="px-6 py-3 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancelar</button>
-                <button type="submit" id="btnEditSubmit" class="px-6 py-3 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-0.5 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[20px]">save</span> Guardar
+                <button type="button" onclick="closeEditModal()" class="px-6 py-3 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer text-sm">Cancelar</button>
+                <button type="submit" id="btnEditSubmit" class="px-6 py-3 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-0.5 flex items-center gap-2 cursor-pointer text-sm">
+                    <span class="material-symbols-outlined text-[20px]">save</span> Guardar Cambios
                 </button>
             </div>
         </form>
@@ -530,6 +610,26 @@ function loadEmpresaData() {
                 renderComprobantes(client.comprobantes);
             }
             fetchComprobantesEmpresa();
+
+            // Filtrar y renderizar reportes, sugerencias y solicitudes de esta empresa
+            const allNotifs = data.notificaciones || [];
+            window.empresaNotifs = allNotifs.filter(n => {
+                const idMatch = (n.id_negocio && String(n.id_negocio) === String(currentEmpresaId));
+                const nameMatch = (client.nombre_fantasia && n.nombre_negocio && n.nombre_negocio.trim().toLowerCase() === client.nombre_fantasia.trim().toLowerCase());
+                const emailMatch = (client.email && n.email_usuario && n.email_usuario.trim().toLowerCase() === client.email.trim().toLowerCase());
+                return idMatch || nameMatch || emailMatch;
+            });
+
+            const badgeRep = document.getElementById('badgeCountReportes');
+            if (badgeRep) {
+                if (window.empresaNotifs.length > 0) {
+                    badgeRep.textContent = window.empresaNotifs.length;
+                    badgeRep.classList.remove('hidden');
+                } else {
+                    badgeRep.classList.add('hidden');
+                }
+            }
+            renderReportesEmpresa('todos');
         })
         .catch(err => {
             console.error(err);
@@ -747,16 +847,18 @@ function renderEmpresaDetails(client) {
 }
 
 function switchTab(tab) {
-    const tabs = ['comprobantes', 'equipo', 'notas'];
+    const tabs = ['comprobantes', 'equipo', 'reportes', 'notas'];
     tabs.forEach(t => {
         const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
         const panel = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
-        if (t === tab) {
-            btn.className = 'px-5 py-3 font-bold text-sm text-[#d11149] border-b-2 border-[#d11149] transition-all flex items-center gap-2';
-            panel.classList.remove('hidden');
-        } else {
-            btn.className = 'px-5 py-3 font-bold text-sm text-slate-400 hover:text-slate-700 transition-all flex items-center gap-2';
-            panel.classList.add('hidden');
+        if (btn && panel) {
+            if (t === tab) {
+                btn.className = 'px-5 py-3 font-bold text-sm text-[#d11149] border-b-2 border-[#d11149] transition-all flex items-center gap-2';
+                panel.classList.remove('hidden');
+            } else {
+                btn.className = 'px-5 py-3 font-bold text-sm text-slate-400 hover:text-slate-700 transition-all flex items-center gap-2';
+                panel.classList.add('hidden');
+            }
         }
     });
 }
@@ -1001,6 +1103,24 @@ function saveNotaInterna() {
 }
 
 // --- Modales para Editar Suscripción y Editar Datos ---
+let _lastTotalSugerido = 0;
+
+function adjustProfLimit(delta) {
+    const input = document.getElementById('edit_max_profesionales');
+    if (!input) return;
+    let val = Math.max(1, (parseInt(input.value) || 1) + delta);
+    input.value = val;
+    updatePricingCalculationFromModal();
+}
+
+function applySuggestedPriceToInput() {
+    const pactadoInput = document.getElementById('edit_precio_pactado');
+    if (pactadoInput && _lastTotalSugerido > 0) {
+        pactadoInput.value = _lastTotalSugerido;
+        pactadoInput.dataset.userModified = 'true';
+    }
+}
+
 function updatePricingCalculationFromModal() {
     const planVal = (document.getElementById('edit_plan')?.value || 'Basico').toLowerCase();
     const profs = Math.max(1, parseInt(document.getElementById('edit_max_profesionales')?.value || 1));
@@ -1011,7 +1131,7 @@ function updatePricingCalculationFromModal() {
     if (sliderText) sliderText.textContent = `${rangeVal}%`;
     if (badgeText) badgeText.textContent = `${rangeVal}% OFF`;
 
-    // Obtener precios base
+    // Obtener precios base de lista por profesional
     let basePrice = 8889;
     if (planVal.includes('intermedio') || planVal.includes('profesional')) basePrice = 11111;
     if (planVal.includes('completo') || planVal.includes('premium')) basePrice = 16667;
@@ -1024,10 +1144,21 @@ function updatePricingCalculationFromModal() {
         indexDescText.textContent = `${globalDisc}% base + ${teamDiscIndex}% por ${profs} prof.`;
     }
 
-    // Precio sugerido con el descuento seleccionado en el slider
+    // Precio sugerido con el descuento seleccionado en el slider (aplicado al total mensual)
     const finalPct = Math.max(0, Math.min(100, rangeVal));
     const precioUnitario = Math.round(basePrice * (100 - finalPct) / 100);
     const totalSugerido = precioUnitario * profs;
+    _lastTotalSugerido = totalSugerido;
+
+    const unitarioEl = document.getElementById('precioUnitarioDescText');
+    if (unitarioEl) {
+        unitarioEl.textContent = `$${precioUnitario.toLocaleString('es-AR')} / mes por prof.`;
+    }
+
+    const cantEl = document.getElementById('cantProfsDescText');
+    if (cantEl) {
+        cantEl.textContent = `${profs} profesional${profs > 1 ? 'es' : ''}`;
+    }
 
     const sugeridoEl = document.getElementById('precioCalculadoSugerido');
     if (sugeridoEl) {
@@ -1050,6 +1181,12 @@ function openEditModal() {
     const faInput = document.getElementById('edit_fecha_alta');
     if (faInput) {
         faInput.value = currentEmpresaData.fecha_alta ? String(currentEmpresaData.fecha_alta).substring(0, 10) : '';
+    }
+
+    const profsUsoEl = document.getElementById('labelProfsActualesUso');
+    if (profsUsoEl) {
+        const teamCount = (currentEmpresaData.integrantes && currentEmpresaData.integrantes.length) || (currentEmpresaData.profesionales_count || 1);
+        profsUsoEl.textContent = `(${teamCount} en uso actual)`;
     }
 
     // Inicializar barra de descuento y precio pactado
@@ -1114,6 +1251,128 @@ function submitEditClient(e) {
     })
     .catch(() => alert('Error de conexión'))
     .finally(() => { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">save</span> Guardar'; });
+}
+
+function renderReportesEmpresa(filter = 'todos') {
+    const container = document.getElementById('reportesEmpresaList');
+    if (!container) return;
+
+    const notifs = window.empresaNotifs || [];
+
+    // Helper de clasificación semántica
+    const classify = (item) => {
+        const t = (item.tipo || '').toLowerCase();
+        const seg = (item.segmento || '').toLowerCase();
+        const msg = (item.mensaje || '').toLowerCase();
+
+        if (t.includes('solicitud') || t.includes('cambio') || seg.includes('ampliaci') || seg.includes('plan') || seg.includes('profesional') || msg.includes('ampliar el cupo') || msg.includes('cambió a un plan') || msg.includes('actualizó su plan')) {
+            return 'solicitud';
+        }
+        if (t.includes('sugerencia') || t.includes('mejora') || seg.includes('sugerencia') || seg.includes('mejora')) {
+            return 'mejora';
+        }
+        return 'error';
+    };
+
+    let countTodos = notifs.length;
+    let countSolicitudes = 0;
+    let countMejoras = 0;
+    let countErrores = 0;
+
+    notifs.forEach(n => {
+        const cat = classify(n);
+        if (cat === 'solicitud') countSolicitudes++;
+        else if (cat === 'mejora') countMejoras++;
+        else countErrores++;
+    });
+
+    if (document.getElementById('countRepTodos')) document.getElementById('countRepTodos').textContent = countTodos;
+    if (document.getElementById('countRepSolicitudes')) document.getElementById('countRepSolicitudes').textContent = countSolicitudes;
+    if (document.getElementById('countRepMejoras')) document.getElementById('countRepMejoras').textContent = countMejoras;
+    if (document.getElementById('countRepErrores')) document.getElementById('countRepErrores').textContent = countErrores;
+
+    // Actualizar estilos de las píldoras de filtro
+    const pills = ['todos', 'solicitudes', 'mejoras', 'errores'];
+    pills.forEach(p => {
+        const btn = document.getElementById('filterRep' + p.charAt(0).toUpperCase() + p.slice(1));
+        if (btn) {
+            if (p === filter) {
+                btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-[#d11149] text-white shadow-2xs';
+            } else {
+                btn.className = 'px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer';
+            }
+        }
+    });
+
+    const filtered = notifs.filter(n => {
+        if (filter === 'todos') return true;
+        if (filter === 'solicitudes') return classify(n) === 'solicitud';
+        if (filter === 'mejoras') return classify(n) === 'mejora';
+        if (filter === 'errores') return classify(n) === 'error';
+        return true;
+    });
+
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="p-8 text-center text-slate-400 text-xs bg-slate-50/60 rounded-2xl border border-dashed border-slate-200 flex flex-col items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-3xl text-slate-300">inbox</span>
+                <span>No hay registros en esta categoría para esta empresa.</span>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    filtered.forEach(item => {
+        const cat = classify(item);
+        let badgeHtml = '';
+        let borderClass = 'border-slate-200';
+        let isAmpliacion = false;
+
+        if (cat === 'solicitud') {
+            badgeHtml = '<span class="inline-flex items-center gap-1 text-[11px] font-black uppercase px-2.5 py-1 rounded-xl bg-purple-100 text-purple-800 border border-purple-200"><span class="material-symbols-outlined text-[14px]">tune</span> Solicitud Comercial / Plan</span>';
+            borderClass = 'border-purple-200/90 bg-purple-50/20';
+            isAmpliacion = true;
+        } else if (cat === 'mejora') {
+            badgeHtml = '<span class="inline-flex items-center gap-1 text-[11px] font-black uppercase px-2.5 py-1 rounded-xl bg-amber-100 text-amber-900 border border-amber-200"><span class="material-symbols-outlined text-[14px]">lightbulb</span> Sugerencia / Mejora</span>';
+            borderClass = 'border-amber-200/80 bg-amber-50/20';
+        } else {
+            badgeHtml = '<span class="inline-flex items-center gap-1 text-[11px] font-black uppercase px-2.5 py-1 rounded-xl bg-rose-100 text-rose-800 border border-rose-200"><span class="material-symbols-outlined text-[14px]">bug_report</span> Reporte de Error</span>';
+            borderClass = 'border-rose-200/80 bg-rose-50/20';
+        }
+
+        let fechaStr = item.fecha || 'Reciente';
+        try {
+            fechaStr = new Date(String(item.fecha).replace(/-/g, '/')).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        } catch(e) {}
+
+        const userStr = (item.nombre_usuario || item.email_usuario) ? `${item.nombre_usuario || ''} (${item.email_usuario || ''})` : 'Usuario';
+
+        html += `
+            <div class="p-4 rounded-2xl border ${borderClass} shadow-2xs hover:shadow-xs transition-all space-y-3 bg-white">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                    <div class="flex flex-wrap items-center gap-2">
+                        ${badgeHtml}
+                        <span class="text-xs font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200">${escapeHtml(item.segmento || 'General')}</span>
+                    </div>
+                    <span class="text-[11px] font-bold text-slate-400 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">schedule</span> ${fechaStr}
+                    </span>
+                </div>
+                <p class="text-xs sm:text-sm text-slate-800 leading-relaxed font-medium whitespace-pre-wrap">${escapeHtml(item.mensaje || '')}</p>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1 border-t border-slate-100 text-[11px] text-slate-500">
+                    <span>Enviado por: <strong>${escapeHtml(userStr)}</strong> [${escapeHtml(item.rol_usuario || 'admin')}]</span>
+                    ${isAmpliacion ? `
+                        <button type="button" onclick="openEditModal()" class="inline-flex items-center gap-1 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs shadow-2xs transition-all cursor-pointer">
+                            <span class="material-symbols-outlined text-[15px]">tune</span> Abrir Editar Suscripción
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
 }
 
 let editRutaTimeout = null;

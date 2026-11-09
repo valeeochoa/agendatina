@@ -1,4 +1,6 @@
 <?php
+ob_start();
+ini_set('display_errors', 0);
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
@@ -387,8 +389,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         $config['profesionales_json'] = json_encode($profs_array);
 
+        if (ob_get_length()) ob_clean();
         echo json_encode($config);
-
     } catch (Exception $e) {
         // Fallback resiliente para no romper el panel del usuario
         $fallbackConfig = [
@@ -399,6 +401,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             'tipo_calendario' => 'clasico',
             'error_warning' => $e->getMessage()
         ];
+        if (ob_get_length()) ob_clean();
         echo json_encode($fallbackConfig);
     }
     exit;
@@ -408,7 +411,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Solo permitir si el administrador está logueado en su negocio
     if (!isset($_SESSION['id_negocio'])) {
-        http_response_code(403);
+        if (ob_get_length()) ob_clean();
         echo json_encode(['success' => false, 'error' => 'No autorizado. Inicia sesión.']);
         exit;
     }
@@ -595,14 +598,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $response = ['success' => true];
         if ($url_logo) $response['logoUrl'] = $url_logo;
         if ($url_fondo) $response['fondoUrl'] = $url_fondo;
+        if (ob_get_length()) ob_clean();
         echo json_encode($response);
     } catch (PDOException $e) {
-        http_response_code(500);
+        if (ob_get_length()) ob_clean();
         echo json_encode(['success' => false, 'error' => 'Error al guardar la configuración: ' . $e->getMessage()]);
     }
     exit;
 }
 
-http_response_code(405);
+if (ob_get_length()) ob_clean();
 echo json_encode(['success' => false, 'error' => 'Método no permitido.']);
 ?>

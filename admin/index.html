@@ -2562,12 +2562,13 @@ function renderAdminReports(notificaciones) {
     
     window.allAdminReports = notificaciones || [];
 
-    // Filtrar estrictamente solo reportes de error (excluir mejoras, sugerencias y avisos)
+    // Filtrar estrictamente solo reportes de error (excluir mejoras, sugerencias y solicitudes comerciales)
     const filteredNotifs = window.allAdminReports.filter(n => {
         const seg = (n.segmento || n.modulo || '').toLowerCase();
         const tipo = (n.tipo || '').toLowerCase();
         const isMejora = seg.startsWith('mejora') || seg.startsWith('sugerencia') || tipo.includes('mejora') || tipo.includes('sugerencia');
-        return !isMejora;
+        const isSolicitud = tipo.includes('solicitud') || tipo.includes('cambio') || seg.includes('ampliaci') || seg.includes('plan');
+        return !isMejora && !isSolicitud;
     });
 
     const pendingNotifs = filteredNotifs.filter(n => (n.estado || 'pendiente') === 'pendiente');

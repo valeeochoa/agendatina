@@ -635,6 +635,7 @@
             btns.forEach(b => { b.disabled = true; b.textContent = 'Enviando solicitud...'; });
 
             const formData = new FormData();
+            formData.append('action', 'solicitud_ampliacion');
             formData.append('segmento', 'Solicitud Ampliación de Plan (Profesionales)');
             formData.append('mensaje', `El negocio solicita ampliar el cupo de profesionales (Límite actual: ${currentLimit}, Cuentas en uso: ${teamList.length}).`);
 

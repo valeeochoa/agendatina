@@ -1,4 +1,6 @@
 <?php
+ob_start();
+ini_set('display_errors', 0);
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/conexion.php';
@@ -43,11 +45,12 @@ if (empty($planNormalizado)) {
 
 try {
     // Obtener datos actuales del negocio
-    $stmtN = $pdo->prepare("SELECT nombre_fantasia, plan, estado_pago, fecha_alta, max_profesionales, cant_profesionales, descuento_aplicado_pct FROM negocios WHERE id = ?");
+    $stmtN = $pdo->prepare("SELECT nombre_fantasia, plan, estado_pago, fecha_alta, max_profesionales, descuento_aplicado_pct FROM negocios WHERE id = ?");
     $stmtN->execute([$id_negocio]);
     $business = $stmtN->fetch(PDO::FETCH_ASSOC);
 
     if (!$business) {
+        if (ob_get_length()) ob_clean();
         echo json_encode(['success' => false, 'error' => 'Negocio no encontrado.']);
         exit;
     }
@@ -104,7 +107,7 @@ try {
             }
 
             $precioUno = round($rawBase * (100 - $discPct) / 100);
-            $profCount = max(1, (int)($business['max_profesionales'] ?? $business['cant_profesionales'] ?? 1));
+            $profCount = max(1, (int)($business['max_profesionales'] ?? 1));
             if ($profCount === 1) {
                 $nuevoPrecioPactado = $precioUno;
             } else {
@@ -119,6 +122,9 @@ try {
 
     $stmtUp = $pdo->prepare("UPDATE negocios SET plan = ?, precio_pactado = ? WHERE id = ?");
     $stmtUp->execute([$planNormalizado, $nuevoPrecioPactado, $id_negocio]);
+
+    // Actualizar también la sesión del usuario activo
+    $_SESSION['plan'] = $planNormalizado;
 
     // Notificar al SuperAdmin
     try {
@@ -141,6 +147,7 @@ try {
         ? "¡Plan actualizado exitosamente al Plan {$nombrePlanDisplay}! El nuevo valor mensual regirá para tu próximo ciclo de facturación."
         : "¡Plan actualizado exitosamente al Plan {$nombrePlanDisplay}!";
 
+    if (ob_get_length()) ob_clean();
     echo json_encode([
         'success' => true, 
         'message' => $msgSuccess,
@@ -148,6 +155,7 @@ try {
         'is_downgrade' => $isDowngrade
     ]);
 } catch (Exception $e) {
+    if (ob_get_length()) ob_clean();
     echo json_encode(['success' => false, 'error' => 'Error en base de datos: ' . $e->getMessage()]);
 }
 ?>

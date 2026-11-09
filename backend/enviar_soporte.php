@@ -1,4 +1,6 @@
 <?php
+ob_start();
+ini_set('display_errors', 0);
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception as PHPMailerException;
 
@@ -70,7 +72,17 @@ if ($action === 'responder_cliente' || !empty($_POST['id_reporte'])) {
 }
 
 // Determinar el tipo exacto según el formulario que envió la solicitud
-if ($action === 'report_error') {
+$isAmpliacion = ($action === 'solicitud_ampliacion') || 
+                (stripos($segmento, 'ampliación') !== false) || 
+                (stripos($segmento, 'ampliacion') !== false) || 
+                (stripos($segmento, 'profesionales') !== false) ||
+                (stripos($mensaje, 'ampliar el cupo') !== false);
+
+if ($isAmpliacion) {
+    $tipoReporte = 'Solicitud / Cambio';
+    $prefixNotif = 'Solicitud de Ampliación: ';
+    $subjectPrefix = '[Agendatina] SOLICITUD DE AMPLIACIÓN DE PLAN';
+} elseif ($action === 'report_error') {
     $tipoReporte = 'Reporte de Error';
     $prefixNotif = 'Reporte de Error: ';
     $subjectPrefix = '[Agendatina] REPORTE DE ERROR';

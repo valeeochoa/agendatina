@@ -414,13 +414,18 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            fetch('backend/perfil.php').then(r=>r.json()).then(data => {
-                if (!data || !data.success || !data.user) {
-                    const errReason = (data && data.error) ? data.error : 'Sin respuesta válida de sesión en perfil.php';
-                    console.error('⚠️ [Error de Carga - Perfil] No se pudo recuperar la información del perfil. Motivo:', errReason);
-                    window.location.href = 'login.html';
-                    return;
-                }
+            fetch('backend/perfil.php')
+                .then(async r => {
+                    const raw = await r.text();
+                    try { return JSON.parse(raw); } catch(e) { return null; }
+                })
+                .then(data => {
+                    if (!data || !data.success || !data.user) {
+                        const errReason = (data && data.error) ? data.error : 'Sesión expirada o no iniciada';
+                        console.warn('⚠️ [Sesión Perfil] Redirigiendo a login:', errReason);
+                        window.location.href = 'login.html';
+                        return;
+                    }
                 let isStaff = false;
                 let isProf = false;
                 if(data.user) {
@@ -649,9 +654,14 @@
                 }
             });
             
-            // Cargar datos de diseño (Web Config)
-            fetch('backend/guardar_web.php').then(r=>r.json()).then(data => {
-                if (data && !data.error) {
+            // Cargar datos de diseño (Web Config) de forma resiliente
+            fetch('backend/guardar_web.php')
+                .then(async r => {
+                    const raw = await r.text();
+                    try { return JSON.parse(raw); } catch(e) { return null; }
+                })
+                .then(data => {
+                    if (data && !data.error) {
                     document.getElementById('perfilColor1').value = data.color_primario || '#D11149';
                     document.getElementById('perfilColor2').value = data.color_secundario || '#FC8712';
                     const logoUrl = data.logo || data.url_logo;

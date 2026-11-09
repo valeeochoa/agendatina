@@ -1856,7 +1856,10 @@ window.getCleanInitials = function(name) {
 
 function loadCustomization() {
     fetch('backend/guardar_web.php')
-        .then(res => res.json())
+        .then(async res => {
+            const raw = await res.text();
+            try { return JSON.parse(raw); } catch(e) { return null; }
+        })
         .then(data => {
             if (data && !data.error) {
                 currentWebData = data;

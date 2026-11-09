@@ -501,7 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     loadRegisteredTeamForWeb();
 
-    window.openProfWebModal = function(index = -1) {
+    window.openProfWebModal = async function(index = -1) {
         if (profWebForm) profWebForm.reset();
         document.getElementById('profWebIndex').value = index;
 
@@ -523,6 +523,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('profWebDesc').value = 'Especialista en atención y servicios del equipo.';
             }
 
+            if (!Array.isArray(window.registeredTeamList) || window.registeredTeamList.length === 0) {
+                await loadRegisteredTeamForWeb();
+            }
+
             // Filtrar profesionales del negocio que NO se hayan añadido aún a la web
             const alreadyAddedNames = (window.profesionalesWebData || []).map(p => (p.nombre || '').trim().toLowerCase());
             const availableProfs = (window.registeredTeamList || []).filter(p => {
@@ -531,30 +535,66 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (quickSec && chipsContainer) {
+                chipsContainer.innerHTML = '';
                 if (availableProfs.length > 0) {
-                    chipsContainer.innerHTML = '';
                     availableProfs.forEach(p => {
                         const pName = p.nombre_completo || p.nombre;
                         const isAdminRole = (p.rol_en_local === 'admin');
-                        const chip = document.createElement('button');
-                        chip.type = 'button';
-                        chip.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-teal-50 border border-slate-200 hover:border-teal-300 rounded-xl text-xs font-bold text-slate-700 hover:text-teal-700 transition-all cursor-pointer shadow-2xs hover:scale-[1.02] active:scale-95';
-                        chip.innerHTML = `
-                            <span class="material-symbols-outlined text-[15px] ${isAdminRole ? 'text-primary' : 'text-teal-600'}">${isAdminRole ? 'shield_person' : 'person'}</span>
-                            <span>${escapeHtml(pName)}</span>
-                            ${isAdminRole ? '<span class="text-[9px] uppercase px-1.5 py-0.2 bg-rose-100 text-rose-700 rounded font-black">Admin</span>' : ''}
+                        
+                        const itemCard = document.createElement('div');
+                        itemCard.className = 'flex items-center justify-between gap-3 p-2.5 bg-white rounded-xl border border-slate-200/90 shadow-2xs hover:border-slate-300 transition-all';
+                        itemCard.innerHTML = `
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-8 h-8 rounded-lg ${isAdminRole ? 'bg-rose-50 text-primary border border-rose-200' : 'bg-teal-50 text-teal-700 border border-teal-200'} flex items-center justify-center shrink-0">
+                                    <span class="material-symbols-outlined text-[17px]">${isAdminRole ? 'shield_person' : 'person'}</span>
+                                </div>
+                                <div class="min-w-0 truncate">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="font-extrabold text-xs text-slate-800 truncate">${escapeHtml(pName)}</span>
+                                        ${isAdminRole ? '<span class="text-[9px] uppercase px-1.5 py-0.2 bg-rose-100 text-rose-700 rounded font-black shrink-0">Admin</span>' : '<span class="text-[9px] uppercase px-1.5 py-0.2 bg-slate-100 text-slate-600 rounded font-bold shrink-0">Equipo</span>'}
+                                    </div>
+                                    <span class="text-[11px] text-slate-400 block truncate">${escapeHtml(p.email || 'Integrante del negocio')}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <button type="button" class="btn-quick-autofill text-[11px] font-bold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition-all cursor-pointer">
+                                    Autocompletar
+                                </button>
+                                <button type="button" class="btn-quick-add text-[11px] font-extrabold text-white bg-teal-600 hover:bg-teal-700 px-2.5 py-1.5 rounded-lg shadow-2xs transition-all cursor-pointer flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px]">add</span> Añadir directo
+                                </button>
+                            </div>
                         `;
-                        chip.onclick = () => {
+
+                        itemCard.querySelector('.btn-quick-autofill').onclick = () => {
                             document.getElementById('profWebName').value = pName;
                             if (p.descripcion) document.getElementById('profWebDesc').value = p.descripcion;
                             if (p.foto) document.getElementById('profWebPhoto').value = p.foto;
-                            if (typeof showToast === 'function') showToast(`Datos de ${pName} autocompletados`, 'info');
+                            if (typeof showToast === 'function') showToast(`Datos de ${pName} autocompletados en el formulario`, 'info');
                         };
-                        chipsContainer.appendChild(chip);
+
+                        itemCard.querySelector('.btn-quick-add').onclick = () => {
+                            window.profesionalesWebData.push({
+                                nombre: pName,
+                                descripcion: isAdminRole ? 'Administrador / Profesional del equipo' : 'Especialista en servicios del equipo',
+                                foto: p.foto || ''
+                            });
+                            renderProfesionalesWeb();
+                            closeProfWebModal();
+                            if (typeof showToast === 'function') showToast(`${pName} añadido a la web`, 'success');
+                        };
+
+                        chipsContainer.appendChild(itemCard);
                     });
                     quickSec.classList.remove('hidden');
                 } else {
-                    quickSec.classList.add('hidden');
+                    chipsContainer.innerHTML = `
+                        <div class="p-3 bg-emerald-50/70 border border-emerald-200 text-emerald-800 rounded-xl text-xs flex items-center gap-2">
+                            <span class="material-symbols-outlined text-emerald-600 text-base">check_circle</span>
+                            <span>Todos los integrantes cargados en tu negocio ya se encuentran visibles en la web.</span>
+                        </div>
+                    `;
+                    quickSec.classList.remove('hidden');
                 }
             }
         }
@@ -1121,7 +1161,13 @@ window.applySuggestedWebPalette = function(primario, secundario, fondo, paletteK
     }
 
     if (typeof showToast === 'function') {
-        showToast('Paleta aplicada. Recuerda hacer clic en "Guardar Cambios" para publicarla.', 'success');
+        if (!window._paletteToastActive) {
+            window._paletteToastActive = true;
+            showToast('Paleta aplicada. Recuerda hacer clic en "Guardar Cambios" para publicarla.', 'success');
+            setTimeout(() => {
+                window._paletteToastActive = false;
+            }, 3200);
+        }
     }
 };
 

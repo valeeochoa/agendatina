@@ -1,4 +1,6 @@
 <?php
+ob_start();
+ini_set('display_errors', 0);
 try {
     require_once __DIR__ . '/conexion.php';
     header('Content-Type: application/json; charset=utf-8');
@@ -65,6 +67,7 @@ try {
 
     if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_negocio'])) {
         session_write_close();
+        if (ob_get_length()) ob_clean();
         echo json_encode(['success' => false, 'error' => 'No autorizado. Inicia sesión.']);
         exit;
     }
@@ -316,6 +319,7 @@ try {
         } catch(Throwable $eNotif) {}
 
         session_write_close();
+        if (ob_get_length()) ob_clean();
         echo json_encode(['success' => true, 'user' => $user, 'business' => $business, 'config' => $config, 'notificaciones' => $notificaciones]);
         exit;
     }
@@ -437,6 +441,7 @@ try {
     error_log("Error en perfil.php: " . $t->getMessage());
     @session_write_close();
     header('Content-Type: application/json; charset=utf-8');
+    if (ob_get_length()) ob_clean();
     echo json_encode(['success' => false, 'error' => 'No se pudo procesar la solicitud del perfil debido a un error interno.']);
     exit;
 }
