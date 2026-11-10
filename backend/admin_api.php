@@ -1,4 +1,6 @@
 <?php
+ob_start();
+ini_set('display_errors', 0);
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
@@ -18,7 +20,7 @@ if (isset($_SESSION['is_demo'])) {
 // BARRERA DE SEGURIDAD: Bloquea el acceso si no es el administrador
 // =========================================================================
 if ((!isset($_SESSION['is_superadmin']) || $_SESSION['is_superadmin'] !== true) && (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true)) {
-    http_response_code(403);
+    if (ob_get_length()) ob_clean();
     echo json_encode(['success' => false, 'error' => 'Acceso denegado. Inicia sesión como Super Admin.']);
     exit;
 }
@@ -598,6 +600,7 @@ if ($method === 'GET') {
         $stmtCodigos = $pdo->query("SELECT * FROM codigos_descuento ORDER BY fecha_creacion DESC");
         $codigos_descuento = $stmtCodigos ? $stmtCodigos->fetchAll(PDO::FETCH_ASSOC) : [];
 
+        if (ob_get_length()) ob_clean();
         echo json_encode([
             'success' => true, 
             'data' => $negocios, 
@@ -608,6 +611,7 @@ if ($method === 'GET') {
             'codigos_descuento' => $codigos_descuento
         ]);
     } catch (PDOException $e) {
+        if (ob_get_length()) ob_clean();
         echo json_encode(['success' => false, 'error' => 'Error BD: ' . $e->getMessage()]);
     }
 } 
@@ -1158,7 +1162,7 @@ elseif ($method === 'DELETE') {
         echo json_encode(['success' => false, 'error' => 'Error al mover el negocio a la papelera: ' . $e->getMessage()]);
     }
 } else {
-    http_response_code(405);
+    if (ob_get_length()) ob_clean();
     echo json_encode(['success' => false, 'error' => 'Método HTTP no permitido.']);
 }
 ?>

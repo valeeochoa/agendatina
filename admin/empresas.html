@@ -202,7 +202,10 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             fetch('../backend/admin_auth.php?t=' + Date.now())
-                .then(r => r.json())
+                .then(async r => {
+                    const raw = await r.text();
+                    try { return JSON.parse(raw); } catch(e) { return null; }
+                })
                 .then(d => {
                     if (d && d.logged_in === false) {
                         window.location.href = 'login.html';
@@ -377,7 +380,15 @@
 
         function loadEmpresas() {
             fetch('../backend/admin_api.php?t=' + Date.now())
-                .then(res => res.json())
+                .then(async res => {
+                    const raw = await res.text();
+                    try {
+                        return JSON.parse(raw);
+                    } catch(e) {
+                        console.error('Respuesta no JSON de admin_api.php:', raw);
+                        return { success: false, error: 'Respuesta inválida del servidor' };
+                    }
+                })
                 .then(data => {
                     if (data && data.error && !data.success && (data.error.includes('Acceso denegado') || data.error.includes('Super Admin'))) {
                         window.location.href = 'login.html';

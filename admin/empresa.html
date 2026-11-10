@@ -591,8 +591,16 @@ function loadEmpresaData() {
     }
 
     fetch('../backend/admin_api.php?t=' + Date.now())
-        .then(res => res.json())
+        .then(async res => {
+            const raw = await res.text();
+            try { return JSON.parse(raw); } catch(e) { return null; }
+        })
         .then(data => {
+            if (!data) { showNotFound(); return; }
+            if (data && data.error && !data.success && (data.error.includes('Acceso denegado') || data.error.includes('Super Admin'))) {
+                window.location.href = 'login.html';
+                return;
+            }
             const list = data.data || data.negocios || [];
             if (!data.success || !Array.isArray(list)) {
                 showNotFound();
