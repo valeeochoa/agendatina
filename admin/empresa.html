@@ -201,8 +201,12 @@
                     <span class="material-symbols-outlined text-[20px]">groups</span> Profesionales
                 </button>
                 <button id="tabBtnReportes" onclick="switchTab('reportes')" class="px-5 py-3 font-bold text-sm text-slate-400 hover:text-slate-700 transition-all flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[20px]">support_agent</span> Reportes, Mejoras y Cambios
+                    <span class="material-symbols-outlined text-[20px]">support_agent</span> Reportes y Solicitudes
                     <span id="badgeCountReportes" class="hidden text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 border border-rose-200">0</span>
+                </button>
+                <button id="tabBtnHistorial" onclick="switchTab('historial')" class="px-5 py-3 font-bold text-sm text-slate-400 hover:text-slate-700 transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px]">history</span> Historial de Planes y Personal
+                    <span id="badgeCountHistorial" class="hidden text-[10px] font-black px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200">0</span>
                 </button>
                 <button id="tabBtnNotas" onclick="switchTab('notas')" class="px-5 py-3 font-bold text-sm text-slate-400 hover:text-slate-700 transition-all flex items-center gap-2">
                     <span class="material-symbols-outlined text-[20px]">notes</span> Notas Internas
@@ -317,6 +321,28 @@
                 </div>
             </div>
 
+            <!-- Tab: Historial de Planes y Personal -->
+            <div id="tabHistorial" class="hidden space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-purple-50/70 p-4 rounded-2xl border border-purple-200">
+                    <div>
+                        <h3 class="font-bold text-purple-950 text-sm flex items-center gap-2">
+                            <span class="material-symbols-outlined text-purple-600">manage_history</span>
+                            Línea de Tiempo: Cambios de Plan y Equipo
+                        </h3>
+                        <p class="text-xs text-purple-800/80">Historial de upgrades, downgrades y solicitudes de ampliación/reducción de personal.</p>
+                    </div>
+                    <button type="button" onclick="openEditModal()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px]">tune</span> Modificar Suscripción
+                    </button>
+                </div>
+
+                <div id="historialEmpresaList" class="space-y-3">
+                    <div class="p-8 text-center text-slate-400 text-xs bg-slate-50/60 rounded-2xl border border-dashed border-slate-200">
+                        No hay registros en el historial de cambios de este negocio.
+                    </div>
+                </div>
+            </div>
+
             <!-- Tab 4: Notas Internas -->
             <div id="tabNotas" class="hidden space-y-4">
                 <h3 class="font-bold text-slate-800 text-sm mb-1">Notas u Observaciones del Super Admin</h3>
@@ -332,13 +358,13 @@
     </div>
 </main>
 
-<!-- Modal Editar Suscripción (Rediseño Amplio y 2 Columnas) -->
+<!-- Modal Editar Suscripción (Rediseño Amplio: Tarifas General vs Especial) -->
 <div id="editClientModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-    <div id="editModalContent" class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[92vh] overflow-y-auto">
+    <div id="editModalContent" class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 max-h-[92vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
             <h2 class="text-xl sm:text-2xl font-black text-slate-800 flex items-center gap-3">
-                <div class="w-10 h-10 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center"><span class="material-symbols-outlined text-2xl">edit</span></div>
-                <span>Editar Suscripción y Tarifas</span>
+                <div class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center"><span class="material-symbols-outlined text-2xl">tune</span></div>
+                <span>Editar Suscripción y Tarifas Comerciales</span>
             </h2>
             <button onclick="closeEditModal()" class="text-slate-400 hover:text-red-500 bg-slate-100 hover:bg-red-50 rounded-xl p-2 transition-colors cursor-pointer">
                 <span class="material-symbols-outlined text-xl">close</span>
@@ -348,128 +374,220 @@
         <form id="editClientForm" onsubmit="submitEditClient(event)" class="space-y-6">
             <input type="hidden" name="id_negocio" id="edit_id_negocio">
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- COLUMNA IZQUIERDA: PLAN Y CUPOS -->
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Nombre del Negocio</label>
-                        <input type="text" id="edit_nombre_fantasia" disabled class="w-full bg-slate-100 text-slate-500 border border-slate-200 rounded-xl px-4 py-2.5 font-bold text-sm cursor-not-allowed">
-                    </div>
+            <!-- 1. PARÁMETROS BÁSICOS DEL NEGOCIO -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-slate-50/80 rounded-2xl border border-slate-200">
+                <div class="sm:col-span-2">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Nombre del Negocio</label>
+                    <input type="text" id="edit_nombre_fantasia" disabled class="w-full bg-slate-100 text-slate-600 border border-slate-200 rounded-xl px-3.5 py-2 font-bold text-sm cursor-not-allowed">
+                </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Plan Contratado</label>
-                        <select name="plan" id="edit_plan" onchange="updatePricingCalculationFromModal()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-800 text-sm">
-                            <option value="Basico">Plan Básico (Simple)</option>
-                            <option value="Profesional">Plan Profesional (Intermedio)</option>
-                            <option value="Premium">Plan Premium (Completo)</option>
-                        </select>
-                    </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Plan Contratado</label>
+                    <select name="plan" id="edit_plan" onchange="updatePricingCalculationFromModal()" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-purple-500 outline-none font-bold text-slate-800 text-xs">
+                        <option value="Basico">Plan Básico (Simple)</option>
+                        <option value="Profesional">Plan Profesional (Intermedio)</option>
+                        <option value="Premium">Plan Premium (Completo)</option>
+                    </select>
+                </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Límite de Profesionales (Cupo)</label>
-                        <div class="flex items-center gap-2">
-                            <button type="button" onclick="adjustProfLimit(-1)" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer text-lg">-</button>
-                            <input type="number" name="max_profesionales" id="edit_max_profesionales" min="1" required class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-center font-black text-slate-800 text-base focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePricingCalculationFromModal()">
-                            <button type="button" onclick="adjustProfLimit(1)" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-black flex items-center justify-center transition-all cursor-pointer text-lg">+</button>
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Cupo Profesionales</label>
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" onclick="adjustProfLimit(-1)" class="w-8 h-8 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-black flex items-center justify-center cursor-pointer text-sm">-</button>
+                        <input type="number" name="max_profesionales" id="edit_max_profesionales" min="1" required class="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1 text-center font-black text-slate-800 text-sm focus:ring-2 focus:ring-purple-500 outline-none" oninput="updatePricingCalculationFromModal()">
+                        <button type="button" onclick="adjustProfLimit(1)" class="w-8 h-8 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-black flex items-center justify-center cursor-pointer text-sm">+</button>
+                    </div>
+                    <span id="labelProfsActualesUso" class="text-[10px] font-bold text-purple-700 block text-right mt-0.5"></span>
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Estado de Pago</label>
+                    <select name="estado_pago" id="edit_estado_pago" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-purple-500 outline-none font-semibold text-slate-800 text-xs">
+                        <option value="prueba">Prueba (Trial)</option>
+                        <option value="beta">Plan Beta Exclusivo (30 días)</option>
+                        <option value="pendiente_revision">En Revisión (Subió comprobante)</option>
+                        <option value="activo">Activo (Pagado)</option>
+                        <option value="vencido">Impago (Vencido)</option>
+                        <option value="suspendido">Suspendido (Bloqueado)</option>
+                    </select>
+                </div>
+
+                <div class="sm:col-span-2">
+                    <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Fecha de Creación / Alta</label>
+                    <input type="date" name="fecha_alta" id="edit_fecha_alta" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-purple-500 outline-none font-medium text-xs">
+                </div>
+            </div>
+
+            <!-- 2. CAMPOS DE CONFIGURACIÓN DE PRECIOS Y DESCUENTOS -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Columna A: Precio Base Plataforma (Fijo y Universal) -->
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center font-bold">
+                            <span class="material-symbols-outlined text-[16px]">lock</span>
                         </div>
-                        <p class="text-[11px] text-slate-400 mt-1 flex items-center justify-between">
-                            <span>Cupo total de profesionales habilitados</span>
-                            <span id="labelProfsActualesUso" class="font-bold text-purple-700"></span>
+                        <div>
+                            <h4 class="text-xs font-black text-slate-800 uppercase tracking-wide">Precio Base Universal (Fijo)</h4>
+                            <p class="text-[10px] text-slate-500">Establecido para todos en index.html</p>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2.5 text-slate-400 font-bold text-xs">$</span>
+                            <input type="text" id="edit_precio_base_display" readonly disabled value="8.889" class="w-full bg-slate-100 text-slate-600 border border-slate-200 rounded-xl pl-7 pr-3 py-2 font-black text-sm cursor-not-allowed">
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[13px] text-slate-400">info</span>
+                            <span>No modificable individualmente (se rige por la tarifa del plan).</span>
                         </p>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Estado de Pago</label>
-                        <select name="estado_pago" id="edit_estado_pago" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-semibold text-slate-800 text-sm">
-                            <option value="prueba">Prueba (Trial)</option>
-                            <option value="beta">Plan Beta Exclusivo (30 días)</option>
-                            <option value="pendiente_revision">En Revisión (Subió comprobante)</option>
-                            <option value="activo">Activo (Pagado)</option>
-                            <option value="vencido">Impago (Vencido)</option>
-                            <option value="suspendido">Suspendido (Bloqueado)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Fecha de Creación / Alta</label>
-                        <input type="date" name="fecha_alta" id="edit_fecha_alta" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium text-sm">
-                        <p class="text-[11px] text-slate-400 mt-1">Sirve para simular días restantes de prueba o fecha de corte mensual.</p>
                     </div>
                 </div>
 
-                <!-- COLUMNA DERECHA: DESCUENTO Y PRECIO PACTADO -->
-                <div class="p-5 bg-gradient-to-br from-purple-50/70 via-indigo-50/40 to-slate-50 border border-purple-200 rounded-3xl flex flex-col justify-between space-y-4">
-                    <div>
-                        <div class="flex items-center justify-between mb-3">
+                <!-- Columna B: Descuentos Especiales para este Negocio (Modificables) -->
+                <div class="p-4 bg-purple-50/60 border border-purple-200 rounded-2xl space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                                <span class="material-symbols-outlined text-[16px]">percent</span>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-black text-purple-950 uppercase tracking-wide">Descuentos Especiales (Editables)</h4>
+                                <p class="text-[10px] text-purple-800/80">Configuración exclusiva para este equipo</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-purple-200 text-purple-900">Personalizado</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-1">
+                        <div>
+                            <label class="block text-[10px] font-bold text-purple-900 uppercase tracking-wider mb-1">% Descuento Base:</label>
+                            <div class="relative">
+                                <input type="number" id="edit_desc_base_pct" min="0" max="100" step="1" value="0" class="w-full bg-white border border-purple-200 rounded-xl px-3 py-2 pr-7 font-black text-purple-950 text-sm focus:ring-2 focus:ring-purple-500 outline-none" oninput="updatePricingCalculationFromModal()">
+                                <span class="absolute right-3 top-2.5 text-purple-400 font-bold text-xs">%</span>
+                            </div>
+                            <span class="text-[9px] text-purple-700 block mt-0.5">Sobre la cuota base</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-purple-900 uppercase tracking-wider mb-1">% Desc. por Profesional:</label>
+                            <div class="relative">
+                                <input type="number" id="edit_desc_prof_pct" min="0" max="100" step="1" value="5" class="w-full bg-white border border-purple-200 rounded-xl px-3 py-2 pr-7 font-black text-purple-950 text-sm focus:ring-2 focus:ring-purple-500 outline-none" oninput="updatePricingCalculationFromModal()">
+                                <span class="absolute right-3 top-2.5 text-purple-400 font-bold text-xs">%</span>
+                            </div>
+                            <span class="text-[9px] text-purple-700 block mt-0.5">Por cada prof. extra</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. TABLA COMPARATIVA FRENTE A FRENTE -->
+            <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
+                <div class="bg-slate-100/90 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between">
+                    <span class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[16px] text-slate-500">compare_arrows</span>
+                        Comparativa: Tarifa General (index.html) vs Tarifa Especial
+                    </span>
+                    <span class="text-[10px] font-bold text-slate-500">Desglose detallado mensual</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="bg-slate-50/80 border-b border-slate-200 text-[10px] font-extrabold uppercase text-slate-500">
+                                <th class="p-3">Concepto</th>
+                                <th class="p-3 bg-blue-50/40 text-blue-900">Tarifa General (Todos)</th>
+                                <th class="p-3 bg-purple-50/40 text-purple-900">Tarifa Especial (Este Negocio)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                            <tr>
+                                <td class="p-3 font-semibold text-slate-600">Precio Base de Lista (1 prof)</td>
+                                <td class="p-3 bg-blue-50/20 font-bold text-slate-800" id="tblBaseGeneral">$8.889</td>
+                                <td class="p-3 bg-purple-50/20 font-bold text-purple-950" id="tblBaseEspecial">$8.889</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-semibold text-slate-600">% Descuento Base</td>
+                                <td class="p-3 bg-blue-50/20 font-bold text-blue-700" id="tblDescBaseGeneral">10% OFF</td>
+                                <td class="p-3 bg-purple-50/20 font-bold text-purple-700" id="tblDescBaseEspecial">0% OFF</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-semibold text-slate-600">Valor con Descuento Base (1 prof)</td>
+                                <td class="p-3 bg-blue-50/20 font-bold text-slate-800" id="tblValorUnoGeneral">$8.000</td>
+                                <td class="p-3 bg-purple-50/20 font-bold text-purple-950" id="tblValorUnoEspecial">$8.889</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-semibold text-slate-600">Cantidad de Profesionales</td>
+                                <td class="p-3 bg-blue-50/20 font-bold text-slate-800" id="tblEquipoGeneral">1 prof.</td>
+                                <td class="p-3 bg-purple-50/20 font-bold text-purple-950" id="tblEquipoEspecial">1 prof.</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-semibold text-slate-600">% Descuento por Equipo</td>
+                                <td class="p-3 bg-blue-50/20 font-bold text-blue-700" id="tblDescEquipoGeneral">0% (5% x prof)</td>
+                                <td class="p-3 bg-purple-50/20 font-bold text-purple-700" id="tblDescEquipoEspecial">0% (5% x prof)</td>
+                            </tr>
+                            <tr>
+                                <td class="p-3 font-semibold text-slate-600">Valor Final por Profesional</td>
+                                <td class="p-3 bg-blue-50/20 font-bold text-slate-800" id="tblUnitarioGeneral">$8.000 / prof</td>
+                                <td class="p-3 bg-purple-50/20 font-bold text-purple-950" id="tblUnitarioEspecial">$8.889 / prof</td>
+                            </tr>
+                            <tr class="font-extrabold text-sm border-t-2 border-slate-200">
+                                <td class="p-3 text-slate-900">Total Mensual Final</td>
+                                <td class="p-3 bg-blue-100/50 text-blue-900 text-base font-black" id="tblTotalGeneral">$8.000 / mes</td>
+                                <td class="p-3 bg-purple-100/60 text-purple-900 text-base font-black" id="tblTotalEspecial">$8.889 / mes</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 4. SELECTOR INTERACTIVO DE TARIFA A APLICAR -->
+            <div class="space-y-2">
+                <label class="block text-xs font-black text-slate-700 uppercase tracking-wide">
+                    Selecciona qué tarifa aplicar a este cliente:
+                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Tarjeta Opción A: General -->
+                    <div id="cardTarifaGeneral" onclick="selectPricingMode('general')" class="p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-blue-400 cursor-pointer transition-all flex flex-col justify-between shadow-2xs">
+                        <div class="flex items-start justify-between mb-2">
                             <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
-                                    <span class="material-symbols-outlined text-[18px]">percent</span>
-                                </div>
-                                <div>
-                                    <h4 class="text-sm font-black text-slate-800">Descuento Especial & Tarifa</h4>
-                                    <p class="text-[11px] text-slate-500">Configuración comercial exclusiva</p>
-                                </div>
+                                <span id="iconRadioGeneral" class="material-symbols-outlined text-slate-400 text-xl">radio_button_unchecked</span>
+                                <h5 class="text-xs font-black text-slate-800">Tarifa Estándar General</h5>
                             </div>
-                            <span id="badgeDescuentoDisplay" class="px-3 py-1 bg-purple-600 text-white font-black text-xs rounded-xl shadow-xs">0% OFF</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">index.html</span>
                         </div>
-
-                        <!-- Aclaración Destacada: Descuento sobre el total -->
-                        <div class="p-3 bg-purple-100/70 border border-purple-200 text-purple-950 rounded-2xl text-xs font-medium leading-relaxed mb-3">
-                            <span class="font-extrabold block text-purple-900 mb-0.5">📌 Alcance del Descuento:</span>
-                            El porcentaje configurado se aplica directamente sobre el <strong>monto total mensual</strong> de la suscripción (incluyendo a todos los profesionales del equipo).
-                        </div>
-
-                        <!-- Indicador Descuento de Plataforma (index.html) -->
-                        <div class="flex items-center justify-between text-xs bg-white/90 p-2.5 rounded-xl border border-purple-100 mb-3 shadow-2xs">
-                            <span class="text-slate-600 font-medium">Descuento base según index.html:</span>
-                            <span class="font-extrabold text-slate-800" id="infoDescIndexText">10% global (+5% por prof.)</span>
-                        </div>
-
-                        <!-- Slider / Barra Deslizable de Descuento -->
-                        <div class="space-y-1.5">
-                            <div class="flex justify-between items-center text-xs font-bold text-slate-700">
-                                <span>% Descuento aplicado al total:</span>
-                                <span id="sliderDescValueText" class="text-purple-700 font-black text-sm">0%</span>
-                            </div>
-                            <input type="range" id="edit_descuento_range" min="0" max="100" step="5" value="0" class="w-full accent-purple-600 cursor-pointer h-2 bg-slate-200 rounded-lg" oninput="updatePricingCalculationFromModal()">
-                            <div class="flex justify-between text-[10px] font-bold text-slate-400">
-                                <span>0% (Sin desc.)</span>
-                                <span>25%</span>
-                                <span>50%</span>
-                                <span>75%</span>
-                                <span>100% (Bonificado)</span>
-                            </div>
+                        <p class="text-[11px] text-slate-500 mb-3">Aplica los mismos precios y descuentos que tiene cualquier cliente público.</p>
+                        <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-[10px] font-bold text-slate-400 uppercase">Monto mensual:</span>
+                            <span id="cardTotalGeneralText" class="text-base font-black text-slate-900">$0 / mes</span>
                         </div>
                     </div>
 
-                    <!-- Tarjeta de Desglose de Precios (Unitario por profesional + Total sugerido) -->
-                    <div class="bg-white/95 p-4 rounded-2xl border border-purple-200 shadow-xs space-y-2.5">
-                        <div class="flex items-center justify-between text-xs border-b border-slate-100 pb-2">
-                            <span class="text-slate-500 font-bold uppercase tracking-wider text-[11px]">Valor por cada profesional:</span>
-                            <span id="precioUnitarioDescText" class="font-black text-sm text-purple-700">$0 / mes por prof.</span>
+                    <!-- Tarjeta Opción B: Especial Personalizada -->
+                    <div id="cardTarifaEspecial" onclick="selectPricingMode('especial')" class="p-4 rounded-2xl border-2 border-purple-500 bg-purple-50/40 hover:border-purple-600 cursor-pointer transition-all flex flex-col justify-between shadow-xs">
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span id="iconRadioEspecial" class="material-symbols-outlined text-purple-700 text-xl">radio_button_checked</span>
+                                <h5 class="text-xs font-black text-purple-950">Tarifa Especial Personalizada</h5>
+                            </div>
+                            <span class="text-[10px] font-black px-2 py-0.5 rounded-md bg-purple-200 text-purple-900">Activa</span>
                         </div>
-                        <div class="flex items-center justify-between text-xs border-b border-slate-100 pb-2">
-                            <span class="text-slate-500 font-bold uppercase tracking-wider text-[11px]">Cantidad de profesionales:</span>
-                            <span id="cantProfsDescText" class="font-black text-xs text-slate-800">1 prof.</span>
-                        </div>
-                        <div class="flex items-center justify-between pt-1">
-                            <span class="text-slate-600 font-extrabold uppercase tracking-wider text-[11px]">Total Mensual Sugerido:</span>
-                            <span id="precioCalculadoSugerido" class="text-base font-black text-slate-900">$0 / mes</span>
+                        <p class="text-[11px] text-purple-800/80 mb-3">Aplica los descuentos base y por equipo configurados exclusivamente para este negocio.</p>
+                        <div class="pt-2 border-t border-purple-200/60 flex items-center justify-between">
+                            <span class="text-[10px] font-bold text-purple-700 uppercase">Monto mensual:</span>
+                            <span id="cardTotalEspecialText" class="text-base font-black text-purple-950">$0 / mes</span>
                         </div>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Precio Final Pactado Editable -->
-                    <div>
-                        <div class="flex items-center justify-between mb-1">
-                            <label class="block text-xs font-black text-purple-900 uppercase tracking-wider">Precio Final Pactado ($/mes):</label>
-                            <button type="button" onclick="applySuggestedPriceToInput()" class="text-[11px] font-bold text-purple-700 hover:text-purple-900 underline cursor-pointer">Usar valor sugerido</button>
-                        </div>
-                        <div class="relative">
-                            <span class="absolute left-3.5 top-2.5 text-slate-400 font-bold text-sm">$</span>
-                            <input type="number" id="edit_precio_pactado" step="1" min="0" class="w-full bg-white border border-purple-300 rounded-xl pl-8 pr-4 py-2.5 text-sm font-black text-purple-950 focus:ring-2 focus:ring-purple-500 outline-none shadow-xs">
-                        </div>
-                        <p class="text-[10px] text-slate-400 mt-1">Este monto fijo se congelará y será el valor exacto a pagar en <span class="font-mono text-slate-600">pago.html</span>.</p>
-                    </div>
+            <!-- 5. PRECIO FINAL PACTADO CONGELADO -->
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="space-y-0.5">
+                    <label class="block text-xs font-black text-slate-800 uppercase tracking-wide">Precio Final Pactado a Facturar ($/mes):</label>
+                    <p class="text-[11px] text-slate-500">Este es el monto exacto y fijo que figurará en el portal del cliente (<span class="font-mono text-slate-700">pago.html</span>).</p>
+                </div>
+                <div class="w-full sm:w-56 relative shrink-0">
+                    <span class="absolute left-3.5 top-2.5 text-slate-400 font-bold text-sm">$</span>
+                    <input type="number" id="edit_precio_pactado" step="1" min="0" class="w-full bg-white border-2 border-purple-400 rounded-xl pl-8 pr-4 py-2.5 text-base font-black text-slate-900 focus:ring-2 focus:ring-purple-500 outline-none shadow-xs text-right">
                 </div>
             </div>
 
@@ -477,8 +595,8 @@
 
             <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
                 <button type="button" onclick="closeEditModal()" class="px-6 py-3 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer text-sm">Cancelar</button>
-                <button type="submit" id="btnEditSubmit" class="px-6 py-3 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-0.5 flex items-center gap-2 cursor-pointer text-sm">
-                    <span class="material-symbols-outlined text-[20px]">save</span> Guardar Cambios
+                <button type="submit" id="btnEditSubmit" class="px-6 py-3 font-bold text-white bg-purple-600 hover:bg-purple-700 rounded-xl shadow-lg shadow-purple-600/30 transition-all hover:-translate-y-0.5 flex items-center gap-2 cursor-pointer text-sm">
+                    <span class="material-symbols-outlined text-[20px]">save</span> Guardar Configuración
                 </button>
             </div>
         </form>
@@ -638,6 +756,7 @@ function loadEmpresaData() {
                 }
             }
             renderReportesEmpresa('todos');
+            renderHistorialEmpresa();
         })
         .catch(err => {
             console.error(err);
@@ -693,7 +812,7 @@ function getSubscriptionDetails(c, trialDays = 30) {
 
     if (estado === 'prueba' || estado === 'trial') {
         const rawTrial = (c && c.dias_prueba !== undefined && c.dias_prueba !== null && parseInt(c.dias_prueba) > 0) ? parseInt(c.dias_prueba) : null;
-        const trialLimit = (rawTrial && rawTrial !== 15) ? rawTrial : (parseInt(trialDays) || 30);
+        const trialLimit = rawTrial ? rawTrial : (parseInt(trialDays) || 30);
         const trialEndDate = new Date(fechaAltaZero);
         trialEndDate.setDate(trialEndDate.getDate() + trialLimit);
 
@@ -855,7 +974,7 @@ function renderEmpresaDetails(client) {
 }
 
 function switchTab(tab) {
-    const tabs = ['comprobantes', 'equipo', 'reportes', 'notas'];
+    const tabs = ['comprobantes', 'equipo', 'reportes', 'historial', 'notas'];
     tabs.forEach(t => {
         const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
         const panel = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
@@ -1111,7 +1230,9 @@ function saveNotaInterna() {
 }
 
 // --- Modales para Editar Suscripción y Editar Datos ---
-let _lastTotalSugerido = 0;
+let _activePricingMode = 'especial'; // 'general' | 'especial'
+let _calcGeneralTotal = 0;
+let _calcEspecialTotal = 0;
 
 function adjustProfLimit(delta) {
     const input = document.getElementById('edit_max_profesionales');
@@ -1121,61 +1242,106 @@ function adjustProfLimit(delta) {
     updatePricingCalculationFromModal();
 }
 
-function applySuggestedPriceToInput() {
+function selectPricingMode(mode) {
+    _activePricingMode = mode;
+    const cardGen = document.getElementById('cardTarifaGeneral');
+    const cardEsp = document.getElementById('cardTarifaEspecial');
+    const iconGen = document.getElementById('iconRadioGeneral');
+    const iconEsp = document.getElementById('iconRadioEspecial');
     const pactadoInput = document.getElementById('edit_precio_pactado');
-    if (pactadoInput && _lastTotalSugerido > 0) {
-        pactadoInput.value = _lastTotalSugerido;
-        pactadoInput.dataset.userModified = 'true';
+
+    if (mode === 'general') {
+        if (cardGen) {
+            cardGen.className = 'p-4 rounded-2xl border-2 border-blue-500 bg-blue-50/50 hover:border-blue-600 cursor-pointer transition-all flex flex-col justify-between shadow-xs';
+        }
+        if (cardEsp) {
+            cardEsp.className = 'p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-purple-300 cursor-pointer transition-all flex flex-col justify-between shadow-2xs';
+        }
+        if (iconGen) {
+            iconGen.textContent = 'radio_button_checked';
+            iconGen.className = 'material-symbols-outlined text-blue-600 text-xl';
+        }
+        if (iconEsp) {
+            iconEsp.textContent = 'radio_button_unchecked';
+            iconEsp.className = 'material-symbols-outlined text-slate-400 text-xl';
+        }
+        if (pactadoInput) pactadoInput.value = _calcGeneralTotal;
+    } else {
+        if (cardGen) {
+            cardGen.className = 'p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-blue-300 cursor-pointer transition-all flex flex-col justify-between shadow-2xs';
+        }
+        if (cardEsp) {
+            cardEsp.className = 'p-4 rounded-2xl border-2 border-purple-500 bg-purple-50/50 hover:border-purple-600 cursor-pointer transition-all flex flex-col justify-between shadow-xs';
+        }
+        if (iconGen) {
+            iconGen.textContent = 'radio_button_unchecked';
+            iconGen.className = 'material-symbols-outlined text-slate-400 text-xl';
+        }
+        if (iconEsp) {
+            iconEsp.textContent = 'radio_button_checked';
+            iconEsp.className = 'material-symbols-outlined text-purple-700 text-xl';
+        }
+        if (pactadoInput) pactadoInput.value = _calcEspecialTotal;
     }
 }
 
 function updatePricingCalculationFromModal() {
     const planVal = (document.getElementById('edit_plan')?.value || 'Basico').toLowerCase();
     const profs = Math.max(1, parseInt(document.getElementById('edit_max_profesionales')?.value || 1));
-    const rangeVal = parseInt(document.getElementById('edit_descuento_range')?.value || 0);
 
-    const sliderText = document.getElementById('sliderDescValueText');
-    const badgeText = document.getElementById('badgeDescuentoDisplay');
-    if (sliderText) sliderText.textContent = `${rangeVal}%`;
-    if (badgeText) badgeText.textContent = `${rangeVal}% OFF`;
-
-    // Obtener precios base de lista por profesional
+    // 1. Obtener precio base de plataforma para 1 profesional
     let basePrice = 8889;
     if (planVal.includes('intermedio') || planVal.includes('profesional')) basePrice = 11111;
     if (planVal.includes('completo') || planVal.includes('premium')) basePrice = 16667;
 
-    // Descuento base según index.html: 10% global + 5% por cada profesional adicional
-    const globalDisc = (window.globalConfig && window.globalConfig.descuento_porcentaje !== undefined) ? window.globalConfig.descuento_porcentaje : 10;
-    const teamDiscIndex = Math.min(50, profs * 5); // 5% por profesional
-    const indexDescText = document.getElementById('infoDescIndexText');
-    if (indexDescText) {
-        indexDescText.textContent = `${globalDisc}% base + ${teamDiscIndex}% por ${profs} prof.`;
-    }
+    const baseDisplay = document.getElementById('edit_precio_base_display');
+    if (baseDisplay) baseDisplay.value = basePrice.toLocaleString('es-AR');
 
-    // Precio sugerido con el descuento seleccionado en el slider (aplicado al total mensual)
-    const finalPct = Math.max(0, Math.min(100, rangeVal));
-    const precioUnitario = Math.round(basePrice * (100 - finalPct) / 100);
-    const totalSugerido = precioUnitario * profs;
-    _lastTotalSugerido = totalSugerido;
+    // 2. Tarifa General (index.html):
+    // Descuento base según index.html: 10% global (o config) + 5% por profesional adicional si > 1
+    const discBaseGeneral = (window.globalConfig && window.globalConfig.descuento_porcentaje !== undefined) ? parseInt(window.globalConfig.descuento_porcentaje) : 10;
+    const valUnoGeneral = Math.round(basePrice * (100 - discBaseGeneral) / 100);
+    const discEqGeneral = Math.min(50, profs > 1 ? (profs * 5) : 0);
+    const totalBeforeVolGen = valUnoGeneral * profs;
+    const totalGeneral = Math.round(totalBeforeVolGen * (1 - discEqGeneral / 100));
+    const unitarioGeneral = Math.round(totalGeneral / profs);
+    _calcGeneralTotal = totalGeneral;
 
-    const unitarioEl = document.getElementById('precioUnitarioDescText');
-    if (unitarioEl) {
-        unitarioEl.textContent = `$${precioUnitario.toLocaleString('es-AR')} / mes por prof.`;
-    }
+    // 3. Tarifa Especial Personalizada:
+    const descBaseEsp = Math.max(0, Math.min(100, parseInt(document.getElementById('edit_desc_base_pct')?.value || 0)));
+    const descProfEsp = Math.max(0, Math.min(100, parseFloat(document.getElementById('edit_desc_prof_pct')?.value || 5)));
+    const valUnoEspecial = Math.round(basePrice * (100 - descBaseEsp) / 100);
+    const discEqEspecial = Math.min(80, profs > 1 ? (profs * descProfEsp) : 0);
+    const totalBeforeVolEsp = valUnoEspecial * profs;
+    const totalEspecial = Math.round(totalBeforeVolEsp * (1 - discEqEspecial / 100));
+    const unitarioEspecial = Math.round(totalEspecial / profs);
+    _calcEspecialTotal = totalEspecial;
 
-    const cantEl = document.getElementById('cantProfsDescText');
-    if (cantEl) {
-        cantEl.textContent = `${profs} profesional${profs > 1 ? 'es' : ''}`;
-    }
+    // 4. Llenar Tabla Comparativa
+    const setTxt = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+    setTxt('tblBaseGeneral', `$${basePrice.toLocaleString('es-AR')}`);
+    setTxt('tblBaseEspecial', `$${basePrice.toLocaleString('es-AR')}`);
+    setTxt('tblDescBaseGeneral', `${discBaseGeneral}% OFF`);
+    setTxt('tblDescBaseEspecial', `${descBaseEsp}% OFF`);
+    setTxt('tblValorUnoGeneral', `$${valUnoGeneral.toLocaleString('es-AR')}`);
+    setTxt('tblValorUnoEspecial', `$${valUnoEspecial.toLocaleString('es-AR')}`);
+    setTxt('tblEquipoGeneral', `${profs} prof${profs > 1 ? 's' : ''}.`);
+    setTxt('tblEquipoEspecial', `${profs} prof${profs > 1 ? 's' : ''}.`);
+    setTxt('tblDescEquipoGeneral', `${discEqGeneral}% (${profs} x 5%)`);
+    setTxt('tblDescEquipoEspecial', `${discEqEspecial}% (${profs} x ${descProfEsp}%)`);
+    setTxt('tblUnitarioGeneral', `$${unitarioGeneral.toLocaleString('es-AR')} / prof`);
+    setTxt('tblUnitarioEspecial', `$${unitarioEspecial.toLocaleString('es-AR')} / prof`);
+    setTxt('tblTotalGeneral', `$${totalGeneral.toLocaleString('es-AR')} / mes`);
+    setTxt('tblTotalEspecial', `$${totalEspecial.toLocaleString('es-AR')} / mes`);
 
-    const sugeridoEl = document.getElementById('precioCalculadoSugerido');
-    if (sugeridoEl) {
-        sugeridoEl.textContent = `$${totalSugerido.toLocaleString('es-AR')} / mes`;
-    }
+    // 5. Llenar Totales en Tarjetas de Selección
+    setTxt('cardTotalGeneralText', `$${totalGeneral.toLocaleString('es-AR')} / mes`);
+    setTxt('cardTotalEspecialText', `$${totalEspecial.toLocaleString('es-AR')} / mes`);
 
+    // 6. Actualizar campo de precio pactado según el modo seleccionado
     const pactadoInput = document.getElementById('edit_precio_pactado');
     if (pactadoInput && (!pactadoInput.dataset.userModified || pactadoInput.dataset.userModified === 'false')) {
-        pactadoInput.value = totalSugerido;
+        pactadoInput.value = (_activePricingMode === 'general') ? totalGeneral : totalEspecial;
     }
 }
 
@@ -1183,9 +1349,17 @@ function openEditModal() {
     if (!currentEmpresaData) return;
     document.getElementById('edit_id_negocio').value = currentEmpresaData.id;
     document.getElementById('edit_nombre_fantasia').value = currentEmpresaData.nombre_fantasia || '';
-    document.getElementById('edit_plan').value = currentEmpresaData.plan || 'Basico';
+    
+    // Normalizar nombre de plan
+    const rawPlan = (currentEmpresaData.plan || 'Basico').toLowerCase();
+    let normPlan = 'Basico';
+    if (rawPlan.includes('intermedio') || rawPlan.includes('profesional')) normPlan = 'Profesional';
+    else if (rawPlan.includes('completo') || rawPlan.includes('premium')) normPlan = 'Premium';
+    document.getElementById('edit_plan').value = normPlan;
+
     document.getElementById('edit_max_profesionales').value = currentEmpresaData.max_profesionales || 1;
     document.getElementById('edit_estado_pago').value = currentEmpresaData.estado_pago || 'prueba';
+    
     const faInput = document.getElementById('edit_fecha_alta');
     if (faInput) {
         faInput.value = currentEmpresaData.fecha_alta ? String(currentEmpresaData.fecha_alta).substring(0, 10) : '';
@@ -1197,10 +1371,25 @@ function openEditModal() {
         profsUsoEl.textContent = `(${teamCount} en uso actual)`;
     }
 
-    // Inicializar barra de descuento y precio pactado
-    const discPct = currentEmpresaData.descuento_aplicado_pct !== undefined && currentEmpresaData.descuento_aplicado_pct !== null ? parseInt(currentEmpresaData.descuento_aplicado_pct) : 0;
-    const rangeEl = document.getElementById('edit_descuento_range');
-    if (rangeEl) rangeEl.value = discPct;
+    // Inicializar inputs numéricos de descuento especial
+    const discBase = (currentEmpresaData.descuento_aplicado_pct !== undefined && currentEmpresaData.descuento_aplicado_pct !== null) 
+        ? parseInt(currentEmpresaData.descuento_aplicado_pct) 
+        : 0;
+    const descBaseInput = document.getElementById('edit_desc_base_pct');
+    if (descBaseInput) descBaseInput.value = discBase;
+
+    const discProf = (currentEmpresaData.descuento_por_prof_pct !== undefined && currentEmpresaData.descuento_por_prof_pct !== null)
+        ? parseFloat(currentEmpresaData.descuento_por_prof_pct)
+        : 5;
+    const descProfInput = document.getElementById('edit_desc_prof_pct');
+    if (descProfInput) descProfInput.value = discProf;
+
+    // Determinar modo inicial de tarifa (si tiene descuento personalizado o precio pactado custom)
+    const hasCustomDiscount = (discBase > 0 || (currentEmpresaData.descuento_por_prof_pct !== null && currentEmpresaData.descuento_por_prof_pct !== undefined && discProf !== 5));
+    _activePricingMode = hasCustomDiscount ? 'especial' : 'general';
+
+    updatePricingCalculationFromModal();
+    selectPricingMode(_activePricingMode);
 
     const pactadoInput = document.getElementById('edit_precio_pactado');
     if (pactadoInput) {
@@ -1208,12 +1397,8 @@ function openEditModal() {
         if (currentEmpresaData.precio_pactado !== undefined && currentEmpresaData.precio_pactado !== null && parseFloat(currentEmpresaData.precio_pactado) > 0) {
             pactadoInput.value = Math.round(parseFloat(currentEmpresaData.precio_pactado));
             pactadoInput.dataset.userModified = 'true';
-        } else {
-            pactadoInput.value = '';
         }
     }
-
-    updatePricingCalculationFromModal();
 
     const modal = document.getElementById('editClientModal');
     const content = document.getElementById('editModalContent');
@@ -1233,14 +1418,19 @@ function submitEditClient(e) {
     const btn = document.getElementById('btnEditSubmit');
     btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">refresh</span> Guardando...';
 
+    const descBaseVal = parseInt(document.getElementById('edit_desc_base_pct')?.value || 0);
+    const descProfVal = parseFloat(document.getElementById('edit_desc_prof_pct')?.value || 5);
+    const precioPactadoVal = parseFloat(document.getElementById('edit_precio_pactado')?.value || 0);
+
     const payload = {
         id_negocio: currentEmpresaId,
         plan: document.getElementById('edit_plan').value,
         max_profesionales: document.getElementById('edit_max_profesionales').value,
         estado_pago: document.getElementById('edit_estado_pago').value,
         fecha_alta: document.getElementById('edit_fecha_alta') ? document.getElementById('edit_fecha_alta').value : '',
-        descuento_aplicado_pct: document.getElementById('edit_descuento_range') ? parseInt(document.getElementById('edit_descuento_range').value) : 0,
-        precio_pactado: document.getElementById('edit_precio_pactado') ? parseFloat(document.getElementById('edit_precio_pactado').value) : 0
+        descuento_aplicado_pct: (_activePricingMode === 'especial') ? descBaseVal : 0,
+        descuento_por_prof_pct: (_activePricingMode === 'especial') ? descProfVal : 5,
+        precio_pactado: precioPactadoVal
     };
 
     fetch('../backend/admin_api.php', {
@@ -1254,11 +1444,110 @@ function submitEditClient(e) {
             closeEditModal();
             loadEmpresaData();
         } else {
-            alert(data.error || 'Error al actualizar');
+            alert(data.error || 'Error al actualizar suscripción');
         }
     })
     .catch(() => alert('Error de conexión'))
-    .finally(() => { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">save</span> Guardar'; });
+    .finally(() => { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">save</span> Guardar Configuración'; });
+}
+
+function renderHistorialEmpresa() {
+    const container = document.getElementById('historialEmpresaList');
+    if (!container) return;
+
+    const hist = (currentEmpresaData && Array.isArray(currentEmpresaData.historial_cambios)) ? currentEmpresaData.historial_cambios : [];
+
+    const badgeHist = document.getElementById('badgeCountHistorial');
+    if (badgeHist) {
+        if (hist.length > 0) {
+            badgeHist.textContent = hist.length;
+            badgeHist.classList.remove('hidden');
+        } else {
+            badgeHist.classList.add('hidden');
+        }
+    }
+
+    if (hist.length === 0) {
+        container.innerHTML = `
+            <div class="p-8 text-center text-slate-400 text-xs bg-slate-50/60 rounded-2xl border border-dashed border-slate-200 flex flex-col items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-3xl text-slate-300">manage_history</span>
+                <span>No hay cambios de plan ni movimientos de personal registrados para esta empresa.</span>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    hist.forEach(item => {
+        const tipo = (item.tipo || '').toLowerCase();
+        let badgeHtml = '';
+        let borderClass = 'border-slate-200';
+        let bgIconClass = 'bg-slate-100 text-slate-700';
+        let iconName = 'history';
+
+        if (tipo === 'cambio_plan') {
+            badgeHtml = '<span class="inline-flex items-center gap-1 text-[11px] font-black uppercase px-2.5 py-0.5 rounded-xl bg-purple-100 text-purple-800 border border-purple-200">Cambio de Plan</span>';
+            borderClass = 'border-purple-200/90 bg-purple-50/20';
+            bgIconClass = 'bg-purple-100 text-purple-700';
+            iconName = 'upgrade';
+        } else if (tipo === 'ampliacion_personal') {
+            badgeHtml = '<span class="inline-flex items-center gap-1 text-[11px] font-black uppercase px-2.5 py-0.5 rounded-xl bg-blue-100 text-blue-800 border border-blue-200">Personal / Cupo</span>';
+            borderClass = 'border-blue-200/90 bg-blue-50/20';
+            bgIconClass = 'bg-blue-100 text-blue-700';
+            iconName = 'group_add';
+        } else if (tipo === 'alta_negocio') {
+            badgeHtml = '<span class="inline-flex items-center gap-1 text-[11px] font-black uppercase px-2.5 py-0.5 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-200">Registro Inicial</span>';
+            borderClass = 'border-emerald-200/90 bg-emerald-50/20';
+            bgIconClass = 'bg-emerald-100 text-emerald-700';
+            iconName = 'flag';
+        } else {
+            badgeHtml = '<span class="inline-flex items-center gap-1 text-[11px] font-black uppercase px-2.5 py-0.5 rounded-xl bg-indigo-100 text-indigo-800 border border-indigo-200">Ajuste SuperAdmin</span>';
+            borderClass = 'border-indigo-200/90 bg-indigo-50/20';
+            bgIconClass = 'bg-indigo-100 text-indigo-700';
+            iconName = 'tune';
+        }
+
+        let fechaStr = item.fecha || 'Reciente';
+        try {
+            fechaStr = new Date(String(item.fecha).replace(/-/g, '/')).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        } catch(e) {}
+
+        const origenStr = item.origen ? `Origen: ${escapeHtml(item.origen)}` : '';
+        const userStr = item.usuario ? `por ${escapeHtml(item.usuario)}` : '';
+
+        html += `
+            <div class="p-4 rounded-2xl border ${borderClass} bg-white shadow-2xs hover:shadow-xs transition-all space-y-2.5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-xl ${bgIconClass} flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-[18px]">${iconName}</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            ${badgeHtml}
+                            <span class="text-xs font-black text-slate-800">${escapeHtml(item.plan_anterior ? (item.plan_anterior + ' ➜ ' + item.plan_nuevo) : (item.plan_nuevo || 'Actualización'))}</span>
+                        </div>
+                    </div>
+                    <span class="text-[11px] font-bold text-slate-400 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">schedule</span> ${fechaStr}
+                    </span>
+                </div>
+                <div class="text-xs text-slate-700 font-medium leading-relaxed">
+                    ${item.max_prof_anterior !== undefined && item.max_prof_nuevo !== undefined && item.max_prof_anterior !== null && item.max_prof_nuevo !== null ? `
+                        <p class="font-bold text-slate-800 mb-1">Cupo de Profesionales: <span class="text-purple-700">${item.max_prof_anterior} ➜ ${item.max_prof_nuevo}</span></p>
+                    ` : ''}
+                    <p class="whitespace-pre-wrap">${escapeHtml(item.motivo || item.detalle || 'Cambio registrado en plataforma.')}</p>
+                </div>
+                <div class="flex items-center justify-between pt-1 border-t border-slate-100 text-[10px] text-slate-400">
+                    <span>${origenStr} ${userStr}</span>
+                    <button type="button" onclick="openEditModal()" class="text-purple-700 hover:text-purple-900 font-bold hover:underline cursor-pointer flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[13px]">tune</span> Modificar
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
 }
 
 function renderReportesEmpresa(filter = 'todos') {

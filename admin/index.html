@@ -351,9 +351,9 @@
                         <div>
                             <label class="block text-sm font-semibold text-slate-600 mb-1.5">Plan Contratado</label>
                             <select name="plan" id="new_plan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
-                                <option value="Basico">Básico</option>
-                                <option value="Intermedio">Intermedio</option>
-                                <option value="Completo">Completo</option>
+                                <option value="Basico">Plan Básico (Simple)</option>
+                                <option value="Profesional">Plan Profesional (Intermedio)</option>
+                                <option value="Premium">Plan Premium (Completo)</option>
                             </select>
                         </div>
                         <div>
@@ -412,9 +412,9 @@
                 <div>
                     <label class="block text-sm font-semibold text-slate-600 mb-1.5">Plan Contratado</label>
                     <select name="plan" id="edit_plan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition-all font-medium">
-                        <option value="Basico">Básico</option>
-                        <option value="Intermedio">Intermedio</option>
-                        <option value="Completo">Completo</option>
+                        <option value="Basico">Plan Básico (Simple)</option>
+                        <option value="Profesional">Plan Profesional (Intermedio)</option>
+                        <option value="Premium">Plan Premium (Completo)</option>
                     </select>
                 </div>
                 <div>
@@ -925,7 +925,7 @@ function getSubscriptionDetails(c, trialDays = 30) {
 
     if (estado === 'prueba' || estado === 'trial') {
         const rawTrial = (c && c.dias_prueba !== undefined && c.dias_prueba !== null && parseInt(c.dias_prueba) > 0) ? parseInt(c.dias_prueba) : null;
-        const trialLimit = (rawTrial && rawTrial !== 15) ? rawTrial : (parseInt(trialDays) || 30);
+        const trialLimit = rawTrial ? rawTrial : (parseInt(trialDays) || 30);
         const trialEndDate = new Date(fechaAltaZero);
         trialEndDate.setDate(trialEndDate.getDate() + trialLimit);
 
@@ -1469,15 +1469,20 @@ function openEditModal(index) {
     document.getElementById('edit_nombre_fantasia').value = client.nombre_fantasia;
     
     const planSelect = document.getElementById('edit_plan');
-    planSelect.value = client.plan || 'Basico';
+    let pVal = client.plan || 'Basico';
+    const pValLow = pVal.toLowerCase();
+    if (pValLow.includes('intermedio') || pValLow.includes('profesional')) pVal = 'Profesional';
+    else if (pValLow.includes('completo') || pValLow.includes('premium')) pVal = 'Premium';
+    else pVal = 'Basico';
+    planSelect.value = pVal;
     if(!planSelect.value) planSelect.value = 'Basico';
     
     const profInput = document.getElementById('edit_max_profesionales');
     if(profInput) profInput.value = client.max_profesionales || 1;
 
     // Actualizar el hint de forma inicial al abrir el modal
-    const planDefaults = { 'Basico': 1, 'Intermedio': 3, 'Completo': 5 };
-    const planLabels = { 'Basico': 'Básico', 'Intermedio': 'Intermedio', 'Completo': 'Completo' };
+    const planDefaults = { 'Basico': 1, 'Profesional': 3, 'Premium': 5, 'Intermedio': 3, 'Completo': 5 };
+    const planLabels = { 'Basico': 'Básico (Simple)', 'Profesional': 'Profesional (Intermedio)', 'Premium': 'Premium (Completo)' };
     const hintEl = document.getElementById('edit_max_profesionales_hint');
     if (hintEl && planSelect) {
         const val = planSelect.value;

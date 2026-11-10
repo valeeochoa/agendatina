@@ -143,6 +143,25 @@ try {
     $stmt = $pdo->prepare("INSERT INTO notificaciones_admin (segmento, mensaje, id_negocio, nombre_negocio, id_usuario, nombre_usuario, email_usuario, rol_usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([$prefixNotif . $segmento, $mensaje, $id_negocio, $nombre_negocio, $id_usuario, $nombre_usuario, $email_usuario, $rol_usuario]);
 
+    if ($isAmpliacion && $id_negocio) {
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS `historial_cambios_negocio` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `id_negocio` INT NOT NULL,
+                `tipo_evento` VARCHAR(50) NOT NULL,
+                `valor_anterior` VARCHAR(100) DEFAULT NULL,
+                `valor_nuevo` VARCHAR(100) DEFAULT NULL,
+                `detalle` TEXT DEFAULT NULL,
+                `origen` VARCHAR(50) DEFAULT 'cliente',
+                `fecha` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                KEY `idx_negocio_fecha` (`id_negocio`, `fecha`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            $stmtHistAmp = $pdo->prepare("INSERT INTO historial_cambios_negocio (id_negocio, tipo_evento, valor_anterior, valor_nuevo, detalle, origen, fecha) VALUES (?, 'ampliacion_personal', NULL, NULL, ?, 'cliente', NOW())");
+            $stmtHistAmp->execute([$id_negocio, $mensaje]);
+        } catch(Throwable $eHAmp) {}
+    }
+
     // Intentar enviar el correo (Aislado para que no rompa el guardado si el servidor SMTP falla)
     try {
         $mail = new PHPMailer(true);

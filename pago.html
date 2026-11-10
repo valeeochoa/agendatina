@@ -27,18 +27,25 @@
 </head>
 <body class="bg-gradient-to-br from-slate-100 via-slate-50 to-pink-50/30 text-slate-800 min-h-screen flex flex-col justify-between relative overflow-x-hidden">
 
-    <!-- Elementos Decorativos de Fondo -->
-    <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#d11149]/10 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-[#fc8712]/10 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- Elementos Decorativos de Fondo (Aislados sin desbordar el documento) -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div class="absolute -top-24 -left-24 w-96 h-96 bg-[#d11149]/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-[#fc8712]/10 rounded-full blur-3xl pointer-events-none"></div>
+    </div>
 
     <!-- Navbar Superior Institucional Agendatina -->
     <nav class="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs px-4 sm:px-8 py-3.5 flex items-center justify-between">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 sm:gap-3">
+            <button type="button" onclick="goBackPanel()" class="bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold py-2 px-3 sm:px-4 rounded-xl transition-all flex items-center gap-1.5 text-xs sm:text-sm shadow-md shadow-[#d11149]/20 hover:scale-[1.02] active:scale-95 cursor-pointer" title="Volver al Panel">
+                <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                <span class="hidden sm:inline">Volver al panel</span>
+            </button>
+            <span class="text-slate-300 font-light text-lg hidden sm:inline">|</span>
             <a href="index.html" class="flex items-center gap-2 hover:opacity-90 transition-opacity">
                 <img src="public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-xs">
-                <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>
+                <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149] hidden sm:inline">Agenda<span class="text-[#fc8712]">tina</span></span>
             </a>
-            <span class="hidden sm:inline-block w-px h-5 bg-slate-200"></span>
+            <span class="text-slate-300 font-light text-lg hidden sm:inline">|</span>
             <span id="navBizBadge" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 font-bold text-xs rounded-full border border-slate-200">
                 <span class="material-symbols-outlined text-[16px] text-slate-500">storefront</span>
                 <span id="navBizName">Mi Negocio</span>
@@ -49,15 +56,11 @@
                 <span class="material-symbols-outlined text-[16px]">bug_report</span>
                 <span class="hidden md:inline">Reportar Error</span>
             </button>
-            <button type="button" onclick="goBackPanel()" class="px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border border-slate-200/80 shadow-2xs hover:scale-[1.02] active:scale-95">
-                <span class="material-symbols-outlined text-[16px]">arrow_back</span>
-                <span>Volver al Panel</span>
-            </button>
         </div>
     </nav>
 
     <!-- Contenedor Principal Centrado -->
-    <main class="max-w-2xl w-full mx-auto p-4 sm:p-6 md:p-8 my-auto relative z-10">
+    <main class="flex-1 flex flex-col justify-center max-w-2xl w-full mx-auto p-4 sm:p-6 md:p-8 my-auto relative z-10">
         <!-- Tarjeta Principal -->
         <div class="glass-card rounded-3xl shadow-2xl border border-slate-200/80 p-6 sm:p-10 transition-all duration-300">
             
@@ -420,7 +423,7 @@
     </div>
 
     <!-- Footer Institucional Agendatina -->
-    <footer class="w-full border-t border-slate-200/80 bg-white/75 backdrop-blur-md py-5 px-4 mt-auto">
+    <footer id="agendatinaFooter" class="w-full border-t border-slate-200/80 bg-white/75 backdrop-blur-md py-5 px-4 mt-auto relative z-10">
         <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
             <div class="flex items-center gap-2">
                 <span class="font-brand font-semibold text-lg text-[#d11149]">Agenda<span class="text-[#fc8712]">tina</span></span>

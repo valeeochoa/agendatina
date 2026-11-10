@@ -40,9 +40,30 @@ try {
 
     // Si se especificó un nuevo plan, actualizarlo también en el negocio y la sesión
     if (!empty($planTarget)) {
+        $stmtOldP = $pdo->prepare("SELECT plan FROM negocios WHERE id = ?");
+        $stmtOldP->execute([$id_negocio]);
+        $oldPlanDb = $stmtOldP->fetchColumn() ?: 'Básico';
+
         $pdo->prepare("UPDATE negocios SET estado_pago = 'pendiente_revision', comprobante = ?, plan = ? WHERE id = ?")
             ->execute([$urlComprobante, $planTarget, $id_negocio]);
         $_SESSION['plan'] = $planTarget;
+
+        try {
+            $pdo->exec("CREATE TABLE IF NOT EXISTS `historial_cambios_negocio` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `id_negocio` INT NOT NULL,
+                `tipo_evento` VARCHAR(50) NOT NULL,
+                `valor_anterior` VARCHAR(100) DEFAULT NULL,
+                `valor_nuevo` VARCHAR(100) DEFAULT NULL,
+                `detalle` TEXT DEFAULT NULL,
+                `origen` VARCHAR(50) DEFAULT 'cliente',
+                `fecha` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                KEY `idx_negocio_fecha` (`id_negocio`, `fecha`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            $stmtHist = $pdo->prepare("INSERT INTO historial_cambios_negocio (id_negocio, tipo_evento, valor_anterior, valor_nuevo, detalle, origen, fecha) VALUES (?, 'cambio_plan', ?, ?, 'Comprobante de pago para upgrade subido por el cliente', 'cliente', NOW())");
+            $stmtHist->execute([$id_negocio, $oldPlanDb, $planTarget]);
+        } catch(Throwable $eH) {}
     } else {
         $pdo->prepare("UPDATE negocios SET estado_pago = 'pendiente_revision', comprobante = ? WHERE id = ?")
             ->execute([$urlComprobante, $id_negocio]);

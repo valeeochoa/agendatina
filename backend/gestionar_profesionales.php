@@ -251,6 +251,22 @@ if ($method === 'GET') {
         if ($total_members >= $max_profesionales) {
             require_once __DIR__ . '/helpers/notificar_admin_helper.php';
             notificarSuperAdminAlert($pdo, 'Solicitud Ampliación Equipo', "El negocio intentó registrar más profesionales pero alcanzó el límite de su plan ({$max_profesionales} integrantes).", $id_negocio);
+            try {
+                $pdo->exec("CREATE TABLE IF NOT EXISTS `historial_cambios_negocio` (
+                    `id` INT AUTO_INCREMENT PRIMARY KEY,
+                    `id_negocio` INT NOT NULL,
+                    `tipo_evento` VARCHAR(50) NOT NULL,
+                    `valor_anterior` VARCHAR(100) DEFAULT NULL,
+                    `valor_nuevo` VARCHAR(100) DEFAULT NULL,
+                    `detalle` TEXT DEFAULT NULL,
+                    `origen` VARCHAR(50) DEFAULT 'cliente',
+                    `fecha` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    KEY `idx_negocio_fecha` (`id_negocio`, `fecha`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+                $stmtHistAmp = $pdo->prepare("INSERT INTO historial_cambios_negocio (id_negocio, tipo_evento, valor_anterior, valor_nuevo, detalle, origen, fecha) VALUES (?, 'ampliacion_personal', ?, ?, ?, 'cliente', NOW())");
+                $stmtHistAmp->execute([$id_negocio, (string)$max_profesionales, (string)($max_profesionales + 1), "Intento de agregar profesional ({$nombre} - {$email}) excediendo cupo de {$max_profesionales} integrantes"]);
+            } catch(Throwable $eHAmp) {}
             throw new Exception("Has alcanzado el límite máximo de $max_profesionales integrantes en tu equipo para tu plan. Si necesitas ampliar la capacidad, contacta a soporte.");
         }
 

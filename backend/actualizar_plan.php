@@ -126,6 +126,24 @@ try {
     // Actualizar también la sesión del usuario activo
     $_SESSION['plan'] = $planNormalizado;
 
+    // Registrar en historial_cambios_negocio
+    try {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `historial_cambios_negocio` (
+            `id` INT AUTO_INCREMENT PRIMARY KEY,
+            `id_negocio` INT NOT NULL,
+            `tipo_evento` VARCHAR(50) NOT NULL,
+            `valor_anterior` VARCHAR(100) DEFAULT NULL,
+            `valor_nuevo` VARCHAR(100) DEFAULT NULL,
+            `detalle` TEXT DEFAULT NULL,
+            `origen` VARCHAR(50) DEFAULT 'cliente',
+            `fecha` DATETIME DEFAULT CURRENT_TIMESTAMP,
+            KEY `idx_negocio_fecha` (`id_negocio`, `fecha`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        $stmtHist = $pdo->prepare("INSERT INTO historial_cambios_negocio (id_negocio, tipo_evento, valor_anterior, valor_nuevo, detalle, origen, fecha) VALUES (?, 'cambio_plan', ?, ?, ?, 'cliente', NOW())");
+        $stmtHist->execute([$id_negocio, $nombrePlanAnterior, $nombrePlanDisplay, $descAlerta]);
+    } catch(Throwable $eHist) {}
+
     // Notificar al SuperAdmin
     try {
         require_once __DIR__ . '/helpers/notificar_admin_helper.php';

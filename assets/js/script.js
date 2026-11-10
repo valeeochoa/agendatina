@@ -4881,7 +4881,7 @@ window.renderUpgradeBreakdown = function() {
         const fAlta = b.fecha_alta ? new Date(b.fecha_alta.replace(/-/g, '/')) : new Date();
         const today = new Date();
         const trialDaysUsed = Math.max(0, Math.floor((today - fAlta) / (1000 * 60 * 60 * 24)));
-        const totalTrialConfigured = prices.dias_prueba_defecto || 30;
+        const totalTrialConfigured = (b.dias_prueba && parseInt(b.dias_prueba) > 0) ? parseInt(b.dias_prueba) : (prices.dias_prueba_defecto || 30);
         const trialDaysRemaining = Math.max(0, totalTrialConfigured - trialDaysUsed);
 
         const nextBillingDate = new Date(fAlta);

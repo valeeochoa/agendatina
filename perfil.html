@@ -572,7 +572,9 @@
                     let fAlta = data.business.fecha_alta ? new Date(data.business.fecha_alta.replace(/-/g, '/')) : new Date();
                     let cycleStart = data.business.ultimo_pago ? new Date(data.business.ultimo_pago.replace(/-/g, '/')) : fAlta;
                     let nextBilling = new Date(cycleStart);
-                    nextBilling.setDate(nextBilling.getDate() + 30);
+                    const trialDaysBusiness = (data.business.dias_prueba && parseInt(data.business.dias_prueba) > 0) ? parseInt(data.business.dias_prueba) : (globalPrices.dias_prueba_defecto || 30);
+                    const isTrialAccount = (data.business.estado_pago || '').toLowerCase() === 'prueba';
+                    nextBilling.setDate(nextBilling.getDate() + (isTrialAccount ? trialDaysBusiness : 30));
                     const formattedVenc = nextBilling.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
                     document.getElementById('suscripcionVencimiento').textContent = formattedVenc;
                     

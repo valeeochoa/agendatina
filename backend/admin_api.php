@@ -70,7 +70,7 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN ultimo_pago DA
 try { $pdo->query("SELECT dias_prueba FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN dias_prueba INT DEFAULT 30"); }
 try { $pdo->exec("ALTER TABLE negocios MODIFY COLUMN dias_prueba INT DEFAULT 30"); } catch(Exception $e) {}
-try { $pdo->exec("UPDATE negocios SET dias_prueba = 30 WHERE (dias_prueba = 15 OR dias_prueba IS NULL OR dias_prueba = 0) AND (ruta NOT LIKE 'demo%')"); } catch(Exception $e) {}
+try { $pdo->exec("UPDATE negocios SET dias_prueba = 30 WHERE (dias_prueba IS NULL OR dias_prueba <= 0) AND (ruta NOT LIKE 'demo%')"); } catch(Exception $e) {}
 
 try { $pdo->query("SELECT codigo_descuento FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN codigo_descuento VARCHAR(50) DEFAULT NULL"); }
@@ -86,6 +86,23 @@ catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN fecha_pr
 
 try { $pdo->query("SELECT aviso_cambio_precio FROM negocios LIMIT 1"); } 
 catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN aviso_cambio_precio TINYINT(1) DEFAULT 0"); } catch(Throwable $ex) {} }
+
+try { $pdo->query("SELECT descuento_por_prof_pct FROM negocios LIMIT 1"); } 
+catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN descuento_por_prof_pct DECIMAL(5,2) DEFAULT NULL"); } catch(Throwable $ex) {} }
+
+try {
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `historial_cambios_negocio` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `id_negocio` INT NOT NULL,
+        `tipo_evento` VARCHAR(50) NOT NULL,
+        `valor_anterior` VARCHAR(100) DEFAULT NULL,
+        `valor_nuevo` VARCHAR(100) DEFAULT NULL,
+        `detalle` TEXT DEFAULT NULL,
+        `origen` VARCHAR(50) DEFAULT 'cliente',
+        `fecha` DATETIME DEFAULT CURRENT_TIMESTAMP,
+        KEY `idx_negocio_fecha` (`id_negocio`, `fecha`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+} catch(Throwable $eHInit) {}
 
 try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS `codigos_descuento` (
@@ -331,7 +348,7 @@ if ($method === 'GET') {
         try {
             $stmt = $pdo->query("
             SELECT n.id, n.nombre_fantasia, n.ruta, n.plan, n.max_profesionales, n.estado_pago, n.fecha_alta, n.dias_prueba,
-                   n.ultimo_pago, n.comprobante, n.codigo_descuento, n.descuento_aplicado_pct, n.precio_pactado, u.nombre_completo, u.email, u.id AS id_usuario_admin,
+                   n.ultimo_pago, n.comprobante, n.codigo_descuento, n.descuento_aplicado_pct, n.descuento_por_prof_pct, n.precio_pactado, u.nombre_completo, u.email, u.id AS id_usuario_admin,
                    COALESCE(cw.tipo_calendario, 'clasico') AS tipo_calendario,
                    an.nota AS nota_interna
             FROM negocios n
@@ -398,6 +415,7 @@ if ($method === 'GET') {
             if (!isset($neg['precio_pactado'])) $neg['precio_pactado'] = null;
             if (!isset($neg['codigo_descuento'])) $neg['codigo_descuento'] = null;
             if (!isset($neg['descuento_aplicado_pct'])) $neg['descuento_aplicado_pct'] = 0;
+            if (!isset($neg['descuento_por_prof_pct'])) $neg['descuento_por_prof_pct'] = null;
             if (!isset($neg['tipo_calendario'])) $neg['tipo_calendario'] = 'clasico';
             if (!isset($neg['nota_interna'])) $neg['nota_interna'] = null;
         }
@@ -560,7 +578,7 @@ if ($method === 'GET') {
             ");
             $extras = $stmtExtra ? $stmtExtra->fetchAll(PDO::FETCH_ASSOC) : [];
             foreach ($extras as $ex) {
-                $ex['segmento'] = trim(preg_replace('/^(Reporte de Error:|Sugerencia \/ Mejora:)\s*/i', '', $ex['segmento']));
+                $ex['segmento'] = trim(preg_replace('/^(Reporte de Error:|Sugerencia \/ Mejora:|Solicitud de Ampliación:)\s*/i', '', $ex['segmento']));
                 if (empty($ex['segmento'])) $ex['segmento'] = 'General';
 
                 $exists = false;
@@ -577,12 +595,47 @@ if ($method === 'GET') {
 
             foreach ($notifs_admin as &$rClean) {
                 if (!empty($rClean['segmento'])) {
-                    $rClean['segmento'] = trim(preg_replace('/^(Reporte de Error:|Sugerencia \/ Mejora:)\s*/i', '', $rClean['segmento']));
+                    $rClean['segmento'] = trim(preg_replace('/^(Reporte de Error:|Sugerencia \/ Mejora:|Solicitud de Ampliación:)\s*/i', '', $rClean['segmento']));
                     if (empty($rClean['segmento'])) $rClean['segmento'] = 'General';
                 }
             }
             unset($rClean);
         } catch (Exception $eN) {}
+
+        // Obtener historial de cambios de negocios
+        $historial_cambios = [];
+        try {
+            // Auto-backfill si historial_cambios_negocio está vacío
+            try {
+                $checkH = $pdo->query("SELECT COUNT(*) FROM historial_cambios_negocio LIMIT 1");
+                $countH = $checkH ? (int)$checkH->fetchColumn() : 0;
+                if ($countH === 0) {
+                    $stmtBackfill = $pdo->query("
+                        SELECT id_negocio, segmento, mensaje, fecha 
+                        FROM notificaciones_admin 
+                        WHERE id_negocio IS NOT NULL AND id_negocio > 0 
+                          AND (segmento LIKE '%Plan%' OR segmento LIKE '%Ampliaci%' OR mensaje LIKE '%plan%' OR mensaje LIKE '%cupo%')
+                        ORDER BY fecha ASC
+                    ");
+                    $rowsBf = $stmtBackfill ? $stmtBackfill->fetchAll(PDO::FETCH_ASSOC) : [];
+                    foreach ($rowsBf as $rb) {
+                        $tEvent = (stripos($rb['segmento'], 'ampliaci') !== false || stripos($rb['mensaje'], 'cupo') !== false) ? 'ampliacion_personal' : 'cambio_plan';
+                        $pdo->prepare("INSERT INTO historial_cambios_negocio (id_negocio, tipo_evento, detalle, origen, fecha) VALUES (?, ?, ?, 'cliente', ?)")
+                            ->execute([$rb['id_negocio'], $tEvent, $rb['mensaje'], $rb['fecha']]);
+                    }
+                }
+            } catch(Throwable $eBf) {}
+
+            $stmtHist = $pdo->query("SELECT * FROM historial_cambios_negocio ORDER BY fecha DESC");
+            $historial_cambios = $stmtHist ? $stmtHist->fetchAll(PDO::FETCH_ASSOC) : [];
+        } catch(Throwable $eHistQ) {}
+
+        foreach ($negocios as &$negocio) {
+            $negocio['historial_cambios'] = array_values(array_filter($historial_cambios, function($h) use ($negocio) {
+                return $h['id_negocio'] == $negocio['id'];
+            }));
+        }
+        unset($negocio);
         
         // Obtener las notas internas más recientes
         $notas_recientes = [];
@@ -606,6 +659,7 @@ if ($method === 'GET') {
             'data' => $negocios, 
             'negocios' => $negocios, 
             'notificaciones' => $notifs_admin, 
+            'historial_cambios' => $historial_cambios,
             'notas_recientes' => $notas_recientes, 
             'config_global' => $config_global,
             'codigos_descuento' => $codigos_descuento
@@ -1026,6 +1080,13 @@ elseif ($method === 'PUT') {
                     $updates[] = "precio_pactado = :precio_pactado";
                     $params['precio_pactado'] = $precio_pactado;
                 }
+                if (isset($data['descuento_por_prof_pct'])) {
+                    $dppVal = max(0, min(100, (float)$data['descuento_por_prof_pct']));
+                    try { $pdo->query("SELECT descuento_por_prof_pct FROM negocios LIMIT 1"); } 
+                    catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN descuento_por_prof_pct DECIMAL(5,2) DEFAULT NULL"); } catch(Throwable $ex) {} }
+                    $updates[] = "descuento_por_prof_pct = :descuento_por_prof_pct";
+                    $params['descuento_por_prof_pct'] = $dppVal;
+                }
                 if ($estado_pago !== null) {
                     $updates[] = "estado_pago = :estado_pago";
                     $params['estado_pago'] = $estado_pago;
@@ -1033,6 +1094,26 @@ elseif ($method === 'PUT') {
                         $updates[] = "ultimo_pago = NOW()";
                     }
                 }
+
+                // Trazabilidad en historial_cambios_negocio
+                try {
+                    $stmtPrevBiz = $pdo->prepare("SELECT plan, max_profesionales FROM negocios WHERE id = ?");
+                    $stmtPrevBiz->execute([$id_negocio]);
+                    $prevBizRow = $stmtPrevBiz->fetch(PDO::FETCH_ASSOC);
+
+                    if ($prevBizRow) {
+                        if ($plan !== null && strcasecmp(trim($prevBizRow['plan'] ?? ''), trim($plan)) !== 0) {
+                            $pdo->prepare("INSERT INTO historial_cambios_negocio (id_negocio, tipo_evento, valor_anterior, valor_nuevo, detalle, origen, fecha) VALUES (?, 'cambio_plan', ?, ?, 'Cambio de plan aplicado por SuperAdmin', 'superadmin', NOW())")
+                                ->execute([$id_negocio, $prevBizRow['plan'] ?? 'Básico', $plan]);
+                        }
+                        if ($max_profesionales !== null && (int)($prevBizRow['max_profesionales'] ?? 1) !== (int)$max_profesionales) {
+                            $tEv = ((int)$max_profesionales > (int)($prevBizRow['max_profesionales'] ?? 1)) ? 'ampliacion_personal' : 'disminucion_personal';
+                            $detProf = ((int)$max_profesionales > (int)($prevBizRow['max_profesionales'] ?? 1)) ? 'Ampliación de cupo de personal por SuperAdmin' : 'Disminución de cupo de personal por SuperAdmin';
+                            $pdo->prepare("INSERT INTO historial_cambios_negocio (id_negocio, tipo_evento, valor_anterior, valor_nuevo, detalle, origen, fecha) VALUES (?, ?, ?, ?, ?, 'superadmin', NOW())")
+                                ->execute([$id_negocio, $tEv, (string)($prevBizRow['max_profesionales'] ?? 1), (string)$max_profesionales, $detProf]);
+                        }
+                    }
+                } catch(Throwable $eHRec) {}
             }
             
             if (count($updates) > 0) {
