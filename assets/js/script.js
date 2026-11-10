@@ -25,6 +25,16 @@
 // LÓGICA COMPARTIDA Y UTILIDADES
 // ==========================================
 
+window.escapeHtml = function(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+};
+function escapeHtml(text) {
+    return window.escapeHtml(text);
+}
+
 window.normalizeProfName = function(name) {
     if (!name || typeof name !== 'string') return '';
     return name.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
