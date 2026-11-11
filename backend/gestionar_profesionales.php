@@ -202,6 +202,8 @@ if ($method === 'GET') {
             $hash = password_hash($password, PASSWORD_DEFAULT);
             $stmtUpd = $pdo->prepare("UPDATE usuarios SET nombre_completo = ?, email = ?, password = ? WHERE id = ?");
             $stmtUpd->execute([$nombre, $email, $hash, $id_usuario]);
+            // Si el dueño asigna una clave, esa clave pasa a ser obligatoria (ya no es "primer inicio")
+            try { $pdo->prepare("UPDATE usuarios SET debe_cambiar_pass = 0 WHERE id = ?")->execute([$id_usuario]); } catch (Throwable $eDcp) {}
         } else {
             $stmtUpd = $pdo->prepare("UPDATE usuarios SET nombre_completo = ?, email = ? WHERE id = ?");
             $stmtUpd->execute([$nombre, $email, $id_usuario]);

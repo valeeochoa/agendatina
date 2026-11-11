@@ -28,6 +28,17 @@ if (strlen($password) < 6) {
     exit;
 }
 
+// Solo se permite establecer la primera contraseña si el login autorizó este correo recientemente
+$autorizado = !empty($_SESSION['first_pass_email'])
+    && $_SESSION['first_pass_email'] === strtolower($email)
+    && !empty($_SESSION['first_pass_expira'])
+    && (int)$_SESSION['first_pass_expira'] >= time();
+if (!$autorizado) {
+    echo json_encode(['success' => false, 'error' => 'La sesión para configurar tu contraseña expiró. Volvé a ingresar tu correo en el inicio de sesión.']);
+    exit;
+}
+unset($_SESSION['first_pass_email'], $_SESSION['first_pass_expira']);
+
 try {
     $stmt = $pdo->prepare("SELECT id, nombre_completo, debe_cambiar_pass FROM usuarios WHERE email = ? LIMIT 1");
     $stmt->execute([$email]);

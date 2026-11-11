@@ -92,14 +92,53 @@ document.addEventListener('DOMContentLoaded', () => {
                             window.location.href = 'dashboard.html';
                         }
                     } else {
-                        const errMsg = data.error || 'Credenciales incorrectas.';
-                        const notFound = errMsg.toLowerCase().includes('no existe') || errMsg.toLowerCase().includes('no está registrado') || errMsg.toLowerCase().includes('incorrectas');
-                        if (notFound) {
-                            msgDiv.innerHTML = `<span>${errMsg}</span> <span class="block mt-1 text-xs">¿No tenés una cuenta? <a href="registro.html" class="underline font-bold text-primary hover:text-secondary">Creala acá gratis</a></span>`;
-                        } else {
-                            msgDiv.textContent = errMsg;
+                        const errMsg = (data && data.error) || 'No pudimos iniciar sesión. Revisá tu correo y contraseña.';
+                        const code = (data && data.error_code) || '';
+                        const passInput = loginForm.querySelector('input[name="password"]');
+                        const emailInput = loginForm.querySelector('input[name="username"]');
+                        const marcarError = (input) => {
+                            if (!input) return;
+                            input.classList.add('border-red-400', 'ring-2', 'ring-red-200', 'bg-red-50');
+                            const limpiar = () => {
+                                input.classList.remove('border-red-400', 'ring-2', 'ring-red-200', 'bg-red-50');
+                                input.removeEventListener('input', limpiar);
+                            };
+                            input.addEventListener('input', limpiar);
+                        };
+
+                        msgDiv.innerHTML = '';
+                        const icon = document.createElement('span');
+                        icon.className = 'material-symbols-outlined text-[18px] align-middle mr-1';
+                        icon.textContent = code === 'email_not_found' ? 'person_off' : (code === 'wrong_password' ? 'lock' : 'error');
+                        const txt = document.createElement('span');
+                        txt.className = 'align-middle';
+                        txt.textContent = errMsg;
+                        msgDiv.appendChild(icon);
+                        msgDiv.appendChild(txt);
+
+                        if (code === 'email_not_found') {
+                            const extra = document.createElement('span');
+                            extra.className = 'block mt-1 text-xs';
+                            extra.innerHTML = '¿No tenés una cuenta? <a href="registro.html" class="underline font-bold text-primary hover:text-secondary">Creala acá gratis</a>';
+                            msgDiv.appendChild(extra);
+                            marcarError(emailInput);
+                            if (emailInput) emailInput.focus();
+                        } else if (code === 'wrong_password') {
+                            const extra = document.createElement('span');
+                            extra.className = 'block mt-1 text-xs';
+                            extra.innerHTML = '<a href="#" class="underline font-bold text-primary hover:text-secondary">¿Olvidaste tu contraseña?</a>';
+                            extra.querySelector('a').addEventListener('click', (ev) => { if (typeof openForgotModal === 'function') openForgotModal(ev); });
+                            msgDiv.appendChild(extra);
+                            marcarError(passInput);
+                            if (passInput) { passInput.value = ''; passInput.focus(); }
                         }
+
                         msgDiv.classList.remove('hidden');
+                        // Animación de "sacudida" para que el aviso no pase desapercibido
+                        msgDiv.animate(
+                            [{ transform: 'translateX(0)' }, { transform: 'translateX(-8px)' }, { transform: 'translateX(8px)' }, { transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'translateX(0)' }],
+                            { duration: 400, easing: 'ease-in-out' }
+                        );
                         btnSubmit.disabled = false;
                         btnSubmit.innerHTML = '<span>Ingresar al sistema</span><span class="material-symbols-outlined text-xl">arrow_forward</span>';
                     }

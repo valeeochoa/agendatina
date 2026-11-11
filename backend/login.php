@@ -87,13 +87,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN permisos TEXT NULL"); } catch(Throwable $e) {}
         try { $pdo->exec("ALTER TABLE usuarios ADD COLUMN debe_cambiar_pass TINYINT DEFAULT 0"); } catch(Throwable $e) {}
 
-        // 1. Verificar si la cuenta requiere establecer contraseña por primera vez (aislado de forma segura)
+        // 1. Detectar si la cuenta todavía no estableció su contraseña (profesional invitado por el negocio)
+        //    IMPORTANTE: primero se verifica la contraseña ingresada. Solo si NO coincide y la cuenta
+        //    está marcada con debe_cambiar_pass = 1 se ofrece el flujo de "primer inicio".
+        $firstUser = null;
         try {
-            $stmtCheckFirst = $pdo->prepare("SELECT id, nombre_completo, email, debe_cambiar_pass FROM usuarios WHERE LOWER(TRIM(email)) = LOWER(:email) LIMIT 1");
+            $stmtCheckFirst = $pdo->prepare("SELECT id, nombre_completo, email, password, debe_cambiar_pass FROM usuarios WHERE LOWER(TRIM(email)) = LOWER(:email) LIMIT 1");
             $stmtCheckFirst->execute(['email' => $email]);
-            $firstUser = $stmtCheckFirst->fetch(PDO::FETCH_ASSOC);
+            $firstUser = $stmtCheckFirst->fetch(PDO::FETCH_ASSOC) ?: null;
+        } catch (Throwable $eFirst) { $firstUser = null; }
 
-            if ($firstUser && (int)($firstUser['debe_cambiar_pass'] ?? 0) === 1) {
+        if ($firstUser && (int)($firstUser['debe_cambiar_pass'] ?? 0) === 1) {
+            $passOk = !empty($firstUser['password']) && password_verify($input_password, (string)$firstUser['password']);
+            if ($passOk) {
+                // Conoce la contraseña asignada: se considera establecida y continúa el login normal
+                try { $pdo->prepare("UPDATE usuarios SET debe_cambiar_pass = 0 WHERE id = ?")->execute([$firstUser['id']]); } catch (Throwable $eUpd) {}
+            } else {
+                // Autoriza (solo para este correo y por 15 minutos) el formulario de primera contraseña
+                $_SESSION['first_pass_email'] = strtolower($email);
+                $_SESSION['first_pass_expira'] = time() + 900;
                 echo json_encode([
                     'success' => false,
                     'require_first_password' => true,
@@ -103,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
                 exit;
             }
-        } catch (Throwable $eFirst) {}
+        }
 
         $sql = "SELECT u.id, u.nombre_completo, u.password, u.email, pn.id_negocio, pn.rol_en_local, pn.permisos, n.plan, n.nombre_fantasia 
                 FROM usuarios u
@@ -116,27 +128,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute(['email' => $email]);
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if (empty($users)) {
-            // Registrar intento fallido
+        // Helper: registrar intento fallido y calcular intentos restantes
+        $registrarFallo = function() use ($pdo, $ip_address, $max_attempts) {
             $stmtFail = $pdo->prepare("INSERT INTO login_attempts (ip_address, intentos, ultimo_intento) VALUES (:ip, 1, NOW()) ON DUPLICATE KEY UPDATE intentos = intentos + 1, ultimo_intento = NOW()");
             $stmtFail->execute(['ip' => $ip_address]);
-            echo json_encode(['success' => false, 'error' => 'Correo electrónico o contraseña incorrectos.']);
+            $stmtCnt = $pdo->prepare("SELECT intentos FROM login_attempts WHERE ip_address = :ip");
+            $stmtCnt->execute(['ip' => $ip_address]);
+            $usados = (int)($stmtCnt->fetchColumn() ?: 1);
+            return max(0, $max_attempts - $usados);
+        };
+
+        if (empty($users)) {
+            $restantes = $registrarFallo();
+            echo json_encode([
+                'success' => false,
+                'error_code' => 'email_not_found',
+                'error' => 'No existe ninguna cuenta registrada con ese correo electrónico.',
+                'intentos_restantes' => $restantes
+            ]);
             exit;
         }
         
         $validUser = null;
         foreach ($users as $u) {
-            if (password_verify($input_password, $u['password'])) {
+            if (!empty($u['password']) && password_verify($input_password, (string)$u['password'])) {
                 $validUser = $u;
                 break;
             }
         }
 
         if (!$validUser) {
-            // Registrar intento fallido
-            $stmtFail = $pdo->prepare("INSERT INTO login_attempts (ip_address, intentos, ultimo_intento) VALUES (:ip, 1, NOW()) ON DUPLICATE KEY UPDATE intentos = intentos + 1, ultimo_intento = NOW()");
-            $stmtFail->execute(['ip' => $ip_address]);
-            echo json_encode(['success' => false, 'error' => 'Correo electrónico o contraseña incorrectos.']);
+            $restantes = $registrarFallo();
+            $msg = 'La contraseña ingresada es incorrecta.';
+            if ($restantes > 0) {
+                $msg .= " Te quedan {$restantes} intento" . ($restantes === 1 ? '' : 's') . " antes de que el acceso se pause por {$lockout_time} minutos.";
+            } else {
+                $msg .= " Por seguridad, el acceso quedó pausado por {$lockout_time} minutos.";
+            }
+            echo json_encode([
+                'success' => false,
+                'error_code' => 'wrong_password',
+                'error' => $msg,
+                'intentos_restantes' => $restantes
+            ]);
             exit;
         }
 
