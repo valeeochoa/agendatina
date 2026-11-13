@@ -4247,7 +4247,7 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
         }
 
         /* 5. Calendario y Franjas Horarias */
-        /* Cuadrados del Calendario */
+        /* Cuadrados del Calendario Disponibles (con borde para elegir) */
         .calendar-day:not(.disabled), 
         .mini-calendar-day:not(.disabled),
         #calendarDays > div:not(.disabled):not(:empty),
@@ -4258,6 +4258,31 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
             border: 1.5px solid color-mix(in srgb, ${sColor} 40%, #ffffff) !important;
             color: ${pColor} !important;
             font-weight: 800 !important;
+        }
+
+        /* Cuadrados del Calendario Pasados, Cerrados o Deshabilitados: Color más tenue y SIN borde para elegir */
+        .calendar-day.disabled, 
+        .mini-calendar-day.disabled,
+        #calendarDays > div.disabled,
+        #weeklyCalendarDays > div.disabled,
+        #adminWeeklyGrid > div.disabled {
+            background-color: color-mix(in srgb, ${pColor} 8%, #ffffff) !important;
+            border: 1.5px solid transparent !important;
+            color: color-mix(in srgb, ${pColor} 50%, #94a3b8) !important;
+            box-shadow: none !important;
+            cursor: not-allowed !important;
+        }
+
+        .dark .calendar-day.disabled, 
+        .dark .mini-calendar-day.disabled,
+        .dark #calendarDays > div.disabled,
+        .dark #weeklyCalendarDays > div.disabled,
+        .dark #adminWeeklyGrid > div.disabled {
+            background-color: color-mix(in srgb, ${pColor} 12%, #0f172a) !important;
+            border: 1.5px solid transparent !important;
+            color: color-mix(in srgb, ${pColor} 40%, #64748b) !important;
+            box-shadow: none !important;
+            cursor: not-allowed !important;
         }
 
         /* Día Seleccionado / Activo con Gradiente de Primario a Secundario */

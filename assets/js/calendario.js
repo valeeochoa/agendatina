@@ -485,8 +485,8 @@ function getSlotStatus(dateString, timeStr, durationMin, capacity, baseOcupadas,
             available: false,
             isPast: false,
             isFull: true,
-            status: 'sin_cupo',
-            label: 'Sin cupo'
+            status: 'no_disponible',
+            label: 'No disponible'
         };
     }
 
@@ -548,77 +548,31 @@ function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration =
         let curMins = tramo.start;
 
         while (curMins + dur <= tramo.end) {
-            const slotEndMins = curMins + dur;
+            const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
+            const curM = (curMins % 60).toString().padStart(2, '0');
+            const timeSlot = `${curH}:${curM}`;
 
-            if (isSingleSlotMode && isServMode && dateStr) {
-                if (isUnionMode) {
-                    const hasFreeProf = teamProfs.some(pName => {
-                        const cleanP = String(pName).trim().toLowerCase();
-                        const pBookings = bookedDetails.filter(b => {
-                            if (b.cupo_maximo > 1) return false;
-                            if (!b.profesional || b.profesional === 'Cualquiera (Sin preferencia)' || b.profesional === '') return true;
-                            return String(b.profesional).trim().toLowerCase() === cleanP;
-                        });
-                        return !pBookings.some(b => Math.max(curMins, b.startMins) < Math.min(slotEndMins + bufferMins, (b.endMinsWithBuffer !== undefined ? b.endMinsWithBuffer : b.endMins + bufferMins)));
-                    });
-
-                    if (hasFreeProf) {
-                        const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
-                        const curM = (curMins % 60).toString().padStart(2, '0');
-                        const timeSlot = `${curH}:${curM}`;
-                        if (!availableSlots.includes(timeSlot)) {
-                            availableSlots.push(timeSlot);
-                        }
-                    }
-                    curMins += step;
-                    continue;
-                }
-
-                // Profesional específico
-                const activeBooking = relevantBookings.find(b => curMins >= b.startMins && curMins < (b.endMins + bufferMins));
-                if (activeBooking) {
-                    curMins = activeBooking.endMins + bufferMins;
-                    continue;
-                }
-
-                const overlappingBooking = relevantBookings.find(b => curMins < b.startMins && (slotEndMins + bufferMins) > b.startMins);
-                if (overlappingBooking) {
-                    curMins = overlappingBooking.endMins + bufferMins;
-                    continue;
-                }
-                const oldActive = null;
-                if (oldActive) {
-                    curMins = activeBooking.endMins;
-                    continue;
-                }
-
-                const oldOverlapping = relevantBookings.find(b => curMins < b.startMins && slotEndMins > b.startMins);
-                if (false && oldOverlapping) {
-                    curMins = overlappingBooking.endMins;
-                    continue;
-                }
-
-                const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
-                const curM = (curMins % 60).toString().padStart(2, '0');
-                const timeSlot = `${curH}:${curM}`;
-
-                if (!availableSlots.includes(timeSlot)) {
-                    availableSlots.push(timeSlot);
-                }
-
-                curMins += step;
-            } else {
-                const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
-                const curM = (curMins % 60).toString().padStart(2, '0');
-                const timeSlot = `${curH}:${curM}`;
-
-                if (!availableSlots.includes(timeSlot)) {
-                    availableSlots.push(timeSlot);
-                }
-                curMins += step;
+            if (!availableSlots.includes(timeSlot)) {
+                availableSlots.push(timeSlot);
             }
+            curMins += step;
         }
     });
+
+    // Incluir también los inicios de turnos agendados para que se muestren como 'No disponible' en vez de desaparecer
+    if (relevantBookings && relevantBookings.length > 0) {
+        relevantBookings.forEach(b => {
+            if (b.startMins !== undefined) {
+                const curH = Math.floor(b.startMins / 60).toString().padStart(2, '0');
+                const curM = (b.startMins % 60).toString().padStart(2, '0');
+                const bTime = `${curH}:${curM}`;
+                if (!availableSlots.includes(bTime)) {
+                    availableSlots.push(bTime);
+                }
+            }
+        });
+        availableSlots.sort((a, b) => a.localeCompare(b));
+    }
 
     return availableSlots;
 }
@@ -821,29 +775,29 @@ function cal_renderCalendar() {
 
         const isToday = date.getTime() === today.getTime();
         const dayDiv = document.createElement('div');
-        dayDiv.className = `p-2 aspect-square flex flex-col items-center justify-center rounded-2xl transition-all duration-300 relative text-sm sm:text-base font-extrabold`;
+        dayDiv.className = `p-2 aspect-square flex flex-col items-center justify-center rounded-2xl transition-all duration-300 relative text-sm sm:text-base font-extrabold calendar-day`;
         
         if (isToday && !visuallyDisabled) {
             dayDiv.classList.add('is-today');
         }
 
         if (visuallyDisabled) {
-            dayDiv.classList.add((isClosedDay || (!effectiveIsAdmin && isPast)) ? 'disabled' : 'calendar-day');
+            dayDiv.classList.add('disabled');
             if (isClosedDay) {
-                dayDiv.innerHTML = `<span class="opacity-35">${i}</span>`;
+                dayDiv.innerHTML = `<span class="opacity-55">${i}</span>`;
                 dayDiv.title = 'Establecimiento cerrado';
-                dayDiv.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none', 'select-none');
+                dayDiv.classList.add('pointer-events-none', 'cursor-not-allowed', 'select-none');
             } else if (isPast) {
-                dayDiv.innerHTML = `<span class="opacity-35">${i}</span>`;
+                dayDiv.innerHTML = `<span class="opacity-55">${i}</span>`;
                 dayDiv.title = effectiveIsAdmin ? 'Día pasado (Click para ver horarios)' : 'Día anterior no disponible';
                 if (!effectiveIsAdmin) {
-                    dayDiv.classList.add('opacity-30', 'cursor-not-allowed', 'pointer-events-none', 'select-none');
+                    dayDiv.classList.add('pointer-events-none', 'cursor-not-allowed', 'select-none');
                 }
             } else {
                 dayDiv.innerHTML = `<span class="opacity-65">${i}</span>`;
                 dayDiv.title = effectiveIsAdmin ? 'Sin cupos disponibles (Click para ver horarios)' : 'Sin cupos disponibles';
                 if (!effectiveIsAdmin && isDayBlocked) {
-                    dayDiv.classList.add('opacity-35', 'cursor-not-allowed', 'pointer-events-none', 'select-none');
+                    dayDiv.classList.add('pointer-events-none', 'cursor-not-allowed', 'select-none');
                 }
             }
             if (effectiveIsAdmin && isDayBlocked && !(isPast || isClosedDay)) {
@@ -853,7 +807,6 @@ function cal_renderCalendar() {
                 dayDiv.title = 'Día bloqueado (Click para gestionar)';
             }
         } else {
-            dayDiv.classList.add('calendar-day');
             const todayBadge = isToday ? '<span class="glow-badge-today text-[8px] px-1.5 py-0.2 mb-0.5 scale-90">HOY</span>' : '';
             dayDiv.innerHTML = `${todayBadge}<span>${i}</span>`;
         }
@@ -987,20 +940,20 @@ function cal_renderTimeSlots(preserveSelected = true) {
                 document.getElementById('horaSeleccionada').value = time;
             });
         } else {
-            // NO DISPONIBLE: Se muestra el horario con su etiqueta (Pasado o Sin cupo) y NO se permite reservar
+            // NO DISPONIBLE: Se muestra el horario con su etiqueta (Pasado o No disponible) y NO se permite reservar
             const isPast = slotStatus.isPast;
-            const badgeText = isPast ? 'Pasado' : 'Sin cupo';
+            const badgeText = isPast ? 'Pasado' : 'No disponible';
             const badgeClass = isPast 
                 ? 'bg-slate-200/80 dark:bg-slate-700/70 text-slate-500 dark:text-slate-400' 
                 : 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400';
             
             slot.innerHTML = `
-                <div class="flex flex-col items-center justify-center gap-0.5 w-full min-w-0">
+                <div class="flex flex-col items-center justify-center gap-0.5 w-full min-w-0" title="${isPast ? 'Horario pasado' : 'Turno no disponible'}">
                     <span class="whitespace-nowrap font-bold text-xs leading-tight text-slate-400 dark:text-slate-500 ${isPast ? 'line-through decoration-slate-400/60' : ''}">${time}&nbsp;hs</span>
                     <span class="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-full ${badgeClass} leading-none max-w-full truncate">${badgeText}</span>
                 </div>
             `;
-            slot.className = 'time-slot unavailable flex flex-col justify-center items-center py-1.5 px-1.5 rounded-2xl text-xs font-bold opacity-65 cursor-not-allowed bg-slate-100/70 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 border border-dashed border-slate-200 dark:border-slate-700 min-h-[44px] w-full overflow-hidden select-none';
+            slot.className = 'time-slot unavailable flex flex-col justify-center items-center py-1.5 px-1.5 rounded-2xl text-xs font-bold opacity-65 cursor-not-allowed bg-slate-100/70 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 border border-dashed border-slate-200 dark:border-slate-700 min-h-[44px] w-full overflow-hidden select-none pointer-events-none';
         }
 
         timeSlotsContainer.appendChild(slot);
@@ -3526,7 +3479,7 @@ function renderWeeklyCalendar() {
         const isClientPastOrBlocked = !effectiveIsAdmin && (isPast || isClosedDay || isDayBlocked);
         
         if (isClosedDay || isClientPastOrBlocked) {
-            dayDiv.classList.add('opacity-35', 'cursor-not-allowed', 'pointer-events-none', 'select-none');
+            dayDiv.classList.add('disabled', 'cursor-not-allowed', 'pointer-events-none', 'select-none');
             dayDiv.title = isPast ? 'Día anterior no disponible' : (isClosedDay ? 'Establecimiento cerrado' : 'Sin cupos disponibles');
         } else {
             dayDiv.classList.add('cursor-pointer');
@@ -3737,20 +3690,20 @@ function selectWeeklyDate(date, preserveSelected = false) {
                 document.getElementById('weeklyHora').value = time;
             });
         } else {
-            // NO DISPONIBLE: Se muestra horario con su etiqueta (Pasado o Sin cupo) y NO permite click/reserva
+            // NO DISPONIBLE: Se muestra horario con su etiqueta (Pasado o No disponible) y NO permite click/reserva
             const isPast = slotStatus.isPast;
-            const badgeText = isPast ? 'Pasado' : 'Sin cupo';
+            const badgeText = isPast ? 'Pasado' : 'No disponible';
             const badgeClass = isPast 
                 ? 'bg-slate-200/80 dark:bg-slate-700/70 text-slate-500 dark:text-slate-400' 
                 : 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400';
             
             slot.innerHTML = `
-                <div class="flex flex-col items-center justify-center gap-0.5 w-full min-w-0">
+                <div class="flex flex-col items-center justify-center gap-0.5 w-full min-w-0" title="${isPast ? 'Horario pasado' : 'Turno no disponible'}">
                     <span class="whitespace-nowrap font-bold text-xs sm:text-sm leading-tight text-slate-400 dark:text-slate-500 ${isPast ? 'line-through decoration-slate-400/60' : ''}">${time}&nbsp;hs</span>
                     <span class="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-full ${badgeClass} leading-none max-w-full truncate">${badgeText}</span>
                 </div>
             `;
-            slot.className = 'time-slot unavailable flex flex-col justify-center items-center py-1.5 sm:py-2 px-1.5 sm:px-2 rounded-2xl text-xs sm:text-sm font-bold opacity-65 cursor-not-allowed bg-slate-100/70 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 border border-dashed border-slate-200 dark:border-slate-700 min-h-[46px] w-full overflow-hidden select-none';
+            slot.className = 'time-slot unavailable flex flex-col justify-center items-center py-1.5 sm:py-2 px-1.5 sm:px-2 rounded-2xl text-xs sm:text-sm font-bold opacity-65 cursor-not-allowed bg-slate-100/70 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 border border-dashed border-slate-200 dark:border-slate-700 min-h-[46px] w-full overflow-hidden select-none pointer-events-none';
         }
 
         container.appendChild(slot);
