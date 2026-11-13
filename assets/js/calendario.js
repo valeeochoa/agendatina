@@ -52,6 +52,21 @@ var teamProfessionals = [];
 var isPublicClientSlug = Boolean(negocioSlug && !negocioSlug.toLowerCase().startsWith('demo') && urlParams.get('admin') !== '1' && sessionStorage.getItem('agendatina_session') !== 'active');
 var isAdmin = !isPublicClientSlug && (sessionStorage.getItem('agendatina_session') === 'active' || (negocioSlug === '') || negocioSlug.toLowerCase().startsWith('demo'));
 
+// Registro estadístico de visitas al calendario para planes Profesional y Premium
+if (isPublicClientSlug && negocioSlug) {
+    const sesKey = 'vista_cal_' + negocioSlug;
+    if (!sessionStorage.getItem(sesKey)) {
+        sessionStorage.setItem(sesKey, '1');
+        try {
+            fetch('backend/registrar_vista.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ negocio: negocioSlug, tipo: 'calendario' })
+            }).catch(() => {});
+        } catch(e) {}
+    }
+}
+
 window.hasWebPagePlan = function(planStr) {
     const p = String(planStr || (window.businessWebConfig && window.businessWebConfig.plan) || '').toLowerCase().trim();
     if (!p) return false;
@@ -1062,7 +1077,11 @@ function renderAdminDayView(dateString) {
 
     const dayActionBtns = document.getElementById('adminDayActionBtns');
     if (dayActionBtns) {
-        dayActionBtns.style.display = isPastDay ? 'none' : 'flex';
+        dayActionBtns.style.display = 'flex';
+        const blockBtn = document.getElementById('toggleDayBlockBtn');
+        if (blockBtn) {
+            blockBtn.style.display = isPastDay ? 'none' : '';
+        }
     }
 
     const mainWrapper = document.getElementById('mainCalendarWrapper');
@@ -1195,17 +1214,23 @@ function renderAdminDayView(dateString) {
                     slotDiv.innerHTML = `
                         <div class="flex justify-between items-center w-full">
                             <span class="text-sm font-bold text-slate-400">${time}</span>
-                            <span class="text-[10px] text-slate-400 font-medium bg-slate-100 dark:bg-slate-800/60 px-1.5 py-0.5 rounded uppercase">Pasado</span>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <span class="text-[10px] text-slate-400 font-medium bg-slate-100 dark:bg-slate-800/60 px-1.5 py-0.5 rounded uppercase">Pasado</span>
+                                ${effectiveIsAdmin ? `
+                                <button onclick="openManualTurnoModal('${time}', '${prof}')" class="slot-action-btn-add text-primary hover:text-white hover:bg-primary p-1.5 rounded-lg transition-colors flex items-center justify-center cursor-pointer" title="Cargar turno previo (para estadísticas)">
+                                    <span class="material-symbols-outlined text-[16px]">add_circle</span>
+                                </button>` : ''}
+                            </div>
                         </div>`;
                 } else {
                     slotDiv.innerHTML = `
                         <div class="flex justify-between items-center w-full">
                             <span class="text-sm font-bold text-slate-700 dark:text-slate-300">${time}</span>
                             <div class="flex items-center gap-1 shrink-0">
-                                <button onclick="openManualTurnoModal('${time}', '${prof}')" class="text-primary hover:bg-primary/10 p-1.5 rounded-lg transition-colors" title="Agregar turno">
+                                <button onclick="openManualTurnoModal('${time}', '${prof}')" class="slot-action-btn-add text-primary hover:text-white hover:bg-primary p-1.5 rounded-lg transition-colors cursor-pointer" title="Agregar turno">
                                     <span class="material-symbols-outlined text-[16px]">add_circle</span>
                                 </button>
-                                <button onclick="bloquearHorario('${dateString}', '${time}', '${prof}')" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg transition-colors flex items-center justify-center" title="Bloquear horario">
+                                <button onclick="bloquearHorario('${dateString}', '${time}', '${prof}')" class="slot-action-btn-block text-slate-400 hover:text-white hover:bg-secondary p-1.5 rounded-lg transition-colors flex items-center justify-center cursor-pointer" title="Bloquear horario">
                                     <span class="material-symbols-outlined text-[16px]">block</span>
                                 </button>
                             </div>
@@ -1350,16 +1375,24 @@ function renderAdminDayView(dateString) {
                 slotDiv.innerHTML = `<span class="text-sm font-bold text-slate-400">${time}</span><span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">Ocupado</span>`;
             }
         } else if (isSlotInPast) {
-            slotDiv.innerHTML = `<span class="text-sm font-bold text-slate-400">${time}</span><span class="text-[10px] text-slate-400 font-medium bg-slate-100 dark:bg-slate-800/60 px-2 py-0.5 rounded uppercase">Pasado</span>`;
+            slotDiv.innerHTML = `
+                <span class="text-sm font-bold text-slate-400">${time}</span>
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <span class="text-[10px] text-slate-400 font-medium bg-slate-100 dark:bg-slate-800/60 px-2 py-0.5 rounded uppercase">Pasado</span>
+                    ${effectiveIsAdmin ? `
+                    <button onclick="openManualTurnoModal('${time}')" class="slot-action-btn-add text-primary hover:text-white hover:bg-primary p-1.5 rounded-lg transition-colors flex items-center justify-center cursor-pointer" title="Cargar turno previo (para estadísticas)">
+                        <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                    </button>` : ''}
+                </div>`;
         } else {
             // Se añaden clases de flex center para forzar que los botones SIEMPRE se vean
             slotDiv.innerHTML = `
                 <span class="text-sm font-bold text-slate-700">${time}</span>
                 <div class="flex items-center gap-3 shrink-0">
-                    <button onclick="openManualTurnoModal('${time}')" class="text-primary hover:bg-primary/10 p-1.5 rounded-lg transition-colors flex items-center justify-center" title="Agregar turno">
+                    <button onclick="openManualTurnoModal('${time}')" class="slot-action-btn-add text-primary hover:text-white hover:bg-primary p-1.5 rounded-lg transition-colors flex items-center justify-center cursor-pointer" title="Agregar turno">
                         <span class="material-symbols-outlined text-[20px]">add_circle</span>
                     </button>
-                    <button onclick="bloquearHorario('${dateString}', '${time}')" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg transition-colors flex items-center justify-center" title="Bloquear horario">
+                    <button onclick="bloquearHorario('${dateString}', '${time}')" class="slot-action-btn-block text-slate-400 hover:text-white hover:bg-secondary p-1.5 rounded-lg transition-colors flex items-center justify-center cursor-pointer" title="Bloquear horario">
                         <span class="material-symbols-outlined text-[20px]">block</span>
                     </button>
                 </div>`;
@@ -1543,8 +1576,9 @@ function openManualTurnoModal(preselectedTime = null, preselectedProf = null) {
         const slotDate = new Date(selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate(), hh, mm, 0, 0);
         const isPastSlot = isPastDay || (isTodaySelected && slotDate.getTime() <= now.getTime());
 
-        const isDisabled = (isPastSlot || (!simultaneos && isOccupied)) ? 'disabled' : '';
-        const suffix = isPastSlot ? ' (Pasado)' : (isOccupied ? ' (Ocupado)' : '');
+        const isSlotDisabled = (!simultaneos && isOccupied);
+        const isDisabled = isSlotDisabled ? 'disabled' : '';
+        const suffix = isOccupied ? ' (Ocupado)' : (isPastSlot ? ' (Horario previo)' : '');
         const isSelected = t === timeToSelect ? 'selected' : '';
         horaSelect.innerHTML += `<option value="${t}" ${isSelected} ${isDisabled}>${t}${suffix}</option>`;
     });
@@ -1578,8 +1612,9 @@ function openManualTurnoModal(preselectedTime = null, preselectedProf = null) {
             const [hh, mm] = timeKey.split(':').map(Number);
             const slotDate = new Date(selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate(), hh, mm, 0, 0);
             const isPastSlot = isPastDay || (isTodaySelected && slotDate.getTime() <= now.getTime());
-            const isDisabled = (isPastSlot || (!simultaneos && isOccupied)) ? 'disabled' : '';
-            const suffix = isPastSlot ? ' (Pasado)' : (isOccupied ? ' (Ocupado)' : '');
+            const isSlotDisabled = (!simultaneos && isOccupied);
+            const isDisabled = isSlotDisabled ? 'disabled' : '';
+            const suffix = isOccupied ? ' (Ocupado)' : (isPastSlot ? ' (Horario previo)' : '');
             const isSelected = t === prevSelectedTime ? 'selected' : '';
             horaSelect.innerHTML += `<option value="${t}" ${isSelected} ${isDisabled}>${t}${suffix}</option>`;
         });
@@ -3968,6 +4003,7 @@ window.updateBookingSuccessModalContent = function(data) {
     const wppRaw = (data.whatsapp_comprobante || '').replace(/\D/g, '');
     const pctSena = parseInt(data.porcentaje_sena) || 50;
     const montoSena = parseFloat(data.monto_sena) || 0;
+    const precioServicio = parseFloat(data.precio_servicio) || 0;
     const cuponUsado = data.cupon_aplicado || '';
     const descPct = parseInt(data.descuento_pct) || 0;
 
@@ -3999,7 +4035,7 @@ window.updateBookingSuccessModalContent = function(data) {
                 ¡Abona la seña para confirmar!
             </h3>
             <p class="text-slate-600 dark:text-slate-300 text-xs sm:text-sm mb-4 leading-relaxed">
-                Tu turno quedó pre-reservado automáticamente por <strong>1 hora</strong>. Debes abonar la seña${montoSena > 0 ? ` de <strong>$${montoSena.toLocaleString('es-AR')}</strong> (${pctSena}%)` : ` (${pctSena}%)`} en menos de 1 hora, de lo contrario se dará de baja la reserva.
+                Tu turno quedó pre-reservado automáticamente por <strong>1 hora</strong>.${precioServicio > 0 ? ` Total: <strong>$${precioServicio.toLocaleString('es-AR')}</strong>.` : ''} Debes abonar la seña${montoSena > 0 ? ` de <strong>$${montoSena.toLocaleString('es-AR')}</strong> (${pctSena}%)` : ` (${pctSena}%)`} en menos de 1 hora, de lo contrario se dará de baja la reserva.
             </p>
             ${cuponBannerHtml}
             ${aliasText ? `
@@ -4134,22 +4170,37 @@ window.verificarAvisoPrevioSena = function(config, onContinue, bookingContext = 
         `;
     }
 
-    let desgloseSenaHtml = '';
-    if (montoSenaCalculado > 0) {
-        desgloseSenaHtml = `
-            <div class="bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 rounded-2xl p-4 text-center space-y-1.5">
-                <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                    ${descPct > 0 ? `Valor del servicio: <span class="line-through opacity-70">$${precioBase.toLocaleString('es-AR')}</span> <strong class="text-slate-700 dark:text-slate-200 font-bold">$${precioConDescuento.toLocaleString('es-AR')}</strong>` : `Valor del servicio: <strong class="text-slate-700 dark:text-slate-200 font-bold">$${precioBase.toLocaleString('es-AR')}</strong>`}
+    const descuentoMonto = Math.max(0, precioBase - precioConDescuento);
+    let desgloseSenaHtml = `
+        <div class="bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 rounded-2xl p-4 text-left space-y-2">
+            <div class="space-y-1 pb-2 border-b border-amber-200/60 dark:border-amber-800/40 text-xs">
+                <div class="flex justify-between items-center text-slate-600 dark:text-slate-300">
+                    <span>Subtotal del servicio:</span>
+                    <span class="font-bold text-slate-800 dark:text-slate-100">$${precioBase.toLocaleString('es-AR')}</span>
                 </div>
-                <div class="text-[11px] font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
-                    Seña a transferir (${pct}%):
+                ${descPct > 0 ? `
+                <div class="flex justify-between items-center text-emerald-700 dark:text-emerald-400 font-semibold">
+                    <span>Descuento cupón (${descPct}%):</span>
+                    <span>-$${descuentoMonto.toLocaleString('es-AR')}</span>
+                </div>` : ''}
+                <div class="flex justify-between items-center text-sm font-extrabold text-slate-900 dark:text-slate-100 pt-1">
+                    <span>Total final:</span>
+                    <span>$${precioConDescuento.toLocaleString('es-AR')}</span>
+                </div>
+            </div>
+            <div class="flex justify-between items-center pt-1">
+                <div>
+                    <span class="text-[11px] font-black uppercase tracking-wider text-amber-900 dark:text-amber-300 block">
+                        Seña a transferir (${pct}%):
+                    </span>
+                    <span class="text-[10px] text-slate-500 dark:text-slate-400">Para asegurar tu turno</span>
                 </div>
                 <div class="text-2xl sm:text-3xl font-black text-[#D11149]">
                     $${montoSenaCalculado.toLocaleString('es-AR')}
                 </div>
             </div>
-        `;
-    }
+        </div>
+    `;
 
     modal.innerHTML = `
         <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-amber-200 dark:border-slate-800 text-center space-y-4">
@@ -4644,11 +4695,47 @@ document.addEventListener('DOMContentLoaded', () => {
             cal_fetchBookedTimes();
         });
 
-        // Auto-selección del día de hoy para desplegar el panel de turnos inmediatamente
+        // Auto-selección de fecha y enfoque de turno si vienen en la URL (?date= / ?fecha= / ?focus=)
         setTimeout(() => {
-            const today = new Date();
+            const urlDate = urlParams.get('date') || urlParams.get('fecha');
+            const urlFocus = urlParams.get('focus');
+            let targetDate = new Date();
+
+            if (urlDate) {
+                const parts = urlDate.split('-');
+                if (parts.length === 3) {
+                    const parsed = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    if (!isNaN(parsed.getTime())) {
+                        targetDate = parsed;
+                        if (typeof weekStartDate !== 'undefined' && weekStartDate instanceof Date) {
+                            const d = new Date(parsed);
+                            const day = d.getDay();
+                            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                            weekStartDate = new Date(d.setDate(diff));
+                            if (typeof renderWeeklyCalendar === 'function') renderWeeklyCalendar();
+                        }
+                    }
+                }
+            }
+
             if (typeof cal_selectDate === 'function') {
-                cal_selectDate(today);
+                cal_selectDate(targetDate);
+            }
+
+            if (urlFocus) {
+                setTimeout(() => {
+                    const focusEl = document.getElementById('turno-' + urlFocus) || 
+                                    document.getElementById('slotcard-' + urlFocus) ||
+                                    document.querySelector(`[data-turno-id="${urlFocus}"]`) ||
+                                    document.querySelector(`button[onclick*="'${urlFocus}'"]`)?.closest('.time-slot, .p-3, .p-4, div');
+                    if (focusEl) {
+                        focusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        focusEl.classList.add('ring-4', 'ring-primary', 'ring-offset-2', 'rounded-2xl', 'transition-all');
+                        setTimeout(() => {
+                            focusEl.classList.remove('ring-4', 'ring-primary', 'ring-offset-2');
+                        }, 4000);
+                    }
+                }, 500);
             }
         }, 350);
 

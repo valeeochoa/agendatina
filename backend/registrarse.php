@@ -258,22 +258,16 @@ try {
         )");
     } catch (Exception $eNotif) {}
 
-    // Generar código numérico de 6 dígitos válido por 15 minutos
-    $codigoVerificacion = sprintf("%06d", mt_rand(1, 999999));
-    $verificacionExpira = date('Y-m-d H:i:s', strtotime('+15 minutes'));
-
     // INICIAR TRANSACCIÓN DML (SOLO INSERTS/UPDATES DE DATOS)
     $pdo->beginTransaction();
 
-    // 4. Crear usuario (con código de activación de 15 min)
+    // 4. Crear usuario (código de verificación se enviará bajo demanda al hacer clic en Verificar Correo)
     $hashPass = password_hash($password, PASSWORD_DEFAULT);
-    $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, codigo_verificacion, verificacion_expira, email_verificado, fecha_creacion) VALUES (:nombre, :email, :pass, :cod, :exp, 0, NOW())");
+    $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, codigo_verificacion, verificacion_expira, email_verificado, fecha_creacion) VALUES (:nombre, :email, :pass, NULL, NULL, 0, NOW())");
     $stmtUser->execute([
         'nombre' => $nombre_completo,
         'email' => $email,
-        'pass' => $hashPass,
-        'cod' => $codigoVerificacion,
-        'exp' => $verificacionExpira
+        'pass' => $hashPass
     ]);
     $idUsuario = $pdo->lastInsertId();
 
@@ -469,12 +463,12 @@ try {
             $mail->CharSet    = 'UTF-8';
             $mail->SMTPOptions = array('ssl' => array('verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true));
 
-            // Enviar al usuario
-            $mail->setFrom('no-reply@agendatina.site', 'Agendatina - Verificación');
+            // Enviar email de bienvenida al usuario (sin código de verificación hasta que lo solicite)
+            $mail->setFrom('no-reply@agendatina.site', 'Agendatina');
             $mail->addAddress($email, $nombre_completo);
             $mail->isHTML(true);
-            $mail->Subject = "Verifica tu cuenta - Agendatina";
-            $mail->Body = "<div style='font-family: Arial, sans-serif; padding: 20px; text-align: center;'><h2 style='color: #D11149;'>¡Bienvenido a Agendatina!</h2><p>Tu código de verificación de 6 dígitos para activar tu cuenta es:</p><div style='font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #D11149; margin: 20px 0;'>$codigoVerificacion</div><p style='font-size: 13px; color: #64748b;'>Este código caduca en 15 minutos.</p></div>";
+            $mail->Subject = "¡Bienvenido a Agendatina! - $nombre_fantasia";
+            $mail->Body = "<div style='font-family: Arial, sans-serif; padding: 25px; color: #1e293b; max-width: 550px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px;'><h2 style='color: #D11149; margin-top: 0;'>¡Bienvenido a Agendatina!</h2><p>Hola <strong>$nombre_completo</strong>, tu cuenta de negocio para <strong>$nombre_fantasia</strong> ha sido creada exitosamente.</p><p style='color: #475569;'>Para verificar tu casilla de correo electrónico y activar todas las funciones, ingresa a tu panel de control y haz clic en el botón <strong>'Verificar Correo'</strong> para recibir tu código de 6 dígitos.</p><div style='margin-top: 25px; text-align: center;'><a href='https://agendatina.site/login.html' style='background-color: #D11149; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Ingresar a mi Panel</a></div></div>";
             $mail->send();
 
             // Enviar al SuperAdmin

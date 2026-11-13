@@ -18,7 +18,7 @@ if (empty($codigo)) {
 }
 
 try {
-    $stmt = $pdo->prepare("SELECT codigo_verificacion, verificacion_expira, email_verificado FROM usuarios WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT codigo_verificacion, verificacion_expira, email_verificado, (verificacion_expira IS NULL OR verificacion_expira < NOW()) AS esta_expirado FROM usuarios WHERE id = ?");
     $stmt->execute([$id_usuario]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -32,13 +32,19 @@ try {
         exit;
     }
 
-    if (trim($user['codigo_verificacion']) !== $codigo) {
-        echo json_encode(['success' => false, 'error' => 'El código ingresado es incorrecto.']);
+    if (empty($user['codigo_verificacion'])) {
+        echo json_encode(['success' => false, 'error' => 'No tienes un código de verificación activo. Por favor, solicita uno nuevo haciendo clic en "Enviar código".']);
         exit;
     }
 
-    if ($user['verificacion_expira'] && strtotime($user['verificacion_expira']) < time()) {
-        echo json_encode(['success' => false, 'error' => 'El código ha expirado (validez de 15 minutos). Solicita uno nuevo.']);
+    if ((int)$user['esta_expirado'] === 1) {
+        $pdo->prepare("UPDATE usuarios SET codigo_verificacion = NULL, verificacion_expira = NULL WHERE id = ?")->execute([$id_usuario]);
+        echo json_encode(['success' => false, 'error' => 'El código de verificación ha expirado (validez de 15 minutos). Por favor solicita uno nuevo.']);
+        exit;
+    }
+
+    if (trim($user['codigo_verificacion']) !== $codigo) {
+        echo json_encode(['success' => false, 'error' => 'El código ingresado es incorrecto.']);
         exit;
     }
 

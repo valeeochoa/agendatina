@@ -137,9 +137,36 @@ window.loadDashboardData = function() {
     }, 200);
 };
 
-window.openVerifyEmailModal = function() {
+window.openVerifyEmailModal = function(autoSend = true) {
     const modal = document.getElementById('verifyEmailModal');
-    if (modal) modal.classList.remove('hidden');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+
+    const msg = document.getElementById('verifyEmailMsg');
+    if (msg) {
+        msg.className = 'text-xs font-bold p-3 rounded-xl text-center bg-blue-50 border border-blue-200 text-blue-800';
+        msg.innerHTML = 'Enviando código de verificación a tu correo...';
+        msg.classList.remove('hidden');
+    }
+
+    if (autoSend) {
+        fetch('backend/reenviar_codigo.php', { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            if (msg) {
+                msg.className = data.success ? 'text-xs font-bold p-3 rounded-xl text-center bg-amber-50 border border-amber-200 text-amber-900' : 'text-xs font-bold p-3 rounded-xl text-center bg-red-100 text-red-800';
+                msg.innerHTML = data.success 
+                    ? 'Te enviamos un código de 6 dígitos a tu correo.<br><span class="text-[11px] font-semibold text-amber-700">Ten en cuenta que dejará de funcionar luego de 15 minutos.</span>' 
+                    : (data.error || 'No se pudo enviar el código');
+                msg.classList.remove('hidden');
+            }
+        }).catch(() => {
+            if (msg) {
+                msg.className = 'text-xs font-bold p-3 rounded-xl text-center bg-red-100 text-red-800';
+                msg.textContent = 'Error al enviar el código. Intenta nuevamente.';
+            }
+        });
+    }
 };
 
 window.closeVerifyEmailModal = function() {
@@ -148,22 +175,31 @@ window.closeVerifyEmailModal = function() {
 };
 
 window.resendVerifyCode = function(btn) {
-    const orig = btn.innerHTML;
-    btn.disabled = true;
-    btn.textContent = 'Enviando...';
+    const orig = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Enviando...';
+    }
     
     fetch('backend/reenviar_codigo.php', { method: 'POST' })
     .then(res => res.json())
     .then(data => {
         const msg = document.getElementById('verifyEmailMsg');
         if (msg) {
-            msg.className = data.success ? 'text-xs font-bold p-3 rounded-xl text-center bg-emerald-100 text-emerald-800' : 'text-xs font-bold p-3 rounded-xl text-center bg-red-100 text-red-800';
-            msg.textContent = data.message || data.error;
+            msg.className = data.success ? 'text-xs font-bold p-3 rounded-xl text-center bg-amber-50 border border-amber-200 text-amber-900' : 'text-xs font-bold p-3 rounded-xl text-center bg-red-100 text-red-800';
+            msg.innerHTML = data.success 
+                ? 'Nuevo código enviado a tu correo.<br><span class="text-[11px] font-semibold text-amber-700">Ten en cuenta que dejará de funcionar luego de 15 minutos.</span>' 
+                : (data.error || data.message);
             msg.classList.remove('hidden');
         }
     }).catch(() => {
         if (typeof showToast === 'function') showToast('Error de conexión.', 'error');
-    }).finally(() => { btn.disabled = false; btn.innerHTML = orig; });
+    }).finally(() => { 
+        if (btn) {
+            btn.disabled = false; 
+            btn.innerHTML = orig; 
+        }
+    });
 };
 
 window.openTeamModal = function() {

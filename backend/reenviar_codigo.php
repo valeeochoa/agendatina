@@ -28,10 +28,10 @@ try {
     }
 
     $nuevoCodigo = sprintf("%06d", mt_rand(1, 999999));
-    $expiracion = date('Y-m-d H:i:s', strtotime('+15 minutes'));
 
-    $update = $pdo->prepare("UPDATE usuarios SET codigo_verificacion = ?, verificacion_expira = ? WHERE id = ?");
-    $update->execute([$nuevoCodigo, $expiracion, $id_usuario]);
+    // Expiración estricta de 15 minutos calculada directamente por el motor de base de datos
+    $update = $pdo->prepare("UPDATE usuarios SET codigo_verificacion = ?, verificacion_expira = DATE_ADD(NOW(), INTERVAL 15 MINUTE) WHERE id = ?");
+    $update->execute([$nuevoCodigo, $id_usuario]);
 
     // Enviar correo
     try {
@@ -57,7 +57,11 @@ try {
         error_log("Error al enviar email de código: " . $mEx->getMessage());
     }
 
-    echo json_encode(['success' => true, 'message' => 'Nuevo código enviado a tu correo electrónico.']);
+    echo json_encode([
+        'success' => true, 
+        'message' => 'Se envió un código de verificación a tu correo electrónico. Recuerda que dejará de funcionar luego de 15 minutos.',
+        'expira_en_minutos' => 15
+    ]);
 } catch (Exception $e) {
     error_log("Error al reenviar código: " . $e->getMessage());
     echo json_encode(['success' => false, 'error' => 'No se pudo reenviar el código en este momento. Por favor intenta más tarde.']);

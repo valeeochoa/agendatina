@@ -13,6 +13,7 @@ body {
 
 /* Prevención de auto-zoom indeseado en navegadores móviles (iOS Safari / Chrome Android) */
 @media screen and (max-width: 768px) {
+
     input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
     select,
     textarea {
@@ -21,12 +22,17 @@ body {
 }
 
 /* Fuente oficial de la Marca Agendatina */
-.font-brand, .brand-font, .brand-text {
+.font-brand,
+.brand-font,
+.brand-text {
     font-family: 'Fredoka', cursive, sans-serif !important;
     font-weight: 600;
 }
 
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
     font-family: 'Plus Jakarta Sans', sans-serif;
     letter-spacing: -0.02em;
 }
@@ -44,18 +50,22 @@ h1, h2, h3, h4 {
 }
 
 /* Fondo Degradé por defecto para el Calendario y Ajustes */
-html, body {
+html,
+body {
     min-height: 100vh !important;
     width: 100%;
     background-color: #fdfafb;
-    background-image: 
+    background-image:
         radial-gradient(at 0% 0%, color-mix(in srgb, var(--color-primario, #d11149) 7%, transparent) 0px, transparent 45%),
         radial-gradient(at 100% 100%, color-mix(in srgb, var(--color-secundario, #fc8712) 7%, transparent) 0px, transparent 45%),
         radial-gradient(at 50% 50%, color-mix(in srgb, var(--color-primario, #d11149) 4%, transparent) 0px, transparent 55%);
     background-attachment: fixed;
 }
 
-body.calendar-degrade-active, body[data-degrade="1"], html.calendar-degrade-active, html[data-degrade="1"] {
+body.calendar-degrade-active,
+body[data-degrade="1"],
+html.calendar-degrade-active,
+html[data-degrade="1"] {
     min-height: 100vh !important;
     background-color: transparent !important;
     background-image: linear-gradient(135deg, rgba(209, 17, 73, 0.35) 0%, rgba(244, 73, 121, 0.15) 50%, rgba(252, 135, 18, 0.35) 100%) !important;
@@ -70,12 +80,14 @@ body::-webkit-scrollbar,
     width: 9px;
     height: 9px;
 }
+
 html::-webkit-scrollbar-track,
 body::-webkit-scrollbar-track,
 ::-webkit-scrollbar-track {
     background: rgba(252, 135, 18, 0.12);
     border-radius: 9999px;
 }
+
 html::-webkit-scrollbar-thumb,
 body::-webkit-scrollbar-thumb,
 ::-webkit-scrollbar-thumb {
@@ -84,36 +96,51 @@ body::-webkit-scrollbar-thumb,
     border: 2px solid #ffffff;
     box-shadow: 0 2px 6px rgba(252, 135, 18, 0.35);
 }
+
 html::-webkit-scrollbar-thumb:hover,
 body::-webkit-scrollbar-thumb:hover,
 ::-webkit-scrollbar-thumb:hover {
     background: #e07409;
 }
 
-html, body, .custom-scrollbar, .time-slots-scrollbar {
+html,
+body,
+.custom-scrollbar,
+.time-slots-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: var(--secondary, #FC8712) rgba(252, 135, 18, 0.12);
 }
-.custom-scrollbar::-webkit-scrollbar, .time-slots-scrollbar::-webkit-scrollbar {
+
+.custom-scrollbar::-webkit-scrollbar,
+.time-slots-scrollbar::-webkit-scrollbar {
     width: 9px;
     height: 9px;
 }
-.custom-scrollbar::-webkit-scrollbar-track, .time-slots-scrollbar::-webkit-scrollbar-track {
+
+.custom-scrollbar::-webkit-scrollbar-track,
+.time-slots-scrollbar::-webkit-scrollbar-track {
     background: rgba(252, 135, 18, 0.12);
     border-radius: 9999px;
 }
-.custom-scrollbar::-webkit-scrollbar-thumb, .time-slots-scrollbar::-webkit-scrollbar-thumb {
+
+.custom-scrollbar::-webkit-scrollbar-thumb,
+.time-slots-scrollbar::-webkit-scrollbar-thumb {
     background: var(--secondary, #FC8712);
     border-radius: 9999px;
     border: 2px solid #ffffff;
     box-shadow: 0 2px 6px rgba(252, 135, 18, 0.35);
 }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover, .time-slots-scrollbar::-webkit-scrollbar-thumb:hover {
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+.time-slots-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #e07409;
 }
 
 /* Estética Ultra-Premium del Calendario (Semanal y Mensual) */
-.calendar-day, .time-slot, button, a {
+.calendar-day,
+.time-slot,
+button,
+a {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
 }
@@ -178,8 +205,8 @@ html, body, .custom-scrollbar, .time-slots-scrollbar {
 }
 
 .calendar-day.disabled,
-#calendarDays > div.disabled,
-#weeklyCalendarDays > div.disabled {
+#calendarDays>div.disabled,
+#weeklyCalendarDays>div.disabled {
     cursor: not-allowed;
     background: color-mix(in srgb, var(--color-primario, #D11149) 8%, #ffffff);
     color: color-mix(in srgb, var(--color-primario, #D11149) 50%, #94a3b8);
@@ -188,8 +215,8 @@ html, body, .custom-scrollbar, .time-slots-scrollbar {
 }
 
 .dark .calendar-day.disabled,
-.dark #calendarDays > div.disabled,
-.dark #weeklyCalendarDays > div.disabled {
+.dark #calendarDays>div.disabled,
+.dark #weeklyCalendarDays>div.disabled {
     background: color-mix(in srgb, var(--color-primario, #D11149) 12%, #0f172a);
     color: color-mix(in srgb, var(--color-primario, #D11149) 40%, #64748b);
     border: 1.5px solid transparent !important;
@@ -313,25 +340,52 @@ html, body, .custom-scrollbar, .time-slots-scrollbar {
 }
 
 @keyframes fadeInImg {
-    from { opacity: 0.2; transform: scale(0.98); }
-    to { opacity: 1; transform: scale(1); }
+    from {
+        opacity: 0.2;
+        transform: scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
-.fade-in { animation: fadeInImg 0.4s ease-out forwards; }
+.fade-in {
+    animation: fadeInImg 0.4s ease-out forwards;
+}
 
 .reveal-on-scroll {
-    opacity: 0; transform: translateY(40px);
+    opacity: 0;
+    transform: translateY(40px);
     transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.reveal-on-scroll.is-visible { opacity: 1; transform: translateY(0); }
+
+.reveal-on-scroll.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
 
 /* Componentes web.html */
-.service-card { opacity: 0; transform: translateY(30px); transition: opacity 0.5s ease-out, transform 0.5s ease-out; }
-.service-card.is-visible { opacity: 1; transform: translateY(0); }
-#publicUbicacionMaps iframe { width: 100%; height: 100%; }
+.service-card {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.service-card.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#publicUbicacionMaps iframe {
+    width: 100%;
+    height: 100%;
+}
 
 /* Prevención de desbordamiento en controles de fecha y hora para iOS y navegadores móviles */
-input[type="time"], input[type="date"] {
+input[type="time"],
+input[type="date"] {
     -webkit-appearance: none;
     appearance: none;
     display: block !important;
@@ -355,4 +409,30 @@ body.modal-open {
 
 div.fixed.inset-0 {
     overscroll-behavior: contain;
+}
+
+/* Botones de acción en Agenda del Día (Garantizar contraste perfecto con colores del negocio) */
+#adminDayActionBtns button {
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+#adminDayActionBtns button:first-child:hover,
+#adminDayActionBtns button[onclick*="openManualTurnoModal"]:hover {
+    background-color: var(--color-primario, #D11149) !important;
+    color: #ffffff !important;
+}
+
+#adminDayActionBtns button#toggleDayBlockBtn:hover {
+    background-color: var(--color-secundario, #FC8712) !important;
+    color: #ffffff !important;
+}
+
+.slot-action-btn-add:hover {
+    background-color: var(--color-primario, #D11149) !important;
+    color: #ffffff !important;
+}
+
+.slot-action-btn-block:hover {
+    background-color: var(--color-secundario, #FC8712) !important;
+    color: #ffffff !important;
 }

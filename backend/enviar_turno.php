@@ -9,6 +9,10 @@ if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
     if (file_exists(__DIR__ . '/phpmailer/SMTP.php')) @require_once __DIR__ . '/phpmailer/SMTP.php';
 }
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 header('Content-Type: application/json; charset=utf-8');
 
 try {
@@ -129,6 +133,13 @@ if (!empty($fecha)) {
 $id_negocio = $negocioBD['id'];
 $businessName = $negocioBD['nombre_fantasia'];
 $emailDestino = !empty($negocioBD['email']) ? $negocioBD['email'] : 'info@agendatina.site'; // Fallback por si está vacío
+
+$isOwnerAdmin = false;
+if (isset($_SESSION['id_negocio']) && (int)$_SESSION['id_negocio'] === (int)$id_negocio) {
+    $isOwnerAdmin = true;
+}
+$isPastTurno = (strtotime("$fecha $hora:00") < time());
+$estadoInicial = ($isOwnerAdmin && $isPastTurno) ? 'confirmado' : 'pendiente';
 
 // (Opcional) A futuro aquí cargarás logo y colores desde tu tabla 'configuracion' 
 // con $id_negocio en lugar del archivo web_data.json
@@ -317,13 +328,15 @@ try {
     // =========================================================================
     // VALIDACIÓN DE DÍAS BLOQUEADOS Y HORARIO DE ATENCIÓN
     // =========================================================================
-    $stmtBloq = $pdo->prepare("SELECT id FROM dias_bloqueados WHERE id_negocio = :id AND fecha = :fecha AND (profesional = '' OR profesional = :profesional OR :profesional = 'Cualquiera (Sin preferencia)') LIMIT 1");
-    $stmtBloq->execute(['id' => $id_negocio, 'fecha' => $fecha, 'profesional' => $profesional]);
-    if ($stmtBloq->fetch()) {
-        $pdo->rollBack();
-        http_response_code(400);
-        echo json_encode(['success' => false, 'error' => 'La fecha seleccionada se encuentra bloqueada para reservas.']);
-        exit;
+    if (!($isOwnerAdmin && $isPastTurno)) {
+        $stmtBloq = $pdo->prepare("SELECT id FROM dias_bloqueados WHERE id_negocio = :id AND fecha = :fecha AND (profesional = '' OR profesional = :profesional OR :profesional = 'Cualquiera (Sin preferencia)') LIMIT 1");
+        $stmtBloq->execute(['id' => $id_negocio, 'fecha' => $fecha, 'profesional' => $profesional]);
+        if ($stmtBloq->fetch()) {
+            $pdo->rollBack();
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'La fecha seleccionada se encuentra bloqueada para reservas.']);
+            exit;
+        }
     }
 
     $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos, tiempo_entre_turnos, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, reserva_sena_1h, whatsapp_comprobante, datos_transferencia, porcentaje_sena, usar_cupones_descuento, cupon_descuento_pct, cupon_duracion_horas, whatsapp_contacto, notificaciones_email, email_notif_inmediata FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
@@ -331,7 +344,7 @@ try {
     $configWeb = $stmtConfig->fetch(PDO::FETCH_ASSOC);
     if (!is_array($configWeb)) $configWeb = [];
 
-    if ($configWeb) {
+    if ($configWeb && !($isOwnerAdmin && $isPastTurno)) {
         $dayOfWeek = (int)date('w', strtotime($fecha)); // 0 = Domingo, 1 = Lunes...
         $hDet = !empty($configWeb['horarios_detallados_json']) ? json_decode($configWeb['horarios_detallados_json'], true) : null;
         $dayData = null;
@@ -403,7 +416,7 @@ try {
     // =========================================================================
     $simultaneos = $configWeb ? ($configWeb['turnos_simultaneos'] ?? 'no') : 'no';
 
-    if ($simultaneos !== 'si') {
+    if (!($isOwnerAdmin && $isPastTurno) && $simultaneos !== 'si') {
         // Bloqueo de fila para lectura concurrente de los turnos de ese día
         $stmtCheck = $pdo->prepare("
             SELECT t.hora, s.duracion_minutos, t.id_servicio 
@@ -475,8 +488,10 @@ try {
         'profesional' => $profesional,
         'id_servicio' => $id_servicio,
         'metodo_pago' => $metodo_pago,
-        'estado' => 'pendiente',
+        'estado' => $estadoInicial,
     ]);
+
+    $lastTurnoId = (int)$pdo->lastInsertId();
 
     if (!empty($cupon_descuento) && !empty($configWeb['usar_cupones_descuento'])) {
         $stmtCup = $pdo->prepare("SELECT id, codigo, porcentaje_descuento, usos_maximos, usos_actuales 
@@ -503,7 +518,6 @@ try {
         $isUsadoNow = ($maxUsos > 0 && $newUsos >= $maxUsos) ? 1 : 0;
         $pdo->prepare("UPDATE cupones_descuento SET usos_actuales = ?, usado = ?, fecha_uso = NOW() WHERE id = ?")->execute([$newUsos, $isUsadoNow, $rowCup['id']]);
         
-        $lastTurnoId = $pdo->lastInsertId();
         if ($lastTurnoId) {
             try {
                 $pdo->prepare("UPDATE turnos SET cupon_usado = ?, descuento_pct = ? WHERE id = ?")->execute([$cuponAplicadoCodigo, $descuentoAplicadoPct, $lastTurnoId]);
@@ -535,6 +549,53 @@ try {
     exit;
 }
 
+// URL directa hacia la agenda virtual posicionada en el nuevo turno
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+$scriptDir = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/\\');
+$basePath = ($scriptDir === '/' || $scriptDir === '\\') ? '' : $scriptDir;
+$agendaFocusUrl = "{$protocol}://{$host}{$basePath}/agenda.html?tab=pendientes&focus=" . urlencode((string)$lastTurnoId) . "&fecha=" . urlencode($fecha);
+
+// Responder al cliente de forma instantánea para que el modal de comprobante abra en < 1 segundo
+$responseJson = json_encode([
+    'success' => true,
+    'mail_enviado' => true,
+    'turno_id' => $lastTurnoId,
+    'reserva_sena_1h' => (int)($configWeb['reserva_sena_1h'] ?? 0),
+    'datos_transferencia' => $configWeb['datos_transferencia'] ?? '',
+    'whatsapp_comprobante' => !empty($configWeb['whatsapp_comprobante']) ? $configWeb['whatsapp_comprobante'] : ($configWeb['whatsapp_contacto'] ?? ''),
+    'cupon_descuento_pct' => (int)($configWeb['cupon_descuento_pct'] ?? 10),
+    'cupon_duracion_horas' => (int)($configWeb['cupon_duracion_horas'] ?? 24),
+    'porcentaje_sena' => (int)($configWeb['porcentaje_sena'] ?? 50),
+    'precio_servicio' => $precio_servicio,
+    'monto_sena' => $monto_sena,
+    'cupon_aplicado' => $cuponAplicadoCodigo,
+    'descuento_pct' => $descuentoAplicadoPct,
+    'business_name' => $businessName,
+    'fecha_display' => $fecha_display,
+    'hora' => $hora,
+    'servicio' => $servicio,
+    'cliente_nombre' => $nombre . ' ' . $apellido
+]);
+
+ignore_user_abort(true);
+if (ob_get_level() > 0) {
+    @ob_end_clean();
+}
+header('Content-Type: application/json; charset=utf-8');
+header('Connection: close');
+header('Content-Length: ' . strlen($responseJson));
+echo $responseJson;
+@flush();
+if (function_exists('fastcgi_finish_request')) {
+    fastcgi_finish_request();
+}
+
+// Si es un turno previo/pasado ingresado por el negocio, omitir envío de emails y WhatsApp
+if ($isPastTurno) {
+    exit;
+}
+
 $mailEnviado = false;
 $notifEmailActive = !isset($configWeb['notificaciones_email']) || (int)$configWeb['notificaciones_email'] === 1;
 $notifInmediataActive = !isset($configWeb['email_notif_inmediata']) || (int)$configWeb['email_notif_inmediata'] === 1;
@@ -550,7 +611,7 @@ try {
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
         $mail->CharSet    = 'UTF-8';
-        $mail->Timeout    = 5;
+        $mail->Timeout    = 3;
         $mail->SMTPOptions = array('ssl' => array('verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true));
 
         // Mail al dueño
@@ -566,6 +627,11 @@ try {
                     El turno ha sido reservado provisoriamente. El cliente está por transferir la seña acordada (" . (!empty($monto_sena) ? "<strong>\$monto_sena</strong> ($pctSena%)" : "$pctSena%") . ") y enviarte el comprobante por WhatsApp. 
                     Recuerda verificar el pago antes de confirmar definitivamente el turno en tu agenda.
                 </p>
+                <div style='margin-top: 14px;'>
+                    <a href='{$agendaFocusUrl}' target='_blank' style='display: inline-block; background-color: #d11149; color: #ffffff; text-decoration: none; font-weight: 800; font-size: 13px; padding: 10px 18px; border-radius: 8px;'>
+                        Ver y Confirmar Turno en Agenda →
+                    </a>
+                </div>
             </div>";
             $message = str_replace("<h2 style='color: #1e293b; margin-top: 0;'>¡Nueva Solicitud de Turno!</h2>", $bannerSena . "<h2 style='color: #1e293b; margin-top: 0;'>¡Turno en Espera de Confirmación (Seña)!</h2>", $message);
         }
@@ -610,26 +676,7 @@ try {
     error_log("Error en notificación WhatsApp Meta: " . $eWpp->getMessage());
 }
 
-// Responder al cliente garantizando que el proceso de correo ya finalizó
-echo json_encode([
-    'success' => true,
-    'mail_enviado' => $mailEnviado,
-    'reserva_sena_1h' => (int)($configWeb['reserva_sena_1h'] ?? 0),
-    'datos_transferencia' => $configWeb['datos_transferencia'] ?? '',
-    'whatsapp_comprobante' => !empty($configWeb['whatsapp_comprobante']) ? $configWeb['whatsapp_comprobante'] : ($configWeb['whatsapp_contacto'] ?? ''),
-    'cupon_descuento_pct' => (int)($configWeb['cupon_descuento_pct'] ?? 10),
-    'cupon_duracion_horas' => (int)($configWeb['cupon_duracion_horas'] ?? 24),
-    'porcentaje_sena' => (int)($configWeb['porcentaje_sena'] ?? 50),
-    'precio_servicio' => $precio_servicio,
-    'monto_sena' => $monto_sena,
-    'cupon_aplicado' => $cuponAplicadoCodigo,
-    'descuento_pct' => $descuentoAplicadoPct,
-    'business_name' => $businessName,
-    'fecha_display' => $fecha_display,
-    'hora' => $hora,
-    'servicio' => $servicio,
-    'cliente_nombre' => $nombre . ' ' . $apellido
-]);
+
 
 } catch (\Throwable $fatalErr) {
     if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {

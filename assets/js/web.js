@@ -42,6 +42,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
+                // Registrar visualización de la web si es visita pública real
+                if (negocioSlug && !data.is_demo && urlParams.get('preview') !== '1' && !urlParams.has('preview')) {
+                    const sesKey = 'vista_web_' + negocioSlug;
+                    if (!sessionStorage.getItem(sesKey)) {
+                        sessionStorage.setItem(sesKey, '1');
+                        try {
+                            fetch('backend/registrar_vista.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ negocio: negocioSlug, tipo: 'web' })
+                            }).catch(() => {});
+                        } catch(e) {}
+                    }
+                }
+
                 // Actualizar enlaces al calendario usando la ruta dinámica
                 if (data.modo_reservas === 'cupos_alumnos') {
                     const isAlumnoLoggedIn = !!sessionStorage.getItem('cliente_email');

@@ -792,7 +792,7 @@ window.confirmarTurnoAdmin = function(id) {
     };
 
     if (typeof showConfirm === 'function') {
-        showConfirm('Confirmar Turno', '¿Agendar y confirmar este turno? Aparecerá como reservado en tu calendario.', 'Confirmar', 'bg-amber-500 hover:bg-amber-600', doConfirm);
+        showConfirm('Confirmar Turno', '¿Agendar y confirmar este turno? Aparecerá como reservado en tu calendario.', 'Confirmar Turno', 'bg-emerald-600 hover:bg-emerald-700', doConfirm);
     } else {
         doConfirm();
     }
@@ -800,7 +800,7 @@ window.confirmarTurnoAdmin = function(id) {
 
 window._old_confirmarTurnoAdmin_backup = function(id) {
     if (typeof showConfirm === 'function') {
-        showConfirm('Confirmar Turno', '¿Agendar y confirmar este turno? Aparecerá como reservado en tu calendario.', 'Confirmar', 'bg-amber-500 hover:bg-amber-600', () => {
+        showConfirm('Confirmar Turno', '¿Agendar y confirmar este turno? Aparecerá como reservado en tu calendario.', 'Confirmar Turno', 'bg-emerald-600 hover:bg-emerald-700', () => {
             return fetch('backend/confirmar_turno.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -1238,6 +1238,11 @@ function checkUrlNavigationAndFocus() {
     const params = new URLSearchParams(window.location.search);
     const targetDate = params.get('date') || params.get('fecha');
     const focusId = params.get('focus');
+    const tabParam = params.get('tab');
+
+    if (tabParam && typeof window.switchAgendaTab === 'function') {
+        window.switchAgendaTab(tabParam);
+    }
 
     if (targetDate) {
         // Asegurarse de que esté en la pestaña de próximos confirmados

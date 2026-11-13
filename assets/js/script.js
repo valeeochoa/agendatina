@@ -280,11 +280,30 @@ window.showConfirm = function(title, message, acceptText, acceptColorClass, call
     const confirmTitle = document.getElementById('confirmTitle');
     const confirmMessage = document.getElementById('confirmMessage');
     const btnAccept = document.getElementById('btnAcceptConfirm');
+    const iconBox = document.getElementById('confirmIconBox');
+    const iconEl = document.getElementById('confirmIcon');
     if(!confirmTitle || !confirmMessage || !btnAccept) return;
     confirmTitle.textContent = title;
     confirmMessage.innerHTML = message + extraHtml;
     btnAccept.textContent = acceptText;
     btnAccept.className = `px-4 py-2.5 text-sm font-bold text-white rounded-xl transition-colors flex-1 ${acceptColorClass}`;
+
+    if (iconBox && iconEl) {
+        const isPositive = (acceptColorClass && (acceptColorClass.includes('emerald') || acceptColorClass.includes('green'))) || (title && title.toLowerCase().includes('confirmar'));
+        const isDestructive = (acceptColorClass && acceptColorClass.includes('red')) || (title && (title.toLowerCase().includes('cancelar') || title.toLowerCase().includes('eliminar') || title.toLowerCase().includes('papelera') || title.toLowerCase().includes('cerrar sesión') || title.toLowerCase().includes('salir')));
+
+        if (isPositive) {
+            iconBox.className = 'w-14 h-14 sm:w-16 sm:h-16 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm';
+            iconEl.textContent = 'check_circle';
+        } else if (isDestructive) {
+            iconBox.className = 'w-14 h-14 sm:w-16 sm:h-16 bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm';
+            iconEl.textContent = title && title.toLowerCase().includes('sesión') ? 'logout' : 'delete';
+        } else {
+            iconBox.className = 'w-14 h-14 sm:w-16 sm:h-16 bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm';
+            iconEl.textContent = 'warning';
+        }
+    }
+
     window.confirmActionCallback = callback;
     const modal = document.getElementById('confirmModal');
     const content = document.getElementById('confirmModalContent');
@@ -333,7 +352,7 @@ window.confirmarTurnoAdmin = function(id) {
         }
     }
 
-    showConfirm('Confirmar Turno', '¿Agendar y confirmar este turno? Aparecerá como ocupado para los clientes.', 'Confirmar', 'bg-amber-500 hover:bg-amber-600', () => {
+    showConfirm('Confirmar Turno', '¿Agendar y confirmar este turno? Aparecerá como ocupado para los clientes.', 'Confirmar Turno', 'bg-emerald-600 hover:bg-emerald-700', () => {
         return fetch('backend/confirmar_turno.php', { method: 'POST', body: new URLSearchParams({id: id}) })
         .then(res => res.json())
         .then(data => {
@@ -1605,7 +1624,7 @@ function checkNotifications() {
             if (pendientes.length > 0) {
                 pendientes.forEach(t => {
                     const calPage = window.currentWebData?.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
-                    const notifLink = isBasic ? `${calPage}?date=${t.fecha}` : `agenda.html?date=${t.fecha}&focus=${t.id}`;
+                    const notifLink = isBasic ? `${calPage}?date=${t.fecha}&focus=${t.id}` : `agenda.html?tab=pendientes&date=${t.fecha}&focus=${t.id}`;
                     currentNotifs.push({ 
                         id: 'turno_' + t.id,
                         icon: 'event', 
@@ -1621,15 +1640,19 @@ function checkNotifications() {
         }
 
         const cNotifs = window.currentCustomNotifs || [];
+        const businessPlan = window.currentBusinessData?.plan?.toLowerCase() || 'basico';
+        const isBasic = businessPlan.includes('básico') || businessPlan.includes('basico') || businessPlan.includes('simple');
+        const calPage = window.currentWebData?.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
+
         cNotifs.forEach(n => {
             let nLink = '#';
             if (n.titulo && (n.titulo.includes('Inscripción') || n.titulo.includes('Clase') || n.titulo.includes('Turno') || n.titulo.includes('Reserva'))) {
                 const matchDate = (n.mensaje || '').match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
                 if (matchDate) {
                     const isoDate = `${matchDate[3]}-${matchDate[2].padStart(2, '0')}-${matchDate[1].padStart(2, '0')}`;
-                    nLink = `agenda.html?date=${isoDate}`;
+                    nLink = isBasic ? `${calPage}?date=${isoDate}` : `agenda.html?tab=pendientes&date=${isoDate}`;
                 } else {
-                    nLink = 'agenda.html';
+                    nLink = isBasic ? calPage : 'agenda.html?tab=pendientes';
                 }
             } else if (n.titulo && (n.titulo.includes('Alumno') || n.titulo.includes('Vinculad'))) {
                 nLink = 'clientes.html';
