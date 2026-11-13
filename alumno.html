@@ -1486,35 +1486,10 @@
                 }
             }
 
-            // Render Pestaña 4: Historial
-            const historialList = document.getElementById('historialClasesList');
-            const pasadas = clases.filter(c => !proximas.includes(c));
-            if (pasadas.length === 0) {
-                historialList.innerHTML = `<div class="bg-white/95 border border-slate-200 p-6 rounded-2xl text-center shadow-xs"><p class="text-slate-500 font-bold text-sm">No tenés historial de asistencias o clases pasadas.</p></div>`;
-            } else {
-                historialList.innerHTML = pasadas.map(c => {
-                    const hIconHtml = getServiceIconOrImageHtml(c.servicio, c.icono, c.servicio_imagen);
-                    const hDateFmt = formatFriendlyClassDate(c.fecha);
-                    const hTimeFmt = formatFriendlyClassTime(c.hora);
-                    return `
-                        <div class="bg-white/95 border border-slate-200 rounded-2xl p-4 flex justify-between items-center opacity-85 hover:opacity-100 transition-opacity gap-3">
-                            <div class="flex items-center gap-3">
-                                ${hIconHtml}
-                                <div>
-                                    <span class="text-[10px] font-extrabold uppercase text-[#FC8712] block">${c.negocio}</span>
-                                    <h5 class="font-bold text-slate-800 text-sm sm:text-base">${c.servicio}</h5>
-                                    <p class="text-xs text-slate-500 flex flex-wrap items-center gap-2 mt-0.5">
-                                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">calendar_month</span> ${hDateFmt}</span>
-                                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span> ${hTimeFmt}</span>
-                                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> ${c.profesional || 'Instructor'}</span>
-                                    </p>
-                                </div>
-                            </div>
-                            <span class="${c.estado === 'cancelado' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-slate-100 text-slate-700 border-slate-200'} text-xs font-bold px-3 py-1 rounded-xl uppercase border shrink-0">${c.estado === 'cancelado' ? 'Cancelada' : 'Finalizada'}</span>
-                        </div>
-                    `;
-                }).join('');
-            }
+            // Render Pestaña 4: Historial con Paginación de a 5 turnos
+            window.lastStudentPasadas = clases.filter(c => !proximas.includes(c));
+            if (typeof window.studentHistorialPage === 'undefined') window.studentHistorialPage = 1;
+            renderHistorialStudent(window.lastStudentPasadas);
 
             // Rellenar Selector de Negocios para el Calendario de Cupos de forma inteligente (sin parpadeos)
             const selNegocio = document.getElementById('studentSelectNegocio');
@@ -1536,6 +1511,71 @@
                 }
             }
         }
+
+        function renderHistorialStudent(pasadas) {
+            const historialList = document.getElementById('historialClasesList');
+            if (!historialList) return;
+            if (!pasadas || pasadas.length === 0) {
+                historialList.innerHTML = `<div class="bg-white/95 border border-slate-200 p-6 rounded-2xl text-center shadow-xs"><p class="text-slate-500 font-bold text-sm">No tenés historial de asistencias o clases pasadas.</p></div>`;
+                return;
+            }
+
+            const pageSize = 5;
+            const totalPages = Math.ceil(pasadas.length / pageSize) || 1;
+            if (window.studentHistorialPage > totalPages) window.studentHistorialPage = totalPages;
+            if (window.studentHistorialPage < 1) window.studentHistorialPage = 1;
+
+            const startIndex = (window.studentHistorialPage - 1) * pageSize;
+            const currentSlice = pasadas.slice(startIndex, startIndex + pageSize);
+
+            let html = currentSlice.map(c => {
+                const hIconHtml = getServiceIconOrImageHtml(c.servicio, c.icono, c.servicio_imagen);
+                const hDateFmt = formatFriendlyClassDate(c.fecha);
+                const hTimeFmt = formatFriendlyClassTime(c.hora);
+                return `
+                    <div class="bg-white/95 border border-slate-200 rounded-2xl p-4 flex justify-between items-center opacity-85 hover:opacity-100 transition-opacity gap-3">
+                        <div class="flex items-center gap-3">
+                            ${hIconHtml}
+                            <div>
+                                <span class="text-[10px] font-extrabold uppercase text-[#FC8712] block">${c.negocio}</span>
+                                <h5 class="font-bold text-slate-800 text-sm sm:text-base">${c.servicio}</h5>
+                                <p class="text-xs text-slate-500 flex flex-wrap items-center gap-2 mt-0.5">
+                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">calendar_month</span> ${hDateFmt}</span>
+                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span> ${hTimeFmt}</span>
+                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> ${c.profesional || 'Instructor'}</span>
+                                </p>
+                            </div>
+                        </div>
+                        <span class="${c.estado === 'cancelado' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-slate-100 text-slate-700 border-slate-200'} text-xs font-bold px-3 py-1 rounded-xl uppercase border shrink-0">${c.estado === 'cancelado' ? 'Cancelada' : 'Finalizada'}</span>
+                    </div>
+                `;
+            }).join('');
+
+            if (totalPages > 1) {
+                html += `
+                    <div class="flex items-center justify-between gap-3 pt-3 border-t border-slate-200 mt-2">
+                        <button onclick="window.changeStudentHistorialPage(-1)" ${window.studentHistorialPage === 1 ? 'disabled class="opacity-40 cursor-not-allowed bg-slate-100 text-slate-400 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1"' : 'class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-3.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1 shadow-2xs cursor-pointer"'}>
+                            <span class="material-symbols-outlined text-[16px]">chevron_left</span> Anterior
+                        </button>
+                        <span class="text-xs font-black text-slate-600 bg-slate-100 px-3 py-1 rounded-full">
+                            Página ${window.studentHistorialPage} de ${totalPages}
+                        </span>
+                        <button onclick="window.changeStudentHistorialPage(1)" ${window.studentHistorialPage === totalPages ? 'disabled class="opacity-40 cursor-not-allowed bg-slate-100 text-slate-400 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1"' : 'class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-3.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1 shadow-2xs cursor-pointer"'}>
+                            Siguiente <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                        </button>
+                    </div>
+                `;
+            }
+
+            historialList.innerHTML = html;
+        }
+
+        window.changeStudentHistorialPage = function(delta) {
+            window.studentHistorialPage = (window.studentHistorialPage || 1) + delta;
+            if (window.lastStudentPasadas) {
+                renderHistorialStudent(window.lastStudentPasadas);
+            }
+        };
 
         function selectBusinessAndGoToCalendar(ruta) {
             switchTab('reservar');

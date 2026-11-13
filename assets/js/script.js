@@ -218,7 +218,30 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+window.getFetchErrorMessage = function(err, defaultMsg = 'Error al procesar la solicitud.') {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        return 'No tienes conexión a internet. Por favor verifica tu red Wi-Fi o datos móviles e intenta nuevamente.';
+    }
+    const msg = (err && err.message) ? String(err.message).toLowerCase() : (typeof err === 'string' ? err.toLowerCase() : '');
+    if (msg.includes('failed to fetch') || msg.includes('networkerror') || msg.includes('load failed') || msg.includes('error de conexión') || msg.includes('error con el servidor') || (err && err.name === 'TypeError')) {
+        return 'No tienes conexión a internet. Verifica tu conexión e intenta nuevamente.';
+    }
+    return (err && err.message) ? err.message : defaultMsg;
+};
+
 window.showToast = function(message, type = 'success', customDuration = null) {
+    // Si es un error y no hay conexión a internet o el error es de red/servidor caído, avisar claramente la falta de internet
+    if (type === 'error') {
+        if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+            message = 'No tienes conexión a internet. Por favor verifica tu red Wi-Fi o datos móviles e intenta nuevamente.';
+        } else {
+            const lowMsg = String(message || '').toLowerCase();
+            if (lowMsg.includes('error de conexión') || lowMsg.includes('error con el servidor') || lowMsg.includes('failed to fetch') || lowMsg.includes('networkerror')) {
+                message = 'No tienes conexión a internet. Verifica tu conexión e intenta nuevamente.';
+            }
+        }
+    }
+
     let container = document.getElementById('toast-container');
     if (!container) {
         container = document.createElement('div');
@@ -1253,19 +1276,25 @@ function loadDashboardData() {
     })
     .catch(err => {
         console.error('Error al cargar datos del dashboard:', err);
-        showDashboardError('Error al conectar con el servidor: ' + err.message);
+        const errMsg = window.getFetchErrorMessage(err, 'No se pudo cargar la información del panel.');
+        showDashboardError(errMsg);
     });
 }
 
 
 function showDashboardError(msg) {
+    const isOffline = (typeof navigator !== 'undefined' && navigator.onLine === false) || String(msg).toLowerCase().includes('conexión') || String(msg).toLowerCase().includes('internet');
+    const title = isOffline ? 'Sin Conexión a Internet' : 'Error de Carga';
+    const icon = isOffline ? 'wifi_off' : 'error';
+    const text = isOffline ? 'No tienes conexión a internet. Por favor verifica tu red Wi-Fi o datos móviles e intenta nuevamente.' : msg;
+
     const loader = document.getElementById('dashboardLoader');
     if (loader) {
         loader.innerHTML = `
             <div class="p-6 max-w-sm mx-auto bg-white rounded-2xl shadow-md border border-red-100 text-center">
-                <span class="material-symbols-outlined text-red-500 text-5xl mb-3">error</span>
-                <p class="font-bold text-slate-800 text-base mb-2">Error de Carga</p>
-                <p class="text-sm text-slate-500 mb-4">${msg}</p>
+                <span class="material-symbols-outlined text-red-500 text-5xl mb-3">${icon}</span>
+                <p class="font-bold text-slate-800 text-base mb-2">${title}</p>
+                <p class="text-sm text-slate-500 mb-4">${text}</p>
                 <button onclick="window.location.reload()" class="bg-primary text-white font-bold py-2 px-6 rounded-xl text-sm transition-all hover:bg-primary/90">Reintentar</button>
             </div>
         `;
@@ -1900,7 +1929,10 @@ function loadCustomization() {
                 }
                 
                 const navBusinessName = document.getElementById('navBusinessNameText');
-                if (navBusinessName && displayName) navBusinessName.textContent = displayName;
+                if (navBusinessName && displayName) {
+                    navBusinessName.textContent = displayName;
+                    try { localStorage.setItem('cached_business_name', displayName); } catch(e) {}
+                }
                 
                 const logoImg = document.getElementById('navBusinessLogoImg');
                 const iconEl = document.getElementById('navBusinessIcon');
@@ -3628,6 +3660,16 @@ window.closeReusableReceiptModal = function() {
 
 // Ocultar reportes de error y contacto para cuentas de demostración (Demo)
 document.addEventListener('DOMContentLoaded', () => {
+    try {
+        const cachedBizName = localStorage.getItem('cached_business_name');
+        if (cachedBizName) {
+            const navBizEl = document.getElementById('navBusinessNameText');
+            if (navBizEl && (navBizEl.textContent === 'Cargando...' || navBizEl.textContent === 'Mi Negocio')) {
+                navBizEl.textContent = cachedBizName;
+            }
+        }
+    } catch(e) {}
+
     const applyDemoButtonVisibility = (isDemo) => {
         const cardSupport = document.getElementById('cardSupport');
 
@@ -4034,7 +4076,9 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
         /* 1. Fondo del Body de la página completa */
         html, body {
             min-height: 100vh !important;
-            background-color: ${finalBg ? finalBg : `color-mix(in srgb, ${pColor} 10%, color-mix(in srgb, ${sColor} 7%, #f8fafc))` } !important;
+            background-color: ${finalBg ? finalBg : `color-mix(in srgb, ${pColor} 6%, #ffffff)`} !important;
+            background-image: ${finalBg ? 'none' : `radial-gradient(at 0% 0%, color-mix(in srgb, ${pColor} 7%, transparent) 0px, transparent 48%), radial-gradient(at 100% 100%, color-mix(in srgb, ${sColor} 7%, transparent) 0px, transparent 48%)`} !important;
+            background-attachment: fixed !important;
         }
 
         main {

@@ -174,8 +174,14 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
         }
     }
 
-    // La Agenda Virtual gestiona exclusivamente turnos individuales clásicos.
-    // Las clases grupales con cupos se gestionan exclusivamente en el módulo Clases y Cupos (clientes.html).
+    // La Agenda Virtual gestiona turnos individuales clásicos.
+    function esTurnoDeClase(t) {
+        if (!t) return false;
+        return (t.tipo_servicio === 'alumnos') || 
+               (parseInt(t.cupo_maximo) > 1) || 
+               (t.metodo_pago === 'Pase de Alumno');
+    }
+
     const tieneClasesEnNegocio = Array.isArray(data) && data.some(esTurnoDeClase);
     const turnosClasicos = Array.isArray(data) ? data.filter(t => !esTurnoDeClase(t)) : [];
 

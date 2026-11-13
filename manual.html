@@ -85,7 +85,7 @@
                 <div id="navBusinessNameHeader" class="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-2xl shadow-xs">
                     <img id="navBusinessLogoImg" src="" alt="Logo Negocio" class="hidden h-6 w-6 object-cover rounded-full border border-slate-300">
                     <span id="navBusinessIcon" class="material-symbols-outlined text-[18px] text-[#d11149]">storefront</span>
-                    <span id="navBusinessNameText" class="text-xs sm:text-sm font-extrabold text-slate-800 truncate max-w-[110px] sm:max-w-xs">Mi Negocio</span>
+                    <span id="navBusinessNameText" class="text-xs sm:text-sm font-extrabold text-slate-800 truncate max-w-[110px] sm:max-w-xs">Cargando...</span>
                 </div>
             </div>
 
@@ -1261,16 +1261,29 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            fetch('backend/perfil.php')
-                .then(res => res.json())
-                .then(data => {
-                    if (!data || !data.success || !data.business) {
-                        const errReason = (data && data.error) ? data.error : 'Sin respuesta válida de sesión en manual';
-                        console.error('⚠️ [Error de Carga - Manual] No se pudo volver a cargar la información. Motivo:', errReason);
-                        window.location.href = 'login.html';
-                        return;
+            Promise.all([
+                fetch('backend/perfil.php').then(res => res.json()).catch(() => ({})),
+                fetch('backend/guardar_web.php').then(res => res.json()).catch(() => ({}))
+            ]).then(([data, dWeb]) => {
+                if (data && data.success) {
+                    const pCol = dWeb?.color_primario || data.business?.color_primario || data.color_primario;
+                    const sCol = dWeb?.color_secundario || data.business?.color_secundario || data.color_secundario;
+                    const exCol = dWeb?.colores_extra_json || data.business?.colores_extra_json || data.colores_extra_json;
+                    const bgCol = dWeb?.color_fondo;
+                    if (typeof window.applyUserCustomColors === 'function') {
+                        window.applyUserCustomColors(pCol, sCol, exCol, bgCol);
                     }
-                    if (data && data.success && data.business) {
+                    if (dWeb?.usar_fondo_degrade == 1) {
+                        document.body.classList.add('calendar-degrade-active');
+                    }
+                }
+                if (!data || !data.success || !data.business) {
+                    const errReason = (data && data.error) ? data.error : 'Sin respuesta válida de sesión en manual';
+                    console.error('⚠️ [Error de Carga - Manual] No se pudo volver a cargar la información. Motivo:', errReason);
+                    window.location.href = 'login.html';
+                    return;
+                }
+                if (data && data.success && data.business) {
                         const navBizText = document.getElementById('navBusinessNameText');
                         const navBizLogo = document.getElementById('navBusinessLogoImg');
                         const navBizIcon = document.getElementById('navBusinessIcon');

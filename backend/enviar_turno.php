@@ -319,7 +319,7 @@ try {
         exit;
     }
 
-    $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos, tiempo_entre_turnos, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, reserva_sena_1h, whatsapp_comprobante, datos_transferencia, porcentaje_sena, usar_cupones_descuento, cupon_descuento_pct, cupon_duracion_horas, whatsapp_contacto FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
+    $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos, tiempo_entre_turnos, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, reserva_sena_1h, whatsapp_comprobante, datos_transferencia, porcentaje_sena, usar_cupones_descuento, cupon_descuento_pct, cupon_duracion_horas, whatsapp_contacto, notificaciones_email, email_notif_inmediata FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
     $stmtConfig->execute(['id' => $id_negocio]);
     $configWeb = $stmtConfig->fetch(PDO::FETCH_ASSOC);
     if (!is_array($configWeb)) $configWeb = [];
@@ -477,7 +477,7 @@ try {
                                   WHERE id_negocio = :id_neg 
                                     AND UPPER(codigo) = :cod 
                                     AND (activo IS NULL OR activo = 1)
-                                    AND (usado = 0 OR (usos_maximos IS NOT NULL AND usos_actuales < usos_maximos)) 
+                                    AND (usos_maximos IS NULL OR usos_maximos <= 0 OR usado = 0 OR usos_actuales < usos_maximos) 
                                     AND (fecha_expiracion IS NULL OR fecha_expiracion >= NOW()) 
                                   LIMIT 1 FOR UPDATE");
         $stmtCup->execute(['id_neg' => $id_negocio, 'cod' => $cupon_descuento]);
@@ -492,8 +492,8 @@ try {
         $descuentoAplicadoPct = (int)($rowCup['porcentaje_descuento'] ?? ($configWeb['cupon_descuento_pct'] ?? 10));
         
         $newUsos = (int)($rowCup['usos_actuales'] ?? 0) + 1;
-        $maxUsos = (int)($rowCup['usos_maximos'] ?? 1);
-        $isUsadoNow = ($newUsos >= $maxUsos) ? 1 : 0;
+        $maxUsos = (int)($rowCup['usos_maximos'] ?? 0);
+        $isUsadoNow = ($maxUsos > 0 && $newUsos >= $maxUsos) ? 1 : 0;
         $pdo->prepare("UPDATE cupones_descuento SET usos_actuales = ?, usado = ?, fecha_uso = NOW() WHERE id = ?")->execute([$newUsos, $isUsadoNow, $rowCup['id']]);
         
         $lastTurnoId = $pdo->lastInsertId();
@@ -529,9 +529,11 @@ try {
 }
 
 $mailEnviado = false;
+$notifEmailActive = !isset($configWeb['notificaciones_email']) || (int)$configWeb['notificaciones_email'] === 1;
+$notifInmediataActive = !isset($configWeb['email_notif_inmediata']) || (int)$configWeb['email_notif_inmediata'] === 1;
 
 try {
-    if (class_exists('PHPMailer\\PHPMailer\\PHPMailer')) {
+    if ($notifEmailActive && $notifInmediataActive && class_exists('PHPMailer\\PHPMailer\\PHPMailer')) {
         $mail = new PHPMailer(true);
         $mail->isSMTP();
         $mail->Host       = 'localhost';

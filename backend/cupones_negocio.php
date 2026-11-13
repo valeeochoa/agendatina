@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $codigo = strtoupper(trim($input['codigo'] ?? ''));
         $porcentaje = (int)($input['porcentaje_descuento'] ?? 10);
         $fecha_expiracion = trim($input['fecha_expiracion'] ?? '');
-        $usos_maximos = isset($input['usos_maximos']) && is_numeric($input['usos_maximos']) ? (int)$input['usos_maximos'] : 1;
+        $usos_maximos = isset($input['usos_maximos']) && is_numeric($input['usos_maximos']) ? (int)$input['usos_maximos'] : 0;
 
         if (empty($codigo)) {
             $codigo = 'DESC' . rand(100, 999) . strtoupper(substr(md5(uniqid()), 0, 3));
@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'cod' => $codigo,
                 'pct' => $porcentaje,
                 'exp' => $fecha_expiracion,
-                'max' => $usos_maximos > 0 ? $usos_maximos : 1,
+                'max' => $usos_maximos > 0 ? $usos_maximos : 0,
                 'acum' => $es_acumulable
             ]);
 

@@ -3,6 +3,13 @@ if (!function_exists('asegurarDatosDemo')) {
     function asegurarDatosDemo($pdo, $negocioId) {
         if (!$negocioId) return;
 
+        if (isset($_SESSION['demo_initialized_' . $negocioId]) && !isset($_GET['reset'])) {
+            $sessLastReset = (int)($_SESSION['last_demo_reset'] ?? 0);
+            if ($sessLastReset > 0 && (time() - $sessLastReset) < 900) {
+                return;
+            }
+        }
+
         try {
             // 0. Barreras de protección: auto-migración de columnas si no existen
             try { $pdo->query("SELECT cupo_maximo FROM servicios LIMIT 1"); } 
@@ -200,14 +207,27 @@ if (!function_exists('asegurarDatosDemo')) {
                 $stmtInsTurno->execute([$negocioId, 'Diego Romero', '11 5566 7788', $f_vie, '09:00', 'Pilates Reformer', 'Valentina Ochoa', $idPilates, 0, 6000]);
                 $stmtInsTurno->execute([$negocioId, 'Lucas Fernández', '11 9876 5432', $f_vie, '18:00', 'Entrenamiento Funcional', 'Marcos Gómez', $idFuncional, 0, 5500]);
 
-                // Turnos individuales tradicionales (Masajes y Faciales)
-                $pdo->prepare("
-                    INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, estado, asistio, metodo_pago, precio) VALUES 
-                    (?, 'Sofía Castro', '1133445566', ?, '11:30', 'Masaje Relajante & Descontracturante', 'Valentina Ochoa', ?, 'confirmado', 0, 'Efectivo', 15000),
-                    (?, 'Camila Varela', '1177889900', ?, '15:00', 'Limpieza Facial Profunda', 'Camila Benítez', ?, 'confirmado', 0, 'Transferencia', 12000)
-                ")->execute([
-                    $negocioId, $f_lun, $idMasaje,
-                    $negocioId, $f_mar, $idFacial
+                // Turnos individuales clásicos para la Agenda Virtual (Hoy, Mañana y Pasado Mañana con Seña 1h y Asistencias)
+                $f_hoy = date('Y-m-d');
+                $f_man = date('Y-m-d', strtotime('+1 day'));
+                $f_pas = date('Y-m-d', strtotime('+2 days'));
+
+                $stmtInsTurnoIndiv = $pdo->prepare("
+                    INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, estado, asistio, metodo_pago, precio, requiere_sena_1h, created_at) VALUES 
+                    (?, 'Sofía Castro', '11 3344 5566', ?, '17:00', 'Masaje Relajante & Descontracturante', 'Valentina Ochoa', ?, 'pendiente', 0, 'Transferencia (Seña 1h)', 15000, 1, NOW()),
+                    (?, 'Camila Varela', '11 7788 9900', ?, '15:00', 'Limpieza Facial Profunda', 'Camila Benítez', ?, 'confirmado', 0, 'Transferencia', 12000, 0, NOW()),
+                    (?, 'Martín Palermo', '11 4455 6677', ?, '10:00', 'Masaje Relajante & Descontracturante', 'Valentina Ochoa', ?, 'confirmado', 1, 'Efectivo', 15000, 0, NOW()),
+                    (?, 'Valeria Lynch', '11 6677 8899', ?, '11:30', 'Limpieza Facial Profunda', 'Camila Benítez', ?, 'pendiente', 0, 'Efectivo', 12000, 0, NOW()),
+                    (?, 'Joaquín Sabina', '11 2233 1122', ?, '16:30', 'Masaje Relajante & Descontracturante', 'Valentina Ochoa', ?, 'confirmado', 0, 'Mercado Pago', 15000, 0, NOW()),
+                    (?, 'Luciana Salazar', '11 9988 7766', ?, '14:00', 'Limpieza Facial Profunda', 'Camila Benítez', ?, 'confirmado', 0, 'Transferencia', 12000, 0, NOW())
+                ");
+                $stmtInsTurnoIndiv->execute([
+                    $negocioId, $f_hoy, $idMasaje,
+                    $negocioId, $f_hoy, $idFacial,
+                    $negocioId, $f_hoy, $idMasaje,
+                    $negocioId, $f_man, $idFacial,
+                    $negocioId, $f_man, $idMasaje,
+                    $negocioId, $f_pas, $idFacial
                 ]);
 
                 // D. Restablecer configuración web demo con soporte completo de clases y cupos
@@ -277,6 +297,8 @@ if (!function_exists('asegurarDatosDemo')) {
                     }
                 }
             }
+
+            $_SESSION['demo_initialized_' . $negocioId] = true;
 
         } catch(Throwable $eDemoData) {
             error_log("Error al asegurar datos demo: " . $eDemoData->getMessage());

@@ -134,10 +134,12 @@
         }, 50);
     };
 
+    let isSimulatorInView = true;
+
     function startAutoRotation() {
         stopAutoRotation();
         rotationTimer = setInterval(() => {
-            if (!isUserInteracting) {
+            if (!isUserInteracting && isSimulatorInView) {
                 currentModuleIndex = (currentModuleIndex + 1) % MODULES.length;
                 renderTabsNav();
                 renderActiveSimulation();
@@ -203,14 +205,20 @@
             urlBar.textContent = `agendatina.site/demo-negocio/${currentMod.id}`;
         }
 
-        // Auto-desplazamiento suave de la barra horizontal SOLO si la pestaña activa no es visible o desborda
+        // Auto-desplazamiento horizontal EXCLUSIVAMENTE dentro de la barra de pestañas (sin mover el scroll de la ventana)
         setTimeout(() => {
             const activeTabBtn = tabsBar.querySelector('[aria-selected="true"]');
             if (activeTabBtn) {
-                const barRect = tabsBar.getBoundingClientRect();
-                const btnRect = activeTabBtn.getBoundingClientRect();
-                if (btnRect.right > barRect.right || btnRect.left < barRect.left) {
-                    activeTabBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+                const tabLeft = activeTabBtn.offsetLeft;
+                const tabWidth = activeTabBtn.offsetWidth;
+                const barScrollLeft = tabsBar.scrollLeft;
+                const barClientWidth = tabsBar.clientWidth;
+
+                if (tabLeft < barScrollLeft || (tabLeft + tabWidth) > (barScrollLeft + barClientWidth)) {
+                    tabsBar.scrollTo({
+                        left: Math.max(0, tabLeft - (barClientWidth / 2) + (tabWidth / 2)),
+                        behavior: 'smooth'
+                    });
                 }
             }
         }, 30);
@@ -1667,10 +1675,19 @@
             renderActiveSimulation();
             startAutoRotation();
 
-            // Pausar rotación si el usuario pasa el mouse por encima del panel
+            // Pausar rotación si el usuario pasa el mouse por encima del panel o si el simulador no está visible en pantalla
             const frame = document.getElementById('moduleSimulatorFrame');
             if (frame) {
                 frame.addEventListener('mouseenter', () => { isUserInteracting = true; stopAutoRotation(); });
+                
+                if ('IntersectionObserver' in window) {
+                    const simObserver = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            isSimulatorInView = entry.isIntersecting;
+                        });
+                    }, { threshold: 0.2 });
+                    simObserver.observe(frame);
+                }
             }
         }
     });

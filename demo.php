@@ -32,37 +32,39 @@ try {
         } catch (Throwable $eExist) {}
     }
 
-    // 1. LIMPIEZA AUTOMÁTICA DE CUENTAS DEMO EXPIRADAS (Mayores a 30 minutos)
-    try {
-        $stmtOld = $pdo->query("SELECT id FROM negocios WHERE (ruta LIKE 'demo-%' OR subdominio LIKE 'demo-%' OR nombre_fantasia LIKE 'Demo%') AND (fecha_alta < NOW() - INTERVAL 30 MINUTE OR fecha_alta IS NULL)");
-        if ($stmtOld) {
-            $oldIds = $stmtOld->fetchAll(PDO::FETCH_COLUMN);
-            foreach ($oldIds as $oldId) {
-                $pdo->prepare("DELETE FROM turnos WHERE id_negocio = ?")->execute([$oldId]);
-                $pdo->prepare("DELETE FROM servicios WHERE id_negocio = ?")->execute([$oldId]);
-                $pdo->prepare("DELETE FROM notificaciones WHERE id_negocio = ?")->execute([$oldId]);
-                $pdo->prepare("DELETE FROM dias_bloqueados WHERE id_negocio = ?")->execute([$oldId]);
-                $pdo->prepare("DELETE FROM configuracion_web WHERE id_negocio = ?")->execute([$oldId]);
-                $pdo->prepare("DELETE FROM personal_negocio WHERE id_negocio = ?")->execute([$oldId]);
-                $pdo->prepare("DELETE FROM negocios WHERE id = ?")->execute([$oldId]);
+    // 1. LIMPIEZA AUTOMÁTICA DE CUENTAS DEMO EXPIRADAS (Probabilística 1 de cada 10 para acelerar la carga en celular)
+    if (mt_rand(1, 10) === 1) {
+        try {
+            $stmtOld = $pdo->query("SELECT id FROM negocios WHERE (ruta LIKE 'demo-%' OR subdominio LIKE 'demo-%' OR nombre_fantasia LIKE 'Demo%') AND (fecha_alta < NOW() - INTERVAL 30 MINUTE OR fecha_alta IS NULL) LIMIT 5");
+            if ($stmtOld) {
+                $oldIds = $stmtOld->fetchAll(PDO::FETCH_COLUMN);
+                foreach ($oldIds as $oldId) {
+                    $pdo->prepare("DELETE FROM turnos WHERE id_negocio = ?")->execute([$oldId]);
+                    $pdo->prepare("DELETE FROM servicios WHERE id_negocio = ?")->execute([$oldId]);
+                    $pdo->prepare("DELETE FROM notificaciones WHERE id_negocio = ?")->execute([$oldId]);
+                    $pdo->prepare("DELETE FROM dias_bloqueados WHERE id_negocio = ?")->execute([$oldId]);
+                    $pdo->prepare("DELETE FROM configuracion_web WHERE id_negocio = ?")->execute([$oldId]);
+                    $pdo->prepare("DELETE FROM personal_negocio WHERE id_negocio = ?")->execute([$oldId]);
+                    $pdo->prepare("DELETE FROM negocios WHERE id = ?")->execute([$oldId]);
 
-                // Limpiar imágenes físicas del disco asociadas a este id_negocio
-                $uploadDir = __DIR__ . '/uploads/';
-                if (is_dir($uploadDir)) {
-                    $subfolders = ['logos', 'fondos', 'profesionales', 'servicios', 'comprobantes'];
-                    foreach ($subfolders as $sub) {
-                        $files = glob($uploadDir . $sub . '/*_' . $oldId . '.*');
-                        if ($files) {
-                            foreach ($files as $file) {
-                                if (is_file($file)) @unlink($file);
+                    // Limpiar imágenes físicas del disco asociadas a este id_negocio
+                    $uploadDir = __DIR__ . '/uploads/';
+                    if (is_dir($uploadDir)) {
+                        $subfolders = ['logos', 'fondos', 'profesionales', 'servicios', 'comprobantes'];
+                        foreach ($subfolders as $sub) {
+                            $files = glob($uploadDir . $sub . '/*_' . $oldId . '.*');
+                            if ($files) {
+                                foreach ($files as $file) {
+                                    if (is_file($file)) @unlink($file);
+                                }
                             }
                         }
                     }
                 }
             }
-        }
-        $pdo->exec("DELETE FROM usuarios WHERE (email LIKE 'demo_%@agendatina.site' OR email LIKE 'demo%@agendatina.site') AND id NOT IN (SELECT id_usuario FROM personal_negocio)");
-    } catch (Exception $eGC) {}
+            $pdo->exec("DELETE FROM usuarios WHERE (email LIKE 'demo_%@agendatina.site' OR email LIKE 'demo%@agendatina.site') AND id NOT IN (SELECT id_usuario FROM personal_negocio) LIMIT 10");
+        } catch (Exception $eGC) {}
+    }
 
     // BARRERA DE PROTECCIÓN: Asegurar columnas necesarias en la BD
     try { $pdo->query("SELECT descripcion FROM servicios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN descripcion TEXT DEFAULT NULL"); }

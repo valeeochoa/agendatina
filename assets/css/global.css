@@ -8,6 +8,16 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     font-weight: 400;
     letter-spacing: -0.011em;
+    touch-action: manipulation;
+}
+
+/* Prevención de auto-zoom indeseado en navegadores móviles (iOS Safari / Chrome Android) */
+@media screen and (max-width: 768px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
 }
 
 /* Fuente oficial de la Marca Agendatina */
@@ -39,9 +49,9 @@ html, body {
     width: 100%;
     background-color: #fdfafb;
     background-image: 
-        radial-gradient(at 0% 0%, rgba(209, 17, 73, 0.09) 0px, transparent 45%),
-        radial-gradient(at 100% 100%, rgba(252, 135, 18, 0.11) 0px, transparent 45%),
-        radial-gradient(at 50% 50%, rgba(244, 73, 121, 0.04) 0px, transparent 55%);
+        radial-gradient(at 0% 0%, color-mix(in srgb, var(--color-primario, #d11149) 7%, transparent) 0px, transparent 45%),
+        radial-gradient(at 100% 100%, color-mix(in srgb, var(--color-secundario, #fc8712) 7%, transparent) 0px, transparent 45%),
+        radial-gradient(at 50% 50%, color-mix(in srgb, var(--color-primario, #d11149) 4%, transparent) 0px, transparent 55%);
     background-attachment: fixed;
 }
 

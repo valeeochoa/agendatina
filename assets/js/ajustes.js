@@ -498,7 +498,12 @@ window.applyCalendarConfigToForm = function(data) {
 
     if (data.email_recordatorio_anticipacion !== undefined) {
         const selAntic = form.querySelector('#configEmailRecordatorioAnticipacion');
-        if (selAntic) selAntic.value = String(data.email_recordatorio_anticipacion || '2');
+        if (selAntic) selAntic.value = String(data.email_recordatorio_anticipacion);
+    }
+
+    if (data.email_notif_inmediata !== undefined) {
+        const chkInmed = form.querySelector('#chkEmailNotifInmediata');
+        if (chkInmed) chkInmed.checked = (data.email_notif_inmediata == 1 || data.email_notif_inmediata === '1' || data.email_notif_inmediata === true);
     }
 
     if (data.cupon_descuento_pct !== undefined) {
@@ -1422,7 +1427,8 @@ function handleCalendarConfigSubmit(e) {
         usar_cupones_descuento: form.querySelector('#chkUsarCuponesDescuento')?.checked ? 1 : 0,
         permitir_acumular_cupones: form.querySelector('#chkPermitirAcumularCupones')?.checked ? 1 : 0,
         email_resumen_diario: form.querySelector('#chkEmailResumenDiario')?.checked ? 1 : 0,
-        email_recordatorio_anticipacion: parseInt(form.querySelector('#configEmailRecordatorioAnticipacion')?.value) || 2,
+        email_recordatorio_anticipacion: parseInt(form.querySelector('#configEmailRecordatorioAnticipacion')?.value ?? 2),
+        email_notif_inmediata: form.querySelector('#chkEmailNotifInmediata')?.checked ? 1 : 0,
         cupon_descuento_pct: Math.max(1, Math.min(100, parseInt(form.querySelector('#configCuponDescuentoPct')?.value) || 10)),
         cupon_duracion_horas: parseInt(form.querySelector('#configCuponDuracionHoras')?.value) || 24,
         dias_retorno_clientes: parseInt(form.querySelector('#configDiasRetornoClientes')?.value) || 30,
@@ -1509,9 +1515,10 @@ window.cargarCuponesNegocio = function() {
         data.cupones.forEach(c => {
             const expDate = c.fecha_expiracion ? new Date(c.fecha_expiracion.replace(/-/g, '/')) : null;
             const isExpired = expDate && expDate < now;
-            const usosMax = c.usos_maximos ? parseInt(c.usos_maximos) : 1;
+            const isUnlimited = !c.usos_maximos || parseInt(c.usos_maximos) === 0;
+            const usosMax = isUnlimited ? 0 : parseInt(c.usos_maximos);
             const usosAct = parseInt(c.usos_actuales) || 0;
-            const isUsadoTotal = usosAct >= usosMax;
+            const isUsadoTotal = !isUnlimited && usosAct >= usosMax;
 
             let estadoBadge = '';
             if (isExpired) {
@@ -1535,7 +1542,7 @@ window.cargarCuponesNegocio = function() {
                     <td class="py-2.5 px-3"><span class="font-black tracking-wider text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">${c.codigo}</span></td>
                     <td class="py-2.5 px-3 text-center font-black text-emerald-600">${c.porcentaje_descuento}% OFF</td>
                     <td class="py-2.5 px-3 text-slate-600">${formatExp}</td>
-                    <td class="py-2.5 px-3 text-center text-slate-600 font-bold">${usosAct}/${usosMax}</td>
+                    <td class="py-2.5 px-3 text-center text-slate-600 font-bold">${usosAct} / ${isUnlimited ? '<span class="text-purple-600">∞ Ilimitado</span>' : usosMax}</td>
                     <td class="py-2.5 px-3 text-center">${estadoBadge}</td>
                     <td class="py-2.5 px-3 text-right">
                         <div class="flex items-center justify-end gap-1">
@@ -1612,7 +1619,8 @@ window.guardarNuevoCupon = function(e) {
     const codigo = document.getElementById('nuevoCuponCodigo').value.trim().toUpperCase();
     const pct = parseInt(document.getElementById('nuevoCuponPct').value) || 10;
     const fechaExp = document.getElementById('nuevoCuponFechaExp').value;
-    const usos = parseInt(document.getElementById('nuevoCuponUsos').value) || 1;
+    const usosRaw = document.getElementById('nuevoCuponUsos').value.trim();
+    const usos = usosRaw === '' ? 0 : Math.max(1, parseInt(usosRaw) || 0);
     const esAcumulable = document.getElementById('nuevoCuponAcumulable')?.checked ? 1 : 0;
 
     if (!codigo) {

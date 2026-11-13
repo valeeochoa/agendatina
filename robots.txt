@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /registro.html
+Allow: /login.html
+Allow: /terminos.html
+Disallow: /backend/
+Disallow: /admin/
+Disallow: /uploads/
+Disallow: /demo.php
+Disallow: /dashboard.html
+
+Sitemap: https://agendatina.site/sitemap.xml
