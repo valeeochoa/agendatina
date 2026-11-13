@@ -216,6 +216,16 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     let pendientes = turnosClasicos.filter(t => t.estado === 'pendiente');
     let confirmados = turnosClasicos.filter(t => t.estado === 'confirmado');
     let eliminados = turnosClasicos.filter(t => t.estado === 'eliminado' || t.estado === 'cancelado');
+
+    // Actualizar KPIs de cabecera en vivo
+    const todayStr = (new Date()).toISOString().split('T')[0];
+    const turnosHoy = turnosClasicos.filter(t => t.fecha === todayStr && t.estado !== 'eliminado' && t.estado !== 'cancelado').length;
+    const asistidosCount = turnosClasicos.filter(t => parseInt(t.asistio) === 1).length;
+    
+    if (document.getElementById('kpiTurnosHoy')) document.getElementById('kpiTurnosHoy').textContent = turnosHoy;
+    if (document.getElementById('kpiPorConfirmar')) document.getElementById('kpiPorConfirmar').textContent = pendientes.length;
+    if (document.getElementById('kpiProximos')) document.getElementById('kpiProximos').textContent = confirmados.length;
+    if (document.getElementById('kpiAsistidos')) document.getElementById('kpiAsistidos').textContent = asistidosCount;
     
     if (searchTerm || profTerm) {
         const term = (searchTerm || '').toLowerCase();
@@ -278,6 +288,22 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
             const fParts = t.fecha.split('-');
             const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}/${fParts[0]}` : t.fecha;
             const focusClass = focusId == t.id ? 'ring-4 ring-primary ring-offset-2 scale-[1.02] transition-transform duration-500' : '';
+            
+            let countdownBadge = '';
+            const secLeft = parseInt(t.segundos_restantes_sena, 10);
+            const isTransf = t.metodo_pago && (t.metodo_pago.toLowerCase().includes('transferencia') || t.metodo_pago.toLowerCase().includes('seña'));
+            if (!isNaN(secLeft) && secLeft > 0 && isTransf) {
+                const mins = Math.floor(secLeft / 60);
+                const secs = secLeft % 60;
+                const timeStr = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                countdownBadge = `
+                    <div class="mt-2 mb-3 p-2.5 rounded-xl bg-amber-50 border border-amber-200/90 flex items-center justify-between text-xs text-amber-900 font-extrabold" data-countdown-turno="${t.id}" data-seconds-left="${secLeft}">
+                        <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-amber-600 animate-pulse">timer</span> Seña pendiente:</span>
+                        <span class="font-mono text-amber-800 bg-amber-100/90 px-2 py-0.5 rounded-lg text-xs font-black countdown-display">${timeStr}</span>
+                    </div>
+                `;
+            }
+
             listPend.innerHTML += `
                 <div id="turno-${t.id}" onclick="if(!event.target.closest('button')) window.openEditTurnoModal('${t.id}')" class="shadow-sm rounded-2xl p-5 hover:shadow-lg cursor-pointer transition-all relative overflow-hidden ${focusClass}" style="background-color: #ffffff; border: 1px solid #e2e8f0;">
                     <div class="absolute top-0 left-0 w-1.5 h-full bg-amber-400"></div>
@@ -286,10 +312,11 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                         ${t.profesional && t.profesional !== 'Cualquiera (Sin preferencia)' ? `<span class="px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1" style="background-color: #f1f5f9; color: #475569;"><span class="material-symbols-outlined text-[14px]">person</span> ${t.profesional}</span>` : ''}
                     </div>
                     <p class="text-lg font-bold mb-1" style="color: #1e293b;">${escapeHtml(t.cliente_nombre || (t.nombre + ' ' + (t.apellido || '')))}</p>
-                    <div class="flex items-center gap-3 mb-4">
+                    <div class="flex items-center gap-3 mb-3">
                         <p class="text-sm font-medium flex items-center gap-1.5 px-3 py-1.5 rounded-lg border" style="color: #475569; background-color: #f8fafc; border-color: #e2e8f0;"><span class="material-symbols-outlined text-[16px]">call</span> ${escapeHtml(t.cliente_celular || t.celular || '')}</p>
                         <button onclick="window.contactarWhatsApp('${t.id}')" class="text-emerald-600 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded-lg transition-colors flex items-center justify-center border border-emerald-100" title="Enviar WhatsApp"><span class="material-symbols-outlined text-[18px]">chat</span></button>
                     </div>
+                    ${countdownBadge}
                     ${t.metodo_pago ? `<p class="text-sm mb-1 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">payments</span> <span class="font-medium">${t.metodo_pago}</span></p>` : ''}
                     <p class="text-sm mb-5 flex items-center gap-2" style="color: #475569;"><span class="material-symbols-outlined text-[18px] text-slate-500">spa</span> <span class="font-medium">${escapeHtml(t.servicio || '')}</span></p>
                     
@@ -303,6 +330,29 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                     </div>
                 </div>
             `;
+        });
+
+        // Intervalo para actualizar el contador de seña cada 1 segundo
+        if (window._agendaCountdownInterval) clearInterval(window._agendaCountdownInterval);
+        window._agendaCountdownInterval = setInterval(() => {
+            const badges = document.querySelectorAll('[data-countdown-turno]');
+            if (!badges || badges.length === 0) return;
+            badges.forEach(badge => {
+                let s = parseInt(badge.getAttribute('data-seconds-left'), 10);
+                if (isNaN(s)) return;
+                s--;
+                if (s <= 0) {
+                    badge.innerHTML = '<span class="text-rose-600 font-extrabold flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">timer_off</span> Tiempo de seña expirado (auto-liberando)</span>';
+                    badge.removeAttribute('data-countdown-turno');
+                } else {
+                    badge.setAttribute('data-seconds-left', s);
+                    const m = Math.floor(s / 60);
+                    const sec = s % 60;
+                    const disp = badge.querySelector('.countdown-display');
+                    if (disp) disp.textContent = `${m}:${sec < 10 ? '0' : ''}${sec}`;
+                }
+            });
+        }, 1000);
         });
     }
 

@@ -41,11 +41,14 @@ catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE cupones_descuento ADD COLUM
 try { $pdo->query("SELECT activo FROM cupones_descuento LIMIT 1"); } 
 catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE cupones_descuento ADD COLUMN activo TINYINT(1) DEFAULT 1"); } catch(\Throwable $ex) {} }
 
+try { $pdo->query("SELECT es_acumulable FROM cupones_descuento LIMIT 1"); } 
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE cupones_descuento ADD COLUMN es_acumulable TINYINT(1) DEFAULT 0"); } catch(\Throwable $ex) {} }
+
 $action = $_GET['action'] ?? $_POST['action'] ?? 'listar';
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' || $action === 'listar') {
     try {
-        $stmt = $pdo->prepare("SELECT id, nombre, codigo, porcentaje_descuento, fecha_creacion, fecha_expiracion, usos_maximos, usos_actuales, usado, activo, cliente_nombre 
+        $stmt = $pdo->prepare("SELECT id, nombre, codigo, porcentaje_descuento, fecha_creacion, fecha_expiracion, usos_maximos, usos_actuales, usado, activo, es_acumulable, cliente_nombre 
                                FROM cupones_descuento 
                                WHERE id_negocio = :id_negocio 
                                ORDER BY fecha_creacion DESC");
@@ -98,17 +101,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
+        $es_acumulable = !empty($input['es_acumulable']) ? 1 : 0;
+
         try {
             $stmt = $pdo->prepare("INSERT INTO cupones_descuento 
-                (id_negocio, nombre, codigo, porcentaje_descuento, fecha_expiracion, usos_maximos, usos_actuales, activo) 
-                VALUES (:id_neg, :nom, :cod, :pct, :exp, :max, 0, 1)");
+                (id_negocio, nombre, codigo, porcentaje_descuento, fecha_expiracion, usos_maximos, usos_actuales, activo, es_acumulable) 
+                VALUES (:id_neg, :nom, :cod, :pct, :exp, :max, 0, 1, :acum)");
             $stmt->execute([
                 'id_neg' => $id_negocio,
                 'nom' => $nombre ?: "Cupón $porcentaje% OFF",
                 'cod' => $codigo,
                 'pct' => $porcentaje,
                 'exp' => $fecha_expiracion,
-                'max' => $usos_maximos > 0 ? $usos_maximos : 1
+                'max' => $usos_maximos > 0 ? $usos_maximos : 1,
+                'acum' => $es_acumulable
             ]);
 
             echo json_encode([

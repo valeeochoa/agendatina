@@ -6,12 +6,16 @@ ServerSignature Off
 # 2. Forzar HTTPS (Redirigir todo tráfico HTTP a seguro)
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTPS} !=on [NC]
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+    RewriteCond %{HTTP:X-Forwarded-SSL} !=on [NC]
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 </IfModule>
 
 # 3. Cabeceras de Seguridad (Previenen ataques comunes)
 <IfModule mod_headers.c>
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header always set Content-Security-Policy "upgrade-insecure-requests;"
     # Evita que tu sitio sea cargado en iframes de otros dominios (Clickjacking)
     Header set X-Frame-Options "SAMEORIGIN"
     # Fuerza al navegador a respetar el tipo de archivo (Evita inyección de scripts)

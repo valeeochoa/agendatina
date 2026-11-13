@@ -13,6 +13,15 @@ const originalLoadDashboardData = window.loadDashboardData;
 window.loadDashboardData = function() {
     // 1. Ejecutar la carga normal primero
     if (originalLoadDashboardData) originalLoadDashboardData();
+
+    if (typeof window.applyUserCustomColors === 'function') {
+        const cachedP = localStorage.getItem('user_color_primario');
+        const cachedS = localStorage.getItem('user_color_secundario');
+        const cachedExtra = localStorage.getItem('user_colores_extra_json');
+        if (cachedP || cachedS || cachedExtra) {
+            window.applyUserCustomColors(cachedP, cachedS, cachedExtra);
+        }
+    }
     
     // 2. Asegurar que el enlace del calendario se actualice con la vista correcta
     setTimeout(() => {

@@ -32,6 +32,20 @@ session_write_close();
 try {
     $ocupados = [];
 
+    // Auto-migración columna created_at en turnos si no existe
+    try { $pdo->query("SELECT created_at FROM turnos LIMIT 1"); } 
+    catch (Exception $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP"); } catch (Exception $ex) {} }
+
+    // Auto-liberar turnos pendientes de confirmación tras 1 hora (3600 seg) si son con seña / transferencia
+    try {
+        $pdo->exec("UPDATE turnos 
+            SET estado = 'cancelado', notas = CONCAT(COALESCE(notas, ''), ' [Auto-liberado por falta de confirmación de seña en 1 hora]') 
+            WHERE estado = 'pendiente' 
+              AND (metodo_pago LIKE '%transferencia%' OR metodo_pago LIKE '%seña%')
+              AND created_at IS NOT NULL 
+              AND created_at < DATE_SUB(NOW(), INTERVAL 1 HOUR)");
+    } catch (Exception $eAutoLib) {}
+
    // Obtener configuración web del negocio (horarios, días laborables, etc.)
     try { $pdo->query("SELECT usar_cupones_descuento FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN usar_cupones_descuento TINYINT(1) DEFAULT 0"); } catch (Exception $eCol2) {} }
     try { $pdo->query("SELECT cupon_descuento_pct FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN cupon_descuento_pct INT DEFAULT 10"); } catch (Exception $eCol2) {} }

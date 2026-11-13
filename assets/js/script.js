@@ -949,16 +949,24 @@ function loadDashboardData() {
             }
             window.currentUserData = data.user || {};
             window.currentBusinessData = business;
+
+            // Sincronizar colores personalizados del perfil y la web inmediatamente en el Dashboard
+            const pCol = webData.color_primario || data.color_primario || business.color_primario || (data.user && data.user.color_primario);
+            const sCol = webData.color_secundario || data.color_secundario || business.color_secundario || (data.user && data.user.color_secundario);
+            const exCol = webData.colores_extra_json || data.colores_extra_json || business.colores_extra_json;
+            if (typeof window.applyUserCustomColors === 'function') {
+                window.applyUserCustomColors(pCol, sCol, exCol);
+            }
         
             // Modificar el saludo y el subtítulo
             const dashGreeting = document.getElementById('dashGreeting');
             const dashSubGreeting = document.getElementById('dashSubGreeting');
             if (dashGreeting && window.currentUserData.nombre_completo) {
                 const firstName = window.currentUserData.nombre_completo.split(' ')[0];
-                dashGreeting.innerHTML = `¡Hola, <span class="text-[#fc8712] font-black">${firstName}</span>!`;
+                dashGreeting.innerHTML = `¡Hola, <span style="color: var(--color-secundario, #fc8712);" class="font-black">${firstName}</span>!`;
             }
             if (dashSubGreeting && business.nombre_fantasia) {
-                dashSubGreeting.innerHTML = `Gestionemos juntos tu negocio <span class="font-extrabold text-[#fc8712] bg-[#fc8712]/10 px-2 py-0.5 rounded-lg border border-[#fc8712]/20 inline-block">${business.nombre_fantasia}</span>`;
+                dashSubGreeting.innerHTML = `Gestionemos juntos tu negocio <span style="color: var(--color-secundario, #fc8712); background-color: color-mix(in srgb, var(--color-secundario, #fc8712) 10%, transparent); border-color: color-mix(in srgb, var(--color-secundario, #fc8712) 20%, transparent);" class="font-extrabold px-2 py-0.5 rounded-lg border inline-block">${business.nombre_fantasia}</span>`;
             }
 
             window.currentCustomNotifs = data.notificaciones || [];

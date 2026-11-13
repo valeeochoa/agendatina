@@ -1263,7 +1263,12 @@
             if (dateVenc < hoy) {
                 return `<span class="bg-red-50 text-red-700 border border-red-200 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold flex items-center gap-1 inline-flex"><span class="material-symbols-outlined text-[14px]">error</span> Vencido el ${formatted}</span>`;
             } else {
-                return `<span class="bg-amber-50 text-amber-800 border border-amber-200/80 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold flex items-center gap-1 inline-flex"><span class="material-symbols-outlined text-[14px]">event_upcoming</span> Vence el ${formatted}</span>`;
+                const diffMs = dateVenc.getTime() - hoy.getTime();
+                const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+                if (diffDays <= 5) {
+                    return `<span class="bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-0.5 rounded-full text-[11px] font-black flex items-center gap-1 inline-flex animate-pulse"><span class="material-symbols-outlined text-[14px] text-amber-600">warning</span> ¡Vence pronto! (${diffDays === 0 ? 'Hoy' : (diffDays === 1 ? 'Mañana' : 'En ' + diffDays + ' días')})</span>`;
+                }
+                return `<span class="bg-emerald-50 text-emerald-800 border border-emerald-200/80 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold flex items-center gap-1 inline-flex"><span class="material-symbols-outlined text-[14px]">event_upcoming</span> Vence el ${formatted}</span>`;
             }
         }
 
@@ -1318,7 +1323,7 @@
                     <button onclick="switchTab('reservar')" class="px-5 py-2.5 bg-[#FC8712] hover:bg-orange-600 text-white text-xs font-black rounded-xl uppercase tracking-wider transition-all shadow-md">Ver Calendario y Cupos</button>
                 </div>`;
             } else {
-                misClasesList.innerHTML = proximas.map(c => {
+                misClasesList.innerHTML = proximas.map((c, idx) => {
                     const cancRest = c.cancelaciones_restantes !== undefined ? parseInt(c.cancelaciones_restantes) : (parseInt(c.cancelaciones_max) || 4);
 
                     const classStartDate = parseClassDateTime(c.fecha, c.hora);
@@ -1326,6 +1331,24 @@
                     const iconHtml = getServiceIconOrImageHtml(c.servicio, c.icono, c.servicio_imagen);
                     const dateFmt = formatFriendlyClassDate(c.fecha);
                     const timeFmt = formatFriendlyClassTime(c.hora);
+                    const isNextClass = idx === 0;
+
+                    // URL para Google Calendar
+                    let gCalBtnHtml = '';
+                    if (classStartDate && !hasStarted) {
+                        try {
+                            const startIso = classStartDate.toISOString().replace(/-|:|\.\d\d\d/g, '');
+                            const endIso = new Date(classStartDate.getTime() + 60 * 60 * 1000).toISOString().replace(/-|:|\.\d\d\d/g, '');
+                            const gTitle = encodeURIComponent(`${c.servicio} - ${c.negocio}`);
+                            const gDetails = encodeURIComponent(`Clase en ${c.negocio} con ${c.profesional || 'Instructor'}.\n¡Te esperamos en Agendatina!`);
+                            const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${gTitle}&dates=${startIso}/${endIso}&details=${gDetails}`;
+                            gCalBtnHtml = `
+                                <a href="${gCalUrl}" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 transition-colors inline-flex items-center gap-1 shadow-2xs hover:text-[#fc8712]" title="Añadir a Google Calendar">
+                                    <span class="material-symbols-outlined text-[15px] text-[#FC8712]">calendar_add_on</span> <span class="hidden sm:inline">Agendar en</span> Google
+                                </a>
+                            `;
+                        } catch(e) {}
+                    }
 
                     let cancelBtnHtml = '';
                     if (hasStarted) {
@@ -1345,7 +1368,15 @@
                     }
 
                     return `
-                        <div class="bg-white/95 border border-slate-200/90 rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-xl transition-all flex flex-col justify-between gap-4">
+                        <div class="bg-white/95 border ${isNextClass ? 'border-[#FC8712]/60 ring-2 ring-[#FC8712]/20 shadow-lg' : 'border-slate-200/90 shadow-md'} rounded-3xl p-5 sm:p-6 hover:shadow-xl transition-all flex flex-col justify-between gap-4">
+                            ${isNextClass ? `
+                                <div class="flex items-center justify-between gap-2 pb-1 border-b border-orange-100">
+                                    <span class="bg-gradient-to-r from-[#d11149] to-[#fc8712] text-white text-[11px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full flex items-center gap-1.5 shadow-xs">
+                                        <span>🔥</span> Tu Próxima Clase
+                                    </span>
+                                    <span class="text-[11px] font-bold text-slate-500">¡Preparate!</span>
+                                </div>
+                            ` : ''}
                             <div class="flex items-start gap-4">
                                 ${iconHtml}
                                 <div class="space-y-1">
@@ -1365,6 +1396,7 @@
                             <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="bg-emerald-100 text-emerald-800 text-xs font-black px-3 py-1.5 rounded-full border border-emerald-200 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Confirmada</span>
+                                    ${gCalBtnHtml}
                                 </div>
                                 ${cancelBtnHtml}
                             </div>

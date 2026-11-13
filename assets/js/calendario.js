@@ -754,6 +754,20 @@ function cal_renderCalendar() {
     
     monthYearEl.textContent = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(cal_currentDate);
     
+    // Obtener configuración del primer día de la semana (1 = Lunes por defecto, 0 = Domingo)
+    const confPrimerDia = window.businessWebConfig?.primer_dia_semana;
+    const startDay = (confPrimerDia !== undefined && confPrimerDia !== null) ? parseInt(confPrimerDia) : 1;
+
+    // Actualizar dinámicamente las columnas del encabezado de la semana
+    const weekdaysHeader = document.getElementById('calendarWeekdaysHeader');
+    if (weekdaysHeader) {
+        if (startDay === 1) {
+            weekdaysHeader.innerHTML = '<div>Lun</div><div>Mar</div><div>Mie</div><div>Jue</div><div>Vie</div><div>Sab</div><div>Dom</div>';
+        } else {
+            weekdaysHeader.innerHTML = '<div>Dom</div><div>Lun</div><div>Mar</div><div>Mie</div><div>Jue</div><div>Vie</div><div>Sab</div>';
+        }
+    }
+
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const today = new Date();
@@ -762,7 +776,9 @@ function cal_renderCalendar() {
     const calendarDays = document.getElementById('calendarDays');
     calendarDays.innerHTML = '';
     
-    for (let i = 0; i < firstDay; i++) calendarDays.innerHTML += `<div></div>`;
+    // Desplazamiento inicial según el primer día de la semana (Lunes vs Domingo)
+    const offset = (firstDay - startDay + 7) % 7;
+    for (let i = 0; i < offset; i++) calendarDays.innerHTML += `<div></div>`;
     
     for (let i = 1; i <= daysInMonth; i++) {
         const date = new Date(year, month, i);

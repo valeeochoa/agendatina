@@ -147,8 +147,8 @@
             <form id="serviceForm" class="space-y-5">
                 <input type="hidden" name="id" id="svcId">
 
-                <!-- Selector de Destino / Uso Exclusivo del Servicio -->
-                <div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 shadow-2xs">
+                <!-- Selector de Destino / Uso Exclusivo del Servicio (Solo visible para Plan Premium) -->
+                <div id="boxSelectorDestinoServicio" class="hidden bg-slate-50 border border-slate-200/90 rounded-2xl p-3.5 sm:p-4 shadow-2xs">
                     <label class="block text-xs font-black uppercase tracking-wider text-slate-500 mb-2.5 flex items-center justify-between">
                         <span>¿Dónde estará disponible este servicio? *</span>
                         <span class="text-[10px] font-bold text-slate-400 normal-case">(Exclusivo por servicio)</span>
@@ -232,7 +232,6 @@
 
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1.5">Duración Estimada</label>
-                            <label class="block text-xs font-bold text-slate-700 mb-1.5">Duración Estimada</label>
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 shadow-xs">
                                     <input type="number" id="svcHoras" min="0" max="12" value="0" placeholder="0" class="w-full bg-transparent text-sm font-black text-slate-800 outline-none" oninput="calcTotalDuracion()">
@@ -248,9 +247,9 @@
 
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1.5">Ícono, Color e Imagen</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                                 <input type="hidden" name="icono" id="svcIcono" value="local_florist">
-                                <button type="button" onclick="window.openIconPicker('svcIcono')" class="w-full flex items-center justify-between bg-white hover:bg-slate-100/80 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 transition-colors cursor-pointer text-left shadow-xs">
+                                <button type="button" onclick="window.openIconPicker('svcIcono')" class="col-span-1 w-full flex items-center justify-between bg-white hover:bg-slate-100/80 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 transition-colors cursor-pointer text-left shadow-xs">
                                     <div class="flex items-center gap-1.5 min-w-0">
                                         <span id="svcIconoPreview" class="material-symbols-outlined text-[20px] shrink-0" style="color: var(--color-primario, #d11149);">local_florist</span>
                                         <span id="svcIconoLabel" class="text-xs font-bold text-slate-700 truncate">Ícono</span>
@@ -259,7 +258,7 @@
                                 </button>
                                 
                                 <!-- Selector cromático para identificar el servicio en la grilla y agenda -->
-                                <div class="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-xs">
+                                <div class="col-span-1 flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-1.5 shadow-xs">
                                     <input type="color" name="color" id="svcColor" value="#d11149" class="w-7 h-7 rounded-lg border-0 cursor-pointer p-0 bg-transparent shrink-0">
                                     <div class="min-w-0 flex-1">
                                         <span class="text-[10px] font-black uppercase text-slate-400 block leading-tight">Color</span>
@@ -267,7 +266,7 @@
                                     </div>
                                 </div>
 
-                                <input type="text" name="imagen1" id="svcImagen1" placeholder="URL Foto (opcional)" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 placeholder-slate-400 focus:ring-2 outline-none shadow-xs" style="--tw-ring-color: var(--color-primario, #d11149);">
+                                <input type="text" name="imagen1" id="svcImagen1" placeholder="URL Foto (opcional)" class="col-span-2 sm:col-span-1 w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 placeholder-slate-400 focus:ring-2 outline-none shadow-xs" style="--tw-ring-color: var(--color-primario, #d11149);">
                             </div>
                         </div>
 
@@ -311,19 +310,19 @@
 
     <!-- MODAL DE ÉXITO AL CREAR / EDITAR SERVICIO (POR ENCIMA DEL FORMULARIO) -->
     <div id="serviceSuccessModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[10000] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div id="serviceSuccessModalCard" class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl border border-slate-100 transform scale-95 transition-transform duration-300 relative overflow-hidden">
-            <div class="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <span class="material-symbols-outlined text-4xl">check_circle</span>
+        <div id="serviceSuccessModalCard" class="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 max-w-[290px] sm:max-w-xs w-full text-center shadow-2xl border border-slate-100 transform scale-95 transition-transform duration-300 relative overflow-hidden">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-3 shadow-xs">
+                <span class="material-symbols-outlined text-3xl">check_circle</span>
             </div>
-            <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display" id="serviceSuccessModalTitle">¡Servicio Creado con Éxito!</h3>
-            <p class="text-xs text-slate-500 mb-5 leading-relaxed" id="serviceSuccessModalDesc">El servicio ya se encuentra disponible en tu catálogo y en la web de reservas.</p>
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900 mb-1.5 font-display" id="serviceSuccessModalTitle">¡Servicio Creado con Éxito!</h3>
+            <p class="text-[11px] sm:text-xs text-slate-500 mb-4 leading-relaxed" id="serviceSuccessModalDesc">El servicio ya se encuentra disponible en tu catálogo y en la web de reservas.</p>
             
-            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-3">
+            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mb-2.5">
                 <div id="serviceSuccessProgressBar" class="h-full bg-emerald-500 rounded-full w-full"></div>
             </div>
-            <p class="text-[11px] text-slate-400 font-semibold mb-4">Cerrando ventana automáticamente...</p>
+            <p class="text-[10px] text-slate-400 font-semibold mb-3">Cerrando ventana automáticamente...</p>
 
-            <button type="button" onclick="closeServiceSuccessModalImmediately()" class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer">
+            <button type="button" onclick="closeServiceSuccessModalImmediately()" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer">
                 Cerrar ahora
             </button>
         </div>
@@ -431,6 +430,20 @@
                                 const hasCuposTildado = webCfg && (webCfg.modo_reservas === 'cupos_alumnos' || webCfg.turnos_simultaneos === 'si');
                                 const canUseCupos = Boolean(isPremiumPlan && hasCuposTildado);
                                 window.canManageCuposServicio = canUseCupos;
+                                window.isPremiumPlanUser = isPremiumPlan;
+
+                                // Selector exclusivo de destino (Calendario vs Portal de Alumnos) solo para Plan Premium
+                                const boxDestino = document.getElementById('boxSelectorDestinoServicio');
+                                if (boxDestino) {
+                                    if (isPremiumPlan) {
+                                        boxDestino.classList.remove('hidden');
+                                    } else {
+                                        boxDestino.classList.add('hidden');
+                                        const rCal = document.getElementById('tipoServicioCalendario');
+                                        if (rCal) rCal.checked = true;
+                                        if (typeof window.onTipoServicioChange === 'function') window.onTipoServicioChange('calendario');
+                                    }
+                                }
 
                                 const boxCupo = document.getElementById('lblCupoMaximoServicio')?.parentElement;
                                 const gridPrecioCupo = document.getElementById('gridPrecioCupoServicio');
@@ -460,9 +473,13 @@
 
                         const colorInput = document.getElementById('svcColor');
                         if (colorInput) {
-                            colorInput.addEventListener('input', (e) => {
+                            const syncColor = (val) => {
                                 const lbl = document.getElementById('svcColorLabel');
-                                if (lbl) lbl.textContent = e.target.value;
+                                if (lbl) lbl.textContent = val;
+                                colorInput.setAttribute('value', val);
+                            };
+                            ['input', 'change'].forEach(evt => {
+                                colorInput.addEventListener(evt, (e) => syncColor(e.target.value));
                             });
                         }
                     } else {
@@ -893,6 +910,14 @@
 
             const isEditing = Boolean(document.getElementById('svcId')?.value);
             const formData = new FormData(this);
+            const curColor = document.getElementById('svcColor')?.value || '#d11149';
+            formData.set('color', curColor);
+
+            if (!window.isPremiumPlanUser) {
+                formData.set('tipo_servicio', 'calendario');
+                formData.set('capacidad', '1');
+            }
+
             fetch('backend/gestionar_servicios.php', { method: 'POST', body: formData })
                 .then(r => r.json())
                 .then(d => {

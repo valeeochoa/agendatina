@@ -173,6 +173,49 @@
                 placeholder="Buscar cliente, teléfono o servicio...">
         </div>
 
+        <!-- ===== KPIS SUPERIORES EJECUTIVOS ===== -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mb-5">
+            <div class="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200/90 shadow-2xs flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block">Turnos de Hoy</span>
+                    <span class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5 block" id="kpiTurnosHoy">0</span>
+                </div>
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[20px] sm:text-[22px]">calendar_today</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-3 sm:p-4 border border-amber-200/80 shadow-2xs flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] sm:text-xs font-bold text-amber-700 uppercase tracking-wider block">Por Confirmar</span>
+                    <span class="text-xl sm:text-2xl font-extrabold text-amber-600 mt-0.5 block" id="kpiPorConfirmar">0</span>
+                </div>
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[20px] sm:text-[22px]">hourglass_top</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200/90 shadow-2xs flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block">Confirmados</span>
+                    <span class="text-xl sm:text-2xl font-extrabold text-emerald-600 mt-0.5 block" id="kpiProximos">0</span>
+                </div>
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[20px] sm:text-[22px]">check_circle</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200/90 shadow-2xs flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block">Asistidos</span>
+                    <span class="text-xl sm:text-2xl font-extrabold text-blue-600 mt-0.5 block" id="kpiAsistidos">0</span>
+                </div>
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[20px] sm:text-[22px]">done_all</span>
+                </div>
+            </div>
+        </div>
+
         <!-- ===== TABS DE PROFESIONALES ===== -->
         <div id="profesionalesAgendaTabs" class="hidden mb-5 -mx-1 px-1">
             <!-- Se rellena dinámicamente -->

@@ -214,10 +214,10 @@
 
     <nav id="mainNav"
         class="fixed w-full z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 transition-all duration-300 shadow-sm">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="index.html" class="flex items-center gap-3 hover:opacity-90 transition-opacity">
-                <img src="public/logo.png" alt="Agendatina" class="h-8 w-auto drop-shadow-sm">
-                <span class="font-brand font-semibold text-2xl tracking-tight text-[#d11149]">Agenda<span
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity shrink-0">
+                <img src="public/logo.png" alt="Agendatina" class="h-7 sm:h-8 w-auto drop-shadow-sm">
+                <span class="font-brand font-semibold text-xl sm:text-2xl tracking-tight text-[#d11149]">Agenda<span
                         class="text-[#fc8712]">tina</span></span>
             </a>
             <div class="hidden md:flex gap-8 font-semibold text-sm text-slate-600">
@@ -226,20 +226,62 @@
                 <a href="#planes" class="hover:text-primary transition-colors">Planes</a>
                 <a href="#contacto" onclick="resetForm()" class="hover:text-primary transition-colors">Contacto</a>
             </div>
-            <div class="flex items-center gap-2.5 sm:gap-3">
+            
+            <!-- Acciones Desktop -->
+            <div class="hidden md:flex items-center gap-2.5 sm:gap-3">
                 <a href="alumno.html"
                     class="bg-orange-500/10 text-orange-900 border border-orange-300/80 px-3 py-2 rounded-lg font-bold text-xs hover:bg-orange-500/20 transition-all flex items-center gap-1.5 shadow-2xs"
                     title="Acceso al portal de alumnos de academias, pilates y clases">
                     <span class="material-symbols-outlined text-[17px] text-[#FC8712]">school</span>
-                    <span class="hidden sm:inline">Portal</span> <span>Alumnos</span>
+                    <span>Portal Alumnos</span>
                 </a>
                 <a href="registro.html"
-                    class="bg-[#d11149]/10 text-[#d11149] border border-[#d11149]/20 px-3.5 py-2 rounded-lg font-bold text-xs hover:bg-[#d11149]/20 transition-all hidden md:flex items-center gap-1.5 shadow-2xs">
+                    class="bg-[#d11149]/10 text-[#d11149] border border-[#d11149]/20 px-3.5 py-2 rounded-lg font-bold text-xs hover:bg-[#d11149]/20 transition-all flex items-center gap-1.5 shadow-2xs">
                     <span class="material-symbols-outlined text-[16px]">rocket_launch</span> Crear Cuenta Gratis
                 </a>
                 <a href="login.html"
                     class="bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white px-3.5 sm:px-4 py-2 rounded-lg font-semibold text-xs sm:text-sm hover:opacity-95 shadow-xs transition-all whitespace-nowrap">
                     Iniciar Sesión
+                </a>
+            </div>
+
+            <!-- Acciones Móviles (Celular) -->
+            <div class="flex md:hidden items-center gap-2">
+                <a href="login.html"
+                    class="bg-gradient-to-r from-[#D11149] to-[#FC8712] text-white px-3 py-1.5 rounded-lg font-semibold text-xs hover:opacity-95 shadow-xs transition-all whitespace-nowrap">
+                    Iniciar Sesión
+                </a>
+                <button type="button" id="btnMobileNavToggle" onclick="toggleMobileNav()" aria-label="Abrir menú"
+                    class="w-8 h-8 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-[20px]" id="mobileNavIcon">menu</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Menú Desplegable Móvil -->
+        <div id="mobileNavMenu" class="hidden md:hidden border-t border-slate-200/80 bg-white/95 backdrop-blur-xl px-4 py-3.5 space-y-2.5 shadow-lg">
+            <div class="flex flex-col gap-1 font-semibold text-xs text-slate-700">
+                <a href="#inicio" onclick="closeMobileNav()" class="px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors flex items-center justify-between">
+                    <span>Inicio</span><span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+                </a>
+                <a href="#visualizar" onclick="closeMobileNav()" class="px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors flex items-center justify-between">
+                    <span>Demo Interactiva</span><span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+                </a>
+                <a href="#planes" onclick="closeMobileNav()" class="px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors flex items-center justify-between">
+                    <span>Planes y Precios</span><span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+                </a>
+                <a href="#contacto" onclick="closeMobileNav(); resetForm();" class="px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors flex items-center justify-between">
+                    <span>Contacto con Asesor</span><span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+                </a>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex flex-col gap-2">
+                <a href="alumno.html" class="w-full bg-orange-500/10 text-orange-900 border border-orange-300/80 px-3.5 py-2.5 rounded-xl font-bold text-xs hover:bg-orange-500/20 transition-all flex items-center justify-center gap-1.5 shadow-2xs">
+                    <span class="material-symbols-outlined text-[17px] text-[#FC8712]">school</span>
+                    <span>Acceso Portal de Alumnos</span>
+                </a>
+                <a href="registro.html" class="w-full bg-[#d11149] text-white px-3.5 py-2.5 rounded-xl font-bold text-xs hover:bg-[#b00e3e] transition-all flex items-center justify-center gap-1.5 shadow-xs">
+                    <span class="material-symbols-outlined text-[16px]">rocket_launch</span>
+                    <span>Crear Cuenta Gratis (30 días de prueba)</span>
                 </a>
             </div>
         </div>
@@ -1397,6 +1439,26 @@
     <script src="assets/js/script.js?v=1.3.0" defer></script>
     <script src="assets/js/index_modulos_sim.js?v=1.0.0" defer></script>
     <script>
+        function toggleMobileNav() {
+            const menu = document.getElementById('mobileNavMenu');
+            const icon = document.getElementById('mobileNavIcon');
+            if (!menu) return;
+            const isHidden = menu.classList.contains('hidden');
+            if (isHidden) {
+                menu.classList.remove('hidden');
+                if (icon) icon.textContent = 'close';
+            } else {
+                menu.classList.add('hidden');
+                if (icon) icon.textContent = 'menu';
+            }
+        }
+        function closeMobileNav() {
+            const menu = document.getElementById('mobileNavMenu');
+            const icon = document.getElementById('mobileNavIcon');
+            if (menu) menu.classList.add('hidden');
+            if (icon) icon.textContent = 'menu';
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             // 1. Navbar con efecto cristalino al hacer scroll
             const mainNav = document.getElementById('mainNav');

@@ -57,13 +57,24 @@ try {
         'celular' => 'VARCHAR(255) DEFAULT NULL',
         'profesional' => "VARCHAR(255) DEFAULT 'Cualquiera (Sin preferencia)'",
         'estado' => "VARCHAR(50) DEFAULT 'pendiente'",
-        'asistio' => 'TINYINT DEFAULT 0'
+        'asistio' => 'TINYINT DEFAULT 0',
+        'created_at' => 'DATETIME DEFAULT CURRENT_TIMESTAMP'
     ];
 
     foreach ($columnas as $columna => $tipo) {
         try { $pdo->query("SELECT $columna FROM turnos LIMIT 1"); } 
-        catch (Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN $columna $tipo"); }
+        catch (Exception $e) { try { $pdo->exec("ALTER TABLE turnos ADD COLUMN $columna $tipo"); } catch(Exception $ex) {} }
     }
+
+    // Auto-liberar turnos pendientes de confirmación tras 1 hora (3600 seg) si son con seña / transferencia
+    try {
+        $pdo->exec("UPDATE turnos 
+            SET estado = 'cancelado', notas = CONCAT(COALESCE(notas, ''), ' [Auto-liberado por falta de confirmación de seña en 1 hora]') 
+            WHERE estado = 'pendiente' 
+              AND (metodo_pago LIKE '%transferencia%' OR metodo_pago LIKE '%seña%')
+              AND created_at IS NOT NULL 
+              AND created_at < DATE_SUB(NOW(), INTERVAL 1 HOUR)");
+    } catch (Exception $eAutoLib) {}
 
     $historial = isset($_GET['historial']) && $_GET['historial'] === '1';
     
@@ -88,7 +99,8 @@ try {
 
     if ($historial) {
         // Sin límite de fecha para exportar el historial completo a Excel
-        $sql = "SELECT t.id, t.id_servicio, t.cliente_nombre, t.nombre, t.apellido, t.cliente_celular, t.celular, t.fecha, t.hora, t.servicio, t.profesional, t.estado, t.asistio, t.notas, t.fecha_eliminado, t.metodo_pago, t.precio,
+        $sql = "SELECT t.id, t.id_servicio, t.cliente_nombre, t.nombre, t.apellido, t.cliente_celular, t.celular, t.fecha, t.hora, t.servicio, t.profesional, t.estado, t.asistio, t.notas, t.fecha_eliminado, t.metodo_pago, t.precio, t.created_at,
+                       GREATEST(0, 3600 - TIMESTAMPDIFF(SECOND, COALESCE(t.created_at, NOW()), NOW())) AS segundos_restantes_sena,
                        COALESCE(s.cupo_maximo, s.capacidad, 10) AS cupo_maximo,
                        COALESCE(s.icono, '') AS servicio_icono,
                        s.imagen1 AS servicio_imagen
@@ -106,7 +118,8 @@ try {
     } else {
         // Ventana de tiempo (60 días) para vista normal de agenda
         $min_fecha = date('Y-m-d', strtotime('-60 days'));
-        $sql = "SELECT t.id, t.id_servicio, t.cliente_nombre, t.nombre, t.apellido, t.cliente_celular, t.celular, t.fecha, t.hora, t.servicio, t.profesional, t.estado, t.asistio, t.notas, t.fecha_eliminado, t.metodo_pago, t.precio,
+        $sql = "SELECT t.id, t.id_servicio, t.cliente_nombre, t.nombre, t.apellido, t.cliente_celular, t.celular, t.fecha, t.hora, t.servicio, t.profesional, t.estado, t.asistio, t.notas, t.fecha_eliminado, t.metodo_pago, t.precio, t.created_at,
+                       GREATEST(0, 3600 - TIMESTAMPDIFF(SECOND, COALESCE(t.created_at, NOW()), NOW())) AS segundos_restantes_sena,
                        COALESCE(s.cupo_maximo, s.capacidad, 10) AS cupo_maximo,
                        COALESCE(s.icono, '') AS servicio_icono,
                        s.imagen1 AS servicio_imagen

@@ -70,136 +70,149 @@
     </header>
 
     <!-- Main Container -->
-    <main class="max-w-7xl mx-auto px-6 py-8 flex-1 w-full">
+    <main class="max-w-7xl mx-auto px-3.5 sm:px-6 py-4 sm:py-8 flex-1 w-full">
         <!-- Título principal -->
-        <div class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="mb-5 sm:mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <div>
-                <h1 class="text-3xl font-extrabold text-slate-900 font-display">Estadísticas y Rendimiento</h1>
-                <p class="text-sm text-slate-500 mt-1">Monitorea el rendimiento de tu negocio. Las estadísticas cargarán cuando empieces a marcar turnos como asistidos.</p>
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-display">Estadísticas y Rendimiento</h1>
+                <p class="text-xs sm:text-sm text-slate-500 mt-1">Monitorea el rendimiento de tu negocio y la asistencia de tus turnos.</p>
             </div>
-            <div class="flex items-center gap-2 bg-white border border-slate-200 p-1.5 rounded-2xl shadow-sm">
-                <button onclick="setFilterPeriod('30')" id="btnPeriod30" class="px-4 py-2 text-xs font-bold rounded-xl transition-all bg-primary text-white">Últimos 30 Días</button>
-                <button onclick="setFilterPeriod('90')" id="btnPeriod90" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 rounded-xl transition-all">Últimos 90 Días</button>
-                <button onclick="setFilterPeriod('all')" id="btnPeriodAll" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 rounded-xl transition-all">Histórico</button>
+            <div class="flex items-center gap-1 sm:gap-2 bg-white border border-slate-200 p-1 sm:p-1.5 rounded-2xl shadow-xs overflow-x-auto shrink-0 no-scrollbar">
+                <button onclick="setFilterPeriod('30')" id="btnPeriod30" class="shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold rounded-xl transition-all bg-primary text-white">Últimos 30 Días</button>
+                <button onclick="setFilterPeriod('90')" id="btnPeriod90" class="shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold text-slate-500 hover:text-slate-800 rounded-xl transition-all">Últimos 90 Días</button>
+                <button onclick="setFilterPeriod('all')" id="btnPeriodAll" class="shrink-0 whitespace-nowrap px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold text-slate-500 hover:text-slate-800 rounded-xl transition-all">Histórico</button>
             </div>
         </div>
 
-        <!-- Tarjetas de Métricas -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
-                <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mb-4">
-                    <span class="material-symbols-outlined text-2xl">event_available</span>
+        <!-- Tarjetas de Métricas (2x2 en celular, 4 en desktop) -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+            <div class="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/90 shadow-2xs relative overflow-hidden flex flex-col justify-between">
+                <div>
+                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mb-2.5 sm:mb-4">
+                        <span class="material-symbols-outlined text-xl sm:text-2xl">event_available</span>
+                    </div>
+                    <p class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Total Turnos</p>
+                    <h3 class="text-xl sm:text-3xl font-extrabold text-slate-800 mt-0.5 sm:mt-1" id="statTotalTurnos">0</h3>
                 </div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total de Turnos</p>
-                <h3 class="text-3xl font-extrabold text-slate-800 mt-1" id="statTotalTurnos">0</h3>
-                <p class="text-xs text-emerald-600 font-semibold mt-2 flex items-center gap-1">
-                    <span class="material-symbols-outlined text-[14px]">trending_up</span> Confirmados y realizados
+                <p class="text-[10px] sm:text-xs text-emerald-600 font-semibold mt-2 flex items-center gap-0.5 truncate">
+                    <span class="material-symbols-outlined text-[13px] sm:text-[14px]">trending_up</span> Realizados
                 </p>
             </div>
 
-            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
-                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
-                    <span class="material-symbols-outlined text-2xl">payments</span>
+            <div class="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/90 shadow-2xs relative overflow-hidden flex flex-col justify-between">
+                <div>
+                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2.5 sm:mb-4">
+                        <span class="material-symbols-outlined text-xl sm:text-2xl">payments</span>
+                    </div>
+                    <p class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Ingresos Est.</p>
+                    <h3 class="text-xl sm:text-3xl font-extrabold text-emerald-600 mt-0.5 sm:mt-1 truncate" id="statTotalIngresos">$0</h3>
                 </div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Ingresos Estimados</p>
-                <h3 class="text-3xl font-extrabold text-emerald-600 mt-1" id="statTotalIngresos">$0</h3>
-                <p class="text-xs text-slate-400 font-semibold mt-2">Basado en servicios agendados</p>
+                <p class="text-[10px] sm:text-xs text-slate-400 font-semibold mt-2 truncate">Agendados</p>
             </div>
 
-            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
-                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4">
-                    <span class="material-symbols-outlined text-2xl">group</span>
+            <div class="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/90 shadow-2xs relative overflow-hidden flex flex-col justify-between">
+                <div>
+                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-2.5 sm:mb-4">
+                        <span class="material-symbols-outlined text-xl sm:text-2xl">group</span>
+                    </div>
+                    <p class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Clientes Únicos</p>
+                    <h3 class="text-xl sm:text-3xl font-extrabold text-slate-800 mt-0.5 sm:mt-1" id="statTotalClientes">0</h3>
                 </div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Clientes Únicos</p>
-                <h3 class="text-3xl font-extrabold text-slate-800 mt-1" id="statTotalClientes">0</h3>
-                <p class="text-xs text-blue-600 font-semibold mt-2">Base de datos activa</p>
+                <p class="text-[10px] sm:text-xs text-blue-600 font-semibold mt-2 truncate">Base activa</p>
             </div>
 
-            <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
-                <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mb-4">
-                    <span class="material-symbols-outlined text-2xl">star</span>
+            <div class="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/90 shadow-2xs relative overflow-hidden flex flex-col justify-between">
+                <div>
+                    <div class="w-9 h-9 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center mb-2.5 sm:mb-4">
+                        <span class="material-symbols-outlined text-xl sm:text-2xl">star</span>
+                    </div>
+                    <p class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Top Servicio</p>
+                    <h3 class="text-sm sm:text-lg font-bold text-slate-800 mt-0.5 sm:mt-1 truncate" id="statTopServicio">Cargando...</h3>
                 </div>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Servicio Estrella</p>
-                <h3 class="text-lg font-bold text-slate-800 mt-1 truncate" id="statTopServicio">Cargando...</h3>
-                <p class="text-xs text-purple-600 font-semibold mt-2" id="statTopServicioCount">0 reservas</p>
+                <p class="text-[10px] sm:text-xs text-purple-600 font-semibold mt-2 truncate" id="statTopServicioCount">0 reservas</p>
             </div>
         </div>
 
         <!-- Sección de Estadísticas de Alumnos (Módulo de Cupos) -->
-        <div id="secEstadisticasAlumnos" class="bg-gradient-to-br from-orange-50/60 to-amber-50/30 rounded-3xl p-6 sm:p-8 border border-orange-200/80 shadow-sm mb-8">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center font-bold shadow-md shadow-orange-500/20 shrink-0">
-                        <span class="material-symbols-outlined text-2xl">groups</span>
+        <div id="secEstadisticasAlumnos" class="bg-gradient-to-br from-orange-50/60 to-amber-50/30 rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-orange-200/80 shadow-xs mb-6 sm:mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 text-white flex items-center justify-center font-bold shadow-md shadow-orange-500/20 shrink-0">
+                        <span class="material-symbols-outlined text-xl sm:text-2xl">groups</span>
                     </div>
                     <div>
-                        <h2 class="text-xl font-extrabold text-slate-900">Módulo de Alumnos y Créditos de Cupos</h2>
-                        <p class="text-xs text-slate-500">Métricas de alumnos registrados, pases vigentes y consumo de clases.</p>
+                        <h2 class="text-base sm:text-xl font-extrabold text-slate-900">Alumnos y Créditos</h2>
+                        <p class="text-[11px] sm:text-xs text-slate-500">Métricas de pases vigentes y consumo de clases.</p>
                     </div>
                 </div>
-                <a href="clientes.html" class="inline-flex items-center gap-1 text-xs font-extrabold text-orange-600 hover:text-orange-700 bg-white px-4 py-2 rounded-xl border border-orange-200 shadow-xs hover:shadow-sm transition-all shrink-0">
+                <a href="clientes.html" class="inline-flex items-center justify-center gap-1 text-xs font-extrabold text-orange-600 hover:text-orange-700 bg-white px-3 sm:px-4 py-2 rounded-xl border border-orange-200 shadow-2xs hover:shadow-xs transition-all shrink-0 self-start sm:self-auto">
                     Gestionar Alumnos <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
                 </a>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div class="bg-white p-5 rounded-2xl border border-orange-100 shadow-xs">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Alumnos Registrados</span>
-                    <div class="text-3xl font-extrabold text-slate-900" id="statAlumnosTotal">0</div>
-                    <span class="text-[10px] text-slate-400 mt-1 block">Base total de alumnos</span>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+                <div class="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-orange-100 shadow-2xs">
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block mb-0.5 sm:mb-1">Alumnos</span>
+                    <div class="text-xl sm:text-3xl font-extrabold text-slate-900" id="statAlumnosTotal">0</div>
+                    <span class="text-[9px] sm:text-[10px] text-slate-400 mt-1 block truncate">Base total</span>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-orange-100 shadow-xs">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Pases Activos</span>
-                    <div class="text-3xl font-extrabold text-emerald-600" id="statAlumnosActivos">0</div>
-                    <span class="text-[10px] text-emerald-600 font-bold mt-1 block">Con créditos vigentes</span>
+                <div class="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-orange-100 shadow-2xs">
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block mb-0.5 sm:mb-1">Pases Activos</span>
+                    <div class="text-xl sm:text-3xl font-extrabold text-emerald-600" id="statAlumnosActivos">0</div>
+                    <span class="text-[9px] sm:text-[10px] text-emerald-600 font-bold mt-1 block truncate">Con créditos</span>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-orange-100 shadow-xs">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Sin Créditos</span>
-                    <div class="text-3xl font-extrabold text-amber-600" id="statAlumnosSinPases">0</div>
-                    <span class="text-[10px] text-amber-600 font-bold mt-1 block">Requieren recarga de pases</span>
+                <div class="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-orange-100 shadow-2xs">
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block mb-0.5 sm:mb-1">Sin Créditos</span>
+                    <div class="text-xl sm:text-3xl font-extrabold text-amber-600" id="statAlumnosSinPases">0</div>
+                    <span class="text-[9px] sm:text-[10px] text-amber-600 font-bold mt-1 block truncate">Para recargar</span>
                 </div>
-                <div class="bg-white p-5 rounded-2xl border border-orange-100 shadow-xs">
-                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Pases Vencidos</span>
-                    <div class="text-3xl font-extrabold text-rose-600" id="statAlumnosVencidos">0</div>
-                    <span class="text-[10px] text-rose-600 font-bold mt-1 block">Excedieron fecha límite</span>
+                <div class="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-orange-100 shadow-2xs">
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block mb-0.5 sm:mb-1">Vencidos</span>
+                    <div class="text-xl sm:text-3xl font-extrabold text-rose-600" id="statAlumnosVencidos">0</div>
+                    <span class="text-[9px] sm:text-[10px] text-rose-600 font-bold mt-1 block truncate">Plazo expirado</span>
                 </div>
             </div>
         </div>
 
         <!-- Gráficos interactivos -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <!-- Gráfico 1: Demanda por Día de la Semana con Gradiente y Estética SaaS -->
-            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xs hover:shadow-md transition-shadow relative">
-                <div class="flex items-start justify-between gap-4 mb-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 mb-6 sm:mb-8">
+            <!-- Gráfico 1: Demanda por Día de la Semana -->
+            <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-slate-200/90 shadow-2xs relative">
+                <div class="flex items-start justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
                     <div>
-                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-100 text-[#d11149] text-[11px] font-black uppercase tracking-wider mb-2">
-                            <span class="material-symbols-outlined text-[14px]">bar_chart</span> Afluencia Semanal
+                        <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-100 text-[#d11149] text-[10px] sm:text-[11px] font-black uppercase tracking-wider mb-1.5 sm:mb-2">
+                            <span class="material-symbols-outlined text-[13px] sm:text-[14px]">bar_chart</span> Afluencia Semanal
                         </div>
-                        <h3 class="font-black text-slate-900 text-lg sm:text-xl">Demanda por Día de la Semana</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Identifica los días pico de reservas y turnos de tus clientes.</p>
+                        <h3 class="font-black text-slate-900 text-base sm:text-xl">Demanda por Día</h3>
+                        <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">Identifica los días pico de reservas de tus clientes.</p>
                     </div>
                     <span id="badgeDiaPico" class="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700">
                         <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                         <span id="badgeDiaPicoTexto">Pico: -</span>
                     </span>
                 </div>
-                <div class="h-72 relative">
+                <div class="h-60 sm:h-72 relative w-full">
                     <canvas id="chartDays"></canvas>
                 </div>
             </div>
 
-            <!-- Gráfico 2: Top Servicios Donut con Centro Informativo -->
-            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xs hover:shadow-md transition-shadow relative">
-                <div class="flex items-start justify-between gap-4 mb-6">
+            <!-- Gráfico 2: Top Servicios -->
+            <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-slate-200/90 shadow-2xs relative">
+                <div class="flex items-start justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
                     <div>
-                        <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-100 text-amber-700 text-[11px] font-black uppercase tracking-wider mb-2">
-                            <span class="material-symbols-outlined text-[14px]">donut_small</span> Distribución
+                        <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-100 text-amber-700 text-[10px] sm:text-[11px] font-black uppercase tracking-wider mb-1.5 sm:mb-2">
+                            <span class="material-symbols-outlined text-[13px] sm:text-[14px]">donut_small</span> Distribución
                         </div>
-                        <h3 class="font-black text-slate-900 text-lg sm:text-xl">Servicios Más Vendidos</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Proporción de demanda por tratamiento o actividad.</p>
+                        <h3 class="font-black text-slate-900 text-base sm:text-xl">Servicios Más Vendidos</h3>
+                        <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">Proporción de demanda por tratamiento o actividad.</p>
                     </div>
                     <span class="text-xs font-extrabold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-xl border border-slate-100" id="totalServiciosTiposLabel">0 tipos</span>
                 </div>
+                <div class="h-60 sm:h-72 relative w-full">
+                    <canvas id="chartServices"></canvas>
+                </div>
+            </div>
+        </div>
                 <div class="h-72 relative flex items-center justify-center">
                     <canvas id="chartServices"></canvas>
                 </div>

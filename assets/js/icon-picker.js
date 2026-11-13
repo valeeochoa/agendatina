@@ -111,50 +111,50 @@ window.ensureIconPickerModal = function() {
     if (document.getElementById('agendatinaIconPickerModal')) return;
 
     const modalHtml = `
-    <div id="agendatinaIconPickerModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-[99999] hidden flex items-center justify-center p-3 sm:p-4 animate-fade-in">
-        <div class="bg-white rounded-3xl p-5 sm:p-6 max-w-xl w-full shadow-2xl relative max-h-[85vh] flex flex-col border border-slate-100">
+    <div id="agendatinaIconPickerModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-[99999] hidden flex items-center justify-center p-2.5 sm:p-4 animate-fade-in">
+        <div class="bg-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 max-w-[94vw] sm:max-w-lg w-full shadow-2xl relative max-h-[88vh] flex flex-col border border-slate-100">
             <!-- Header con colores de marca -->
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shadow-xs">
-                        <span class="material-symbols-outlined text-[24px]">category</span>
+            <div class="flex items-center justify-between pb-2.5 border-b border-slate-100 shrink-0">
+                <div class="flex items-center gap-2 sm:gap-2.5">
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shadow-2xs shrink-0">
+                        <span class="material-symbols-outlined text-[20px] sm:text-[24px]">category</span>
                     </div>
-                    <div>
-                        <h3 class="text-base font-extrabold text-slate-900">Seleccionar Símbolo</h3>
-                        <p class="text-[11px] text-slate-400">Elegí el símbolo de Google para representar este servicio</p>
+                    <div class="min-w-0">
+                        <h3 class="text-sm sm:text-base font-extrabold text-slate-900 truncate">Seleccionar Símbolo</h3>
+                        <p class="text-[10px] sm:text-[11px] text-slate-400 truncate">Elegí el símbolo de Google para tu servicio</p>
                     </div>
                 </div>
-                <button type="button" onclick="window.closeIconPicker()" class="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors">
-                    <span class="material-symbols-outlined text-[20px]">close</span>
+                <button type="button" onclick="window.closeIconPicker()" class="w-7 h-7 sm:w-8 sm:h-8 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors shrink-0">
+                    <span class="material-symbols-outlined text-[18px] sm:text-[20px]">close</span>
                 </button>
             </div>
 
             <!-- Buscador y Categorías -->
-            <div class="pt-3 pb-2 space-y-2.5 shrink-0">
+            <div class="pt-2.5 pb-2 space-y-2 shrink-0">
                 <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-                    <input type="text" id="agendatinaIconSearchInput" oninput="window.filterIconPickerGrid()" placeholder="Buscar símbolo (ej: Uñas, Esmalte, Pestañas, Flor, Pesa, Tijera)..." class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-primary outline-none transition-all">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[16px] sm:text-[18px]">search</span>
+                    <input type="text" id="agendatinaIconSearchInput" oninput="window.filterIconPickerGrid()" placeholder="Buscar símbolo (ej: Flor, Tijera, Pesa)..." class="w-full pl-8 sm:pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-primary outline-none transition-all">
                 </div>
                 
-                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar text-[11px] font-bold">
-                    <button type="button" onclick="window.filterIconCategory('todos')" data-cat="todos" class="icon-cat-btn px-3 py-1 rounded-full bg-primary text-white shadow-xs">Todos</button>
-                    <button type="button" onclick="window.filterIconCategory('estetica')" data-cat="estetica" class="icon-cat-btn px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Estética y Belleza</button>
-                    <button type="button" onclick="window.filterIconCategory('naturaleza')" data-cat="naturaleza" class="icon-cat-btn px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Naturaleza</button>
-                    <button type="button" onclick="window.filterIconCategory('oficios')" data-cat="oficios" class="icon-cat-btn px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Oficios y Talleres</button>
-                    <button type="button" onclick="window.filterIconCategory('salud')" data-cat="salud" class="icon-cat-btn px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Salud y Deporte</button>
-                    <button type="button" onclick="window.filterIconCategory('educacion')" data-cat="educacion" class="icon-cat-btn px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Educación y Cocina</button>
-                    <button type="button" onclick="window.filterIconCategory('general')" data-cat="general" class="icon-cat-btn px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">General</button>
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar sm:custom-scrollbar text-[10px] sm:text-[11px] font-bold shrink-0">
+                    <button type="button" onclick="window.filterIconCategory('todos')" data-cat="todos" class="icon-cat-btn shrink-0 whitespace-nowrap px-2.5 sm:px-3 py-1 rounded-full bg-primary text-white shadow-xs">Todos</button>
+                    <button type="button" onclick="window.filterIconCategory('estetica')" data-cat="estetica" class="icon-cat-btn shrink-0 whitespace-nowrap px-2.5 sm:px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Estética y Belleza</button>
+                    <button type="button" onclick="window.filterIconCategory('naturaleza')" data-cat="naturaleza" class="icon-cat-btn shrink-0 whitespace-nowrap px-2.5 sm:px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Naturaleza</button>
+                    <button type="button" onclick="window.filterIconCategory('oficios')" data-cat="oficios" class="icon-cat-btn shrink-0 whitespace-nowrap px-2.5 sm:px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Oficios y Talleres</button>
+                    <button type="button" onclick="window.filterIconCategory('salud')" data-cat="salud" class="icon-cat-btn shrink-0 whitespace-nowrap px-2.5 sm:px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Salud y Deporte</button>
+                    <button type="button" onclick="window.filterIconCategory('educacion')" data-cat="educacion" class="icon-cat-btn shrink-0 whitespace-nowrap px-2.5 sm:px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">Educación y Cocina</button>
+                    <button type="button" onclick="window.filterIconCategory('general')" data-cat="general" class="icon-cat-btn shrink-0 whitespace-nowrap px-2.5 sm:px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">General</button>
                 </div>
             </div>
 
-            <!-- Grilla de Iconos (Fondo claro con bordes suaves de marca) -->
-            <div id="agendatinaIconGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2.5 overflow-y-auto pr-1 my-2 max-h-72 custom-scrollbar p-1">
+            <!-- Grilla de Iconos Responsive -->
+            <div id="agendatinaIconGrid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-2.5 overflow-y-auto pr-1 my-1.5 max-h-[48vh] sm:max-h-72 custom-scrollbar p-1">
                 <!-- Se generan dinámicamente -->
             </div>
 
             <!-- Footer -->
-            <div class="pt-3 border-t border-slate-100 flex justify-end items-center shrink-0">
-                <button type="button" onclick="window.closeIconPicker()" class="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors">Cancelar</button>
+            <div class="pt-2.5 border-t border-slate-100 flex justify-end items-center shrink-0">
+                <button type="button" onclick="window.closeIconPicker()" class="px-3.5 py-1.5 text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors">Cancelar</button>
             </div>
         </div>
     </div>
@@ -186,13 +186,13 @@ window.renderIconGrid = function(search = '', category = 'todos') {
     grid.innerHTML = filtered.map(item => {
         const isSelected = item.id === currentVal;
         return `
-            <button type="button" onclick="window.selectMaterialIcon('${item.id}')" class="flex flex-col items-center justify-center p-3 rounded-2xl border transition-all text-center group cursor-pointer ${
+            <button type="button" onclick="window.selectMaterialIcon('${item.id}')" class="flex flex-col items-center justify-center p-2 sm:p-3 rounded-xl sm:rounded-2xl border transition-all text-center group cursor-pointer ${
                 isSelected 
                     ? 'bg-primary/10 border-primary text-primary shadow-xs ring-2 ring-primary/20' 
                     : 'bg-white border-slate-200/80 hover:border-primary/60 hover:bg-primary/5 text-slate-700 hover:text-primary shadow-2xs'
             }">
-                <span class="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform">${item.id}</span>
-                <span class="text-[11px] font-bold mt-1.5 line-clamp-1">${item.name}</span>
+                <span class="material-symbols-outlined text-[24px] sm:text-[28px] group-hover:scale-110 transition-transform">${item.id}</span>
+                <span class="text-[9px] sm:text-[11px] font-bold mt-1 line-clamp-1">${item.name}</span>
             </button>
         `;
     }).join('');
@@ -233,9 +233,9 @@ window.filterIconCategory = function(cat) {
 window.updateCategoryButtons = function(activeCat) {
     document.querySelectorAll('.icon-cat-btn').forEach(btn => {
         if (btn.getAttribute('data-cat') === activeCat) {
-            btn.className = 'icon-cat-btn px-3 py-1 rounded-full bg-primary text-white shadow-xs font-bold text-[11px]';
+            btn.className = 'icon-cat-btn shrink-0 whitespace-nowrap px-2.5 sm:px-3 py-1 rounded-full bg-primary text-white shadow-xs font-bold text-[10px] sm:text-[11px]';
         } else {
-            btn.className = 'icon-cat-btn px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold text-[11px]';
+            btn.className = 'icon-cat-btn shrink-0 whitespace-nowrap px-2.5 sm:px-3 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold text-[10px] sm:text-[11px]';
         }
     });
 };

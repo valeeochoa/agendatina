@@ -486,6 +486,21 @@ window.applyCalendarConfigToForm = function(data) {
         if (chkCupones) chkCupones.checked = (data.usar_cupones_descuento == 1 || data.usar_cupones_descuento === '1' || data.usar_cupones_descuento === true);
     }
 
+    if (data.permitir_acumular_cupones !== undefined) {
+        const chkAcum = form.querySelector('#chkPermitirAcumularCupones');
+        if (chkAcum) chkAcum.checked = (data.permitir_acumular_cupones == 1 || data.permitir_acumular_cupones === '1' || data.permitir_acumular_cupones === true);
+    }
+
+    if (data.email_resumen_diario !== undefined) {
+        const chkResumen = form.querySelector('#chkEmailResumenDiario');
+        if (chkResumen) chkResumen.checked = (data.email_resumen_diario == 1 || data.email_resumen_diario === '1' || data.email_resumen_diario === true);
+    }
+
+    if (data.email_recordatorio_anticipacion !== undefined) {
+        const selAntic = form.querySelector('#configEmailRecordatorioAnticipacion');
+        if (selAntic) selAntic.value = String(data.email_recordatorio_anticipacion || '2');
+    }
+
     if (data.cupon_descuento_pct !== undefined) {
         const inpCuponPct = form.querySelector('#configCuponDescuentoPct');
         if (inpCuponPct) inpCuponPct.value = Math.max(1, Math.min(100, parseInt(data.cupon_descuento_pct) || 10));
@@ -1405,6 +1420,9 @@ function handleCalendarConfigSubmit(e) {
         whatsapp_comprobante: form.querySelector('#configWhatsappComprobante')?.value || '',
         enviar_msj_automaticos: form.querySelector('#chkEnviarMsjAutomaticos')?.checked ? 1 : 0,
         usar_cupones_descuento: form.querySelector('#chkUsarCuponesDescuento')?.checked ? 1 : 0,
+        permitir_acumular_cupones: form.querySelector('#chkPermitirAcumularCupones')?.checked ? 1 : 0,
+        email_resumen_diario: form.querySelector('#chkEmailResumenDiario')?.checked ? 1 : 0,
+        email_recordatorio_anticipacion: parseInt(form.querySelector('#configEmailRecordatorioAnticipacion')?.value) || 2,
         cupon_descuento_pct: Math.max(1, Math.min(100, parseInt(form.querySelector('#configCuponDescuentoPct')?.value) || 10)),
         cupon_duracion_horas: parseInt(form.querySelector('#configCuponDuracionHoras')?.value) || 24,
         dias_retorno_clientes: parseInt(form.querySelector('#configDiasRetornoClientes')?.value) || 30,
@@ -1508,9 +1526,12 @@ window.cargarCuponesNegocio = function() {
 
             const formatExp = c.fecha_expiracion ? c.fecha_expiracion.split(' ')[0].split('-').reverse().join('/') : 'Sin límite';
 
+            const isAcumulable = parseInt(c.es_acumulable) === 1;
+            const acumTag = isAcumulable ? '<span class="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-100 text-purple-700">Acumulable</span>' : '';
+
             html += `
                 <tr class="hover:bg-slate-50/70 transition-colors">
-                    <td class="py-2.5 px-3 font-extrabold text-slate-900">${c.nombre || 'Cupón ' + c.porcentaje_descuento + '%'}</td>
+                    <td class="py-2.5 px-3 font-extrabold text-slate-900">${c.nombre || 'Cupón ' + c.porcentaje_descuento + '%'} ${acumTag}</td>
                     <td class="py-2.5 px-3"><span class="font-black tracking-wider text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">${c.codigo}</span></td>
                     <td class="py-2.5 px-3 text-center font-black text-emerald-600">${c.porcentaje_descuento}% OFF</td>
                     <td class="py-2.5 px-3 text-slate-600">${formatExp}</td>
@@ -1592,6 +1613,7 @@ window.guardarNuevoCupon = function(e) {
     const pct = parseInt(document.getElementById('nuevoCuponPct').value) || 10;
     const fechaExp = document.getElementById('nuevoCuponFechaExp').value;
     const usos = parseInt(document.getElementById('nuevoCuponUsos').value) || 1;
+    const esAcumulable = document.getElementById('nuevoCuponAcumulable')?.checked ? 1 : 0;
 
     if (!codigo) {
         if (errDiv) { errDiv.textContent = 'Ingresa un código para el cupón.'; errDiv.classList.remove('hidden'); }
@@ -1609,7 +1631,8 @@ window.guardarNuevoCupon = function(e) {
             codigo: codigo,
             porcentaje_descuento: pct,
             fecha_expiracion: fechaExp,
-            usos_maximos: usos
+            usos_maximos: usos,
+            es_acumulable: esAcumulable
         })
     })
     .then(res => res.json())

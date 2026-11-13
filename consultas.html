@@ -55,92 +55,221 @@
         </div>
     </header>
 
-    <main class="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12">
-        <div class="mb-10 text-center">
-            <h1 class="text-3xl font-extrabold font-display mb-2 text-slate-800">Consultas Frecuentes</h1>
-            <p class="text-slate-500">Aprende a configurar servicios, horarios y descubre todas las funcionalidades del sistema.</p>
-        </div>
-
-        <div class="space-y-4">
-            <details class="group bg-white border border-slate-200 rounded-2xl [&_summary::-webkit-details-marker]:hidden shadow-sm">
-                <summary class="flex items-center justify-between p-5 font-bold cursor-pointer text-slate-800">
-                    ¿Cómo agrego o edito un servicio?
-                    <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform">expand_more</span>
-                </summary>
-                <div class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-4 mt-2">
-                    <p class="mb-2">Para gestionar tus servicios debes ir a la sección <strong>"Gestionar Calendario"</strong> desde el panel principal.</p>
-                    <ul class="list-disc pl-5 space-y-2 ml-2 mt-3">
-                        <li>Haz clic en "Añadir Nuevo Servicio" o edita uno existente pulsando el icono del lápiz.</li>
-                        <li>Define el <strong>nombre</strong>, la <strong>duración</strong> y el <strong>precio</strong>.</li>
-                        <li>Si el servicio es grupal (ej: clases), ajusta la <strong>capacidad (cupos)</strong> a la cantidad de personas que pueden asistir en el mismo horario.</li>
-                        <li>Si tienes varios empleados, puedes asignar qué <strong>profesional</strong> lo realiza.</li>
-                    </ul>
-                </div>
-            </details>
-            <details class="group bg-white border border-slate-200 rounded-2xl [&_summary::-webkit-details-marker]:hidden shadow-sm">
-                <summary class="flex items-center justify-between p-5 font-bold cursor-pointer text-slate-800">
-                    ¿Cómo funciona la Aprobación Automática de turnos?
-                    <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform">expand_more</span>
-                </summary>
-                <div class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-4 mt-2">
-                    <p>En la sección de <strong>"Ajustes"</strong> puedes elegir la Modalidad de Turnos.</p>
-                    <p class="mt-2">Si activas la <strong>Aprobación Automática</strong>, cuando un cliente solicite un turno desde tu página web, este se confirmará de inmediato, ocupando el horario en tu calendario y enviándole un aviso de confirmación al cliente sin que debas intervenir manualmente.</p>
-                </div>
-            </details>
-            <details class="group bg-white border border-slate-200 rounded-2xl [&_summary::-webkit-details-marker]:hidden shadow-sm">
-                <summary class="flex items-center justify-between p-5 font-bold cursor-pointer text-slate-800">
-                    ¿Cómo bloqueo un horario o día específico?
-                    <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform">expand_more</span>
-                </summary>
-                <div class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-4 mt-2">
-                    <p>Ingresa a <strong>"Mi Agenda Virtual"</strong> y selecciona el día que deseas modificar en el calendario.</p>
-                    <p class="mt-2">Verás un ícono de <span class="material-symbols-outlined text-[16px] align-middle">block</span> junto a cada horario disponible. Al hacer clic, ese horario desaparecerá para tus clientes. También puedes bloquear todo el día con el botón de bloqueo general ubicado en la parte superior, o seleccionar varios días a la vez haciendo clic en <strong>"Bloquear Varios Días"</strong>.</p>
-                </div>
-            </details>
-            <details class="group bg-white border border-slate-200 rounded-2xl [&_summary::-webkit-details-marker]:hidden shadow-sm">
-                <summary class="flex items-center justify-between p-5 font-bold cursor-pointer text-slate-800">
-                    ¿Cómo comparto mi agenda con los clientes?
-                    <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform">expand_more</span>
-                </summary>
-                <div class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-4 mt-2">
-                    <p>Tu enlace único de reservas está disponible tanto en la vista de tu Calendario como en Mi Página Web. Solo debes hacer clic en el botón <strong>"Compartir Enlace"</strong> para copiarlo al portapapeles y pegarlo en tu biografía de Instagram, WhatsApp u otras redes.</p>
-                </div>
-            </details>
-            <details class="group bg-white border border-slate-200 rounded-2xl [&_summary::-webkit-details-marker]:hidden shadow-sm">
-                <summary class="flex items-center justify-between p-5 font-bold cursor-pointer text-slate-800">
-                    ¿Cuál es la diferencia entre un turno "Vencido" y uno en el "Historial"?
-                    <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform">expand_more</span>
-                </summary>
-                <div class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-4 mt-2">
-                    <p>En el panel de tu agenda, los turnos pasados se dividen de la siguiente manera:</p>
-                    <ul class="list-disc pl-5 space-y-2 ml-2 mt-3">
-                        <li><strong>Turnos Vencidos:</strong> Son aquellos turnos cuya fecha ya pasó pero que <em>nunca fueron confirmados</em> (quedaron pendientes). Estos se muestran en la pestaña <strong>"Vencidos"</strong> para que puedas ver qué solicitudes quedaron sin atender.</li>
-                        <li><strong>Historial:</strong> Contiene todos los turnos que <em>sí fueron confirmados</em> y cuya fecha de atención ya es anterior a la actual.</li>
-                    </ul>
-                </div>
-            </details>
-            <details class="group bg-white border border-slate-200 rounded-2xl [&_summary::-webkit-details-marker]:hidden shadow-sm">
-                <summary class="flex items-center justify-between p-5 font-bold cursor-pointer text-slate-800">
-                    ¿Cómo funciona la Papelera de turnos y cuándo se vacía?
-                    <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform">expand_more</span>
-                </summary>
-                <div class="px-5 pb-5 text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-4 mt-2">
-                    <p>Cuando cancelas o eliminas un turno, este no se borra definitivamente de inmediato, sino que se envía a la <strong>Papelera</strong>.</p>
-                    <ul class="list-disc pl-5 space-y-2 ml-2 mt-3">
-                        <li>Desde la papelera puedes <strong>restaurar</strong> cualquier turno si lo eliminaste por error, o <strong>eliminarlo definitivamente</strong> de forma manual.</li>
-                        <li><strong>Vaciado automático:</strong> El sistema puede limpiar la papelera de forma automática según la cantidad de días configurados en la sección de <strong>"Ajustes"</strong> (límite de eliminación de turnos). Si este límite está en "0 días" (desactivado), los turnos no se borrarán automáticamente y deberás eliminarlos manualmente si así lo deseas.</li>
-                    </ul>
-                </div>
-            </details>
-        </div>
-
-        <div class="mt-12 text-center bg-indigo-50 rounded-2xl p-6 border border-indigo-100">
-            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-indigo-500 mx-auto mb-3 shadow-sm">
-                <span class="material-symbols-outlined">support_agent</span>
+    <main class="flex-1 max-w-4xl mx-auto w-full px-3.5 sm:px-6 py-6 sm:py-10">
+        <div class="mb-8 text-center">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider mb-2 text-white shadow-2xs" style="background-color: var(--color-primario, #d11149);">
+                <span class="material-symbols-outlined text-[15px]">quiz</span> Centro de Ayuda
             </div>
-            <p class="text-sm text-indigo-800 font-medium">¿No encuentras lo que buscas o experimentas un error?</p>
-            <p class="text-xs text-indigo-600 mt-1">Nuestro equipo de soporte está listo para ayudarte.</p>
-            <button onclick="window.location.href='dashboard.html'" class="mt-4 bg-indigo-600 text-white font-bold py-2.5 px-6 rounded-xl hover:bg-indigo-700 transition-colors shadow-md">Volver al Dashboard para contactarnos</button>
+            <h1 class="text-2xl sm:text-4xl font-extrabold font-display mb-2 text-slate-900">Consultas Frecuentes</h1>
+            <p class="text-xs sm:text-sm text-slate-500 max-w-xl mx-auto">Encuentra respuestas inmediatas sobre cómo configurar servicios, horarios, pagos, cupones y el portal de alumnos.</p>
+        </div>
+
+        <!-- Buscador de Preguntas -->
+        <div class="mb-5 bg-white border border-slate-200/90 rounded-2xl p-2.5 shadow-2xs">
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
+                <input type="text" id="faqSearchInput" oninput="filterFaqs()" placeholder="Buscar consulta (ej: seña, cupones, alumnos, cancelación, horarios)..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 outline-none focus:ring-2 transition-all" style="--tw-ring-color: var(--color-primario, #d11149);">
+            </div>
+        </div>
+
+        <!-- Filtros por Categoría -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-2 mb-6 no-scrollbar text-xs font-bold" id="faqCategoryFilters">
+            <button onclick="filterFaqCategory('todas')" data-cat="todas" class="faq-filter-btn shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-xl text-white shadow-xs font-bold text-xs" style="background-color: var(--color-primario, #d11149);">Todas</button>
+            <button onclick="filterFaqCategory('turnos')" data-cat="turnos" class="faq-filter-btn shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs">Turnos y Reservas</button>
+            <button onclick="filterFaqCategory('pagos')" data-cat="pagos" class="faq-filter-btn shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs">Pagos y Señas</button>
+            <button onclick="filterFaqCategory('servicios')" data-cat="servicios" class="faq-filter-btn shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs">Servicios y Horarios</button>
+            <button onclick="filterFaqCategory('cupones')" data-cat="cupones" class="faq-filter-btn shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs">Cupones y Fidelización</button>
+            <button onclick="filterFaqCategory('alumnos')" data-cat="alumnos" class="faq-filter-btn shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs">Portal Alumnos</button>
+        </div>
+
+        <!-- Acordeón de Preguntas Frecuentes -->
+        <div class="space-y-3" id="faqAccordion">
+
+            <!-- 1. Servicios -->
+            <details data-category="servicios" class="faq-item group bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
+                <summary class="flex items-center justify-between p-4 sm:p-5 font-bold cursor-pointer text-slate-800 text-sm sm:text-base select-none">
+                    <span class="flex items-center gap-2.5">
+                        <span class="material-symbols-outlined text-[20px] text-pink-600 shrink-0">content_cut</span>
+                        <span>¿Cómo agrego o edito un servicio en mi catálogo?</span>
+                    </span>
+                    <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform text-[20px] shrink-0 ml-2">expand_more</span>
+                </summary>
+                <div class="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3.5">
+                    <p class="mb-2">Ingresá a la sección <strong>"Servicios"</strong> desde tu panel principal:</p>
+                    <ul class="list-disc pl-5 space-y-1.5">
+                        <li>Hacé clic en <strong>"Nuevo Servicio"</strong> o presioná el lápiz de edición sobre uno existente.</li>
+                        <li>Configurá el <strong>nombre</strong>, el <strong>precio</strong> y la <strong>duración exacta</strong> en horas y minutos (ej: 45 min, 1h 30m).</li>
+                        <li>Elegí un <strong>símbolo representativo de Google</strong> y un <strong>color cromático</strong> para identificar los turnos de ese servicio a simple vista en tu calendario y agenda.</li>
+                        <li>Si contás con varios colaboradores, asigná qué <strong>profesional</strong> lo atiende.</li>
+                    </ul>
+                </div>
+            </details>
+
+            <!-- 2. Seña y 1 Hora -->
+            <details data-category="pagos" class="faq-item group bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
+                <summary class="flex items-center justify-between p-4 sm:p-5 font-bold cursor-pointer text-slate-800 text-sm sm:text-base select-none">
+                    <span class="flex items-center gap-2.5">
+                        <span class="material-symbols-outlined text-[20px] text-amber-600 shrink-0">payments</span>
+                        <span>¿Cómo funciona la retención de turnos con seña por 1 hora?</span>
+                    </span>
+                    <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform text-[20px] shrink-0 ml-2">expand_more</span>
+                </summary>
+                <div class="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3.5">
+                    <p class="mb-2">En <strong>Ajustes &gt; Pagos y Señas</strong> podés activar la opción de <em>"Retener turno por 1 hora esperando el pago de seña"</em>:</p>
+                    <ul class="list-disc pl-5 space-y-1.5">
+                        <li>Cuando un cliente reserva por transferencia, el sistema retiene el horario por <strong>60 minutos</strong> y le muestra tu Alias/CBU junto al botón de WhatsApp para enviarte el comprobante.</li>
+                        <li>En tu <strong>Agenda Virtual</strong> verás un contador regresivo en vivo con los minutos restantes.</li>
+                        <li><strong>Auto-liberación:</strong> Si transcurrida 1 hora no confirmaste la recepción del pago, el turno se cancela automáticamente y el horario se vuelve a liberar en la web para otros clientes.</li>
+                    </ul>
+                </div>
+            </details>
+
+            <!-- 3. Cupones y Acumulación -->
+            <details data-category="cupones" class="faq-item group bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
+                <summary class="flex items-center justify-between p-4 sm:p-5 font-bold cursor-pointer text-slate-800 text-sm sm:text-base select-none">
+                    <span class="flex items-center gap-2.5">
+                        <span class="material-symbols-outlined text-[20px] text-purple-600 shrink-0">local_activity</span>
+                        <span>¿Cómo creo cupones de descuento y se pueden acumular entre sí?</span>
+                    </span>
+                    <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform text-[20px] shrink-0 ml-2">expand_more</span>
+                </summary>
+                <div class="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3.5">
+                    <p class="mb-2">En <strong>Ajustes &gt; Fidelización y Cupones</strong> tenés dos modalidades disponibles:</p>
+                    <ul class="list-disc pl-5 space-y-1.5">
+                        <li><strong>Cupones Propios del Negocio:</strong> Creá códigos generales (ej: <code>PROMOVERANO</code>, <code>AMIGAS15</code>) para que los use cualquier cliente al reservar en tu web.</li>
+                        <li><strong>Cupones Automáticos de Retorno por WhatsApp:</strong> El sistema genera códigos únicos e irrepetibles para invitar a volver a clientes que no asisten hace más de X días.</li>
+                        <li><strong>Acumulación:</strong> Podés definir si tu negocio permite acumular varios cupones en una misma reserva y marcar individualmente en cada cupón si es acumulable o no.</li>
+                    </ul>
+                </div>
+            </details>
+
+            <!-- 4. Bloqueo de Horarios y Días -->
+            <details data-category="turnos" class="faq-item group bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
+                <summary class="flex items-center justify-between p-4 sm:p-5 font-bold cursor-pointer text-slate-800 text-sm sm:text-base select-none">
+                    <span class="flex items-center gap-2.5">
+                        <span class="material-symbols-outlined text-[20px] text-blue-600 shrink-0">event_busy</span>
+                        <span>¿Cómo bloqueo un horario o día específico para que no reserven?</span>
+                    </span>
+                    <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform text-[20px] shrink-0 ml-2">expand_more</span>
+                </summary>
+                <div class="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3.5">
+                    <p class="mb-2">Desde tu <strong>Calendario</strong> o <strong>Agenda Virtual</strong> seleccioná el día deseado:</p>
+                    <ul class="list-disc pl-5 space-y-1.5">
+                        <li>Pulsá el icono de bloqueo en un horario específico para cancelarlo puntualmente.</li>
+                        <li>O utilizá la función <strong>"Bloquear Varios Días"</strong> para cerrar fechas completas por vacaciones, feriados o remodelación de tu local.</li>
+                    </ul>
+                </div>
+            </details>
+
+            <!-- 5. Portal Alumnos -->
+            <details data-category="alumnos" class="faq-item group bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
+                <summary class="flex items-center justify-between p-4 sm:p-5 font-bold cursor-pointer text-slate-800 text-sm sm:text-base select-none">
+                    <span class="flex items-center gap-2.5">
+                        <span class="material-symbols-outlined text-[20px] text-orange-600 shrink-0">school</span>
+                        <span>¿Qué es el Portal de Alumnos y cómo funcionan los pases de clases?</span>
+                    </span>
+                    <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform text-[20px] shrink-0 ml-2">expand_more</span>
+                </summary>
+                <div class="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3.5">
+                    <p class="mb-2">El <strong>Portal de Alumnos</strong> (exclusivo para Plan Premium) está diseñado para academias, talleres, yoga, pilates y clases grupales con cupos:</p>
+                    <ul class="list-disc pl-5 space-y-1.5">
+                        <li>Tus alumnos ingresan con su email o celular para ver cuántas clases les quedan en su pase y la fecha de vencimiento.</li>
+                        <li>Al agendarse en una clase, se descuenta automáticamente 1 crédito de su abono y se reduce el cupo disponible de la clase.</li>
+                        <li>En tu panel de <strong>Clientes / Alumnos</strong> podés recargar pases mensuales (ej: 4, 8 o 12 clases) con un solo clic.</li>
+                    </ul>
+                </div>
+            </details>
+
+            <!-- 6. Primer Día de la Semana -->
+            <details data-category="servicios" class="faq-item group bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
+                <summary class="flex items-center justify-between p-4 sm:p-5 font-bold cursor-pointer text-slate-800 text-sm sm:text-base select-none">
+                    <span class="flex items-center gap-2.5">
+                        <span class="material-symbols-outlined text-[20px] text-teal-600 shrink-0">calendar_month</span>
+                        <span>¿Cómo cambio si mi semana comienza un Lunes o un Domingo?</span>
+                    </span>
+                    <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform text-[20px] shrink-0 ml-2">expand_more</span>
+                </summary>
+                <div class="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3.5">
+                    <p>En <strong>Ajustes &gt; Horarios de Atención</strong> podés pulsar el selector de <em>"Primer día de la semana"</em> y elegir <strong>Lunes</strong> o <strong>Domingo</strong>. Tu calendario mensual y semanal se reorganizará automáticamente mostrando ese día en la primera columna.</p>
+                </div>
+            </details>
+
+            <!-- 7. Notificaciones por Email -->
+            <details data-category="turnos" class="faq-item group bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
+                <summary class="flex items-center justify-between p-4 sm:p-5 font-bold cursor-pointer text-slate-800 text-sm sm:text-base select-none">
+                    <span class="flex items-center gap-2.5">
+                        <span class="material-symbols-outlined text-[20px] text-sky-600 shrink-0">mail</span>
+                        <span>¿Qué avisos por correo electrónico envía el sistema?</span>
+                    </span>
+                    <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform text-[20px] shrink-0 ml-2">expand_more</span>
+                </summary>
+                <div class="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3.5">
+                    <ul class="list-disc pl-5 space-y-1.5">
+                        <li><strong>Notificación Inmediata:</strong> Llega un email al negocio y al cliente apenas se concreta una reserva.</li>
+                        <li><strong>Resumen Matutino (8:00 AM):</strong> Si lo activás en Ajustes, recibís cada mañana un resumen con todos los turnos del día y los profesionales a cargo.</li>
+                        <li><strong>Recordatorio Previo:</strong> Aviso automático al cliente con X horas de anticipación (ej: 2h antes) para reducir ausencias imprevistas.</li>
+                    </ul>
+                </div>
+            </details>
+
+            <!-- 8. Asistencia y Métricas -->
+            <details data-category="turnos" class="faq-item group bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
+                <summary class="flex items-center justify-between p-4 sm:p-5 font-bold cursor-pointer text-slate-800 text-sm sm:text-base select-none">
+                    <span class="flex items-center gap-2.5">
+                        <span class="material-symbols-outlined text-[20px] text-emerald-600 shrink-0">done_all</span>
+                        <span>¿Por qué es importante marcar "Asistió" en los turnos?</span>
+                    </span>
+                    <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform text-[20px] shrink-0 ml-2">expand_more</span>
+                </summary>
+                <div class="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3.5">
+                    <p>Al finalizar la atención en tu <strong>Agenda Virtual</strong>, marcar el botón de <span class="font-bold text-emerald-700">✓ Asistió</span> alimenta directamente tu módulo de <strong>Estadísticas</strong>. Esto te asegura que las métricas de facturación, clientes únicos y servicios estrella reflejen exclusivamente el dinero y las atenciones reales que ingresaron a tu negocio.</p>
+                </div>
+            </details>
+
+            <!-- 9. Papelera de Turnos -->
+            <details data-category="turnos" class="faq-item group bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
+                <summary class="flex items-center justify-between p-4 sm:p-5 font-bold cursor-pointer text-slate-800 text-sm sm:text-base select-none">
+                    <span class="flex items-center gap-2.5">
+                        <span class="material-symbols-outlined text-[20px] text-rose-600 shrink-0">delete_sweep</span>
+                        <span>¿Cómo funciona la Papelera de turnos y cómo recupero un turno?</span>
+                    </span>
+                    <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform text-[20px] shrink-0 ml-2">expand_more</span>
+                </summary>
+                <div class="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3.5">
+                    <p>Al cancelar o eliminar un turno, va a la <strong>Papelera</strong> para evitar pérdidas accidentales. Podés abrir la papelera en cualquier momento para <strong>restaurar</strong> el turno a su fecha original o eliminarlo definitivamente. Además, en Ajustes podés configurar cuántos días mantener los turnos antes de que se auto-eliminen.</p>
+                </div>
+            </details>
+
+            <!-- 10. Mi Página Web y Colores -->
+            <details data-category="servicios" class="faq-item group bg-white border border-slate-200/90 rounded-2xl shadow-2xs overflow-hidden">
+                <summary class="flex items-center justify-between p-4 sm:p-5 font-bold cursor-pointer text-slate-800 text-sm sm:text-base select-none">
+                    <span class="flex items-center gap-2.5">
+                        <span class="material-symbols-outlined text-[20px] text-indigo-600 shrink-0">palette</span>
+                        <span>¿Cómo personalizo los colores y el logotipo de mi página web?</span>
+                    </span>
+                    <span class="material-symbols-outlined text-slate-400 group-open:rotate-180 transition-transform text-[20px] shrink-0 ml-2">expand_more</span>
+                </summary>
+                <div class="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3.5">
+                    <p class="mb-2">Ingresá a <strong>"Mi Página Web"</strong> o <strong>"Mi Perfil"</strong>:</p>
+                    <ul class="list-disc pl-5 space-y-1.5">
+                        <li>Subí el <strong>logo</strong> de tu marca y una <strong>foto de portada</strong> atractiva.</li>
+                        <li>Configurá tu <strong>Color Primario</strong> y <strong>Secundario</strong>. Si tenés Plan Profesional o Premium, podés agregar colores extra con el botón <code>+</code> para títulos, botones y degradés personalizados.</li>
+                    </ul>
+                </div>
+            </details>
+
+        </div>
+
+        <!-- Banner de Contacto con Soporte con Colores de Marca -->
+        <div class="mt-10 text-center bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-2xs">
+            <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white mx-auto mb-3 shadow-xs" style="background-color: var(--color-primario, #d11149);">
+                <span class="material-symbols-outlined text-2xl">support_agent</span>
+            </div>
+            <p class="text-sm sm:text-base font-extrabold text-slate-800">¿Tenés una duda adicional o necesitás ayuda?</p>
+            <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">Podés reportar cualquier duda o sugerencia directamente con el botón de reporte o volver a tu panel.</p>
+            <button onclick="window.location.href='dashboard.html'" class="mt-4 text-white font-extrabold py-2.5 px-6 rounded-xl transition-all shadow-md active:scale-95 text-xs sm:text-sm cursor-pointer" style="background-color: var(--color-primario, #d11149);">
+                Volver al Panel Principal
+            </button>
         </div>
     </main>
 
@@ -150,17 +279,50 @@
             fetch('backend/perfil.php')
                 .then(r => r.json())
                 .then(d => {
-                    if (!d || !d.success) {
-                        const errReason = (d && d.error) ? d.error : 'Sin respuesta válida de sesión en consultas';
-                        console.error('⚠️ [Error de Carga - Consultas] No se pudo volver a cargar la información. Motivo:', errReason);
-                        window.location.href = 'login.html';
+                    if (d && d.success) {
+                        const pCol = d.business?.color_primario || d.color_primario;
+                        const sCol = d.business?.color_secundario || d.color_secundario;
+                        const exCol = d.business?.colores_extra_json || d.colores_extra_json;
+                        if (typeof window.applyUserCustomColors === 'function') {
+                            window.applyUserCustomColors(pCol, sCol, exCol);
+                        }
                     }
                 })
-                .catch(err => {
-                    console.error('⚠️ [Error de Carga - Consultas] Desconexión de red o fallo al volver a cargar información:', err);
-                    window.location.href = 'login.html';
-                });
+                .catch(() => {});
         });
+
+        function filterFaqs() {
+            const q = (document.getElementById('faqSearchInput')?.value || '').trim().toLowerCase();
+            document.querySelectorAll('.faq-item').forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if (!q || text.includes(q)) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+
+        function filterFaqCategory(cat) {
+            document.querySelectorAll('.faq-filter-btn').forEach(btn => {
+                if (btn.getAttribute('data-cat') === cat) {
+                    btn.style.backgroundColor = 'var(--color-primario, #d11149)';
+                    btn.className = 'faq-filter-btn shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-xl text-white shadow-xs font-bold text-xs';
+                } else {
+                    btn.style.backgroundColor = '';
+                    btn.className = 'faq-filter-btn shrink-0 whitespace-nowrap px-3.5 py-1.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs';
+                }
+            });
+
+            document.querySelectorAll('.faq-item').forEach(item => {
+                const itemCat = item.getAttribute('data-category');
+                if (cat === 'todas' || itemCat === cat) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
     </script>
 </body>
 </html>
