@@ -185,30 +185,33 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     const tieneClasesEnNegocio = Array.isArray(data) && data.some(esTurnoDeClase);
     const turnosClasicos = Array.isArray(data) ? data.filter(t => !esTurnoDeClase(t)) : [];
 
-    // Mostrar banner informativo si el establecimiento tiene clases con cupos
+    // Mostrar banner informativo si el establecimiento tiene clases con cupos (ubicado en el contenido principal, nunca en el navbar)
     let bannerClases = document.getElementById('bannerAvisoClasesAgenda');
     if (!bannerClases) {
-        const mainContainer = document.querySelector('.max-w-7xl');
+        const mainContainer = document.getElementById('agendaMainContent') || document.querySelector('body > div.max-w-7xl') || document.querySelector('main');
         if (mainContainer) {
             bannerClases = document.createElement('div');
             bannerClases.id = 'bannerAvisoClasesAgenda';
-            mainContainer.insertBefore(bannerClases, mainContainer.children[1] || mainContainer.firstChild);
+            mainContainer.insertBefore(bannerClases, mainContainer.firstChild);
         }
     }
     if (bannerClases) {
         if (tieneClasesEnNegocio) {
-            bannerClases.className = 'mb-6 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200/90 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs';
+            bannerClases.className = 'mb-6 bg-gradient-to-r from-orange-50 via-amber-50/60 to-white border border-orange-200/90 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm';
             bannerClases.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold shrink-0">
-                        <span class="material-symbols-outlined text-[22px]">calendar_view_week</span>
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 text-white flex items-center justify-center font-bold shrink-0 shadow-md shadow-orange-500/20">
+                        <span class="material-symbols-outlined text-[26px]">calendar_view_week</span>
                     </div>
                     <div>
-                        <p class="text-xs sm:text-sm font-black text-slate-800">Tenés clases con cupos y alumnos inscriptos</p>
-                        <p class="text-[11px] text-slate-500">Para ver las grillas semanales por servicio, ocupación y tomar asistencia, ingresá a Clases y Cupos.</p>
+                        <div class="flex items-center gap-2 mb-0.5">
+                            <span class="text-[10px] font-black uppercase tracking-wider text-orange-700 bg-orange-100/90 border border-orange-200/80 px-2 py-0.5 rounded-md">Módulo Clases</span>
+                            <p class="text-xs sm:text-sm font-black text-slate-900">Tenés clases con cupos y alumnos inscriptos</p>
+                        </div>
+                        <p class="text-xs text-slate-500 font-medium leading-relaxed">Para ver las grillas semanales por servicio, ocupación y tomar asistencia, ingresá a Clases y Cupos.</p>
                     </div>
                 </div>
-                <a href="clientes.html" class="px-4 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 shrink-0 self-start sm:self-center cursor-pointer">
+                <a href="clientes.html" class="px-5 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-extrabold text-xs rounded-2xl shadow-md shadow-orange-500/20 transition-all flex items-center justify-center gap-2 shrink-0 self-start sm:self-center cursor-pointer hover:scale-[1.02] active:scale-95">
                     <span>Ir a Clases y Cupos</span>
                     <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
                 </a>

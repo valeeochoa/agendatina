@@ -221,22 +221,26 @@
                         </div>
                     </div>
 
-                    <!-- Métricas de la semana compactas en una sola línea (sin carteles gigantes) -->
+                    <!-- Métricas de la semana compactas y profesionales con iconos representativos -->
                     <div class="flex items-center gap-2 flex-wrap text-xs">
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-50 text-orange-800 border border-orange-200/90 font-bold">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-50 text-orange-800 border border-orange-200/90 font-bold shadow-2xs">
+                            <span class="material-symbols-outlined text-[15px] text-orange-500">sports_gymnastics</span>
                             <span class="font-black text-orange-600" id="statSemanaTotalClases">0</span> clases
                         </span>
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200/90 font-bold">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200/90 font-bold shadow-2xs">
+                            <span class="material-symbols-outlined text-[15px] text-emerald-600">groups</span>
                             <span class="font-black text-emerald-600" id="statSemanaTotalAlumnos">0</span> alumnos
                         </span>
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 text-blue-800 border border-blue-200/90 font-bold">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 text-blue-800 border border-blue-200/90 font-bold shadow-2xs">
+                            <span class="material-symbols-outlined text-[15px] text-blue-500">event_seat</span>
                             <span class="font-black text-blue-600" id="statSemanaCuposLibres">0</span> cupos libres
                         </span>
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 text-purple-800 border border-purple-200/90 font-bold">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 text-purple-800 border border-purple-200/90 font-bold shadow-2xs">
+                            <span class="material-symbols-outlined text-[15px] text-purple-600">pie_chart</span>
                             <span class="font-black text-purple-600" id="statSemanaOcupacionPct">0%</span> ocupación
                         </span>
 
-                        <button type="button" onclick="cargarClasesSemana()" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer ml-1" title="Recargar Grilla">
+                        <button type="button" onclick="cargarClasesSemana()" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-600 flex items-center justify-center transition-all cursor-pointer ml-1 shadow-2xs" title="Recargar Grilla">
                             <span class="material-symbols-outlined text-[17px]">refresh</span>
                         </button>
                     </div>
