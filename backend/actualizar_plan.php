@@ -126,6 +126,13 @@ try {
     // Actualizar también la sesión del usuario activo
     $_SESSION['plan'] = $planNormalizado;
 
+    // Preparar descripción detallada del cambio
+    $nombreNegocio = $business['nombre_fantasia'] ?? 'Negocio ID #' . $id_negocio;
+    $motivoAlerta = $isDowngrade ? 'Planes / Downgrade a Plan ' . $nombrePlanDisplay : 'Planes / Cambio de Plan en Prueba';
+    $descAlerta = $isDowngrade 
+        ? "El negocio '{$nombreNegocio}' cambió a un plan más bajo: '{$nombrePlanDisplay}' (antes: '{$nombrePlanAnterior}'). Nuevo precio pactado: $" . number_format($nuevoPrecioPactado, 0, ',', '.') . "/mes."
+        : "El negocio '{$nombreNegocio}' actualizó su plan a '{$nombrePlanDisplay}' durante su período de prueba. Precio pactado futuro: $" . number_format($nuevoPrecioPactado, 0, ',', '.') . "/mes.";
+
     // Registrar en historial_cambios_negocio
     try {
         $pdo->exec("CREATE TABLE IF NOT EXISTS `historial_cambios_negocio` (
@@ -147,12 +154,6 @@ try {
     // Notificar al SuperAdmin
     try {
         require_once __DIR__ . '/helpers/notificar_admin_helper.php';
-        $nombreNegocio = $business['nombre_fantasia'] ?? 'Negocio ID #' . $id_negocio;
-        $motivoAlerta = $isDowngrade ? 'Planes / Downgrade a Plan ' . $nombrePlanDisplay : 'Planes / Cambio de Plan en Prueba';
-        $descAlerta = $isDowngrade 
-            ? "El negocio '{$nombreNegocio}' cambió a un plan más bajo: '{$nombrePlanDisplay}' (antes: '{$nombrePlanAnterior}'). Nuevo precio pactado: $" . number_format($nuevoPrecioPactado, 0, ',', '.') . "/mes."
-            : "El negocio '{$nombreNegocio}' actualizó su plan a '{$nombrePlanDisplay}' durante su período de prueba. Precio pactado futuro: $" . number_format($nuevoPrecioPactado, 0, ',', '.') . "/mes.";
-
         notificarSuperAdminAlert(
             $pdo, 
             $motivoAlerta, 

@@ -322,20 +322,109 @@
             </div>
 
             <!-- Tab: Historial de Planes y Personal -->
-            <div id="tabHistorial" class="hidden space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-purple-50/70 p-4 rounded-2xl border border-purple-200">
+            <div id="tabHistorial" class="hidden space-y-6">
+                <!-- 1. Encabezado de la pestaña -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-gradient-to-r from-purple-50 via-indigo-50/50 to-slate-50 p-4 rounded-2xl border border-purple-200">
                     <div>
-                        <h3 class="font-bold text-purple-950 text-sm flex items-center gap-2">
-                            <span class="material-symbols-outlined text-purple-600">manage_history</span>
-                            Línea de Tiempo: Cambios de Plan y Equipo
+                        <h3 class="font-extrabold text-purple-950 text-sm flex items-center gap-2">
+                            <span class="material-symbols-outlined text-purple-600 text-xl">manage_history</span>
+                            Historial y Estadísticas Comerciales del Negocio
                         </h3>
-                        <p class="text-xs text-purple-800/80">Historial de upgrades, downgrades y solicitudes de ampliación/reducción de personal.</p>
+                        <p class="text-xs text-purple-800/80 mt-0.5">Registro cronológico de contrataciones, historial de pagos, cupones utilizados y movimientos de equipo.</p>
                     </div>
-                    <button type="button" onclick="openEditModal()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer">
+                    <button type="button" onclick="openEditModal()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold text-xs shadow-md shadow-purple-600/20 transition-all flex items-center gap-1.5 cursor-pointer">
                         <span class="material-symbols-outlined text-[16px]">tune</span> Modificar Suscripción
                     </button>
                 </div>
 
+                <!-- 2. Tarjetas de Estadísticas Comerciales y Financieras -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- Tarjeta 1: Antigüedad y Primera Seña/Pago -->
+                    <div class="p-4 rounded-2xl bg-gradient-to-br from-indigo-50/80 to-white border border-indigo-200 shadow-2xs space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-black uppercase text-indigo-900 tracking-wider">Antigüedad y Seña</span>
+                            <div class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                                <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-base font-black text-slate-900" id="histStatAntiguedad">Cargando...</div>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Alta: <span class="font-bold text-slate-700" id="histStatFechaAlta">...</span></p>
+                        </div>
+                        <div class="pt-2 border-t border-indigo-100 text-[11px] text-indigo-950 flex items-center gap-1.5 font-medium">
+                            <span class="material-symbols-outlined text-[15px] text-indigo-600">verified</span>
+                            <span>1er Pago/Seña: <strong id="histStatPrimerPago" class="text-slate-800">Sin seña registrada</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta 2: Historial de Pagos -->
+                    <div class="p-4 rounded-2xl bg-gradient-to-br from-blue-50/80 to-white border border-blue-200 shadow-2xs space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-black uppercase text-blue-900 tracking-wider">Historial de Pagos</span>
+                            <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                                <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-base font-black text-slate-900" id="histStatCantPagos">0 pagos registrados</div>
+                            <div class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5">
+                                <span>Estado:</span>
+                                <span class="font-bold text-slate-800" id="histStatEstadoPago">Cargando...</span>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t border-blue-100 text-[11px] text-blue-950 flex items-center gap-1.5 font-medium">
+                            <span class="material-symbols-outlined text-[15px] text-blue-600">event_repeat</span>
+                            <span>Último pago: <strong id="histStatUltimoPago" class="text-slate-800">Sin pagos</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta 3: Total Acumulado Abonado -->
+                    <div class="p-4 rounded-2xl bg-gradient-to-br from-emerald-50/80 to-white border border-emerald-200 shadow-2xs space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-black uppercase text-emerald-900 tracking-wider">Total Facturado</span>
+                            <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                                <span class="material-symbols-outlined text-[18px]">payments</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-lg font-black text-emerald-950" id="histStatTotalAbonado">$0 ARS</div>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Suma histórica de pagos abonados</p>
+                        </div>
+                        <div class="pt-2 border-t border-emerald-100 text-[11px] text-emerald-950 flex items-center gap-1.5 font-medium">
+                            <span class="material-symbols-outlined text-[15px] text-emerald-600">price_check</span>
+                            <span>Cuota pactada: <strong id="histStatCuotaPactada" class="text-emerald-900">$0/mes</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta 4: Cupones y Acuerdos Especiales -->
+                    <div class="p-4 rounded-2xl bg-gradient-to-br from-amber-50/80 to-white border border-amber-200 shadow-2xs space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-black uppercase text-amber-900 tracking-wider">Cupones y Acuerdos</span>
+                            <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                                <span class="material-symbols-outlined text-[18px]">sell</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-base font-black text-slate-900" id="histStatCupon">Sin cupón</div>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Descuento aplicado: <strong class="text-amber-950" id="histStatDescuento">0% OFF</strong></p>
+                        </div>
+                        <div class="pt-2 border-t border-amber-100 text-[11px] text-amber-950 flex items-center gap-1.5 font-medium">
+                            <span class="material-symbols-outlined text-[15px] text-amber-600">groups</span>
+                            <span>Desc. por prof: <strong id="histStatDescProf" class="text-amber-950">5% extra</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Encabezado de la línea de tiempo -->
+                <div class="pt-2 flex items-center justify-between border-b border-slate-200 pb-2">
+                    <h4 class="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[18px] text-purple-600">timeline</span>
+                        Línea de Tiempo de Cambios: Plan Viejo vs Plan Nuevo y Cupos
+                    </h4>
+                    <span class="text-[11px] text-slate-400 font-bold" id="histItemCountText">0 movimientos</span>
+                </div>
+
+                <!-- 4. Contenedor de la lista cronológica -->
                 <div id="historialEmpresaList" class="space-y-3">
                     <div class="p-8 text-center text-slate-400 text-xs bg-slate-50/60 rounded-2xl border border-dashed border-slate-200">
                         No hay registros en el historial de cambios de este negocio.
@@ -919,7 +1008,9 @@ function renderEmpresaDetails(client) {
     const subInfo = getSubscriptionDetails(client, window.globalConfig ? window.globalConfig.dias_prueba_defecto : 30);
     document.getElementById('empresaBadgeStatus').innerHTML = `<div class="flex items-center gap-2">${subInfo.statusBadge} ${subInfo.diasBadge}</div>`;
 
-    document.getElementById('empresaMetricPlan').textContent = client.plan || 'Básico';
+    const planBaseStr = client.plan || 'Básico';
+    const pactadoVal = (client.precio_pactado && parseFloat(client.precio_pactado) > 0) ? Math.round(parseFloat(client.precio_pactado)) : null;
+    document.getElementById('empresaMetricPlan').textContent = pactadoVal ? `${planBaseStr} ($${pactadoVal.toLocaleString('es-AR')}/mes)` : planBaseStr;
     document.getElementById('empresaMetricTurnos').textContent = client.turnos_count !== undefined ? client.turnos_count : 0;
     
     // Fechas Relevantes SuperAdmin
@@ -969,6 +1060,7 @@ function renderEmpresaDetails(client) {
     if (elCupoEquipo) elCupoEquipo.textContent = `${realTeamCount} de ${client.max_profesionales || 1} asignados`;
 
     renderEquipo(client);
+    renderHistorialEmpresa();
 
     document.getElementById('notaInternaText').value = client.nota_interna || '';
 }
@@ -1451,12 +1543,152 @@ function submitEditClient(e) {
     .finally(() => { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">save</span> Guardar Configuración'; });
 }
 
+function formatAntiguedadTexto(fechaAltaStr) {
+    if (!fechaAltaStr) return 'Sin fecha registrada';
+    try {
+        const d = new Date(String(fechaAltaStr).replace(/-/g, '/'));
+        if (isNaN(d.getTime())) return String(fechaAltaStr);
+        const hoy = new Date();
+        const diffMs = hoy - d;
+        const diffDias = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+        if (diffDias === 0) return 'Hoy (Reciente)';
+        if (diffDias < 30) return `${diffDias} día${diffDias === 1 ? '' : 's'}`;
+        const meses = Math.floor(diffDias / 30);
+        const diasRestantes = diffDias % 30;
+        if (meses < 12) {
+            return diasRestantes > 0 
+                ? `${meses} mes${meses === 1 ? '' : 'es'} y ${diasRestantes} d.` 
+                : `${meses} mes${meses === 1 ? '' : 'es'}`;
+        }
+        const anios = Math.floor(meses / 12);
+        const mesesRestantes = meses % 12;
+        return `${anios} año${anios === 1 ? '' : 's'}${mesesRestantes > 0 ? ` y ${mesesRestantes} m.` : ''}`;
+    } catch(e) {
+        return 'Sin fecha';
+    }
+}
+
 function renderHistorialEmpresa() {
     const container = document.getElementById('historialEmpresaList');
     if (!container) return;
 
-    const hist = (currentEmpresaData && Array.isArray(currentEmpresaData.historial_cambios)) ? currentEmpresaData.historial_cambios : [];
+    const c = currentEmpresaData || {};
+    const hist = (c && Array.isArray(c.historial_cambios)) ? c.historial_cambios : [];
 
+    // --- 1. RENDERIZAR TARJETAS DE ESTADÍSTICAS COMERCIALES ---
+    // Antigüedad y Primera Seña
+    const elAntiguedad = document.getElementById('histStatAntiguedad');
+    if (elAntiguedad) elAntiguedad.textContent = formatAntiguedadTexto(c.fecha_alta);
+
+    const elFechaAlta = document.getElementById('histStatFechaAlta');
+    if (elFechaAlta) {
+        let fAltaStr = 'Sin fecha';
+        if (c.fecha_alta) {
+            try {
+                fAltaStr = new Date(String(c.fecha_alta).replace(/-/g, '/')).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch(e) { fAltaStr = String(c.fecha_alta); }
+        }
+        elFechaAlta.textContent = fAltaStr;
+    }
+
+    const elPrimerPago = document.getElementById('histStatPrimerPago');
+    if (elPrimerPago) {
+        let pPagoStr = 'Sin seña registrada';
+        if (c.fecha_primer_pago) {
+            try {
+                pPagoStr = new Date(String(c.fecha_primer_pago).replace(/-/g, '/')).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch(e) { pPagoStr = String(c.fecha_primer_pago); }
+        } else if (c.comprobantes && c.comprobantes.length > 0) {
+            const sorted = [...c.comprobantes].sort((a,b) => new Date(a.fecha_pago) - new Date(b.fecha_pago));
+            if (sorted[0] && sorted[0].fecha_pago) {
+                try {
+                    pPagoStr = new Date(String(sorted[0].fecha_pago).replace(/-/g, '/')).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                } catch(e) {}
+            }
+        }
+        elPrimerPago.textContent = pPagoStr;
+    }
+
+    // Historial de Pagos y Estado
+    const comps = Array.isArray(c.comprobantes) ? c.comprobantes : [];
+    const cantPagos = c.pagos_count !== undefined ? c.pagos_count : comps.length;
+    const elCantPagos = document.getElementById('histStatCantPagos');
+    if (elCantPagos) {
+        elCantPagos.textContent = `${cantPagos} pago${cantPagos === 1 ? '' : 's'} registrado${cantPagos === 1 ? '' : 's'}`;
+    }
+
+    const elEstadoPago = document.getElementById('histStatEstadoPago');
+    if (elEstadoPago) {
+        const est = (c.estado_pago || 'prueba').toLowerCase();
+        if (est === 'activo' || est === 'pagado') {
+            elEstadoPago.innerHTML = '<span class="text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md font-black text-[10px] uppercase">Al día / Activo</span>';
+        } else if (est === 'prueba' || est === 'trial') {
+            elEstadoPago.innerHTML = '<span class="text-sky-700 bg-sky-100 px-2 py-0.5 rounded-md font-black text-[10px] uppercase">En Prueba</span>';
+        } else if (est === 'pendiente_revision') {
+            elEstadoPago.innerHTML = '<span class="text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md font-black text-[10px] uppercase">En Revisión</span>';
+        } else if (est === 'vencido') {
+            elEstadoPago.innerHTML = '<span class="text-orange-800 bg-orange-100 px-2 py-0.5 rounded-md font-black text-[10px] uppercase">Vencido</span>';
+        } else {
+            elEstadoPago.innerHTML = `<span class="text-slate-700 bg-slate-200 px-2 py-0.5 rounded-md font-black text-[10px] uppercase">${escapeHtml(est)}</span>`;
+        }
+    }
+
+    const elUltimoPago = document.getElementById('histStatUltimoPago');
+    if (elUltimoPago) {
+        let uPagoStr = 'Sin pagos';
+        const rawUlt = c.fecha_ultimo_pago || c.ultimo_pago;
+        if (rawUlt) {
+            try {
+                uPagoStr = new Date(String(rawUlt).replace(/-/g, '/')).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch(e) { uPagoStr = String(rawUlt); }
+        }
+        elUltimoPago.textContent = uPagoStr;
+    }
+
+    // Total Histórico Abonado y Cuota Pactada
+    let totalAbonado = 0;
+    if (c.total_pagado !== undefined && c.total_pagado !== null) {
+        totalAbonado = parseFloat(c.total_pagado);
+    } else {
+        comps.forEach(cp => {
+            if (cp.monto && !isNaN(parseFloat(cp.monto))) totalAbonado += parseFloat(cp.monto);
+        });
+    }
+
+    const elTotalAbonado = document.getElementById('histStatTotalAbonado');
+    if (elTotalAbonado) {
+        elTotalAbonado.textContent = `$${Math.round(totalAbonado).toLocaleString('es-AR')} ARS`;
+    }
+
+    const elCuotaPactada = document.getElementById('histStatCuotaPactada');
+    if (elCuotaPactada) {
+        const pactado = (c.precio_pactado && parseFloat(c.precio_pactado) > 0) ? Math.round(parseFloat(c.precio_pactado)) : null;
+        elCuotaPactada.textContent = pactado ? `$${pactado.toLocaleString('es-AR')} / mes` : 'Tarifa estándar';
+    }
+
+    // Cupones y Acuerdos
+    const elCupon = document.getElementById('histStatCupon');
+    if (elCupon) {
+        if (c.codigo_descuento && String(c.codigo_descuento).trim() !== '') {
+            elCupon.innerHTML = `<span class="px-2.5 py-1 rounded-lg text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">sell</span> ${escapeHtml(c.codigo_descuento)}</span>`;
+        } else {
+            elCupon.textContent = 'Sin cupón usado';
+        }
+    }
+
+    const elDescuento = document.getElementById('histStatDescuento');
+    if (elDescuento) {
+        const pct = parseInt(c.descuento_aplicado_pct || 0);
+        elDescuento.textContent = `${pct}% OFF`;
+    }
+
+    const elDescProf = document.getElementById('histStatDescProf');
+    if (elDescProf) {
+        const dpp = (c.descuento_por_prof_pct !== null && c.descuento_por_prof_pct !== undefined) ? parseFloat(c.descuento_por_prof_pct) : 5;
+        elDescProf.textContent = `${dpp}% por prof.`;
+    }
+
+    // --- 2. RENDERIZAR LÍNEA DE TIEMPO CRONOLÓGICA (PLAN VIEJO VS PLAN NUEVO) ---
     const badgeHist = document.getElementById('badgeCountHistorial');
     if (badgeHist) {
         if (hist.length > 0) {
@@ -1465,6 +1697,11 @@ function renderHistorialEmpresa() {
         } else {
             badgeHist.classList.add('hidden');
         }
+    }
+
+    const countText = document.getElementById('histItemCountText');
+    if (countText) {
+        countText.textContent = `${hist.length} movimiento${hist.length === 1 ? '' : 's'}`;
     }
 
     if (hist.length === 0) {
@@ -1479,32 +1716,127 @@ function renderHistorialEmpresa() {
 
     let html = '';
     hist.forEach(item => {
-        const tipo = (item.tipo || '').toLowerCase();
+        const tipo = (item.tipo || item.tipo_evento || '').toLowerCase();
         let badgeHtml = '';
         let borderClass = 'border-slate-200';
         let bgIconClass = 'bg-slate-100 text-slate-700';
         let iconName = 'history';
 
-        if (tipo === 'cambio_plan') {
+        let planAnterior = item.plan_anterior || item.valor_anterior || '';
+        let planNuevo = item.plan_nuevo || item.valor_nuevo || '';
+        let profAnt = item.max_prof_anterior || item.valor_anterior || '';
+        let profNew = item.max_prof_nuevo || item.valor_nuevo || '';
+
+        // Inferencia para mensajes heredados de notificaciones
+        const detalleMsg = (item.detalle || item.motivo || item.mensaje || '');
+        if ((!planNuevo || !planAnterior) && (tipo.includes('plan') || detalleMsg.toLowerCase().includes('plan'))) {
+            const m = detalleMsg.match(/(?:cambi[oó]\s+(?:a\s+un\s+|al\s+)?plan|upgrade\s+al\s+plan)\s+([a-záéíóú]+)/i);
+            if (m) {
+                planNuevo = planNuevo || (m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase());
+                if (!planAnterior) {
+                    const normN = planNuevo.toLowerCase();
+                    planAnterior = (normN.includes('intermedio') || normN.includes('profesional')) ? 'Básico' : ((normN.includes('premium')) ? 'Profesional' : 'Básico');
+                }
+            }
+        }
+        if ((!profNew || !profAnt) && (tipo.includes('personal') || tipo.includes('amplia') || detalleMsg.toLowerCase().includes('cupo'))) {
+            const m = detalleMsg.match(/(?:amplia[cr]\s+(?:el\s+)?cupo|solicitud\s+de\s+ampliaci[oó]n|excediendo\s+cupo)\s+(?:a\s+|de\s+)?(\d+)/i);
+            if (m) {
+                profNew = profNew || m[1];
+                if (!profAnt) profAnt = Math.max(1, parseInt(profNew) - 1);
+            }
+        }
+
+        let comparativaHtml = '';
+
+        if (tipo.includes('cambio_plan') || (!tipo.includes('personal') && (planNuevo || planAnterior))) {
             badgeHtml = '<span class="inline-flex items-center gap-1 text-[11px] font-black uppercase px-2.5 py-0.5 rounded-xl bg-purple-100 text-purple-800 border border-purple-200">Cambio de Plan</span>';
-            borderClass = 'border-purple-200/90 bg-purple-50/20';
+            borderClass = 'border-purple-200 bg-purple-50/15';
             bgIconClass = 'bg-purple-100 text-purple-700';
             iconName = 'upgrade';
-        } else if (tipo === 'ampliacion_personal') {
-            badgeHtml = '<span class="inline-flex items-center gap-1 text-[11px] font-black uppercase px-2.5 py-0.5 rounded-xl bg-blue-100 text-blue-800 border border-blue-200">Personal / Cupo</span>';
-            borderClass = 'border-blue-200/90 bg-blue-50/20';
-            bgIconClass = 'bg-blue-100 text-blue-700';
-            iconName = 'group_add';
-        } else if (tipo === 'alta_negocio') {
+
+            const pAntText = planAnterior ? escapeHtml(planAnterior) : 'Básico (Inicial)';
+            const pNewText = planNuevo ? escapeHtml(planNuevo) : (c.plan || 'Profesional');
+
+            comparativaHtml = `
+                <div class="flex flex-wrap items-center gap-3 p-3 bg-white/90 rounded-xl border border-purple-200/80 shadow-2xs">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-black uppercase text-slate-400">Plan Anterior:</span>
+                        <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 line-through border border-slate-200">
+                            ${pAntText}
+                        </span>
+                    </div>
+                    <span class="material-symbols-outlined text-purple-600 text-base font-black">arrow_forward</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-black uppercase text-purple-900">Plan Nuevo:</span>
+                        <span class="px-3 py-1 rounded-lg text-xs font-black bg-purple-600 text-white shadow-xs">
+                            ${pNewText}
+                        </span>
+                    </div>
+                </div>
+            `;
+        } else if (tipo.includes('ampliacion_personal') || tipo.includes('disminucion_personal') || (profNew && profAnt)) {
+            const isAmp = tipo.includes('ampliacion') || (parseInt(profNew) > parseInt(profAnt));
+            badgeHtml = isAmp
+                ? '<span class="inline-flex items-center gap-1 text-[11px] font-black uppercase px-2.5 py-0.5 rounded-xl bg-blue-100 text-blue-800 border border-blue-200">Ampliación de Cupo</span>'
+                : '<span class="inline-flex items-center gap-1 text-[11px] font-black uppercase px-2.5 py-0.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-200">Reducción de Cupo</span>';
+            borderClass = isAmp ? 'border-blue-200 bg-blue-50/15' : 'border-amber-200 bg-amber-50/15';
+            bgIconClass = isAmp ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700';
+            iconName = isAmp ? 'group_add' : 'group_remove';
+
+            const numAnt = parseInt(profAnt) || 1;
+            const numNew = parseInt(profNew) || (numAnt + 1);
+            const diff = numNew - numAnt;
+
+            comparativaHtml = `
+                <div class="flex flex-wrap items-center gap-3 p-3 bg-white/90 rounded-xl border border-blue-200/80 shadow-2xs">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-black uppercase text-slate-400">Cupo Anterior:</span>
+                        <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                            ${numAnt} profesional${numAnt !== 1 ? 'es' : ''}
+                        </span>
+                    </div>
+                    <span class="material-symbols-outlined text-blue-600 text-base font-black">arrow_forward</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-black uppercase text-blue-900">Cupo Nuevo:</span>
+                        <span class="px-3 py-1 rounded-lg text-xs font-black bg-blue-600 text-white shadow-xs">
+                            ${numNew} profesional${numNew !== 1 ? 'es' : ''}
+                        </span>
+                    </div>
+                    ${diff !== 0 ? `<span class="text-xs font-extrabold ${diff > 0 ? 'text-emerald-700 bg-emerald-100' : 'text-amber-800 bg-amber-100'} px-2 py-0.5 rounded-md">${diff > 0 ? '+' + diff : diff} integrantes</span>` : ''}
+                </div>
+            `;
+        } else if (tipo.includes('alta_negocio')) {
             badgeHtml = '<span class="inline-flex items-center gap-1 text-[11px] font-black uppercase px-2.5 py-0.5 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-200">Registro Inicial</span>';
-            borderClass = 'border-emerald-200/90 bg-emerald-50/20';
+            borderClass = 'border-emerald-200 bg-emerald-50/15';
             bgIconClass = 'bg-emerald-100 text-emerald-700';
             iconName = 'flag';
+
+            comparativaHtml = `
+                <div class="flex flex-wrap items-center gap-3 p-3 bg-white/90 rounded-xl border border-emerald-200 shadow-2xs">
+                    <span class="text-[10px] font-black uppercase text-emerald-900">Plan Inicial:</span>
+                    <span class="px-3 py-1 rounded-lg text-xs font-black bg-emerald-600 text-white shadow-xs">
+                        ${escapeHtml(planNuevo || c.plan || 'Plan Básico')}
+                    </span>
+                    <span class="text-xs font-bold text-emerald-800">• Cupo inicial: ${profNew || c.max_profesionales || 1} profesional</span>
+                </div>
+            `;
         } else {
             badgeHtml = '<span class="inline-flex items-center gap-1 text-[11px] font-black uppercase px-2.5 py-0.5 rounded-xl bg-indigo-100 text-indigo-800 border border-indigo-200">Ajuste SuperAdmin</span>';
-            borderClass = 'border-indigo-200/90 bg-indigo-50/20';
+            borderClass = 'border-indigo-200 bg-indigo-50/15';
             bgIconClass = 'bg-indigo-100 text-indigo-700';
             iconName = 'tune';
+
+            if (planNuevo && planAnterior) {
+                comparativaHtml = `
+                    <div class="flex flex-wrap items-center gap-3 p-3 bg-white/90 rounded-xl border border-indigo-200 shadow-2xs">
+                        <span class="text-[10px] font-black uppercase text-slate-400">Plan:</span>
+                        <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-600 line-through">${escapeHtml(planAnterior)}</span>
+                        <span class="material-symbols-outlined text-indigo-600 text-base font-black">arrow_forward</span>
+                        <span class="px-3 py-1 rounded-lg text-xs font-black bg-indigo-600 text-white">${escapeHtml(planNuevo)}</span>
+                    </div>
+                `;
+            }
         }
 
         let fechaStr = item.fecha || 'Reciente';
@@ -1512,35 +1844,39 @@ function renderHistorialEmpresa() {
             fechaStr = new Date(String(item.fecha).replace(/-/g, '/')).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         } catch(e) {}
 
-        const origenStr = item.origen ? `Origen: ${escapeHtml(item.origen)}` : '';
-        const userStr = item.usuario ? `por ${escapeHtml(item.usuario)}` : '';
+        const origenStr = (item.origen && item.origen.toLowerCase() === 'superadmin') ? 'SuperAdmin' : 'Iniciado por el Cliente';
+        const userStr = item.usuario ? ` (${escapeHtml(item.usuario)})` : '';
 
         html += `
-            <div class="p-4 rounded-2xl border ${borderClass} bg-white shadow-2xs hover:shadow-xs transition-all space-y-2.5">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2">
+            <div class="p-4 sm:p-5 rounded-2xl border ${borderClass} shadow-2xs hover:shadow-xs transition-all space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
                     <div class="flex items-center gap-2">
                         <div class="w-8 h-8 rounded-xl ${bgIconClass} flex items-center justify-center shrink-0">
                             <span class="material-symbols-outlined text-[18px]">${iconName}</span>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
                             ${badgeHtml}
-                            <span class="text-xs font-black text-slate-800">${escapeHtml(item.plan_anterior ? (item.plan_anterior + ' ➜ ' + item.plan_nuevo) : (item.plan_nuevo || 'Actualización'))}</span>
+                            <span class="text-xs font-black text-slate-800">${escapeHtml(planNuevo ? (planAnterior ? planAnterior + ' ➜ ' + planNuevo : planNuevo) : (item.detalle || 'Movimiento de Suscripción'))}</span>
                         </div>
                     </div>
                     <span class="text-[11px] font-bold text-slate-400 flex items-center gap-1">
                         <span class="material-symbols-outlined text-[14px]">schedule</span> ${fechaStr}
                     </span>
                 </div>
+
+                ${comparativaHtml}
+
                 <div class="text-xs text-slate-700 font-medium leading-relaxed">
-                    ${item.max_prof_anterior !== undefined && item.max_prof_nuevo !== undefined && item.max_prof_anterior !== null && item.max_prof_nuevo !== null ? `
-                        <p class="font-bold text-slate-800 mb-1">Cupo de Profesionales: <span class="text-purple-700">${item.max_prof_anterior} ➜ ${item.max_prof_nuevo}</span></p>
-                    ` : ''}
-                    <p class="whitespace-pre-wrap">${escapeHtml(item.motivo || item.detalle || 'Cambio registrado en plataforma.')}</p>
+                    <p class="whitespace-pre-wrap">${escapeHtml(item.detalle || item.motivo || 'Registro guardado en plataforma.')}</p>
                 </div>
-                <div class="flex items-center justify-between pt-1 border-t border-slate-100 text-[10px] text-slate-400">
-                    <span>${origenStr} ${userStr}</span>
-                    <button type="button" onclick="openEditModal()" class="text-purple-700 hover:text-purple-900 font-bold hover:underline cursor-pointer flex items-center gap-1">
-                        <span class="material-symbols-outlined text-[13px]">tune</span> Modificar
+
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-slate-100 text-[11px] text-slate-500">
+                    <span class="flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px] text-slate-400">person</span>
+                        <span>Origen: <strong>${origenStr}</strong>${userStr}</span>
+                    </span>
+                    <button type="button" onclick="openEditModal()" class="text-purple-700 hover:text-purple-900 font-bold hover:underline cursor-pointer flex items-center gap-1 self-end sm:self-auto">
+                        <span class="material-symbols-outlined text-[14px]">tune</span> Modificar Suscripción
                     </button>
                 </div>
             </div>

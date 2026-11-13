@@ -506,6 +506,26 @@ if ($method === 'GET') {
                 }
             }
             $negocio['comprobantes'] = $compList;
+
+            // Estadísticas comerciales y financieras acumuladas del cliente
+            $totalAbonado = 0.0;
+            $fechasPagos = [];
+            foreach ($compList as $comp) {
+                if (!empty($comp['monto']) && is_numeric($comp['monto'])) {
+                    $totalAbonado += floatval($comp['monto']);
+                }
+                if (!empty($comp['fecha_pago'])) {
+                    $fechasPagos[] = $comp['fecha_pago'];
+                }
+            }
+            $negocio['total_pagado'] = $totalAbonado;
+            $negocio['pagos_count'] = count($compList);
+            $negocio['fecha_primer_pago'] = !empty($fechasPagos) ? min($fechasPagos) : null;
+            $negocio['fecha_ultimo_pago'] = !empty($fechasPagos) ? max($fechasPagos) : ($negocio['ultimo_pago'] ?? null);
+
+            // Antigüedad en días desde la fecha de alta
+            $fAltaTs = !empty($negocio['fecha_alta']) ? strtotime($negocio['fecha_alta']) : time();
+            $negocio['antiguedad_dias'] = max(0, floor((time() - $fAltaTs) / 86400));
         }
 
         // Obtener la configuración global
@@ -631,9 +651,56 @@ if ($method === 'GET') {
         } catch(Throwable $eHistQ) {}
 
         foreach ($negocios as &$negocio) {
-            $negocio['historial_cambios'] = array_values(array_filter($historial_cambios, function($h) use ($negocio) {
+            $hList = array_values(array_filter($historial_cambios, function($h) use ($negocio) {
                 return $h['id_negocio'] == $negocio['id'];
             }));
+
+            // Si no tiene registros previos en historial pero tiene fecha_alta, generar el evento inicial de registro
+            if (empty($hList) && !empty($negocio['fecha_alta'])) {
+                $hList[] = [
+                    'id' => 'alta_' . $negocio['id'],
+                    'id_negocio' => (int)$negocio['id'],
+                    'tipo_evento' => 'alta_negocio',
+                    'tipo' => 'alta_negocio',
+                    'valor_anterior' => null,
+                    'valor_nuevo' => $negocio['plan'] ?? 'Básico',
+                    'plan_anterior' => null,
+                    'plan_nuevo' => $negocio['plan'] ?? 'Básico',
+                    'max_prof_anterior' => null,
+                    'max_prof_nuevo' => $negocio['max_profesionales'] ?? 1,
+                    'detalle' => 'Registro y alta inicial de la cuenta en Agendatina.',
+                    'origen' => 'cliente',
+                    'fecha' => $negocio['fecha_alta']
+                ];
+            }
+
+            foreach ($hList as &$h) {
+                $h['tipo'] = $h['tipo_evento'] ?? ($h['tipo'] ?? 'cambio_plan');
+                $h['valor_anterior'] = $h['valor_anterior'] ?? ($h['plan_anterior'] ?? null);
+                $h['valor_nuevo'] = $h['valor_nuevo'] ?? ($h['plan_nuevo'] ?? null);
+                $h['plan_anterior'] = $h['valor_anterior'];
+                $h['plan_nuevo'] = $h['valor_nuevo'];
+                $h['max_prof_anterior'] = $h['valor_anterior'];
+                $h['max_prof_nuevo'] = $h['valor_nuevo'];
+
+                // Inferencia inteligente si faltan valores por registros de backfill
+                if (empty($h['plan_nuevo']) && !empty($h['detalle'])) {
+                    if (preg_match('/(?:cambi[oó]\s+(?:a\s+un\s+|al\s+)?plan|upgrade\s+al\s+plan)\s+([a-záéíóú]+)/i', $h['detalle'], $m)) {
+                        $h['plan_nuevo'] = ucfirst(strtolower($m[1]));
+                        if (empty($h['plan_anterior'])) {
+                            $h['plan_anterior'] = ($h['plan_nuevo'] === 'Profesional') ? 'Básico' : (($h['plan_nuevo'] === 'Premium') ? 'Profesional' : 'Básico');
+                        }
+                    } elseif (preg_match('/(?:amplia[cr]\s+(?:el\s+)?cupo|solicitud\s+de\s+ampliaci[oó]n|excediendo\s+cupo)\s+(?:a\s+|de\s+)?(\d+)/i', $h['detalle'], $m)) {
+                        $h['max_prof_nuevo'] = $m[1];
+                        if (empty($h['max_prof_anterior'])) {
+                            $h['max_prof_anterior'] = max(1, (int)$m[1] - 1);
+                        }
+                    }
+                }
+            }
+            unset($h);
+
+            $negocio['historial_cambios'] = $hList;
         }
         unset($negocio);
         
