@@ -1760,6 +1760,69 @@ function checkNotifications() {
     });
 }
 
+window.abrirNotificacionYNavegar = function(e, id, link) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    // 1. Marcar como leída en localStorage
+    let notifState = JSON.parse(localStorage.getItem(window.getNotifStorageKey()) || '{}');
+    if (notifState[id]) {
+        notifState[id].read = true;
+        localStorage.setItem(window.getNotifStorageKey(), JSON.stringify(notifState));
+    }
+
+    // 2. Cerrar dropdown de notificaciones
+    const dropdown = document.getElementById('notifDropdown');
+    if (dropdown) dropdown.classList.add('hidden');
+
+    if (!link || link === '#') return;
+
+    // 3. Determinar el destino correcto según el plan
+    let finalLink = link;
+    const businessPlan = String(window.currentBusinessData?.plan || '').toLowerCase();
+    const isBasic = businessPlan.includes('básico') || businessPlan.includes('basico') || businessPlan.includes('simple');
+    const isProOrPremium = businessPlan.includes('profesional') || businessPlan.includes('intermedio') || businessPlan.includes('premium') || businessPlan.includes('completo');
+
+    const urlParts = link.split('?');
+    const queryParams = new URLSearchParams(urlParts[1] || '');
+    const dateVal = queryParams.get('date') || queryParams.get('fecha') || '';
+    const focusVal = queryParams.get('focus') || (id ? id.replace('turno_', '').replace('custom_', '') : '');
+    const calPage = window.currentWebData?.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
+
+    if (id && id.startsWith('turno_')) {
+        if (isBasic) {
+            finalLink = `${calPage}?date=${encodeURIComponent(dateVal)}&focus=${encodeURIComponent(focusVal)}`;
+        } else if (isProOrPremium) {
+            finalLink = `agenda.html?tab=pendientes&date=${encodeURIComponent(dateVal)}&focus=${encodeURIComponent(focusVal)}`;
+        }
+    }
+
+    // 4. Navegar o enfocar turno si ya estamos en la misma pantalla
+    const currentPage = (window.location.pathname.split('/').pop() || 'index.html').toLowerCase();
+    const targetPage = (finalLink.split('?')[0].split('/').pop() || '').toLowerCase();
+
+    if (currentPage === targetPage) {
+        window.history.pushState({}, '', finalLink);
+        if (typeof checkUrlNavigationAndFocus === 'function') {
+            checkUrlNavigationAndFocus();
+        } else if (typeof cal_selectDate === 'function' && dateVal) {
+            const parts = dateVal.split('-');
+            if (parts.length === 3) {
+                cal_selectDate(new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)));
+            }
+            if (focusVal && typeof window.openEditTurnoModal === 'function') {
+                setTimeout(() => window.openEditTurnoModal(focusVal), 400);
+            }
+        } else {
+            window.location.href = finalLink;
+        }
+    } else {
+        window.location.href = finalLink;
+    }
+};
+
 window.toggleNotifications = function(e) {
     e.stopPropagation();
     const dropdown = document.getElementById('notifDropdown');

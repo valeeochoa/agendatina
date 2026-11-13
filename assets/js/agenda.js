@@ -994,6 +994,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else {
                         sessionStorage.removeItem('is_demo_user');
                     }
+
+                    // Guardia de plan: Si el negocio tiene Plan Básico/Simple (no incluye Agenda), redirigir a su calendario
+                    const planStr = String(d.business?.plan || 'basico').toLowerCase();
+                    const isBasic = planStr.includes('básico') || planStr.includes('basico') || planStr.includes('simple');
+                    if (isBasic) {
+                        const tipoCal = String(d.config?.tipo_calendario || '').toLowerCase();
+                        const calPage = tipoCal === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
+                        window.location.replace(calPage + window.location.search);
+                        return;
+                    }
                 }).catch(err => {
                     console.error('⚠️ [Error de Carga - Agenda] Desconexión de red o fallo al volver a cargar información:', err);
                     window.location.href = 'login.html';

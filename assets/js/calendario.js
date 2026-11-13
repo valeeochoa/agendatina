@@ -575,14 +575,18 @@ function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration =
     });
 
     // Incluir también los inicios de turnos agendados para que se muestren como 'No disponible' en vez de desaparecer
+    // SOLO si caen dentro de los tramos de atención del negocio (evita horarios anómalos o fuera de horario comercial)
     if (relevantBookings && relevantBookings.length > 0) {
         relevantBookings.forEach(b => {
             if (b.startMins !== undefined) {
-                const curH = Math.floor(b.startMins / 60).toString().padStart(2, '0');
-                const curM = (b.startMins % 60).toString().padStart(2, '0');
-                const bTime = `${curH}:${curM}`;
-                if (!availableSlots.includes(bTime)) {
-                    availableSlots.push(bTime);
+                const fallsInBusinessHours = tramos.some(tr => b.startMins >= tr.start && b.startMins < tr.end);
+                if (fallsInBusinessHours) {
+                    const curH = Math.floor(b.startMins / 60).toString().padStart(2, '0');
+                    const curM = (b.startMins % 60).toString().padStart(2, '0');
+                    const bTime = `${curH}:${curM}`;
+                    if (!availableSlots.includes(bTime)) {
+                        availableSlots.push(bTime);
+                    }
                 }
             }
         });
@@ -1546,9 +1550,24 @@ function openManualTurnoModal(preselectedTime = null, preselectedProf = null) {
         return;
     }
     const isEvent = preselectedTime && typeof preselectedTime === 'object';
-    const timeToSelect = isEvent ? null : preselectedTime;
+    let timeToSelect = isEvent ? null : preselectedTime;
     const fechaActual = toYYYYMMDD(cal_selectedDate);
     document.getElementById('manualFecha').value = fechaActual;
+
+    const sched = window.getDayScheduleTramos(fechaActual);
+    const validTramos = (sched && !sched.isClosed && Array.isArray(sched.tramos)) ? sched.tramos : [];
+
+    // Validar que el horario preseleccionado pertenezca a los tramos de atención del negocio
+    if (timeToSelect && validTramos.length > 0) {
+        const [th, tm] = timeToSelect.split(':').map(Number);
+        const tMins = th * 60 + tm;
+        const isValidTime = validTramos.some(tr => tMins >= tr.start && tMins < tr.end);
+        if (!isValidTime) {
+            timeToSelect = null;
+        }
+    } else if (validTramos.length === 0) {
+        timeToSelect = null;
+    }
     
     let adminInterval = 30;
     if (window.businessWebConfig && window.businessWebConfig.intervalo_turnos && window.businessWebConfig.intervalo_turnos !== 'servicio') {
@@ -1567,21 +1586,8 @@ function openManualTurnoModal(preselectedTime = null, preselectedProf = null) {
     const isTodaySelected = (selectedDateObj.getTime() === todayZero.getTime());
 
     const horaSelect = document.getElementById('manualHora');
+    const saveBtn = document.querySelector('#manualTurnoForm button[type="submit"]');
     horaSelect.innerHTML = '';
-    cal_availableTimes.forEach(t => {
-        if (window.isTimeInBreak(t, fechaActual)) return;
-        const timeKey = t.substring(0, 5);
-        const isOccupied = horasOcupadas.includes(timeKey);
-        const [hh, mm] = timeKey.split(':').map(Number);
-        const slotDate = new Date(selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate(), hh, mm, 0, 0);
-        const isPastSlot = isPastDay || (isTodaySelected && slotDate.getTime() <= now.getTime());
-
-        const isSlotDisabled = (!simultaneos && isOccupied);
-        const isDisabled = isSlotDisabled ? 'disabled' : '';
-        const suffix = isOccupied ? ' (Ocupado)' : (isPastSlot ? ' (Horario previo)' : '');
-        const isSelected = t === timeToSelect ? 'selected' : '';
-        horaSelect.innerHTML += `<option value="${t}" ${isSelected} ${isDisabled}>${t}${suffix}</option>`;
-    });
 
     const profSelect = document.getElementById('manualProfesional');
     profSelect.innerHTML = '';
@@ -1605,11 +1611,31 @@ function openManualTurnoModal(preselectedTime = null, preselectedProf = null) {
         const prevSelectedTime = horaSelect.value || timeToSelect;
         const dynamicTimes = computeDynamicTimeSlotsForDate(fechaActual, curProf, curDur, curCap, window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre);
         horaSelect.innerHTML = '';
+
+        if (validTramos.length === 0 || dynamicTimes.length === 0) {
+            horaSelect.innerHTML = '<option value="" disabled selected>Día cerrado / Sin horarios de atención</option>';
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.classList.add('opacity-50', 'pointer-events-none');
+            }
+            return;
+        }
+
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.classList.remove('opacity-50', 'pointer-events-none');
+        }
+
         dynamicTimes.forEach(t => {
+            const [hh, mm] = t.split(':').map(Number);
+            const tmTotal = hh * 60 + mm;
+            // Restricción estricta: Solo horarios dentro de los tramos configurados del negocio
+            const isInsideBusinessHours = validTramos.some(tr => tmTotal >= tr.start && (tmTotal + curDur) <= tr.end);
+            if (!isInsideBusinessHours) return;
             if (window.isTimeInBreak(t, fechaActual)) return;
+
             const timeKey = t.substring(0, 5);
             const isOccupied = horasOcupadas.includes(timeKey);
-            const [hh, mm] = timeKey.split(':').map(Number);
             const slotDate = new Date(selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate(), hh, mm, 0, 0);
             const isPastSlot = isPastDay || (isTodaySelected && slotDate.getTime() <= now.getTime());
             const isSlotDisabled = (!simultaneos && isOccupied);
@@ -1618,6 +1644,14 @@ function openManualTurnoModal(preselectedTime = null, preselectedProf = null) {
             const isSelected = t === prevSelectedTime ? 'selected' : '';
             horaSelect.innerHTML += `<option value="${t}" ${isSelected} ${isDisabled}>${t}${suffix}</option>`;
         });
+
+        if (horaSelect.options.length === 0) {
+            horaSelect.innerHTML = '<option value="" disabled selected>Sin horarios disponibles para este servicio</option>';
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.classList.add('opacity-50', 'pointer-events-none');
+            }
+        }
     };
     servSelect.onchange = updateManualHoursForService;
     profSelect.onchange = updateManualHoursForService;
@@ -4734,6 +4768,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         setTimeout(() => {
                             focusEl.classList.remove('ring-4', 'ring-primary', 'ring-offset-2');
                         }, 4000);
+                    }
+                    if (typeof window.openEditTurnoModal === 'function') {
+                        window.openEditTurnoModal(urlFocus);
                     }
                 }, 500);
             }

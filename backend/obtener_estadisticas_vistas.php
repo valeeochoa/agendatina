@@ -44,17 +44,8 @@ try {
         strpos($plan, 'premium') !== false || 
         strpos($plan, 'completo') !== false
     );
-
-    // Si el negocio no tiene plan Profesional ni Premium, no tiene acceso a métricas de vistas
-    if (!$isProOrPremium) {
-        echo json_encode([
-            'success' => true,
-            'allowed' => false,
-            'plan' => $plan,
-            'message' => 'Métricas de visualizaciones disponibles exclusivamente en planes Profesional y Premium.'
-        ]);
-        exit;
-    }
+    // Para plan básico: se permite ver métricas exclusivamente del calendario
+    $soloCalendario = !$isProOrPremium;
 
     $mesActual = date('Y-m');
     $mesAnterior = date('Y-m', strtotime('first day of last month'));
@@ -113,6 +104,24 @@ try {
         $vistas90['total'] += $cnt;
     }
 
+    // Si es plan básico, las estadísticas reflejan únicamente el calendario (web se mantiene en 0)
+    if ($soloCalendario) {
+        $vistasMesAct['web'] = 0;
+        $vistasMesAct['total'] = $vistasMesAct['calendario'];
+
+        $vistasMesAnt['web'] = 0;
+        $vistasMesAnt['total'] = $vistasMesAnt['calendario'];
+
+        $vistasHist['web'] = 0;
+        $vistasHist['total'] = $vistasHist['calendario'];
+
+        $vistas30['web'] = 0;
+        $vistas30['total'] = $vistas30['calendario'];
+
+        $vistas90['web'] = 0;
+        $vistas90['total'] = $vistas90['calendario'];
+    }
+
     // 5. Comparativa Porcentual y Validación de Historial
     // Solo mostrar comparativa si el negocio ya existía/pagaba antes del primer día del mes actual Y hubo vistas
     $fechaInicio = $negocio['fecha_alta'] ?? ($negocio['created_at'] ?? null);
@@ -136,6 +145,7 @@ try {
     echo json_encode([
         'success' => true,
         'allowed' => true,
+        'solo_calendario' => $soloCalendario,
         'plan' => $plan,
         'mes_actual' => $vistasMesAct,
         'mes_anterior' => $vistasMesAnt,
@@ -151,3 +161,4 @@ try {
     echo json_encode(['success' => false, 'error' => 'Error al obtener estadísticas de vistas']);
 }
 ?>
+

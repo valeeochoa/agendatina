@@ -87,7 +87,7 @@ try {
 $subVal = $ruta;
 $idVal = (is_numeric($ruta) && (int)$ruta > 0) ? (int)$ruta : 0;
 $stmtNegocio = $pdo->prepare("
-    SELECT n.id, n.nombre_fantasia, n.estado_pago, n.ultimo_pago, n.fecha_alta, u.email 
+    SELECT n.id, n.nombre_fantasia, n.estado_pago, n.ultimo_pago, n.fecha_alta, n.plan, u.email 
     FROM negocios n 
     LEFT JOIN personal_negocio pn ON n.id = pn.id_negocio AND pn.rol_en_local = 'admin'
     LEFT JOIN usuarios u ON pn.id_usuario = u.id
@@ -339,7 +339,7 @@ try {
         }
     }
 
-    $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos, tiempo_entre_turnos, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, reserva_sena_1h, whatsapp_comprobante, datos_transferencia, porcentaje_sena, usar_cupones_descuento, cupon_descuento_pct, cupon_duracion_horas, whatsapp_contacto, notificaciones_email, email_notif_inmediata FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
+    $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos, tipo_calendario, tiempo_entre_turnos, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, reserva_sena_1h, whatsapp_comprobante, datos_transferencia, porcentaje_sena, usar_cupones_descuento, cupon_descuento_pct, cupon_duracion_horas, whatsapp_contacto, notificaciones_email, email_notif_inmediata FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
     $stmtConfig->execute(['id' => $id_negocio]);
     $configWeb = $stmtConfig->fetch(PDO::FETCH_ASSOC);
     if (!is_array($configWeb)) $configWeb = [];
@@ -549,12 +549,30 @@ try {
     exit;
 }
 
-// URL directa hacia la agenda virtual posicionada en el nuevo turno
+// URL directa hacia la agenda o calendario según el plan del negocio
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 $scriptDir = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'] ?? '')), '/\\');
 $basePath = ($scriptDir === '/' || $scriptDir === '\\') ? '' : $scriptDir;
-$agendaFocusUrl = "{$protocol}://{$host}{$basePath}/agenda.html?tab=pendientes&focus=" . urlencode((string)$lastTurnoId) . "&fecha=" . urlencode($fecha);
+
+$planNegocioRaw = mb_strtolower(trim($negocioBD['plan'] ?? 'basico'), 'UTF-8');
+$isProOrPremium = (
+    strpos($planNegocioRaw, 'profesional') !== false ||
+    strpos($planNegocioRaw, 'intermedio') !== false ||
+    strpos($planNegocioRaw, 'premium') !== false ||
+    strpos($planNegocioRaw, 'completo') !== false
+);
+$tipoCal = strtolower(trim($configWeb['tipo_calendario'] ?? 'mensual'));
+$calFile = ($tipoCal === 'semanal') ? 'calendarioSemanal.html' : 'calendarioMensual.html';
+
+if ($isProOrPremium) {
+    $turnoFocusUrl = "{$protocol}://{$host}{$basePath}/agenda.html?tab=pendientes&focus=" . urlencode((string)$lastTurnoId) . "&fecha=" . urlencode($fecha);
+    $ctaText = "Ver y Confirmar Turno en Agenda →";
+} else {
+    $turnoFocusUrl = "{$protocol}://{$host}{$basePath}/{$calFile}?date=" . urlencode($fecha) . "&focus=" . urlencode((string)$lastTurnoId);
+    $ctaText = "Ver y Confirmar Turno en Calendario →";
+}
+$agendaFocusUrl = $turnoFocusUrl;
 
 // Responder al cliente de forma instantánea para que el modal de comprobante abra en < 1 segundo
 $responseJson = json_encode([
@@ -628,12 +646,20 @@ try {
                     Recuerda verificar el pago antes de confirmar definitivamente el turno en tu agenda.
                 </p>
                 <div style='margin-top: 14px;'>
-                    <a href='{$agendaFocusUrl}' target='_blank' style='display: inline-block; background-color: #d11149; color: #ffffff; text-decoration: none; font-weight: 800; font-size: 13px; padding: 10px 18px; border-radius: 8px;'>
-                        Ver y Confirmar Turno en Agenda →
+                    <a href='{$turnoFocusUrl}' target='_blank' style='display: inline-block; background-color: #d11149; color: #ffffff; text-decoration: none; font-weight: 800; font-size: 13px; padding: 10px 18px; border-radius: 8px;'>
+                        {$ctaText}
                     </a>
                 </div>
             </div>";
             $message = str_replace("<h2 style='color: #1e293b; margin-top: 0;'>¡Nueva Solicitud de Turno!</h2>", $bannerSena . "<h2 style='color: #1e293b; margin-top: 0;'>¡Turno en Espera de Confirmación (Seña)!</h2>", $message);
+        } else {
+            $ctaBtnNormal = "
+            <div style='text-align: center; margin-top: 16px;'>
+                <a href='{$turnoFocusUrl}' target='_blank' style='display: inline-block; background-color: #334155; color: #ffffff; text-decoration: none; font-weight: bold; font-size: 13px; padding: 10px 20px; border-radius: 8px;'>
+                    {$ctaText}
+                </a>
+            </div>";
+            $message = str_replace("</a>\n            </div>\n        </div>", "</a>\n            </div>{$ctaBtnNormal}\n        </div>", $message);
         }
 
         $mail->Subject = $subject;

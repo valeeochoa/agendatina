@@ -167,7 +167,7 @@
                     </div>
                     <div>
                         <h2 class="text-base sm:text-xl font-extrabold text-slate-900">Tráfico y Visualizaciones</h2>
-                        <p class="text-[11px] sm:text-xs text-slate-500">Personas que visitaron tu calendario virtual y página web.</p>
+                        <p class="text-[11px] sm:text-xs text-slate-500" id="subtituloVistas">Personas que visitaron tu calendario virtual y página web.</p>
                     </div>
                 </div>
                 <div class="text-xs font-bold text-indigo-700 bg-white px-3 py-1.5 rounded-xl border border-indigo-200 shadow-2xs self-start sm:self-auto">
@@ -175,18 +175,18 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div id="gridVistasCards" class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                 <div class="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-indigo-100 shadow-2xs">
                     <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block mb-0.5 sm:mb-1">Vistas al Calendario</span>
                     <div class="text-xl sm:text-3xl font-extrabold text-slate-900" id="statVistasCalendario">0</div>
                     <span class="text-[9px] sm:text-[10px] text-indigo-600 font-bold mt-1 block truncate">Visitas a tu grilla de turnos</span>
                 </div>
-                <div class="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-indigo-100 shadow-2xs">
+                <div id="cardVistasWeb" class="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-indigo-100 shadow-2xs">
                     <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block mb-0.5 sm:mb-1">Vistas a la Página Web</span>
                     <div class="text-xl sm:text-3xl font-extrabold text-purple-600" id="statVistasWeb">0</div>
                     <span class="text-[9px] sm:text-[10px] text-purple-600 font-bold mt-1 block truncate">Visitas a tu sitio web oficial</span>
                 </div>
-                <div class="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-indigo-100 shadow-2xs">
+                <div id="cardVistasTotal" class="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-indigo-100 shadow-2xs">
                     <span class="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider block mb-0.5 sm:mb-1">Total Visitas</span>
                     <div class="text-xl sm:text-3xl font-extrabold text-emerald-600" id="statVistasTotal">0</div>
                     <span class="text-[9px] sm:text-[10px] text-emerald-600 font-bold mt-1 block truncate">Alcance total acumulado</span>
@@ -350,6 +350,29 @@
             if (!secVistas) return;
             secVistas.classList.remove('hidden');
 
+            const isSoloCalendario = rawVistasData.solo_calendario === true;
+            const cardWeb = document.getElementById('cardVistasWeb');
+            const gridCards = document.getElementById('gridVistasCards');
+            const subtitulo = document.getElementById('subtituloVistas');
+
+            if (cardWeb) {
+                if (isSoloCalendario) {
+                    cardWeb.classList.add('hidden');
+                    if (gridCards) {
+                        gridCards.classList.remove('sm:grid-cols-3');
+                        gridCards.classList.add('sm:grid-cols-2');
+                    }
+                    if (subtitulo) subtitulo.textContent = 'Personas que visitaron tu calendario virtual.';
+                } else {
+                    cardWeb.classList.remove('hidden');
+                    if (gridCards) {
+                        gridCards.classList.remove('sm:grid-cols-2');
+                        gridCards.classList.add('sm:grid-cols-3');
+                    }
+                    if (subtitulo) subtitulo.textContent = 'Personas que visitaron tu calendario virtual y página web.';
+                }
+            }
+
             let metricas = rawVistasData.ultimos_30;
             let labelPeriodo = 'Últimos 30 Días';
             if (periodDays === '90') {
@@ -402,7 +425,9 @@
                     : `¡Este mes tuviste ${totalVistas.toLocaleString('es-AR')} vistas!`;
             }
             if (detalleEl) {
-                detalleEl.textContent = `Calendario: ${calVistas.toLocaleString('es-AR')} · Página Web: ${webVistas.toLocaleString('es-AR')}`;
+                detalleEl.textContent = data.solo_calendario 
+                    ? `Calendario: ${calVistas.toLocaleString('es-AR')} visitas` 
+                    : `Calendario: ${calVistas.toLocaleString('es-AR')} · Página Web: ${webVistas.toLocaleString('es-AR')}`;
             }
 
             // Comparativa porcentual: Solo si tiene historial previo del mes anterior
@@ -467,14 +492,8 @@
                     }
                 }
 
-                // Validar visibilidad de estadísticas de vistas y banner mensual (Planes Profesional y Premium)
-                const isProOrPremium = planStr.includes('profesional') || planStr.includes('intermedio') || planStr.includes('premium') || planStr.includes('completo');
-                if (isProOrPremium) {
-                    cargarEstadisticasVistas();
-                } else {
-                    document.getElementById('secEstadisticasVistas')?.classList.add('hidden');
-                    document.getElementById('bannerVistasMensuales')?.classList.add('hidden');
-                }
+                // Cargar estadísticas de vistas y banner mensual para todos los planes
+                cargarEstadisticasVistas();
 
                 processStats();
             }).catch(err => {
