@@ -867,9 +867,12 @@ function cal_renderCalendar() {
     }
 }
 
-function cal_renderTimeSlots() {
+function cal_renderTimeSlots(preserveSelected = true) {
     const timeSlotsContainer = document.getElementById('timeSlots');
     if (!timeSlotsContainer) return;
+
+    const prevSelectedTime = preserveSelected ? cal_selectedTime : null;
+    let preservedMatchFound = false;
 
     timeSlotsContainer.innerHTML = '';
     cal_selectedTime = null;
@@ -928,6 +931,13 @@ function cal_renderTimeSlots() {
         const isAvailable = slotStatus.available;
 
         if (isAvailable) {
+            const isThisSelected = (prevSelectedTime && time === prevSelectedTime);
+            if (isThisSelected) {
+                cal_selectedTime = time;
+                document.getElementById('horaSeleccionada').value = time;
+                preservedMatchFound = true;
+            }
+
             let spotsText = '';
             if (selectedCapacidad > 1) {
                 const spotsLeft = Math.max(0, selectedCapacidad - countTaken);
@@ -936,7 +946,10 @@ function cal_renderTimeSlots() {
 
             const clockIcon = '<span class="material-symbols-outlined text-[13px] opacity-70 inline-flex shrink-0">schedule</span>';
             slot.innerHTML = `<div class="flex items-center justify-center gap-1 w-full min-w-0">${clockIcon}<span class="whitespace-nowrap font-extrabold text-xs sm:text-[13px] tracking-tight leading-tight">${time}&nbsp;hs</span></div>${spotsText}`;
-            slot.className = 'time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-900 py-2 px-1.5 rounded-2xl text-xs sm:text-[13px] font-extrabold border-1.5 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 hover:-translate-y-0.5 hover:shadow-md cursor-pointer transition-all shadow-xs min-h-[38px] w-full';
+            slot.className = `time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-900 py-2 px-1.5 rounded-2xl text-xs sm:text-[13px] font-extrabold border-1.5 ${isThisSelected ? 'selected border-primary' : 'border-slate-200 dark:border-slate-700'} text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 hover:-translate-y-0.5 hover:shadow-md cursor-pointer transition-all shadow-xs min-h-[38px] w-full`;
+            if (isThisSelected) {
+                slot.classList.add('selected');
+            }
             
             slot.addEventListener('click', () => {
                 document.querySelectorAll('.time-slot').forEach(el => el.classList.remove('selected'));
@@ -953,16 +966,20 @@ function cal_renderTimeSlots() {
                 : 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400';
             
             slot.innerHTML = `
-                <div class="flex items-center justify-center gap-1.5 w-full min-w-0">
-                    <span class="whitespace-nowrap font-bold text-xs leading-tight text-slate-400 dark:text-slate-500">${time}&nbsp;hs</span>
-                    <span class="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${badgeClass} leading-tight">${badgeText}</span>
+                <div class="flex flex-col items-center justify-center gap-0.5 w-full min-w-0">
+                    <span class="whitespace-nowrap font-bold text-xs leading-tight text-slate-400 dark:text-slate-500 ${isPast ? 'line-through decoration-slate-400/60' : ''}">${time}&nbsp;hs</span>
+                    <span class="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-full ${badgeClass} leading-none max-w-full truncate">${badgeText}</span>
                 </div>
             `;
-            slot.className = 'time-slot unavailable flex flex-col justify-center items-center py-2 px-1.5 rounded-2xl text-xs font-bold opacity-60 cursor-not-allowed bg-slate-100/70 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 border border-dashed border-slate-200 dark:border-slate-700 min-h-[38px] w-full select-none';
+            slot.className = 'time-slot unavailable flex flex-col justify-center items-center py-1.5 px-1.5 rounded-2xl text-xs font-bold opacity-65 cursor-not-allowed bg-slate-100/70 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 border border-dashed border-slate-200 dark:border-slate-700 min-h-[44px] w-full overflow-hidden select-none';
         }
 
         timeSlotsContainer.appendChild(slot);
     });
+
+    if (prevSelectedTime && !preservedMatchFound && typeof showToast === 'function') {
+        showToast(`El horario ${prevSelectedTime} hs no está disponible para el nuevo servicio o profesional. Por favor elige otro horario.`, 'warning');
+    }
 }
 
 function cal_selectDate(date) {
@@ -1001,7 +1018,7 @@ function cal_selectDate(date) {
         if (selectedDateText) selectedDateText.textContent = formattedDate;
         if (fechaSeleccionada) fechaSeleccionada.value = dateString;
         if (typeof updateSelectedServicePriceDisplay === 'function') updateSelectedServicePriceDisplay();
-        if (typeof cal_renderTimeSlots === 'function') cal_renderTimeSlots();
+        if (typeof cal_renderTimeSlots === 'function') cal_renderTimeSlots(false);
     }
     
     if (dayDetailsContainer) {
@@ -3579,7 +3596,7 @@ function checkDayHasAvailableSlots(date) {
     return false;
 }
 
-function selectWeeklyDate(date) {
+function selectWeeklyDate(date, preserveSelected = false) {
     cal2_selectedDate = date;
     document.getElementById('selectedDateLabel').textContent = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).format(date);
     document.getElementById('weeklyFecha').value = toYYYYMMDD(date);
@@ -3587,6 +3604,8 @@ function selectWeeklyDate(date) {
     
     const container = document.getElementById('weeklyTimeSlots');
     container.innerHTML = '';
+    const prevWeeklyTime = preserveSelected ? cal2_selectedTime : null;
+    let preservedMatchFound2 = false;
     document.getElementById('weeklyHora').value = '';
     cal2_selectedTime = null;
     
@@ -3650,9 +3669,20 @@ function selectWeeklyDate(date) {
                 spotsText = `<span class="block text-[10px] font-semibold opacity-85 leading-none mt-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full">${spotsLeft} lugares</span>`;
             }
             
+            const isThisSelected = (prevWeeklyTime && time === prevWeeklyTime);
+            if (isThisSelected) {
+                cal2_selectedTime = time;
+                document.getElementById('weeklyHora').value = time;
+                preservedMatchFound2 = true;
+            }
+
             const clockIcon = '<span class="material-symbols-outlined text-[13px] sm:text-[14px] opacity-75 inline-flex shrink-0">schedule</span>';
             slot.innerHTML = `<div class="flex items-center justify-center gap-1 sm:gap-1.5 w-full min-w-0">${clockIcon}<span class="whitespace-nowrap font-extrabold text-xs sm:text-sm tracking-tight leading-tight">${time}&nbsp;hs</span></div>${spotsText}`;
-            slot.className = 'time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-800/90 py-2 sm:py-2.5 px-2 sm:px-3 rounded-2xl text-xs sm:text-sm font-extrabold border-1.5 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 shadow-xs min-h-[40px] w-full';
+            slot.className = `time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-800/90 py-2 sm:py-2.5 px-2 sm:px-3 rounded-2xl text-xs sm:text-sm font-extrabold border-1.5 ${isThisSelected ? 'selected scale-105 border-primary' : 'border-slate-200 dark:border-slate-700'} text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 shadow-xs min-h-[40px] w-full`;
+            if (isThisSelected) {
+                slot.classList.add('selected', 'scale-105');
+            }
+
             slot.addEventListener('click', () => {
                 document.querySelectorAll('#weeklyTimeSlots .time-slot').forEach(el => {
                     el.classList.remove('selected', 'scale-105');
@@ -3670,16 +3700,20 @@ function selectWeeklyDate(date) {
                 : 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400';
             
             slot.innerHTML = `
-                <div class="flex items-center justify-center gap-1.5 w-full min-w-0">
-                    <span class="whitespace-nowrap font-bold text-xs sm:text-sm leading-tight text-slate-400 dark:text-slate-500">${time}&nbsp;hs</span>
-                    <span class="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${badgeClass} leading-tight">${badgeText}</span>
+                <div class="flex flex-col items-center justify-center gap-0.5 w-full min-w-0">
+                    <span class="whitespace-nowrap font-bold text-xs sm:text-sm leading-tight text-slate-400 dark:text-slate-500 ${isPast ? 'line-through decoration-slate-400/60' : ''}">${time}&nbsp;hs</span>
+                    <span class="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-full ${badgeClass} leading-none max-w-full truncate">${badgeText}</span>
                 </div>
             `;
-            slot.className = 'time-slot unavailable flex flex-col justify-center items-center py-2 sm:py-2.5 px-2 sm:px-3 rounded-2xl text-xs sm:text-sm font-bold opacity-60 cursor-not-allowed bg-slate-100/70 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 border border-dashed border-slate-200 dark:border-slate-700 min-h-[40px] w-full select-none';
+            slot.className = 'time-slot unavailable flex flex-col justify-center items-center py-1.5 sm:py-2 px-1.5 sm:px-2 rounded-2xl text-xs sm:text-sm font-bold opacity-65 cursor-not-allowed bg-slate-100/70 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 border border-dashed border-slate-200 dark:border-slate-700 min-h-[46px] w-full overflow-hidden select-none';
         }
 
         container.appendChild(slot);
     });
+
+    if (prevWeeklyTime && !preservedMatchFound2 && typeof showToast === 'function') {
+        showToast(`El horario ${prevWeeklyTime} hs no está disponible para el nuevo servicio o profesional. Por favor elige otro horario.`, 'warning');
+    }
     
     if (firstAvailableTime && !cal2_selectedTime) {
         const slots = container.querySelectorAll('.time-slot:not(.unavailable)');
@@ -3880,6 +3914,42 @@ window.syncCouponFieldVisibility = function(conf) {
         if (enabled) boxW.classList.remove('hidden');
         else boxW.classList.add('hidden');
     }
+
+    const setupFeedback = (inputId, feedbackId) => {
+        const input = document.getElementById(inputId);
+        const feedback = document.getElementById(feedbackId);
+        if (!input || !feedback || input.dataset.feedbackAttached) return;
+        input.dataset.feedbackAttached = 'true';
+
+        input.addEventListener('blur', async () => {
+            const val = input.value.trim();
+            if (!val) {
+                feedback.className = 'hidden text-xs font-bold mt-1.5 ml-1';
+                feedback.textContent = '';
+                return;
+            }
+            feedback.className = 'text-xs font-bold mt-1.5 ml-1 text-slate-400 block';
+            feedback.textContent = 'Verificando cupón...';
+            const check = await window.validarCuponAntesDeReservar(val, negocioSlug);
+            if (check.valid) {
+                feedback.className = 'text-xs font-bold mt-1.5 ml-1 text-emerald-600 dark:text-emerald-400 flex items-center gap-1 block';
+                feedback.innerHTML = `<span class="material-symbols-outlined text-[15px]">check_circle</span> ${check.message || `Cupón válido (${check.descuentoPct}% OFF)`}`;
+            } else {
+                feedback.className = 'text-xs font-bold mt-1.5 ml-1 text-rose-500 flex items-center gap-1 block';
+                feedback.innerHTML = `<span class="material-symbols-outlined text-[15px]">error</span> ${check.error || 'Cupón inválido'}`;
+            }
+        });
+
+        input.addEventListener('input', () => {
+            if (!input.value.trim()) {
+                feedback.className = 'hidden text-xs font-bold mt-1.5 ml-1';
+                feedback.textContent = '';
+            }
+        });
+    };
+
+    setupFeedback('bookingCuponDescuento', 'bookingCuponFeedback');
+    setupFeedback('weeklyCuponDescuento', 'weeklyCuponFeedback');
 };
 
 window.copyAliasToClipboard = function(text) {
@@ -3962,7 +4032,47 @@ window.updateBookingSuccessModalContent = function(data) {
     }
 };
 
-window.verificarAvisoPrevioSena = function(config, onContinue) {
+window.validarCuponAntesDeReservar = async function(codigo, slug) {
+    const cod = (codigo || '').trim();
+    if (!cod) {
+        return { valid: true, descuentoPct: 0, codigo: '', message: '' };
+    }
+    const safeSlug = slug || negocioSlug || '';
+    try {
+        const formData = new FormData();
+        formData.append('negocio', safeSlug);
+        formData.append('codigo', cod);
+        const res = await fetch('backend/validar_cupon_negocio.php', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        if (data && data.success) {
+            return {
+                valid: true,
+                descuentoPct: parseInt(data.porcentaje_descuento || 0),
+                codigo: data.codigo || cod,
+                message: data.message || ''
+            };
+        } else {
+            return {
+                valid: false,
+                descuentoPct: 0,
+                codigo: cod,
+                error: (data && data.error) ? data.error : 'El cupón ingresado no es válido o no existe.'
+            };
+        }
+    } catch(e) {
+        return {
+            valid: false,
+            descuentoPct: 0,
+            codigo: cod,
+            error: 'No se pudo verificar el cupón por problemas de conexión. Intenta nuevamente.'
+        };
+    }
+};
+
+window.verificarAvisoPrevioSena = function(config, onContinue, bookingContext = {}) {
     const cfg = config || window.businessWebConfig || {};
     const tieneSena = (cfg.reserva_sena_1h == 1 || cfg.reserva_sena_1h === '1' || cfg.reserva_sena_1h === true) || 
                       (cfg.datos_transferencia && cfg.datos_transferencia.trim() !== '' && parseInt(cfg.porcentaje_sena) > 0);
@@ -3975,6 +4085,39 @@ window.verificarAvisoPrevioSena = function(config, onContinue) {
     const pct = parseInt(cfg.porcentaje_sena) || 50;
     const alias = (cfg.datos_transferencia || '').trim();
 
+    // Resolver servicio seleccionado y calcular montos
+    let precioBase = 0;
+    let senaFijaServicio = 0;
+    const sName = (bookingContext.serviceName || '').trim();
+    const pName = (bookingContext.professionalName || '').trim();
+    if (sName && Array.isArray(services) && services.length > 0) {
+        let match = null;
+        if (pName && pName !== 'Cualquiera' && !pName.includes('Sin preferencia')) {
+            match = services.find(s => s.nombre === sName && s.profesional === pName);
+        }
+        if (!match) {
+            match = services.find(s => s.nombre === sName);
+        }
+        if (match) {
+            precioBase = parseFloat(match.precio || 0);
+            senaFijaServicio = parseFloat(match.precio_sena || 0);
+        }
+    }
+
+    const descPct = parseInt(bookingContext.descuentoPct || 0);
+    const cuponCod = (bookingContext.cuponCodigo || '').trim();
+    let precioConDescuento = precioBase;
+    if (descPct > 0 && precioBase > 0) {
+        precioConDescuento = Math.round(precioBase * (1 - (descPct / 100)) * 100) / 100;
+    }
+
+    let montoSenaCalculado = 0;
+    if (precioConDescuento > 0 && pct > 0) {
+        montoSenaCalculado = Math.round(precioConDescuento * (pct / 100) * 100) / 100;
+    } else if (senaFijaServicio > 0) {
+        montoSenaCalculado = senaFijaServicio;
+    }
+
     let modal = document.getElementById('modalPrevioSena');
     if (!modal) {
         modal = document.createElement('div');
@@ -3985,36 +4128,66 @@ window.verificarAvisoPrevioSena = function(config, onContinue) {
 
     const safeAlias = alias.replace(/'/g, "\\'").replace(/\r?\n/g, ' ');
 
+    let cuponBadgeHtml = '';
+    if (cuponCod && descPct > 0) {
+        cuponBadgeHtml = `
+            <div class="p-2.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 text-emerald-800 dark:text-emerald-300 text-xs font-bold flex items-center justify-center gap-1.5 mb-1">
+                <span class="material-symbols-outlined text-[16px] text-emerald-600">local_activity</span>
+                <span>¡Cupón <strong>${cuponCod}</strong> (${descPct}% OFF)!</span>
+            </div>
+        `;
+    }
+
+    let desgloseSenaHtml = '';
+    if (montoSenaCalculado > 0) {
+        desgloseSenaHtml = `
+            <div class="bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 rounded-2xl p-4 text-center space-y-1.5">
+                <div class="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    ${descPct > 0 ? `Valor del servicio: <span class="line-through opacity-70">$${precioBase.toLocaleString('es-AR')}</span> <strong class="text-slate-700 dark:text-slate-200 font-bold">$${precioConDescuento.toLocaleString('es-AR')}</strong>` : `Valor del servicio: <strong class="text-slate-700 dark:text-slate-200 font-bold">$${precioBase.toLocaleString('es-AR')}</strong>`}
+                </div>
+                <div class="text-[11px] font-extrabold uppercase tracking-wider text-amber-900 dark:text-amber-300">
+                    Seña a transferir (${pct}%):
+                </div>
+                <div class="text-2xl sm:text-3xl font-black text-[#D11149]">
+                    $${montoSenaCalculado.toLocaleString('es-AR')}
+                </div>
+            </div>
+        `;
+    }
+
     modal.innerHTML = `
-        <div class="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-amber-200 text-center space-y-4">
-            <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-amber-200 dark:border-slate-800 text-center space-y-4">
+            <div class="w-14 h-14 bg-amber-100 dark:bg-amber-950/60 text-amber-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
                 <span class="material-symbols-outlined text-3xl">payments</span>
             </div>
             <div>
-                <span class="bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-2">
+                <span class="bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800 text-[11px] font-black px-3 py-1 rounded-full uppercase tracking-wider inline-block mb-2">
                     Seña Requerida
                 </span>
-                <h3 class="text-xl font-extrabold text-slate-900">
+                <h3 class="text-xl font-extrabold text-slate-900 dark:text-slate-100">
                     Información Importante de Seña
                 </h3>
-                <p class="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
-                    Para asegurar tu turno es necesario transferir el <strong>${pct}%</strong> del valor a modo de seña al siguiente Alias / CBU:
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
+                    Para asegurar tu turno es necesario transferir el <strong>${pct}%</strong> de seña${montoSenaCalculado > 0 ? ` (<strong>$${montoSenaCalculado.toLocaleString('es-AR')}</strong>)` : ''} al siguiente Alias / CBU:
                 </p>
             </div>
 
+            ${cuponBadgeHtml}
+            ${desgloseSenaHtml}
+
             ${alias ? `
-                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-left">
+                <div class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl p-3.5 text-left">
                     <div class="flex items-center justify-between gap-2 mb-1">
                         <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Alias / Datos Bancarios</span>
                         <button type="button" id="btnCopiarAliasPrevio" class="text-[11px] font-bold text-[#D11149] hover:underline flex items-center gap-0.5 cursor-pointer">
                             <span class="material-symbols-outlined text-[14px]">content_copy</span> Copiar
                         </button>
                     </div>
-                    <p class="text-xs sm:text-sm font-extrabold text-slate-800 break-words whitespace-pre-line">${alias}</p>
+                    <p class="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-100 break-words whitespace-pre-line">${alias}</p>
                 </div>
             ` : ''}
 
-            <p class="text-[11px] text-slate-500 font-medium">
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                 Al continuar, se registrará tu reserva y podrás enviar el comprobante de transferencia al negocio por WhatsApp para su confirmación.
             </p>
 
@@ -4023,7 +4196,7 @@ window.verificarAvisoPrevioSena = function(config, onContinue) {
                     <span>Entendido, Continuar y Solicitar</span>
                     <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </button>
-                <button type="button" id="btnCancelarPrevioSena" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer">
+                <button type="button" id="btnCancelarPrevioSena" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition-colors cursor-pointer">
                     Volver y Modificar
                 </button>
             </div>
@@ -4082,16 +4255,30 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('prevWeek').addEventListener('click', () => { weekStartDate.setDate(weekStartDate.getDate() - 7); renderWeeklyCalendar(); });
         document.getElementById('nextWeek').addEventListener('click', () => { weekStartDate.setDate(weekStartDate.getDate() + 7); renderWeeklyCalendar(); });
 
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
             if (!weeklySelectedService) return showToast('Por favor, selecciona un servicio.', 'error');
             if (!cal2_selectedTime) return showToast('Por favor, selecciona un horario en la grilla.', 'error');
             
+            const btn = document.getElementById('btnWeeklySubmit');
+            const originalBtnHtml = btn ? btn.innerHTML : 'Confirmar Reserva';
+            const cuponInput = document.getElementById('weeklyCuponDescuento');
+            const cuponVal = cuponInput ? cuponInput.value.trim() : '';
+
+            let couponData = { valid: true, descuentoPct: 0, codigo: '' };
+            if (cuponVal) {
+                if (btn) { btn.disabled = true; btn.textContent = 'Validando cupón...'; }
+                couponData = await window.validarCuponAntesDeReservar(cuponVal, negocioSlug);
+                if (!couponData.valid) {
+                    if (btn) { btn.disabled = false; btn.innerHTML = originalBtnHtml; }
+                    return showToast(couponData.error || 'El cupón ingresado no es válido.', 'error');
+                }
+            }
+            
             const doSubmitWeekly = () => {
-                const btn = document.getElementById('btnWeeklySubmit');
                 const formData = new FormData(form);
                 formData.append('negocio', negocioSlug);
-                btn.disabled = true; btn.textContent = 'Enviando...';
+                if (btn) { btn.disabled = true; btn.textContent = 'Enviando...'; }
                 
                 fetch('backend/enviar_turno.php', { method: 'POST', body: formData })
                 .then(async res => {
@@ -4107,10 +4294,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         document.getElementById('bookingSuccessModal').classList.remove('hidden');
                         setTimeout(() => { document.getElementById('bookingSuccessModal').classList.remove('opacity-0'); document.getElementById('bookingSuccessModalContent').classList.remove('scale-95'); }, 10);
                     } else showToast((data && data.error) ? data.error : 'Ocurrió un error al procesar el turno.', 'error');
-                }).catch(err => showToast((err && err.message) ? err.message : 'Error de conexión.', 'error')).finally(() => { btn.disabled = false; btn.innerHTML = 'Confirmar Reserva <span class="material-symbols-outlined text-xl">check_circle</span>'; });
+                }).catch(err => showToast((err && err.message) ? err.message : 'Error de conexión.', 'error')).finally(() => { 
+                    if (btn) { btn.disabled = false; btn.innerHTML = originalBtnHtml; }
+                });
             };
 
-            window.verificarAvisoPrevioSena(window.businessWebConfig, doSubmitWeekly);
+            window.verificarAvisoPrevioSena(window.businessWebConfig, doSubmitWeekly, {
+                serviceName: weeklySelectedService,
+                professionalName: globalSelectedProfessional,
+                descuentoPct: couponData.descuentoPct,
+                cuponCodigo: couponData.codigo
+            });
         });
         
         const prevClientBtnWeekly = document.getElementById('previewClientBtnWeekly');
@@ -4356,9 +4550,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const nextMonthBtn = document.getElementById('nextMonth');
         if (nextMonthBtn) nextMonthBtn.onclick = (e) => { e.preventDefault(); window.cal_changeMonth(1); };
 
-        bookingForm.addEventListener('submit', function(e) {
+        bookingForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const msgDiv = document.getElementById('formMessage');
+            const btnSubmit = document.getElementById('btnSubmit');
+            const originalBtnText = btnSubmit ? btnSubmit.textContent : 'Solicitar Turno';
             
             if (!cal_selectedTime) {
                 msgDiv.className = 'p-4 rounded-xl text-sm mt-2 font-medium bg-red-100 text-red-800';
@@ -4367,13 +4563,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const cuponInput = document.getElementById('bookingCuponDescuento');
+            const cuponVal = cuponInput ? cuponInput.value.trim() : '';
+
+            let couponData = { valid: true, descuentoPct: 0, codigo: '' };
+            if (cuponVal) {
+                if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'Validando cupón...'; }
+                couponData = await window.validarCuponAntesDeReservar(cuponVal, negocioSlug);
+                if (!couponData.valid) {
+                    if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = originalBtnText; }
+                    msgDiv.className = 'p-4 rounded-xl text-sm mt-2 font-medium bg-red-100 text-red-800';
+                    msgDiv.classList.remove('hidden');
+                    msgDiv.textContent = couponData.error || 'El cupón ingresado no es válido.';
+                    if (typeof showToast === 'function') showToast(couponData.error || 'El cupón ingresado no es válido.', 'error');
+                    return;
+                } else {
+                    msgDiv.classList.add('hidden');
+                }
+            }
+
             const doSubmitMonthly = () => {
-                const btnSubmit = document.getElementById('btnSubmit');
                 const formData = new FormData(bookingForm);
                 formData.append('negocio', negocioSlug);
                 
-                btnSubmit.disabled = true;
-                btnSubmit.textContent = 'Enviando...';
+                if (btnSubmit) { btnSubmit.disabled = true; btnSubmit.textContent = 'Enviando...'; }
                 
                 fetch('backend/enviar_turno.php', { method: 'POST', body: formData })
                 .then(async res => {
@@ -4407,10 +4620,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     msgDiv.className = 'p-4 rounded-xl text-sm mt-2 font-medium bg-red-100 text-red-800';
                     msgDiv.classList.remove('hidden');
                     msgDiv.textContent = (err && err.message) ? err.message : 'Error de conexión. Intenta nuevamente.';
-                }).finally(() => { btnSubmit.disabled = false; btnSubmit.textContent = 'Solicitar Turno'; });
+                }).finally(() => { 
+                    if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.textContent = originalBtnText; }
+                });
             };
 
-            window.verificarAvisoPrevioSena(window.businessWebConfig, doSubmitMonthly);
+            const srvSelect = document.getElementById('serviceSelect');
+            const profSelectVal = document.getElementById('profesionalSelect');
+            window.verificarAvisoPrevioSena(window.businessWebConfig, doSubmitMonthly, {
+                serviceName: srvSelect ? srvSelect.value : '',
+                professionalName: profSelectVal ? profSelectVal.value : '',
+                descuentoPct: couponData.descuentoPct,
+                cuponCodigo: couponData.codigo
+            });
         });
 
         window.cargarConfiguracionAjustes().finally(() => {

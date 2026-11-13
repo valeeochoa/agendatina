@@ -11,3 +11,4 @@ Disallow: /demo.php
 Disallow: /dashboard.html
 
 Sitemap: https://agendatina.site/sitemap.xml
+
