@@ -656,6 +656,7 @@ window.openEditTurnoModal = function(id) {
     // 5. Mostrar modal
     const content = document.getElementById('editTurnoModalContent');
     modal.classList.remove('hidden');
+    if (typeof window.setModalScrollLock === 'function') window.setModalScrollLock(true);
     setTimeout(() => {
         modal.classList.remove('opacity-0');
         content.classList.remove('scale-95');
@@ -665,6 +666,7 @@ window.openEditTurnoModal = function(id) {
 window.closeEditTurnoModal = function() {
     const modal = document.getElementById('editTurnoModal');
     const content = document.getElementById('editTurnoModalContent');
+    if (typeof window.setModalScrollLock === 'function') window.setModalScrollLock(false);
     if (modal && content) {
         modal.classList.add('opacity-0');
         content.classList.add('scale-95');
@@ -715,6 +717,7 @@ window.openPapeleraModal = function() {
     }
     
     modal.classList.remove('hidden');
+    if (typeof window.setModalScrollLock === 'function') window.setModalScrollLock(true);
     setTimeout(() => {
         modal.classList.remove('opacity-0');
         const content = document.getElementById('papeleraModalContent');
@@ -741,6 +744,7 @@ window.openPapeleraModal = function() {
 window.closePapeleraModal = function() {
     const modal = document.getElementById('papeleraModal');
     const content = document.getElementById('papeleraModalContent');
+    if (typeof window.setModalScrollLock === 'function') window.setModalScrollLock(false);
     if (modal) {
         modal.classList.add('opacity-0');
         if (content) content.classList.add('scale-95');
@@ -4175,10 +4179,10 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
         a.bg-primary, 
         .btn-primary, 
         .btn-cta,
-        button.bg-\[\#d11149\],
-        button.bg-\[\#D11149\],
-        a.bg-\[\#d11149\],
-        a.bg-\[\#D11149\],
+        button[class*="bg-[#d11149]"],
+        button[class*="bg-[#D11149]"],
+        a[class*="bg-[#d11149]"],
+        a[class*="bg-[#D11149]"],
         #btnConfigSubmit,
         #navSaveConfigBtn,
         #saveWebDataBtn,
@@ -4208,8 +4212,8 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
         }
 
         .card-accent,
-        div.card-accent.bg-\[\#d11149\],
-        div.card-accent.bg-\[\#D11149\] {
+        div.card-accent[class*="bg-[#d11149]"],
+        div.card-accent[class*="bg-[#D11149]"] {
             background-color: ${pColor} !important;
         }
 
@@ -4221,9 +4225,9 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
         .shadow-primary\\/20 { --tw-shadow-color: color-mix(in srgb, ${btnColor} 20%, transparent) !important; }
 
         .signature-glow,
-        div.from-\[\#d11149\].to-\[\#fc8712\],
-        div.from-\[\#D11149\].to-\[\#FC8712\],
-        div.from-\[\#d11149\].via-\[\#e24c30\].to-\[\#fc8712\] {
+        div[class*="from-[#d11149]"][class*="to-[#fc8712]"],
+        div[class*="from-[#D11149]"][class*="to-[#FC8712]"],
+        div[class*="from-[#d11149]"][class*="to-[#fc8712]"] {
             background: linear-gradient(135deg, ${btnColor} 0%, ${sColor} 100%) !important;
         }
 
@@ -5367,26 +5371,16 @@ window.switchActiveBusiness = function(idNegocio) {
     });
 };
 
+window.setModalScrollLock = function(isLocked) {
+    if (isLocked) {
+        document.documentElement.classList.add('modal-open');
+        document.body.classList.add('modal-open');
+    } else {
+        document.documentElement.classList.remove('modal-open');
+        document.body.classList.remove('modal-open');
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     window.checkUserMultipleBusinesses();
-
-    // Sincronización automática de bloqueo de scroll en el fondo cuando se abre cualquier modal
-    const syncModalLock = () => {
-        const hasOpenModal = Array.from(document.querySelectorAll('.fixed.inset-0')).some(el => {
-            if (el.classList.contains('hidden') || el.style.display === 'none') return false;
-            const id = (el.id || '').toLowerCase();
-            return id.includes('modal') || el.classList.contains('backdrop-blur-sm') || el.classList.contains('bg-slate-900/60');
-        });
-        if (hasOpenModal) {
-            document.documentElement.classList.add('modal-open');
-            document.body.classList.add('modal-open');
-        } else {
-            document.documentElement.classList.remove('modal-open');
-            document.body.classList.remove('modal-open');
-        }
-    };
-
-    const modalObserver = new MutationObserver(syncModalLock);
-    modalObserver.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });
-    syncModalLock();
 });

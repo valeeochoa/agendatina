@@ -48,6 +48,10 @@ try {
     try { $pdo->exec("ALTER TABLE turnos ADD INDEX idx_negocio_fecha (id_negocio, fecha)"); } 
     catch (Exception $e) { /* El índice ya existe, continuamos silenciosamente */ }
 
+    // Asegurar columna tipo_servicio en tabla servicios para joins seguros
+    try { $pdo->query("SELECT tipo_servicio FROM servicios LIMIT 1"); } 
+    catch(Exception $e) { try { $pdo->exec("ALTER TABLE servicios ADD COLUMN tipo_servicio VARCHAR(30) DEFAULT 'calendario'"); } catch(Exception $ex) {} }
+
     // 2. MIGRACIÓN: Asegurar que todas las columnas que vamos a leer existan en la tabla vieja
     $columnas = [
         'cliente_nombre' => 'VARCHAR(255) DEFAULT NULL',

@@ -1591,11 +1591,13 @@ window.abrirModalCrearCupon = function() {
 
     window.generarCodigoAleatorioCupon();
     modal.classList.remove('hidden');
+    if (typeof window.setModalScrollLock === 'function') window.setModalScrollLock(true);
 };
 
 window.cerrarModalCrearCupon = function() {
     const modal = document.getElementById('modalCrearCupon');
     if (modal) modal.classList.add('hidden');
+    if (typeof window.setModalScrollLock === 'function') window.setModalScrollLock(false);
 };
 
 window.generarCodigoAleatorioCupon = function() {
