@@ -84,7 +84,32 @@ try {
     $historial = isset($_GET['historial']) && $_GET['historial'] === '1';
     
     $profesional_filter = "";
-    if (isset($_SESSION['rol_en_local']) && $_SESSION['rol_en_local'] === 'profesional') {
+    $isProf = (isset($_SESSION['rol_en_local']) && $_SESSION['rol_en_local'] === 'profesional');
+    if (!$isProf && isset($_SESSION['user_id']) && isset($_SESSION['id_negocio'])) {
+        try {
+            $stmtPn = $pdo->prepare("SELECT rol_en_local, permisos FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ? LIMIT 1");
+            $stmtPn->execute([$_SESSION['id_negocio'], $_SESSION['user_id']]);
+            $pnRow = $stmtPn->fetch(PDO::FETCH_ASSOC);
+            if ($pnRow) {
+                $_SESSION['rol_en_local'] = $pnRow['rol_en_local'];
+                $isProf = ($pnRow['rol_en_local'] === 'profesional');
+                if (!empty($pnRow['permisos'])) {
+                    $_SESSION['permisos'] = json_decode($pnRow['permisos'], true);
+                }
+            }
+        } catch (Exception $ePn) {}
+    }
+
+    if (empty($_SESSION['nombre_completo']) && isset($_SESSION['user_id'])) {
+        try {
+            $stmtU = $pdo->prepare("SELECT nombre_completo FROM usuarios WHERE id = ?");
+            $stmtU->execute([$_SESSION['user_id']]);
+            $uName = $stmtU->fetchColumn();
+            if ($uName) $_SESSION['nombre_completo'] = $uName;
+        } catch (Exception $eU) {}
+    }
+
+    if ($isProf) {
         $permisos = $_SESSION['permisos'] ?? null;
         if (is_string($permisos)) {
             $permisos = json_decode($permisos, true) ?: [];
@@ -102,8 +127,8 @@ try {
         }
 
         // Si el admin deshabilitó la opción de ver los turnos de todo el equipo, solo muestra sus turnos
-        if (!$verTodos) {
-            $profesional_filter = " AND (t.profesional = :mi_nombre OR t.profesional LIKE :mi_nombre_like) ";
+        if (!$verTodos && !empty($_SESSION['nombre_completo'])) {
+            $profesional_filter = " AND (LOWER(TRIM(t.profesional)) = LOWER(TRIM(:mi_nombre)) OR t.profesional LIKE :mi_nombre_like) ";
         }
     }
 

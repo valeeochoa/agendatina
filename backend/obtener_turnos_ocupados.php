@@ -26,6 +26,45 @@ if (empty($ruta)) {
 // Determinar si quien consulta es el dueño/admin autenticado del negocio
 $esAdminDelNegocio = (isset($_SESSION['id_negocio']) && (int)$_SESSION['id_negocio'] === (int)$id_negocio);
 
+// Permisos del usuario en sesión
+$isProfLogged = (isset($_SESSION['rol_en_local']) && $_SESSION['rol_en_local'] === 'profesional');
+if (!$isProfLogged && isset($_SESSION['user_id']) && isset($_SESSION['id_negocio'])) {
+    try {
+        $stmtPn = $pdo->prepare("SELECT rol_en_local, permisos FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ? LIMIT 1");
+        $stmtPn->execute([$_SESSION['id_negocio'], $_SESSION['user_id']]);
+        $pnRow = $stmtPn->fetch(PDO::FETCH_ASSOC);
+        if ($pnRow) {
+            $_SESSION['rol_en_local'] = $pnRow['rol_en_local'];
+            $isProfLogged = ($pnRow['rol_en_local'] === 'profesional');
+            if (!empty($pnRow['permisos'])) {
+                $_SESSION['permisos'] = json_decode($pnRow['permisos'], true);
+            }
+        }
+    } catch (Exception $ePn) {}
+}
+
+if (empty($_SESSION['nombre_completo']) && isset($_SESSION['user_id'])) {
+    try {
+        $stmtU = $pdo->prepare("SELECT nombre_completo FROM usuarios WHERE id = ?");
+        $stmtU->execute([$_SESSION['user_id']]);
+        $uName = $stmtU->fetchColumn();
+        if ($uName) $_SESSION['nombre_completo'] = $uName;
+    } catch (Exception $eU) {}
+}
+
+$userPerms = $_SESSION['permisos'] ?? [];
+if (is_string($userPerms)) $userPerms = json_decode($userPerms, true) ?: [];
+$verTodosTurnos = true;
+if ($isProfLogged && isset($userPerms['ver_todos_turnos'])) {
+    $verTodosTurnos = !empty($userPerms['ver_todos_turnos']);
+}
+$profesionalSessionName = $_SESSION['nombre_completo'] ?? '';
+
+// Si es profesional y NO tiene permiso para ver todos los turnos, forzar su propio nombre
+if ($isProfLogged && !$verTodosTurnos && !empty($profesionalSessionName)) {
+    $profesional = $profesionalSessionName;
+}
+
 // Liberar el archivo de sesión para que el dashboard no se quede colgado
 session_write_close();
 
@@ -58,10 +97,12 @@ try {
 
     // Si se consulta para un profesional específico o el usuario logueado es profesional, buscar sus horarios propios
     $targetProfName = null;
-    if (!empty($profesional) && $profesional !== 'Cualquiera (Sin preferencia)' && $profesional !== 'Cualquiera' && $profesional !== 'columnas') {
+    if ($isProfLogged && !$verTodosTurnos && !empty($profesionalSessionName)) {
+        $targetProfName = $profesionalSessionName;
+    } else if (!empty($profesional) && $profesional !== 'Cualquiera (Sin preferencia)' && $profesional !== 'Cualquiera' && $profesional !== 'columnas' && $profesional !== 'todos') {
         $targetProfName = $profesional;
-    } else if (isset($_SESSION['rol_en_local']) && $_SESSION['rol_en_local'] === 'profesional') {
-        $targetProfName = $_SESSION['nombre_completo'] ?? null;
+    } else if ($isProfLogged) {
+        $targetProfName = $profesionalSessionName;
     }
 
     if ($targetProfName && $id_negocio) {
@@ -111,7 +152,9 @@ try {
         'usar_cupones_descuento' => (int)($conf['usar_cupones_descuento'] ?? 0),
         'cupon_descuento_pct' => (int)($conf['cupon_descuento_pct'] ?? 10),
         'cupon_duracion_horas' => (int)($conf['cupon_duracion_horas'] ?? 24),
-        'reserva_sena_1h' => (int)($conf['reserva_sena_1h'] ?? 0)
+        'reserva_sena_1h' => (int)($conf['reserva_sena_1h'] ?? 0),
+        'profesional_fijado' => ($isProfLogged && !$verTodosTurnos) ? $profesionalSessionName : null,
+        'es_profesional_propio' => ($isProfLogged && !$verTodosTurnos)
     ];
     
     $intervaloRaw = $conf && isset($conf['intervalo_turnos']) && is_numeric($conf['intervalo_turnos']) ? (int)$conf['intervalo_turnos'] : 30;
@@ -134,7 +177,11 @@ try {
                   WHERE t.id_negocio = :id_negocio AND t.estado IN ('pendiente', 'confirmado', 'bloqueado')";
     $params = ['id_negocio' => $id_negocio];
 
-    if (!empty($profesional) && $profesional !== 'Cualquiera (Sin preferencia)' && $profesional !== 'Cualquiera' && $profesional !== 'columnas') {
+    if ($isProfLogged && !$verTodosTurnos && !empty($profesionalSessionName)) {
+        $sqlTurnos .= " AND (t.profesional = :mi_prof_nombre OR t.profesional LIKE :mi_prof_nombre_like)";
+        $params['mi_prof_nombre'] = $profesionalSessionName;
+        $params['mi_prof_nombre_like'] = '%' . $profesionalSessionName . '%';
+    } else if (!empty($profesional) && $profesional !== 'Cualquiera (Sin preferencia)' && $profesional !== 'Cualquiera' && $profesional !== 'columnas' && $profesional !== 'todos') {
         $sqlTurnos .= " AND (t.profesional = :profesional OR t.profesional = 'Cualquiera (Sin preferencia)' OR t.profesional IS NULL OR t.profesional = '')";
         $params['profesional'] = $profesional;
     }

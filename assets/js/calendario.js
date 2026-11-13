@@ -682,13 +682,17 @@ window.refreshCalendarData = function() {
 
 function cal_fetchBookedTimes() {
     let prof = globalSelectedProfessional;
-    if (!prof || prof === 'columnas') {
+    if (window.currentUserIsProfOnlyOwn && window.currentProfOnlyOwnName) {
+        prof = window.currentProfOnlyOwnName;
+        globalSelectedProfessional = window.currentProfOnlyOwnName;
+        adminWeeklySelectedProf = window.currentProfOnlyOwnName;
+    } else if (!prof || prof === 'columnas') {
         const profSelect = document.getElementById('profesionalSelect');
         prof = profSelect ? profSelect.value : '';
     }
 
     let url = negocioSlug ? `backend/obtener_turnos_ocupados.php?n=${negocioSlug}` : `backend/obtener_turnos_ocupados.php`;
-    if (prof && prof !== 'Cualquiera (Sin preferencia)' && prof !== 'Cualquiera' && prof !== 'columnas') {
+    if (prof && prof !== 'Cualquiera (Sin preferencia)' && prof !== 'Cualquiera' && prof !== 'columnas' && prof !== 'todos') {
         url += (url.includes('?') ? '&' : '?') + `p=${encodeURIComponent(prof)}`;
     }
 
@@ -697,6 +701,15 @@ function cal_fetchBookedTimes() {
     .then(data => {
         cal_bookedSlots = data;
         if (data && data._config) {
+            if (data._config.es_profesional_propio && data._config.profesional_fijado) {
+                window.currentUserIsProfOnlyOwn = true;
+                window.currentProfOnlyOwnName = data._config.profesional_fijado;
+                globalSelectedProfessional = data._config.profesional_fijado;
+                adminWeeklySelectedProf = data._config.profesional_fijado;
+
+                const filterContainer = document.getElementById('calendarViewFilterContainer');
+                if (filterContainer) filterContainer.style.setProperty('display', 'none', 'important');
+            }
             window.businessWebConfig = Object.assign(window.businessWebConfig || {}, data._config);
         }
         if (cal_selectedDate) cal_renderTimeSlots();
@@ -1064,6 +1077,10 @@ function renderAdminDayView(dateString) {
 
     // 1. Filtrar turnos del día
     let appointmentsForDay = allAppointments.filter(t => t.fecha === dateString);
+    if (window.currentUserIsProfOnlyOwn && window.currentProfOnlyOwnName) {
+        appointmentsForDay = appointmentsForDay.filter(t => !t.profesional || window.isSameProf(t.profesional, window.currentProfOnlyOwnName));
+        globalSelectedProfessional = window.currentProfOnlyOwnName;
+    }
     
     // Limpiamos AMBOS contenedores
     adminTimeSlots.innerHTML = '';
@@ -1598,12 +1615,20 @@ function openManualTurnoModal(preselectedTime = null, preselectedProf = null) {
     horaSelect.innerHTML = '';
 
     const profSelect = document.getElementById('manualProfesional');
-    profSelect.innerHTML = '';
-    const uniqueProfs = getUniqueProfessionals();
-    uniqueProfs.forEach(p => {
-        const sel = profToSelect === p ? 'selected' : '';
-        profSelect.innerHTML += `<option value="${p}" ${sel}>${p}</option>`;
-    });
+    if (profSelect) {
+        profSelect.innerHTML = '';
+        if (window.currentUserIsProfOnlyOwn && window.currentProfOnlyOwnName) {
+            profSelect.innerHTML = `<option value="${escapeHtml(window.currentProfOnlyOwnName)}" selected>${escapeHtml(window.currentProfOnlyOwnName)}</option>`;
+            profSelect.disabled = true;
+        } else {
+            profSelect.disabled = false;
+            const uniqueProfs = getUniqueProfessionals();
+            uniqueProfs.forEach(p => {
+                const sel = profToSelect === p ? 'selected' : '';
+                profSelect.innerHTML += `<option value="${p}" ${sel}>${p}</option>`;
+            });
+        }
+    }
 
     const servSelect = document.getElementById('manualServicio');
     servSelect.innerHTML = '';
@@ -1954,6 +1979,12 @@ function populateCalendarViewFilter() {
 
     const select = document.getElementById('calendarViewFilter');
     const pillsWrapper = document.getElementById('calendarViewFilterPills');
+
+    if (window.currentUserIsProfOnlyOwn) {
+        if (filterContainer) filterContainer.style.setProperty('display', 'none', 'important');
+        return;
+    }
+
     const uniqueProfs = getUniqueProfessionals();
     const profDisplayMap = window.formatProfDisplayNames(uniqueProfs);
     
@@ -2950,7 +2981,12 @@ function renderAdminWeeklyServices() {
 }
 
 function initAdminWeeklyServices() {
-    if (!adminWeeklySelectedProf) adminWeeklySelectedProf = 'todos';
+    if (window.currentUserIsProfOnlyOwn && window.currentProfOnlyOwnName) {
+        adminWeeklySelectedProf = window.currentProfOnlyOwnName;
+        globalSelectedProfessional = window.currentProfOnlyOwnName;
+    } else {
+        if (!adminWeeklySelectedProf) adminWeeklySelectedProf = 'todos';
+    }
     if (!adminWeeklySelectedService) adminWeeklySelectedService = 'todos';
     renderAdminWeeklyServices();
     renderAdminWeeklyProfs();
@@ -2961,6 +2997,16 @@ function renderAdminWeeklyProfs() {
     const container = document.getElementById('adminWeeklyProfs');
     if (!container) return;
     container.innerHTML = '';
+    
+    if (window.currentUserIsProfOnlyOwn && window.currentProfOnlyOwnName) {
+        adminWeeklySelectedProf = window.currentProfOnlyOwnName;
+        globalSelectedProfessional = window.currentProfOnlyOwnName;
+        const myBadge = document.createElement('div');
+        myBadge.className = 'px-3.5 py-2 rounded-xl text-xs sm:text-sm font-black flex items-center gap-1.5 shrink-0 border-2 shadow-2xs bg-amber-100 dark:bg-amber-950/70 text-[#FC8712] dark:text-amber-400 border-amber-400 dark:border-amber-600 ring-2 ring-amber-300/40';
+        myBadge.innerHTML = `<span class="material-symbols-outlined text-[16px]">person</span><span>${escapeHtml(window.currentProfOnlyOwnName)}</span>`;
+        container.appendChild(myBadge);
+        return;
+    }
     
     // Obtenemos solo los profesionales que tienen asignado al menos 1 servicio o turnos (excluyendo Agendatina DEMO u otros sin servicios)
     const allProfs = getUniqueProfessionals();
@@ -3042,9 +3088,15 @@ function renderAdminWeeklyProfs() {
 }
 
 function cal_fetchBookedTimesWeeklyAdmin() {
+    let targetProf = adminWeeklySelectedProf;
+    if (window.currentUserIsProfOnlyOwn && window.currentProfOnlyOwnName) {
+        targetProf = window.currentProfOnlyOwnName;
+        adminWeeklySelectedProf = window.currentProfOnlyOwnName;
+        globalSelectedProfessional = window.currentProfOnlyOwnName;
+    }
     let url = negocioSlug ? `backend/obtener_turnos_ocupados.php?n=${negocioSlug}` : `backend/obtener_turnos_ocupados.php`;
-    if (adminWeeklySelectedProf && adminWeeklySelectedProf !== 'Cualquiera (Sin preferencia)' && adminWeeklySelectedProf !== 'columnas') {
-        url += (url.includes('?') ? '&' : '?') + `p=${encodeURIComponent(adminWeeklySelectedProf)}`;
+    if (targetProf && targetProf !== 'todos' && targetProf !== 'Cualquiera (Sin preferencia)' && targetProf !== 'columnas') {
+        url += (url.includes('?') ? '&' : '?') + `p=${encodeURIComponent(targetProf)}`;
     }
     Promise.all([
         fetch(url).then(res => res.json()),
@@ -3052,6 +3104,15 @@ function cal_fetchBookedTimesWeeklyAdmin() {
     ]).then(([bookedData]) => { 
         cal_bookedSlots = bookedData; 
         if (bookedData && bookedData._config) {
+            if (bookedData._config.es_profesional_propio && bookedData._config.profesional_fijado) {
+                window.currentUserIsProfOnlyOwn = true;
+                window.currentProfOnlyOwnName = bookedData._config.profesional_fijado;
+                globalSelectedProfessional = bookedData._config.profesional_fijado;
+                adminWeeklySelectedProf = bookedData._config.profesional_fijado;
+
+                const filterContainer = document.getElementById('calendarViewFilterContainer');
+                if (filterContainer) filterContainer.style.setProperty('display', 'none', 'important');
+            }
             window.businessWebConfig = Object.assign(window.businessWebConfig || {}, bookedData._config);
             if (typeof window.syncCouponFieldVisibility === 'function') window.syncCouponFieldVisibility(window.businessWebConfig);
         }
@@ -3088,7 +3149,10 @@ function renderAdminWeeklyGrid() {
     const today = new Date(); today.setHours(0,0,0,0);
     const now = new Date();
     
-    if (!adminWeeklySelectedProf) {
+    if (window.currentUserIsProfOnlyOwn && window.currentProfOnlyOwnName) {
+        adminWeeklySelectedProf = window.currentProfOnlyOwnName;
+        globalSelectedProfessional = window.currentProfOnlyOwnName;
+    } else if (!adminWeeklySelectedProf) {
         adminWeeklySelectedProf = 'todos';
     }
     if (!adminWeeklySelectedService) {
@@ -3128,7 +3192,9 @@ function renderAdminWeeklyGrid() {
         const dayApts = allAppointments.filter(a => {
             if (a.fecha !== dateString) return false;
             if (a.estado === 'cancelado' || a.estado === 'rechazado') return false;
-            if (!isTodosProf && a.profesional && adminWeeklySelectedProf) {
+            if (window.currentUserIsProfOnlyOwn && window.currentProfOnlyOwnName) {
+                if (a.profesional && !window.isSameProf(a.profesional, window.currentProfOnlyOwnName)) return false;
+            } else if (!isTodosProf && a.profesional && adminWeeklySelectedProf) {
                 if (!window.isSameProf(a.profesional, adminWeeklySelectedProf)) return false;
             }
             return true;
@@ -5032,6 +5098,18 @@ function checkAdminCalendarSession(config = null) {
                     sessionStorage.setItem('agendatina_perm_notice', 'No tienes permisos para acceder a la agenda ni al calendario.');
                     window.location.href = 'dashboard.html';
                     return;
+                }
+
+                const canVerTodosTurnos = perms.ver_todos_turnos !== undefined ? (parseInt(perms.ver_todos_turnos) === 1 || perms.ver_todos_turnos === true) : false;
+                if (!canVerTodosTurnos) {
+                    window.currentUserIsProfOnlyOwn = true;
+                    window.currentProfOnlyOwnName = data.user.nombre_completo || '';
+                    globalSelectedProfessional = window.currentProfOnlyOwnName;
+                    adminWeeklySelectedProf = window.currentProfOnlyOwnName;
+
+                    // Ocultar filtro de cambio de profesionales
+                    const filterContainer = document.getElementById('calendarViewFilterContainer');
+                    if (filterContainer) filterContainer.style.setProperty('display', 'none', 'important');
                 }
             }
 
