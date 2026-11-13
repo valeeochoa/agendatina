@@ -459,6 +459,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtOld = $pdo->prepare("SELECT * FROM configuracion_web WHERE id_negocio = ?");
         $stmtOld->execute([$id_negocio]);
         $oldData = $stmtOld->fetch() ?: [];
+
+        // Validar permisos si el rol es profesional
+        $userRole = $_SESSION['rol_en_local'] ?? null;
+        if (!$userRole && isset($_SESSION['user_id'])) {
+            $stmtCheckRole = $pdo->prepare("SELECT rol_en_local, permisos FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ? LIMIT 1");
+            $stmtCheckRole->execute([$id_negocio, $_SESSION['user_id']]);
+            $pnRow = $stmtCheckRole->fetch(PDO::FETCH_ASSOC);
+            if ($pnRow) {
+                $userRole = $pnRow['rol_en_local'];
+                $_SESSION['rol_en_local'] = $userRole;
+                if (!empty($pnRow['permisos'])) {
+                    $_SESSION['permisos'] = json_decode($pnRow['permisos'], true);
+                }
+            }
+        }
+
+        if ($userRole === 'profesional') {
+            $userPerms = $_SESSION['permisos'] ?? [];
+            $canWeb = !empty($userPerms['web']);
+            if (!$canWeb) {
+                echo json_encode(['success' => false, 'error' => 'Acceso denegado. No tienes permisos para modificar la página web de este negocio.']);
+                exit;
+            }
+
+            // Si es profesional con permiso web, no puede modificar ajustes generales del negocio
+            $adminOnlyFields = ['hora_apertura', 'hora_cierre', 'dias_trabajo', 'metodos_pago', 'limite_eliminacion_dias', 'intervalo_turnos', 'tiempo_entre_turnos', 'turnos_simultaneos', 'datos_transferencia', 'porcentaje_sena', 'modo_reservas'];
+            foreach ($adminOnlyFields as $field) {
+                if (isset($data[$field]) && isset($oldData[$field]) && $data[$field] != $oldData[$field]) {
+                    echo json_encode(['success' => false, 'error' => 'Acceso denegado. Solo el administrador puede modificar la configuración general y horarios del negocio.']);
+                    exit;
+                }
+            }
+        }
         
         $maxSize = 2 * 1024 * 1024; // Límite de 2MB
 

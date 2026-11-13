@@ -5025,6 +5025,16 @@ function checkAdminCalendarSession(config = null) {
                 isUserAdmin = true;
             }
 
+            if (data.user && (data.user.rol === 'profesional' || data.user.rol_en_local === 'profesional')) {
+                const perms = data.user.permisos || {};
+                const canAgenda = perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true;
+                if (!canAgenda && !isVisitingOtherBusiness) {
+                    sessionStorage.setItem('agendatina_perm_notice', 'No tienes permisos para acceder a la agenda ni al calendario.');
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+            }
+
             if (isUserAdmin) {
                 isAdmin = true;
                 isPublicClientSlug = false;

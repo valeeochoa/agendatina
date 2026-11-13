@@ -75,6 +75,24 @@ try {
     $id_usuario = $_SESSION['user_id'];
     $id_negocio = $_SESSION['id_negocio'];
 
+    // Sincronizar siempre el rol y permisos reales desde personal_negocio
+    $userRole = 'profesional';
+    $pnPermsRaw = null;
+    try {
+        $stmtPn = $pdo->prepare("SELECT rol_en_local, permisos FROM personal_negocio WHERE id_usuario = ? AND id_negocio = ? LIMIT 1");
+        $stmtPn->execute([$id_usuario, $id_negocio]);
+        $pnRow = $stmtPn->fetch(PDO::FETCH_ASSOC);
+        if ($pnRow && !empty($pnRow['rol_en_local'])) {
+            $userRole = $pnRow['rol_en_local'];
+            $pnPermsRaw = $pnRow['permisos'];
+        } else {
+            $userRole = $_SESSION['rol_en_local'] ?? 'admin';
+        }
+    } catch (Throwable $ePn) {
+        $userRole = $_SESSION['rol_en_local'] ?? 'admin';
+    }
+    $_SESSION['rol_en_local'] = $userRole;
+
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         if (isset($_GET['action']) && $_GET['action'] === 'check_ruta') {
             $rutaCheck = preg_replace('/[^a-zA-Z0-9-]/', '', strtolower(trim($_GET['ruta'] ?? '')));
@@ -110,23 +128,24 @@ try {
         $stmtU->execute([$id_usuario]);
         $user = $stmtU->fetch(PDO::FETCH_ASSOC);
 
-        $userRole = $_SESSION['rol_en_local'] ?? 'admin';
         $defaultProfPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 0, 'servicios' => 0, 'estadisticas' => 0, 'equipo' => 0];
         $defaultAdminPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 1, 'servicios' => 1, 'estadisticas' => 1, 'equipo' => 1];
 
         if ($user) {
             $user['rol'] = $userRole;
+            $user['rol_en_local'] = $userRole;
             if ($userRole === 'admin') {
                 $user['permisos'] = $defaultAdminPerms;
             } else {
-                try {
-                    $stmtPnPerms = $pdo->prepare("SELECT permisos FROM personal_negocio WHERE id_usuario = ? AND id_negocio = ? LIMIT 1");
-                    $stmtPnPerms->execute([$id_usuario, $id_negocio]);
-                    $rawPerms = $stmtPnPerms->fetchColumn();
-                    $parsedPerms = !empty($rawPerms) ? json_decode($rawPerms, true) : ($_SESSION['permisos'] ?? null);
-                    $user['permisos'] = is_array($parsedPerms) ? array_merge($defaultProfPerms, $parsedPerms) : $defaultProfPerms;
-                } catch (Throwable $ePerms) {
+                $parsedPerms = !empty($pnPermsRaw) ? json_decode($pnPermsRaw, true) : ($_SESSION['permisos'] ?? null);
+                if (!is_array($parsedPerms)) {
                     $user['permisos'] = $defaultProfPerms;
+                } else {
+                    $finalPerms = [];
+                    foreach ($defaultProfPerms as $pk => $pv) {
+                        $finalPerms[$pk] = isset($parsedPerms[$pk]) ? (int)$parsedPerms[$pk] : (int)$pv;
+                    }
+                    $user['permisos'] = $finalPerms;
                 }
             }
             $_SESSION['permisos'] = $user['permisos'];

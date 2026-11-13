@@ -8,11 +8,126 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// Definición centralizada de permisos para el Dashboard
+window.applyDashboardPermissions = function(userData) {
+    const user = userData || window.currentUserData;
+    if (!user) return;
+
+    const rol = user.rol || user.rol_en_local || '';
+    const isProf = (rol === 'profesional');
+
+    const hideEl = (selectorOrId) => {
+        let els = [];
+        if (typeof selectorOrId === 'string') {
+            const byId = document.getElementById(selectorOrId);
+            if (byId) els.push(byId);
+            else {
+                try {
+                    els = Array.from(document.querySelectorAll(selectorOrId));
+                } catch(e) {}
+            }
+        } else if (selectorOrId instanceof HTMLElement) {
+            els.push(selectorOrId);
+        }
+        els.forEach(el => {
+            el.classList.add('hidden');
+            el.style.setProperty('display', 'none', 'important');
+        });
+    };
+
+    const showEl = (selectorOrId) => {
+        let els = [];
+        if (typeof selectorOrId === 'string') {
+            const byId = document.getElementById(selectorOrId);
+            if (byId) els.push(byId);
+            else {
+                try {
+                    els = Array.from(document.querySelectorAll(selectorOrId));
+                } catch(e) {}
+            }
+        } else if (selectorOrId instanceof HTMLElement) {
+            els.push(selectorOrId);
+        }
+        els.forEach(el => {
+            el.classList.remove('hidden');
+            el.style.removeProperty('display');
+        });
+    };
+
+    if (!isProf) {
+        // Administrador: mostrar módulos normalmente
+        showEl('cardAjustes');
+        showEl('cardEquipo');
+        showEl('cardTeam');
+        if (typeof loadTeamList === 'function') loadTeamList();
+        return;
+    }
+
+    // Rol: PROFESIONAL
+    const perms = user.permisos || {};
+    const canAgenda = perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true;
+    const canWeb = perms.web !== undefined ? (parseInt(perms.web) === 1 || perms.web === true) : false;
+    const canServicios = perms.servicios !== undefined ? (parseInt(perms.servicios) === 1 || perms.servicios === true) : false;
+    const canEstadisticas = perms.estadisticas !== undefined ? (parseInt(perms.estadisticas) === 1 || perms.estadisticas === true) : false;
+    const canEquipo = perms.equipo !== undefined ? (parseInt(perms.equipo) === 1 || perms.equipo === true) : false;
+
+    // 1. Agenda Virtual y Calendario
+    if (!canAgenda) {
+        hideEl('cardAgenda');
+        hideEl('cardCalendario');
+        hideEl('cardClientes');
+        hideEl('dashHeroBtnAgenda');
+        hideEl('dashHeroBtnCalendario');
+        hideEl('dashHeroStatsRow');
+        hideEl('a[href="agenda.html"]');
+        hideEl('a[href="calendarioMensual.html"]');
+        hideEl('a[href="calendarioSemanal.html"]');
+    } else {
+        showEl('cardAgenda');
+        showEl('cardCalendario');
+        showEl('cardClientes');
+        showEl('dashHeroBtnAgenda');
+        showEl('dashHeroBtnCalendario');
+        showEl('dashHeroStatsRow');
+    }
+
+    // 2. Mi Página Web
+    if (!canWeb) hideEl('cardWeb'); else showEl('cardWeb');
+
+    // 3. Servicios
+    if (!canServicios) hideEl('cardServicios'); else showEl('cardServicios');
+
+    // 4. Equipo de Trabajo (ID en HTML: cardEquipo)
+    if (!canEquipo) {
+        hideEl('cardEquipo');
+        hideEl('cardTeam');
+    } else {
+        showEl('cardEquipo');
+    }
+
+    // 5. Estadísticas
+    if (!canEstadisticas) hideEl('cardEstadisticas'); else showEl('cardEstadisticas');
+
+    // 6. Ajustes (NUNCA accesible para profesionales)
+    hideEl('cardAjustes');
+
+    // 7. Onboarding Guide ("Primeros Pasos en Agendatina") y Alertas
+    hideEl('onboardingWidget');
+    hideEl('configAlertBanner');
+    hideEl('subscriptionBanner');
+    hideEl('verifyEmailBanner');
+
+    // 8. Mensaje en el subtítulo del Dashboard
+    const subGreeting = document.getElementById('dashSubGreeting');
+    if (subGreeting) {
+        subGreeting.textContent = 'Aquí puedes visualizar las secciones y turnos habilitados por la administración.';
+    }
+};
+
 // Interceptamos la carga de datos para inyectar nuestras correcciones
 const originalLoadDashboardData = window.loadDashboardData;
 window.loadDashboardData = function() {
-    // 1. Ejecutar la carga normal primero
-    if (originalLoadDashboardData) originalLoadDashboardData();
+    const promise = originalLoadDashboardData ? originalLoadDashboardData() : null;
 
     if (typeof window.applyUserCustomColors === 'function') {
         const cachedP = localStorage.getItem('user_color_primario');
@@ -23,8 +138,7 @@ window.loadDashboardData = function() {
         }
     }
     
-    // 2. Asegurar que el enlace del calendario se actualice con la vista correcta
-    setTimeout(() => {
+    const onDataReady = () => {
         const cardCalendario = document.getElementById('cardCalendario');
         const step2Link = document.getElementById('step2Link');
         const isWeekly = window.currentWebData?.tipo_calendario === 'semanal';
@@ -32,7 +146,6 @@ window.loadDashboardData = function() {
         if (cardCalendario) cardCalendario.href = calPage;
         if (step2Link) step2Link.href = 'servicios.html';
         
-        // 3. Gestionar permisos según el rol y verificación de correo (Modo DEMO oculta banners de verificación y pago)
         if (window.currentUserData) {
             const isDemo = (window.currentUserData.email && window.currentUserData.email.includes('demo')) ||
                            (window.currentBusinessData && (window.currentBusinessData.ruta === 'demo' || window.currentBusinessData.subdominio === 'demo' || window.currentBusinessData.is_demo === true));
@@ -44,7 +157,7 @@ window.loadDashboardData = function() {
                 if (vBanner) { vBanner.classList.add('hidden'); vBanner.style.setProperty('display', 'none', 'important'); }
                 if (sBanner) { sBanner.classList.add('hidden'); sBanner.style.setProperty('display', 'none', 'important'); }
             } else {
-                if (vBanner) {
+                if (vBanner && window.currentUserData.rol !== 'profesional') {
                     const isVerified = parseInt(window.currentUserData.email_verificado || 0) === 1;
                     if (!isVerified) {
                         vBanner.classList.remove('hidden');
@@ -56,7 +169,7 @@ window.loadDashboardData = function() {
                 }
             }
 
-            // Cartel de bienvenida: En modo Demo muestra aviso demo + tour una sola vez por sesión; en cuentas reales muestra bienvenida una sola vez tras registro
+            // Cartel de bienvenida
             if (isDemo) {
                 const demoNoticeShown = sessionStorage.getItem('agendatina_demo_notice_shown') === 'true';
                 if (!demoNoticeShown) {
@@ -66,7 +179,7 @@ window.loadDashboardData = function() {
                         }
                     }, 400);
                 }
-            } else {
+            } else if (window.currentUserData.rol !== 'profesional') {
                 const urlParams = new URLSearchParams(window.location.search);
                 const hasWelcomeParam = urlParams.get('welcome') === '1' || sessionStorage.getItem('show_welcome_modal') === 'true';
                 const bizId = (window.currentBusinessData && window.currentBusinessData.id) ? window.currentBusinessData.id : 'real_account';
@@ -76,7 +189,6 @@ window.loadDashboardData = function() {
                 const alreadyShownInStorage = localStorage.getItem(key) === 'true';
                 const alreadyShownInSession = sessionStorage.getItem(sessionKey) === 'true';
 
-                // Limpiar el parámetro welcome=1 de la URL para que no persista al volver de otros segmentos
                 if (urlParams.get('welcome') === '1') {
                     const cleanUrl = window.location.pathname;
                     window.history.replaceState({}, document.title, cleanUrl);
@@ -94,47 +206,30 @@ window.loadDashboardData = function() {
                 }
             }
 
-            const rol = window.currentUserData.rol || window.currentUserData.rol_en_local;
-            const perms = window.currentUserData.permisos || {};
+            // Aplicar permisos del rol
+            window.applyDashboardPermissions(window.currentUserData);
 
-            if (rol === 'profesional') {
-                // Ocultar o mostrar tarjetas según permisos individuales
-                if (perms.agenda === 0) {
-                    ['cardAgenda', 'cardCalendario'].forEach(id => {
-                        const el = document.getElementById(id);
-                        if (el) el.style.display = 'none';
-                    });
-                }
-                if (perms.web === 0) {
-                    const elW = document.getElementById('cardWeb');
-                    if (elW) elW.style.display = 'none';
-                }
-                if (perms.servicios === 0) {
-                    const elS = document.getElementById('cardServicios');
-                    if (elS) elS.style.display = 'none';
-                }
-                if (perms.estadisticas === 0) {
-                    const elEst = document.getElementById('cardEstadisticas');
-                    if (elEst) elEst.style.display = 'none';
-                }
-                if (perms.equipo === 0) {
-                    const elT = document.getElementById('cardTeam');
-                    if (elT) elT.style.display = 'none';
-                }
-                
-                // Ocultar Banner de pago
-                const banner = document.getElementById('subscriptionBanner');
-                if (banner) banner.style.display = 'none';
-                
-                // Cambiar saludo
-                const subGreeting = document.getElementById('dashSubGreeting');
-                if (subGreeting) subGreeting.textContent = 'Aquí puedes visualizar las secciones y turnos habilitados por la administración.';
-            } else {
-                // Si es dueño (admin), cargar la lista de profesionales para el límite
-                loadTeamList();
+            // Aviso si fue redirigido por falta de permisos
+            const permNotice = sessionStorage.getItem('agendatina_perm_notice');
+            if (permNotice) {
+                sessionStorage.removeItem('agendatina_perm_notice');
+                setTimeout(() => {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast(permNotice, 'warning', 5000);
+                    }
+                }, 200);
             }
         }
-    }, 200);
+    };
+
+    if (promise && typeof promise.then === 'function') {
+        promise.then(onDataReady).catch(onDataReady);
+    } else {
+        setTimeout(onDataReady, 100);
+        setTimeout(onDataReady, 300);
+    }
+
+    return promise;
 };
 
 window.openVerifyEmailModal = function(autoSend = true) {

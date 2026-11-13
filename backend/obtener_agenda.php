@@ -86,14 +86,19 @@ try {
     $profesional_filter = "";
     if (isset($_SESSION['rol_en_local']) && $_SESSION['rol_en_local'] === 'profesional') {
         $permisos = $_SESSION['permisos'] ?? null;
+        if (is_string($permisos)) {
+            $permisos = json_decode($permisos, true) ?: [];
+        }
+
+        // Si el admin deshabilitó el acceso a la agenda, retornar vacío
+        if (is_array($permisos) && isset($permisos['agenda']) && empty($permisos['agenda'])) {
+            echo json_encode([]);
+            exit;
+        }
+
         $verTodos = true;
         if (is_array($permisos) && isset($permisos['ver_todos_turnos'])) {
             $verTodos = !empty($permisos['ver_todos_turnos']);
-        } elseif (is_string($permisos)) {
-            $parsedP = json_decode($permisos, true);
-            if (is_array($parsedP) && isset($parsedP['ver_todos_turnos'])) {
-                $verTodos = !empty($parsedP['ver_todos_turnos']);
-            }
         }
 
         // Si el admin deshabilitó la opción de ver los turnos de todo el equipo, solo muestra sus turnos

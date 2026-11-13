@@ -949,7 +949,7 @@ window.logoutDashboard = logout;
 window.currentWebData = window.currentWebData || {};
 
 function loadDashboardData() {
-    Promise.all([
+    return Promise.all([
         fetch('backend/perfil.php')
             .then(async res => {
                 const text = await res.text();
@@ -1016,6 +1016,11 @@ function loadDashboardData() {
             }
             window.currentUserData = data.user || {};
             window.currentBusinessData = business;
+
+            // Aplicar permisos inmediatamente si la función está disponible
+            if (typeof window.applyDashboardPermissions === 'function') {
+                window.applyDashboardPermissions(window.currentUserData);
+            }
 
             // Sincronizar colores personalizados del perfil y la web inmediatamente en el Dashboard
             const pCol = webData.color_primario || data.color_primario || business.color_primario || (data.user && data.user.color_primario);
@@ -1308,6 +1313,11 @@ function loadDashboardData() {
 
             checkNotifications(); // Cargar notificaciones en la campanita
             loadDashboardChart(webData.color_primario || '#d11149');
+            
+            // Aplicar permisos del rol antes de revelar el contenido del panel
+            if (typeof window.applyDashboardPermissions === 'function') {
+                window.applyDashboardPermissions(window.currentUserData);
+            }
             
             // Revelar el dashboard suavemente
             const loader = document.getElementById('dashboardLoader');
@@ -3876,6 +3886,47 @@ function checkAdminGlobalSession(config = null) {
                 isUserAdmin = true;
             } else {
                 isUserAdmin = false;
+            }
+
+            // Guardia de acceso para perfil Profesional según permisos asignados
+            if (data.user && (data.user.rol === 'profesional' || data.user.rol_en_local === 'profesional')) {
+                const perms = data.user.permisos || {};
+                const canAgenda = perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true;
+                const canWeb = perms.web !== undefined ? (parseInt(perms.web) === 1 || perms.web === true) : false;
+                const canServicios = perms.servicios !== undefined ? (parseInt(perms.servicios) === 1 || perms.servicios === true) : false;
+                const canEstadisticas = perms.estadisticas !== undefined ? (parseInt(perms.estadisticas) === 1 || perms.estadisticas === true) : false;
+                const canEquipo = perms.equipo !== undefined ? (parseInt(perms.equipo) === 1 || perms.equipo === true) : false;
+
+                const curFile = (window.location.pathname.split('/').pop() || '').toLowerCase();
+                let blocked = false;
+                let blockedMsg = '';
+
+                if (curFile.includes('ajustes')) {
+                    blocked = true;
+                    blockedMsg = 'La sección de Ajustes está reservada exclusivamente para el administrador.';
+                } else if (curFile.includes('mi-web') && !canWeb) {
+                    blocked = true;
+                    blockedMsg = 'No tienes permiso para editar la página web.';
+                } else if (curFile.includes('servicios') && !canServicios) {
+                    blocked = true;
+                    blockedMsg = 'No tienes permiso para gestionar los servicios.';
+                } else if (curFile.includes('equipo') && !canEquipo) {
+                    blocked = true;
+                    blockedMsg = 'No tienes permiso para gestionar el equipo.';
+                } else if (curFile.includes('estadisticas') && !canEstadisticas) {
+                    blocked = true;
+                    blockedMsg = 'No tienes permiso para ver las estadísticas.';
+                } else if ((curFile.includes('agenda') || curFile.includes('clientes')) && !canAgenda) {
+                    blocked = true;
+                    blockedMsg = 'No tienes permiso para acceder a la agenda virtual.';
+                }
+
+                if (blocked) {
+                    console.warn('⛔ [Agendatina Permisos] Acceso restringido para profesional a:', curFile);
+                    sessionStorage.setItem('agendatina_perm_notice', blockedMsg);
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
             }
 
             // Actualizar nombre del negocio e imagen del logo en el Header SOLAMENTE si es admin del negocio actual
