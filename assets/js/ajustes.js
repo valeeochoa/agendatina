@@ -892,13 +892,13 @@ function renderDiasHorariosContainer() {
         let tramosHtml = '';
         tramos.forEach((t, idx) => {
             tramosHtml += `
-                <div class="flex items-center gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-200/80">
-                    <span class="text-xs font-extrabold text-slate-500 shrink-0 min-w-[65px]">Tramo ${idx + 1}:</span>
-                    <input type="time" value="${t.inicio || '09:00'}" data-day="${dia.key}" data-idx="${idx}" data-field="inicio" onchange="validateHorariosDetalladosLive()" class="tramo-input w-28 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none" title="Formato 24hs: 10:00 vs 22:00">
+                <div class="flex flex-wrap items-center justify-center gap-2 bg-slate-50 p-2.5 rounded-2xl border border-slate-200/80">
+                    <span class="text-xs font-extrabold text-slate-500 shrink-0 min-w-[65px] text-center">Tramo ${idx + 1}:</span>
+                    <input type="time" value="${t.inicio || '09:00'}" data-day="${dia.key}" data-idx="${idx}" data-field="inicio" onchange="validateHorariosDetalladosLive()" class="tramo-input w-24 sm:w-28 text-center bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none" title="Formato 24hs: 10:00 vs 22:00">
                     <span class="text-xs font-bold text-slate-400">a</span>
-                    <input type="time" value="${t.fin || '18:00'}" data-day="${dia.key}" data-idx="${idx}" data-field="fin" onchange="validateHorariosDetalladosLive()" class="tramo-input w-28 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none" title="Formato 24hs: 12:00 vs 20:00">
+                    <input type="time" value="${t.fin || '18:00'}" data-day="${dia.key}" data-idx="${idx}" data-field="fin" onchange="validateHorariosDetalladosLive()" class="tramo-input w-24 sm:w-28 text-center bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none" title="Formato 24hs: 12:00 vs 20:00">
                     ${tramos.length > 1 ? `
-                        <button type="button" onclick="removeTramoHorario('${dia.key}', ${idx})" class="text-red-400 hover:text-red-600 p-1.5 rounded-xl hover:bg-red-50 transition-colors ml-auto flex items-center justify-center" title="Eliminar tramo">
+                        <button type="button" onclick="removeTramoHorario('${dia.key}', ${idx})" class="text-red-400 hover:text-red-600 p-1.5 rounded-xl hover:bg-red-50 transition-colors ml-auto sm:ml-2 flex items-center justify-center" title="Eliminar tramo">
                             <span class="material-symbols-outlined text-[18px]">delete</span>
                         </button>
                     ` : ''}

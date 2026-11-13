@@ -4169,12 +4169,24 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
             box-shadow: 0 10px 25px -5px color-mix(in srgb, ${sColor} 25%, transparent) !important;
         }
 
-        /* 3. Colores Primarios y Botones de Acción/Confirmación en Modales y Dashboard */
+        /* 3. Colores Primarios y Botones de Acción/Guardado en todos los Módulos y Modales */
         .bg-primary, 
         button.bg-primary, 
         a.bg-primary, 
         .btn-primary, 
         .btn-cta,
+        button.bg-\[\#d11149\],
+        button.bg-\[\#D11149\],
+        a.bg-\[\#d11149\],
+        a.bg-\[\#D11149\],
+        #btnConfigSubmit,
+        #navSaveConfigBtn,
+        #saveWebDataBtn,
+        #navSaveWebDataBtn,
+        #btnGuardarPerfil,
+        #btnGuardarCupon,
+        #btnGuardarCliente,
+        #btnMejorarPlan,
         #btnVolverPanel,
         .btn-modal-confirm,
         #btnModalConfirm,
@@ -4184,13 +4196,21 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
         #btnSaveCalendarConfig,
         #btnProfileSubmit,
         #btnTeamSubmit,
-        #btnReportSubmit,
         #btnSubmitVerify,
         #btnAcceptConfirm,
-        div[id*="Modal"] button[type="submit"]:not(.bg-red-500):not(.bg-red-600):not(.bg-emerald-500):not(.bg-emerald-600),
-        div[id*="modal"] button[type="submit"]:not(.bg-red-500):not(.bg-red-600):not(.bg-emerald-500):not(.bg-emerald-600) { 
+        button[onclick*="saveHorariosDetalladosModal"],
+        button[onclick*="abrirModalCrearCupon"],
+        div[id*="Modal"] button[type="submit"]:not(.bg-red-500):not(.bg-red-600):not(#btnReportSubmit),
+        div[id*="modal"] button[type="submit"]:not(.bg-red-500):not(.bg-red-600):not(#btnReportSubmit) { 
             background-color: ${btnColor} !important; 
             border-color: ${btnColor} !important;
+            color: ${btnTextColor} !important;
+        }
+
+        .card-accent,
+        div.card-accent.bg-\[\#d11149\],
+        div.card-accent.bg-\[\#D11149\] {
+            background-color: ${pColor} !important;
         }
 
         .text-primary { color: ${pColor} !important; }
@@ -4200,7 +4220,10 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
         .shadow-primary\\/30 { --tw-shadow-color: color-mix(in srgb, ${btnColor} 30%, transparent) !important; }
         .shadow-primary\\/20 { --tw-shadow-color: color-mix(in srgb, ${btnColor} 20%, transparent) !important; }
 
-        .signature-glow {
+        .signature-glow,
+        div.from-\[\#d11149\].to-\[\#fc8712\],
+        div.from-\[\#D11149\].to-\[\#FC8712\],
+        div.from-\[\#d11149\].via-\[\#e24c30\].to-\[\#fc8712\] {
             background: linear-gradient(135deg, ${btnColor} 0%, ${sColor} 100%) !important;
         }
 
@@ -5346,4 +5369,24 @@ window.switchActiveBusiness = function(idNegocio) {
 
 document.addEventListener('DOMContentLoaded', () => {
     window.checkUserMultipleBusinesses();
+
+    // Sincronización automática de bloqueo de scroll en el fondo cuando se abre cualquier modal
+    const syncModalLock = () => {
+        const hasOpenModal = Array.from(document.querySelectorAll('.fixed.inset-0')).some(el => {
+            if (el.classList.contains('hidden') || el.style.display === 'none') return false;
+            const id = (el.id || '').toLowerCase();
+            return id.includes('modal') || el.classList.contains('backdrop-blur-sm') || el.classList.contains('bg-slate-900/60');
+        });
+        if (hasOpenModal) {
+            document.documentElement.classList.add('modal-open');
+            document.body.classList.add('modal-open');
+        } else {
+            document.documentElement.classList.remove('modal-open');
+            document.body.classList.remove('modal-open');
+        }
+    };
+
+    const modalObserver = new MutationObserver(syncModalLock);
+    modalObserver.observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class', 'style'] });
+    syncModalLock();
 });

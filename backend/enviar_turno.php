@@ -245,17 +245,24 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 } catch (\Throwable $eTbl) {}
 
-try { $pdo->query("SELECT nombre FROM cupones_descuento LIMIT 1"); } 
-catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE cupones_descuento ADD COLUMN nombre VARCHAR(150) DEFAULT NULL"); } catch(\Throwable $ex) {} }
-
-try { $pdo->query("SELECT usos_maximos FROM cupones_descuento LIMIT 1"); } 
-catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE cupones_descuento ADD COLUMN usos_maximos INT DEFAULT 1"); } catch(\Throwable $ex) {} }
-
-try { $pdo->query("SELECT usos_actuales FROM cupones_descuento LIMIT 1"); } 
-catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE cupones_descuento ADD COLUMN usos_actuales INT DEFAULT 0"); } catch(\Throwable $ex) {} }
-
-try { $pdo->query("SELECT activo FROM cupones_descuento LIMIT 1"); } 
-catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE cupones_descuento ADD COLUMN activo TINYINT(1) DEFAULT 1"); } catch(\Throwable $ex) {} }
+$colsCupones = [
+    'porcentaje_descuento' => 'INT DEFAULT 10',
+    'nombre' => 'VARCHAR(150) DEFAULT NULL',
+    'cliente_celular' => 'VARCHAR(50) DEFAULT NULL',
+    'cliente_nombre' => 'VARCHAR(255) DEFAULT NULL',
+    'usado' => 'TINYINT(1) DEFAULT 0',
+    'usos_maximos' => 'INT DEFAULT 1',
+    'usos_actuales' => 'INT DEFAULT 0',
+    'activo' => 'TINYINT(1) DEFAULT 1',
+    'es_acumulable' => 'TINYINT(1) DEFAULT 0',
+    'fecha_creacion' => 'DATETIME DEFAULT CURRENT_TIMESTAMP',
+    'fecha_expiracion' => 'DATETIME DEFAULT NULL',
+    'fecha_uso' => 'DATETIME DEFAULT NULL'
+];
+foreach ($colsCupones as $cName => $cDef) {
+    try { $pdo->query("SELECT $cName FROM cupones_descuento LIMIT 1"); } 
+    catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE cupones_descuento ADD COLUMN $cName $cDef"); } catch(\Throwable $ex) {} }
+}
 
 foreach ([
     'reserva_sena_1h' => 'TINYINT(1) DEFAULT 0',

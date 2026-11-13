@@ -98,6 +98,9 @@ if (!function_exists('asegurarDatosDemo')) {
             }
 
             if ($needsReset) {
+                $_SESSION['last_demo_reset'] = $currentTime;
+                $_SESSION['demo_initialized_' . $negocioId] = true;
+
                 // A. Recrear Servicios de Demostración (Clases grupales + servicios individuales)
                 $pdo->prepare("DELETE FROM servicios WHERE id_negocio = ?")->execute([$negocioId]);
 
@@ -213,13 +216,13 @@ if (!function_exists('asegurarDatosDemo')) {
                 $f_pas = date('Y-m-d', strtotime('+2 days'));
 
                 $stmtInsTurnoIndiv = $pdo->prepare("
-                    INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, estado, asistio, metodo_pago, precio, requiere_sena_1h, created_at) VALUES 
-                    (?, 'Sofía Castro', '11 3344 5566', ?, '17:00', 'Masaje Relajante & Descontracturante', 'Valentina Ochoa', ?, 'pendiente', 0, 'Transferencia (Seña 1h)', 15000, 1, NOW()),
-                    (?, 'Camila Varela', '11 7788 9900', ?, '15:00', 'Limpieza Facial Profunda', 'Camila Benítez', ?, 'confirmado', 0, 'Transferencia', 12000, 0, NOW()),
-                    (?, 'Martín Palermo', '11 4455 6677', ?, '10:00', 'Masaje Relajante & Descontracturante', 'Valentina Ochoa', ?, 'confirmado', 1, 'Efectivo', 15000, 0, NOW()),
-                    (?, 'Valeria Lynch', '11 6677 8899', ?, '11:30', 'Limpieza Facial Profunda', 'Camila Benítez', ?, 'pendiente', 0, 'Efectivo', 12000, 0, NOW()),
-                    (?, 'Joaquín Sabina', '11 2233 1122', ?, '16:30', 'Masaje Relajante & Descontracturante', 'Valentina Ochoa', ?, 'confirmado', 0, 'Mercado Pago', 15000, 0, NOW()),
-                    (?, 'Luciana Salazar', '11 9988 7766', ?, '14:00', 'Limpieza Facial Profunda', 'Camila Benítez', ?, 'confirmado', 0, 'Transferencia', 12000, 0, NOW())
+                    INSERT INTO turnos (id_negocio, cliente_nombre, cliente_celular, fecha, hora, servicio, profesional, id_servicio, estado, asistio, metodo_pago, precio, created_at) VALUES 
+                    (?, 'Sofía Castro', '11 3344 5566', ?, '17:00', 'Masaje Relajante & Descontracturante', 'Valentina Ochoa', ?, 'pendiente', 0, 'Transferencia (Seña 1h)', 15000, NOW()),
+                    (?, 'Camila Varela', '11 7788 9900', ?, '15:00', 'Limpieza Facial Profunda', 'Camila Benítez', ?, 'confirmado', 0, 'Transferencia', 12000, NOW()),
+                    (?, 'Martín Palermo', '11 4455 6677', ?, '10:00', 'Masaje Relajante & Descontracturante', 'Valentina Ochoa', ?, 'confirmado', 1, 'Efectivo', 15000, NOW()),
+                    (?, 'Valeria Lynch', '11 6677 8899', ?, '11:30', 'Limpieza Facial Profunda', 'Camila Benítez', ?, 'pendiente', 0, 'Efectivo', 12000, NOW()),
+                    (?, 'Joaquín Sabina', '11 2233 1122', ?, '16:30', 'Masaje Relajante & Descontracturante', 'Valentina Ochoa', ?, 'confirmado', 0, 'Mercado Pago', 15000, NOW()),
+                    (?, 'Luciana Salazar', '11 9988 7766', ?, '14:00', 'Limpieza Facial Profunda', 'Camila Benítez', ?, 'confirmado', 0, 'Transferencia', 12000, NOW())
                 ");
                 $stmtInsTurnoIndiv->execute([
                     $negocioId, $f_hoy, $idMasaje,
@@ -284,7 +287,7 @@ if (!function_exists('asegurarDatosDemo')) {
                 $stmtInsU = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, role) VALUES (?, ?, ?, 'profesional')");
                 $stmtInsPn = $pdo->prepare("INSERT IGNORE INTO personal_negocio (id_negocio, id_usuario, rol_en_local) VALUES (?, ?, ?)");
                 
-                $hash = password_hash('demo1234', PASSWORD_DEFAULT);
+                $hash = password_hash('demo1234', PASSWORD_BCRYPT, ['cost' => 4]);
                 foreach ($demoTeam as $member) {
                     $stmtCheckU->execute([$member['email']]);
                     $uId = $stmtCheckU->fetchColumn();

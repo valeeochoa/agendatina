@@ -738,6 +738,14 @@ function cal_fetchBookedTimes() {
 }
 
 window.cal_changeMonth = function(delta) {
+    const effectiveIsAdmin = isAdmin && !isPreviewMode;
+    if (!effectiveIsAdmin && delta < 0) {
+        const today = new Date();
+        if (cal_currentDate.getFullYear() < today.getFullYear() || 
+           (cal_currentDate.getFullYear() === today.getFullYear() && cal_currentDate.getMonth() <= today.getMonth())) {
+            return;
+        }
+    }
     // Para evitar la omisión/salto de meses en días 29, 30 o 31 (ej. 31 de agosto + 1 mes -> 1 de octubre):
     // Forzamos el día a 1 antes de modificar el mes.
     cal_currentDate.setDate(1);
@@ -754,6 +762,21 @@ function cal_renderCalendar() {
     
     monthYearEl.textContent = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' }).format(cal_currentDate);
     
+    const effectiveIsAdmin = isAdmin && !isPreviewMode;
+    const prevMonthBtn = document.getElementById('prevMonth');
+    if (prevMonthBtn && !effectiveIsAdmin) {
+        const today = new Date();
+        const isCurrentOrPastMonth = (cal_currentDate.getFullYear() < today.getFullYear()) ||
+            (cal_currentDate.getFullYear() === today.getFullYear() && cal_currentDate.getMonth() <= today.getMonth());
+        if (isCurrentOrPastMonth) {
+            prevMonthBtn.classList.add('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+            prevMonthBtn.disabled = true;
+        } else {
+            prevMonthBtn.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+            prevMonthBtn.disabled = false;
+        }
+    }
+
     // Obtener configuración del primer día de la semana (1 = Lunes por defecto, 0 = Domingo)
     const confPrimerDia = window.businessWebConfig?.primer_dia_semana;
     const startDay = (confPrimerDia !== undefined && confPrimerDia !== null) ? parseInt(confPrimerDia) : 1;
@@ -792,10 +815,9 @@ function cal_renderCalendar() {
         const isDayBlocked = isGeneralBlock || isProfBlock;
         const isNotWorkingDay = !window.isWorkingDay(date);
         
-        const effectiveIsAdmin = isAdmin && !isPreviewMode;
         const isClosedDay = isNotWorkingDay;
         const visuallyDisabled = isPast || isDayBlocked || isClosedDay;
-        const isClickable = effectiveIsAdmin ? true : !isClosedDay;
+        const isClickable = effectiveIsAdmin ? true : (!isClosedDay && !isPast && !isDayBlocked);
 
         const isToday = date.getTime() === today.getTime();
         const dayDiv = document.createElement('div');
@@ -806,16 +828,23 @@ function cal_renderCalendar() {
         }
 
         if (visuallyDisabled) {
-            dayDiv.classList.add(isClosedDay ? 'disabled' : 'calendar-day');
+            dayDiv.classList.add((isClosedDay || (!effectiveIsAdmin && isPast)) ? 'disabled' : 'calendar-day');
             if (isClosedDay) {
                 dayDiv.innerHTML = `<span class="opacity-35">${i}</span>`;
                 dayDiv.title = 'Establecimiento cerrado';
+                dayDiv.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none', 'select-none');
             } else if (isPast) {
-                dayDiv.innerHTML = `<span class="opacity-55">${i}</span>`;
-                dayDiv.title = 'Día pasado (Click para ver horarios)';
+                dayDiv.innerHTML = `<span class="opacity-35">${i}</span>`;
+                dayDiv.title = effectiveIsAdmin ? 'Día pasado (Click para ver horarios)' : 'Día anterior no disponible';
+                if (!effectiveIsAdmin) {
+                    dayDiv.classList.add('opacity-30', 'cursor-not-allowed', 'pointer-events-none', 'select-none');
+                }
             } else {
                 dayDiv.innerHTML = `<span class="opacity-65">${i}</span>`;
-                dayDiv.title = 'Sin cupos disponibles (Click para ver horarios)';
+                dayDiv.title = effectiveIsAdmin ? 'Sin cupos disponibles (Click para ver horarios)' : 'Sin cupos disponibles';
+                if (!effectiveIsAdmin && isDayBlocked) {
+                    dayDiv.classList.add('opacity-35', 'cursor-not-allowed', 'pointer-events-none', 'select-none');
+                }
             }
             if (effectiveIsAdmin && isDayBlocked && !(isPast || isClosedDay)) {
                 dayDiv.style.border = '2px solid #ef4444';
@@ -3493,9 +3522,12 @@ function renderWeeklyCalendar() {
 
         dayDiv.className = `flex flex-col items-center justify-center py-2 px-1 sm:py-3 sm:px-2 rounded-2xl border-2 ${borderClass} ${bgClass} ${textClass} w-full min-w-0 transition-all duration-300 relative overflow-visible shadow-2xs hover:shadow-lg`;
         
-        if (isClosedDay) {
-            dayDiv.classList.add('opacity-40', 'cursor-not-allowed');
-            dayDiv.title = 'Establecimiento cerrado';
+        const effectiveIsAdmin = isAdmin && !isPreviewMode;
+        const isClientPastOrBlocked = !effectiveIsAdmin && (isPast || isClosedDay || isDayBlocked);
+        
+        if (isClosedDay || isClientPastOrBlocked) {
+            dayDiv.classList.add('opacity-35', 'cursor-not-allowed', 'pointer-events-none', 'select-none');
+            dayDiv.title = isPast ? 'Día anterior no disponible' : (isClosedDay ? 'Establecimiento cerrado' : 'Sin cupos disponibles');
         } else {
             dayDiv.classList.add('cursor-pointer');
             const currentIterDate = new Date(date);
@@ -3512,6 +3544,19 @@ function renderWeeklyCalendar() {
     }
     calendarDays.appendChild(fragment);
     
+    const prevWeekBtn = document.getElementById('prevWeek');
+    const effectiveIsAdminWeekly = isAdmin && !isPreviewMode;
+    if (prevWeekBtn && !effectiveIsAdminWeekly) {
+        const currentStartOfWeek = window.getStartOfWeek(new Date());
+        if (weekStartDate <= currentStartOfWeek) {
+            prevWeekBtn.classList.add('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+            prevWeekBtn.disabled = true;
+        } else {
+            prevWeekBtn.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+            prevWeekBtn.disabled = false;
+        }
+    }
+
     // Llamar a la función para configurar las flechas de navegación
     setupWeeklyScrollArrows();
 }
@@ -4039,12 +4084,10 @@ window.validarCuponAntesDeReservar = async function(codigo, slug) {
     }
     const safeSlug = slug || negocioSlug || '';
     try {
-        const formData = new FormData();
-        formData.append('negocio', safeSlug);
-        formData.append('codigo', cod);
-        const res = await fetch('backend/validar_cupon_negocio.php', {
-            method: 'POST',
-            body: formData
+        const url = 'backend/validar_cupon_negocio.php?negocio=' + encodeURIComponent(safeSlug) + '&codigo=' + encodeURIComponent(cod) + '&_t=' + Date.now();
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
         });
         const data = await res.json();
         if (data && data.success) {
@@ -4252,7 +4295,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('weeklyBookingForm');
     if (form) {
         fetch(negocioSlug ? `backend/guardar_web.php?n=${negocioSlug}` : `backend/guardar_web.php`).then(r => r.json()).then(conf => { if (conf) { window.businessWebConfig = Object.assign(window.businessWebConfig || {}, conf); if (typeof window.syncCouponFieldVisibility === 'function') window.syncCouponFieldVisibility(window.businessWebConfig); } }).catch(() => {});
-        document.getElementById('prevWeek').addEventListener('click', () => { weekStartDate.setDate(weekStartDate.getDate() - 7); renderWeeklyCalendar(); });
+        document.getElementById('prevWeek').addEventListener('click', () => { 
+            const effectiveIsAdmin = isAdmin && !isPreviewMode;
+            if (!effectiveIsAdmin) {
+                const currentStartOfWeek = window.getStartOfWeek(new Date());
+                if (weekStartDate <= currentStartOfWeek) return;
+            }
+            weekStartDate.setDate(weekStartDate.getDate() - 7); 
+            renderWeeklyCalendar(); 
+        });
         document.getElementById('nextWeek').addEventListener('click', () => { weekStartDate.setDate(weekStartDate.getDate() + 7); renderWeeklyCalendar(); });
 
         form.addEventListener('submit', async function(e) {

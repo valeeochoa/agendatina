@@ -66,22 +66,13 @@ try {
         } catch (Exception $eGC) {}
     }
 
-    // BARRERA DE PROTECCIÓN: Asegurar columnas necesarias en la BD
-    try { $pdo->query("SELECT descripcion FROM servicios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN descripcion TEXT DEFAULT NULL"); }
-    try { $pdo->query("SELECT profesional FROM servicios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN profesional VARCHAR(255) DEFAULT ''"); }
-    try { $pdo->query("SELECT profesional FROM turnos LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN profesional VARCHAR(255) DEFAULT 'Cualquiera (Sin preferencia)'"); }
-    try { $pdo->query("SELECT precio FROM turnos LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN precio INT DEFAULT 0"); }
-    try { $pdo->query("SELECT cliente_nombre FROM turnos LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_nombre VARCHAR(255) DEFAULT NULL"); }
-    try { $pdo->query("SELECT cliente_celular FROM turnos LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN cliente_celular VARCHAR(255) DEFAULT NULL"); }
-    try { $pdo->query("SELECT plan FROM negocios LIMIT 1"); } catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN plan VARCHAR(50) DEFAULT 'Premium'"); }
-
     // 2. CREAR UN ENTORNO DEMO FRESCO, INDIVIDUAL E ISOLADO CADA VEZ QUE SE ACCEDE DESDE INDEX.HTML
     $token = substr(md5(session_id() . microtime() . rand(1000, 9999)), 0, 8);
     $emailDemo = 'demo_' . $token . '@agendatina.site';
     $rutaDemo = 'demo-' . $token;
 
-    // Crear usuario administrador único para esta demostración
-    $hash = password_hash('demo1234', PASSWORD_DEFAULT);
+    // Crear usuario administrador único para esta demostración (hash ultrarrápido para demo efímera)
+    $hash = password_hash('demo1234', PASSWORD_BCRYPT, ['cost' => 4]);
     $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, role, fecha_creacion) VALUES ('Agendatina DEMO', ?, ?, 'admin', NOW())")->execute([$emailDemo, $hash]);
     $userId = $pdo->lastInsertId();
 

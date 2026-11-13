@@ -29,6 +29,25 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 } catch (Exception $eTbl) {}
 
+$colsCupones = [
+    'porcentaje_descuento' => 'INT DEFAULT 10',
+    'nombre' => 'VARCHAR(150) DEFAULT NULL',
+    'cliente_celular' => 'VARCHAR(50) DEFAULT NULL',
+    'cliente_nombre' => 'VARCHAR(255) DEFAULT NULL',
+    'usado' => 'TINYINT(1) DEFAULT 0',
+    'usos_maximos' => 'INT DEFAULT 1',
+    'usos_actuales' => 'INT DEFAULT 0',
+    'activo' => 'TINYINT(1) DEFAULT 1',
+    'es_acumulable' => 'TINYINT(1) DEFAULT 0',
+    'fecha_creacion' => 'DATETIME DEFAULT CURRENT_TIMESTAMP',
+    'fecha_expiracion' => 'DATETIME DEFAULT NULL',
+    'fecha_uso' => 'DATETIME DEFAULT NULL'
+];
+foreach ($colsCupones as $cName => $cDef) {
+    try { $pdo->query("SELECT $cName FROM cupones_descuento LIMIT 1"); } 
+    catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE cupones_descuento ADD COLUMN $cName $cDef"); } catch(\Throwable $ex) {} }
+}
+
 foreach ([
     'enviar_msj_automaticos' => 'TINYINT(1) DEFAULT 0',
     'usar_cupones_descuento' => 'TINYINT(1) DEFAULT 0',
