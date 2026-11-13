@@ -30,122 +30,28 @@
             background-color: #fff1eb !important;
         }
 
-        /* Animación Efecto Lava Agendatina - Optimizada por hardware GPU */
-        .lava-container {
+        /* Fondo sutil Agendatina sin filtros blur pesados para fluidez total en todos los navegadores (incl. Brave) */
+        .lava-bg-mesh {
             position: fixed;
-            top: -10%;
-            left: -10%;
-            width: 120vw;
-            height: 120vh;
-            overflow: hidden;
+            inset: 0;
             z-index: 0;
             pointer-events: none;
-            filter: blur(40px);
-            opacity: 0.75;
-            contain: strict;
-            transform: translateZ(0);
-        }
-
-        .lava-blob {
-            position: absolute;
-            border-radius: 50%;
-            will-change: transform;
-            transform: translateZ(0);
-        }
-
-        .lava-1 {
-            top: 10%;
-            left: 15%;
-            width: 520px;
-            height: 520px;
-            background: radial-gradient(circle, #D11149 0%, #ff4d79 100%);
-            animation: lavaMove1 22s ease-in-out infinite alternate;
-        }
-
-        .lava-2 {
-            bottom: 10%;
-            right: 15%;
-            width: 560px;
-            height: 560px;
-            background: radial-gradient(circle, #FC8712 0%, #ffaa43 100%);
-            animation: lavaMove2 26s ease-in-out infinite alternate;
-        }
-
-        .lava-3 {
-            top: 40%;
-            left: 35%;
-            width: 440px;
-            height: 440px;
-            background: radial-gradient(circle, #e6005c 0%, #FC8712 100%);
-            animation: lavaMove3 19s ease-in-out infinite alternate;
-        }
-
-        .lava-4 {
-            bottom: 25%;
-            left: 10%;
-            width: 480px;
-            height: 480px;
-            background: radial-gradient(circle, #ff5e36 0%, #D11149 100%);
-            animation: lavaMove4 24s ease-in-out infinite alternate;
-        }
-
-        .lava-5 {
-            top: 15%;
-            right: 20%;
-            width: 420px;
-            height: 420px;
-            background: radial-gradient(circle, #ff922b 0%, #d11149 100%);
-            animation: lavaMove5 21s ease-in-out infinite alternate;
-        }
-
-        @keyframes lavaMove1 {
-            0% { transform: translate3d(0px, 0px, 0) scale(1) rotate(0deg); }
-            33% { transform: translate3d(140px, -90px, 0) scale(1.2) rotate(110deg); }
-            66% { transform: translate3d(-100px, 120px, 0) scale(0.9) rotate(230deg); }
-            100% { transform: translate3d(60px, 80px, 0) scale(1.1) rotate(360deg); }
-        }
-
-        @keyframes lavaMove2 {
-            0% { transform: translate3d(0px, 0px, 0) scale(1) rotate(0deg); }
-            33% { transform: translate3d(-130px, 110px, 0) scale(1.2) rotate(-130deg); }
-            66% { transform: translate3d(120px, -80px, 0) scale(0.85) rotate(-250deg); }
-            100% { transform: translate3d(-70px, -90px, 0) scale(1.15) rotate(-360deg); }
-        }
-
-        @keyframes lavaMove3 {
-            0% { transform: translate3d(0px, 0px, 0) scale(0.9) rotate(0deg); }
-            50% { transform: translate3d(-150px, -130px, 0) scale(1.25) rotate(180deg); }
-            100% { transform: translate3d(110px, 100px, 0) scale(0.95) rotate(360deg); }
-        }
-
-        @keyframes lavaMove4 {
-            0% { transform: translate3d(0px, 0px, 0) scale(1) rotate(0deg); }
-            50% { transform: translate3d(130px, -110px, 0) scale(1.2) rotate(-160deg); }
-            100% { transform: translate3d(-90px, 120px, 0) scale(0.9) rotate(-320deg); }
-        }
-
-        @keyframes lavaMove5 {
-            0% { transform: translate3d(0px, 0px, 0) scale(1) rotate(0deg); }
-            50% { transform: translate3d(-110px, 140px, 0) scale(1.15) rotate(140deg); }
-            100% { transform: translate3d(100px, -100px, 0) scale(0.95) rotate(300deg); }
+            background-color: #fff1eb;
+            background-image:
+                radial-gradient(circle at 18% 20%, rgba(209, 17, 73, 0.22) 0%, rgba(255, 77, 121, 0.08) 32%, transparent 62%),
+                radial-gradient(circle at 82% 82%, rgba(252, 135, 18, 0.24) 0%, rgba(255, 170, 67, 0.08) 34%, transparent 64%),
+                radial-gradient(circle at 52% 48%, rgba(230, 0, 92, 0.12) 0%, transparent 55%),
+                radial-gradient(circle at 15% 80%, rgba(255, 94, 54, 0.14) 0%, transparent 52%),
+                radial-gradient(circle at 80% 18%, rgba(255, 146, 43, 0.16) 0%, transparent 50%);
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-[#fff7f5] via-[#fff1eb] to-[#ffecf1] text-slate-900 antialiased min-h-screen flex items-center justify-center p-4 sm:p-6 relative overflow-hidden">
+<body class="bg-[#fff1eb] text-slate-900 antialiased min-h-screen flex items-center justify-center p-4 sm:p-6 relative overflow-x-hidden">
     
-    <!-- Fondo Animado Efecto Lava -->
-    <div class="lava-container" aria-hidden="true">
-        <div class="lava-blob lava-1"></div>
-        <div class="lava-blob lava-2"></div>
-        <div class="lava-blob lava-3"></div>
-        <div class="lava-blob lava-4"></div>
-        <div class="lava-blob lava-5"></div>
-    </div>
+    <!-- Fondo Malla Suave (0% carga GPU/CPU, sin backdrop-blur ni filter:blur) -->
+    <div class="lava-bg-mesh" aria-hidden="true"></div>
 
-    <!-- Malla sutil para dispersión de luz -->
-    <div class="fixed inset-0 w-screen h-screen bg-white/20 backdrop-blur-[20px] pointer-events-none z-0"></div>
-
-    <div class="bg-white/95 backdrop-blur-xl p-7 sm:p-9 md:p-10 rounded-xl shadow-xl border border-slate-200/90 max-w-md w-full relative z-10 transition-all duration-300">
+    <div class="bg-white p-7 sm:p-9 md:p-10 rounded-xl shadow-xl border border-slate-200/90 max-w-md w-full relative z-10">
         <div class="text-center mb-7">
             <a href="index.html" class="inline-flex items-center gap-2.5 mb-5 hover:opacity-85 transition-opacity">
                 <img src="public/logo.png" alt="Agendatina" class="h-9 w-auto drop-shadow-2xs">
