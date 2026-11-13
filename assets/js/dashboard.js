@@ -66,6 +66,7 @@ window.applyDashboardPermissions = function(userData) {
     // Rol: PROFESIONAL
     const perms = user.permisos || {};
     const canAgenda = perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true;
+    const canVerTodosTurnos = perms.ver_todos_turnos !== undefined ? (parseInt(perms.ver_todos_turnos) === 1 || perms.ver_todos_turnos === true) : false;
     const canWeb = perms.web !== undefined ? (parseInt(perms.web) === 1 || perms.web === true) : false;
     const canServicios = perms.servicios !== undefined ? (parseInt(perms.servicios) === 1 || perms.servicios === true) : false;
     const canEstadisticas = perms.estadisticas !== undefined ? (parseInt(perms.estadisticas) === 1 || perms.estadisticas === true) : false;
@@ -75,7 +76,6 @@ window.applyDashboardPermissions = function(userData) {
     if (!canAgenda) {
         hideEl('cardAgenda');
         hideEl('cardCalendario');
-        hideEl('cardClientes');
         hideEl('dashHeroBtnAgenda');
         hideEl('dashHeroBtnCalendario');
         hideEl('dashHeroStatsRow');
@@ -85,19 +85,25 @@ window.applyDashboardPermissions = function(userData) {
     } else {
         showEl('cardAgenda');
         showEl('cardCalendario');
-        showEl('cardClientes');
         showEl('dashHeroBtnAgenda');
         showEl('dashHeroBtnCalendario');
         showEl('dashHeroStatsRow');
     }
 
-    // 2. Mi Página Web
+    // 2. Alumnos / Clientes (Solo visible si tiene habilitado ver todos los turnos del negocio)
+    if (!canVerTodosTurnos) {
+        hideEl('cardClientes');
+    } else {
+        showEl('cardClientes');
+    }
+
+    // 3. Mi Página Web
     if (!canWeb) hideEl('cardWeb'); else showEl('cardWeb');
 
-    // 3. Servicios
+    // 4. Servicios
     if (!canServicios) hideEl('cardServicios'); else showEl('cardServicios');
 
-    // 4. Equipo de Trabajo (ID en HTML: cardEquipo)
+    // 5. Equipo de Trabajo (ID en HTML: cardEquipo)
     if (!canEquipo) {
         hideEl('cardEquipo');
         hideEl('cardTeam');
@@ -105,22 +111,47 @@ window.applyDashboardPermissions = function(userData) {
         showEl('cardEquipo');
     }
 
-    // 5. Estadísticas
+    // 6. Estadísticas
     if (!canEstadisticas) hideEl('cardEstadisticas'); else showEl('cardEstadisticas');
 
-    // 6. Ajustes (NUNCA accesible para profesionales)
-    hideEl('cardAjustes');
+    // 7. Herramientas administrativas generales
+    hideEl('cardManual');
+    hideEl('cardFaq');
+    hideEl('cardMejora');
 
-    // 7. Onboarding Guide ("Primeros Pasos en Agendatina") y Alertas
+    // 8. Ajustes de Agenda (Configuración de horarios propios para el profesional)
+    if (canAgenda) {
+        showEl('cardAjustes');
+        showEl('dashHerramientasSectionHeader');
+        showEl('dashHerramientasGrid');
+
+        const ajustesTitle = document.getElementById('cardAjustesTitle') || document.querySelector('#cardAjustes h3');
+        if (ajustesTitle) ajustesTitle.textContent = 'Horarios de mi Agenda';
+
+        const ajustesDesc = document.getElementById('cardAjustesDesc') || document.querySelector('#cardAjustes p');
+        if (ajustesDesc) ajustesDesc.textContent = 'Días y descansos propios';
+
+        const ajustesAction = document.getElementById('cardAjustesAction') || document.querySelector('#cardAjustes span:last-child');
+        if (ajustesAction) ajustesAction.textContent = 'Configurar horarios →';
+
+        const herramientasTitle = document.getElementById('dashHerramientasTitle');
+        if (herramientasTitle) herramientasTitle.textContent = 'Configuración de Agenda';
+    } else {
+        hideEl('cardAjustes');
+        hideEl('dashHerramientasSectionHeader');
+        hideEl('dashHerramientasGrid');
+    }
+
+    // 9. Onboarding Guide ("Primeros Pasos en Agendatina") y Alertas
     hideEl('onboardingWidget');
     hideEl('configAlertBanner');
     hideEl('subscriptionBanner');
     hideEl('verifyEmailBanner');
 
-    // 8. Mensaje en el subtítulo del Dashboard
+    // 10. Mensaje en el subtítulo del Dashboard
     const subGreeting = document.getElementById('dashSubGreeting');
     if (subGreeting) {
-        subGreeting.textContent = 'Aquí puedes visualizar las secciones y turnos habilitados por la administración.';
+        subGreeting.textContent = 'Visualizá y gestioná tus turnos y horarios de agenda personal.';
     }
 };
 

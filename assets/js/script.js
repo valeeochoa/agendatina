@@ -3892,6 +3892,7 @@ function checkAdminGlobalSession(config = null) {
             if (data.user && (data.user.rol === 'profesional' || data.user.rol_en_local === 'profesional')) {
                 const perms = data.user.permisos || {};
                 const canAgenda = perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true;
+                const canVerTodosTurnos = perms.ver_todos_turnos !== undefined ? (parseInt(perms.ver_todos_turnos) === 1 || perms.ver_todos_turnos === true) : false;
                 const canWeb = perms.web !== undefined ? (parseInt(perms.web) === 1 || perms.web === true) : false;
                 const canServicios = perms.servicios !== undefined ? (parseInt(perms.servicios) === 1 || perms.servicios === true) : false;
                 const canEstadisticas = perms.estadisticas !== undefined ? (parseInt(perms.estadisticas) === 1 || perms.estadisticas === true) : false;
@@ -3901,9 +3902,9 @@ function checkAdminGlobalSession(config = null) {
                 let blocked = false;
                 let blockedMsg = '';
 
-                if (curFile.includes('ajustes')) {
+                if (curFile.includes('ajustes') && !canAgenda) {
                     blocked = true;
-                    blockedMsg = 'La sección de Ajustes está reservada exclusivamente para el administrador.';
+                    blockedMsg = 'No tienes permiso para configurar horarios de agenda.';
                 } else if (curFile.includes('mi-web') && !canWeb) {
                     blocked = true;
                     blockedMsg = 'No tienes permiso para editar la página web.';
@@ -3916,9 +3917,12 @@ function checkAdminGlobalSession(config = null) {
                 } else if (curFile.includes('estadisticas') && !canEstadisticas) {
                     blocked = true;
                     blockedMsg = 'No tienes permiso para ver las estadísticas.';
-                } else if ((curFile.includes('agenda') || curFile.includes('clientes')) && !canAgenda) {
+                } else if (curFile.includes('agenda') && !canAgenda) {
                     blocked = true;
                     blockedMsg = 'No tienes permiso para acceder a la agenda virtual.';
+                } else if (curFile.includes('clientes') && !canVerTodosTurnos) {
+                    blocked = true;
+                    blockedMsg = 'No tienes permiso para acceder al listado de alumnos o clientes.';
                 }
 
                 if (blocked) {

@@ -207,6 +207,28 @@ try {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 } catch(Exception $e) {}
 
+// Auto-migración de columnas de horarios propios en personal_negocio
+try { $pdo->query("SELECT dias_trabajo FROM personal_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN dias_trabajo VARCHAR(50) DEFAULT NULL"); }
+
+try { $pdo->query("SELECT hora_apertura FROM personal_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN hora_apertura VARCHAR(10) DEFAULT NULL"); }
+
+try { $pdo->query("SELECT hora_cierre FROM personal_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN hora_cierre VARCHAR(10) DEFAULT NULL"); }
+
+try { $pdo->query("SELECT hora_descanso_inicio FROM personal_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN hora_descanso_inicio VARCHAR(10) DEFAULT NULL"); }
+
+try { $pdo->query("SELECT hora_descanso_fin FROM personal_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN hora_descanso_fin VARCHAR(10) DEFAULT NULL"); }
+
+try { $pdo->query("SELECT horarios_detallados_json FROM personal_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN horarios_detallados_json LONGTEXT DEFAULT NULL"); }
+
+try { $pdo->query("SELECT tipo_calendario FROM personal_negocio LIMIT 1"); } 
+catch(Exception $e) { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN tipo_calendario VARCHAR(20) DEFAULT NULL"); }
+
 // =========================================================================
 // AUTO-SUSPENSIÓN DE NEGOCIOS VENCIDOS (Pseudo-Cron)
 // =========================================================================
@@ -419,6 +441,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         $config['profesionales_json'] = json_encode($profs_array);
 
+        // Si el usuario en sesión es profesional, superponer sus horarios de agenda personal
+        $userRole = $_SESSION['rol_en_local'] ?? null;
+        $userId = $_SESSION['user_id'] ?? null;
+        if ($userId && $id_negocio) {
+            try {
+                $stmtCheckPn = $pdo->prepare("SELECT rol_en_local, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, tipo_calendario FROM personal_negocio WHERE id_negocio = :id AND id_usuario = :uid LIMIT 1");
+                $stmtCheckPn->execute(['id' => $id_negocio, 'uid' => $userId]);
+                $profRow = $stmtCheckPn->fetch(PDO::FETCH_ASSOC);
+                if ($profRow) {
+                    if (!$userRole) $userRole = $profRow['rol_en_local'];
+                    if ($profRow['rol_en_local'] === 'profesional') {
+                        $config['rol_usuario'] = 'profesional';
+                        $config['es_horario_personal'] = true;
+                        if (!empty($profRow['dias_trabajo'])) $config['dias_trabajo'] = $profRow['dias_trabajo'];
+                        if (!empty($profRow['hora_apertura'])) $config['hora_apertura'] = $profRow['hora_apertura'];
+                        if (!empty($profRow['hora_cierre'])) $config['hora_cierre'] = $profRow['hora_cierre'];
+                        if (isset($profRow['hora_descanso_inicio']) && $profRow['hora_descanso_inicio'] !== '') $config['hora_descanso_inicio'] = $profRow['hora_descanso_inicio'];
+                        if (isset($profRow['hora_descanso_fin']) && $profRow['hora_descanso_fin'] !== '') $config['hora_descanso_fin'] = $profRow['hora_descanso_fin'];
+                        if (!empty($profRow['horarios_detallados_json']) && $profRow['horarios_detallados_json'] !== '{}') {
+                            $config['horarios_detallados_json'] = $profRow['horarios_detallados_json'];
+                        }
+                        if (!empty($profRow['tipo_calendario'])) $config['tipo_calendario'] = $profRow['tipo_calendario'];
+                    }
+                }
+            } catch(Exception $ePnProf) {}
+        }
+
         if (ob_get_length()) ob_clean();
         echo json_encode($config);
     } catch (Exception $e) {
@@ -478,6 +527,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($userRole === 'profesional') {
             $userPerms = $_SESSION['permisos'] ?? [];
             $canWeb = !empty($userPerms['web']);
+
+            // Si el profesional está guardando horarios de agenda o descansos, se actualiza su agenda personal en personal_negocio
+            $isScheduleUpdate = isset($data['hora_apertura']) || isset($data['dias_trabajo']) || isset($data['horarios_detallados_json']) || isset($data['hora_descanso_inicio']) || isset($data['tipo_calendario']);
+
+            if ($isScheduleUpdate) {
+                $stmtUpPn = $pdo->prepare("UPDATE personal_negocio SET 
+                    hora_apertura = :ha,
+                    hora_cierre = :hc,
+                    hora_descanso_inicio = :hdi,
+                    hora_descanso_fin = :hdf,
+                    dias_trabajo = :dt,
+                    horarios_detallados_json = :hdj,
+                    tipo_calendario = :tc
+                    WHERE id_negocio = :id_negocio AND id_usuario = :id_usuario");
+                
+                $stmtUpPn->execute([
+                    'ha' => $data['hora_apertura'] ?? '09:00',
+                    'hc' => $data['hora_cierre'] ?? '18:00',
+                    'hdi' => $data['hora_descanso_inicio'] ?? '',
+                    'hdf' => $data['hora_descanso_fin'] ?? '',
+                    'dt' => $data['dias_trabajo'] ?? '1,2,3,4,5,6',
+                    'hdj' => $data['horarios_detallados_json'] ?? '{}',
+                    'tc' => $data['tipo_calendario'] ?? 'clasico',
+                    'id_negocio' => $id_negocio,
+                    'id_usuario' => $_SESSION['user_id']
+                ]);
+
+                if (ob_get_length()) ob_clean();
+                echo json_encode([
+                    'success' => true,
+                    'mensaje' => 'Tus horarios de agenda personal han sido actualizados con éxito.',
+                    'es_horario_personal' => true
+                ]);
+                exit;
+            }
+
             if (!$canWeb) {
                 echo json_encode(['success' => false, 'error' => 'Acceso denegado. No tienes permisos para modificar la página web de este negocio.']);
                 exit;

@@ -16,6 +16,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (typeof window.updateModoReservasVisibility === 'function') window.updateModoReservasVisibility(data.business.plan);
                 const isDemo = (data.business.is_demo === true) || (data.user && data.user.email === 'demo@agendatina.site') || (data.business.ruta === 'demo');
                 window.isDemoAccount = isDemo;
+
+                // Detección y aplicación de vista exclusiva de horarios para profesionales
+                const isProf = (data.user && (data.user.rol === 'profesional' || data.user.rol_en_local === 'profesional'));
+                if (isProf) {
+                    window.isProfessionalUser = true;
+                    if (typeof window.applyProfessionalAjustesView === 'function') {
+                        window.applyProfessionalAjustesView(data.user);
+                    }
+                }
+
                 const badge = document.getElementById('adminSessionBadge');
                 const badgeText = document.getElementById('adminSessionBadgeText');
                 if (badge && isDemo) {
@@ -89,6 +99,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 if (typeof window.renderHorariosDetalladosResumen === 'function') {
                     window.renderHorariosDetalladosResumen();
+                }
+
+                if (data.rol_usuario === 'profesional' || data.es_horario_personal === true) {
+                    window.isProfessionalUser = true;
+                    if (typeof window.applyProfessionalAjustesView === 'function') {
+                        window.applyProfessionalAjustesView(data);
+                    }
                 }
             }
         })
@@ -195,6 +212,65 @@ window.selectAjustesCategory = function(cat) {
     window.filterAjustesSections();
 };
 
+window.applyProfessionalAjustesView = function(userData) {
+    window.isProfessionalUser = true;
+
+    // 1. Títulos de página
+    const pageTitle = document.getElementById('ajustesPageTitle');
+    if (pageTitle) pageTitle.textContent = 'Horarios de mi Agenda';
+    const pageSubtitle = document.getElementById('ajustesPageSubtitle');
+    if (pageSubtitle) pageSubtitle.textContent = 'Configurá tus días de atención, horarios de apertura y tiempos de descanso personales.';
+
+    // 2. Banner informativo
+    let profBanner = document.getElementById('profHorariosNoticeBanner');
+    if (!profBanner) {
+        profBanner = document.createElement('div');
+        profBanner.id = 'profHorariosNoticeBanner';
+        profBanner.className = 'p-4 sm:p-5 bg-gradient-to-r from-purple-50 via-indigo-50 to-purple-50 border border-purple-200/90 rounded-2xl flex items-start gap-3.5 text-purple-950 mb-6 shadow-xs';
+        profBanner.innerHTML = `
+            <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <span class="material-symbols-outlined text-2xl">badge</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h3 class="text-sm font-extrabold text-purple-900">Horarios de Agenda Personal</h3>
+                <p class="text-xs text-purple-700 mt-0.5 leading-relaxed">Estás configurando tu propia disponibilidad. Estos días, horarios y descansos se aplican exclusivamente a tu agenda y calendario de turnos, de forma independiente a la administración del negocio.</p>
+            </div>
+        `;
+        const formEl = document.getElementById('calendarConfigForm');
+        if (formEl && formEl.parentNode) {
+            formEl.parentNode.insertBefore(profBanner, formEl);
+        }
+    }
+
+    // 3. Ocultar chips de categorías administrativas
+    const hideChips = ['turnos', 'pagos', 'modalidad', 'fidelizacion', 'notificaciones'];
+    hideChips.forEach(cat => {
+        const chip = document.querySelector(`.ajustes-chip[data-cat="${cat}"]`);
+        if (chip) {
+            chip.classList.add('hidden');
+            chip.style.setProperty('display', 'none', 'important');
+        }
+    });
+
+    // 4. Ocultar cards/secciones administrativas
+    const adminCards = ['pagos', 'turnos', 'modalidad', 'fidelizacion', 'notificaciones'];
+    adminCards.forEach(cat => {
+        const marker = document.querySelector(`[data-ajustes-marker="${cat}"]`);
+        if (marker) {
+            const card = marker.closest('.bg-white.rounded-2xl') || marker.parentElement;
+            if (card) {
+                card.classList.add('hidden');
+                card.style.setProperty('display', 'none', 'important');
+            }
+        }
+    });
+
+    // 5. Botones de guardar
+    document.querySelectorAll('.btn-save-ajustes, #btnGuardarAjustesBottom, #btnGuardarAjustesTop').forEach(btn => {
+        if (btn) btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> Guardar mis horarios';
+    });
+};
+
 window.filterAjustesSections = function() {
     const inp = document.getElementById('ajustesSearchInput');
     const clearBtn = document.getElementById('btnClearAjustesSearch');
@@ -205,8 +281,16 @@ window.filterAjustesSections = function() {
 
     const cards = document.querySelectorAll('[data-ajustes-card]');
     let visibleCount = 0;
+    const adminCards = ['pagos', 'turnos', 'modalidad', 'fidelizacion', 'notificaciones'];
+
     cards.forEach(card => {
         const cat = card.getAttribute('data-ajustes-card');
+        if (window.isProfessionalUser && adminCards.includes(cat)) {
+            card.classList.add('hidden');
+            card.style.setProperty('display', 'none', 'important');
+            return;
+        }
+
         const matchesCat = (window.currentAjustesCat === 'all' || cat === window.currentAjustesCat);
         let matchesQuery = true;
         if (query.length > 0) {
@@ -215,6 +299,7 @@ window.filterAjustesSections = function() {
         }
         if (matchesCat && matchesQuery) {
             card.classList.remove('hidden');
+            card.style.removeProperty('display');
             visibleCount++;
         } else {
             card.classList.add('hidden');
@@ -1443,7 +1528,8 @@ function handleCalendarConfigSubmit(e) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            if (typeof showToast === 'function') showToast('Configuración del calendario guardada con éxito.', 'success');
+            const successMsg = data.mensaje || (window.isProfessionalUser ? 'Horarios de tu agenda guardados con éxito.' : 'Configuración del calendario guardada con éxito.');
+            if (typeof showToast === 'function') showToast(successMsg, 'success');
             // Actualizar la configuración global para que otros scripts la usen
             window.businessWebConfig = { ...window.businessWebConfig, ...payload };
             if (payload.usar_fondo_degrade) {

@@ -344,6 +344,33 @@ try {
     $configWeb = $stmtConfig->fetch(PDO::FETCH_ASSOC);
     if (!is_array($configWeb)) $configWeb = [];
 
+    // Si el turno se reserva con un profesional específico, consultar si tiene horarios propios en personal_negocio
+    if (!empty($profesional) && $profesional !== 'Cualquiera (Sin preferencia)' && $profesional !== 'Cualquiera') {
+        try {
+            $stmtProfPn = $pdo->prepare("SELECT pn.dias_trabajo, pn.hora_apertura, pn.hora_cierre, pn.hora_descanso_inicio, pn.hora_descanso_fin, pn.horarios_detallados_json 
+                                         FROM personal_negocio pn 
+                                         JOIN usuarios u ON u.id = pn.id_usuario 
+                                         WHERE pn.id_negocio = :id AND (u.nombre_completo = :p OR pn.id_usuario = :p_uid) 
+                                         LIMIT 1");
+            $stmtProfPn->execute([
+                'id' => $id_negocio,
+                'p' => $profesional,
+                'p_uid' => is_numeric($profesional) ? (int)$profesional : 0
+            ]);
+            $profSched = $stmtProfPn->fetch(PDO::FETCH_ASSOC);
+            if ($profSched) {
+                if (!empty($profSched['hora_apertura'])) $configWeb['hora_apertura'] = $profSched['hora_apertura'];
+                if (!empty($profSched['hora_cierre'])) $configWeb['hora_cierre'] = $profSched['hora_cierre'];
+                if (isset($profSched['hora_descanso_inicio']) && $profSched['hora_descanso_inicio'] !== '') $configWeb['hora_descanso_inicio'] = $profSched['hora_descanso_inicio'];
+                if (isset($profSched['hora_descanso_fin']) && $profSched['hora_descanso_fin'] !== '') $configWeb['hora_descanso_fin'] = $profSched['hora_descanso_fin'];
+                if (!empty($profSched['dias_trabajo'])) $configWeb['dias_trabajo'] = $profSched['dias_trabajo'];
+                if (!empty($profSched['horarios_detallados_json']) && $profSched['horarios_detallados_json'] !== '{}') {
+                    $configWeb['horarios_detallados_json'] = $profSched['horarios_detallados_json'];
+                }
+            }
+        } catch (Exception $eProfSched) {}
+    }
+
     if ($configWeb && !($isOwnerAdmin && $isPastTurno)) {
         $dayOfWeek = (int)date('w', strtotime($fecha)); // 0 = Domingo, 1 = Lunes...
         $hDet = !empty($configWeb['horarios_detallados_json']) ? json_decode($configWeb['horarios_detallados_json'], true) : null;

@@ -56,6 +56,40 @@ try {
     $stmtConf->execute(['id_negocio' => $id_negocio]);
     $conf = $stmtConf->fetch(PDO::FETCH_ASSOC);
 
+    // Si se consulta para un profesional específico o el usuario logueado es profesional, buscar sus horarios propios
+    $targetProfName = null;
+    if (!empty($profesional) && $profesional !== 'Cualquiera (Sin preferencia)' && $profesional !== 'Cualquiera' && $profesional !== 'columnas') {
+        $targetProfName = $profesional;
+    } else if (isset($_SESSION['rol_en_local']) && $_SESSION['rol_en_local'] === 'profesional') {
+        $targetProfName = $_SESSION['nombre_completo'] ?? null;
+    }
+
+    if ($targetProfName && $id_negocio) {
+        try {
+            $stmtProfPn = $pdo->prepare("SELECT pn.dias_trabajo, pn.hora_apertura, pn.hora_cierre, pn.hora_descanso_inicio, pn.hora_descanso_fin, pn.horarios_detallados_json 
+                                         FROM personal_negocio pn 
+                                         JOIN usuarios u ON u.id = pn.id_usuario 
+                                         WHERE pn.id_negocio = :id AND (u.nombre_completo = :p OR pn.id_usuario = :p_uid) 
+                                         LIMIT 1");
+            $stmtProfPn->execute([
+                'id' => $id_negocio,
+                'p' => $targetProfName,
+                'p_uid' => is_numeric($targetProfName) ? (int)$targetProfName : 0
+            ]);
+            $profSched = $stmtProfPn->fetch(PDO::FETCH_ASSOC);
+            if ($profSched) {
+                if (!empty($profSched['hora_apertura'])) $conf['hora_apertura'] = $profSched['hora_apertura'];
+                if (!empty($profSched['hora_cierre'])) $conf['hora_cierre'] = $profSched['hora_cierre'];
+                if (isset($profSched['hora_descanso_inicio']) && $profSched['hora_descanso_inicio'] !== '') $conf['hora_descanso_inicio'] = $profSched['hora_descanso_inicio'];
+                if (isset($profSched['hora_descanso_fin']) && $profSched['hora_descanso_fin'] !== '') $conf['hora_descanso_fin'] = $profSched['hora_descanso_fin'];
+                if (!empty($profSched['dias_trabajo'])) $conf['dias_trabajo'] = $profSched['dias_trabajo'];
+                if (!empty($profSched['horarios_detallados_json']) && $profSched['horarios_detallados_json'] !== '{}') {
+                    $conf['horarios_detallados_json'] = $profSched['horarios_detallados_json'];
+                }
+            }
+        } catch (Exception $eProfSched) {}
+    }
+
     $permiteSimultaneos = ($conf && (($conf['turnos_simultaneos'] ?? 'no') === 'si' || ($conf['modo_reservas'] ?? '') === 'cupos_alumnos'));
 
     $hApertura = (!empty($conf['hora_apertura']) && $conf['hora_apertura'] !== '00:00:00' && $conf['hora_apertura'] !== '00:00') ? substr($conf['hora_apertura'], 0, 5) : '09:00';
