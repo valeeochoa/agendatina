@@ -21,6 +21,13 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN color
 try { $pdo->query("SELECT color_secundario_web FROM configuracion_web LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN color_secundario_web VARCHAR(20) DEFAULT '#FC8712'"); }
 
+try {
+    $pdo->exec("UPDATE configuracion_web SET color_primario = '#d11149' WHERE color_primario IS NULL OR color_primario = ''");
+    $pdo->exec("UPDATE configuracion_web SET color_secundario = '#fc8712' WHERE color_secundario IS NULL OR color_secundario = ''");
+    $pdo->exec("UPDATE configuracion_web SET color_primario_web = '#d11149' WHERE color_primario_web IS NULL OR color_primario_web = ''");
+    $pdo->exec("UPDATE configuracion_web SET color_secundario_web = '#fc8712' WHERE color_secundario_web IS NULL OR color_secundario_web = ''");
+} catch(Exception $eColorDefaults) {}
+
 try { $pdo->query("SELECT whatsapp_contacto FROM configuracion_web LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN whatsapp_contacto VARCHAR(50) DEFAULT ''"); }
 
@@ -250,9 +257,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $config = $stmt->fetch();
         
         if (!$config) {
-            // Si no hay configuración aún, devolvemos valores por defecto
-            $config = ['intervalo_turnos' => 'servicio', 'tiempo_entre_turnos' => 0];
+            // Si no hay configuración aún, devolvemos valores por defecto de marca Agendatina
+            $config = [
+                'color_primario' => '#d11149',
+                'color_secundario' => '#fc8712',
+                'color_primario_web' => '#d11149',
+                'color_secundario_web' => '#fc8712',
+                'intervalo_turnos' => 'servicio',
+                'tiempo_entre_turnos' => 0
+            ];
         } else {
+            if (empty($config['color_primario'])) $config['color_primario'] = '#d11149';
+            if (empty($config['color_secundario'])) $config['color_secundario'] = '#fc8712';
+            if (empty($config['color_primario_web'])) $config['color_primario_web'] = '#d11149';
+            if (empty($config['color_secundario_web'])) $config['color_secundario_web'] = '#fc8712';
             if (empty($config['intervalo_turnos'])) {
                 $config['intervalo_turnos'] = 'servicio';
             }

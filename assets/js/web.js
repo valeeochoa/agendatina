@@ -255,24 +255,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Aplicar colores personalizados
-                if (data.color_primario_web || data.color_secundario_web || data.color_fondo) {
-                    const pColor = data.color_primario_web || data.color_primario || '#3b82f6';
-                    const sColor = data.color_secundario_web || data.color_secundario || '#8b5cf6';
-                    const style = document.getElementById('custom-styles');
-                    let stylesHTML = `
-                        .text-primary { color: ${pColor} !important; }
-                        .bg-primary { background-color: ${pColor} !important; }
-                        .border-primary { border-color: ${pColor} !important; }
-                        .hover\\:bg-primary:hover { background-color: ${pColor} !important; }
-                        .hover\\:shadow-primary\\/30:hover { --tw-shadow-color: ${pColor}4d !important; }
-                        .text-secondary { color: ${sColor} !important; }
-                        .bg-secondary { background-color: ${sColor} !important; }
-                    `;
-                    if (data.color_fondo) {
-                        stylesHTML += `body, .bg-slate-50 { background-color: ${data.color_fondo} !important; }`;
-                    }
-                    if (style) style.innerHTML = stylesHTML;
+                const pColor = data.color_primario_web || data.color_primario || '#d11149';
+                const sColor = data.color_secundario_web || data.color_secundario || '#fc8712';
+                const style = document.getElementById('custom-styles');
+                let stylesHTML = `
+                    .text-primary { color: ${pColor} !important; }
+                    .bg-primary { background-color: ${pColor} !important; }
+                    .border-primary { border-color: ${pColor} !important; }
+                    .hover\\:bg-primary:hover { background-color: ${pColor} !important; }
+                    .hover\\:shadow-primary\\/30:hover { --tw-shadow-color: ${pColor}4d !important; }
+                    .text-secondary { color: ${sColor} !important; }
+                    .bg-secondary { background-color: ${sColor} !important; }
+                `;
+                if (data.color_fondo) {
+                    stylesHTML += `body, .bg-slate-50 { background-color: ${data.color_fondo} !important; }`;
                 }
+                if (style) style.innerHTML = stylesHTML;
 
                 window.applyServiceAlignmentCSS = function(alignVal) {
                     if (!alignVal) alignVal = 'left';

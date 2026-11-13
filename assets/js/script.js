@@ -1307,7 +1307,7 @@ function loadDashboardData() {
             } catch(e) { /* silencioso */ }
 
             checkNotifications(); // Cargar notificaciones en la campanita
-            loadDashboardChart(webData.color_primario || '#3b82f6');
+            loadDashboardChart(webData.color_primario || '#d11149');
             
             // Revelar el dashboard suavemente
             const loader = document.getElementById('dashboardLoader');
@@ -3644,8 +3644,8 @@ function applyWebCustomization() {
                     if (navBrandAccent) navBrandAccent.style.color = data.color_secundario;
                 }
                 if (data.color_primario || data.color_secundario || data.color_fondo) {
-                    const pColor = data.color_primario || '#D11149';
-                    const sColor = data.color_secundario || '#FCB0B3';
+                    const pColor = data.color_primario || '#d11149';
+                    const sColor = data.color_secundario || '#fc8712';
                     
                     let hex = pColor.replace('#', '');
                     if(hex.length === 3) hex = hex.split('').map(x => x+x).join('');

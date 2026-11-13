@@ -231,6 +231,9 @@ try {
         'titulo_banner' => 'VARCHAR(255) DEFAULT NULL',
         'subtitulo_banner' => 'TEXT DEFAULT NULL',
         'color_primario' => "VARCHAR(20) DEFAULT '#d11149'",
+        'color_secundario' => "VARCHAR(20) DEFAULT '#fc8712'",
+        'color_primario_web' => "VARCHAR(20) DEFAULT '#d11149'",
+        'color_secundario_web' => "VARCHAR(20) DEFAULT '#fc8712'",
         'limite_eliminacion_dias' => 'INT DEFAULT 30',
         'hora_apertura' => "VARCHAR(10) DEFAULT '09:00'",
         'hora_cierre' => "VARCHAR(10) DEFAULT '19:00'",
@@ -385,10 +388,14 @@ try {
 
     try {
         $stmtConfigWeb = $pdo->prepare("INSERT INTO configuracion_web 
-            (id_negocio, titulo_banner, subtitulo_banner, color_primario, limite_eliminacion_dias, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json, intervalo_turnos, tiempo_entre_turnos) 
-            VALUES (:id_n, :titulo, 'Bienvenido a nuestra agenda online', '#d11149', 30, :h_ap, :h_ci, :h_di, :h_df, :dias, :h_detallados, 'servicio', 0)
+            (id_negocio, titulo_banner, subtitulo_banner, color_primario, color_secundario, color_primario_web, color_secundario_web, limite_eliminacion_dias, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json, intervalo_turnos, tiempo_entre_turnos) 
+            VALUES (:id_n, :titulo, 'Bienvenido a nuestra agenda online', '#d11149', '#fc8712', '#d11149', '#fc8712', 30, :h_ap, :h_ci, :h_di, :h_df, :dias, :h_detallados, 'servicio', 0)
             ON DUPLICATE KEY UPDATE 
             titulo_banner = COALESCE(VALUES(titulo_banner), titulo_banner),
+            color_primario = COALESCE(color_primario, VALUES(color_primario)),
+            color_secundario = COALESCE(color_secundario, VALUES(color_secundario)),
+            color_primario_web = COALESCE(color_primario_web, VALUES(color_primario_web)),
+            color_secundario_web = COALESCE(color_secundario_web, VALUES(color_secundario_web)),
             hora_apertura = VALUES(hora_apertura),
             hora_cierre = VALUES(hora_cierre),
             hora_descanso_inicio = VALUES(hora_descanso_inicio),

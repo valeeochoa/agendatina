@@ -305,6 +305,18 @@ try {
             $config = $stmtC->fetch(PDO::FETCH_ASSOC);
         } catch(Throwable $e) { $config = null; }
 
+        if (!$config) {
+            $config = [
+                'color_primario' => '#d11149',
+                'color_secundario' => '#fc8712',
+                'color_fondo' => '#ffffff',
+                'colores_extra_json' => null
+            ];
+        } else {
+            if (empty($config['color_primario'])) $config['color_primario'] = '#d11149';
+            if (empty($config['color_secundario'])) $config['color_secundario'] = '#fc8712';
+        }
+
         // Notificaciones
         try { $pdo->query("SELECT id FROM notificaciones LIMIT 1"); } 
         catch(Throwable $e) { 
