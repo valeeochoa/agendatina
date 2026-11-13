@@ -359,7 +359,6 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                 }
             });
         }, 1000);
-        });
     }
 
     const countPendSpan = document.getElementById('countPendientes');
