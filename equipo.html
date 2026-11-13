@@ -383,12 +383,16 @@
         let profIdToDelete = null;
 
         let currentLimit = 1;
+        let currentBusinessId = 0;
 
         document.addEventListener('DOMContentLoaded', () => {
             fetch('backend/perfil.php')
                 .then(r => r.json())
                 .then(d => {
                     if (d && d.success) {
+                        currentBusinessId = (d.business && d.business.id) ? d.business.id : (d.id_negocio || 0);
+                        window.currentBusinessId = currentBusinessId;
+
                         const isDemo = (d.user && d.user.email && d.user.email.includes('demo')) ||
                                        (d.business && (d.business.ruta === 'demo' || d.business.is_demo === true)) ||
                                        sessionStorage.getItem('is_demo_user') === 'true';
@@ -441,12 +445,17 @@
         let canEditPermissions = true;
 
         function loadTeamAndServices() {
+            const bizParam = currentBusinessId ? `?id_negocio=${currentBusinessId}` : '';
             Promise.all([
-                fetch('backend/gestionar_profesionales.php').then(r => r.json()),
-                fetch('backend/gestionar_servicios.php').then(r => r.json())
+                fetch(`backend/gestionar_profesionales.php${bizParam}`).then(r => r.json()),
+                fetch(`backend/gestionar_servicios.php${bizParam}`).then(r => r.json())
             ])
             .then(([teamData, svcsData]) => {
                 if (teamData.success) {
+                    if (teamData.id_negocio) {
+                        currentBusinessId = teamData.id_negocio;
+                        window.currentBusinessId = currentBusinessId;
+                    }
                     teamList = teamData.data || [];
                     servicesList = Array.isArray(svcsData) ? svcsData : [];
 
@@ -744,6 +753,7 @@
             const payload = {
                 action: 'actualizar_datos',
                 id_usuario: userId,
+                id_negocio: currentBusinessId || 0,
                 nombre_completo: name,
                 email: email,
                 password: password
@@ -824,6 +834,7 @@
             const payload = {
                 action: 'actualizar_permisos',
                 id_usuario: userId,
+                id_negocio: currentBusinessId || 0,
                 permisos: {
                     agenda: document.getElementById('perm_agenda').checked ? 1 : 0,
                     ver_todos_turnos: document.getElementById('perm_ver_todos_turnos').checked ? 1 : 0,
@@ -869,7 +880,8 @@
             btn.disabled = true;
             btn.textContent = 'Revocando...';
 
-            fetch('backend/gestionar_profesionales.php?id=' + profIdToDelete, { 
+            const bizParam = currentBusinessId ? `&id_negocio=${currentBusinessId}` : '';
+            fetch(`backend/gestionar_profesionales.php?id=${profIdToDelete}${bizParam}`, { 
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-Token': document.cookie.match(/csrf_token=([^;]+)/)?.[1] || ''
@@ -902,6 +914,9 @@
             btn.textContent = 'Creando...';
 
             const formData = new FormData(this);
+            if (currentBusinessId) {
+                formData.append('id_negocio', currentBusinessId);
+            }
             const csrfToken = document.cookie.match(/csrf_token=([^;]+)/)?.[1];
             if (csrfToken) formData.append('csrf_token', csrfToken);
 

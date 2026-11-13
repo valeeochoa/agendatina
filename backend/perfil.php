@@ -156,7 +156,7 @@ try {
 
         // Reseteo mensual automático si cambió el mes (YYYY-MM)
         $currentMonthStr = date('Y-m');
-        $stmtN = $pdo->prepare("SELECT nombre_fantasia, ruta, plan, max_profesionales, estado_pago, ultimo_pago, fecha_alta, dias_prueba, comprobante, wpp_enviados_mes, mes_wpp_contador, codigo_descuento, descuento_aplicado_pct, precio_pactado, fecha_precio_pactado, aviso_cambio_precio FROM negocios WHERE id = ?");
+        $stmtN = $pdo->prepare("SELECT id, nombre_fantasia, ruta, plan, max_profesionales, estado_pago, ultimo_pago, fecha_alta, dias_prueba, comprobante, wpp_enviados_mes, mes_wpp_contador, codigo_descuento, descuento_aplicado_pct, precio_pactado, fecha_precio_pactado, aviso_cambio_precio FROM negocios WHERE id = ?");
         $stmtN->execute([$id_negocio]);
         $business = $stmtN->fetch(PDO::FETCH_ASSOC);
 
@@ -320,7 +320,7 @@ try {
 
         session_write_close();
         if (ob_get_length()) ob_clean();
-        echo json_encode(['success' => true, 'user' => $user, 'business' => $business, 'config' => $config, 'notificaciones' => $notificaciones]);
+        echo json_encode(['success' => true, 'id_negocio' => (int)$id_negocio, 'user' => $user, 'business' => $business, 'config' => $config, 'notificaciones' => $notificaciones]);
         exit;
     }
 
