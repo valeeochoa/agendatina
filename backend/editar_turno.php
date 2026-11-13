@@ -28,6 +28,7 @@ $servicio = trim($_POST['servicio'] ?? '');
 $profesional = trim($_POST['profesional'] ?? 'Cualquiera (Sin preferencia)');
 $notas = trim($_POST['notas'] ?? '');
 $asistio = isset($_POST['asistio']) ? (int)$_POST['asistio'] : 0;
+$no_asistio = ($asistio === 1) ? 0 : 1;
 
 if (empty($id)) {
     http_response_code(400);
@@ -38,9 +39,12 @@ if (empty($id)) {
 require_once __DIR__ . '/conexion.php';
 
 try {
-    // Auto-migración asistio
+    // Auto-migración asistio y no_asistio
     try { $pdo->query("SELECT asistio FROM turnos LIMIT 1"); } 
     catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN asistio TINYINT DEFAULT 0"); }
+
+    try { $pdo->query("SELECT no_asistio FROM turnos LIMIT 1"); } 
+    catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN no_asistio TINYINT(1) DEFAULT 0"); }
 
     // Obtener el estado y fecha/hora actual del turno en la base de datos
     $stmtCheck = $pdo->prepare("SELECT fecha, hora, estado FROM turnos WHERE id = :id AND id_negocio = :id_negocio LIMIT 1");
@@ -59,10 +63,11 @@ try {
 
     if ($isPast) {
         // En el historial actualizar notas y asistencia
-        $stmtUpdate = $pdo->prepare("UPDATE turnos SET notas = :notas, asistio = :asistio WHERE id = :id AND id_negocio = :id_negocio");
+        $stmtUpdate = $pdo->prepare("UPDATE turnos SET notas = :notas, asistio = :asistio, no_asistio = :no_asistio WHERE id = :id AND id_negocio = :id_negocio");
         $stmtUpdate->execute([
             'notas' => $notas,
             'asistio' => $asistio,
+            'no_asistio' => $no_asistio,
             'id' => $id,
             'id_negocio' => $id_negocio
         ]);
@@ -149,6 +154,7 @@ try {
             profesional = :profesional, 
             id_servicio = :id_servicio,
             asistio = :asistio,
+            no_asistio = :no_asistio,
             notas = :notas
             WHERE id = :id AND id_negocio = :id_negocio");
 
@@ -164,6 +170,7 @@ try {
             'profesional' => $profesional,
             'id_servicio' => $id_servicio,
             'asistio' => $asistio,
+            'no_asistio' => $no_asistio,
             'notas' => $notas,
             'id' => $id,
             'id_negocio' => $id_negocio

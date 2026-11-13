@@ -434,6 +434,27 @@ window.ensureServicesLoaded = function() {
         .catch(() => window.services || []);
 };
 
+window.isTurnoAsistido = function(t) {
+    if (!t) return false;
+    // Si fue explícitamente marcado como que NO asistió:
+    if (parseInt(t.no_asistio) === 1 || t.no_asistio === 'si' || t.no_asistio === true) {
+        return false;
+    }
+    // Si fue marcado explícitamente como que asistió o estado asistio/atendido:
+    if (parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio') {
+        return true;
+    }
+    // REGLA: Si el turno está confirmado (o no cancelado/eliminado/bloqueado) y su fecha y hora ya pasaron:
+    // Se considera automáticamente que asistió para las estadísticas y visualización.
+    const isConfirmado = (t.estado === 'confirmado' || !t.estado || t.estado === 'pendiente_confirmado');
+    if (!isConfirmado) return false;
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const nowTime = new Date().toTimeString().substring(0, 5);
+    const esPasado = (t.fecha < todayStr) || (t.fecha === todayStr && (t.hora ? t.hora.substring(0, 5) <= nowTime : false));
+    return esPasado;
+};
+
 window.openEditTurnoModal = function(id) {
     // 1. Obtener datos del turno
     let turno = null;
@@ -526,8 +547,8 @@ window.openEditTurnoModal = function(id) {
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Asistencia al Turno</label>
                         <select id="editTurnoAsistio" name="asistio" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm font-bold text-slate-700">
-                            <option value="1">✓ Sí Asistió (Suma a Estadísticas)</option>
-                            <option value="0">✕ No Asistió / Pendiente</option>
+                            <option value="1">✓ Sí Asistió</option>
+                            <option value="0">✕ No Asistió</option>
                         </select>
                     </div>
                     
@@ -620,7 +641,7 @@ window.openEditTurnoModal = function(id) {
     document.getElementById('editTurnoHora').value = turno.hora.substring(0, 5);
     document.getElementById('editTurnoNotas').value = turno.notas || '';
     if (document.getElementById('editTurnoAsistio')) {
-        const estAsistio = (parseInt(turno.asistio) === 1 || turno.asistio === 'si' || turno.asistio === true || turno.estado === 'atendido' || turno.estado === 'asistio') ? '1' : '0';
+        const estAsistio = window.isTurnoAsistido(turno) ? '1' : '0';
         document.getElementById('editTurnoAsistio').value = estAsistio;
     }
     
@@ -1812,8 +1833,8 @@ window.abrirNotificacionYNavegar = function(e, id, link) {
             if (parts.length === 3) {
                 cal_selectDate(new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)));
             }
-            if (focusVal && typeof window.openEditTurnoModal === 'function') {
-                setTimeout(() => window.openEditTurnoModal(focusVal), 400);
+            if (focusVal && typeof window.enfocarTurnoEnCalendario === 'function') {
+                window.enfocarTurnoEnCalendario(focusVal);
             }
         } else {
             window.location.href = finalLink;

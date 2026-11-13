@@ -84,11 +84,13 @@ function loadStatistics() {
             if (t.estado === 'cancelado' || t.estado === 'eliminado') return false;
 
             // REGLA SOLICITADA POR EL USUARIO:
-            // Se debe sumar los turnos que ya son pasados y que estos asistieron al turno.
-            const esPasado = t.fecha <= todayStr;
-            const asistio = parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio';
+            // El ingreso estimado es la suma de turnos pasados confirmados (si el turno ya pasó
+            // figura automáticamente como que asistió, salvo que el negocio haya marcado que no asistió).
+            const asistio = typeof window.isTurnoAsistido === 'function' 
+                ? window.isTurnoAsistido(t) 
+                : (parseInt(t.no_asistio) !== 1 && (parseInt(t.asistio) === 1 || t.fecha <= todayStr));
             
-            return esPasado && asistio;
+            return asistio;
         });
 
         // 1. Calcular Ingresos Totales del Mes (usando asistencias pasadas)
@@ -116,7 +118,7 @@ function loadStatistics() {
         document.getElementById('statClientes').textContent = clientesUnicos.size;
 
         // Horas Ocupadas Hoy
-        const turnosHoy = turnos.filter(t => t.fecha === todayStr && (parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido'));
+        const turnosHoy = turnos.filter(t => t.fecha === todayStr && t.estado !== 'cancelado' && t.estado !== 'eliminado' && (typeof window.isTurnoAsistido === 'function' ? window.isTurnoAsistido(t) : (parseInt(t.no_asistio) !== 1 && (parseInt(t.asistio) === 1 || t.asistio === 'si'))));
         const minutosHoy = turnosHoy.reduce((total, turno) => {
             const servicio = servicios.find(s => s.nombre === turno.servicio);
             return total + (servicio ? parseInt(servicio.duracion) || 30 : 30);
@@ -132,7 +134,7 @@ function loadStatistics() {
                 noticeEl = document.createElement('div');
                 noticeEl.id = 'noAttendedNotice';
                 noticeEl.className = 'bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl p-4 mb-6 flex items-center gap-3 shadow-xs';
-                noticeEl.innerHTML = '<span class="material-symbols-outlined text-amber-600 text-xl">info</span><span class="text-sm font-semibold">Las estadísticas cargarán cuando empieces a marcar turnos como asistidos.</span>';
+                noticeEl.innerHTML = '<span class="material-symbols-outlined text-amber-600 text-xl">info</span><span class="text-sm font-semibold">Las estadísticas se calculan con los turnos completados y confirmados.</span>';
                 const main = document.querySelector('main');
                 if (main && main.children.length > 1) main.insertBefore(noticeEl, main.children[1]);
             }
@@ -188,7 +190,7 @@ function renderTurnosPorDiaChart(allTurnos, startDate, endDate) {
         
         const fechaFiltro = currentDate.toISOString().split('T')[0];
         const todayStr = new Date().toISOString().split('T')[0];
-        const turnosDelDia = allTurnos.filter(t => t.fecha === fechaFiltro && t.fecha <= todayStr && (parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido')).length;
+        const turnosDelDia = allTurnos.filter(t => t.fecha === fechaFiltro && t.fecha <= todayStr && t.estado !== 'cancelado' && t.estado !== 'eliminado' && (typeof window.isTurnoAsistido === 'function' ? window.isTurnoAsistido(t) : (parseInt(t.no_asistio) !== 1 && (parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido')))).length;
         data.push(turnosDelDia);
 
         currentDate.setDate(currentDate.getDate() + 1);

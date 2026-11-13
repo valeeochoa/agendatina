@@ -226,7 +226,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     // Actualizar KPIs de cabecera en vivo
     const todayStr = (new Date()).toISOString().split('T')[0];
     const turnosHoy = turnosClasicos.filter(t => t.fecha === todayStr && t.estado !== 'eliminado' && t.estado !== 'cancelado').length;
-    const asistidosCount = turnosClasicos.filter(t => parseInt(t.asistio) === 1).length;
+    const asistidosCount = turnosClasicos.filter(t => typeof window.isTurnoAsistido === 'function' ? window.isTurnoAsistido(t) : (parseInt(t.asistio) === 1)).length;
     
     if (document.getElementById('kpiTurnosHoy')) document.getElementById('kpiTurnosHoy').textContent = turnosHoy;
     if (document.getElementById('kpiPorConfirmar')) document.getElementById('kpiPorConfirmar').textContent = pendientes.length;
@@ -474,10 +474,13 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                 // Renderizar cada turno clásico individualmente de manera limpia
                 gruposConf[fecha].forEach(t => {
                     const tIcon = window.getAgendaServiceIcon(t);
-                    const isAttended = parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio';
+                    const isAttended = typeof window.isTurnoAsistido === 'function' ? window.isTurnoAsistido(t) : (parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio');
+                    const isNoAsistio = parseInt(t.no_asistio) === 1 || t.no_asistio === 'si' || t.no_asistio === true;
                     const asistBtn = isAttended
-                        ? `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 0)" class="text-xs font-extrabold px-3 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all flex items-center gap-1 shadow-xs" title="Asistencia confirmada. Click para desmarcar"><span class="material-symbols-outlined text-[15px]">check_circle</span> Asistió</button>`
-                        : `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 1)" class="text-xs font-extrabold px-3 py-1 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcar si asistió al turno"><span class="material-symbols-outlined text-[15px]">how_to_reg</span> ¿Asistió?</button>`;
+                        ? `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 0)" class="text-xs font-extrabold px-3 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-800 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 transition-all flex items-center gap-1 shadow-xs" title="Asistencia registrada. Haz clic si el cliente NO asistió"><span class="material-symbols-outlined text-[15px]">check_circle</span> Asistió</button>`
+                        : (isNoAsistio
+                            ? `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 1)" class="text-xs font-extrabold px-3 py-1 rounded-lg border border-rose-300 bg-rose-50 text-rose-800 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcado como que NO asistió. Haz clic para registrar asistencia"><span class="material-symbols-outlined text-[15px]">cancel</span> No asistió</button>`
+                            : `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 1)" class="text-xs font-extrabold px-3 py-1 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcar si asistió al turno"><span class="material-symbols-outlined text-[15px]">how_to_reg</span> ¿Asistió?</button>`);
 
                     htmlDia += `
                         <div id="turno-${t.id}" onclick="if(!event.target.closest('button')) window.openEditTurnoModal('${t.id}')" class="shadow-sm rounded-2xl p-5 hover:shadow-lg cursor-pointer transition-shadow relative overflow-hidden" style="background-color: #ffffff; border: 1px solid #e2e8f0;">
@@ -556,10 +559,13 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
                     const isNewLoaded = window.isLoadingMoreHistory && globalHistIndex > (window.historyLimit - 15);
                     const animClass = isNewLoaded ? 'animate-new-item' : '';
                     const customStyle = isNewLoaded ? 'opacity: 0;' : 'opacity: 0.85;';
-                    const isAttended = parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio';
+                    const isAttended = typeof window.isTurnoAsistido === 'function' ? window.isTurnoAsistido(t) : (parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio');
+                    const isNoAsistio = parseInt(t.no_asistio) === 1 || t.no_asistio === 'si' || t.no_asistio === true;
                     const asistBtn = isAttended
-                        ? `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 0)" class="text-xs font-black px-3 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all flex items-center gap-1 shadow-xs" title="Asistencia confirmada. Click para desmarcar"><span class="material-symbols-outlined text-[15px]">check_circle</span> Asistió</button>`
-                        : `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 1)" class="text-xs font-black px-3 py-1 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcar si asistió al turno"><span class="material-symbols-outlined text-[15px]">how_to_reg</span> ¿Asistió?</button>`;
+                        ? `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 0)" class="text-xs font-black px-3 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-800 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 transition-all flex items-center gap-1 shadow-xs" title="Asistencia confirmada. Haz clic si el cliente NO asistió"><span class="material-symbols-outlined text-[15px]">check_circle</span> Asistió</button>`
+                        : (isNoAsistio
+                            ? `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 1)" class="text-xs font-black px-3 py-1 rounded-lg border border-rose-300 bg-rose-50 text-rose-800 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcado como que NO asistió. Haz clic para registrar asistencia"><span class="material-symbols-outlined text-[15px]">cancel</span> No asistió</button>`
+                            : `<button onclick="event.stopPropagation(); window.toggleAsistenciaTurno('${t.id}', 1)" class="text-xs font-black px-3 py-1 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcar si asistió al turno"><span class="material-symbols-outlined text-[15px]">how_to_reg</span> ¿Asistió?</button>`);
                     const tHistIcon = window.getAgendaServiceIcon(t);
 
                     htmlDia += `
@@ -1187,10 +1193,13 @@ window.openClassDetailModal = function(slotId) {
             listaAlumnos.innerHTML = `<p class="text-sm text-slate-400 text-center py-6">No hay alumnos inscriptos aún.</p>`;
         } else {
             listaAlumnos.innerHTML = slot.turnos.map(t => {
-                const isAttended = parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio';
+                const isAttended = typeof window.isTurnoAsistido === 'function' ? window.isTurnoAsistido(t) : (parseInt(t.asistio) === 1 || t.asistio === 'si' || t.asistio === true || t.estado === 'atendido' || t.estado === 'asistio');
+                const isNoAsistio = parseInt(t.no_asistio) === 1 || t.no_asistio === 'si' || t.no_asistio === true;
                 const asistBtn = isAttended
-                    ? `<button onclick="window.toggleAsistenciaTurno('${t.id}', 0); setTimeout(() => window.openClassDetailModal('${slotId}'), 400);" class="text-xs font-black px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition-all flex items-center gap-1 shadow-xs" title="Asistencia confirmada. Click para desmarcar"><span class="material-symbols-outlined text-[15px]">check_circle</span> Asistió</button>`
-                    : `<button onclick="window.toggleAsistenciaTurno('${t.id}', 1); setTimeout(() => window.openClassDetailModal('${slotId}'), 400);" class="text-xs font-black px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcar si asistió a la clase"><span class="material-symbols-outlined text-[15px]">how_to_reg</span> ¿Asistió?</button>`;
+                    ? `<button onclick="window.toggleAsistenciaTurno('${t.id}', 0); setTimeout(() => window.openClassDetailModal('${slotId}'), 400);" class="text-xs font-black px-3 py-1.5 rounded-xl border border-emerald-300 bg-emerald-100 text-emerald-800 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 transition-all flex items-center gap-1 shadow-xs" title="Asistencia confirmada. Haz clic si el alumno NO asistió"><span class="material-symbols-outlined text-[15px]">check_circle</span> Asistió</button>`
+                    : (isNoAsistio
+                        ? `<button onclick="window.toggleAsistenciaTurno('${t.id}', 1); setTimeout(() => window.openClassDetailModal('${slotId}'), 400);" class="text-xs font-black px-3 py-1.5 rounded-xl border border-rose-300 bg-rose-50 text-rose-800 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcado como que NO asistió. Haz clic para registrar asistencia"><span class="material-symbols-outlined text-[15px]">cancel</span> No asistió</button>`
+                        : `<button onclick="window.toggleAsistenciaTurno('${t.id}', 1); setTimeout(() => window.openClassDetailModal('${slotId}'), 400);" class="text-xs font-black px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 transition-all flex items-center gap-1 shadow-xs" title="Marcar si asistió a la clase"><span class="material-symbols-outlined text-[15px]">how_to_reg</span> ¿Asistió?</button>`);
 
                 const alumnoNombre = t.cliente_nombre || (t.nombre + ' ' + (t.apellido || '')) || 'Alumno';
                 const alumnoTel = t.cliente_celular || t.celular || '';

@@ -52,19 +52,27 @@ var teamProfessionals = [];
 var isPublicClientSlug = Boolean(negocioSlug && !negocioSlug.toLowerCase().startsWith('demo') && urlParams.get('admin') !== '1' && sessionStorage.getItem('agendatina_session') !== 'active');
 var isAdmin = !isPublicClientSlug && (sessionStorage.getItem('agendatina_session') === 'active' || (negocioSlug === '') || negocioSlug.toLowerCase().startsWith('demo'));
 
-// Registro estadístico de visitas al calendario para planes Profesional y Premium
-if (isPublicClientSlug && negocioSlug) {
-    const sesKey = 'vista_cal_' + negocioSlug;
-    if (!sessionStorage.getItem(sesKey)) {
-        sessionStorage.setItem(sesKey, '1');
-        try {
-            fetch('backend/registrar_vista.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ negocio: negocioSlug, tipo: 'calendario' })
-            }).catch(() => {});
-        } catch(e) {}
-    }
+// Registro estadístico de visitas al calendario (tanto semanal como mensual)
+window.registrarVisitaCalendario = function(slug) {
+    const s = slug || negocioSlug;
+    if (!s || s.toLowerCase().startsWith('demo') || urlParams.get('admin') === '1') return;
+    const now = Date.now();
+    const lastVisitKey = 'last_visita_cal_' + s;
+    const lastVisitTime = parseInt(sessionStorage.getItem(lastVisitKey) || '0', 10);
+    // Debounce de 15 segundos para no duplicar en refrescos instantáneos
+    if (now - lastVisitTime < 15000) return;
+    sessionStorage.setItem(lastVisitKey, String(now));
+    try {
+        fetch('backend/registrar_vista.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ negocio: s, tipo: 'calendario' })
+        }).catch(() => {});
+    } catch(e) {}
+};
+
+if (negocioSlug && !negocioSlug.toLowerCase().startsWith('demo') && urlParams.get('admin') !== '1') {
+    window.registrarVisitaCalendario(negocioSlug);
 }
 
 window.hasWebPagePlan = function(planStr) {
@@ -1273,7 +1281,7 @@ function renderAdminDayView(dateString) {
                     const cel = apt.cliente_celular || apt.celular || '';
                     
                     adminAppointmentsList.innerHTML += `
-                        <div class="bg-white dark:bg-slate-800 border-l-4 ${border} rounded-xl p-4 shadow-sm flex flex-col gap-3 border border-slate-100 dark:border-slate-700 mb-3 overflow-hidden">
+                        <div id="turno-${apt.id}" data-turno-id="${apt.id}" class="bg-white dark:bg-slate-800 border-l-4 ${border} rounded-xl p-4 shadow-sm flex flex-col gap-3 border border-slate-100 dark:border-slate-700 mb-3 overflow-hidden transition-all duration-300">
                             <div class="min-w-0 w-full">
                                 <p class="text-xs font-bold text-slate-400 uppercase truncate">${apt.hora} hs <span class="ml-2 text-primary bg-primary/10 px-2 py-0.5 rounded-md font-semibold">👤 ${apt.profesional || 'General'}</span></p>
                                 <p class="text-base font-bold text-slate-800 dark:text-slate-100 mt-1 whitespace-normal break-words">${nombre}</p>
@@ -1432,7 +1440,7 @@ function renderAdminDayView(dateString) {
                 const cel = apt.cliente_celular || apt.celular || '';
                 
                 adminAppointmentsList.innerHTML += `
-                    <div class="bg-white border-l-4 ${border} rounded-xl p-4 shadow-sm flex flex-col gap-3 border border-slate-100 mb-3 overflow-hidden">
+                    <div id="turno-${apt.id}" data-turno-id="${apt.id}" class="bg-white border-l-4 ${border} rounded-xl p-4 shadow-sm flex flex-col gap-3 border border-slate-100 mb-3 overflow-hidden transition-all duration-300">
                         <div class="min-w-0 w-full">
                             <p class="text-xs font-bold text-slate-400 uppercase truncate">${apt.hora} hs</p>
                             <p class="text-base font-bold text-slate-800 mt-1 whitespace-normal break-words">${nombre}</p>
@@ -3260,19 +3268,24 @@ function renderAdminWeeklyGrid() {
                     startingApts.forEach(apt => {
                         const isB = apt.estado === 'bloqueado';
                         const isP = apt.estado === 'pendiente';
-                        const isAttended = (parseInt(apt.asistio) === 1 || apt.asistio === 'si' || apt.asistio === true || apt.estado === 'atendido');
+                        const isAttended = typeof window.isTurnoAsistido === 'function' ? window.isTurnoAsistido(apt) : (parseInt(apt.asistio) === 1 || apt.asistio === 'si' || apt.asistio === true || apt.estado === 'atendido');
+                        const isNoAsistio = parseInt(apt.no_asistio) === 1 || apt.no_asistio === 'si' || apt.no_asistio === true;
                         const clientName = apt.cliente_nombre || (apt.nombre + ' ' + (apt.apellido || '')) || (isB ? 'Bloqueo Manual' : 'Sin Nombre');
 
                         let badgePill = isB
                             ? '<span class="text-[8px] font-black uppercase px-1.5 py-0.2 rounded-md bg-rose-200 dark:bg-rose-900 text-rose-900 dark:text-rose-200 shrink-0">🚫 Bloqueo</span>'
                             : (isAttended
                                 ? '<span class="text-[8px] font-black uppercase px-1.5 py-0.2 rounded-md bg-emerald-200 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-200 shrink-0">✓ Asistió</span>'
-                                : (isP
-                                    ? '<span class="text-[8px] font-black uppercase px-1.5 py-0.2 rounded-md bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 shrink-0">⏳ Pendiente</span>'
-                                    : '<span class="text-[8px] font-black uppercase px-1.5 py-0.2 rounded-md bg-sky-200 dark:bg-sky-900 text-sky-900 dark:text-sky-200 shrink-0">✅ Reservado</span>'));
+                                : (isNoAsistio
+                                    ? '<span class="text-[8px] font-black uppercase px-1.5 py-0.2 rounded-md bg-rose-200 dark:bg-rose-900 text-rose-900 dark:text-rose-200 shrink-0">✕ No Asistió</span>'
+                                    : (isP
+                                        ? '<span class="text-[8px] font-black uppercase px-1.5 py-0.2 rounded-md bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 shrink-0">⏳ Pendiente</span>'
+                                        : '<span class="text-[8px] font-black uppercase px-1.5 py-0.2 rounded-md bg-sky-200 dark:bg-sky-900 text-sky-900 dark:text-sky-200 shrink-0">✅ Reservado</span>')));
 
                         const divApt = document.createElement('div');
-                        divApt.className = "pt-1 mt-1 border-t border-black/10 dark:border-white/10 hover:opacity-90 transition-opacity";
+                        divApt.id = 'turno-' + apt.id;
+                        divApt.setAttribute('data-turno-id', apt.id);
+                        divApt.className = "pt-1 mt-1 border-t border-black/10 dark:border-white/10 hover:opacity-90 transition-all rounded-lg";
                         
                         if (effectiveIsAdmin && !isB) {
                             divApt.draggable = true;
@@ -4757,24 +4770,31 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (urlFocus) {
-                setTimeout(() => {
-                    const focusEl = document.getElementById('turno-' + urlFocus) || 
-                                    document.getElementById('slotcard-' + urlFocus) ||
-                                    document.querySelector(`[data-turno-id="${urlFocus}"]`) ||
-                                    document.querySelector(`button[onclick*="'${urlFocus}'"]`)?.closest('.time-slot, .p-3, .p-4, div');
-                    if (focusEl) {
-                        focusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        focusEl.classList.add('ring-4', 'ring-primary', 'ring-offset-2', 'rounded-2xl', 'transition-all');
-                        setTimeout(() => {
-                            focusEl.classList.remove('ring-4', 'ring-primary', 'ring-offset-2');
-                        }, 4000);
-                    }
-                    if (typeof window.openEditTurnoModal === 'function') {
-                        window.openEditTurnoModal(urlFocus);
-                    }
-                }, 500);
+                window.enfocarTurnoEnCalendario(urlFocus);
             }
         }, 350);
+
+        window.enfocarTurnoEnCalendario = function(focusId) {
+            if (!focusId) return;
+            let attempts = 0;
+            const tryFocus = () => {
+                attempts++;
+                const focusEl = document.getElementById('turno-' + focusId) || 
+                                document.querySelector(`[data-turno-id="${focusId}"]`) ||
+                                document.getElementById('slotcard-' + focusId) ||
+                                document.querySelector(`button[onclick*="'${focusId}'"]`)?.closest('.bg-white, .time-slot, div');
+                if (focusEl) {
+                    focusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    focusEl.classList.add('ring-4', 'ring-amber-400', 'ring-offset-2', 'bg-amber-50/70', 'transition-all');
+                    setTimeout(() => {
+                        focusEl.classList.remove('ring-4', 'ring-amber-400', 'ring-offset-2', 'bg-amber-50/70');
+                    }, 4500);
+                } else if (attempts < 12) {
+                    setTimeout(tryFocus, 250);
+                }
+            };
+            setTimeout(tryFocus, 450);
+        };
 
         const manageServicesBtn = document.getElementById('manageServicesBtn');
         if(manageServicesBtn) manageServicesBtn.addEventListener('click', openServicesModal);

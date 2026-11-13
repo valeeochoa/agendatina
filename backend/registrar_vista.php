@@ -25,30 +25,48 @@ try {
     error_log("Error al crear tabla visitas_negocio: " . $eMig->getMessage());
 }
 
+if (session_status() === PHP_SESSION_NONE) {
+    @session_start();
+}
+
 $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
-$negocioParam = trim($input['negocio'] ?? '');
-$tipo = trim($input['tipo'] ?? 'calendario');
+$negocioParam = trim((string)($input['negocio'] ?? ''), "/ \t\n\r\0\x0B");
+$tipo = trim((string)($input['tipo'] ?? 'calendario'));
 
 if (!in_array($tipo, ['calendario', 'web'])) {
     $tipo = 'calendario';
 }
 
-if (empty($negocioParam)) {
+$idVal = (is_numeric($negocioParam) && (int)$negocioParam > 0) ? (int)$negocioParam : 0;
+if ($idVal === 0 && empty($negocioParam) && !empty($_SESSION['id_negocio'])) {
+    $idVal = (int)$_SESSION['id_negocio'];
+}
+
+if (empty($negocioParam) && $idVal <= 0) {
     echo json_encode(['success' => false, 'error' => 'Negocio no especificado']);
     exit;
 }
 
 // Ignorar entornos demo
-if (stripos($negocioParam, 'demo') === 0 || (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true)) {
+if ((!empty($negocioParam) && stripos($negocioParam, 'demo') === 0) || (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true)) {
     echo json_encode(['success' => true, 'ignored' => 'demo']);
     exit;
 }
 
 try {
-    $idVal = (is_numeric($negocioParam) && (int)$negocioParam > 0) ? (int)$negocioParam : 0;
-    $stmtNeg = $pdo->prepare("SELECT id FROM negocios WHERE ruta = :slug OR subdominio = :slug OR (id = :id AND :id > 0) LIMIT 1");
+    $stmtNeg = $pdo->prepare("SELECT id FROM negocios WHERE LOWER(TRIM(ruta)) = LOWER(:slug) OR LOWER(TRIM(subdominio)) = LOWER(:slug) OR LOWER(TRIM(nombre_fantasia)) = LOWER(:slug) OR (id = :id AND :id > 0) LIMIT 1");
     $stmtNeg->execute(['slug' => $negocioParam, 'id' => $idVal]);
     $negocioRow = $stmtNeg->fetch(PDO::FETCH_ASSOC);
+
+    if (!$negocioRow && !empty($negocioParam)) {
+        // Fallback a configuracion_web
+        $stmtCfg = $pdo->prepare("SELECT id_negocio FROM configuracion_web WHERE url_logo LIKE :s LIMIT 1");
+        $stmtCfg->execute(['s' => "%$negocioParam%"]);
+        $idFromCfg = (int)$stmtCfg->fetchColumn();
+        if ($idFromCfg > 0) {
+            $negocioRow = ['id' => $idFromCfg];
+        }
+    }
 
     if (!$negocioRow) {
         echo json_encode(['success' => false, 'error' => 'Negocio no encontrado']);

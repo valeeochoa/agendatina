@@ -13,9 +13,12 @@ if (!$id_negocio) {
 }
 
 try {
-    // Auto-migración columna asistio
+    // Auto-migración columnas asistio y no_asistio
     try { $pdo->query("SELECT asistio FROM turnos LIMIT 1"); } 
     catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN asistio TINYINT DEFAULT 0"); }
+
+    try { $pdo->query("SELECT no_asistio FROM turnos LIMIT 1"); } 
+    catch(Exception $e) { $pdo->exec("ALTER TABLE turnos ADD COLUMN no_asistio TINYINT(1) DEFAULT 0"); }
 
     $data = json_decode(file_get_contents('php://input'), true);
     if (!$data || !isset($data['id_turno'])) {
@@ -25,15 +28,17 @@ try {
 
     $id_turno = (int)$data['id_turno'];
     $asistio = isset($data['asistio']) ? ((int)$data['asistio'] === 1 ? 1 : 0) : 1;
+    $no_asistio = ($asistio === 1) ? 0 : 1;
 
-    $stmt = $pdo->prepare("UPDATE turnos SET asistio = :asistio WHERE id = :id AND id_negocio = :id_negocio");
-    $stmt->execute(['asistio' => $asistio, 'id' => $id_turno, 'id_negocio' => $id_negocio]);
+    $stmt = $pdo->prepare("UPDATE turnos SET asistio = :asistio, no_asistio = :no_asistio WHERE id = :id AND id_negocio = :id_negocio");
+    $stmt->execute(['asistio' => $asistio, 'no_asistio' => $no_asistio, 'id' => $id_turno, 'id_negocio' => $id_negocio]);
 
     echo json_encode([
         'success' => true,
         'id_turno' => $id_turno,
         'asistio' => $asistio,
-        'mensaje' => $asistio === 1 ? 'Asistencia registrada correctamente' : 'Marcar como no asistió'
+        'no_asistio' => $no_asistio,
+        'mensaje' => $asistio === 1 ? 'Asistencia registrada correctamente' : 'Marcado como no asistió'
     ]);
 } catch (Exception $e) {
     error_log("Error en marcar_asistencia.php: " . $e->getMessage());

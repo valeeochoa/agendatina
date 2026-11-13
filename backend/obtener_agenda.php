@@ -62,6 +62,7 @@ try {
         'profesional' => "VARCHAR(255) DEFAULT 'Cualquiera (Sin preferencia)'",
         'estado' => "VARCHAR(50) DEFAULT 'pendiente'",
         'asistio' => 'TINYINT DEFAULT 0',
+        'no_asistio' => 'TINYINT DEFAULT 0',
         'created_at' => 'DATETIME DEFAULT CURRENT_TIMESTAMP'
     ];
 
@@ -103,7 +104,7 @@ try {
 
     if ($historial) {
         // Sin límite de fecha para exportar el historial completo a Excel
-        $sql = "SELECT t.id, t.id_servicio, t.cliente_nombre, t.nombre, t.apellido, t.cliente_celular, t.celular, t.fecha, t.hora, t.servicio, t.profesional, t.estado, t.asistio, t.notas, t.fecha_eliminado, t.metodo_pago, t.precio, t.created_at,
+        $sql = "SELECT t.id, t.id_servicio, t.cliente_nombre, t.nombre, t.apellido, t.cliente_celular, t.celular, t.fecha, t.hora, t.servicio, t.profesional, t.estado, t.asistio, t.no_asistio, t.notas, t.fecha_eliminado, t.metodo_pago, t.precio, t.created_at,
                        GREATEST(0, 3600 - TIMESTAMPDIFF(SECOND, COALESCE(t.created_at, NOW()), NOW())) AS segundos_restantes_sena,
                        COALESCE(s.cupo_maximo, s.capacidad, 1) AS cupo_maximo,
                        COALESCE(s.tipo_servicio, 'calendario') AS tipo_servicio,
@@ -123,7 +124,7 @@ try {
     } else {
         // Ventana de tiempo (60 días) para vista normal de agenda
         $min_fecha = date('Y-m-d', strtotime('-60 days'));
-        $sql = "SELECT t.id, t.id_servicio, t.cliente_nombre, t.nombre, t.apellido, t.cliente_celular, t.celular, t.fecha, t.hora, t.servicio, t.profesional, t.estado, t.asistio, t.notas, t.fecha_eliminado, t.metodo_pago, t.precio, t.created_at,
+        $sql = "SELECT t.id, t.id_servicio, t.cliente_nombre, t.nombre, t.apellido, t.cliente_celular, t.celular, t.fecha, t.hora, t.servicio, t.profesional, t.estado, t.asistio, t.no_asistio, t.notas, t.fecha_eliminado, t.metodo_pago, t.precio, t.created_at,
                        GREATEST(0, 3600 - TIMESTAMPDIFF(SECOND, COALESCE(t.created_at, NOW()), NOW())) AS segundos_restantes_sena,
                        COALESCE(s.cupo_maximo, s.capacidad, 1) AS cupo_maximo,
                        COALESCE(s.tipo_servicio, 'calendario') AS tipo_servicio,

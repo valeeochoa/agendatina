@@ -43,15 +43,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Registrar visualización de la web si es visita pública real
-                if (negocioSlug && !data.is_demo && urlParams.get('preview') !== '1' && !urlParams.has('preview')) {
-                    const sesKey = 'vista_web_' + negocioSlug;
-                    if (!sessionStorage.getItem(sesKey)) {
-                        sessionStorage.setItem(sesKey, '1');
+                const realWebSlug = negocioSlug || data.ruta || data.subdominio || '';
+                if (realWebSlug && !data.is_demo && urlParams.get('preview') !== '1' && !urlParams.has('preview')) {
+                    const now = Date.now();
+                    const lastVisitKey = 'last_visita_web_' + realWebSlug;
+                    const lastVisitTime = parseInt(sessionStorage.getItem(lastVisitKey) || '0', 10);
+                    if (now - lastVisitTime >= 15000) {
+                        sessionStorage.setItem(lastVisitKey, String(now));
                         try {
                             fetch('backend/registrar_vista.php', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ negocio: negocioSlug, tipo: 'web' })
+                                body: JSON.stringify({ negocio: realWebSlug, tipo: 'web' })
                             }).catch(() => {});
                         } catch(e) {}
                     }
