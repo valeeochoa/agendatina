@@ -128,10 +128,14 @@ if ($method === 'GET') {
         $ruta_negocio = $negData ? $negData['ruta'] : '';
         $secret = !empty($negData['token_seguridad']) ? $negData['token_seguridad'] : 'AgendatinaSec_2024'; // Clave secreta para firmar los enlaces
         
-        // Obtener el nombre del dueño del negocio como profesional por defecto
+        // Obtener el nombre del dueño del negocio y los integrantes activos del equipo
         $stmtOwner = $pdo->prepare("SELECT u.nombre_completo FROM usuarios u JOIN personal_negocio pn ON u.id = pn.id_usuario WHERE pn.id_negocio = :id AND pn.rol_en_local = 'admin' LIMIT 1");
         $stmtOwner->execute(['id' => $id_negocio]);
         $ownerName = $stmtOwner->fetchColumn();
+
+        $stmtTeamNames = $pdo->prepare("SELECT u.nombre_completo FROM usuarios u JOIN personal_negocio pn ON u.id = pn.id_usuario WHERE pn.id_negocio = :id");
+        $stmtTeamNames->execute(['id' => $id_negocio]);
+        $activeTeamNames = array_values(array_filter(array_map('trim', $stmtTeamNames->fetchAll(PDO::FETCH_COLUMN) ?: [])));
 
         $ctxSvc = ['is_prof' => false, 'nombre_completo' => ''];
         if (isset($_SESSION['id_negocio']) && (int)$_SESSION['id_negocio'] === (int)$id_negocio && isset($_SESSION['user_id']) && !isset($_GET['n'])) {
@@ -140,7 +144,29 @@ if ($method === 'GET') {
         }
         
         foreach ($servicios as &$serv) {
-            if (empty($serv['profesional'])) { $serv['profesional'] = $ownerName; }
+            $profActual = trim((string)($serv['profesional'] ?? ''));
+            if (empty($profActual)) {
+                $serv['profesional'] = $ownerName ?: 'Cualquiera (Sin preferencia)';
+            } elseif (!empty($activeTeamNames) && strcasecmp($profActual, 'Cualquiera (Sin preferencia)') !== 0 && strcasecmp($profActual, 'Cualquiera') !== 0) {
+                $pLow = mb_strtolower($profActual, 'UTF-8');
+                $matchedTeamName = null;
+                foreach ($activeTeamNames as $tn) {
+                    $tnLow = mb_strtolower($tn, 'UTF-8');
+                    if ($tnLow === $pLow || (strpos($pLow, ' ') === false && strpos($tnLow, $pLow . ' ') === 0)) {
+                        $matchedTeamName = $tn;
+                        break;
+                    }
+                }
+                if ($matchedTeamName !== null) {
+                    $serv['profesional'] = $matchedTeamName;
+                } else {
+                    $serv['profesional'] = 'Cualquiera (Sin preferencia)';
+                    try {
+                        $pdo->prepare("UPDATE servicios SET profesional = 'Cualquiera (Sin preferencia)' WHERE id = ? AND id_negocio = ?")
+                            ->execute([$serv['id'], $id_negocio]);
+                    } catch (Throwable $eCleanSvcProf) {}
+                }
+            }
             if (empty($serv['icono'])) { $serv['icono'] = 'local_florist'; }
             $serv['enlace_agenda'] = "";
             $serv['es_mio'] = (!$ctxSvc['is_prof'] || strcasecmp(trim($serv['profesional']), trim($ctxSvc['nombre_completo'])) === 0);

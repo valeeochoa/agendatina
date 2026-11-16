@@ -11,6 +11,7 @@
     <script src="assets/js/csrf.js"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -734,8 +735,8 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            ${!isOtherProfService ? `<button onclick="editService(${s.id})" class="p-2 rounded-xl bg-white text-slate-600 hover:text-primary border border-slate-200 transition-colors cursor-pointer" title="Editar Servicio"><span class="material-symbols-outlined text-[18px]">edit</span></button>` : ''}
-                            <button onclick="deleteService(${s.id})" class="p-2 rounded-xl bg-white text-slate-600 hover:text-red-600 border border-slate-200 transition-colors cursor-pointer" title="${isOtherProfService ? 'Solicitar eliminación al administrador' : 'Eliminar Servicio'}"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                            ${!isOtherProfService ? `<button type="button" onclick="editService(${s.id})" style="background-color: #ffffff !important;" class="p-2 rounded-xl bg-white text-slate-600 hover:text-primary border border-slate-200 transition-colors cursor-pointer" title="Editar Servicio"><span class="material-symbols-outlined text-[18px]">edit</span></button>` : ''}
+                            <button type="button" onclick="deleteService(${s.id})" style="background-color: #ffffff !important;" class="p-2 rounded-xl bg-white text-slate-600 hover:text-red-600 border border-slate-200 transition-colors cursor-pointer" title="${isOtherProfService ? 'Solicitar eliminación al administrador' : 'Eliminar Servicio'}"><span class="material-symbols-outlined text-[18px]">delete</span></button>
                         </div>
                     </div>
                 `;

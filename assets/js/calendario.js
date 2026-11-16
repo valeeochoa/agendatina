@@ -712,7 +712,11 @@ function cal_fetchBookedTimes() {
             }
             window.businessWebConfig = Object.assign(window.businessWebConfig || {}, data._config);
         }
-        if (cal_selectedDate) cal_renderTimeSlots();
+        if (isAdmin && !isPreviewMode && typeof cal_selectedDate !== 'undefined' && cal_selectedDate && !document.getElementById('weeklyCalendarView') && typeof renderAdminDayView === 'function') {
+            renderAdminDayView(toYYYYMMDD(cal_selectedDate));
+        } else if (cal_selectedDate) {
+            cal_renderTimeSlots();
+        }
         cal_renderCalendar();
 
         const gl = document.getElementById('globalLoader');
@@ -1085,7 +1089,7 @@ function fetchAllAppointments() {
         .then(res => res.json())
         .then(data => {
             if (Array.isArray(data)) {
-                allAppointments = data;
+                allAppointments = data.filter(t => t && t.estado !== 'eliminado' && t.estado !== 'cancelado' && t.estado !== 'rechazado');
             } else {
                 allAppointments = [];
             }
@@ -1104,8 +1108,8 @@ function renderAdminDayView(dateString) {
 
     const effectiveIsAdmin = isAdmin && !isPreviewMode;
 
-    // 1. Filtrar turnos del día
-    let appointmentsForDay = allAppointments.filter(t => t.fecha === dateString);
+    // 1. Filtrar turnos del día (excluyendo turnos eliminados/cancelados/rechazados)
+    let appointmentsForDay = allAppointments.filter(t => t.fecha === dateString && t.estado !== 'eliminado' && t.estado !== 'cancelado' && t.estado !== 'rechazado');
     if (window.currentUserIsProfOnlyOwn && window.currentProfOnlyOwnName) {
         appointmentsForDay = appointmentsForDay.filter(t => t.profesional && window.isSameProf(t.profesional, window.currentProfOnlyOwnName));
         globalSelectedProfessional = window.currentProfOnlyOwnName;
@@ -1184,7 +1188,7 @@ function renderAdminDayView(dateString) {
     // MODO COLUMNAS
     // ==========================================
     if (globalSelectedProfessional === 'columnas') {
-        const uniqueProfs = [...new Set(services.map(s => s.profesional).filter(p => p && p.trim() !== ''))];
+        const uniqueProfs = getUniqueProfessionals();
         if (uniqueProfs.length === 0) uniqueProfs.push('General');
 
         adminTimeSlots.className = uniqueProfs.length > 2
@@ -1782,11 +1786,14 @@ function fetchTeamProfessionals() {
     return fetch('backend/gestionar_profesionales.php' + queryParam)
         .then(res => res.json())
         .then(data => {
-            if (Array.isArray(data)) {
-                teamProfessionals = data.map(p => p.nombre_completo || p.nombre).filter(n => n && n.trim() !== '');
-            } else if (data && data.profesionales && Array.isArray(data.profesionales)) {
-                teamProfessionals = data.profesionales.map(p => p.nombre_completo || p.nombre).filter(n => n && n.trim() !== '');
-            }
+            const list = Array.isArray(data)
+                ? data
+                : (Array.isArray(data?.data)
+                    ? data.data
+                    : (Array.isArray(data?.profesionales) ? data.profesionales : []));
+            teamProfessionals = list
+                .map(p => (typeof p === 'string' ? p : (p.nombre_completo || p.nombre || '')).trim())
+                .filter(n => n !== '');
         })
         .catch(() => {});
 }
@@ -1828,7 +1835,11 @@ window.formatProfDisplayNames = function(profsList) {
 
 function getUniqueProfessionals() {
     const invalidNames = ['', 'cualquiera', 'cualquiera (sin preferencia)', 'todos', 'sin asignar', 'agendatina demo', 'agendatina'];
-    
+
+    const teamAll = (teamProfessionals || [])
+        .map(t => (typeof t === 'string' ? t : (t.nombre_completo || t.nombre || '')).trim())
+        .filter(t => t && !invalidNames.includes(window.normalizeProfName(t)));
+
     // 1. Profesionales de servicios configurados
     const serviceProfs = (services || [])
         .map(s => (s.profesional || '').trim())
@@ -1836,18 +1847,26 @@ function getUniqueProfessionals() {
 
     // 2. Profesionales que tienen turnos activos
     const aptProfs = (allAppointments || [])
+        .filter(a => a && a.estado !== 'eliminado' && a.estado !== 'cancelado' && a.estado !== 'rechazado')
         .map(a => (a.profesional || '').trim())
         .filter(p => p && !invalidNames.includes(window.normalizeProfName(p)));
 
-    // 3. Profesionales del equipo que tengan servicios o turnos asociados
-    const teamProfsList = (teamProfessionals || [])
-        .map(t => (typeof t === 'string' ? t : (t.nombre_completo || t.nombre || '')).trim())
-        .filter(t => t && !invalidNames.includes(window.normalizeProfName(t)) && (
-            serviceProfs.some(sp => window.isSameProf(sp, t)) ||
-            aptProfs.some(ap => window.isSameProf(ap, t))
-        ));
+    // 3. Si contamos con el listado oficial de equipo activo, filtrar exclusivamente integrantes vigentes
+    const resolveToTeam = (rawList) => {
+        if (teamAll.length === 0) return rawList;
+        return rawList
+            .map(p => teamAll.find(tp => window.isSameProf(tp, p)) || null)
+            .filter(Boolean);
+    };
 
-    const candidateProfs = [...serviceProfs, ...aptProfs, ...teamProfsList];
+    const validServiceProfs = resolveToTeam(serviceProfs);
+    const validAptProfs = resolveToTeam(aptProfs);
+    const teamProfsList = teamAll.filter(t => (
+        validServiceProfs.some(sp => window.isSameProf(sp, t)) ||
+        validAptProfs.some(ap => window.isSameProf(ap, t))
+    ));
+
+    const candidateProfs = [...validServiceProfs, ...validAptProfs, ...teamProfsList];
     
     // Deduplicar respetando coincidencias (ej: Marcos vs Marcos Gómez)
     const unique = [];
@@ -2374,7 +2393,7 @@ function renderServicesList() {
                     <button type="button" onclick="editService('${service.id}')" class="p-2 rounded-xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-primary border border-slate-200 dark:border-slate-700 hover:border-primary transition-colors cursor-pointer shadow-2xs" title="Editar Servicio">
                         <span class="material-symbols-outlined text-[18px]">edit</span>
                     </button>
-                    <button type="button" onclick="deleteService('${service.id}')" class="p-2 rounded-xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-red-600 border border-slate-200 dark:border-slate-700 hover:border-red-300 transition-colors cursor-pointer shadow-2xs" title="Eliminar Servicio">
+                    <button type="button" onclick="deleteService('${service.id}')" style="background-color: #ffffff !important;" class="p-2 rounded-xl bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-red-600 border border-slate-200 dark:border-slate-700 hover:border-red-300 transition-colors cursor-pointer shadow-2xs" title="Eliminar Servicio">
                         <span class="material-symbols-outlined text-[18px]">delete</span>
                     </button>
                 </div>
@@ -3240,7 +3259,7 @@ function renderAdminWeeklyGrid() {
         // Turnos del día filtrados por profesional
         const dayApts = allAppointments.filter(a => {
             if (a.fecha !== dateString) return false;
-            if (a.estado === 'cancelado' || a.estado === 'rechazado') return false;
+            if (a.estado === 'eliminado' || a.estado === 'cancelado' || a.estado === 'rechazado') return false;
             if (window.currentUserIsProfOnlyOwn && window.currentProfOnlyOwnName) {
                 if (!a.profesional || !window.isSameProf(a.profesional, window.currentProfOnlyOwnName)) return false;
             } else if (!isTodosProf && a.profesional && adminWeeklySelectedProf) {

@@ -281,7 +281,7 @@ window.ensureConfirmModal = function() {
         const modalHtml = `
             <div id="confirmModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[80] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
                 <div class="bg-white rounded-2xl shadow-2xl border border-slate-200/90 max-w-sm w-full p-6 sm:p-7 transform scale-95 transition-transform duration-300 text-center" id="confirmModalContent">
-                    <div id="confirmIconBox" class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                    <div id="confirmIconBox" style="background-color: #ffffff;" class="w-14 h-14 bg-white border-2 border-red-200 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
                         <span id="confirmIcon" class="material-symbols-outlined text-2xl">delete</span>
                     </div>
                     <h3 class="text-xl font-bold text-slate-800 mb-2" id="confirmTitle">Confirmar Acción</h3>
@@ -342,12 +342,15 @@ window.showConfirm = function(title, message, acceptText, acceptColorClass, call
         const isDestructive = (acceptColorClass && acceptColorClass.includes('red')) || (title && (title.toLowerCase().includes('cancelar') || title.toLowerCase().includes('eliminar') || title.toLowerCase().includes('papelera') || title.toLowerCase().includes('cerrar sesión') || title.toLowerCase().includes('salir')));
 
         if (isPositive) {
+            iconBox.style.backgroundColor = '';
             iconBox.className = 'w-14 h-14 sm:w-16 sm:h-16 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm';
             iconEl.textContent = 'check_circle';
         } else if (isDestructive) {
-            iconBox.className = 'w-14 h-14 sm:w-16 sm:h-16 bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm';
+            iconBox.style.backgroundColor = '#ffffff';
+            iconBox.className = 'w-14 h-14 sm:w-16 sm:h-16 bg-white border-2 border-red-200 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm';
             iconEl.textContent = title && title.toLowerCase().includes('sesión') ? 'logout' : 'delete';
         } else {
+            iconBox.style.backgroundColor = '';
             iconBox.className = 'w-14 h-14 sm:w-16 sm:h-16 bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm';
             iconEl.textContent = 'warning';
         }
@@ -431,7 +434,8 @@ window.confirmarTurnoAdmin = function(id) {
 
 window.cancelarTurnoAdmin = function(id, skipConfirm = false) {
     const doCancel = () => {
-        const targetTurno = (window.agendaData || []).find(t => t.id == id);
+        const targetTurno = (window.agendaData || []).find(t => t.id == id) ||
+            ((typeof allAppointments !== 'undefined' && Array.isArray(allAppointments)) ? allAppointments.find(t => t.id == id) : null);
         return fetch('backend/cancelar_turno.php', { method: 'POST', body: new URLSearchParams({id: id}) })
         .then(res => res.json())
         .then(data => {
@@ -439,6 +443,16 @@ window.cancelarTurnoAdmin = function(id, skipConfirm = false) {
                 showToast('Turno movido a la papelera exitosamente', 'success');
                 localStorage.setItem('agendatina_unread_trash', 'true');
                 
+                if (Array.isArray(window.agendaData)) {
+                    const idxAg = window.agendaData.findIndex(t => String(t.id) === String(id));
+                    if (idxAg !== -1) window.agendaData[idxAg].estado = 'eliminado';
+                }
+                if (typeof allAppointments !== 'undefined' && Array.isArray(allAppointments)) {
+                    allAppointments = allAppointments.filter(t => String(t.id) !== String(id));
+                }
+                const domTurnoEl = document.getElementById('turno-' + id);
+                if (domTurnoEl) domTurnoEl.remove();
+
                 // Abrir notificación por WhatsApp al cliente si hay celular disponible
                 if (targetTurno) {
                     const rawCel = targetTurno.cliente_celular || targetTurno.celular || '';
@@ -454,7 +468,7 @@ window.cancelarTurnoAdmin = function(id, skipConfirm = false) {
                 }
                 
                 if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
-                if (typeof window.cargarAgenda === 'function') window.cargarAgenda();
+                if (typeof window.cargarAgenda === 'function') window.cargarAgenda(true);
             } else {
                 showToast(data.error || 'No se pudo cancelar el turno.', 'error');
             }

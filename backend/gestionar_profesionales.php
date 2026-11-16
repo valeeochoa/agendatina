@@ -526,12 +526,24 @@ if ($method === 'GET') {
             $pdo->prepare("DELETE FROM usuarios WHERE id = ?")->execute([$actualUserId]);
         }
 
-        // 3. Desvincular de servicios de este negocio asignándolos a "Cualquiera (Sin preferencia)"
+        // 3. Desvincular de servicios, turnos y configuraciones del profesional eliminado
         if ($profName) {
             try {
-                $stmtUpdSvcs = $pdo->prepare("UPDATE servicios SET profesional = 'Cualquiera (Sin preferencia)' WHERE id_negocio = ? AND (profesional = ? OR email_profesional = ?)");
-                $stmtUpdSvcs->execute([$id_negocio, $profName, $personal['email']]);
+                $stmtUpdSvcs = $pdo->prepare("UPDATE servicios SET profesional = 'Cualquiera (Sin preferencia)' WHERE id_negocio = ? AND (LOWER(TRIM(profesional)) = LOWER(TRIM(?)) OR LOWER(TRIM(email_profesional)) = LOWER(TRIM(?)))");
+                $stmtUpdSvcs->execute([$id_negocio, $profName, $personal['email'] ?? '']);
             } catch (Throwable $eSvcs) {}
+
+            // 3.1 Desvincular turnos activos/futuros de este profesional para que no quede como columna fantasma en el calendario
+            try {
+                $stmtUpdTurnos = $pdo->prepare("UPDATE turnos SET profesional = 'Cualquiera (Sin preferencia)' WHERE id_negocio = ? AND LOWER(TRIM(profesional)) = LOWER(TRIM(?)) AND estado IN ('pendiente', 'confirmado')");
+                $stmtUpdTurnos->execute([$id_negocio, $profName]);
+            } catch (Throwable $eTurnosProf) {}
+
+            // 3.2 Eliminar horarios personalizados del profesional
+            try {
+                $pdo->prepare("DELETE FROM horarios_profesionales WHERE id_negocio = ? AND (id_usuario = ? OR LOWER(TRIM(profesional)) = LOWER(TRIM(?)))")
+                    ->execute([$id_negocio, $actualUserId, $profName]);
+            } catch (Throwable $eHorProf) {}
 
             // 4. Limpiar de configuracion_web.profesionales_json
             try {
@@ -542,7 +554,7 @@ if ($method === 'GET') {
                     $profsList = json_decode($cwRow['profesionales_json'], true);
                     if (is_array($profsList)) {
                         $profsList = array_values(array_filter($profsList, function($it) use ($profName) {
-                            return isset($it['nombre']) && trim($it['nombre']) !== $profName;
+                            return isset($it['nombre']) && strcasecmp(trim($it['nombre']), $profName) !== 0;
                         }));
                         $pdo->prepare("UPDATE configuracion_web SET profesionales_json = ? WHERE id_negocio = ?")
                             ->execute([json_encode($profsList, JSON_UNESCAPED_UNICODE), $id_negocio]);
