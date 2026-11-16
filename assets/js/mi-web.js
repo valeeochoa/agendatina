@@ -232,6 +232,77 @@ document.addEventListener('DOMContentLoaded', () => {
             prevPill.style.backgroundColor = p;
         }
     };
+
+    window.loadFirstServiceForLivePreview = async function() {
+        try {
+            const res = await fetch('backend/gestionar_servicios.php', { credentials: 'same-origin' });
+            const list = await res.json();
+            if (!Array.isArray(list) || list.length === 0) return;
+
+            const s = list[0];
+            const titleEl = document.getElementById('livePreviewTitle');
+            const subEl = document.getElementById('livePreviewSub');
+            const priceEl = document.getElementById('livePreviewPrice');
+            const pillEl = document.getElementById('livePreviewPill');
+            const badgeEl = document.getElementById('livePreviewBadge');
+            const btnEl = document.getElementById('livePreviewBtn');
+
+            if (titleEl && s.nombre) {
+                titleEl.textContent = s.nombre;
+            }
+
+            if (subEl) {
+                const durText = formatDuracionText(s.duracion);
+                const rawDesc = String(s.descripcion || '').replace(/\s+/g, ' ').trim();
+                const descClean = rawDesc.length > 65 ? rawDesc.slice(0, 62) + '...' : rawDesc;
+                subEl.textContent = descClean ? `${durText} • ${descClean}` : durText;
+            }
+
+            if (priceEl) {
+                const precioNum = parseFloat(s.precio) || 0;
+                let hasPacks = false;
+                if (s.precios_paquetes_json) {
+                    try {
+                        const parsed = typeof s.precios_paquetes_json === 'string'
+                            ? JSON.parse(s.precios_paquetes_json)
+                            : s.precios_paquetes_json;
+                        hasPacks = Array.isArray(parsed) && parsed.length > 0;
+                    } catch (_) {}
+                }
+                if (precioNum > 0) {
+                    priceEl.textContent = '$' + precioNum.toLocaleString('es-AR');
+                } else if (hasPacks) {
+                    priceEl.textContent = 'Tarifas por Pases';
+                } else {
+                    priceEl.textContent = 'Gratis';
+                }
+            }
+
+            if (pillEl) {
+                if (s.imagen1) {
+                    pillEl.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = s.imagen1;
+                    img.alt = s.nombre || 'Servicio';
+                    img.className = 'w-full h-full object-cover rounded-xl';
+                    pillEl.appendChild(img);
+                } else {
+                    pillEl.innerHTML = '';
+                    const iconSpan = document.createElement('span');
+                    iconSpan.className = 'material-symbols-outlined text-xl';
+                    iconSpan.textContent = s.icono || 'star';
+                    pillEl.appendChild(iconSpan);
+                }
+            }
+
+            const isAlumnos = s.tipo_servicio === 'alumnos';
+            if (badgeEl) badgeEl.textContent = isAlumnos ? 'Cupos / Alumnos' : 'Recomendado';
+            if (btnEl) btnEl.textContent = isAlumnos ? 'Ver Clases' : 'Agendar Turno';
+        } catch (e) {
+            console.warn('No se pudo cargar el primer servicio para la previsualización:', e);
+        }
+    };
+    window.loadFirstServiceForLivePreview();
     if (webAlineacion) {
         webAlineacion.addEventListener('change', () => {
             const alignVal = webAlineacion.value;
