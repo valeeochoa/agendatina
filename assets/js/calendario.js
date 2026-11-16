@@ -1791,6 +1791,7 @@ function fetchTeamProfessionals() {
                 : (Array.isArray(data?.data)
                     ? data.data
                     : (Array.isArray(data?.profesionales) ? data.profesionales : []));
+            window.teamProfessionalsRaw = list;
             teamProfessionals = list
                 .map(p => (typeof p === 'string' ? p : (p.nombre_completo || p.nombre || '')).trim())
                 .filter(n => n !== '');
@@ -1861,12 +1862,9 @@ function getUniqueProfessionals() {
 
     const validServiceProfs = resolveToTeam(serviceProfs);
     const validAptProfs = resolveToTeam(aptProfs);
-    const teamProfsList = teamAll.filter(t => (
-        validServiceProfs.some(sp => window.isSameProf(sp, t)) ||
-        validAptProfs.some(ap => window.isSameProf(ap, t))
-    ));
+    const teamProfsList = teamAll;
 
-    const candidateProfs = [...validServiceProfs, ...validAptProfs, ...teamProfsList];
+    const candidateProfs = [...teamProfsList, ...validServiceProfs, ...validAptProfs];
     
     // Deduplicar respetando coincidencias (ej: Marcos vs Marcos Gómez)
     const unique = [];

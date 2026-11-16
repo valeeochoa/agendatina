@@ -35,6 +35,12 @@ window.getAgendaServiceIcon = function(t) {
     return 'event_available';
 };
 
+window.agendaSameProf = function(a, b) {
+    if (!a || !b) return false;
+    if (typeof window.isSameProf === 'function') return window.isSameProf(a, b);
+    return String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
+};
+
 window.cargarAgenda = function(force = false) {
     if (force) window.agendaLastDataString = null;
     
@@ -43,13 +49,44 @@ window.cargarAgenda = function(force = false) {
         window.agendaPollingInterval = setInterval(() => window.cargarAgenda(false), 30000);
     }
 
-    // Cargar catálogo de servicios si aún no está disponible
-    if (!window.servicesList) {
-        fetch('backend/gestionar_servicios.php')
+    const slugParam = (typeof window.negocioSlug !== 'undefined' && window.negocioSlug) ? `?n=${encodeURIComponent(window.negocioSlug)}` : '';
+
+    const fetchServicesPromise = (!window.services || window.services.length === 0 || !window.servicesList || force)
+        ? fetch('backend/gestionar_servicios.php' + slugParam)
             .then(r => r.json())
-            .then(svcs => { if (Array.isArray(svcs)) window.servicesList = svcs; })
-            .catch(() => {});
-    }
+            .then(svcs => {
+                if (Array.isArray(svcs)) {
+                    window.servicesList = svcs;
+                    window.services = svcs;
+                }
+            })
+            .catch(() => {})
+        : Promise.resolve();
+
+    const fetchTeamPromise = (!Array.isArray(window.agendaTeamProfs) || force)
+        ? fetch('backend/gestionar_profesionales.php' + slugParam)
+            .then(r => r.json())
+            .then(teamRes => {
+                const rawList = Array.isArray(teamRes)
+                    ? teamRes
+                    : (Array.isArray(teamRes?.data)
+                        ? teamRes.data
+                        : (Array.isArray(teamRes?.profesionales) ? teamRes.profesionales : []));
+                window.agendaTeamProfs = rawList;
+            })
+            .catch(() => {})
+        : Promise.resolve();
+
+    const fetchPerfilPromise = (!window.currentUserData)
+        ? fetch('backend/perfil.php')
+            .then(r => r.json())
+            .then(pRes => {
+                if (pRes && pRes.success && pRes.user) {
+                    window.currentUserData = pRes.user;
+                }
+            })
+            .catch(() => {})
+        : Promise.resolve();
 
     const fetchConfig = typeof window.configData === 'undefined'
         ? fetch('backend/guardar_web.php').then(res => res.json()).then(conf => { 
@@ -63,10 +100,10 @@ window.cargarAgenda = function(force = false) {
                     document.body.classList.remove('calendar-degrade-active');
                 }
             }
-        })
+        }).catch(() => {})
         : Promise.resolve();
 
-    fetchConfig.finally(() => {
+    Promise.all([fetchConfig, fetchServicesPromise, fetchTeamPromise, fetchPerfilPromise]).finally(() => {
         fetch('backend/obtener_agenda.php')
         .then(res => res.json())
         .then(data => {
@@ -81,29 +118,20 @@ window.cargarAgenda = function(force = false) {
             }
             if (!Array.isArray(data)) return;
 
-        // Evitar parpadeos salvo que se fuerce la recarga
-        const newDataString = JSON.stringify(data);
-        if (!force && window.agendaLastDataString === newDataString) return;
-        window.agendaLastDataString = newDataString;
+            // Evitar parpadeos salvo que se fuerce la recarga
+            const newDataString = JSON.stringify(data);
+            if (!force && window.agendaLastDataString === newDataString) return;
+            window.agendaLastDataString = newDataString;
 
-        window.agendaData = data;
-        
-        if (typeof window.services === 'undefined' || window.services.length === 0) {
-            fetch('backend/gestionar_servicios.php' + (typeof window.negocioSlug !== 'undefined' && window.negocioSlug ? `?n=${window.negocioSlug}` : ''))
-            .then(res => res.json())
-            .then(servData => {
-                if (Array.isArray(servData)) window.services = servData;
-                const currentSearch = document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : '';
-                window.renderAgendaTurnos(data, currentSearch);
-            })
-            .catch(() => window.renderAgendaTurnos(data, document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : ''));
-        } else {
-            const currentSearch = document.getElementById('agendaSearchInput') ? document.getElementById('agendaSearchInput').value : '';
+            window.agendaData = data;
+
+            const currentSearch = document.getElementById('agendaSearchInput')
+                ? document.getElementById('agendaSearchInput').value
+                : (document.getElementById('agendaSearchInputMobile')?.value || '');
             window.renderAgendaTurnos(data, currentSearch, window.currentAgendaProfTerm || '');
-        }
-    })
-    .catch(err => console.error(err));
-});
+        })
+        .catch(err => console.error(err));
+    });
 };
 
 function setupAgendaSearchListeners() {
@@ -136,46 +164,6 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     setupAgendaSearchListeners();
     var listPend = document.getElementById('lista-pendientes');
 
-    // --- POBLAR TABS DE PROFESIONALES (CARPETAS) ---
-    let profFilterContainer = document.getElementById('profesionalesAgendaTabs');
-    
-    if (profFilterContainer) {
-        const userPerms = (window.currentUserData && window.currentUserData.permisos) || {};
-        const canVerAgendaOtros = userPerms.ver_agenda_otros !== undefined ? (parseInt(userPerms.ver_agenda_otros) === 1 || userPerms.ver_agenda_otros === true) : false;
-        if (window.currentUserData && window.currentUserData.rol_en_local === 'profesional' && !canVerAgendaOtros) {
-            profFilterContainer.classList.add('hidden');
-            profFilterContainer.classList.remove('flex');
-        } else if (data.length > 0) {
-            const uniqueProfs = [...new Set(data.map(t => t.profesional).filter(p => p && p !== 'Cualquiera (Sin preferencia)' && p !== 'Todos' && p !== 'Agendatina DEMO'))].sort();
-            if (uniqueProfs.length > 0) {
-                const displayMap = typeof window.formatProfDisplayNames === 'function' ? window.formatProfDisplayNames(uniqueProfs) : {};
-                profFilterContainer.classList.remove('hidden');
-                profFilterContainer.classList.add('flex');
-                let profTabsHtml = `<div class="flex overflow-x-auto gap-3 pb-2 w-full snap-x pt-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">`;
-                let activeAll = profTerm === '' ? 'bg-primary text-white shadow-md ring-2 ring-primary/30 ring-offset-2' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200';
-                profTabsHtml += `<button onclick="window.setAgendaProfFilter('')" class="snap-start shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeAll}"><span class="material-symbols-outlined text-[18px]">groups</span> Todos los turnos</button>`;
-                const now = new Date();
-                uniqueProfs.forEach(p => {
-                    const count = data.filter(t => {
-                        if (t.profesional !== p || t.estado !== 'confirmado') return false;
-                        const tDate = new Date(t.fecha.replace(/-/g, '/') + ' ' + t.hora);
-                        return tDate >= now;
-                    }).length;
-                    const countBadge = count > 0 ? `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-md text-xs font-black ml-1 shadow-sm" title="${count} turnos próximos confirmados">${count}</span>` : '';
-                    const isActive = profTerm === p ? 'bg-primary text-white shadow-md ring-2 ring-primary/30 ring-offset-2' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200';
-                    const iconColor = profTerm === p ? 'text-white' : 'text-primary';
-                    const displayLabel = displayMap[p] || p;
-                    profTabsHtml += `<button onclick="window.setAgendaProfFilter('${p.replace(/'/g, "\\'")}')" class="snap-start shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${isActive}"><span class="material-symbols-outlined text-[18px] ${iconColor}">person</span> ${displayLabel} ${countBadge}</button>`;
-                });
-                profTabsHtml += `</div>`;
-                if (profFilterContainer.innerHTML !== profTabsHtml) profFilterContainer.innerHTML = profTabsHtml;
-            } else {
-                profFilterContainer.classList.add('hidden');
-                profFilterContainer.classList.remove('flex');
-            }
-        }
-    }
-
     // La Agenda Virtual gestiona turnos individuales clásicos.
     function esTurnoDeClase(t) {
         if (!t) return false;
@@ -186,6 +174,77 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
 
     const tieneClasesEnNegocio = Array.isArray(data) && data.some(esTurnoDeClase);
     const turnosClasicos = Array.isArray(data) ? data.filter(t => !esTurnoDeClase(t)) : [];
+
+    // --- POBLAR TABS DE PROFESIONALES (CARPETAS) ---
+    let profFilterContainer = document.getElementById('profesionalesAgendaTabs');
+    
+    if (profFilterContainer) {
+        const userPerms = (window.currentUserData && window.currentUserData.permisos) || {};
+        const canVerAgendaOtros = userPerms.ver_agenda_otros !== undefined ? (parseInt(userPerms.ver_agenda_otros) === 1 || userPerms.ver_agenda_otros === true) : false;
+        if (window.currentUserData && window.currentUserData.rol_en_local === 'profesional' && !canVerAgendaOtros) {
+            profFilterContainer.classList.add('hidden');
+            profFilterContainer.classList.remove('flex');
+        } else {
+            const invalidProfNames = ['', 'cualquiera', 'cualquiera (sin preferencia)', 'todos', 'sin asignar', 'agendatina demo', 'agendatina'];
+            const isValidProfName = (n) => {
+                const s = String(n || '').trim();
+                return s !== '' && !invalidProfNames.includes(s.toLowerCase());
+            };
+
+            const teamActiveNames = (Array.isArray(window.agendaTeamProfs) ? window.agendaTeamProfs : [])
+                .map(p => (typeof p === 'string' ? p : (p.nombre_completo || p.nombre || '')).trim())
+                .filter(isValidProfName);
+
+            const candidateSources = [
+                ...teamActiveNames,
+                ...(Array.isArray(window.services) ? window.services.map(s => s.profesional) : []).filter(isValidProfName),
+                ...turnosClasicos.map(t => t.profesional).filter(isValidProfName)
+            ];
+
+            const uniqueProfs = [];
+            candidateSources.forEach(rawName => {
+                const cleanName = String(rawName).trim();
+                if (!isValidProfName(cleanName)) return;
+
+                // Si contamos con la nómina activa del equipo, filtrar cualquier profesional viejo eliminado
+                if (teamActiveNames.length > 0 && !teamActiveNames.some(tp => window.agendaSameProf(tp, cleanName))) {
+                    return;
+                }
+                const canonical = teamActiveNames.find(tp => window.agendaSameProf(tp, cleanName)) || cleanName;
+                if (!uniqueProfs.some(u => window.agendaSameProf(u, canonical))) {
+                    uniqueProfs.push(canonical);
+                }
+            });
+            uniqueProfs.sort((a, b) => a.localeCompare(b, 'es'));
+
+            if (uniqueProfs.length > 0) {
+                const displayMap = typeof window.formatProfDisplayNames === 'function' ? window.formatProfDisplayNames(uniqueProfs) : {};
+                profFilterContainer.classList.remove('hidden');
+                profFilterContainer.classList.add('flex');
+                let profTabsHtml = `<div class="flex overflow-x-auto gap-3 pb-2 w-full snap-x pt-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">`;
+                let activeAll = profTerm === '' ? 'bg-primary text-white shadow-md ring-2 ring-primary/30 ring-offset-2' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200';
+                profTabsHtml += `<button onclick="window.setAgendaProfFilter('')" class="snap-start shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${activeAll}"><span class="material-symbols-outlined text-[18px]">groups</span> Todos los turnos</button>`;
+                const now = new Date();
+                uniqueProfs.forEach(p => {
+                    const count = turnosClasicos.filter(t => {
+                        if (!window.agendaSameProf(t.profesional, p) || t.estado !== 'confirmado') return false;
+                        const tDate = new Date(t.fecha.replace(/-/g, '/') + ' ' + t.hora);
+                        return tDate >= now;
+                    }).length;
+                    const countBadge = count > 0 ? `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-md text-xs font-black ml-1 shadow-sm" title="${count} turnos próximos confirmados">${count}</span>` : '';
+                    const isActive = window.agendaSameProf(profTerm, p) ? 'bg-primary text-white shadow-md ring-2 ring-primary/30 ring-offset-2' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200';
+                    const iconColor = window.agendaSameProf(profTerm, p) ? 'text-white' : 'text-primary';
+                    const displayLabel = escapeHtml(displayMap[p] || p);
+                    profTabsHtml += `<button onclick="window.setAgendaProfFilter('${escapeHtml(p).replace(/'/g, "\\'")}')" class="snap-start shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${isActive}"><span class="material-symbols-outlined text-[18px] ${iconColor}">person</span> ${displayLabel} ${countBadge}</button>`;
+                });
+                profTabsHtml += `</div>`;
+                if (profFilterContainer.innerHTML !== profTabsHtml) profFilterContainer.innerHTML = profTabsHtml;
+            } else {
+                profFilterContainer.classList.add('hidden');
+                profFilterContainer.classList.remove('flex');
+            }
+        }
+    }
 
     // Mostrar banner informativo si el establecimiento tiene clases con cupos (ubicado en el contenido principal, nunca en el navbar)
     let bannerClases = document.getElementById('bannerAvisoClasesAgenda');
@@ -245,7 +304,7 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
             if (term) matchSearch = (t.cliente_nombre && t.cliente_nombre.toLowerCase().includes(term)) || (t.nombre && t.nombre.toLowerCase().includes(term)) || (t.apellido && t.apellido.toLowerCase().includes(term)) || (t.cliente_celular && t.cliente_celular.includes(term)) || (t.celular && t.celular.includes(term)) || (t.servicio && t.servicio.toLowerCase().includes(term));
             
             let matchProf = true;
-            if (profTerm) matchProf = (t.profesional === profTerm);
+            if (profTerm) matchProf = window.agendaSameProf(t.profesional, profTerm);
             
             return matchSearch && matchProf;
         };
