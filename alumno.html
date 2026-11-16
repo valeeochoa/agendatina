@@ -177,7 +177,7 @@
         </div>
 
         <!-- Menú Hamburguesa Desplegable del Portal del Alumno -->
-        <div id="studentHamburgerMenu" class="hidden absolute top-16 right-4 sm:right-6 w-72 max-w-[calc(100vw-2rem)] bg-white/98 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-2xl p-2.5 z-50 space-y-1">
+        <div id="studentHamburgerMenu" class="hidden absolute top-16 right-4 sm:right-6 w-72 max-w-[calc(100vw-2rem)] bg-white border border-slate-200 rounded-2xl shadow-2xl p-2.5 z-50 space-y-1" style="background-color: #ffffff;">
             <div class="px-3 py-2 border-b border-slate-100 mb-1 flex items-center justify-between">
                 <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Navegación del Portal</span>
                 <span class="text-[10px] font-bold text-[#FC8712] bg-orange-50 px-2 py-0.5 rounded-full">Alumno</span>
@@ -482,10 +482,14 @@
                         </div>
 
                         <div class="shrink-0">
-                            <label class="block text-[10px] font-extrabold uppercase text-slate-500 mb-1">Seleccionar Negocio:</label>
+                            <label id="studentSelectNegocioLabel" class="block text-[10px] font-extrabold uppercase text-slate-500 mb-1">Seleccionar Negocio:</label>
                             <select id="studentSelectNegocio" onchange="loadStudentBusinessCalendar(this.value)" class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-[#FC8712]">
                                 <option value="">Cargando establecimientos...</option>
                             </select>
+                            <div id="studentSingleNegocioBadge" class="hidden bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-extrabold text-slate-800 items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[16px] text-slate-500">storefront</span>
+                                <span id="studentSingleNegocioText"></span>
+                            </div>
                         </div>
                     </div>
 
@@ -1604,6 +1608,9 @@
 
             // Rellenar Selector de Negocios para el Calendario de Cupos de forma inteligente (sin parpadeos)
             const selNegocio = document.getElementById('studentSelectNegocio');
+            const selLabel = document.getElementById('studentSelectNegocioLabel');
+            const singleBadge = document.getElementById('studentSingleNegocioBadge');
+            const singleText = document.getElementById('studentSingleNegocioText');
             if (selNegocio && negocios.length > 0) {
                 const currentVal = selNegocio.value;
                 const newOptionsHtml = negocios.map(n => {
@@ -1618,6 +1625,27 @@
                     } else {
                         selNegocio.value = negocios[0].negocio_ruta;
                         loadStudentBusinessCalendar(negocios[0].negocio_ruta, true);
+                    }
+                }
+
+                // Si solo hay un negocio activo, ocultar el selector desplegable y mostrar etiqueta fija
+                const uniqueRutas = new Set(negocios.map(n => n.negocio_ruta).filter(Boolean));
+                if (uniqueRutas.size <= 1) {
+                    selNegocio.classList.add('hidden');
+                    if (selLabel) selLabel.textContent = 'Establecimiento:';
+                    if (singleBadge && singleText) {
+                        const n0 = negocios[0];
+                        const serv0 = n0.servicio_nombre || n0.servicio ? ` (${n0.servicio_nombre || n0.servicio})` : '';
+                        singleText.textContent = `${n0.negocio_nombre}${serv0}`;
+                        singleBadge.classList.remove('hidden');
+                        singleBadge.classList.add('inline-flex');
+                    }
+                } else {
+                    selNegocio.classList.remove('hidden');
+                    if (selLabel) selLabel.textContent = 'Seleccionar Negocio:';
+                    if (singleBadge) {
+                        singleBadge.classList.add('hidden');
+                        singleBadge.classList.remove('inline-flex');
                     }
                 }
             }
@@ -2067,7 +2095,8 @@
                 // Generar los bloques de días de la semana uno debajo del otro
                 let htmlDays = '<div class="flex flex-col space-y-6 w-full">';
 
-                weekDays.forEach(dateObj => {
+                weekDays.forEach((dateObj, dayIdx) => {
+                    const dayColor = (dayIdx % 2 === 0) ? cPri : cSec;
                     const y = dateObj.getFullYear();
                     const m = String(dateObj.getMonth() + 1).padStart(2, '0');
                     const d = String(dateObj.getDate()).padStart(2, '0');
@@ -2080,10 +2109,10 @@
 
                     if (!isOpenToday) {
                         htmlDays += `
-                            <div class="bg-white/80 border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs">
-                                <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+                            <div class="bg-white/90 rounded-2xl p-4 sm:p-5 shadow-2xs" style="border: 1.5px solid ${dayColor}38; border-left: 5px solid ${dayColor};">
+                                <div class="flex items-center justify-between pb-3 mb-3" style="border-bottom: 1px solid ${dayColor}20;">
                                     <h4 class="font-extrabold text-slate-700 text-sm sm:text-base flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-slate-400 text-[18px]">event_busy</span>
+                                        <span class="material-symbols-outlined text-[18px]" style="color: ${dayColor};">event_busy</span>
                                         <span>${dayFormattedFull}</span>
                                     </h4>
                                     <span class="bg-slate-100 text-slate-500 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border border-slate-200">Cerrado</span>
@@ -2112,6 +2141,8 @@
                         const minCuposAdv = Math.max(0, parseInt(bizConfig?.anticipacion_cupos_min ?? 0, 10) || 0);
                         timeSlots.forEach(horaDef5 => {
                             const [hr, mn] = horaDef5.split(':').map(Number);
+                            const totalEndMin = (hr * 60) + mn + duracion;
+                            const horaFin5 = `${String(Math.floor(totalEndMin / 60) % 24).padStart(2, '0')}:${String(totalEndMin % 60).padStart(2, '0')}`;
                             const slotDateObj = new Date(y, dateObj.getMonth(), parseInt(d, 10), hr, mn, 0);
                             const isPastTime = minCuposAdv > 0
                                 ? (slotDateObj.getTime() < (hoy.getTime() + (minCuposAdv * 60000)))
@@ -2338,10 +2369,16 @@
                                                 </div>
                                                 ${badgeHtml}
                                             </div>
-                                            <p class="text-xs font-bold text-slate-600 flex items-center gap-2 flex-wrap">
-                                                <span class="flex items-center gap-1" style="color: ${cPri};"><span class="material-symbols-outlined text-[15px]">schedule</span> ${horaDef5} hs (${duracionFmt})</span>
-                                                <span class="flex items-center gap-1 text-slate-500"><span class="material-symbols-outlined text-[15px]">person</span> ${prof}</span>
-                                            </p>
+                                            <div class="text-xs font-bold text-slate-600 flex flex-col gap-1 mt-1">
+                                                <span class="flex items-center gap-1.5" style="color: ${dayColor};">
+                                                    <span class="material-symbols-outlined text-[15px]">schedule</span>
+                                                    <span>${horaDef5} a ${horaFin5} hs (${duracionFmt})</span>
+                                                </span>
+                                                <span class="flex items-center gap-1.5 text-slate-500">
+                                                    <span class="material-symbols-outlined text-[15px]">person</span>
+                                                    <span>${prof}</span>
+                                                </span>
+                                            </div>
 
                                             <!-- Acordeón Desplegable con Información Detallada -->
                                             <div id="details_${cardSlotId}" class="hidden mt-3 pt-3 border-t border-slate-100/90 text-xs space-y-2 bg-slate-50/80 p-3 rounded-xl cursor-default" onclick="event.stopPropagation()">
@@ -2352,7 +2389,7 @@
                                                     </div>
                                                     <div class="bg-white p-2 rounded-lg border border-slate-200/70">
                                                         <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Fecha y Hora</span>
-                                                        <span class="font-bold text-slate-800">${dayFormattedFull} · ${horaDef5} hs</span>
+                                                        <span class="font-bold text-slate-800">${dayFormattedFull} · ${horaDef5} a ${horaFin5} hs</span>
                                                     </div>
                                                     <div class="bg-white p-2 rounded-lg border border-slate-200/70">
                                                         <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Profesor / Instructor</span>
@@ -2390,14 +2427,14 @@
 
                     if (countClassesForDay === 0) {
                         htmlDays += `
-                            <div class="bg-white/95 border border-slate-200/90 rounded-3xl p-4 sm:p-5 shadow-sm space-y-3">
-                                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <div class="bg-white/95 rounded-3xl p-4 sm:p-5 shadow-sm space-y-3" style="border: 1.5px solid ${dayColor}45; border-left: 5px solid ${dayColor};">
+                                <div class="flex items-center justify-between pb-3" style="border-bottom: 1px solid ${dayColor}25;">
                                     <div class="flex items-center gap-2">
                                         <h4 class="font-black text-slate-900 text-base sm:text-lg flex items-center gap-2">
-                                            <span class="material-symbols-outlined" style="color: ${cPri};">calendar_today</span>
+                                            <span class="material-symbols-outlined" style="color: ${dayColor};">calendar_today</span>
                                             <span>${dayFormattedFull}</span>
                                         </h4>
-                                        ${isToday ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border" style="background-color: ${cSec}1F; color: ${cSec}; border-color: ${cSec}50;"><span class="w-1.5 h-1.5 rounded-full animate-pulse" style="background-color: ${cSec};"></span>Hoy</span>` : ''}
+                                        ${isToday ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase text-white" style="background-color: ${dayColor};"><span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>Hoy</span>` : ''}
                                     </div>
                                     <span class="bg-slate-100 text-slate-500 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border border-slate-200">Sin clases</span>
                                 </div>
@@ -2408,16 +2445,16 @@
                         `;
                     } else {
                         htmlDays += `
-                            <div class="bg-white/95 border ${isToday ? 'border-2 shadow-md' : 'border-slate-200/90 shadow-sm'} rounded-3xl p-4 sm:p-6 space-y-4" ${isToday ? `style="border-color: ${cSec}; box-shadow: 0 4px 14px ${cSec}1A;"` : ''}>
-                                <div class="flex items-center justify-between pb-3.5 border-b border-slate-100">
+                            <div class="bg-white rounded-3xl p-4 sm:p-6 space-y-4 overflow-hidden" style="border: 2px solid ${dayColor}${isToday ? '' : '55'}; border-left: 6px solid ${dayColor}; box-shadow: 0 8px 22px -6px ${dayColor}26;">
+                                <div class="flex flex-wrap items-center justify-between gap-2 pb-3.5 -mx-4 -mt-4 sm:-mx-6 sm:-mt-6 px-4 pt-4 sm:px-6 sm:pt-5 rounded-t-2xl" style="background: linear-gradient(90deg, ${dayColor}16, ${dayColor}05); border-bottom: 1.5px solid ${dayColor}28;">
                                     <div class="flex items-center gap-2">
                                         <h4 class="font-black text-slate-900 text-base sm:text-lg flex items-center gap-2">
-                                            <span class="material-symbols-outlined" style="color: ${cPri};">calendar_today</span>
+                                            <span class="material-symbols-outlined" style="color: ${dayColor};">calendar_today</span>
                                             <span>${dayFormattedFull}</span>
                                         </h4>
-                                        ${isToday ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border shadow-2xs" style="background-color: ${cSec}1F; color: ${cSec}; border-color: ${cSec}50;"><span class="w-1.5 h-1.5 rounded-full animate-pulse" style="background-color: ${cSec};"></span>Hoy</span>` : ''}
+                                        ${isToday ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase text-white shadow-2xs" style="background-color: ${dayColor};"><span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>Hoy</span>` : ''}
                                     </div>
-                                    <span class="text-[11px] font-extrabold px-3 py-1 rounded-xl border shadow-2xs" style="background-color: ${cPri}12; color: ${cPri}; border-color: ${cPri}35;">
+                                    <span class="text-[11px] font-extrabold px-3 py-1 rounded-xl border shadow-2xs" style="background-color: #ffffff; color: ${dayColor}; border-color: ${dayColor}45;">
                                         ${countClassesForDay} ${countClassesForDay === 1 ? 'clase disponible' : 'clases disponibles'}
                                     </span>
                                 </div>

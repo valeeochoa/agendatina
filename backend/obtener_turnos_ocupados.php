@@ -171,8 +171,8 @@ try {
     }
 
     $ocupados['_config'] = [
-        'color_primario' => !empty($conf['color_primario_web']) ? $conf['color_primario_web'] : (!empty($conf['color_primario']) ? $conf['color_primario'] : '#D11149'),
-        'color_secundario' => !empty($conf['color_secundario_web']) ? $conf['color_secundario_web'] : (!empty($conf['color_secundario']) ? $conf['color_secundario'] : '#FC8712'),
+        'color_primario' => !empty($conf['color_primario']) ? $conf['color_primario'] : (!empty($conf['color_primario_web']) ? $conf['color_primario_web'] : '#D11149'),
+        'color_secundario' => !empty($conf['color_secundario']) ? $conf['color_secundario'] : (!empty($conf['color_secundario_web']) ? $conf['color_secundario_web'] : '#FC8712'),
         'color_fondo' => !empty($conf['color_fondo']) ? $conf['color_fondo'] : '#F8FAFC',
         'hora_apertura' => $hApertura,
         'hora_cierre' => $hCierre,
