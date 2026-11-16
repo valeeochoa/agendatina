@@ -114,21 +114,34 @@ try {
         // Obtener servicio asignado o servicio por defecto del negocio
         $targetServ = null;
         if ($reqServId) {
-            $stmtS = $pdo->prepare("SELECT id, nombre_servicio, COALESCE(cupo_maximo, capacidad, 1) AS cupos FROM servicios WHERE id = :id_serv AND id_negocio = :id_neg LIMIT 1");
+            $stmtS = $pdo->prepare("SELECT id, nombre_servicio, COALESCE(cupo_maximo, capacidad, 1) AS cupos, precios_paquetes_json FROM servicios WHERE id = :id_serv AND id_negocio = :id_neg LIMIT 1");
             $stmtS->execute(['id_serv' => $reqServId, 'id_neg' => $id_negocio]);
             $targetServ = $stmtS->fetch(PDO::FETCH_ASSOC);
         }
         if (!$targetServ) {
-            $stmtSDef = $pdo->prepare("SELECT id, nombre_servicio, COALESCE(cupo_maximo, capacidad, 1) AS cupos FROM servicios WHERE id_negocio = :id_neg ORDER BY orden ASC, id ASC LIMIT 1");
+            $stmtSDef = $pdo->prepare("SELECT id, nombre_servicio, COALESCE(cupo_maximo, capacidad, 1) AS cupos, precios_paquetes_json FROM servicios WHERE id_negocio = :id_neg ORDER BY orden ASC, id ASC LIMIT 1");
             $stmtSDef->execute(['id_neg' => $id_negocio]);
             $targetServ = $stmtSDef->fetch(PDO::FETCH_ASSOC);
         }
 
+        $reqPases = !empty($_POST['p']) ? (int)$_POST['p'] : (!empty($_GET['p']) ? (int)$_GET['p'] : 0);
+        $reqPkgEtq = trim($_POST['pe'] ?? $_GET['pe'] ?? '');
         $initialPases = $targetServ ? (int)$targetServ['cupos'] : 0;
+        if ($reqPases > 0) {
+            $initialPases = min(365, $reqPases);
+        }
         $initialServId = $targetServ ? (int)$targetServ['id'] : null;
         $initialServNombre = $targetServ ? $targetServ['nombre_servicio'] : null;
         $initialVenc = date('Y-m-d', strtotime('+1 month'));
         $initialEstado = $initialPases > 0 ? 'activo' : 'pendiente_activacion';
+        $initialServsJson = $initialServId ? json_encode([[
+            'id_servicio' => $initialServId,
+            'servicio' => $initialServNombre,
+            'etiqueta_pase' => $reqPkgEtq,
+            'pases_disponibles' => $initialPases,
+            'pases_totales' => $initialPases,
+            'fecha_vencimiento' => $initialVenc
+        ]], JSON_UNESCAPED_UNICODE) : null;
 
         // Verificar si ya existe un alumno con este email vinculado a ESTE negocio
         $stmtCheck = $pdo->prepare("SELECT id, password FROM clientes_negocio WHERE id_negocio = :id_negocio AND LOWER(TRIM(email)) = :email LIMIT 1");
@@ -249,21 +262,34 @@ try {
         // Obtener servicio asignado o servicio por defecto del negocio
         $targetServ = null;
         if ($reqServId) {
-            $stmtS = $pdo->prepare("SELECT id, nombre_servicio, COALESCE(cupo_maximo, capacidad, 1) AS cupos FROM servicios WHERE id = :id_serv AND id_negocio = :id_neg LIMIT 1");
+            $stmtS = $pdo->prepare("SELECT id, nombre_servicio, COALESCE(cupo_maximo, capacidad, 1) AS cupos, precios_paquetes_json FROM servicios WHERE id = :id_serv AND id_negocio = :id_neg LIMIT 1");
             $stmtS->execute(['id_serv' => $reqServId, 'id_neg' => $id_negocio]);
             $targetServ = $stmtS->fetch(PDO::FETCH_ASSOC);
         }
         if (!$targetServ) {
-            $stmtSDef = $pdo->prepare("SELECT id, nombre_servicio, COALESCE(cupo_maximo, capacidad, 1) AS cupos FROM servicios WHERE id_negocio = :id_neg ORDER BY orden ASC, id ASC LIMIT 1");
+            $stmtSDef = $pdo->prepare("SELECT id, nombre_servicio, COALESCE(cupo_maximo, capacidad, 1) AS cupos, precios_paquetes_json FROM servicios WHERE id_negocio = :id_neg ORDER BY orden ASC, id ASC LIMIT 1");
             $stmtSDef->execute(['id_neg' => $id_negocio]);
             $targetServ = $stmtSDef->fetch(PDO::FETCH_ASSOC);
         }
 
+        $reqPases = !empty($_POST['p']) ? (int)$_POST['p'] : (!empty($_GET['p']) ? (int)$_GET['p'] : 0);
+        $reqPkgEtq = trim($_POST['pe'] ?? $_GET['pe'] ?? '');
         $initialPases = $targetServ ? (int)$targetServ['cupos'] : 0;
+        if ($reqPases > 0) {
+            $initialPases = min(365, $reqPases);
+        }
         $initialServId = $targetServ ? (int)$targetServ['id'] : null;
         $initialServNombre = $targetServ ? $targetServ['nombre_servicio'] : null;
         $initialVenc = date('Y-m-d', strtotime('+1 month'));
         $initialEstado = $initialPases > 0 ? 'activo' : 'pendiente_activacion';
+        $initialServsJson = $initialServId ? json_encode([[
+            'id_servicio' => $initialServId,
+            'servicio' => $initialServNombre,
+            'etiqueta_pase' => $reqPkgEtq,
+            'pases_disponibles' => $initialPases,
+            'pases_totales' => $initialPases,
+            'fecha_vencimiento' => $initialVenc
+        ]], JSON_UNESCAPED_UNICODE) : null;
 
         // Buscar alumno por email en cualquier negocio para validar contraseña
         $stmtClient = $pdo->prepare("SELECT id, nombre_completo, email, telefono, password FROM clientes_negocio WHERE LOWER(TRIM(email)) = :email AND password IS NOT NULL LIMIT 1");

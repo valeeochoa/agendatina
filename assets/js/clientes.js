@@ -1048,6 +1048,44 @@ function escapeHtml(str) {
     return String(str || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+function poblarPaquetesInviteDropdown(servId) {
+    const pkgContainer = document.getElementById('inviteModalPaqueteContainer');
+    const selPkg = document.getElementById('inviteModalPaquete');
+    if (!pkgContainer || !selPkg) return;
+    const pkgs = servId ? obtenerPaquetesDeServicio(servId) : [];
+    if (!servId || pkgs.length === 0) {
+        selPkg.innerHTML = '<option value="">-- Sin paquetes configurados --</option>';
+        pkgContainer.classList.add('hidden');
+        return;
+    }
+    let html = '<option value="">-- Seleccionar Paquete --</option>';
+    pkgs.forEach(p => {
+        const precioFmt = p.precio ? ` - $${parseFloat(p.precio).toLocaleString('es-AR')}` : '';
+        const lbl = p.etiqueta ? `${p.etiqueta} (${p.cupos} clases${precioFmt})` : `Paquete ${p.cupos} clases${precioFmt}`;
+        html += `<option value="${p.cupos}" data-etiqueta="${escapeHtml(p.etiqueta || '')}">${escapeHtml(lbl)}</option>`;
+    });
+    selPkg.innerHTML = html;
+    if (pkgs.length === 1) {
+        selPkg.selectedIndex = 1;
+    }
+    pkgContainer.classList.remove('hidden');
+}
+
+function getInviteLinkUrl() {
+    const selInvite = document.getElementById('inviteModalServicio');
+    const selectedServId = selInvite ? selInvite.value : '';
+    if (!negocioRutaUnica || !selectedServId) return '';
+    let url = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}&s=${encodeURIComponent(selectedServId)}`;
+    const selPkg = document.getElementById('inviteModalPaquete');
+    const pkgContainer = document.getElementById('inviteModalPaqueteContainer');
+    if (selPkg && pkgContainer && !pkgContainer.classList.contains('hidden') && selPkg.value) {
+        url += `&p=${encodeURIComponent(selPkg.value)}`;
+        const etq = selPkg.options[selPkg.selectedIndex]?.getAttribute('data-etiqueta') || '';
+        if (etq) url += `&pe=${encodeURIComponent(etq)}`;
+    }
+    return url;
+}
+
 function actualizarEnlaceUnicoView() {
     const elModal = document.getElementById('modalInputEnlaceUnicoText');
     const selInvite = document.getElementById('inviteModalServicio');
@@ -1059,7 +1097,18 @@ function actualizarEnlaceUnicoView() {
     }
 
     if (negocioRutaUnica) {
-        const fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}&s=${encodeURIComponent(selectedServId)}`;
+        const selPkg = document.getElementById('inviteModalPaquete');
+    const pkgContainer = document.getElementById('inviteModalPaqueteContainer');
+    if (pkgContainer && !pkgContainer.classList.contains('hidden') && selPkg && !selPkg.value) {
+        if (typeof elModal !== 'undefined' && elModal) {
+            elModal.textContent = 'Seleccioná un paquete para generar el enlace...';
+        } else {
+            if (typeof showToast === 'function') showToast('Debes seleccionar un paquete para generar el enlace de invitación.', 'error');
+            selPkg.focus();
+        }
+        return;
+    }
+    const fullUrl = getInviteLinkUrl();
         if (elModal) elModal.textContent = fullUrl;
     } else {
         if (elModal) elModal.textContent = 'Enlace no disponible';
@@ -1067,14 +1116,34 @@ function actualizarEnlaceUnicoView() {
 }
 
 function openModalInvitarAlumnos() {
+    if (!Array.isArray(allServicios) || allServicios.length === 0) {
+        if (typeof window.showConfirm === 'function') {
+            window.showConfirm(
+                'Sin servicios de Cupos/Alumnos',
+                'No tenés ningún servicio configurado con la modalidad <strong>Cupos / Portal de Alumnos</strong>. Para poder invitar alumnos, primero creá al menos un servicio con esa modalidad.',
+                'Ir a Servicios',
+                'bg-primary hover:bg-primary/90',
+                () => { window.location.href = 'servicios.html'; }
+            );
+        } else if (typeof showToast === 'function') {
+            showToast('Primero debés crear un servicio configurado para Cupos/Alumnos en la sección Servicios.', 'warning');
+        }
+        return;
+    }
     poblarServiciosDropdowns();
     actualizarEnlaceUnicoView();
     const modal = document.getElementById('modalInvitarAlumnos');
+    const selInvite = document.getElementById('inviteModalServicio');
+    poblarPaquetesInviteDropdown(selInvite ? selInvite.value : '');
+    actualizarEnlaceUnicoView();
     if (modal) modal.classList.remove('hidden');
 }
 
 function closeModalInvitarAlumnos() {
     const modal = document.getElementById('modalInvitarAlumnos');
+    const selInvite = document.getElementById('inviteModalServicio');
+    poblarPaquetesInviteDropdown(selInvite ? selInvite.value : '');
+    actualizarEnlaceUnicoView();
     if (modal) modal.classList.add('hidden');
 }
 
@@ -1093,7 +1162,18 @@ function copiarEnlaceUnico() {
         return;
     }
 
-    const fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}&s=${encodeURIComponent(selectedServId)}`;
+    const selPkg = document.getElementById('inviteModalPaquete');
+    const pkgContainer = document.getElementById('inviteModalPaqueteContainer');
+    if (pkgContainer && !pkgContainer.classList.contains('hidden') && selPkg && !selPkg.value) {
+        if (typeof elModal !== 'undefined' && elModal) {
+            elModal.textContent = 'Seleccioná un paquete para generar el enlace...';
+        } else {
+            if (typeof showToast === 'function') showToast('Debes seleccionar un paquete para generar el enlace de invitación.', 'error');
+            selPkg.focus();
+        }
+        return;
+    }
+    const fullUrl = getInviteLinkUrl();
     
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(fullUrl).then(() => {
@@ -1128,7 +1208,18 @@ function compartirWhatsAppEnlaceUnico() {
     const servObj = allServicios.find(s => s.id == selectedServId);
     const servNombre = servObj ? servObj.nombre : '';
 
-    const fullUrl = `${window.location.origin}/alumno.html?unirse=${encodeURIComponent(negocioRutaUnica)}&s=${encodeURIComponent(selectedServId)}`;
+    const selPkg = document.getElementById('inviteModalPaquete');
+    const pkgContainer = document.getElementById('inviteModalPaqueteContainer');
+    if (pkgContainer && !pkgContainer.classList.contains('hidden') && selPkg && !selPkg.value) {
+        if (typeof elModal !== 'undefined' && elModal) {
+            elModal.textContent = 'Seleccioná un paquete para generar el enlace...';
+        } else {
+            if (typeof showToast === 'function') showToast('Debes seleccionar un paquete para generar el enlace de invitación.', 'error');
+            selPkg.focus();
+        }
+        return;
+    }
+    const fullUrl = getInviteLinkUrl();
     const nom = negocioNombreUnico || 'nuestro establecimiento';
     const servText = servNombre ? ` para ${servNombre}` : '';
     const msg = `¡Hola! Podés registrarte o anotarte a nuestras clases${servText} en ${nom} a través de este enlace:\n\n${fullUrl}`;
@@ -1746,11 +1837,19 @@ function renderGrillaSemanal() {
 
         let clasesHtml = '';
         if (clasesDelDia.length === 0) {
+            const hasCuposServs = Array.isArray(semanaData?.servicios) && semanaData.servicios.length > 0;
+            const chkSolo = document.getElementById('chkSoloConInscriptos');
+            const emptyTitle = hasCuposServs ? 'Sin clases agendadas' : 'Sin servicios de Cupos/Alumnos';
+            const emptyHint = !hasCuposServs
+                ? 'Creá un servicio configurado para Cupos/Alumnos en la sección Servicios para ver sus clases aquí.'
+                : (chkSolo && chkSolo.checked
+                    ? 'Desmarca "Solo clases con inscriptos" para ver los horarios disponibles.'
+                    : 'No hay horarios disponibles configurados para este día.');
             clasesHtml = `
                 <div class="py-8 px-3 text-center text-slate-400 bg-white/80 rounded-2xl border border-dashed border-slate-200 my-1">
                     <span class="material-symbols-outlined text-2xl text-slate-300 block mb-1">schedule</span>
-                    <span class="text-xs font-bold text-slate-500 block">Sin clases agendadas</span>
-                    <p class="text-[11px] text-slate-400 mt-1">Desmarca "Solo clases con inscriptos" para ver los horarios disponibles.</p>
+                    <span class="text-xs font-bold text-slate-500 block">${emptyTitle}</span>
+                    <p class="text-[11px] text-slate-400 mt-1">${emptyHint}</p>
                 </div>
             `;
         } else {

@@ -350,8 +350,8 @@ window.showConfirm = function(title, message, acceptText, acceptColorClass, call
             iconBox.className = 'w-14 h-14 sm:w-16 sm:h-16 bg-white border-2 border-red-200 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm';
             iconEl.textContent = title && title.toLowerCase().includes('sesión') ? 'logout' : 'delete';
         } else {
-            iconBox.style.backgroundColor = '';
-            iconBox.className = 'w-14 h-14 sm:w-16 sm:h-16 bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm';
+            iconBox.style.backgroundColor = '#ffffff';
+            iconBox.className = 'w-14 h-14 sm:w-16 sm:h-16 bg-white border-2 border-amber-200 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm';
             iconEl.textContent = 'warning';
         }
     }

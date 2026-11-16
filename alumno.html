@@ -902,6 +902,8 @@
             const urlParams = new URLSearchParams(window.location.search);
             inviteRuta = urlParams.get('unirse') || urlParams.get('negocio') || '';
             inviteServicio = urlParams.get('s') || urlParams.get('servicio') || urlParams.get('id_servicio') || '';
+            window.invitePases = urlParams.get('p') || urlParams.get('pases') || '';
+            window.invitePaqueteEtiqueta = urlParams.get('pe') || '';
 
             if (inviteRuta) {
                 checkInviteBusiness(inviteRuta);
@@ -951,7 +953,7 @@
             fetch('backend/cliente_auth.php?action=login_and_link', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'ruta=' + encodeURIComponent(negocio.ruta) + '&s=' + encodeURIComponent(inviteServicio) + '&email=' + encodeURIComponent(email) + '&password='
+                body: 'ruta=' + encodeURIComponent(negocio.ruta) + '&s=' + encodeURIComponent(inviteServicio) + '&p=' + encodeURIComponent(window.invitePases || '') + '&pe=' + encodeURIComponent(window.invitePaqueteEtiqueta || '') + '&email=' + encodeURIComponent(email) + '&password='
             })
             .then(r => r.json())
             .then(d => {
@@ -1008,6 +1010,8 @@
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: 'ruta=' + encodeURIComponent(inviteRuta) +
                       '&s=' + encodeURIComponent(inviteServicio) +
+                      '&p=' + encodeURIComponent(window.invitePases || '') +
+                      '&pe=' + encodeURIComponent(window.invitePaqueteEtiqueta || '') +
                       '&nombre=' + encodeURIComponent(nombre) +
                       '&email=' + encodeURIComponent(email) +
                       '&telefono=' + encodeURIComponent(telefono) +
@@ -1072,6 +1076,8 @@
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: 'ruta=' + encodeURIComponent(inviteRuta) +
                       '&s=' + encodeURIComponent(inviteServicio) +
+                      '&p=' + encodeURIComponent(window.invitePases || '') +
+                      '&pe=' + encodeURIComponent(window.invitePaqueteEtiqueta || '') +
                       '&email=' + encodeURIComponent(email) +
                       '&password=' + encodeURIComponent(password)
             })
