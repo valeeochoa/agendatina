@@ -328,7 +328,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         
         $isOwnerSession = ($sessionNegocioId !== null && (int)$sessionNegocioId === (int)$id_negocio);
 
+        $isBusinessDemo = false;
         if ($n) {
+            $rutaLower = strtolower(trim((string)($n['ruta'] ?? '')));
+            $isBusinessDemo = ($rutaLower === 'demo' || strpos($rutaLower, 'demo-') === 0);
+            $realNombre = trim((string)($n['nombre_fantasia'] ?? ''));
+
+            if (!$isBusinessDemo && trim((string)($config['titulo'] ?? '')) === 'Agendatina Studio' && $realNombre !== '' && strcasecmp($realNombre, 'Agendatina') !== 0 && strcasecmp($realNombre, 'Agendatina Studio') !== 0) {
+                $config['titulo'] = $realNombre;
+                try {
+                    $pdo->prepare("UPDATE configuracion_web SET mensaje_bienvenida = ? WHERE id_negocio = ? AND mensaje_bienvenida = 'Agendatina Studio'")
+                        ->execute([$realNombre, $id_negocio]);
+                    try {
+                        $pdo->prepare("UPDATE configuracion_web SET titulo = ? WHERE id_negocio = ? AND titulo = 'Agendatina Studio'")
+                            ->execute([$realNombre, $id_negocio]);
+                    } catch (Throwable $eTit) {}
+                } catch (Throwable $eRepWeb) {}
+            }
+
             if (empty($config['titulo']) && !empty($n['nombre_fantasia'])) {
                 $config['titulo'] = $n['nombre_fantasia'];
             }
@@ -343,14 +360,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             }
         }
         
-        $config['is_demo'] = false;
-        if (isset($_SESSION['id_negocio'])) {
-            $stmtU = $pdo->prepare("SELECT email FROM usuarios u JOIN personal_negocio pn ON u.id = pn.id_usuario WHERE pn.id_negocio = :id LIMIT 1");
-            $stmtU->execute(['id' => $_SESSION['id_negocio']]);
-            if ($stmtU->fetchColumn() === 'demo@agendatina.site') {
-                $config['is_demo'] = true;
-            }
-        }
+        $config['is_demo'] = $isBusinessDemo;
 
         // Cargar estadísticas de notificaciones WhatsApp para la bolsa global del negocio (solo para el dueño autenticado)
         if ($isOwnerSession) {

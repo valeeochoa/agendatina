@@ -683,9 +683,11 @@
                 try {
                     pkgs = typeof s.precios_paquetes_json === 'string' ? JSON.parse(s.precios_paquetes_json || '[]') : (s.precios_paquetes_json || []);
                     if (Array.isArray(pkgs) && pkgs.length > 0) {
-                        paquetesBadges = '<div class="flex flex-wrap items-center gap-1.5 mt-2">' + pkgs.map(p => 
-                            `<span class="bg-purple-50 text-purple-800 text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-purple-200/80 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">inventory_2</span> ${p.etiqueta ? escapeHtml(p.etiqueta) + ' (' + p.cupos + ' cl.)' : p.cupos + ' clases'} x $${parseFloat(p.precio).toLocaleString('es-AR')}</span>`
-                        ).join('') + '</div>';
+                        paquetesBadges = '<div class="flex flex-wrap items-center gap-1.5 mt-2">' + pkgs.map(p => {
+                            const cuposVal = parseInt(p.cupos ?? p.pases ?? p.clases ?? 0, 10) || 1;
+                            const etiqVal = (p.etiqueta || p.nombre || '').trim();
+                            return `<span class="bg-purple-50 text-purple-800 text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-purple-200/80 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">inventory_2</span> ${etiqVal ? escapeHtml(etiqVal) + ' (' + cuposVal + ' cl.)' : cuposVal + ' clases'} x $${parseFloat(p.precio || 0).toLocaleString('es-AR')}</span>`;
+                        }).join('') + '</div>';
                     }
                 } catch(e) {}
 
@@ -879,7 +881,7 @@
                     paquetes = typeof s.precios_paquetes_json === 'string' ? JSON.parse(s.precios_paquetes_json || '[]') : (s.precios_paquetes_json || []);
                 } catch(e) {}
                 if (Array.isArray(paquetes) && paquetes.length > 0) {
-                    paquetes.forEach(p => addCupoPricingRow(p.cupos, p.precio, p.etiqueta));
+                    paquetes.forEach(p => addCupoPricingRow(p.cupos ?? p.pases ?? p.clases ?? 1, p.precio ?? '', p.etiqueta || p.nombre || ''));
                 }
             }
 

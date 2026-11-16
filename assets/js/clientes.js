@@ -26,7 +26,10 @@ function cargarClientes() {
                 // Actualizar inmediatamente la insignia de clases de la semana al entrar al módulo
                 if (data.clases_semana_count !== undefined) {
                     const badgeTab = document.getElementById('badgeSemanaInscriptosCount');
-                    if (badgeTab) badgeTab.textContent = data.clases_semana_count;
+                    if (badgeTab) {
+                        badgeTab.textContent = data.clases_semana_count;
+                        badgeTab.classList.remove('hidden');
+                    }
                 }
 
                 poblarServiciosDropdowns();
@@ -281,7 +284,15 @@ function obtenerPaquetesDeServicio(servId) {
         }
     } catch(e) { pkgs = []; }
 
-    return Array.isArray(pkgs) ? pkgs.filter(p => parseInt(p.cupos, 10) > 0) : [];
+    return Array.isArray(pkgs)
+        ? pkgs
+            .map(p => ({
+                ...p,
+                cupos: parseInt(p.cupos ?? p.pases ?? p.clases ?? 0, 10),
+                etiqueta: (p.etiqueta || p.nombre || '').trim()
+            }))
+            .filter(p => p.cupos > 0)
+        : [];
 }
 
 // -------------------------------------------------------------
@@ -879,10 +890,10 @@ function renderAddPasesUI(cliente, targetServId) {
 
             if (Array.isArray(pkgs)) {
                 pkgs.forEach(p => {
-                    const c = parseInt(p.cupos, 10);
+                    const c = parseInt(p.cupos ?? p.pases ?? p.clases ?? 0, 10);
                     if (c > 0 && !botones.some(b => b.cupos === c)) {
                         const precioFmt = p.precio ? `$${parseFloat(p.precio).toLocaleString('es-AR')}` : '';
-                        const etqFmt = p.etiqueta ? p.etiqueta : (precioFmt ? precioFmt : 'Paquete');
+                        const etqFmt = (p.etiqueta || p.nombre || '').trim() || (precioFmt ? precioFmt : 'Paquete');
                         botones.push({
                             cupos: c,
                             label: `+${c}`,
@@ -1605,8 +1616,8 @@ function renderGrillaSemanal() {
             }
         });
 
-        // 2. Si el usuario desea ver todos los horarios del día (o si filtró por un servicio específico)
-        if (!soloConInscriptos || filtroClaseGrilla !== 'todos') {
+        // 2. Si el usuario desea ver todos los horarios del día
+        if (!soloConInscriptos) {
             if (isOpen) {
                 servicios.forEach(s => {
                     if (filtroClaseGrilla !== 'todos' && String(s.id) !== String(filtroClaseGrilla)) {
@@ -1678,49 +1689,30 @@ function renderGrillaSemanal() {
 
         if (isHoy) {
             headerHtml = `
-                <div class="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white px-4 py-3.5 rounded-t-3xl shadow-sm select-none space-y-2">
-                    <!-- Renglón 1: Nombre del día + número y mes -->
-                    <div class="flex items-baseline justify-between gap-2">
-                        <div class="flex items-baseline gap-2">
-                            <span class="text-xs font-black uppercase tracking-wider text-orange-100">${dayNameDisplay}</span>
-                            <span class="text-base font-black text-white">${dayNum} ${monthShort}</span>
-                        </div>
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-white text-orange-600 tracking-wider shadow-2xs">
+                <div class="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white px-3.5 py-2.5 rounded-t-2xl shadow-sm select-none flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                        <span class="text-[11px] font-black uppercase tracking-wider text-orange-100">${dayNameDisplay}</span>
+                        <span class="text-sm font-black text-white whitespace-nowrap">${dayNum} ${monthShort}</span>
+                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-white text-orange-600 tracking-wider shadow-2xs">
                             <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
                             Hoy
                         </span>
                     </div>
-
-                    <!-- Renglón 2: Estado de clases del día -->
-                    <div class="flex items-center justify-between pt-1.5 border-t border-white/20 text-xs">
-                        <span class="text-[11px] font-bold text-orange-100 flex items-center gap-1">
-                            <span class="material-symbols-outlined text-[14px]">event_available</span>
-                            Actividad de hoy
-                        </span>
-                        <span class="inline-block px-2.5 py-0.5 rounded-lg text-[10px] font-black bg-white/20 backdrop-blur-xs text-white">${clasesBadgeTexto}</span>
-                    </div>
+                    <span class="shrink-0 inline-block px-2 py-0.5 rounded-lg text-[10px] font-black bg-white/20 backdrop-blur-xs text-white">${clasesBadgeTexto}</span>
                 </div>
             `;
         } else {
             headerHtml = `
-                <div class="bg-white border-b border-slate-200/80 px-4 py-3.5 rounded-t-3xl select-none space-y-2">
-                    <!-- Renglón 1: Nombre del día + número y mes -->
-                    <div class="flex items-baseline justify-between gap-2">
-                        <div class="flex items-baseline gap-2">
-                            <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">${dayNameDisplay}</span>
-                            <span class="text-base font-black text-slate-900">${dayNum} ${monthShort}</span>
-                        </div>
+                <div class="bg-white border-b border-slate-200/80 px-3.5 py-2.5 rounded-t-2xl select-none flex items-center justify-between gap-2">
+                    <div class="flex items-baseline gap-1.5 min-w-0">
+                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">${dayNameDisplay}</span>
+                        <span class="text-sm font-black text-slate-900 whitespace-nowrap">${dayNum} ${monthShort}</span>
                     </div>
-
-                    <!-- Renglón 2: Del lado derecho cantidad de clases que se dictan en el día -->
-                    <div class="flex items-center justify-between pt-1.5 border-t border-slate-100 text-xs">
-                        <span class="text-[11px] font-medium text-slate-400">Jornada</span>
-                        <div>
-                            ${tieneClases 
-                                ? `<span class="inline-block px-2.5 py-0.5 rounded-xl text-[10px] font-black bg-orange-50 text-orange-700 border border-orange-200/90 shadow-2xs">${clasesBadgeTexto}</span>`
-                                : `<span class="text-[11px] font-semibold text-slate-400">Sin clases</span>`
-                            }
-                        </div>
+                    <div class="shrink-0">
+                        ${tieneClases 
+                            ? `<span class="inline-block px-2 py-0.5 rounded-lg text-[10px] font-black bg-orange-50 text-orange-700 border border-orange-200/90">${clasesBadgeTexto}</span>`
+                            : `<span class="text-[10px] font-semibold text-slate-400">Sin clases</span>`
+                        }
                     </div>
                 </div>
             `;
@@ -1791,66 +1783,58 @@ function renderGrillaSemanal() {
                     : `style="width: ${pctOcupacion}%;"`;
                 const barClass = isCustom ? 'h-full rounded-full transition-all duration-300' : `${barraColor} h-full rounded-full transition-all duration-300`;
 
-                // RECUADRO DE CLASE MODERNO, LIMPIO Y ESPACIOSO
+                // RECUADRO DE CLASE COMPACTO Y EQUILIBRADO
                 return `
-                    <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" ${cardBorderStyle} class="bg-white hover:bg-slate-50/90 border border-slate-200/90 hover:border-orange-300 ${cardBorderClass} rounded-2xl p-4 shadow-2xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group">
-                        <div class="space-y-2.5">
-                            <!-- Fila superior: Hora proporcionada + Badge simultánea si aplica -->
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black text-orange-800 bg-orange-100/70 border border-orange-200/90 shadow-2xs">
-                                    <span class="material-symbols-outlined text-[15px] text-orange-600">schedule</span>
-                                    <span>${c.hora} hs</span>
+                    <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" ${cardBorderStyle} class="bg-white hover:bg-slate-50/90 border border-slate-200/90 hover:border-orange-300 ${cardBorderClass} rounded-xl p-2.5 sm:p-3 shadow-2xs hover:shadow-sm transition-all cursor-pointer flex flex-col gap-1.5 group">
+                        <!-- Fila 1: Hora + Simultánea + Estado ocupación -->
+                        <div class="flex items-center justify-between gap-1.5">
+                            <div class="flex items-center gap-1 min-w-0">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-black text-orange-800 bg-orange-100/70 border border-orange-200/90">
+                                    <span class="material-symbols-outlined text-[13px] text-orange-600">schedule</span>
+                                    <span>${c.hora}</span>
                                 </span>
                                 ${superpuestaBadge}
                             </div>
+                            <div class="shrink-0">${badgeOcupacion}</div>
+                        </div>
 
-                            <!-- Nombre del Servicio: Tamaño moderado, equilibrado y prolijo -->
-                            <div>
-                                <h4 class="text-sm font-black text-slate-900 group-hover:text-orange-600 transition-colors leading-snug line-clamp-2">
-                                    ${escapeHtml(c.servicioNombre)}
-                                </h4>
-                                <div class="flex items-center gap-1 text-[11px] font-bold text-slate-400 group-hover:text-slate-500 transition-colors mt-0.5">
-                                    <span class="material-symbols-outlined text-[13px] text-slate-400">person</span>
-                                    <span class="truncate">${escapeHtml(c.profesional)}</span>
-                                </div>
-                            </div>
-
-                            <!-- Estado de ocupación y cupos -->
-                            <div class="pt-1 space-y-1">
-                                <div class="flex items-center justify-between text-xs font-medium text-slate-600">
-                                    <span class="text-[11px] font-black text-slate-800">${ocupados} / ${cupoMax} alumnos</span>
-                                    <span class="text-[11px] font-extrabold ${ocupados >= cupoMax ? 'text-rose-600' : 'text-slate-400'}">${pctOcupacion}%</span>
-                                </div>
-                                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden p-0.5 border border-slate-200/50">
-                                    <div class="${barClass}" ${barStyle}></div>
-                                </div>
+                        <!-- Fila 2: Servicio + Profesional -->
+                        <div>
+                            <h4 class="text-xs font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors leading-tight line-clamp-1">
+                                ${escapeHtml(c.servicioNombre)}
+                            </h4>
+                            <div class="flex items-center gap-1 text-[10px] font-semibold text-slate-400 group-hover:text-slate-500 transition-colors mt-0.5">
+                                <span class="material-symbols-outlined text-[12px] text-slate-400">person</span>
+                                <span class="truncate">${escapeHtml(c.profesional)}</span>
                             </div>
                         </div>
 
-                        <!-- Footer: Badge de estado + acción clara "Ver lista" sin saturar -->
-                        <div class="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
-                            <div>${badgeOcupacion}</div>
-                            <span class="text-xs font-extrabold text-orange-600 group-hover:text-orange-700 flex items-center gap-1 group-hover:translate-x-1 transition-all" ${isCustom ? `style="color: ${cConf.customHex};"` : ''}>
-                                <span>Ver lista</span>
-                                <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
-                            </span>
+                        <!-- Fila 3: Ocupación y barra -->
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between text-[10px]">
+                                <span class="font-bold text-slate-700">${ocupados}/${cupoMax} alumnos</span>
+                                <span class="font-extrabold ${ocupados >= cupoMax ? 'text-rose-600' : 'text-slate-400'}">${pctOcupacion}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200/50">
+                                <div class="${barClass}" ${barStyle}></div>
+                            </div>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        // Columna del día: diseño amplio y distinguido
+        // Columna del día: compacta con scroll interno
         const colContainerClass = tieneClases
             ? (isHoy 
-                ? 'bg-slate-50/80 border-2 border-orange-300 rounded-3xl shadow-md overflow-hidden flex flex-col min-h-[320px] transition-all'
-                : 'bg-slate-50/60 hover:bg-slate-50/90 border border-slate-200/90 hover:border-slate-300 rounded-3xl shadow-xs hover:shadow-sm overflow-hidden flex flex-col min-h-[320px] transition-all')
-            : 'bg-slate-50/30 border border-dashed border-slate-200/80 rounded-3xl overflow-hidden flex flex-col min-h-[160px] opacity-75';
+                ? 'bg-slate-50/80 border-2 border-orange-300 rounded-2xl shadow-sm overflow-hidden flex flex-col transition-all'
+                : 'bg-slate-50/60 hover:bg-slate-50/90 border border-slate-200/90 hover:border-slate-300 rounded-2xl shadow-2xs hover:shadow-xs overflow-hidden flex flex-col transition-all')
+            : 'bg-slate-50/30 border border-dashed border-slate-200/80 rounded-2xl overflow-hidden flex flex-col opacity-75';
 
         diasGenerados.push(`
             <div class="${colContainerClass}">
                 ${headerHtml}
-                <div class="p-3.5 space-y-3.5 flex-1 overflow-y-auto">
+                <div class="p-2.5 space-y-2 flex-1 max-h-[420px] overflow-y-auto custom-scrollbar">
                     ${clasesHtml}
                 </div>
             </div>
@@ -1882,7 +1866,10 @@ function renderGrillaSemanal() {
     
     const pct = totalCapacidadSemana > 0 ? Math.round((totalInscriptosSemana / totalCapacidadSemana) * 100) : 0;
     if (statPct) statPct.textContent = `${pct}%`;
-    if (badgeTab) badgeTab.textContent = totalInscriptosSemana;
+    if (badgeTab) {
+        badgeTab.textContent = totalClasesSemana;
+        badgeTab.classList.remove('hidden');
+    }
 }
 
 function abrirModalDetalleClaseFromCard(jsonStr) {

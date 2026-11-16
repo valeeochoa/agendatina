@@ -2074,7 +2074,13 @@ function loadCustomization() {
                 if(document.getElementById('profColor2')) document.getElementById('profColor2').value = data.color_secundario || '#FC8712';
                 if(document.getElementById('profileColor')) document.getElementById('profileColor').value = data.color_primario || '#D11149';
 
-                const displayName = data.titulo || (window.currentBusinessData && window.currentBusinessData.nombre_fantasia) || 'Mi Negocio';
+                const rawTitulo = (data.titulo || '').trim();
+                const bizRealName = (window.currentBusinessData && window.currentBusinessData.nombre_fantasia) || '';
+                const isDemoCfg = !!(data.is_demo === true || data.is_demo === 1 || data.is_demo === '1' || (data.ruta && (data.ruta === 'demo' || String(data.ruta).startsWith('demo-'))));
+                const resolvedTitulo = (!isDemoCfg && rawTitulo === 'Agendatina Studio' && bizRealName && bizRealName !== 'Agendatina Studio')
+                    ? bizRealName
+                    : rawTitulo;
+                const displayName = resolvedTitulo || bizRealName || 'Mi Negocio';
                 const userFullName = (window.currentUserData && window.currentUserData.nombre_completo) || '';
                 
                 const dashBusinessName = document.getElementById('dashboardBusinessName');
@@ -2089,7 +2095,13 @@ function loadCustomization() {
                 const navBusinessName = document.getElementById('navBusinessNameText');
                 if (navBusinessName && displayName) {
                     navBusinessName.textContent = displayName;
-                    try { localStorage.setItem('cached_business_name', displayName); } catch(e) {}
+                    try {
+                        if (isDemoCfg || displayName === 'Agendatina Studio' || displayName === 'Agendatina') {
+                            localStorage.removeItem('cached_business_name');
+                        } else {
+                            localStorage.setItem('cached_business_name', displayName);
+                        }
+                    } catch(e) {}
                 }
                 
                 const logoImg = document.getElementById('navBusinessLogoImg');
@@ -3835,11 +3847,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
         const cachedBizName = localStorage.getItem('cached_business_name');
-        if (cachedBizName) {
+        if (cachedBizName && cachedBizName !== 'Agendatina Studio' && cachedBizName !== 'Agendatina') {
             const navBizEl = document.getElementById('navBusinessNameText');
             if (navBizEl && (navBizEl.textContent === 'Cargando...' || navBizEl.textContent === 'Mi Negocio')) {
                 navBizEl.textContent = cachedBizName;
             }
+        } else if (cachedBizName) {
+            localStorage.removeItem('cached_business_name');
         }
     } catch(e) {}
 
@@ -3867,6 +3881,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ));
                 if (isDemoUser) {
                     sessionStorage.setItem('is_demo_user', 'true');
+                    try { localStorage.removeItem('cached_business_name'); } catch(e) {}
                 } else {
                     sessionStorage.removeItem('is_demo_user');
                     sessionStorage.removeItem('agendatina_demo_alert');

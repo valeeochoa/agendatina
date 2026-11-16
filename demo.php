@@ -42,6 +42,7 @@ try {
         echo "<!DOCTYPE html>\n<html>\n<head>\n<title>Redirigiendo a Demo...</title>\n</head>\n<body>\n";
         echo "<script>\n";
         echo "  sessionStorage.removeItem('agendatina_logged_user');\n";
+        echo "  localStorage.removeItem('cached_business_name');\n";
         echo "  sessionStorage.setItem('agendatina_session', 'active');\n";
         echo "  sessionStorage.setItem('is_demo_user', 'true');\n";
         echo "  window.location.replace('dashboard.html');\n";
@@ -126,6 +127,7 @@ try {
     echo "<!DOCTYPE html>\n<html>\n<head>\n<title>Redirigiendo a Demo...</title>\n</head>\n<body>\n";
     echo "<script>\n";
     echo "  sessionStorage.removeItem('agendatina_logged_user');\n";
+    echo "  localStorage.removeItem('cached_business_name');\n";
     echo "  localStorage.removeItem('user_color_primario');\n";
     echo "  localStorage.removeItem('user_color_secundario');\n";
     echo "  localStorage.removeItem('user_colores_extra_json');\n";

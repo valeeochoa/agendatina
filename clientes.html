@@ -98,7 +98,7 @@
             <button type="button" id="tabBtnGrilla" onclick="switchModuloAlumnosTab('grilla')" class="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer text-slate-600 hover:text-slate-900 hover:bg-white/50">
                 <span class="material-symbols-outlined text-[19px] text-orange-600">calendar_view_week</span>
                 <span>Grilla Semanal de Clases</span>
-                <span id="badgeSemanaInscriptosCount" class="ml-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-orange-100 text-orange-700">0</span>
+                <span id="badgeSemanaInscriptosCount" class="hidden ml-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-orange-100 text-orange-700">0</span>
             </button>
         </div>
 
@@ -196,9 +196,9 @@
         <!-- FIN VISTA 1: PADRÓN DE ALUMNOS -->
 
         <!-- VISTA 2: GRILLA SEMANAL DE CLASES Y CUPOS -->
-        <div id="vistaGrillaSemanal" class="space-y-6 hidden">
+        <div id="vistaGrillaSemanal" class="space-y-4 hidden">
             <!-- Panel Único de Control de la Semana: Navegación, Métricas Inline y Filtros -->
-            <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+            <div class="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200 shadow-xs space-y-3">
                 <!-- Fila 1: Selector de Semana + Métricas Rápidas Inline + Botón Recargar -->
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <!-- Controles de Semana -->
@@ -266,8 +266,8 @@
                 </div>
             </div>
 
-            <!-- Grilla Semanal: Columnas amplias y adaptables para los días con actividad -->
-            <div id="grillaSemanaContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 items-start">
+            <!-- Grilla Semanal: Columnas compactas y ordenadas para los días con actividad -->
+            <div id="grillaSemanaContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 items-start">
                 <!-- Se puebla dinámicamente con los días abiertos y con clases de la semana -->
                 <div class="col-span-full py-16 text-center text-slate-400 bg-white rounded-3xl border border-slate-200">
                     <span class="material-symbols-outlined text-4xl animate-spin text-orange-500 mb-2">refresh</span>

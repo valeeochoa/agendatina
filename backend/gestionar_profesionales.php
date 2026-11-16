@@ -156,6 +156,24 @@ if ($method === 'GET') {
             asegurarDatosDemo($pdo, $id_negocio);
         }
 
+        // Normalizar roles en BD: asegurar que exista únicamente 1 dueño/admin por negocio
+        try {
+            $stmtAdmins = $pdo->prepare("
+                SELECT pn.id 
+                FROM personal_negocio pn
+                JOIN usuarios u ON pn.id_usuario = u.id
+                WHERE pn.id_negocio = :id_negocio AND pn.rol_en_local = 'admin'
+                ORDER BY (u.email LIKE 'demo%@agendatina.site') DESC, pn.id ASC
+            ");
+            $stmtAdmins->execute(['id_negocio' => $id_negocio]);
+            $adminPnIds = $stmtAdmins->fetchAll(PDO::FETCH_COLUMN);
+            if (is_array($adminPnIds) && count($adminPnIds) > 1) {
+                $keepAdminPnId = (int)$adminPnIds[0];
+                $stmtDemote = $pdo->prepare("UPDATE personal_negocio SET rol_en_local = 'profesional' WHERE id_negocio = :id_negocio AND rol_en_local = 'admin' AND id != :keep_id");
+                $stmtDemote->execute(['id_negocio' => $id_negocio, 'keep_id' => $keepAdminPnId]);
+            }
+        } catch (Throwable $eNormAdmin) {}
+
         // Obtener la lista de profesionales e integrantes del equipo (deduplicando usuarios)
         $stmt = $pdo->prepare("
             SELECT u.id, MIN(pn.id) AS id_personal, u.nombre_completo, u.email, MIN(pn.rol_en_local) AS rol_en_local, MAX(pn.permisos) AS permisos

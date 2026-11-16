@@ -182,7 +182,7 @@ try {
             $stmtConf->execute(['id_negocio' => $id_negocio]);
             $confWeb = $stmtConf->fetch(PDO::FETCH_ASSOC) ?: [];
 
-            // 2. Servicios del negocio
+            // 2. Servicios del negocio (únicamente clases grupales / Portal de Alumnos con cupos)
             $stmtServ = $pdo->prepare("
                 SELECT id, nombre_servicio AS nombre, nombre_servicio, 
                        COALESCE(duracion_minutos, 30) AS duracion, 
@@ -191,6 +191,7 @@ try {
                        COALESCE(color, '#d11149') AS color
                 FROM servicios 
                 WHERE id_negocio = :id_negocio 
+                  AND (tipo_servicio = 'alumnos' OR COALESCE(cupo_maximo, capacidad, 1) > 1)
                 ORDER BY orden ASC, id ASC
             ");
             $stmtServ->execute(['id_negocio' => $id_negocio]);
@@ -276,6 +277,22 @@ try {
                     $turnosSemana = [];
                 }
             }
+
+            // Conservar únicamente turnos vinculados a servicios grupales / Portal de Alumnos
+            $groupSvcIds = [];
+            $groupSvcNames = [];
+            foreach ($serviciosList as $gs) {
+                $groupSvcIds[(int)$gs['id']] = true;
+                $gName = mb_strtolower(trim((string)($gs['nombre_servicio'] ?? $gs['nombre'] ?? '')), 'UTF-8');
+                if ($gName !== '') $groupSvcNames[$gName] = true;
+            }
+            $turnosSemana = array_values(array_filter($turnosSemana, function($t) use ($groupSvcIds, $groupSvcNames) {
+                $tSid = (int)($t['id_servicio'] ?? 0);
+                if ($tSid > 0 && isset($groupSvcIds[$tSid])) return true;
+                $tSname = mb_strtolower(trim((string)($t['servicio'] ?? '')), 'UTF-8');
+                if ($tSname !== '' && isset($groupSvcNames[$tSname])) return true;
+                return false;
+            }));
 
             if ($isProf && !$canVerTodosClientes && !empty($profSessionName)) {
                 $turnosSemana = array_values(array_filter($turnosSemana, function($trk) use ($profSessionName) {
@@ -393,29 +410,65 @@ try {
             }));
         }
 
-        // Calcular clases de la semana actual para precargar la insignia del selector
+        // Calcular clases grupales reales de la semana actual (excluyendo turnos 1 a 1 del calendario)
         $clases_semana_count = 0;
         try {
-            $tsHoy = time();
-            $diaSemana = (int)date('w', $tsHoy); // 0 = dom, 1 = lun, etc.
-            $diasHastaLunes = ($diaSemana === 0) ? -6 : (1 - $diaSemana);
-            $fIniSemana = date('Y-m-d', strtotime("{$diasHastaLunes} days", $tsHoy));
-            $fFinSemana = date('Y-m-d', strtotime("+6 days", strtotime($fIniSemana)));
-
-            $stmtCountSemana = $pdo->prepare("
-                SELECT COUNT(DISTINCT CONCAT(COALESCE(id_servicio, 0), '_', fecha, '_', SUBSTRING(hora, 1, 5))) AS total_clases
-                FROM turnos 
+            $stmtGrp = $pdo->prepare("
+                SELECT id, nombre_servicio 
+                FROM servicios 
                 WHERE id_negocio = :id_negocio 
-                  AND fecha >= :f_ini 
-                  AND fecha <= :f_fin 
-                  AND estado IN ('confirmado', 'pendiente')
+                  AND (tipo_servicio = 'alumnos' OR COALESCE(cupo_maximo, capacidad, 1) > 1)
             ");
-            $stmtCountSemana->execute([
-                'id_negocio' => $id_negocio,
-                'f_ini' => $fIniSemana,
-                'f_fin' => $fFinSemana
-            ]);
-            $clases_semana_count = (int)$stmtCountSemana->fetchColumn();
+            $stmtGrp->execute(['id_negocio' => $id_negocio]);
+            $grpRows = $stmtGrp->fetchAll(PDO::FETCH_ASSOC);
+
+            if (!empty($grpRows)) {
+                $grpIds = [];
+                $grpNames = [];
+                foreach ($grpRows as $gr) {
+                    $grpIds[(int)$gr['id']] = true;
+                    $gNom = mb_strtolower(trim((string)$gr['nombre_servicio']), 'UTF-8');
+                    if ($gNom !== '') $grpNames[$gNom] = true;
+                }
+
+                $tsHoy = time();
+                $diaSemana = (int)date('w', $tsHoy); // 0 = dom, 1 = lun, etc.
+                $diasHastaLunes = ($diaSemana === 0) ? -6 : (1 - $diaSemana);
+                $fIniSemana = date('Y-m-d', strtotime("{$diasHastaLunes} days", $tsHoy));
+                $fFinSemana = date('Y-m-d', strtotime("+6 days", strtotime($fIniSemana)));
+
+                $stmtCountRows = $pdo->prepare("
+                    SELECT id_servicio, servicio, profesional, fecha, SUBSTRING(hora, 1, 5) AS hhmm
+                    FROM turnos 
+                    WHERE id_negocio = :id_negocio 
+                      AND fecha >= :f_ini 
+                      AND fecha <= :f_fin 
+                      AND estado IN ('confirmado', 'pendiente')
+                ");
+                $stmtCountRows->execute([
+                    'id_negocio' => $id_negocio,
+                    'f_ini' => $fIniSemana,
+                    'f_fin' => $fFinSemana
+                ]);
+                $distinctSlots = [];
+                while ($tr = $stmtCountRows->fetch(PDO::FETCH_ASSOC)) {
+                    $tSid = (int)($tr['id_servicio'] ?? 0);
+                    $tSnom = mb_strtolower(trim((string)($tr['servicio'] ?? '')), 'UTF-8');
+                    if (!($tSid > 0 && isset($grpIds[$tSid])) && !($tSnom !== '' && isset($grpNames[$tSnom]))) {
+                        continue;
+                    }
+                    if ($isProf && !$canVerTodosClientes && !empty($profSessionName)) {
+                        $tProf = mb_strtolower(trim((string)($tr['profesional'] ?? '')), 'UTF-8');
+                        $pSess = mb_strtolower(trim($profSessionName), 'UTF-8');
+                        if ($tProf !== $pSess && strpos($tProf, $pSess) === false) {
+                            continue;
+                        }
+                    }
+                    $slotKey = ($tSid > 0 ? $tSid : $tSnom) . '_' . $tr['fecha'] . '_' . $tr['hhmm'];
+                    $distinctSlots[$slotKey] = true;
+                }
+                $clases_semana_count = count($distinctSlots);
+            }
         } catch(Exception $eCountSem) {}
 
         echo json_encode([

@@ -195,9 +195,39 @@ try {
             if (!empty($business['plan'])) {
                 $_SESSION['plan'] = $business['plan'];
             }
-            if ((isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || (isset($business['ruta']) && strpos($business['ruta'], 'demo') === 0)) {
+            $rutaLower = strtolower(trim((string)($business['ruta'] ?? '')));
+            $isBusinessDemo = ($rutaLower === 'demo' || strpos($rutaLower, 'demo-') === 0);
+
+            if ($isBusinessDemo) {
+                $_SESSION['is_demo'] = true;
                 require_once __DIR__ . '/helpers/demo_helper.php';
                 asegurarDatosDemo($pdo, $id_negocio);
+            } else {
+                // Limpiar bandera demo de sesión si el negocio activo es real
+                unset($_SESSION['is_demo']);
+
+                // Auto-reparación si una sesión demo previa contaminó este negocio real
+                try {
+                    $realNombre = trim((string)($business['nombre_fantasia'] ?? ''));
+                    if ($realNombre !== '' && strcasecmp($realNombre, 'Agendatina') !== 0 && strcasecmp($realNombre, 'Agendatina Studio') !== 0) {
+                        $pdo->prepare("UPDATE configuracion_web SET mensaje_bienvenida = ? WHERE id_negocio = ? AND mensaje_bienvenida = 'Agendatina Studio'")
+                            ->execute([$realNombre, $id_negocio]);
+                        try {
+                            $pdo->prepare("UPDATE configuracion_web SET titulo = ? WHERE id_negocio = ? AND titulo = 'Agendatina Studio'")
+                                ->execute([$realNombre, $id_negocio]);
+                        } catch (Throwable $eColTit) {}
+                    }
+                    // Desvincular emails de demo del equipo real si hubieran quedado mezclados
+                    $pdo->prepare("
+                        DELETE pn FROM personal_negocio pn
+                        JOIN usuarios u ON pn.id_usuario = u.id
+                        WHERE pn.id_negocio = ?
+                          AND (
+                              u.email IN ('valentina.demo@agendatina.site', 'camila.demo@agendatina.site', 'marcos.demo@agendatina.site', 'demo@agendatina.site')
+                              OR u.email LIKE 'demo_%@agendatina.site'
+                          )
+                    ")->execute([$id_negocio]);
+                } catch (Throwable $eRepairReal) {}
             }
 
             if ($business['mes_wpp_contador'] !== $currentMonthStr) {
@@ -284,9 +314,8 @@ try {
             $business['precio_vigente_sistema'] = (float)$precioVigenteSistema;
             $business['hay_subida_precio'] = ($business['precio_vigente_sistema'] > $business['precio_pactado']);
 
-            $uEmailLow = strtolower((string)($user['email'] ?? ''));
-            $bRutaLow = strtolower((string)($business['ruta'] ?? ''));
-            $business['is_demo'] = (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || ($bRutaLow === 'demo' || strpos($bRutaLow, 'demo-') === 0) || ($uEmailLow === 'demo@agendatina.site' || strpos($uEmailLow, 'demo_') === 0);
+            $bRutaLow = strtolower(trim((string)($business['ruta'] ?? '')));
+            $business['is_demo'] = ($bRutaLow === 'demo' || strpos($bRutaLow, 'demo-') === 0);
         }
 
         if (!$user || !$business) {

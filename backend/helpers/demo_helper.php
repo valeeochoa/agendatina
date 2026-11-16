@@ -3,7 +3,19 @@ if (!function_exists('asegurarDatosDemo')) {
     function asegurarDatosDemo($pdo, $negocioId) {
         if (!$negocioId) return;
 
-        if (isset($_SESSION['demo_initialized_' . $negocioId]) && !isset($_GET['reset'])) {
+        // Blindaje obligatorio: verificar en BD que el negocio sea realmente una cuenta Demo
+        try {
+            $stmtCheckRuta = $pdo->prepare("SELECT ruta FROM negocios WHERE id = ? LIMIT 1");
+            $stmtCheckRuta->execute([$negocioId]);
+            $rutaActual = strtolower(trim((string)$stmtCheckRuta->fetchColumn()));
+            if ($rutaActual !== 'demo' && strpos($rutaActual, 'demo-') !== 0) {
+                return;
+            }
+        } catch (Throwable $eRuta) {
+            return;
+        }
+
+        if (isset($_SESSION['demo_v2_initialized_' . $negocioId]) && !isset($_GET['reset'])) {
             $sessLastReset = (int)($_SESSION['last_demo_reset'] ?? 0);
             if ($sessLastReset > 0 && (time() - $sessLastReset) < 900) {
                 return;
@@ -61,16 +73,45 @@ if (!function_exists('asegurarDatosDemo')) {
                 $pdo->prepare("UPDATE servicios SET color = '#9333ea' WHERE id_negocio = ? AND (color IS NULL OR color = '' OR color = '#d11149') AND nombre_servicio LIKE '%Facial%'")->execute([$negocioId]);
             } catch(Throwable $eColUp) {}
 
-            $stmtServ = $pdo->prepare("SELECT id, nombre_servicio, tipo_servicio, cupo_maximo FROM servicios WHERE id_negocio = ?");
+            $stmtServ = $pdo->prepare("SELECT id, nombre_servicio, tipo_servicio, cupo_maximo, precio, precios_paquetes_json FROM servicios WHERE id_negocio = ?");
             $stmtServ->execute([$negocioId]);
             $servs = $stmtServ->fetchAll(PDO::FETCH_ASSOC);
 
-            // Verificar si faltan servicios de clases grupales con cupos
+            // Verificar si faltan servicios de clases grupales con cupos y auto-reparar JSON de paquetes sin "cupos"
             $hasClasses = false;
             foreach ($servs as $s) {
                 if ($s['tipo_servicio'] === 'alumnos' || (int)$s['cupo_maximo'] > 1) {
                     $hasClasses = true;
-                    break;
+                    $rawPkg = (string)($s['precios_paquetes_json'] ?? '');
+                    if (trim($rawPkg) === '' || strpos($rawPkg, '"cupos"') === false) {
+                        $fixedPkgs = [];
+                        $decodedPkg = json_decode($rawPkg, true);
+                        if (is_array($decodedPkg) && !empty($decodedPkg)) {
+                            foreach ($decodedPkg as $pk) {
+                                $c = (int)($pk['cupos'] ?? $pk['pases'] ?? $pk['clases'] ?? 0);
+                                $et = trim((string)($pk['etiqueta'] ?? $pk['nombre'] ?? ''));
+                                $pr = (float)($pk['precio'] ?? 0);
+                                if ($c > 0) {
+                                    $fixedPkgs[] = [
+                                        'cupos' => $c,
+                                        'pases' => $c,
+                                        'precio' => $pr,
+                                        'etiqueta' => $et ?: "Pase {$c} Clases",
+                                        'nombre' => $et ?: "Pase {$c} Clases"
+                                    ];
+                                }
+                            }
+                        }
+                        if (empty($fixedPkgs)) {
+                            $baseP = max(5000, (float)($s['precio'] ?? 5500));
+                            $fixedPkgs = [
+                                ['cupos' => 4, 'pases' => 4, 'precio' => round($baseP * 4 * 0.9), 'etiqueta' => 'Pase 4 Clases', 'nombre' => 'Pase 4 Clases'],
+                                ['cupos' => 8, 'pases' => 8, 'precio' => round($baseP * 8 * 0.8), 'etiqueta' => 'Pase 8 Clases', 'nombre' => 'Pase 8 Clases']
+                            ];
+                        }
+                        $pdo->prepare("UPDATE servicios SET precios_paquetes_json = ? WHERE id = ? AND id_negocio = ?")
+                            ->execute([json_encode($fixedPkgs, JSON_UNESCAPED_UNICODE), $s['id'], $negocioId]);
+                    }
                 }
             }
 
@@ -100,13 +141,24 @@ if (!function_exists('asegurarDatosDemo')) {
             if ($needsReset) {
                 $_SESSION['last_demo_reset'] = $currentTime;
                 $_SESSION['demo_initialized_' . $negocioId] = true;
+                $_SESSION['demo_v2_initialized_' . $negocioId] = true;
 
                 // A. Recrear Servicios de Demostración (Clases grupales + servicios individuales)
                 $pdo->prepare("DELETE FROM servicios WHERE id_negocio = ?")->execute([$negocioId]);
 
-                $paquetePilates = json_encode([['pases' => 4, 'precio' => 24000, 'nombre' => 'Pase 4 Clases'], ['pases' => 8, 'precio' => 40000, 'nombre' => 'Pase 8 Clases']], JSON_UNESCAPED_UNICODE);
-                $paqueteYoga = json_encode([['pases' => 4, 'precio' => 20000, 'nombre' => 'Pase 4 Clases'], ['pases' => 8, 'precio' => 35000, 'nombre' => 'Pase 8 Clases']], JSON_UNESCAPED_UNICODE);
-                $paqueteFuncional = json_encode([['pases' => 4, 'precio' => 22000, 'nombre' => 'Pase 4 Clases'], ['pases' => 8, 'precio' => 38000, 'nombre' => 'Pase 8 Clases']], JSON_UNESCAPED_UNICODE);
+                $paquetePilates = json_encode([
+                    ['cupos' => 4, 'pases' => 4, 'precio' => 24000, 'etiqueta' => 'Pase 4 Clases', 'nombre' => 'Pase 4 Clases'],
+                    ['cupos' => 8, 'pases' => 8, 'precio' => 40000, 'etiqueta' => 'Pase 8 Clases', 'nombre' => 'Pase 8 Clases']
+                ], JSON_UNESCAPED_UNICODE);
+                $paqueteYoga = json_encode([
+                    ['cupos' => 4, 'pases' => 4, 'precio' => 20000, 'etiqueta' => 'Pase 4 Clases', 'nombre' => 'Pase 4 Clases'],
+                    ['cupos' => 8, 'pases' => 8, 'precio' => 35000, 'etiqueta' => 'Pase 8 Clases', 'nombre' => 'Pase 8 Clases'],
+                    ['cupos' => 12, 'pases' => 12, 'precio' => 48000, 'etiqueta' => 'Pase Libre 12 Clases', 'nombre' => 'Pase Libre 12 Clases']
+                ], JSON_UNESCAPED_UNICODE);
+                $paqueteFuncional = json_encode([
+                    ['cupos' => 4, 'pases' => 4, 'precio' => 22000, 'etiqueta' => 'Pase 4 Clases', 'nombre' => 'Pase 4 Clases'],
+                    ['cupos' => 8, 'pases' => 8, 'precio' => 38000, 'etiqueta' => 'Pase 8 Clases', 'nombre' => 'Pase 8 Clases']
+                ], JSON_UNESCAPED_UNICODE);
 
                 $stmtInsServ = $pdo->prepare("
                     INSERT INTO servicios (id_negocio, nombre_servicio, duracion_minutos, precio, descripcion, profesional, icono, color, tipo_servicio, cupo_maximo, capacidad, precios_paquetes_json) VALUES 
@@ -274,12 +326,12 @@ if (!function_exists('asegurarDatosDemo')) {
                     (?, '🎒 Nueva Reserva de Clase', 'María García se agendó en Pilates Reformer con su pase de alumna.')")->execute([$negocioId, $negocioId]);
             }
 
-            // 4. Asegurar personal del equipo Demo
+            // 4. Asegurar personal del equipo Demo (únicamente el creador es admin; el resto son profesionales)
             $stmtPnCount = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_negocio = ?");
             $stmtPnCount->execute([$negocioId]);
             if ((int)$stmtPnCount->fetchColumn() <= 1) {
                 $demoTeam = [
-                    ['nombre' => 'Valentina Ochoa', 'email' => 'valentina.demo@agendatina.site', 'rol' => 'admin'],
+                    ['nombre' => 'Valentina Ochoa', 'email' => 'valentina.demo@agendatina.site', 'rol' => 'profesional'],
                     ['nombre' => 'Camila Benítez', 'email' => 'camila.demo@agendatina.site', 'rol' => 'profesional'],
                     ['nombre' => 'Marcos Gómez', 'email' => 'marcos.demo@agendatina.site', 'rol' => 'profesional']
                 ];
@@ -301,7 +353,26 @@ if (!function_exists('asegurarDatosDemo')) {
                 }
             }
 
+            // Normalizar para asegurar que únicamente quede 1 dueño/admin en la demo (priorizando al creador demo)
+            try {
+                $stmtAdmins = $pdo->prepare("
+                    SELECT pn.id 
+                    FROM personal_negocio pn
+                    JOIN usuarios u ON pn.id_usuario = u.id
+                    WHERE pn.id_negocio = ? AND pn.rol_en_local = 'admin'
+                    ORDER BY (u.email LIKE 'demo%@agendatina.site') DESC, pn.id ASC
+                ");
+                $stmtAdmins->execute([$negocioId]);
+                $adminIds = $stmtAdmins->fetchAll(PDO::FETCH_COLUMN);
+                if (is_array($adminIds) && count($adminIds) > 1) {
+                    $keepId = (int)$adminIds[0];
+                    $pdo->prepare("UPDATE personal_negocio SET rol_en_local = 'profesional' WHERE id_negocio = ? AND rol_en_local = 'admin' AND id != ?")
+                        ->execute([$negocioId, $keepId]);
+                }
+            } catch (Throwable $eNorm) {}
+
             $_SESSION['demo_initialized_' . $negocioId] = true;
+            $_SESSION['demo_v2_initialized_' . $negocioId] = true;
 
         } catch(Throwable $eDemoData) {
             error_log("Error al asegurar datos demo: " . $eDemoData->getMessage());
