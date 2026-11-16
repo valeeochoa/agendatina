@@ -4749,11 +4749,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Aplicar el color de fondo o degradé directamente a la etiqueta <body>
-                if (config.color_fondo) {
-                    document.body.style.setProperty('background-color', config.color_fondo, 'important');
+                const customBg = String(config.color_fondo || '').trim();
+                const hasCustomBg = customBg && !['#fff', '#ffffff', 'white'].includes(customBg.toLowerCase());
+                if (hasCustomBg) {
+                    document.body.style.setProperty('background-color', customBg, 'important');
                 } else if (config.color_primario || config.color_secundario) {
                     const sColor = config.color_secundario || '#FC8712';
-                    document.body.style.setProperty('background-color', `color-mix(in srgb, ${sColor} 11%, #ffffff)`, 'important');
+                    document.body.style.setProperty('background-color', `color-mix(in srgb, ${sColor} 14%, #ffffff)`, 'important');
                 }
 
                 const isDegradeActive = (config.usar_fondo_degrade === undefined || config.usar_fondo_degrade === null || config.usar_fondo_degrade == 1 || config.usar_fondo_degrade === '1' || config.usar_fondo_degrade === true) && config.usar_fondo_degrade != 0 && config.usar_fondo_degrade !== '0';

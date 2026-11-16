@@ -4316,8 +4316,10 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
     }
     extraColors = (extraColors && typeof extraColors === 'object') ? extraColors : {};
 
-    const finalBg = bgColor || extraColors.color_fondo || localStorage.getItem('user_color_fondo') || '';
+    const rawBg = String(bgColor || extraColors.color_fondo || localStorage.getItem('user_color_fondo') || '').trim();
+    const finalBg = (rawBg && !['#fff', '#ffffff', 'white'].includes(rawBg.toLowerCase())) ? rawBg : '';
     if (finalBg) localStorage.setItem('user_color_fondo', finalBg);
+    else localStorage.removeItem('user_color_fondo');
 
     localStorage.setItem('user_color_primario', pColor);
     localStorage.setItem('user_color_secundario', sColor);
