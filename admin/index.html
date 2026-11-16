@@ -2486,7 +2486,7 @@ function saveCdNotaInterna() {
     btn.disabled = true; btn.innerHTML = 'Guardando...';
 
     const nota = document.getElementById('cdNotaInternaText').value;
-    fetch('../backend/admin_api.php', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_negocio: currentCdClient.id, nota_interna: nota }) })
+    fetch('../backend/admin_api.php', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id_negocio: currentCdClient.id, action: 'save_note', nota_interna: nota }) })
     .then(res => res.json())
     .then(data => {
         if (data.success) {

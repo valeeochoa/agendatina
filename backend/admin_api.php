@@ -905,7 +905,9 @@ elseif ($method === 'POST') {
             error_log("No se pudo crear servicio por defecto para negocio $id_negocio: " . $e->getMessage());
         }
 
-        $pdo->commit();
+        if ($pdo->inTransaction()) {
+            $pdo->commit();
+        }
         echo json_encode(['success' => true]);
 
     } catch (Exception $e) {
@@ -1013,6 +1015,32 @@ elseif ($method === 'PUT') {
         exit;
     }
 
+    // =========================================================================
+    // GUARDAR NOTA INTERNA (action: save_note o llamada directa para nota)
+    // Se procesa de forma aislada sin transacciones DDL para prevenir 'There is no active transaction'
+    // =========================================================================
+    if ($action === 'save_note' || (isset($data['nota_interna']) && empty($action) && !isset($data['plan']) && !isset($data['estado_pago']) && !isset($data['max_profesionales']) && !isset($data['nombre_completo']))) {
+        try {
+            $notaText = trim($nota_interna ?? '');
+            if ($notaText !== '') {
+                $stmt = $pdo->prepare(
+                    "INSERT INTO admin_notas (id_negocio, nota, fecha, estado) VALUES (:id_negocio, :nota, NOW(), 'activo')"
+                );
+                $stmt->execute(['id_negocio' => $id_negocio, 'nota' => $notaText]);
+            } else {
+                // Si la nota se envía vacía, se marcan como eliminadas las notas anteriores para limpiar el campo
+                $stmt = $pdo->prepare(
+                    "UPDATE admin_notas SET estado = 'eliminado', fecha_eliminado = NOW() WHERE id_negocio = :id_negocio AND (estado IS NULL OR estado != 'eliminado')"
+                );
+                $stmt->execute(['id_negocio' => $id_negocio]);
+            }
+            echo json_encode(['success' => true, 'message' => 'Nota interna guardada con éxito.']);
+        } catch (Throwable $eNota) {
+            echo json_encode(['success' => false, 'error' => 'Error al guardar la nota: ' . $eNota->getMessage()]);
+        }
+        exit;
+    }
+
     // Si vamos a rechazar, obtenemos los datos del usuario para notificarle por email
     $userInfo = null;
     if ($action === 'rechazar_pago') {
@@ -1031,23 +1059,7 @@ elseif ($method === 'PUT') {
     try {
         $pdo->beginTransaction();
 
-        if ($action === 'save_note') {
-            $notaText = trim($nota_interna ?? '');
-            if ($notaText !== '') {
-                // Insertar nueva nota en admin_notas garantizando soporte multi-nota
-                try {
-                    $pdo->exec("ALTER TABLE admin_notas ADD COLUMN estado VARCHAR(20) DEFAULT 'activo'");
-                } catch(Exception $exCol) {}
-                try {
-                    $pdo->exec("ALTER TABLE admin_notas ADD COLUMN fecha DATETIME DEFAULT CURRENT_TIMESTAMP");
-                } catch(Exception $exCol) {}
-
-                $stmt = $pdo->prepare(
-                    "INSERT INTO admin_notas (id_negocio, nota, fecha, estado) VALUES (:id_negocio, :nota, NOW(), 'activo')"
-                );
-                $stmt->execute(['id_negocio' => $id_negocio, 'nota' => $notaText]);
-            }
-        } elseif ($action === 'edit_client') {
+        if ($action === 'edit_client') {
             $nombre_completo = trim($data['nombre_completo'] ?? '');
             $email = filter_var(trim($data['email'] ?? ''), FILTER_SANITIZE_EMAIL);
             $nombre_fantasia = trim($data['nombre_fantasia'] ?? '');
@@ -1136,23 +1148,24 @@ elseif ($method === 'PUT') {
                     $params['max_profesionales'] = $max_profesionales;
                 }
                 if ($descuento_aplicado_pct !== null) {
-                    try { $pdo->query("SELECT descuento_aplicado_pct FROM negocios LIMIT 1"); } 
-                    catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN descuento_aplicado_pct INT DEFAULT 0"); } catch(Throwable $ex) {} }
                     $updates[] = "descuento_aplicado_pct = :descuento_aplicado_pct";
                     $params['descuento_aplicado_pct'] = $descuento_aplicado_pct;
                 }
                 if ($precio_pactado !== null) {
-                    try { $pdo->query("SELECT precio_pactado FROM negocios LIMIT 1"); } 
-                    catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN precio_pactado DECIMAL(10,2) DEFAULT NULL"); } catch(Throwable $ex) {} }
                     $updates[] = "precio_pactado = :precio_pactado";
                     $params['precio_pactado'] = $precio_pactado;
                 }
                 if (isset($data['descuento_por_prof_pct'])) {
                     $dppVal = max(0, min(100, (float)$data['descuento_por_prof_pct']));
-                    try { $pdo->query("SELECT descuento_por_prof_pct FROM negocios LIMIT 1"); } 
-                    catch(Throwable $e) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN descuento_por_prof_pct DECIMAL(5,2) DEFAULT NULL"); } catch(Throwable $ex) {} }
                     $updates[] = "descuento_por_prof_pct = :descuento_por_prof_pct";
                     $params['descuento_por_prof_pct'] = $dppVal;
+                }
+                if (isset($data['nota_interna'])) {
+                    $notaExtra = trim($data['nota_interna']);
+                    if ($notaExtra !== '') {
+                        $stmtNotaExtra = $pdo->prepare("INSERT INTO admin_notas (id_negocio, nota, fecha, estado) VALUES (:id_negocio, :nota, NOW(), 'activo')");
+                        $stmtNotaExtra->execute(['id_negocio' => $id_negocio, 'nota' => $notaExtra]);
+                    }
                 }
                 if ($estado_pago !== null) {
                     $updates[] = "estado_pago = :estado_pago";
@@ -1207,7 +1220,9 @@ elseif ($method === 'PUT') {
             }
         }
 
-        $pdo->commit();
+        if ($pdo->inTransaction()) {
+            $pdo->commit();
+        }
 
         // Enviar email de rechazo DESPUÉS de confirmar que la BD se actualizó
         if ($action === 'rechazar_pago' && $userInfo && !empty($userInfo['email'])) {
