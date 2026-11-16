@@ -1912,37 +1912,6 @@ window.guardarNuevoCupon = function(e) {
     });
 };
 
-    fetch('backend/cupones_negocio.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            action: 'crear',
-            nombre: nombre,
-            codigo: codigo,
-            porcentaje_descuento: pct,
-            fecha_expiracion: fechaExp,
-            usos_maximos: usos,
-            es_acumulable: esAcumulable
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            if (typeof showToast === 'function') showToast('Cupón creado exitosamente.', 'success');
-            window.cerrarModalCrearCupon();
-            window.cargarCuponesNegocio();
-        } else {
-            if (errDiv) { errDiv.textContent = data.error || 'No se pudo crear el cupón.'; errDiv.classList.remove('hidden'); }
-        }
-    })
-    .catch(() => {
-        if (errDiv) { errDiv.textContent = 'Error de conexión.'; errDiv.classList.remove('hidden'); }
-    })
-    .finally(() => {
-        if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">check</span> Guardar Cupón'; }
-    });
-};
-
 window.toggleActivoCupon = function(id, nuevoEstado) {
     fetch('backend/cupones_negocio.php', {
         method: 'POST',

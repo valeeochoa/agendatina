@@ -4241,7 +4241,6 @@ window.verificarAvisoPrevioSena = function(config, onContinue, bookingContext = 
     let precioBase = 0;
     let senaFijaServicio = 0;
     const sName = (bookingContext.serviceName || '').trim();
-    const pName = (bookingContext.professionalName || '').trim();
     if (sName && Array.isArray(services) && services.length > 0) {
         let match = null;
         if (pName && pName !== 'Cualquiera' && !pName.includes('Sin preferencia')) {
