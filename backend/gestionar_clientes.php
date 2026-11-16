@@ -126,11 +126,31 @@ try {
     }
 } catch (Exception $ePlan) {}
 
+$isProf = ($_SESSION['rol_en_local'] ?? '') === 'profesional';
+$profSessionName = $_SESSION['nombre_completo'] ?? '';
+$userPerms = $_SESSION['permisos'] ?? [];
+$canVerMisClientes = true;
+$canVerTodosClientes = true;
+
+if ($isProf) {
+    require_once __DIR__ . '/helpers/permisos_helper.php';
+    $normPerms = normalizarPermisos($userPerms, 'profesional');
+    $canVerMisClientes = !empty($normPerms['ver_mis_clientes']);
+    $canVerTodosClientes = !empty($normPerms['ver_clientes_todos']);
+}
+
 try {
     // ---------------------------------------------------------
     // OBTENER LISTADO DE ALUMNOS O CLASES DE LA SEMANA (GET)
     // ---------------------------------------------------------
     if ($method === 'GET') {
+        if ($isProf && !$canVerMisClientes && !$canVerTodosClientes) {
+            session_write_close();
+            http_response_code(403);
+            echo json_encode(['success' => false, 'error' => 'No tienes permisos para ver clientes o alumnos.']);
+            exit;
+        }
+
         $action = $_GET['action'] ?? '';
 
         // Acción especial: Obtener clases y ocupación de la semana para la Grilla Semanal
@@ -255,6 +275,13 @@ try {
                 }
             }
 
+            if ($isProf && !$canVerTodosClientes && !empty($profSessionName)) {
+                $turnosSemana = array_values(array_filter($turnosSemana, function($trk) use ($profSessionName) {
+                    $p = trim($trk['profesional'] ?? '');
+                    return strcasecmp($p, $profSessionName) === 0 || stripos($p, $profSessionName) !== false;
+                }));
+            }
+
             echo json_encode([
                 'success' => true,
                 'fecha_inicio' => $fecha_inicio,
@@ -335,6 +362,33 @@ try {
             } else {
                 $c['estado_calculado'] = 'activo';
             }
+        }
+
+        // Filtrado por profesional si solo tiene permiso de ver sus propios clientes/alumnos
+        if ($isProf && !$canVerTodosClientes && $canVerMisClientes && !empty($profSessionName)) {
+            $stmtProfServs = $pdo->prepare("SELECT id FROM servicios WHERE id_negocio = :id_negocio AND LOWER(TRIM(profesional)) = LOWER(TRIM(:mi_nombre))");
+            $stmtProfServs->execute(['id_negocio' => $id_negocio, 'mi_nombre' => $profSessionName]);
+            $profServIds = $stmtProfServs->fetchAll(PDO::FETCH_COLUMN) ?: [];
+
+            $stmtProfTurnos = $pdo->prepare("SELECT DISTINCT cliente_celular, cliente_nombre FROM turnos WHERE id_negocio = :id_negocio AND (LOWER(TRIM(profesional)) = LOWER(TRIM(:mi_nombre)) OR profesional LIKE :mi_nombre_like)");
+            $stmtProfTurnos->execute(['id_negocio' => $id_negocio, 'mi_nombre' => $profSessionName, 'mi_nombre_like' => "%$profSessionName%"]);
+            $profTurnosRows = $stmtProfTurnos->fetchAll(PDO::FETCH_ASSOC) ?: [];
+
+            $profEmails = [];
+            $profNombres = [];
+            foreach ($profTurnosRows as $ptr) {
+                if (!empty($ptr['cliente_celular'])) $profEmails[strtolower(trim($ptr['cliente_celular']))] = true;
+                if (!empty($ptr['cliente_nombre'])) $profNombres[strtolower(trim($ptr['cliente_nombre']))] = true;
+            }
+
+            $clientes = array_values(array_filter($clientes, function($c) use ($profServIds, $profEmails, $profNombres) {
+                if (!empty($c['id_servicio']) && in_array($c['id_servicio'], $profServIds)) return true;
+                $cEmail = strtolower(trim($c['email'] ?? ''));
+                $cNombre = strtolower(trim($c['nombre_completo'] ?? ''));
+                if ($cEmail !== '' && isset($profEmails[$cEmail])) return true;
+                if ($cNombre !== '' && isset($profNombres[$cNombre])) return true;
+                return false;
+            }));
         }
 
         // Calcular clases de la semana actual para precargar la insignia del selector

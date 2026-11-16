@@ -110,23 +110,18 @@ try {
     }
 
     if ($isProf) {
-        $permisos = $_SESSION['permisos'] ?? null;
-        if (is_string($permisos)) {
-            $permisos = json_decode($permisos, true) ?: [];
-        }
+        require_once __DIR__ . '/helpers/permisos_helper.php';
+        $permisos = normalizarPermisos($_SESSION['permisos'] ?? null, 'profesional');
 
-        // Si el admin deshabilitó el acceso a la agenda, retornar vacío
-        if (is_array($permisos) && isset($permisos['agenda']) && empty($permisos['agenda'])) {
+        // Si el admin deshabilitó el acceso a la agenda personal y a la de otros, retornar vacío
+        if (empty($permisos['ver_mi_agenda']) && empty($permisos['ver_agenda_otros'])) {
             echo json_encode([]);
             exit;
         }
 
-        $verTodos = true;
-        if (is_array($permisos) && isset($permisos['ver_todos_turnos'])) {
-            $verTodos = !empty($permisos['ver_todos_turnos']);
-        }
+        $verTodos = !empty($permisos['ver_agenda_otros']);
 
-        // Si el admin deshabilitó la opción de ver los turnos de todo el equipo, solo muestra sus turnos
+        // Si no tiene permiso de ver la agenda de otros, solo muestra sus turnos propios
         if (!$verTodos && !empty($_SESSION['nombre_completo'])) {
             $profesional_filter = " AND (LOWER(TRIM(t.profesional)) = LOWER(TRIM(:mi_nombre)) OR t.profesional LIKE :mi_nombre_like) ";
         }

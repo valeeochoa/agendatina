@@ -128,8 +128,9 @@ try {
         $stmtU->execute([$id_usuario]);
         $user = $stmtU->fetch(PDO::FETCH_ASSOC);
 
-        $defaultProfPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 0, 'servicios' => 0, 'estadisticas' => 0, 'equipo' => 0];
-        $defaultAdminPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 1, 'servicios' => 1, 'estadisticas' => 1, 'equipo' => 1];
+        require_once __DIR__ . '/helpers/permisos_helper.php';
+        $defaultProfPerms = obtenerPermisosPorDefecto('profesional');
+        $defaultAdminPerms = obtenerPermisosPorDefecto('admin');
 
         if ($user) {
             $user['rol'] = $userRole;
@@ -138,15 +139,7 @@ try {
                 $user['permisos'] = $defaultAdminPerms;
             } else {
                 $parsedPerms = !empty($pnPermsRaw) ? json_decode($pnPermsRaw, true) : ($_SESSION['permisos'] ?? null);
-                if (!is_array($parsedPerms)) {
-                    $user['permisos'] = $defaultProfPerms;
-                } else {
-                    $finalPerms = [];
-                    foreach ($defaultProfPerms as $pk => $pv) {
-                        $finalPerms[$pk] = isset($parsedPerms[$pk]) ? (int)$parsedPerms[$pk] : (int)$pv;
-                    }
-                    $user['permisos'] = $finalPerms;
-                }
+                $user['permisos'] = normalizarPermisos($parsedPerms, 'profesional');
             }
             $_SESSION['permisos'] = $user['permisos'];
         }
@@ -341,10 +334,18 @@ try {
         catch(Throwable $e) { 
             try { $pdo->exec("CREATE TABLE notificaciones (id INT AUTO_INCREMENT PRIMARY KEY, id_negocio INT NULL, titulo VARCHAR(255), mensaje TEXT, fecha DATETIME DEFAULT CURRENT_TIMESTAMP)"); } catch(Throwable $ex) {}
         }
+        try { $pdo->query("SELECT metadata_json FROM notificaciones LIMIT 1"); } 
+        catch(Throwable $e) { try { $pdo->exec("ALTER TABLE notificaciones ADD COLUMN metadata_json TEXT DEFAULT NULL"); } catch(Throwable $ex) {} }
+        try { $pdo->query("SELECT rol_destino FROM notificaciones LIMIT 1"); } 
+        catch(Throwable $e) { try { $pdo->exec("ALTER TABLE notificaciones ADD COLUMN rol_destino VARCHAR(50) DEFAULT 'todos'"); } catch(Throwable $ex) {} }
 
         $notificaciones = [];
         try {
-            $stmtNotif = $pdo->prepare("SELECT * FROM notificaciones WHERE id_negocio = ? OR id_negocio IS NULL ORDER BY fecha DESC LIMIT 20");
+            if ($userRole === 'admin') {
+                $stmtNotif = $pdo->prepare("SELECT * FROM notificaciones WHERE id_negocio = ? OR id_negocio IS NULL ORDER BY fecha DESC LIMIT 25");
+            } else {
+                $stmtNotif = $pdo->prepare("SELECT * FROM notificaciones WHERE (id_negocio = ? OR id_negocio IS NULL) AND (rol_destino IS NULL OR rol_destino = 'todos' OR rol_destino = 'profesional') ORDER BY fecha DESC LIMIT 25");
+            }
             $stmtNotif->execute([$id_negocio]);
             $notificaciones = $stmtNotif->fetchAll(PDO::FETCH_ASSOC) ?: [];
         } catch(Throwable $eNotif) {}

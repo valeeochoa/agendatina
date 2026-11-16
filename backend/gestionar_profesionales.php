@@ -87,8 +87,10 @@ if ($method !== 'GET' && $userRole !== 'admin') {
     exit;
 }
 
-$defaultProfPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 0, 'servicios' => 0, 'estadisticas' => 0, 'equipo' => 0];
-$defaultAdminPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 1, 'servicios' => 1, 'estadisticas' => 1, 'equipo' => 1];
+require_once __DIR__ . '/helpers/permisos_helper.php';
+
+$defaultProfPerms = obtenerPermisosPorDefecto('profesional');
+$defaultAdminPerms = obtenerPermisosPorDefecto('admin');
 
 /**
  * Resolver resiliente de profesional en un negocio:
@@ -192,8 +194,7 @@ if ($method === 'GET') {
             if ($p['rol_en_local'] === 'admin') {
                 $p['permisos'] = $defaultAdminPerms;
             } else {
-                $pPerms = !empty($p['permisos']) ? json_decode($p['permisos'], true) : null;
-                $p['permisos'] = is_array($pPerms) ? array_merge($defaultProfPerms, $pPerms) : $defaultProfPerms;
+                $p['permisos'] = normalizarPermisos($p['permisos'] ?? null, 'profesional');
             }
         }
         unset($p);
@@ -253,14 +254,8 @@ if ($method === 'GET') {
             exit;
         }
 
-        $permisosJson = json_encode([
-            'agenda' => !empty($permisos['agenda']) ? 1 : 0,
-            'ver_todos_turnos' => !empty($permisos['ver_todos_turnos']) ? 1 : 0,
-            'web' => !empty($permisos['web']) ? 1 : 0,
-            'servicios' => !empty($permisos['servicios']) ? 1 : 0,
-            'estadisticas' => !empty($permisos['estadisticas']) ? 1 : 0,
-            'equipo' => !empty($permisos['equipo']) ? 1 : 0
-        ]);
+        $permisosFinal = normalizarPermisos($permisos, 'profesional');
+        $permisosJson = json_encode($permisosFinal);
 
         $stmtUpd = $pdo->prepare("UPDATE personal_negocio SET permisos = ? WHERE id = ?");
         $stmtUpd->execute([$permisosJson, $personal['id_personal']]);
@@ -268,7 +263,7 @@ if ($method === 'GET') {
         $stmtUpd2 = $pdo->prepare("UPDATE personal_negocio SET permisos = ? WHERE id_negocio = ? AND id_usuario = ?");
         $stmtUpd2->execute([$permisosJson, $id_negocio, $personal['id_usuario']]);
 
-        echo json_encode(['success' => true, 'permisos' => json_decode($permisosJson, true)]);
+        echo json_encode(['success' => true, 'permisos' => $permisosFinal]);
         exit;
     } elseif ($action === 'actualizar_datos') {
         $target_id = (int)($data['id_usuario'] ?? $data['id'] ?? $data['id_personal'] ?? 0);
@@ -358,7 +353,7 @@ if ($method === 'GET') {
     $email = filter_var(trim($data['email'] ?? ''), FILTER_SANITIZE_EMAIL);
     $password = trim($data['password'] ?? '');
     $permisosInput = $data['permisos'] ?? null;
-    $permisosFinal = is_array($permisosInput) ? array_merge($defaultProfPerms, $permisosInput) : $defaultProfPerms;
+    $permisosFinal = normalizarPermisos($permisosInput, 'profesional');
     $permisosJson = json_encode($permisosFinal);
 
     if (!$nombre || !$email) {

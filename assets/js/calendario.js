@@ -4219,8 +4219,16 @@ window.validarCuponAntesDeReservar = async function(codigo, slug) {
 
 window.verificarAvisoPrevioSena = function(config, onContinue, bookingContext = {}) {
     const cfg = config || window.businessWebConfig || {};
+    const pName = (bookingContext.professionalName || '').trim();
+    
+    // Resolver alias de transferencia: del profesional si tiene uno propio configurado, sino el del negocio
+    let alias = (cfg.datos_transferencia || '').trim();
+    if (pName && cfg.profs_datos_transferencia && cfg.profs_datos_transferencia[pName.toLowerCase()]) {
+        alias = cfg.profs_datos_transferencia[pName.toLowerCase()].trim();
+    }
+
     const tieneSena = (cfg.reserva_sena_1h == 1 || cfg.reserva_sena_1h === '1' || cfg.reserva_sena_1h === true) || 
-                      (cfg.datos_transferencia && cfg.datos_transferencia.trim() !== '' && parseInt(cfg.porcentaje_sena) > 0);
+                      (alias !== '' && parseInt(cfg.porcentaje_sena) > 0);
     
     if (!tieneSena) {
         onContinue();
@@ -4228,7 +4236,6 @@ window.verificarAvisoPrevioSena = function(config, onContinue, bookingContext = 
     }
 
     const pct = parseInt(cfg.porcentaje_sena) || 50;
-    const alias = (cfg.datos_transferencia || '').trim();
 
     // Resolver servicio seleccionado y calcular montos
     let precioBase = 0;
@@ -5093,15 +5100,18 @@ function checkAdminCalendarSession(config = null) {
 
             if (data.user && (data.user.rol === 'profesional' || data.user.rol_en_local === 'profesional')) {
                 const perms = data.user.permisos || {};
-                const canAgenda = perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true;
-                if (!canAgenda && !isVisitingOtherBusiness) {
-                    sessionStorage.setItem('agendatina_perm_notice', 'No tienes permisos para acceder a la agenda ni al calendario.');
+                const canCalendario = perms.ver_mi_calendario !== undefined ? (parseInt(perms.ver_mi_calendario) === 1 || perms.ver_mi_calendario === true) : 
+                                      (perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true);
+                const canVerCalendarioOtros = perms.ver_calendario_otros !== undefined ? (parseInt(perms.ver_calendario_otros) === 1 || perms.ver_calendario_otros === true) : 
+                                              (perms.ver_todos_turnos !== undefined ? (parseInt(perms.ver_todos_turnos) === 1 || perms.ver_todos_turnos === true) : false);
+
+                if (!canCalendario && !canVerCalendarioOtros && !isVisitingOtherBusiness) {
+                    sessionStorage.setItem('agendatina_perm_notice', 'No tienes permisos para acceder al calendario.');
                     window.location.href = 'dashboard.html';
                     return;
                 }
 
-                const canVerTodosTurnos = perms.ver_todos_turnos !== undefined ? (parseInt(perms.ver_todos_turnos) === 1 || perms.ver_todos_turnos === true) : false;
-                if (!canVerTodosTurnos) {
+                if (!canVerCalendarioOtros) {
                     window.currentUserIsProfOnlyOwn = true;
                     window.currentProfOnlyOwnName = data.user.nombre_completo || '';
                     globalSelectedProfessional = window.currentProfOnlyOwnName;

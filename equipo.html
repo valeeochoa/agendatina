@@ -217,80 +217,120 @@
             <form id="permisosForm" onsubmit="savePermisos(event)" class="space-y-3">
                 <input type="hidden" id="permisosUserId">
 
-                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5 max-h-[60vh] overflow-y-auto">
-                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Secciones y Accesos Habilitados</h4>
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3 max-h-[62vh] overflow-y-auto">
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Secciones y Accesos Habilitados</h4>
 
-                    <!-- Permiso 1: Agenda Virtual -->
-                    <label class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-purple-300 transition-all">
-                        <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-purple-600 text-xl">calendar_month</span>
+                    <!-- GRUPO 1: AGENDA VIRTUAL -->
+                    <div class="space-y-1.5">
+                        <span class="text-[11px] font-extrabold uppercase text-purple-700 tracking-wider flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[15px]">view_timeline</span> Agenda Virtual
+                        </span>
+                        <label class="flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-purple-300 transition-all">
                             <div>
-                                <span class="text-xs sm:text-sm font-bold text-slate-800 block">Agenda Virtual y Calendario</span>
-                                <span class="text-[11px] text-slate-500 block">Permite acceder al panel de turnos agendados.</span>
+                                <span class="text-xs sm:text-sm font-bold text-slate-800 block">Ver su propia Agenda</span>
+                                <span class="text-[11px] text-slate-500 block">Acceso al panel de agenda virtual con sus turnos asignados.</span>
                             </div>
-                        </div>
-                        <input type="checkbox" id="perm_agenda" class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 border-slate-300">
-                    </label>
-
-                    <!-- Permiso 2: Ver Todos los Turnos -->
-                    <label class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-purple-300 transition-all">
-                        <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-blue-600 text-xl">visibility</span>
+                            <input type="checkbox" id="perm_ver_mi_agenda" class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 border-slate-300">
+                        </label>
+                        <label class="flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-purple-300 transition-all">
                             <div>
-                                <span class="text-xs sm:text-sm font-bold text-slate-800 block">Ver Turnos de Todo el Equipo</span>
-                                <span class="text-[11px] text-slate-500 block">Si está desmarcado, solo verá los turnos asignados a él/ella.</span>
+                                <span class="text-xs sm:text-sm font-bold text-slate-800 block">Ver Agenda de otros profesionales</span>
+                                <span class="text-[11px] text-slate-500 block">Permite consultar la agenda virtual de los demás integrantes.</span>
                             </div>
-                        </div>
-                        <input type="checkbox" id="perm_ver_todos_turnos" class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 border-slate-300">
-                    </label>
+                            <input type="checkbox" id="perm_ver_agenda_otros" class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 border-slate-300">
+                        </label>
+                    </div>
 
-                    <!-- Permiso 3: Mi Web -->
-                    <label class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-purple-300 transition-all">
-                        <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-emerald-600 text-xl">language</span>
+                    <!-- GRUPO 2: CALENDARIO -->
+                    <div class="space-y-1.5 pt-1">
+                        <span class="text-[11px] font-extrabold uppercase text-blue-700 tracking-wider flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[15px]">calendar_month</span> Calendario
+                        </span>
+                        <label class="flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-blue-300 transition-all">
                             <div>
-                                <span class="text-xs sm:text-sm font-bold text-slate-800 block">Edición de Mi Web</span>
-                                <span class="text-[11px] text-slate-500 block">Permite modificar datos, fotos y estética de la web.</span>
+                                <span class="text-xs sm:text-sm font-bold text-slate-800 block">Ver su propio Calendario</span>
+                                <span class="text-[11px] text-slate-500 block">Vista mensual y semanal con sus turnos y horarios propios.</span>
                             </div>
-                        </div>
-                        <input type="checkbox" id="perm_web" class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 border-slate-300">
-                    </label>
+                            <input type="checkbox" id="perm_ver_mi_calendario" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-slate-300">
+                        </label>
+                        <label class="flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-blue-300 transition-all">
+                            <div>
+                                <span class="text-xs sm:text-sm font-bold text-slate-800 block">Ver Calendario de otros profesionales</span>
+                                <span class="text-[11px] text-slate-500 block">Permite ver grillas y turnos de otros profesionales en el calendario.</span>
+                            </div>
+                            <input type="checkbox" id="perm_ver_calendario_otros" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-slate-300">
+                        </label>
+                    </div>
 
-                    <!-- Permiso 4: Servicios y Precios -->
-                    <label class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-purple-300 transition-all">
-                        <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-amber-600 text-xl">content_cut</span>
+                    <!-- GRUPO 3: ESTADÍSTICAS -->
+                    <div class="space-y-1.5 pt-1">
+                        <span class="text-[11px] font-extrabold uppercase text-indigo-700 tracking-wider flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[15px]">query_stats</span> Estadísticas y Métricas
+                        </span>
+                        <label class="flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-300 transition-all">
+                            <div>
+                                <span class="text-xs sm:text-sm font-bold text-slate-800 block">Ver sus propias Estadísticas</span>
+                                <span class="text-[11px] text-slate-500 block">Métricas, ingresos estimados y turnos realizados por este profesional.</span>
+                            </div>
+                            <input type="checkbox" id="perm_ver_mis_estadisticas" class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 border-slate-300">
+                        </label>
+                        <label class="flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-300 transition-all">
+                            <div>
+                                <span class="text-xs sm:text-sm font-bold text-slate-800 block">Ver Estadísticas de otros y del negocio</span>
+                                <span class="text-[11px] text-slate-500 block">Acceso a métricas globales de ingresos y facturación de todo el negocio.</span>
+                            </div>
+                            <input type="checkbox" id="perm_ver_estadisticas_otros" class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 border-slate-300">
+                        </label>
+                    </div>
+
+                    <!-- GRUPO 4: ALUMNOS / CLIENTES -->
+                    <div class="space-y-1.5 pt-1">
+                        <span class="text-[11px] font-extrabold uppercase text-teal-700 tracking-wider flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[15px]">school</span> Alumnos y Clientes
+                        </span>
+                        <label class="flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-teal-300 transition-all">
+                            <div>
+                                <span class="text-xs sm:text-sm font-bold text-slate-800 block">Ver solo sus Alumnos / Clientes</span>
+                                <span class="text-[11px] text-slate-500 block">Clientes vinculados a sus servicios o clases asignadas.</span>
+                            </div>
+                            <input type="checkbox" id="perm_ver_mis_clientes" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500 border-slate-300">
+                        </label>
+                        <label class="flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-teal-300 transition-all">
+                            <div>
+                                <span class="text-xs sm:text-sm font-bold text-slate-800 block">Ver todos los Alumnos / Clientes</span>
+                                <span class="text-[11px] text-slate-500 block">Acceso al padrón completo de clientes y alumnos de todo el negocio.</span>
+                            </div>
+                            <input type="checkbox" id="perm_ver_clientes_todos" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500 border-slate-300">
+                        </label>
+                    </div>
+
+                    <!-- GRUPO 5: MÓDULOS ADMINISTRATIVOS -->
+                    <div class="space-y-1.5 pt-1">
+                        <span class="text-[11px] font-extrabold uppercase text-amber-700 tracking-wider flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[15px]">settings</span> Módulos del Sistema
+                        </span>
+                        <label class="flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-amber-300 transition-all">
                             <div>
                                 <span class="text-xs sm:text-sm font-bold text-slate-800 block">Servicios y Precios</span>
-                                <span class="text-[11px] text-slate-500 block">Permite crear y cambiar tratamientos y sus precios.</span>
+                                <span class="text-[11px] text-slate-500 block">Ver catálogo, crear y eliminar sus propios servicios.</span>
                             </div>
-                        </div>
-                        <input type="checkbox" id="perm_servicios" class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 border-slate-300">
-                    </label>
-
-                    <!-- Permiso 5: Estadísticas y Rendimiento -->
-                    <label class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-purple-300 transition-all">
-                        <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-indigo-600 text-xl">query_stats</span>
+                            <input type="checkbox" id="perm_servicios" class="w-5 h-5 text-amber-600 rounded focus:ring-amber-500 border-slate-300">
+                        </label>
+                        <label class="flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-amber-300 transition-all">
                             <div>
-                                <span class="text-xs sm:text-sm font-bold text-slate-800 block">Estadísticas y Rendimiento</span>
-                                <span class="text-[11px] text-slate-500 block">Permite ver gráficos de métricas e ingresos.</span>
+                                <span class="text-xs sm:text-sm font-bold text-slate-800 block">Administrar Mi Web</span>
+                                <span class="text-[11px] text-slate-500 block">Editar textos, fotos, estética y opciones de la web pública.</span>
                             </div>
-                        </div>
-                        <input type="checkbox" id="perm_estadisticas" class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 border-slate-300">
-                    </label>
-
-                    <!-- Permiso 6: Administración de Equipo -->
-                    <label class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-purple-300 transition-all">
-                        <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-purple-600 text-xl">group</span>
+                            <input type="checkbox" id="perm_web" class="w-5 h-5 text-amber-600 rounded focus:ring-amber-500 border-slate-300">
+                        </label>
+                        <label class="flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-amber-300 transition-all">
                             <div>
-                                <span class="text-xs sm:text-sm font-bold text-slate-800 block">Administración de Equipo</span>
-                                <span class="text-[11px] text-slate-500 block">Permite gestionar miembros y asignar sus permisos.</span>
+                                <span class="text-xs sm:text-sm font-bold text-slate-800 block">Administrar Equipo</span>
+                                <span class="text-[11px] text-slate-500 block">Permite invitar miembros y configurar permisos del equipo.</span>
                             </div>
-                        </div>
-                        <input type="checkbox" id="perm_equipo" class="w-5 h-5 text-purple-600 rounded focus:ring-purple-500 border-slate-300">
-                    </label>
+                            <input type="checkbox" id="perm_equipo" class="w-5 h-5 text-amber-600 rounded focus:ring-amber-500 border-slate-300">
+                        </label>
+                    </div>
                 </div>
 
                 <div class="flex items-center justify-end gap-3 pt-2">
@@ -511,12 +551,21 @@
                 } else {
                     const perms = p.permisos || {};
                     const badgeList = [];
-                    if (perms.agenda) badgeList.push('📅 Agenda');
-                    if (perms.ver_todos_turnos) badgeList.push('👁️ Todos los turnos');
-                    else badgeList.push('👁️ Solo sus turnos');
-                    if (perms.web) badgeList.push('🌐 Mi Web');
+                    
+                    if (perms.ver_agenda_otros) badgeList.push('📅 Toda la agenda');
+                    else if (perms.ver_mi_agenda) badgeList.push('📅 Su agenda');
+
+                    if (perms.ver_calendario_otros) badgeList.push('🗓️ Todo el calendario');
+                    else if (perms.ver_mi_calendario) badgeList.push('🗓️ Solo su calendario');
+
+                    if (perms.ver_estadisticas_otros) badgeList.push('📊 Todas las métricas');
+                    else if (perms.ver_mis_estadisticas) badgeList.push('📊 Sus métricas');
+
+                    if (perms.ver_clientes_todos) badgeList.push('👥 Todos los alumnos');
+                    else if (perms.ver_mis_clientes) badgeList.push('👥 Sus alumnos');
+
                     if (perms.servicios) badgeList.push('✂️ Servicios');
-                    if (perms.estadisticas) badgeList.push('📊 Estadísticas');
+                    if (perms.web) badgeList.push('🌐 Mi Web');
                     if (perms.equipo) badgeList.push('👥 Equipo');
 
                     permsBadges = badgeList.map(b => `<span class="bg-slate-100 text-slate-700 border border-slate-200 px-2 py-0.5 rounded-md text-[11px] font-semibold inline-block mr-1 mb-1">${b}</span>`).join('');
@@ -808,11 +857,16 @@
             document.getElementById('permisosModalTitle').textContent = `Permisos de Acceso: ${p.nombre_completo}`;
 
             const perms = p.permisos || {};
-            document.getElementById('perm_agenda').checked = perms.agenda !== 0;
-            document.getElementById('perm_ver_todos_turnos').checked = perms.ver_todos_turnos !== 0;
+            document.getElementById('perm_ver_mi_agenda').checked = perms.ver_mi_agenda !== 0;
+            document.getElementById('perm_ver_agenda_otros').checked = perms.ver_agenda_otros === 1;
+            document.getElementById('perm_ver_mi_calendario').checked = perms.ver_mi_calendario !== 0;
+            document.getElementById('perm_ver_calendario_otros').checked = perms.ver_calendario_otros === 1;
+            document.getElementById('perm_ver_mis_estadisticas').checked = perms.ver_mis_estadisticas === 1;
+            document.getElementById('perm_ver_estadisticas_otros').checked = perms.ver_estadisticas_otros === 1;
+            document.getElementById('perm_ver_mis_clientes').checked = perms.ver_mis_clientes === 1;
+            document.getElementById('perm_ver_clientes_todos').checked = perms.ver_clientes_todos === 1;
+            document.getElementById('perm_servicios').checked = perms.servicios !== 0;
             document.getElementById('perm_web').checked = perms.web === 1;
-            document.getElementById('perm_servicios').checked = perms.servicios === 1;
-            document.getElementById('perm_estadisticas').checked = perms.estadisticas === 1;
             document.getElementById('perm_equipo').checked = perms.equipo === 1;
 
             document.getElementById('permisosModal').classList.remove('hidden');
@@ -836,11 +890,16 @@
                 id_usuario: userId,
                 id_negocio: currentBusinessId || 0,
                 permisos: {
-                    agenda: document.getElementById('perm_agenda').checked ? 1 : 0,
-                    ver_todos_turnos: document.getElementById('perm_ver_todos_turnos').checked ? 1 : 0,
-                    web: document.getElementById('perm_web').checked ? 1 : 0,
+                    ver_mi_agenda: document.getElementById('perm_ver_mi_agenda').checked ? 1 : 0,
+                    ver_agenda_otros: document.getElementById('perm_ver_agenda_otros').checked ? 1 : 0,
+                    ver_mi_calendario: document.getElementById('perm_ver_mi_calendario').checked ? 1 : 0,
+                    ver_calendario_otros: document.getElementById('perm_ver_calendario_otros').checked ? 1 : 0,
+                    ver_mis_estadisticas: document.getElementById('perm_ver_mis_estadisticas').checked ? 1 : 0,
+                    ver_estadisticas_otros: document.getElementById('perm_ver_estadisticas_otros').checked ? 1 : 0,
+                    ver_mis_clientes: document.getElementById('perm_ver_mis_clientes').checked ? 1 : 0,
+                    ver_clientes_todos: document.getElementById('perm_ver_clientes_todos').checked ? 1 : 0,
                     servicios: document.getElementById('perm_servicios').checked ? 1 : 0,
-                    estadisticas: document.getElementById('perm_estadisticas').checked ? 1 : 0,
+                    web: document.getElementById('perm_web').checked ? 1 : 0,
                     equipo: document.getElementById('perm_equipo').checked ? 1 : 0
                 }
             };

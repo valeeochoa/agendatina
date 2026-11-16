@@ -49,14 +49,14 @@ try {
         unset($_SESSION['is_demo']);
     }
 
-    $defaultProfPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 0, 'servicios' => 0, 'estadisticas' => 0, 'equipo' => 0];
-    $defaultAdminPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 1, 'servicios' => 1, 'estadisticas' => 1, 'equipo' => 1];
+    require_once __DIR__ . '/helpers/permisos_helper.php';
+    $defaultProfPerms = obtenerPermisosPorDefecto('profesional');
+    $defaultAdminPerms = obtenerPermisosPorDefecto('admin');
 
     if ($biz['rol_en_local'] === 'admin') {
         $_SESSION['permisos'] = $defaultAdminPerms;
     } else {
-        $parsedPerms = !empty($biz['permisos']) ? json_decode($biz['permisos'], true) : null;
-        $_SESSION['permisos'] = is_array($parsedPerms) ? array_merge($defaultProfPerms, $parsedPerms) : $defaultProfPerms;
+        $_SESSION['permisos'] = normalizarPermisos($biz['permisos'] ?? null, 'profesional');
     }
 
     session_write_close();

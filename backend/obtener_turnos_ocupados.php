@@ -52,15 +52,12 @@ if (empty($_SESSION['nombre_completo']) && isset($_SESSION['user_id'])) {
     } catch (Exception $eU) {}
 }
 
-$userPerms = $_SESSION['permisos'] ?? [];
-if (is_string($userPerms)) $userPerms = json_decode($userPerms, true) ?: [];
-$verTodosTurnos = true;
-if ($isProfLogged && isset($userPerms['ver_todos_turnos'])) {
-    $verTodosTurnos = !empty($userPerms['ver_todos_turnos']);
-}
+require_once __DIR__ . '/helpers/permisos_helper.php';
+$userPerms = normalizarPermisos($_SESSION['permisos'] ?? [], $isProfLogged ? 'profesional' : 'admin');
+$verTodosTurnos = !empty($userPerms['ver_calendario_otros']);
 $profesionalSessionName = $_SESSION['nombre_completo'] ?? '';
 
-// Si es profesional y NO tiene permiso para ver todos los turnos, forzar su propio nombre
+// Si es profesional y NO tiene permiso para ver el calendario de otros, forzar su propio nombre
 if ($isProfLogged && !$verTodosTurnos && !empty($profesionalSessionName)) {
     $profesional = $profesionalSessionName;
 }
@@ -137,6 +134,23 @@ try {
     $hCierre = (!empty($conf['hora_cierre']) && $conf['hora_cierre'] !== '00:00:00' && $conf['hora_cierre'] !== '00:00') ? substr($conf['hora_cierre'], 0, 5) : '18:00';
     $diasTrabajo = !empty($conf['dias_trabajo']) ? $conf['dias_trabajo'] : '1,2,3,4,5';
 
+    // Resolver mapa de datos de transferencia por profesional
+    $profsTransferencia = [];
+    try {
+        $stmtProfTrList = $pdo->prepare("SELECT LOWER(TRIM(nombre)) as p_nombre, datos_transferencia FROM personal_negocio WHERE id_negocio = :id_negocio AND datos_transferencia IS NOT NULL AND TRIM(datos_transferencia) != ''");
+        $stmtProfTrList->execute(['id_negocio' => $id_negocio]);
+        foreach ($stmtProfTrList->fetchAll(PDO::FETCH_ASSOC) as $ptr) {
+            if (!empty($ptr['p_nombre']) && !empty(trim($ptr['datos_transferencia']))) {
+                $profsTransferencia[$ptr['p_nombre']] = trim($ptr['datos_transferencia']);
+            }
+        }
+    } catch (Exception $eTrList) {}
+
+    $datosTransferenciaConfig = $conf['datos_transferencia'] ?? '';
+    if (!empty($profesional) && isset($profsTransferencia[strtolower(trim($profesional))])) {
+        $datosTransferenciaConfig = $profsTransferencia[strtolower(trim($profesional))];
+    }
+
     $ocupados['_config'] = [
         'hora_apertura' => $hApertura,
         'hora_cierre' => $hCierre,
@@ -153,6 +167,9 @@ try {
         'cupon_descuento_pct' => (int)($conf['cupon_descuento_pct'] ?? 10),
         'cupon_duracion_horas' => (int)($conf['cupon_duracion_horas'] ?? 24),
         'reserva_sena_1h' => (int)($conf['reserva_sena_1h'] ?? 0),
+        'datos_transferencia' => $datosTransferenciaConfig,
+        'porcentaje_sena' => (int)($conf['porcentaje_sena'] ?? 50),
+        'profs_datos_transferencia' => $profsTransferencia,
         'profesional_fijado' => ($isProfLogged && !$verTodosTurnos) ? $profesionalSessionName : null,
         'es_profesional_propio' => ($isProfLogged && !$verTodosTurnos)
     ];

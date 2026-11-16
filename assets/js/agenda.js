@@ -140,7 +140,9 @@ window.renderAgendaTurnos = function(data, searchTerm = '', profTerm = '') {
     let profFilterContainer = document.getElementById('profesionalesAgendaTabs');
     
     if (profFilterContainer) {
-        if (window.currentUserData && window.currentUserData.rol_en_local === 'profesional') {
+        const userPerms = (window.currentUserData && window.currentUserData.permisos) || {};
+        const canVerAgendaOtros = userPerms.ver_agenda_otros !== undefined ? (parseInt(userPerms.ver_agenda_otros) === 1 || userPerms.ver_agenda_otros === true) : false;
+        if (window.currentUserData && window.currentUserData.rol_en_local === 'profesional' && !canVerAgendaOtros) {
             profFilterContainer.classList.add('hidden');
             profFilterContainer.classList.remove('flex');
         } else if (data.length > 0) {
@@ -996,6 +998,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         window.location.href = 'login.html';
                         return;
                     }
+                    window.currentUserData = d.user;
+                    if (d.user && d.user.rol_en_local === 'profesional') {
+                        const perms = d.user.permisos || {};
+                        const canAgenda = perms.ver_mi_agenda !== undefined ? (parseInt(perms.ver_mi_agenda) === 1 || perms.ver_mi_agenda === true) : 
+                                         (perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true);
+                        const canAgendaOtros = perms.ver_agenda_otros !== undefined && (parseInt(perms.ver_agenda_otros) === 1 || perms.ver_agenda_otros === true);
+                        if (!canAgenda && !canAgendaOtros) {
+                            sessionStorage.setItem('agendatina_perm_notice', 'No tienes permisos para acceder a la agenda.');
+                            window.location.href = 'dashboard.html';
+                            return;
+                        }
+                    }
+
                     const isDemo = d.success && d.user && d.user.email && d.user.email.includes('demo');
                     if (isDemo) {
                         btnReport.style.display = 'none';

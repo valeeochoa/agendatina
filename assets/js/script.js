@@ -1677,7 +1677,16 @@ function checkNotifications() {
 
         cNotifs.forEach(n => {
             let nLink = '#';
-            if (n.titulo && (n.titulo.includes('Inscripción') || n.titulo.includes('Clase') || n.titulo.includes('Turno') || n.titulo.includes('Reserva'))) {
+            let meta = null;
+            try {
+                if (n.metadata_json) meta = typeof n.metadata_json === 'string' ? JSON.parse(n.metadata_json) : n.metadata_json;
+            } catch(eMeta) {}
+
+            if (meta && meta.tipo === 'solicitud_eliminar_servicio' && meta.id_servicio) {
+                nLink = `servicios.html?highlight_service=${meta.id_servicio}&solicitud_eliminar=1`;
+            } else if (n.titulo && n.titulo.includes('Solicitud de eliminación de servicio')) {
+                nLink = 'servicios.html?solicitud_eliminar=1';
+            } else if (n.titulo && (n.titulo.includes('Inscripción') || n.titulo.includes('Clase') || n.titulo.includes('Turno') || n.titulo.includes('Reserva'))) {
                 const matchDate = (n.mensaje || '').match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
                 if (matchDate) {
                     const isoDate = `${matchDate[3]}-${matchDate[2].padStart(2, '0')}-${matchDate[1].padStart(2, '0')}`;
@@ -1689,12 +1698,22 @@ function checkNotifications() {
                 nLink = 'clientes.html';
             }
 
+            let notifIcon = (n.titulo && n.titulo.includes('Inscripción')) ? 'backpack' : ((n.titulo && n.titulo.includes('Alumno')) ? 'person' : 'campaign');
+            let notifColor = (n.titulo && n.titulo.includes('Inscripción')) ? 'text-purple-600' : ((n.titulo && n.titulo.includes('Alumno')) ? 'text-orange-500' : 'text-blue-500');
+            let notifBg = (n.titulo && n.titulo.includes('Inscripción')) ? 'bg-purple-100' : ((n.titulo && n.titulo.includes('Alumno')) ? 'bg-orange-100' : 'bg-blue-100');
+
+            if (meta && meta.tipo === 'solicitud_eliminar_servicio') {
+                notifIcon = 'delete_sweep';
+                notifColor = 'text-red-600';
+                notifBg = 'bg-red-100';
+            }
+
             currentNotifs.push({
                 id: 'custom_' + n.id,
                 id_reporte: n.id_reporte || null,
-                icon: (n.titulo && n.titulo.includes('Inscripción')) ? 'backpack' : ((n.titulo && n.titulo.includes('Alumno')) ? 'person' : 'campaign'),
-                color: (n.titulo && n.titulo.includes('Inscripción')) ? 'text-purple-600' : ((n.titulo && n.titulo.includes('Alumno')) ? 'text-orange-500' : 'text-blue-500'),
-                bg: (n.titulo && n.titulo.includes('Inscripción')) ? 'bg-purple-100' : ((n.titulo && n.titulo.includes('Alumno')) ? 'bg-orange-100' : 'bg-blue-100'),
+                icon: notifIcon,
+                color: notifColor,
+                bg: notifBg,
                 title: n.titulo,
                 text: n.mensaje,
                 link: nLink,

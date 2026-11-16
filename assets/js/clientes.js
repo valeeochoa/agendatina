@@ -39,6 +39,9 @@ function cargarClientes() {
                 console.error('⚠️ [Error de Carga - Clientes/Alumnos] No se pudo volver a cargar la información. Motivo:', errReason);
                 if (errReason.toLowerCase().includes('inicia sesión') || errReason.toLowerCase().includes('autorizado') || errReason.toLowerCase().includes('sesión expirada')) {
                     window.location.href = 'login.html';
+                } else if (errReason.toLowerCase().includes('permisos')) {
+                    sessionStorage.setItem('agendatina_perm_notice', errReason);
+                    window.location.href = 'dashboard.html';
                 } else if (typeof showToast === 'function') {
                     showToast(errReason, 'error');
                 }

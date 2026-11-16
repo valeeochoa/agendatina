@@ -14,6 +14,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.location.href = 'login.html';
                 return;
             }
+
+            window.currentUserData = data.user;
+            if (data.user && data.user.rol_en_local === 'profesional') {
+                const perms = data.user.permisos || {};
+                const canMisStats = perms.ver_mis_estadisticas !== undefined ? (parseInt(perms.ver_mis_estadisticas) === 1 || perms.ver_mis_estadisticas === true) : 
+                                    (perms.estadisticas !== undefined ? (parseInt(perms.estadisticas) === 1 || perms.estadisticas === true) : false);
+                const canStatsOtros = perms.ver_estadisticas_otros !== undefined && (parseInt(perms.ver_estadisticas_otros) === 1 || perms.ver_estadisticas_otros === true);
+
+                if (!canMisStats && !canStatsOtros) {
+                    sessionStorage.setItem('agendatina_perm_notice', 'No tienes permisos para acceder a las estadísticas.');
+                    window.location.href = 'dashboard.html';
+                    return;
+                }
+            }
         })
         .catch(err => {
             console.error('⚠️ [Error de Carga - Estadísticas] Desconexión de red o fallo al volver a cargar información:', err);

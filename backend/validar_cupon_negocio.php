@@ -30,6 +30,9 @@ $colsCupones = [
     'usos_actuales' => 'INT DEFAULT 0',
     'activo' => 'TINYINT(1) DEFAULT 1',
     'es_acumulable' => 'TINYINT(1) DEFAULT 0',
+    'profesional_asignado' => 'VARCHAR(255) DEFAULT NULL',
+    'id_servicio' => 'INT DEFAULT NULL',
+    'id_usuario_creador' => 'INT DEFAULT NULL',
     'fecha_creacion' => 'DATETIME DEFAULT CURRENT_TIMESTAMP',
     'fecha_expiracion' => 'DATETIME DEFAULT NULL',
     'fecha_uso' => 'DATETIME DEFAULT NULL'
@@ -99,7 +102,7 @@ try {
     }
 
     // Buscar cupón
-    $stmtCup = $pdo->prepare("SELECT id, codigo, porcentaje_descuento, usos_maximos, usos_actuales, fecha_expiracion, activo, usado 
+    $stmtCup = $pdo->prepare("SELECT id, codigo, porcentaje_descuento, usos_maximos, usos_actuales, fecha_expiracion, activo, usado, profesional_asignado, id_servicio 
                               FROM cupones_descuento 
                               WHERE id_negocio = :id_neg 
                                 AND UPPER(codigo) = :cod 
@@ -129,6 +132,26 @@ try {
     if (($maxUsos > 0 && $usosAct >= $maxUsos) || ($maxUsos === 1 && $isUsado === 1)) {
         echo json_encode(['success' => false, 'error' => "El cupón '{$codigoClean}' ha alcanzado el límite de usos permitidos."]);
         exit;
+    }
+
+    // Validar profesional si el cupón tiene profesional asignado
+    $profesionalParam = trim($data['profesional'] ?? ($data['profesional_nombre'] ?? ''));
+    if (!empty($cupon['profesional_asignado']) && trim($cupon['profesional_asignado']) !== '') {
+        $pAsignado = trim($cupon['profesional_asignado']);
+        if (empty($profesionalParam) || strcasecmp($profesionalParam, $pAsignado) !== 0) {
+            echo json_encode(['success' => false, 'error' => "El cupón '{$codigoClean}' es exclusivo para turnos atendidos por {$pAsignado}."]);
+            exit;
+        }
+    }
+
+    // Validar servicio si el cupón tiene id_servicio asignado
+    $idServicioParam = (int)($data['id_servicio'] ?? ($data['servicio_id'] ?? 0));
+    if (!empty($cupon['id_servicio']) && (int)$cupon['id_servicio'] > 0) {
+        $idSvcAsignado = (int)$cupon['id_servicio'];
+        if ($idServicioParam <= 0 || $idServicioParam !== $idSvcAsignado) {
+            echo json_encode(['success' => false, 'error' => "El cupón '{$codigoClean}' es exclusivo para otro servicio del negocio."]);
+            exit;
+        }
     }
 
     $pct = (int)($cupon['porcentaje_descuento'] ?? ($webCfg['cupon_descuento_pct'] ?? 10));

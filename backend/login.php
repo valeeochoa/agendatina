@@ -234,14 +234,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['id_negocio'] = (int)($bizTarget['id_negocio'] ?? $validUser['id_negocio']);
             $_SESSION['plan'] = $bizTarget['plan'] ?? $validUser['plan'];
 
-            $defaultProfPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 0, 'servicios' => 0, 'estadisticas' => 0, 'equipo' => 0];
-            $defaultAdminPerms = ['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 1, 'servicios' => 1, 'estadisticas' => 1, 'equipo' => 1];
+            require_once __DIR__ . '/helpers/permisos_helper.php';
+            $defaultProfPerms = obtenerPermisosPorDefecto('profesional');
+            $defaultAdminPerms = obtenerPermisosPorDefecto('admin');
 
             if ($_SESSION['rol_en_local'] === 'admin') {
                 $_SESSION['permisos'] = $defaultAdminPerms;
             } else {
-                $parsedPerms = !empty($bizTarget['permisos']) ? json_decode($bizTarget['permisos'], true) : null;
-                $_SESSION['permisos'] = is_array($parsedPerms) ? array_merge($defaultProfPerms, $parsedPerms) : $defaultProfPerms;
+                $_SESSION['permisos'] = normalizarPermisos($bizTarget['permisos'] ?? null, 'profesional');
             }
             
             session_write_close();

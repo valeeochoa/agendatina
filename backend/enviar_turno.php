@@ -266,6 +266,9 @@ $colsCupones = [
     'usos_actuales' => 'INT DEFAULT 0',
     'activo' => 'TINYINT(1) DEFAULT 1',
     'es_acumulable' => 'TINYINT(1) DEFAULT 0',
+    'profesional_asignado' => 'VARCHAR(255) DEFAULT NULL',
+    'id_servicio' => 'INT DEFAULT NULL',
+    'id_usuario_creador' => 'INT DEFAULT NULL',
     'fecha_creacion' => 'DATETIME DEFAULT CURRENT_TIMESTAMP',
     'fecha_expiracion' => 'DATETIME DEFAULT NULL',
     'fecha_uso' => 'DATETIME DEFAULT NULL'
@@ -521,7 +524,7 @@ try {
     $lastTurnoId = (int)$pdo->lastInsertId();
 
     if (!empty($cupon_descuento) && !empty($configWeb['usar_cupones_descuento'])) {
-        $stmtCup = $pdo->prepare("SELECT id, codigo, porcentaje_descuento, usos_maximos, usos_actuales 
+        $stmtCup = $pdo->prepare("SELECT id, codigo, porcentaje_descuento, usos_maximos, usos_actuales, profesional_asignado, id_servicio 
                                   FROM cupones_descuento 
                                   WHERE id_negocio = :id_neg 
                                     AND UPPER(codigo) = :cod 
@@ -537,6 +540,29 @@ try {
             echo json_encode(['success' => false, 'error' => "El cupón de descuento ingresado no es válido, ha alcanzado el límite de usos, se encuentra inactivo o ha superado su fecha máxima de vigencia."]);
             exit;
         }
+
+        // Validar si el cupón está restringido a un profesional específico
+        if (!empty($rowCup['profesional_asignado']) && trim($rowCup['profesional_asignado']) !== '') {
+            $profReq = trim($rowCup['profesional_asignado']);
+            if (empty($profesional) || strcasecmp(trim($profesional), $profReq) !== 0) {
+                $pdo->rollBack();
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => "El cupón ingresado solo es válido para turnos atendidos por " . htmlspecialchars($profReq) . "."]);
+                exit;
+            }
+        }
+
+        // Validar si el cupón está restringido a un servicio específico
+        if (!empty($rowCup['id_servicio']) && (int)$rowCup['id_servicio'] > 0) {
+            $svcReqId = (int)$rowCup['id_servicio'];
+            if (empty($id_servicio) || (int)$id_servicio !== $svcReqId) {
+                $pdo->rollBack();
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => "El cupón ingresado es exclusivo para otro servicio del negocio."]);
+                exit;
+            }
+        }
+
         $cuponAplicadoCodigo = $rowCup['codigo'];
         $descuentoAplicadoPct = (int)($rowCup['porcentaje_descuento'] ?? ($configWeb['cupon_descuento_pct'] ?? 10));
         
@@ -601,13 +627,27 @@ if ($isProOrPremium) {
 }
 $agendaFocusUrl = $turnoFocusUrl;
 
+// Resolver datos de transferencia: Si el profesional tiene alias/CBU propio en personal_negocio, usarlo para sus reservas
+$datosTransferenciaResuelto = $configWeb['datos_transferencia'] ?? '';
+if (!empty($profesional)) {
+    try {
+        $stmtProfTr = $pdo->prepare("SELECT datos_transferencia FROM personal_negocio WHERE id_negocio = :nid AND LOWER(TRIM(nombre)) = LOWER(TRIM(:pname)) AND datos_transferencia IS NOT NULL AND TRIM(datos_transferencia) != '' LIMIT 1");
+        $stmtProfTr->execute(['nid' => $id_negocio, 'pname' => $profesional]);
+        $rowProfTr = $stmtProfTr->fetch(PDO::FETCH_ASSOC);
+        if ($rowProfTr && !empty(trim($rowProfTr['datos_transferencia']))) {
+            $datosTransferenciaResuelto = trim($rowProfTr['datos_transferencia']);
+            $configWeb['datos_transferencia'] = $datosTransferenciaResuelto;
+        }
+    } catch (Exception $eProfTr) {}
+}
+
 // Responder al cliente de forma instantánea para que el modal de comprobante abra en < 1 segundo
 $responseJson = json_encode([
     'success' => true,
     'mail_enviado' => true,
     'turno_id' => $lastTurnoId,
     'reserva_sena_1h' => (int)($configWeb['reserva_sena_1h'] ?? 0),
-    'datos_transferencia' => $configWeb['datos_transferencia'] ?? '',
+    'datos_transferencia' => $datosTransferenciaResuelto,
     'whatsapp_comprobante' => !empty($configWeb['whatsapp_comprobante']) ? $configWeb['whatsapp_comprobante'] : ($configWeb['whatsapp_contacto'] ?? ''),
     'cupon_descuento_pct' => (int)($configWeb['cupon_descuento_pct'] ?? 10),
     'cupon_duracion_horas' => (int)($configWeb['cupon_duracion_horas'] ?? 24),

@@ -65,33 +65,54 @@ window.applyDashboardPermissions = function(userData) {
 
     // Rol: PROFESIONAL
     const perms = user.permisos || {};
-    const canAgenda = perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true;
-    const canVerTodosTurnos = perms.ver_todos_turnos !== undefined ? (parseInt(perms.ver_todos_turnos) === 1 || perms.ver_todos_turnos === true) : false;
+    const canAgenda = perms.ver_mi_agenda !== undefined ? (parseInt(perms.ver_mi_agenda) === 1 || perms.ver_mi_agenda === true) : 
+                     (perms.ver_agenda_otros !== undefined ? (parseInt(perms.ver_agenda_otros) === 1 || perms.ver_agenda_otros === true) : 
+                     (perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true));
+
+    const canCalendario = perms.ver_mi_calendario !== undefined ? (parseInt(perms.ver_mi_calendario) === 1 || perms.ver_mi_calendario === true) : 
+                          (perms.ver_calendario_otros !== undefined ? (parseInt(perms.ver_calendario_otros) === 1 || perms.ver_calendario_otros === true) : 
+                          (perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true));
+
+    const canClientes = (perms.ver_mis_clientes !== undefined && (parseInt(perms.ver_mis_clientes) === 1 || perms.ver_mis_clientes === true)) ||
+                        (perms.ver_clientes_todos !== undefined && (parseInt(perms.ver_clientes_todos) === 1 || perms.ver_clientes_todos === true)) ||
+                        (perms.clientes !== undefined && (parseInt(perms.clientes) === 1 || perms.clientes === true));
+
     const canWeb = perms.web !== undefined ? (parseInt(perms.web) === 1 || perms.web === true) : false;
-    const canServicios = perms.servicios !== undefined ? (parseInt(perms.servicios) === 1 || perms.servicios === true) : false;
-    const canEstadisticas = perms.estadisticas !== undefined ? (parseInt(perms.estadisticas) === 1 || perms.estadisticas === true) : false;
+    const canServicios = perms.servicios !== undefined ? (parseInt(perms.servicios) === 1 || perms.servicios === true) : true;
+    const canEstadisticas = (perms.ver_mis_estadisticas !== undefined && (parseInt(perms.ver_mis_estadisticas) === 1 || perms.ver_mis_estadisticas === true)) ||
+                            (perms.ver_estadisticas_otros !== undefined && (parseInt(perms.ver_estadisticas_otros) === 1 || perms.ver_estadisticas_otros === true)) ||
+                            (perms.estadisticas !== undefined && (parseInt(perms.estadisticas) === 1 || perms.estadisticas === true));
     const canEquipo = perms.equipo !== undefined ? (parseInt(perms.equipo) === 1 || perms.equipo === true) : false;
 
-    // 1. Agenda Virtual y Calendario
+    // 1. Agenda Virtual
     if (!canAgenda) {
         hideEl('cardAgenda');
-        hideEl('cardCalendario');
         hideEl('dashHeroBtnAgenda');
-        hideEl('dashHeroBtnCalendario');
-        hideEl('dashHeroStatsRow');
         hideEl('a[href="agenda.html"]');
+    } else {
+        showEl('cardAgenda');
+        showEl('dashHeroBtnAgenda');
+    }
+
+    // 1.1 Calendario
+    if (!canCalendario) {
+        hideEl('cardCalendario');
+        hideEl('dashHeroBtnCalendario');
         hideEl('a[href="calendarioMensual.html"]');
         hideEl('a[href="calendarioSemanal.html"]');
     } else {
-        showEl('cardAgenda');
         showEl('cardCalendario');
-        showEl('dashHeroBtnAgenda');
         showEl('dashHeroBtnCalendario');
+    }
+
+    if (!canAgenda && !canCalendario) {
+        hideEl('dashHeroStatsRow');
+    } else {
         showEl('dashHeroStatsRow');
     }
 
-    // 2. Alumnos / Clientes (Solo visible si tiene habilitado ver todos los turnos del negocio)
-    if (!canVerTodosTurnos) {
+    // 2. Alumnos / Clientes
+    if (!canClientes) {
         hideEl('cardClientes');
     } else {
         showEl('cardClientes');
@@ -120,7 +141,7 @@ window.applyDashboardPermissions = function(userData) {
     hideEl('cardMejora');
 
     // 8. Ajustes de Agenda (Configuración de horarios propios para el profesional)
-    if (canAgenda) {
+    if (canAgenda || canCalendario) {
         showEl('cardAjustes');
         showEl('dashHerramientasSectionHeader');
         showEl('dashHerramientasGrid');

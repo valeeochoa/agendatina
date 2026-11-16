@@ -58,6 +58,9 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN wpp_enviados_m
 try { $pdo->query("SELECT mes_wpp_contador FROM negocios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE negocios ADD COLUMN mes_wpp_contador VARCHAR(7) DEFAULT NULL"); }
 
+try { $pdo->query("SELECT datos_transferencia FROM personal_negocio LIMIT 1"); }
+catch(Exception $e) { try { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN datos_transferencia TEXT DEFAULT NULL"); } catch(Exception $ex) {} }
+
 try { $pdo->query("SELECT foto_profesional FROM servicios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN foto_profesional VARCHAR(255) DEFAULT NULL"); }
 
@@ -446,7 +449,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $userId = $_SESSION['user_id'] ?? null;
         if ($userId && $id_negocio) {
             try {
-                $stmtCheckPn = $pdo->prepare("SELECT rol_en_local, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, tipo_calendario FROM personal_negocio WHERE id_negocio = :id AND id_usuario = :uid LIMIT 1");
+                $stmtCheckPn = $pdo->prepare("SELECT rol_en_local, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, tipo_calendario, datos_transferencia FROM personal_negocio WHERE id_negocio = :id AND id_usuario = :uid LIMIT 1");
                 $stmtCheckPn->execute(['id' => $id_negocio, 'uid' => $userId]);
                 $profRow = $stmtCheckPn->fetch(PDO::FETCH_ASSOC);
                 if ($profRow) {
@@ -463,6 +466,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                             $config['horarios_detallados_json'] = $profRow['horarios_detallados_json'];
                         }
                         if (!empty($profRow['tipo_calendario'])) $config['tipo_calendario'] = $profRow['tipo_calendario'];
+                        $config['datos_transferencia_negocio'] = $config['datos_transferencia'] ?? '';
+                        $config['datos_transferencia'] = $profRow['datos_transferencia'] ?? '';
+                        $config['datos_transferencia_personal'] = $profRow['datos_transferencia'] ?? '';
                     }
                 }
             } catch(Exception $ePnProf) {}
@@ -528,36 +534,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $userPerms = $_SESSION['permisos'] ?? [];
             $canWeb = !empty($userPerms['web']);
 
-            // Si el profesional está guardando horarios de agenda o descansos, se actualiza su agenda personal en personal_negocio
-            $isScheduleUpdate = isset($data['hora_apertura']) || isset($data['dias_trabajo']) || isset($data['horarios_detallados_json']) || isset($data['hora_descanso_inicio']) || isset($data['tipo_calendario']);
+            // Si el profesional está guardando horarios de agenda, descansos o sus datos de transferencia personales
+            $isScheduleOrPersonalUpdate = isset($data['hora_apertura']) || isset($data['dias_trabajo']) || isset($data['horarios_detallados_json']) || isset($data['hora_descanso_inicio']) || isset($data['tipo_calendario']) || isset($data['datos_transferencia']) || isset($data['prof_datos_transferencia']);
 
-            if ($isScheduleUpdate) {
-                $stmtUpPn = $pdo->prepare("UPDATE personal_negocio SET 
-                    hora_apertura = :ha,
-                    hora_cierre = :hc,
-                    hora_descanso_inicio = :hdi,
-                    hora_descanso_fin = :hdf,
-                    dias_trabajo = :dt,
-                    horarios_detallados_json = :hdj,
-                    tipo_calendario = :tc
-                    WHERE id_negocio = :id_negocio AND id_usuario = :id_usuario");
+            if ($isScheduleOrPersonalUpdate) {
+                $fieldsToUpdate = [];
+                $params = ['id_negocio' => $id_negocio, 'id_usuario' => $_SESSION['user_id']];
+
+                if (isset($data['hora_apertura'])) { $fieldsToUpdate[] = "hora_apertura = :ha"; $params['ha'] = $data['hora_apertura'] ?? '09:00'; }
+                if (isset($data['hora_cierre'])) { $fieldsToUpdate[] = "hora_cierre = :hc"; $params['hc'] = $data['hora_cierre'] ?? '18:00'; }
+                if (isset($data['hora_descanso_inicio'])) { $fieldsToUpdate[] = "hora_descanso_inicio = :hdi"; $params['hdi'] = $data['hora_descanso_inicio'] ?? ''; }
+                if (isset($data['hora_descanso_fin'])) { $fieldsToUpdate[] = "hora_descanso_fin = :hdf"; $params['hdf'] = $data['hora_descanso_fin'] ?? ''; }
+                if (isset($data['dias_trabajo'])) { $fieldsToUpdate[] = "dias_trabajo = :dt"; $params['dt'] = $data['dias_trabajo'] ?? '1,2,3,4,5,6'; }
+                if (isset($data['horarios_detallados_json'])) { $fieldsToUpdate[] = "horarios_detallados_json = :hdj"; $params['hdj'] = $data['horarios_detallados_json'] ?? '{}'; }
+                if (isset($data['tipo_calendario'])) { $fieldsToUpdate[] = "tipo_calendario = :tc"; $params['tc'] = $data['tipo_calendario'] ?? 'clasico'; }
                 
-                $stmtUpPn->execute([
-                    'ha' => $data['hora_apertura'] ?? '09:00',
-                    'hc' => $data['hora_cierre'] ?? '18:00',
-                    'hdi' => $data['hora_descanso_inicio'] ?? '',
-                    'hdf' => $data['hora_descanso_fin'] ?? '',
-                    'dt' => $data['dias_trabajo'] ?? '1,2,3,4,5,6',
-                    'hdj' => $data['horarios_detallados_json'] ?? '{}',
-                    'tc' => $data['tipo_calendario'] ?? 'clasico',
-                    'id_negocio' => $id_negocio,
-                    'id_usuario' => $_SESSION['user_id']
-                ]);
+                $dtfVal = $data['prof_datos_transferencia'] ?? ($data['datos_transferencia'] ?? null);
+                if ($dtfVal !== null) {
+                    $fieldsToUpdate[] = "datos_transferencia = :dtf";
+                    $params['dtf'] = trim($dtfVal);
+                }
+
+                if (!empty($fieldsToUpdate)) {
+                    $sqlUpPn = "UPDATE personal_negocio SET " . implode(", ", $fieldsToUpdate) . " WHERE id_negocio = :id_negocio AND id_usuario = :id_usuario";
+                    $stmtUpPn = $pdo->prepare($sqlUpPn);
+                    $stmtUpPn->execute($params);
+                }
 
                 if (ob_get_length()) ob_clean();
                 echo json_encode([
                     'success' => true,
-                    'mensaje' => 'Tus horarios de agenda personal han sido actualizados con éxito.',
+                    'mensaje' => 'Tus ajustes personales y horarios de agenda han sido actualizados con éxito.',
                     'es_horario_personal' => true
                 ]);
                 exit;

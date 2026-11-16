@@ -236,6 +236,35 @@
                 </div>
             </div>
 
+            <!-- Cobros y Transferencia Personal (Exclusivo para Profesional) -->
+            <div id="cardTransferenciaProfesional" data-ajustes-card="transferencia_prof" class="hidden bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-slate-200 mb-6 space-y-4">
+                <div class="flex items-start justify-between gap-4 pb-4 border-b border-slate-100">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
+                            <span class="material-symbols-outlined text-xl">account_balance</span>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-white shadow-2xs flex items-center gap-1" style="background-color: var(--color-secundario, #fc8712);">
+                                    <span class="material-symbols-outlined text-[13px]">payments</span> Cobros
+                                </span>
+                                <span class="text-xs font-bold text-slate-400">Tus datos personales</span>
+                            </div>
+                            <h2 class="text-lg sm:text-xl font-bold text-slate-900">Alias o CBU para tus Turnos</h2>
+                            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Configurá el alias bancario o billetera virtual donde querés recibir las señas y pagos de tus clientes.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <label class="block text-xs font-bold text-slate-700">Tu Alias, CBU o CVU Personal:</label>
+                    <input type="text" id="profDatosTransferencia" name="prof_datos_transferencia" placeholder="Ej: MI.ALIAS.PERSONAL / CBU 000000000000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition-all">
+                    <div class="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl flex items-start gap-2.5 text-amber-900 text-xs">
+                        <span class="material-symbols-outlined text-amber-600 text-base shrink-0 mt-0.5">info</span>
+                        <span>Este alias o CBU se mostrará <strong>únicamente a los clientes que reserven un turno con vos</strong>. Si lo dejás en blanco, tus clientes verán automáticamente el alias configurado por el negocio.</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Métodos de Pago Aceptados -->
             <div class="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-slate-200">
                 <div class="flex items-center gap-3 mb-4 pb-4 border-b border-slate-100">
@@ -953,6 +982,24 @@
                         </div>
                         <input type="number" id="nuevoCuponUsos" min="1" placeholder="Ej: Ilimitado" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-center text-sm font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-purple-500 outline-none transition-all">
                         <span class="block text-[10px] text-slate-400 mt-1">Dejar vacío para usos ilimitados</span>
+                    </div>
+                </div>
+
+                <!-- Profesional y Servicio Asignado -->
+                <div id="nuevoCuponAsignacionContainer" class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-3">
+                    <div id="nuevoCuponProfWrapper">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Profesional Válido</label>
+                        <select id="nuevoCuponProfesional" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none transition-all">
+                            <option value="">Todos los profesionales (Negocio completo)</option>
+                        </select>
+                        <p id="nuevoCuponProfNote" class="hidden text-[10px] text-purple-700 font-bold mt-1">Este cupón se aplicará únicamente a tus turnos personales.</p>
+                    </div>
+                    <div id="nuevoCuponSvcWrapper">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Servicio Válido</label>
+                        <select id="nuevoCuponServicio" class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none transition-all">
+                            <option value="">Todos los servicios</option>
+                        </select>
+                        <span class="block text-[10px] text-slate-400 mt-1">Opcional: puedes limitar este descuento a un servicio en particular.</span>
                     </div>
                 </div>
 

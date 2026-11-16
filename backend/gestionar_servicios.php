@@ -362,7 +362,8 @@ if ($method === 'POST') {
                 }
 
                 if ($uId) {
-                    $defaultPerms = json_encode(['agenda' => 1, 'ver_todos_turnos' => 1, 'web' => 0, 'servicios' => 0, 'estadisticas' => 0, 'equipo' => 0]);
+                    require_once __DIR__ . '/helpers/permisos_helper.php';
+                    $defaultPerms = json_encode(obtenerPermisosPorDefecto('profesional'));
                     $stmtInsPn = $pdo->prepare("INSERT IGNORE INTO personal_negocio (id_negocio, id_usuario, rol_en_local, permisos) VALUES (:id_negocio, :id_usuario, 'profesional', :permisos)");
                     $stmtInsPn->execute(['id_negocio' => $id_negocio, 'id_usuario' => $uId, 'permisos' => $defaultPerms]);
                 }
@@ -409,10 +410,117 @@ if ($method === 'DELETE') {
         echo json_encode(['success' => false, 'error' => 'No autorizado.']);
         exit;
     }
-    $id = $_GET['id'] ?? null;
-    $id_negocio = $_SESSION['id_negocio'];
+    
+    $id_negocio = (int)$_SESSION['id_negocio'];
+    $userRole = $_SESSION['rol_en_local'] ?? 'admin';
+    $userNombre = trim($_SESSION['nombre_completo'] ?? '');
 
-    $stmt = $pdo->prepare("DELETE FROM servicios WHERE id = :id AND id_negocio = :id_negocio");
-    $stmt->execute(['id' => $id, 'id_negocio' => $id_negocio]);
-    echo json_encode(['success' => true]);
+    // Leer ID de forma tolerante (URL param, form-urlencoded o JSON)
+    $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+    if (!$id) {
+        $rawInput = file_get_contents('php://input');
+        parse_str($rawInput, $delParams);
+        $id = isset($delParams['id']) ? (int)$delParams['id'] : 0;
+        if (!$id) {
+            $jsonInput = json_decode($rawInput, true);
+            $id = isset($jsonInput['id']) ? (int)$jsonInput['id'] : 0;
+        }
+    }
+
+    if (!$id) {
+        echo json_encode(['success' => false, 'error' => 'ID de servicio no proporcionado.']);
+        exit;
+    }
+
+    // 1. Obtener datos del servicio a eliminar
+    $stmtSvc = $pdo->prepare("SELECT id, nombre_servicio, profesional FROM servicios WHERE id = :id AND id_negocio = :id_negocio LIMIT 1");
+    $stmtSvc->execute(['id' => $id, 'id_negocio' => $id_negocio]);
+    $svc = $stmtSvc->fetch(PDO::FETCH_ASSOC);
+
+    if (!$svc) {
+        echo json_encode(['success' => false, 'error' => 'Servicio no encontrado en este negocio.']);
+        exit;
+    }
+
+    $profServicio = trim($svc['profesional'] ?? '');
+    $esMio = (!empty($userNombre) && !empty($profServicio) && strcasecmp($profServicio, $userNombre) === 0);
+
+    // 2. Si es profesional y el servicio NO le pertenece, enviar solicitud al administrador
+    if ($userRole === 'profesional' && !$esMio) {
+        // Auto-migrar columnas de metadatos y rol_destino en notificaciones
+        try { $pdo->query("SELECT metadata_json FROM notificaciones LIMIT 1"); } 
+        catch(Throwable $e) { try { $pdo->exec("ALTER TABLE notificaciones ADD COLUMN metadata_json TEXT DEFAULT NULL"); } catch(Throwable $ex) {} }
+        
+        try { $pdo->query("SELECT rol_destino FROM notificaciones LIMIT 1"); } 
+        catch(Throwable $e) { try { $pdo->exec("ALTER TABLE notificaciones ADD COLUMN rol_destino VARCHAR(50) DEFAULT 'todos'"); } catch(Throwable $ex) {} }
+
+        $titulo = "Solicitud de eliminación de servicio";
+        $mensaje = "El profesional '{$userNombre}' solicitó eliminar el servicio '{$svc['nombre_servicio']}'.";
+        $metaJson = json_encode([
+            'tipo' => 'solicitud_eliminar_servicio',
+            'id_servicio' => $id,
+            'nombre_servicio' => $svc['nombre_servicio'],
+            'solicitado_por' => $userNombre
+        ]);
+
+        $stmtNotif = $pdo->prepare("INSERT INTO notificaciones (id_negocio, titulo, mensaje, metadata_json, rol_destino, fecha) VALUES (?, ?, ?, ?, 'admin', NOW())");
+        $stmtNotif->execute([$id_negocio, $titulo, $mensaje, $metaJson]);
+
+        echo json_encode([
+            'success' => false,
+            'solicitud_enviada' => true,
+            'message' => "Este servicio pertenece a otro profesional ({$profServicio}). Se envió la solicitud de eliminación al administrador del negocio."
+        ]);
+        exit;
+    }
+
+    // 3. Eliminación autorizada (dueño/admin o profesional dueño de este servicio)
+    try {
+        $pdo->beginTransaction();
+
+        // 3.1 Eliminar turnos futuros que se habían asignado con este servicio
+        $stmtDelTurnos = $pdo->prepare("
+            DELETE FROM turnos 
+            WHERE id_negocio = :id_negocio 
+              AND (id_servicio = :id OR LOWER(TRIM(servicio)) = LOWER(TRIM(:nom_servicio)))
+              AND (fecha > CURDATE() OR (fecha = CURDATE() AND hora >= CURTIME()))
+        ");
+        $stmtDelTurnos->execute([
+            'id_negocio' => $id_negocio,
+            'id' => $id,
+            'nom_servicio' => $svc['nombre_servicio']
+        ]);
+
+        // 3.2 Desvincular id_servicio de los turnos pasados conservando intacto el historial
+        $stmtUnlinkPast = $pdo->prepare("
+            UPDATE turnos 
+            SET id_servicio = NULL 
+            WHERE id_negocio = :id_negocio AND id_servicio = :id
+        ");
+        $stmtUnlinkPast->execute([
+            'id_negocio' => $id_negocio,
+            'id' => $id
+        ]);
+
+        // 3.3 Eliminar el servicio del catálogo
+        $stmtDelSvc = $pdo->prepare("DELETE FROM servicios WHERE id = :id AND id_negocio = :id_negocio");
+        $stmtDelSvc->execute(['id' => $id, 'id_negocio' => $id_negocio]);
+
+        if ($pdo->inTransaction()) {
+            $pdo->commit();
+        }
+
+        echo json_encode([
+            'success' => true, 
+            'message' => 'Servicio eliminado correctamente. Los turnos futuros fueron cancelados y se conservó el historial de turnos pasados.'
+        ]);
+        exit;
+
+    } catch (Throwable $eDel) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        echo json_encode(['success' => false, 'error' => 'Error al eliminar el servicio: ' . $eDel->getMessage()]);
+        exit;
+    }
 }

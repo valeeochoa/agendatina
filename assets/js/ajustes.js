@@ -214,12 +214,15 @@ window.selectAjustesCategory = function(cat) {
 
 window.applyProfessionalAjustesView = function(userData) {
     window.isProfessionalUser = true;
+    if (userData && userData.nombre) {
+        window.currentUserName = userData.nombre;
+    }
 
     // 1. Títulos de página
     const pageTitle = document.getElementById('ajustesPageTitle');
-    if (pageTitle) pageTitle.textContent = 'Horarios de mi Agenda';
+    if (pageTitle) pageTitle.textContent = 'Mis Ajustes y Horarios';
     const pageSubtitle = document.getElementById('ajustesPageSubtitle');
-    if (pageSubtitle) pageSubtitle.textContent = 'Configurá tus días de atención, horarios de apertura y tiempos de descanso personales.';
+    if (pageSubtitle) pageSubtitle.textContent = 'Configurá tus días de atención, horarios, descansos personales, alias de transferencia y cupones.';
 
     // 2. Banner informativo
     let profBanner = document.getElementById('profHorariosNoticeBanner');
@@ -232,8 +235,8 @@ window.applyProfessionalAjustesView = function(userData) {
                 <span class="material-symbols-outlined text-2xl">badge</span>
             </div>
             <div class="flex-1 min-w-0">
-                <h3 class="text-sm font-extrabold text-purple-900">Horarios de Agenda Personal</h3>
-                <p class="text-xs text-purple-700 mt-0.5 leading-relaxed">Estás configurando tu propia disponibilidad. Estos días, horarios y descansos se aplican exclusivamente a tu agenda y calendario de turnos, de forma independiente a la administración del negocio.</p>
+                <h3 class="text-sm font-extrabold text-purple-900">Ajustes de Agenda y Cobros Personales</h3>
+                <p class="text-xs text-purple-700 mt-0.5 leading-relaxed">Estás configurando tu propia disponibilidad, alias de cobro para señas y cupones de descuento exclusivos. Estos ajustes se aplican únicamente a tus turnos, sin alterar los datos del negocio.</p>
             </div>
         `;
         const formEl = document.getElementById('calendarConfigForm');
@@ -242,8 +245,15 @@ window.applyProfessionalAjustesView = function(userData) {
         }
     }
 
-    // 3. Ocultar chips de categorías administrativas
-    const hideChips = ['turnos', 'pagos', 'modalidad', 'fidelizacion', 'notificaciones'];
+    // 3. Mostrar tarjeta de transferencia personal para el profesional
+    const cardTr = document.getElementById('cardTransferenciaProfesional');
+    if (cardTr) {
+        cardTr.classList.remove('hidden');
+        cardTr.style.removeProperty('display');
+    }
+
+    // 4. Adaptar chips de categorías
+    const hideChips = ['turnos', 'pagos', 'modalidad', 'notificaciones'];
     hideChips.forEach(cat => {
         const chip = document.querySelector(`.ajustes-chip[data-cat="${cat}"]`);
         if (chip) {
@@ -252,8 +262,15 @@ window.applyProfessionalAjustesView = function(userData) {
         }
     });
 
-    // 4. Ocultar cards/secciones administrativas
-    const adminCards = ['pagos', 'turnos', 'modalidad', 'fidelizacion', 'notificaciones'];
+    const chipFidel = document.querySelector(`.ajustes-chip[data-cat="fidelizacion"]`);
+    if (chipFidel) {
+        chipFidel.innerHTML = '<span class="material-symbols-outlined text-[16px]" style="color: var(--color-secundario, #fc8712);">loyalty</span> Mis Cupones';
+        chipFidel.classList.remove('hidden');
+        chipFidel.style.removeProperty('display');
+    }
+
+    // 5. Ocultar cards/secciones administrativas
+    const adminCards = ['pagos', 'turnos', 'modalidad', 'notificaciones'];
     adminCards.forEach(cat => {
         const marker = document.querySelector(`[data-ajustes-marker="${cat}"]`);
         if (marker) {
@@ -265,9 +282,31 @@ window.applyProfessionalAjustesView = function(userData) {
         }
     });
 
-    // 5. Botones de guardar
+    // En fidelización: ocultar opciones globales del negocio y adaptar cabecera
+    const markerFidel = document.querySelector(`[data-ajustes-marker="fidelizacion"]`);
+    if (markerFidel) {
+        const cardFidel = markerFidel.closest('.bg-white.rounded-2xl') || markerFidel.parentElement;
+        if (cardFidel) {
+            cardFidel.classList.remove('hidden');
+            cardFidel.style.removeProperty('display');
+            const h2 = cardFidel.querySelector('h2');
+            if (h2) h2.textContent = 'Mis Cupones de Descuento';
+            const sub = cardFidel.querySelector('p');
+            if (sub) sub.textContent = 'Creá promociones y descuentos exclusivos para tus turnos o servicios específicos.';
+            
+            // Ocultar switches de retornos y configuración general
+            const q1 = cardFidel.querySelector('#chkEnviarMsjAutomaticos')?.closest('.p-4');
+            if (q1) q1.classList.add('hidden');
+            const q2 = cardFidel.querySelector('#chkUsarCuponesDescuento')?.closest('.p-4');
+            if (q2) q2.classList.add('hidden');
+            const q3 = cardFidel.querySelector('#chkPermitirAcumularCupones')?.closest('.p-4');
+            if (q3) q3.classList.add('hidden');
+        }
+    }
+
+    // 6. Botones de guardar
     document.querySelectorAll('.btn-save-ajustes, #btnGuardarAjustesBottom, #btnGuardarAjustesTop').forEach(btn => {
-        if (btn) btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> Guardar mis horarios';
+        if (btn) btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> Guardar mis ajustes';
     });
 };
 
@@ -281,7 +320,7 @@ window.filterAjustesSections = function() {
 
     const cards = document.querySelectorAll('[data-ajustes-card]');
     let visibleCount = 0;
-    const adminCards = ['pagos', 'turnos', 'modalidad', 'fidelizacion', 'notificaciones'];
+    const adminCards = ['pagos', 'turnos', 'modalidad', 'notificaciones'];
 
     cards.forEach(card => {
         const cat = card.getAttribute('data-ajustes-card');
@@ -538,9 +577,11 @@ window.applyCalendarConfigToForm = function(data) {
         if (selectAutoRen) selectAutoRen.value = data.auto_renovar_vencimiento;
     }
 
-    if (data.datos_transferencia !== undefined) {
+    if (data.datos_transferencia !== undefined || data.datos_transferencia_personal !== undefined) {
         const inpDatos = form.querySelector('#configDatosTransferencia');
         if (inpDatos) inpDatos.value = data.datos_transferencia || '';
+        const inpProfDatos = form.querySelector('#profDatosTransferencia');
+        if (inpProfDatos) inpProfDatos.value = data.datos_transferencia_personal || data.datos_transferencia || '';
     }
 
     if (data.porcentaje_sena !== undefined) {
@@ -1479,6 +1520,10 @@ function handleCalendarConfigSubmit(e) {
     if (form.querySelector('#configMetodosPago')) form.querySelector('#configMetodosPago').value = metodosStr;
 
     let datosTrans = form.querySelector('#configDatosTransferencia')?.value || '';
+    if (window.isProfessionalUser) {
+        const profTrInp = form.querySelector('#profDatosTransferencia');
+        if (profTrInp) datosTrans = profTrInp.value;
+    }
     if (window.isDemoAccount) {
         datosTrans = window.businessWebConfig?.datos_transferencia || '';
     }
@@ -1622,9 +1667,24 @@ window.cargarCuponesNegocio = function() {
             const isAcumulable = parseInt(c.es_acumulable) === 1;
             const acumTag = isAcumulable ? '<span class="ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-100 text-purple-700">Acumulable</span>' : '';
 
+            // Etiquetas de asignación (Profesional / Servicio)
+            let asignacionTags = '';
+            if (c.profesional_asignado) {
+                asignacionTags += `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">Prof: ${c.profesional_asignado}</span>`;
+            }
+            if (c.servicio_nombre) {
+                asignacionTags += `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Serv: ${c.servicio_nombre}</span>`;
+            }
+            if (!c.profesional_asignado && !c.servicio_nombre) {
+                asignacionTags += `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-600">Todo el negocio</span>`;
+            }
+
             html += `
                 <tr class="hover:bg-slate-50/70 transition-colors">
-                    <td class="py-2.5 px-3 font-extrabold text-slate-900">${c.nombre || 'Cupón ' + c.porcentaje_descuento + '%'} ${acumTag}</td>
+                    <td class="py-2.5 px-3">
+                        <div class="font-extrabold text-slate-900">${c.nombre || 'Cupón ' + c.porcentaje_descuento + '%'} ${acumTag}</div>
+                        <div class="flex flex-wrap items-center gap-1 mt-1">${asignacionTags}</div>
+                    </td>
                     <td class="py-2.5 px-3"><span class="font-black tracking-wider text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">${c.codigo}</span></td>
                     <td class="py-2.5 px-3 text-center font-black text-emerald-600">${c.porcentaje_descuento}% OFF</td>
                     <td class="py-2.5 px-3 text-slate-600">${formatExp}</td>
@@ -1663,6 +1723,39 @@ window.cargarCuponesNegocio = function() {
     });
 };
 
+window.cargarServiciosParaCupones = function(callback) {
+    if (window._cuponesServiciosCache) {
+        if (callback) callback(window._cuponesServiciosCache);
+        return;
+    }
+    fetch('backend/gestionar_servicios.php')
+    .then(r => r.json())
+    .then(data => {
+        window._cuponesServiciosCache = Array.isArray(data) ? data : (data.servicios || []);
+        if (callback) callback(window._cuponesServiciosCache);
+    })
+    .catch(() => {
+        if (callback) callback([]);
+    });
+};
+
+window.cargarProfesionalesParaCupones = function(callback) {
+    if (window._cuponesProfesionalesCache) {
+        if (callback) callback(window._cuponesProfesionalesCache);
+        return;
+    }
+    fetch('backend/gestionar_profesionales.php')
+    .then(r => r.json())
+    .then(data => {
+        const profs = Array.isArray(data) ? data : (data.profesionales || []);
+        window._cuponesProfesionalesCache = profs;
+        if (callback) callback(profs);
+    })
+    .catch(() => {
+        if (callback) callback([]);
+    });
+};
+
 window.abrirModalCrearCupon = function() {
     const modal = document.getElementById('modalCrearCupon');
     if (!modal) return;
@@ -1676,6 +1769,69 @@ window.abrirModalCrearCupon = function() {
     if (expInput) expInput.value = d.toISOString().split('T')[0];
 
     window.generarCodigoAleatorioCupon();
+
+    // Poblar selectores de profesional y servicio
+    const profSelect = document.getElementById('nuevoCuponProfesional');
+    const svcSelect = document.getElementById('nuevoCuponServicio');
+    const profNote = document.getElementById('nuevoCuponProfNote');
+
+    if (window.isProfessionalUser) {
+        if (profSelect) {
+            profSelect.classList.add('hidden');
+        }
+        if (profNote) {
+            profNote.classList.remove('hidden');
+            profNote.textContent = 'Este cupón se creará exclusivamente para tus turnos personales.';
+        }
+
+        // Cargar solo los servicios de este profesional
+        window.cargarServiciosParaCupones(services => {
+            if (!svcSelect) return;
+            svcSelect.innerHTML = '<option value="">Todos mis servicios</option>';
+            const myName = (window.currentUserName || '').toLowerCase().trim();
+            const myServices = services.filter(s => {
+                if (!s.profesional) return true;
+                const p = s.profesional.toLowerCase().trim();
+                return !myName || p === myName || p.includes(myName);
+            });
+            myServices.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = `${s.nombre} ($${s.precio || 0})`;
+                svcSelect.appendChild(opt);
+            });
+        });
+    } else {
+        if (profSelect) {
+            profSelect.classList.remove('hidden');
+            profSelect.innerHTML = '<option value="">Todos los profesionales (Negocio completo)</option>';
+        }
+        if (profNote) profNote.classList.add('hidden');
+
+        window.cargarProfesionalesParaCupones(profs => {
+            if (profSelect) {
+                profs.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.nombre;
+                    opt.textContent = p.nombre;
+                    profSelect.appendChild(opt);
+                });
+            }
+        });
+
+        window.cargarServiciosParaCupones(services => {
+            if (!svcSelect) return;
+            svcSelect.innerHTML = '<option value="">Todos los servicios</option>';
+            services.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                const profLabel = s.profesional ? ` [${s.profesional}]` : '';
+                opt.textContent = `${s.nombre}${profLabel} ($${s.precio || 0})`;
+                svcSelect.appendChild(opt);
+            });
+        });
+    }
+
     modal.classList.remove('hidden');
     if (typeof window.setModalScrollLock === 'function') window.setModalScrollLock(true);
 };
@@ -1711,12 +1867,50 @@ window.guardarNuevoCupon = function(e) {
     const usos = usosRaw === '' ? 0 : Math.max(1, parseInt(usosRaw) || 0);
     const esAcumulable = document.getElementById('nuevoCuponAcumulable')?.checked ? 1 : 0;
 
+    const profSelect = document.getElementById('nuevoCuponProfesional');
+    const svcSelect = document.getElementById('nuevoCuponServicio');
+    const profAsignado = (profSelect && !profSelect.classList.contains('hidden')) ? profSelect.value : null;
+    const svcId = (svcSelect && svcSelect.value) ? parseInt(svcSelect.value) : null;
+
     if (!codigo) {
         if (errDiv) { errDiv.textContent = 'Ingresa un código para el cupón.'; errDiv.classList.remove('hidden'); }
         return;
     }
 
     if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
+
+    fetch('backend/cupones_negocio.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            action: 'crear',
+            nombre: nombre,
+            codigo: codigo,
+            porcentaje_descuento: pct,
+            fecha_expiracion: fechaExp,
+            usos_maximos: usos,
+            es_acumulable: esAcumulable,
+            profesional_asignado: profAsignado,
+            id_servicio: svcId
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (typeof showToast === 'function') showToast('Cupón creado exitosamente.', 'success');
+            window.cerrarModalCrearCupon();
+            window.cargarCuponesNegocio();
+        } else {
+            if (errDiv) { errDiv.textContent = data.error || 'No se pudo crear el cupón.'; errDiv.classList.remove('hidden'); }
+        }
+    })
+    .catch(() => {
+        if (errDiv) { errDiv.textContent = 'Error de conexión.'; errDiv.classList.remove('hidden'); }
+    })
+    .finally(() => {
+        if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined text-[16px]">check</span> Guardar Cupón'; }
+    });
+};
 
     fetch('backend/cupones_negocio.php', {
         method: 'POST',
