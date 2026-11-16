@@ -69,18 +69,22 @@
                     <input type="email" name="username" required class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all shadow-2xs font-medium" placeholder="tu@email.com">
                 </div>
             </div>
-            <div>
+            <div id="loginPasswordGroup">
                 <div class="flex justify-between items-center mb-1.5">
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Contraseña</label>
                     <a href="#" onclick="openForgotModal(event)" class="text-xs text-primary font-bold hover:underline transition-all">¿Olvidaste tu contraseña?</a>
                 </div>
                 <div class="relative">
                     <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg">lock</span>
-                    <input type="password" name="password" required class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-11 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all shadow-2xs font-medium" placeholder="••••••••">
+                    <input type="password" id="loginPasswordInput" name="password" required class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-11 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all shadow-2xs font-medium" placeholder="••••••••">
                     <button type="button" onclick="const input = this.previousElementSibling; if(input.type === 'password') { input.type = 'text'; this.firstElementChild.textContent = 'visibility_off'; } else { input.type = 'password'; this.firstElementChild.textContent = 'visibility'; }" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors flex items-center justify-center p-1 rounded-md" title="Mostrar/Ocultar contraseña">
                         <span class="material-symbols-outlined text-[19px]">visibility</span>
                     </button>
                 </div>
+            </div>
+            <div id="firstLoginNoticeBox" class="hidden p-3.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-900 text-xs space-y-1">
+                <p class="font-extrabold flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-purple-600">verified_user</span> Primer ingreso de profesional detectado</p>
+                <p class="text-purple-800/90 leading-relaxed">Por ser tu primer acceso, no debes ingresar contraseña aquí. Presioná <strong>Configurar mi contraseña</strong> para crear tu clave personal.</p>
             </div>
             <div id="loginMessage" class="hidden p-3 rounded-lg text-xs font-semibold bg-red-50 border border-red-200 text-red-700 text-center" role="alert" aria-live="assertive"></div>
             <button type="submit" id="btnSubmit" class="w-full bg-gradient-to-r from-primary to-secondary hover:from-[#b90d3e] hover:to-[#e5780d] text-white py-3 rounded-lg font-bold text-sm sm:text-base mt-2 shadow-2xs hover:brightness-105 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer">

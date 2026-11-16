@@ -15,8 +15,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['username'] ?? '');
     $input_password = trim($_POST['password'] ?? '');
 
-    if (empty($email) || empty($input_password)) {
-        echo json_encode(['success' => false, 'error' => 'Por favor, completa todos los campos.']);
+    if (!empty($_POST['check_first_login'])) {
+        if (empty($email)) {
+            echo json_encode(['success' => true, 'first_login' => false]);
+            exit;
+        }
+        try {
+            $stmtChk = $pdo->prepare("SELECT nombre_completo, debe_cambiar_pass FROM usuarios WHERE LOWER(TRIM(email)) = LOWER(:email) LIMIT 1");
+            $stmtChk->execute(['email' => $email]);
+            $uChk = $stmtChk->fetch(PDO::FETCH_ASSOC);
+            echo json_encode([
+                'success' => true,
+                'first_login' => ($uChk && (int)($uChk['debe_cambiar_pass'] ?? 0) === 1),
+                'nombre' => ($uChk && (int)($uChk['debe_cambiar_pass'] ?? 0) === 1) ? ($uChk['nombre_completo'] ?? '') : ''
+            ]);
+        } catch (Throwable $eChk) {
+            echo json_encode(['success' => true, 'first_login' => false]);
+        }
+        exit;
+    }
+
+    if (empty($email)) {
+        echo json_encode(['success' => false, 'error' => 'Por favor, ingresá tu correo electrónico.']);
         exit;
     }
 
@@ -99,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } catch (Throwable $eFirst) { $firstUser = null; }
 
         if ($firstUser && (int)($firstUser['debe_cambiar_pass'] ?? 0) === 1) {
-            $passOk = !empty($firstUser['password']) && password_verify($input_password, (string)$firstUser['password']);
+            $passOk = !empty($input_password) && !empty($firstUser['password']) && password_verify($input_password, (string)$firstUser['password']);
             if ($passOk) {
                 // Conoce la contraseña asignada: se considera establecida y continúa el login normal
                 try { $pdo->prepare("UPDATE usuarios SET debe_cambiar_pass = 0 WHERE id = ?")->execute([$firstUser['id']]); } catch (Throwable $eUpd) {}
@@ -116,6 +136,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
                 exit;
             }
+        }
+
+        if (empty($input_password)) {
+            echo json_encode(['success' => false, 'error' => 'Por favor, ingresá tu contraseña.']);
+            exit;
         }
 
         $sql = "SELECT u.id, u.nombre_completo, u.password, u.email, pn.id_negocio, pn.rol_en_local, pn.permisos, n.plan, n.nombre_fantasia 

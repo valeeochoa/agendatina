@@ -4381,11 +4381,11 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
             --color-botones: ${btnColor};
         }
 
-        /* 1. Fondo del Body de la página completa (Color secundario súper sutil por defecto) */
+        /* 1. Fondo del Body de la página completa (Color secundario sutil visible por defecto) */
         html, body {
             min-height: 100vh !important;
-            background-color: ${finalBg ? finalBg : `color-mix(in srgb, ${sColor} 9%, #ffffff)`} !important;
-            background-image: ${finalBg ? 'none' : `radial-gradient(at 0% 0%, color-mix(in srgb, ${sColor} 10%, transparent) 0px, transparent 52%), radial-gradient(at 100% 100%, color-mix(in srgb, ${pColor} 5%, transparent) 0px, transparent 52%)`} !important;
+            background-color: ${finalBg ? finalBg : `color-mix(in srgb, ${sColor} 16%, #ffffff)`} !important;
+            background-image: ${finalBg ? 'none' : `radial-gradient(at 0% 0%, color-mix(in srgb, ${sColor} 18%, transparent) 0px, transparent 55%), radial-gradient(at 100% 100%, color-mix(in srgb, ${pColor} 8%, transparent) 0px, transparent 55%)`} !important;
             background-attachment: fixed !important;
         }
 
@@ -4438,7 +4438,7 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
             color: ${sColor} !important;
         }
 
-        /* 1.f. Dashboard del Cliente: Cards de Módulos con Color Primario */
+        /* 1.f. Dashboard del Cliente: Cards de Módulos con Color Primario (manteniendo colores propios de los íconos) */
         .dash-card {
             background-color: color-mix(in srgb, ${pColor} 7%, #ffffff) !important;
             border-color: color-mix(in srgb, ${pColor} 28%, #e2e8f0) !important;
@@ -4450,12 +4450,6 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
         }
         .dash-card .card-accent {
             background-color: ${pColor} !important;
-        }
-        .dash-card .w-9.h-9,
-        .dash-card .w-8.h-8,
-        .dash-card .w-10.h-10 {
-            background-color: color-mix(in srgb, ${pColor} 15%, #ffffff) !important;
-            color: ${pColor} !important;
         }
         .dash-card span.text-sm.font-bold,
         .dash-card span.text-\\[11px\\].font-bold {

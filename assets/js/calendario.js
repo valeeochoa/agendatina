@@ -5341,14 +5341,14 @@ function checkAdminCalendarSession(config = null) {
     });
 }
 
-// Ocultar pantalla de carga de seguridad tras 800ms para garantizar visibilidad del header
+// Ocultar pantalla de carga de seguridad tras 250ms para garantizar visibilidad inmediata del calendario y footer
 setTimeout(() => {
     const gl = document.getElementById('globalLoader');
     if (gl) {
         gl.classList.add('opacity-0');
-        setTimeout(() => gl.classList.add('hidden'), 200);
+        setTimeout(() => gl.classList.add('hidden'), 150);
     }
-}, 800);
+}, 250);
 
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
     setTimeout(checkAdminCalendarSession, 50);

@@ -516,6 +516,20 @@
                         document.getElementById('perfilColoresBox')?.classList.add('hidden');
                         document.getElementById('perfilEstadoPagoCard')?.classList.add('hidden');
                         document.getElementById('perfilDemoNoticeCard')?.classList.add('hidden');
+                        document.getElementById('perfilSuscripcionCol')?.classList.add('hidden');
+
+                        const mainCol = document.getElementById('perfilMainCol');
+                        if (mainCol) {
+                            mainCol.classList.remove('lg:col-span-6', 'space-y-6');
+                            mainCol.classList.add('lg:col-span-12', 'grid', 'grid-cols-1', 'lg:grid-cols-2', 'gap-6', 'items-start');
+                        }
+                        ['perfilNombre', 'perfilEmail', 'perfilPassActual', 'perfilPassNueva', 'perfilPassConfirmar'].forEach(inpId => {
+                            const inp = document.getElementById(inpId);
+                            if (inp) {
+                                inp.classList.remove('py-3.5', 'rounded-2xl');
+                                inp.classList.add('py-2.5', 'rounded-xl');
+                            }
+                        });
                     }
                 }
                 if(data.business) {

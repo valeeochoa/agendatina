@@ -359,11 +359,21 @@ try {
             }
         }
 
-        // Obtener la lista de servicios activos del negocio (con cupo_maximo y precios_paquetes_json)
+        // Obtener la lista de servicios activos habilitados para Cupos/Alumnos (y propios si es profesional)
         $servicios = [];
         try {
-            $stmtServ = $pdo->prepare("SELECT id, nombre_servicio AS nombre, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo, precios_paquetes_json FROM servicios WHERE id_negocio = :id_negocio ORDER BY orden ASC, id DESC");
-            $stmtServ->execute(['id_negocio' => $id_negocio]);
+            $sqlServ = "SELECT id, nombre_servicio AS nombre, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo, precios_paquetes_json, profesional, tipo_servicio 
+                        FROM servicios 
+                        WHERE id_negocio = :id_negocio 
+                          AND (tipo_servicio = 'alumnos' OR COALESCE(cupo_maximo, capacidad, 1) > 1)";
+            $paramsServ = ['id_negocio' => $id_negocio];
+            if ($isProf && !empty($profSessionName)) {
+                $sqlServ .= " AND LOWER(TRIM(profesional)) = LOWER(TRIM(:prof_nom))";
+                $paramsServ['prof_nom'] = $profSessionName;
+            }
+            $sqlServ .= " ORDER BY orden ASC, id DESC";
+            $stmtServ = $pdo->prepare($sqlServ);
+            $stmtServ->execute($paramsServ);
             $servicios = $stmtServ->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $eServ) {}
 
@@ -479,7 +489,9 @@ try {
             'plan' => $plan_negocio,
             'negocio_ruta' => $negocio_ruta,
             'negocio_nombre' => $negocio_nombre,
-            'clases_semana_count' => $clases_semana_count
+            'clases_semana_count' => $clases_semana_count,
+            'is_prof' => $isProf,
+            'prof_name' => $profSessionName
         ]);
         exit;
     }
@@ -815,6 +827,36 @@ try {
             $serviciosJson = $currCliente ? ($currCliente['servicios_pases_json'] ?? null) : null;
             $serviciosList = $serviciosJson ? json_decode($serviciosJson, true) : null;
 
+            $checkServId = $targetServId;
+            if (!$checkServId && is_array($serviciosList) && count($serviciosList) > 0) {
+                $checkServId = (int)($serviciosList[0]['id_servicio'] ?? 0);
+            }
+            if (!$checkServId && !empty($currCliente['id_servicio'])) {
+                $checkServId = (int)$currCliente['id_servicio'];
+            }
+            if ($checkServId) {
+                $stmtChkSrv = $pdo->prepare("SELECT id, profesional, tipo_servicio, COALESCE(cupo_maximo, capacidad, 1) AS cupo FROM servicios WHERE id = :sid AND id_negocio = :id_neg LIMIT 1");
+                $stmtChkSrv->execute(['sid' => $checkServId, 'id_neg' => $id_negocio]);
+                $srvRow = $stmtChkSrv->fetch(PDO::FETCH_ASSOC);
+                if (!$srvRow || (($srvRow['tipo_servicio'] ?? '') !== 'alumnos' && (int)($srvRow['cupo'] ?? 1) <= 1)) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'error' => 'Solo podés cargar pases en servicios configurados para Cupos/Alumnos.']);
+                    exit;
+                }
+                if ($isProf && !empty($profSessionName)) {
+                    $srvProf = trim((string)($srvRow['profesional'] ?? ''));
+                    if (strcasecmp($srvProf, trim((string)$profSessionName)) !== 0) {
+                        http_response_code(403);
+                        echo json_encode(['success' => false, 'error' => 'Solo podés cargar pases en tus propios servicios de Cupos/Alumnos.']);
+                        exit;
+                    }
+                }
+            } elseif ($isProf) {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'error' => 'El alumno no tiene asignado un servicio tuyo de Cupos/Alumnos.']);
+                exit;
+            }
+
             // Calcular nuevo vencimiento: renovar a 1 mes desde hoy
             $newVenc = date('Y-m-d', strtotime('+1 month'));
 
@@ -980,6 +1022,29 @@ try {
 
         $id_servicio = $parsedServicios[0]['id_servicio'] ?? null;
         $servicio = $parsedServicios[0]['servicio'] ?? '';
+
+        // Validar que todos los servicios asignados correspondan a Cupos/Alumnos (y sean propios si es profesional)
+        foreach ($parsedServicios as $psItem) {
+            $chkId = !empty($psItem['id_servicio']) ? (int)$psItem['id_servicio'] : 0;
+            if ($chkId > 0) {
+                $stmtChkAssign = $pdo->prepare("SELECT id, profesional, tipo_servicio, COALESCE(cupo_maximo, capacidad, 1) AS cupo FROM servicios WHERE id = :sid AND id_negocio = :id_neg LIMIT 1");
+                $stmtChkAssign->execute(['sid' => $chkId, 'id_neg' => $id_negocio]);
+                $srvAssign = $stmtChkAssign->fetch(PDO::FETCH_ASSOC);
+                if (!$srvAssign || (($srvAssign['tipo_servicio'] ?? '') !== 'alumnos' && (int)($srvAssign['cupo'] ?? 1) <= 1)) {
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'error' => 'Solo podés cargar alumnos en servicios configurados para Cupos/Alumnos.']);
+                    exit;
+                }
+                if ($isProf && !empty($profSessionName)) {
+                    $srvProf = trim((string)($srvAssign['profesional'] ?? ''));
+                    if (strcasecmp($srvProf, trim((string)$profSessionName)) !== 0) {
+                        http_response_code(403);
+                        echo json_encode(['success' => false, 'error' => 'Solo podés cargar alumnos y pases en tus propios servicios de Cupos/Alumnos.']);
+                        exit;
+                    }
+                }
+            }
+        }
         $pases = $totalDisp;
         $pases_totales = $totalTot;
         $fecha_vencimiento = $maxVenc ?: ($autoRenovarVenc ? date('Y-m-d', strtotime('+1 month')) : null);

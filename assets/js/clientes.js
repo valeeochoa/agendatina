@@ -2,6 +2,8 @@ let allClientes = [];
 let allServicios = [];
 let filtroActual = 'todos';
 let isPremiumAccount = true;
+let isProfUsuario = false;
+let profNombreUsuario = '';
 let currentPlanName = 'Simple';
 let negocioRutaUnica = '';
 let negocioNombreUnico = '';
@@ -19,6 +21,8 @@ function cargarClientes() {
                 allClientes = data.data || [];
                 allServicios = data.servicios || [];
                 isPremiumAccount = data.is_premium !== undefined ? data.is_premium : true;
+                isProfUsuario = !!data.is_prof;
+                profNombreUsuario = data.prof_name || '';
                 currentPlanName = data.plan || 'Simple';
                 negocioRutaUnica = data.negocio_ruta || '';
                 negocioNombreUnico = data.negocio_nombre || '';
@@ -783,11 +787,12 @@ function openModalAddPases(id, nombreOverride = null) {
 
     let targetServId = null;
 
-    if (Array.isArray(sList) && sList.length > 1) {
+    const visibleServList = isProfUsuario ? sList.filter(s => allServicios.some(a => String(a.id) === String(s.id_servicio))) : sList;
+    if (Array.isArray(visibleServList) && visibleServList.length > 1) {
         // Alumno con múltiples servicios asignados: mostrar selector de servicio
         if (selectorContainer && selectServ) {
             let optsHtml = '';
-            sList.forEach((s, idx) => {
+            visibleServList.forEach((s, idx) => {
                 const sNom = s.servicio || (allServicios.find(x => x.id == s.id_servicio)?.nombre || `Servicio ${idx + 1}`);
                 const pDisp = s.pases_disponibles ?? 0;
                 const pTot = s.pases_totales ?? pDisp;
@@ -795,14 +800,16 @@ function openModalAddPases(id, nombreOverride = null) {
             });
             selectServ.innerHTML = optsHtml;
             selectorContainer.classList.remove('hidden');
-            targetServId = sList[0].id_servicio;
+            targetServId = visibleServList[0].id_servicio;
         }
     } else {
         if (selectorContainer) selectorContainer.classList.add('hidden');
         if (sList.length === 1 && sList[0].id_servicio) {
-            targetServId = sList[0].id_servicio;
+            targetServId = visibleServList[0].id_servicio;
         } else {
-            targetServId = cliente.id_servicio || null;
+            if (!isProfUsuario || (cliente.id_servicio && allServicios.some(a => String(a.id) === String(cliente.id_servicio)))) {
+                targetServId = cliente.id_servicio || null;
+            }
         }
     }
 
@@ -916,6 +923,9 @@ function renderAddPasesUI(cliente, targetServId) {
                     </button>
                 </div>
             `;
+        } else if (isProfUsuario && !serv) {
+            containerBotones.innerHTML = `<div class="col-span-2 p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-center"><p class="text-xs text-amber-900 font-bold">Solo podés cargar pases en tus propios servicios configurados para Cupos/Alumnos.</p></div>`;
+            return;
         } else if (botones.length === 0) {
             botonesHtml += `
                 <div class="col-span-2 p-3 bg-slate-50 border border-slate-200 rounded-xl mb-1 text-center">

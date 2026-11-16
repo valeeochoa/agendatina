@@ -66,6 +66,66 @@ document.addEventListener('DOMContentLoaded', () => {
             if (event.persisted) checkExistingLoginSession();
         });
 
+        const loginEmailInput = loginForm.querySelector('input[name="username"]');
+        const loginPassGroup = document.getElementById('loginPasswordGroup');
+        const loginPassInput = document.getElementById('loginPasswordInput') || loginForm.querySelector('input[name="password"]');
+        const firstLoginNotice = document.getElementById('firstLoginNoticeBox');
+        const btnSubmitEl = document.getElementById('btnSubmit');
+
+        const toggleFirstLoginMode = (isFirstLogin) => {
+            if (isFirstLogin) {
+                if (loginPassGroup) loginPassGroup.classList.add('hidden');
+                if (loginPassInput) {
+                    loginPassInput.required = false;
+                    loginPassInput.disabled = true;
+                    loginPassInput.value = '';
+                }
+                if (firstLoginNotice) firstLoginNotice.classList.remove('hidden');
+                if (btnSubmitEl) {
+                    btnSubmitEl.innerHTML = '<span>Configurar mi contraseña</span><span class="material-symbols-outlined text-lg">lock_reset</span>';
+                }
+            } else {
+                if (loginPassGroup) loginPassGroup.classList.remove('hidden');
+                if (loginPassInput) {
+                    loginPassInput.required = true;
+                    loginPassInput.disabled = false;
+                }
+                if (firstLoginNotice) firstLoginNotice.classList.add('hidden');
+                if (btnSubmitEl) {
+                    btnSubmitEl.innerHTML = '<span>Ingresar al sistema</span><span class="material-symbols-outlined text-lg">arrow_forward</span>';
+                }
+            }
+        };
+
+        let firstLoginCheckTimer = null;
+        const checkFirstLoginByEmail = (emailVal) => {
+            const cleanEmail = (emailVal || '').trim();
+            if (!cleanEmail || !cleanEmail.includes('@')) {
+                toggleFirstLoginMode(false);
+                return;
+            }
+            const fd = new FormData();
+            fd.append('check_first_login', '1');
+            fd.append('username', cleanEmail);
+            fetch('backend/login.php', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(d => {
+                    if ((loginEmailInput?.value || '').trim().toLowerCase() === cleanEmail.toLowerCase()) {
+                        toggleFirstLoginMode(Boolean(d && d.first_login));
+                    }
+                })
+                .catch(() => {});
+        };
+
+        if (loginEmailInput) {
+            loginEmailInput.addEventListener('blur', () => checkFirstLoginByEmail(loginEmailInput.value));
+            loginEmailInput.addEventListener('change', () => checkFirstLoginByEmail(loginEmailInput.value));
+            loginEmailInput.addEventListener('input', () => {
+                clearTimeout(firstLoginCheckTimer);
+                firstLoginCheckTimer = setTimeout(() => checkFirstLoginByEmail(loginEmailInput.value), 350);
+            });
+        }
+
         loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
             const btnSubmit = document.getElementById('btnSubmit');
