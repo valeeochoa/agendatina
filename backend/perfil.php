@@ -65,32 +65,23 @@ try {
         exit;
     }
 
-    if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_negocio'])) {
+    // Si hay user_id en sesión pero id_negocio quedó vacío o desincronizado, recuperarlo desde personal_negocio
+    require_once __DIR__ . '/helpers/permisos_helper.php';
+    if (isset($_SESSION['user_id']) && empty($_SESSION['id_negocio'])) {
+        sincronizarPermisosSesion($pdo, null, $_SESSION['user_id']);
+    }
+
+    if (!isset($_SESSION['user_id']) || empty($_SESSION['id_negocio'])) {
         session_write_close();
         if (ob_get_length()) ob_clean();
         echo json_encode(['success' => false, 'error' => 'No autorizado. Inicia sesión.']);
         exit;
     }
 
-    $id_usuario = $_SESSION['user_id'];
-    $id_negocio = $_SESSION['id_negocio'];
-
-    // Sincronizar siempre el rol y permisos reales desde personal_negocio
-    $userRole = 'profesional';
-    $pnPermsRaw = null;
-    try {
-        $stmtPn = $pdo->prepare("SELECT rol_en_local, permisos FROM personal_negocio WHERE id_usuario = ? AND id_negocio = ? LIMIT 1");
-        $stmtPn->execute([$id_usuario, $id_negocio]);
-        $pnRow = $stmtPn->fetch(PDO::FETCH_ASSOC);
-        if ($pnRow && !empty($pnRow['rol_en_local'])) {
-            $userRole = $pnRow['rol_en_local'];
-            $pnPermsRaw = $pnRow['permisos'];
-        } else {
-            $userRole = $_SESSION['rol_en_local'] ?? 'admin';
-        }
-    } catch (Throwable $ePn) {
-        $userRole = $_SESSION['rol_en_local'] ?? 'admin';
-    }
+    $id_usuario = (int)$_SESSION['user_id'];
+    $ctxPerfil = sincronizarPermisosSesion($pdo, (int)$_SESSION['id_negocio'], $id_usuario);
+    $id_negocio = (int)$ctxPerfil['id_negocio'];
+    $userRole = $ctxPerfil['rol_en_local'];
     $_SESSION['rol_en_local'] = $userRole;
 
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -128,19 +119,10 @@ try {
         $stmtU->execute([$id_usuario]);
         $user = $stmtU->fetch(PDO::FETCH_ASSOC);
 
-        require_once __DIR__ . '/helpers/permisos_helper.php';
-        $defaultProfPerms = obtenerPermisosPorDefecto('profesional');
-        $defaultAdminPerms = obtenerPermisosPorDefecto('admin');
-
         if ($user) {
             $user['rol'] = $userRole;
             $user['rol_en_local'] = $userRole;
-            if ($userRole === 'admin') {
-                $user['permisos'] = $defaultAdminPerms;
-            } else {
-                $parsedPerms = !empty($pnPermsRaw) ? json_decode($pnPermsRaw, true) : ($_SESSION['permisos'] ?? null);
-                $user['permisos'] = normalizarPermisos($parsedPerms, 'profesional');
-            }
+            $user['permisos'] = $ctxPerfil['permisos'];
             $_SESSION['permisos'] = $user['permisos'];
         }
 

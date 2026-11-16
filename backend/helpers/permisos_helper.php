@@ -83,23 +83,36 @@ if (!function_exists('normalizarPermisos')) {
 
 if (!function_exists('sincronizarPermisosSesion')) {
     function sincronizarPermisosSesion($pdo, $id_negocio = null, $id_usuario = null) {
-        $uid = $id_usuario ?: ($_SESSION['user_id'] ?? null);
-        $nid = $id_negocio ?: ($_SESSION['id_negocio'] ?? null);
+        $uid = (int)($id_usuario ?: ($_SESSION['user_id'] ?? 0));
+        $nid = (int)($id_negocio ?: ($_SESSION['id_negocio'] ?? 0));
         $rol = $_SESSION['rol_en_local'] ?? 'admin';
         $rawPerms = $_SESSION['permisos'] ?? [];
         $nombre = $_SESSION['nombre_completo'] ?? '';
 
-        if ($uid && $nid) {
+        if ($uid > 0) {
             try {
-                $stmt = $pdo->prepare("SELECT pn.rol_en_local, pn.permisos, u.nombre_completo FROM personal_negocio pn JOIN usuarios u ON u.id = pn.id_usuario WHERE pn.id_negocio = ? AND pn.id_usuario = ? LIMIT 1");
-                $stmt->execute([$nid, $uid]);
-                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                $row = null;
+                if ($nid > 0) {
+                    $stmt = $pdo->prepare("SELECT pn.id_negocio, pn.rol_en_local, pn.permisos, u.nombre_completo FROM personal_negocio pn JOIN usuarios u ON u.id = pn.id_usuario WHERE pn.id_negocio = ? AND pn.id_usuario = ? LIMIT 1");
+                    $stmt->execute([$nid, $uid]);
+                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                }
+
+                // Fallback si id_negocio estaba en 0 o desincronizado respecto a personal_negocio
+                if (!$row) {
+                    $stmtFb = $pdo->prepare("SELECT pn.id_negocio, pn.rol_en_local, pn.permisos, u.nombre_completo FROM personal_negocio pn JOIN usuarios u ON u.id = pn.id_usuario WHERE pn.id_usuario = ? ORDER BY (pn.rol_en_local = 'admin') DESC, pn.id DESC LIMIT 1");
+                    $stmtFb->execute([$uid]);
+                    $row = $stmtFb->fetch(PDO::FETCH_ASSOC);
+                }
+
                 if ($row) {
+                    $nid = (int)$row['id_negocio'];
                     $rol = $row['rol_en_local'] ?: 'profesional';
                     $rawPerms = !empty($row['permisos']) ? json_decode($row['permisos'], true) : [];
                     if (!empty($row['nombre_completo'])) {
                         $nombre = $row['nombre_completo'];
                     }
+                    $_SESSION['id_negocio'] = $nid;
                     $_SESSION['rol_en_local'] = $rol;
                     $_SESSION['nombre_completo'] = $nombre;
                 }
@@ -110,6 +123,7 @@ if (!function_exists('sincronizarPermisosSesion')) {
         $_SESSION['permisos'] = $normPerms;
 
         return [
+            'id_negocio' => $nid,
             'rol_en_local' => $rol,
             'is_prof' => ($rol === 'profesional'),
             'permisos' => $normPerms,

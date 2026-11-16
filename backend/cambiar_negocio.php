@@ -1,12 +1,11 @@
 <?php
-session_start();
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/conexion.php';
 
 $inputData = json_decode(file_get_contents('php://input'), true) ?: $_POST;
 $id_negocio = (int)($inputData['id_negocio'] ?? 0);
 
-$user_id = $_SESSION['user_id'] ?? $_SESSION['pending_user_id'] ?? null;
+$user_id = (int)($inputData['user_id'] ?? $_SESSION['pending_user_id'] ?? $_SESSION['user_id'] ?? 0);
 
 if (!$user_id || !$id_negocio) {
     http_response_code(401);
@@ -50,17 +49,23 @@ try {
     }
 
     require_once __DIR__ . '/helpers/permisos_helper.php';
-    $defaultProfPerms = obtenerPermisosPorDefecto('profesional');
-    $defaultAdminPerms = obtenerPermisosPorDefecto('admin');
-
-    if ($biz['rol_en_local'] === 'admin') {
-        $_SESSION['permisos'] = $defaultAdminPerms;
-    } else {
-        $_SESSION['permisos'] = normalizarPermisos($biz['permisos'] ?? null, 'profesional');
-    }
+    $ctxSw = sincronizarPermisosSesion($pdo, $_SESSION['id_negocio'], $_SESSION['user_id']);
 
     session_write_close();
-    echo json_encode(['success' => true, 'redirect' => 'dashboard.html', 'nombre_negocio' => $biz['nombre_fantasia']]);
+    echo json_encode([
+        'success' => true,
+        'redirect' => 'dashboard.html',
+        'nombre_negocio' => $biz['nombre_fantasia'],
+        'rol' => $ctxSw['rol_en_local'],
+        'permisos' => $ctxSw['permisos'],
+        'user' => [
+            'id' => (int)$_SESSION['user_id'],
+            'nombre_completo' => $ctxSw['nombre_completo'],
+            'rol' => $ctxSw['rol_en_local'],
+            'rol_en_local' => $ctxSw['rol_en_local'],
+            'permisos' => $ctxSw['permisos']
+        ]
+    ]);
     exit;
 
 } catch (Exception $e) {

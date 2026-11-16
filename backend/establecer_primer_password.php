@@ -1,7 +1,8 @@
 <?php
-session_start();
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/conexion.php';
+
+unset($_SESSION['is_demo'], $_SESSION['demo_negocio_id'], $_SESSION['ruta_negocio'], $_SESSION['user_id'], $_SESSION['id_negocio'], $_SESSION['rol_en_local'], $_SESSION['permisos']);
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
@@ -106,17 +107,23 @@ try {
         $_SESSION['plan'] = $plan;
 
         require_once __DIR__ . '/helpers/permisos_helper.php';
-        $defaultProfPerms = obtenerPermisosPorDefecto('profesional');
-        $defaultAdminPerms = obtenerPermisosPorDefecto('admin');
-
-        if ($rol_en_local === 'admin') {
-            $_SESSION['permisos'] = $defaultAdminPerms;
-        } else {
-            $_SESSION['permisos'] = normalizarPermisos($biz['permisos'] ?? null, 'profesional');
-        }
+        $ctxFirst = sincronizarPermisosSesion($pdo, $id_negocio, $user['id']);
 
         session_write_close();
-        echo json_encode(['success' => true, 'redirect' => 'dashboard.html']);
+        echo json_encode([
+            'success' => true,
+            'redirect' => 'dashboard.html',
+            'rol' => $ctxFirst['rol_en_local'],
+            'permisos' => $ctxFirst['permisos'],
+            'user' => [
+                'id' => (int)$user['id'],
+                'nombre_completo' => $ctxFirst['nombre_completo'],
+                'email' => $email,
+                'rol' => $ctxFirst['rol_en_local'],
+                'rol_en_local' => $ctxFirst['rol_en_local'],
+                'permisos' => $ctxFirst['permisos']
+            ]
+        ]);
         exit;
     }
 

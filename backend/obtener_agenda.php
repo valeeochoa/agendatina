@@ -1,5 +1,4 @@
 <?php
-session_start();
 header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/conexion.php';
@@ -86,6 +85,7 @@ try {
     $profesional_filter = "";
     require_once __DIR__ . '/helpers/permisos_helper.php';
     $ctx = sincronizarPermisosSesion($pdo, $_SESSION['id_negocio'] ?? null, $_SESSION['user_id'] ?? null);
+    session_write_close();
     $isProf = $ctx['is_prof'];
     $permisos = $ctx['permisos'];
     $miNombre = trim($ctx['nombre_completo']);

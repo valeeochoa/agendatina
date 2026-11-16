@@ -1,6 +1,6 @@
 <?php
-session_start();
 header('Content-Type: application/json; charset=utf-8');
+require_once __DIR__ . '/conexion.php';
 
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_negocio'])) {
     http_response_code(403);
@@ -10,7 +10,6 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['id_negocio'])) {
 
 $id_negocio = (int)$_SESSION['id_negocio'];
 $userId = (int)$_SESSION['user_id'];
-require_once __DIR__ . '/conexion.php';
 
 // Detectar rol y datos del usuario en la sesión o en personal_negocio
 $userRole = $_SESSION['rol_en_local'] ?? 'admin';

@@ -949,8 +949,8 @@ window.logoutDashboard = logout;
 window.currentWebData = window.currentWebData || {};
 
 function loadDashboardData() {
-    return Promise.all([
-        fetch('backend/perfil.php')
+    const fetchPerfilWithRetry = async () => {
+        const doFetch = () => fetch('backend/perfil.php')
             .then(async res => {
                 const text = await res.text();
                 try {
@@ -959,7 +959,18 @@ function loadDashboardData() {
                     console.error('Error PHP en perfil.php (Dashboard):', text);
                     return { success: false, error: 'Respuesta inválida de perfil.php' };
                 }
-            }).catch(err => ({ success: false, error: err.message })),
+            }).catch(err => ({ success: false, error: err.message }));
+
+        let resPerfil = await doFetch();
+        if (!resPerfil || !resPerfil.success) {
+            await new Promise(r => setTimeout(r, 250));
+            resPerfil = await doFetch();
+        }
+        return resPerfil;
+    };
+
+    return Promise.all([
+        fetchPerfilWithRetry(),
         fetch('backend/guardar_web.php')
             .then(async res => {
                 const text = await res.text();
@@ -1132,7 +1143,9 @@ function loadDashboardData() {
                 cardCalendario.href = isWeekly ? 'calendarioSemanal.html' : 'calendarioMensual.html';
             }
 
-            if (cardAgenda && cardWeb) {
+            const isProfUser = (window.currentUserData.rol === 'profesional' || window.currentUserData.rol_en_local === 'profesional');
+
+            if (!isProfUser && cardAgenda && cardWeb) {
                 cardAgenda.style.display = 'flex';
                 cardWeb.style.display = 'flex';
                 if (cardClientes) cardClientes.style.display = 'flex';
@@ -1211,7 +1224,11 @@ function loadDashboardData() {
             // --- ONBOARDING WIDGET (TUTORIAL & TOUR VIRTUAL) ---
             const onboardingWidget = document.getElementById('onboardingWidget');
             if (onboardingWidget) {
-                let hasConfig = webData.dias_trabajo && webData.dias_trabajo.trim() !== '';
+                if (isProfUser) {
+                    onboardingWidget.classList.add('hidden');
+                    onboardingWidget.style.display = 'none';
+                } else {
+                    let hasConfig = webData.dias_trabajo && webData.dias_trabajo.trim() !== '';
                 let hasServices = Array.isArray(services) && services.length > 0;
                 let hasTurnos = Array.isArray(turnos) && turnos.length > 0;
 
@@ -1273,6 +1290,7 @@ function loadDashboardData() {
                             if (link) link.style.display = 'none';
                         }
                     }
+                }
                 }
             }
 
@@ -3800,6 +3818,14 @@ window.closeReusableReceiptModal = function() {
 
 // Ocultar reportes de error y contacto para cuentas de demostración (Demo)
 document.addEventListener('DOMContentLoaded', () => {
+    const curPathInit = (window.location.pathname || '').toLowerCase();
+    const isAuthScreen = curPathInit.includes('login.html') || curPathInit.includes('registro.html') || curPathInit.includes('reset_password.html');
+    const isDashboardScreen = curPathInit.endsWith('dashboard.html') || curPathInit.endsWith('/dashboard');
+
+    if (isAuthScreen) {
+        return;
+    }
+
     try {
         const cachedBizName = localStorage.getItem('cached_business_name');
         if (cachedBizName) {
@@ -3824,35 +3850,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    fetch('backend/perfil.php')
-        .then(res => res.json())
-        .then(data => {
-            const isDemoUser = !!(data.success && data.business && (
-                data.business.is_demo === true || data.business.is_demo === 1 || data.business.is_demo === '1' ||
-                data.business.ruta === 'demo' || (data.user && data.user.email && data.user.email.includes('demo'))
-            ));
-            if (isDemoUser) {
-                sessionStorage.setItem('is_demo_user', 'true');
-            } else {
-                sessionStorage.removeItem('is_demo_user');
-                sessionStorage.removeItem('agendatina_demo_alert');
-            }
-            applyDemoButtonVisibility(isDemoUser);
-        })
-        .catch(() => {
-            const isDemo = (sessionStorage.getItem('is_demo_user') === 'true' || sessionStorage.getItem('agendatina_demo_alert') === 'true');
-            applyDemoButtonVisibility(isDemo);
-        });
+    if (!isDashboardScreen) {
+        fetch('backend/perfil.php')
+            .then(res => res.json())
+            .then(data => {
+                const isDemoUser = !!(data.success && data.business && (
+                    data.business.is_demo === true || data.business.is_demo === 1 || data.business.is_demo === '1' ||
+                    data.business.ruta === 'demo' || (data.user && data.user.email && data.user.email.includes('demo'))
+                ));
+                if (isDemoUser) {
+                    sessionStorage.setItem('is_demo_user', 'true');
+                } else {
+                    sessionStorage.removeItem('is_demo_user');
+                    sessionStorage.removeItem('agendatina_demo_alert');
+                }
+                applyDemoButtonVisibility(isDemoUser);
+            })
+            .catch(() => {
+                const isDemo = (sessionStorage.getItem('is_demo_user') === 'true' || sessionStorage.getItem('agendatina_demo_alert') === 'true');
+                applyDemoButtonVisibility(isDemo);
+            });
 
-    checkAdminGlobalSession();
+        checkAdminGlobalSession();
+    }
 });
-
-// Auto-ejecución inmediata por seguridad
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setTimeout(checkAdminGlobalSession, 100);
-} else {
-    document.addEventListener('DOMContentLoaded', checkAdminGlobalSession);
-}
 
 function checkAdminGlobalSession(config = null) {
     // En páginas de Calendario (Mensual / Semanal), delegar el control del navbar exclusivamente a calendario.js
@@ -5618,5 +5639,9 @@ window.setModalScrollLock = function(isLocked) {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+    const pLow = (window.location.pathname || '').toLowerCase();
+    if (pLow.includes('login.html') || pLow.includes('registro.html') || pLow.includes('reset_password.html')) {
+        return;
+    }
     window.checkUserMultipleBusinesses();
 });

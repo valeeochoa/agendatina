@@ -1,7 +1,6 @@
 <?php
 ob_start();
 ini_set('display_errors', 0);
-session_start();
 header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/conexion.php';
@@ -253,6 +252,8 @@ try {
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     $sessionNegocioId = $_SESSION['id_negocio'] ?? null;
+    $sessionUserId = $_SESSION['user_id'] ?? null;
+    $sessionUserRole = $_SESSION['rol_en_local'] ?? null;
 
     // Liberar la sesión para permitir peticiones concurrentes
     session_write_close();
@@ -268,9 +269,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             if ($negocio) {
                 $id_negocio = $negocio['id'];
             }
-        } else if (isset($_SESSION['id_negocio'])) {
-            // Si el administrador está logueado y no pasa la ruta en la URL, usamos su sesión
-            $id_negocio = $_SESSION['id_negocio'];
+        } else if ($sessionNegocioId) {
+            // Si el administrador/profesional está logueado y no pasa la ruta en la URL, usamos su sesión
+            $id_negocio = $sessionNegocioId;
         }
 
         if (!$id_negocio) {
@@ -445,8 +446,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $config['profesionales_json'] = json_encode($profs_array);
 
         // Si el usuario en sesión es profesional, superponer sus horarios de agenda personal
-        $userRole = $_SESSION['rol_en_local'] ?? null;
-        $userId = $_SESSION['user_id'] ?? null;
+        $userRole = $sessionUserRole;
+        $userId = $sessionUserId;
         if ($userId && $id_negocio) {
             try {
                 $stmtCheckPn = $pdo->prepare("SELECT rol_en_local, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, tipo_calendario, datos_transferencia FROM personal_negocio WHERE id_negocio = :id AND id_usuario = :uid LIMIT 1");

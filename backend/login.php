@@ -2,7 +2,7 @@
 require_once __DIR__ . '/conexion.php';
 header('Content-Type: application/json; charset=utf-8');
 
-// Por defecto, asegurarnos de que no esté en modo demo al intentar iniciar sesión real
+// Por defecto, asegurarnos de que no esté en modo demo ni queden residuos de sesiones previas al intentar iniciar sesión real
 unset($_SESSION['is_demo']);
 unset($_SESSION['demo_negocio_id']);
 unset($_SESSION['ruta_negocio']);
@@ -11,6 +11,7 @@ if (isset($_COOKIE['agendatina_demo'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    unset($_SESSION['user_id'], $_SESSION['id_negocio'], $_SESSION['rol_en_local'], $_SESSION['permisos'], $_SESSION['pending_user_id'], $_SESSION['nombre_completo'], $_SESSION['nombre_negocio']);
     $email = trim($_POST['username'] ?? '');
     $input_password = trim($_POST['password'] ?? '');
 
@@ -122,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 LEFT JOIN personal_negocio pn ON u.id = pn.id_usuario
                 LEFT JOIN negocios n ON pn.id_negocio = n.id
                 WHERE LOWER(TRIM(u.email)) = LOWER(:email)
-                ORDER BY u.id DESC";
+                ORDER BY (pn.id_negocio IS NOT NULL AND pn.id_negocio > 0) DESC, (pn.rol_en_local = 'profesional') DESC, u.id DESC";
                 
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['email' => $email]);
@@ -177,19 +178,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Reseteamos los intentos si el login es exitoso
         $pdo->prepare("DELETE FROM login_attempts WHERE ip_address = :ip")->execute(['ip' => $ip_address]);
 
-        // Consultar todos los negocios vinculados a este usuario (sin GROUP BY para máxima compatibilidad con SQL Mode)
+        // Consultar todos los negocios vinculados a este usuario y deduplicar por id_negocio
         $allBiz = [];
         try {
             $stmtBiz = $pdo->prepare("
-                SELECT pn.id_negocio, pn.rol_en_local, pn.permisos, n.nombre_fantasia, n.plan, cw.url_logo AS logo
+                SELECT pn.id_negocio, pn.rol_en_local, pn.permisos, n.nombre_fantasia, n.plan
                 FROM personal_negocio pn
                 JOIN negocios n ON pn.id_negocio = n.id
-                LEFT JOIN configuracion_web cw ON n.id = cw.id_negocio
                 WHERE pn.id_usuario = :user_id
                 ORDER BY (pn.rol_en_local = 'admin') DESC, pn.id_negocio ASC
             ");
             $stmtBiz->execute(['user_id' => $validUser['id']]);
-            $allBiz = $stmtBiz->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $rawBiz = $stmtBiz->fetchAll(PDO::FETCH_ASSOC) ?: [];
+            $seenBiz = [];
+            foreach ($rawBiz as $rb) {
+                $bid = (int)$rb['id_negocio'];
+                if ($bid > 0 && !isset($seenBiz[$bid])) {
+                    $seenBiz[$bid] = $rb;
+                }
+            }
+            $allBiz = array_values($seenBiz);
         } catch (Throwable $eBiz) {
             $allBiz = [];
         }
@@ -235,17 +243,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['plan'] = $bizTarget['plan'] ?? $validUser['plan'];
 
             require_once __DIR__ . '/helpers/permisos_helper.php';
-            $defaultProfPerms = obtenerPermisosPorDefecto('profesional');
-            $defaultAdminPerms = obtenerPermisosPorDefecto('admin');
-
-            if ($_SESSION['rol_en_local'] === 'admin') {
-                $_SESSION['permisos'] = $defaultAdminPerms;
-            } else {
-                $_SESSION['permisos'] = normalizarPermisos($bizTarget['permisos'] ?? null, 'profesional');
-            }
+            $ctxLogin = sincronizarPermisosSesion($pdo, $_SESSION['id_negocio'], $_SESSION['user_id']);
             
             session_write_close();
-            echo json_encode(['success' => true, 'plan' => $_SESSION['plan']]);
+            echo json_encode([
+                'success' => true,
+                'plan' => $_SESSION['plan'],
+                'rol' => $ctxLogin['rol_en_local'],
+                'permisos' => $ctxLogin['permisos'],
+                'user' => [
+                    'id' => (int)$_SESSION['user_id'],
+                    'nombre_completo' => $ctxLogin['nombre_completo'],
+                    'email' => $validUser['email'] ?? $email,
+                    'rol' => $ctxLogin['rol_en_local'],
+                    'rol_en_local' => $ctxLogin['rol_en_local'],
+                    'permisos' => $ctxLogin['permisos']
+                ]
+            ]);
             exit;
         }
 

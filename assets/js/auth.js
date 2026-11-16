@@ -83,6 +83,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (data.success) {
                         sessionStorage.setItem('agendatina_session', 'active');
+                        if (data.user || data.rol) {
+                            sessionStorage.setItem('agendatina_logged_user', JSON.stringify(data.user || {
+                                rol: data.rol,
+                                rol_en_local: data.rol,
+                                permisos: data.permisos || {}
+                            }));
+                        }
                         
                         if (data.redirect) {
                             window.location.href = data.redirect;
@@ -221,6 +228,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (data.success) {
                         sessionStorage.setItem('agendatina_session', 'active');
+                        if (data.user || data.rol) {
+                            sessionStorage.setItem('agendatina_logged_user', JSON.stringify(data.user || {
+                                rol: data.rol,
+                                rol_en_local: data.rol,
+                                permisos: data.permisos || {}
+                            }));
+                        }
                         window.location.href = data.redirect || 'dashboard.html';
                     } else {
                         msg.textContent = data.error || 'Error al guardar la contraseña.';
@@ -328,6 +342,13 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(data => {
             if (data.success) {
                 sessionStorage.setItem('agendatina_session', 'active');
+                if (data.user || data.rol) {
+                    sessionStorage.setItem('agendatina_logged_user', JSON.stringify(data.user || {
+                        rol: data.rol,
+                        rol_en_local: data.rol,
+                        permisos: data.permisos || {}
+                    }));
+                }
                 window.location.href = data.redirect || 'dashboard.html';
             } else {
                 if (cardEl) cardEl.classList.remove('opacity-50', 'pointer-events-none');

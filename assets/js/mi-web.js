@@ -22,6 +22,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             if (data && data.success && data.business) {
+                // Verificación inmediata de permisos para profesional antes de renderizar la vista
+                if (data.user && (data.user.rol === 'profesional' || data.user.rol_en_local === 'profesional')) {
+                    const perms = data.user.permisos || {};
+                    const canWeb = (parseInt(perms.web) === 1 || perms.web === true);
+                    if (!canWeb) {
+                        sessionStorage.setItem('agendatina_perm_notice', 'No tienes permiso para editar la página web.');
+                        window.location.href = 'dashboard.html';
+                        return;
+                    }
+                }
+
                 const b = data.business;
                 const isDemo = (b.is_demo === true) || (data.user && data.user.email === 'demo@agendatina.site') || (b.ruta === 'demo');
                 
