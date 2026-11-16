@@ -163,6 +163,10 @@
                     <span class="material-symbols-outlined text-[20px]">logout</span>
                     <span class="hidden md:inline">Salir</span>
                 </button>
+                <button type="button" id="studentBellBtn" onclick="toggleStudentBell(event)" class="relative p-2 rounded-xl bg-slate-100 hover:bg-orange-50 text-slate-700 hover:text-[#FC8712] border border-slate-200/80 transition-colors flex items-center justify-center cursor-pointer" aria-label="Notificaciones de cupos" aria-expanded="false">
+                    <span class="material-symbols-outlined text-[22px]">notifications</span>
+                    <span id="studentBellBadge" class="hidden absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#D11149] text-white text-[10px] font-black flex items-center justify-center shadow-xs">0</span>
+                </button>
                 <button type="button" id="studentHamburgerBtn" onclick="toggleStudentMenu(event)" class="p-2 rounded-xl bg-slate-100 hover:bg-orange-50 text-slate-700 hover:text-[#FC8712] border border-slate-200/80 transition-colors flex items-center justify-center cursor-pointer" aria-label="Abrir menú del portal" aria-expanded="false">
                     <span id="studentHamburgerIcon" class="material-symbols-outlined text-[22px]">menu</span>
                 </button>
@@ -173,6 +177,20 @@
                     <span class="material-symbols-outlined text-[16px]">arrow_back</span>
                     <span class="hidden sm:inline">Volver al</span> Inicio
                 </a>
+            </div>
+        </div>
+
+        <!-- Panel Campanita de Notificaciones de Cupos -->
+        <div id="studentBellDropdown" class="hidden absolute top-16 right-4 sm:right-14 w-80 max-w-[calc(100vw-2rem)] bg-white border border-slate-200 rounded-2xl shadow-2xl p-3 z-50" style="background-color: #ffffff;">
+            <div class="flex items-center justify-between px-2 pb-2.5 mb-2 border-b border-slate-100">
+                <span class="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[17px] text-[#FC8712]">notifications_active</span>
+                    <span>Alertas de Cupos</span>
+                </span>
+                <button type="button" onclick="markAllStudentNotifsRead()" class="text-[11px] font-bold text-[#D11149] hover:underline cursor-pointer">Marcar leídas</button>
+            </div>
+            <div id="studentBellList" class="space-y-2 max-h-80 overflow-y-auto">
+                <div class="text-center py-6 text-xs text-slate-400 font-semibold">No tenés notificaciones nuevas.</div>
             </div>
         </div>
 
@@ -503,6 +521,9 @@
                 </div>
             </div>
 
+            <!-- CONTENIDO PESTAÑA EXCLUSIVA: DETALLE DE CLASE / TURNO -->
+            <div id="tabContentDetalleClase" class="space-y-4 hidden"></div>
+
             <!-- CONTENIDO PESTAÑA 3: MIS PASES Y MEMBRESÍAS -->
             <div id="tabContentPagos" class="space-y-4 hidden">
                 <div class="bg-white/95 backdrop-blur-xl border border-slate-200/90 p-6 sm:p-8 rounded-3xl shadow-xl space-y-4">
@@ -753,6 +774,7 @@
 
         function toggleStudentMenu(e) {
             if (e) e.stopPropagation();
+            closeStudentBell();
             const menu = document.getElementById('studentHamburgerMenu');
             const btn = document.getElementById('studentHamburgerBtn');
             const icon = document.getElementById('studentHamburgerIcon');
@@ -774,6 +796,26 @@
             }
         }
 
+        function toggleStudentBell(e) {
+            if (e) e.stopPropagation();
+            closeStudentMenu();
+            const dd = document.getElementById('studentBellDropdown');
+            const btn = document.getElementById('studentBellBtn');
+            if (!dd) return;
+            const willOpen = dd.classList.contains('hidden');
+            dd.classList.toggle('hidden', !willOpen);
+            if (btn) btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        }
+
+        function closeStudentBell() {
+            const dd = document.getElementById('studentBellDropdown');
+            const btn = document.getElementById('studentBellBtn');
+            if (dd && !dd.classList.contains('hidden')) {
+                dd.classList.add('hidden');
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+            }
+        }
+
         function navigateFromMenu(tabName) {
             closeStudentMenu();
             switchTab(tabName);
@@ -788,27 +830,38 @@
                     closeStudentMenu();
                 }
             }
+            const bellDd = document.getElementById('studentBellDropdown');
+            const bellBtn = document.getElementById('studentBellBtn');
+            if (bellDd && !bellDd.classList.contains('hidden')) {
+                if (!bellDd.contains(e.target) && (!bellBtn || !bellBtn.contains(e.target))) {
+                    closeStudentBell();
+                }
+            }
         });
 
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') closeStudentMenu();
+            if (e.key === 'Escape') {
+                closeStudentMenu();
+                closeStudentBell();
+            }
         });
 
         function switchTab(tabName) {
-            const tabs = ['clases', 'reservar', 'historial', 'pagos', 'perfil'];
+            const tabs = ['clases', 'reservar', 'historial', 'pagos', 'perfil', 'detalleClase'];
             tabs.forEach(t => {
-                const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
-                const content = document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
-                if (btn && content) {
-                    if (t === tabName) {
-                        btn.classList.add('active');
-                        content.classList.remove('hidden');
-                    } else {
-                        btn.classList.remove('active');
-                        content.classList.add('hidden');
-                    }
+                const cap = t.charAt(0).toUpperCase() + t.slice(1);
+                const btn = document.getElementById(`tabBtn${cap}`);
+                const content = document.getElementById(`tabContent${cap}`);
+                if (content) {
+                    content.classList.toggle('hidden', t !== tabName);
+                }
+                if (btn) {
+                    btn.classList.toggle('active', t === tabName);
                 }
             });
+            if (tabName !== 'detalleClase') {
+                window.activeDetailSlotKey = null;
+            }
 
             // Aislar banner de bienvenida solo en Inicio ('clases')
             const heroBanner = document.getElementById('studentHeroBanner');
@@ -828,6 +881,7 @@
                 }
             });
             closeStudentMenu();
+            closeStudentBell();
 
             if (tabName === 'reservar' && studentNegocios.length > 0) {
                 const sel = document.getElementById('studentSelectNegocio');
@@ -1240,7 +1294,9 @@
             document.getElementById('profileEmail').value = cliente.email || sessionStorage.getItem('agendatina_alumno_email') || '';
             document.getElementById('profileNombre').value = cliente.nombre || '';
 
-            loadMisClases(cliente.email || sessionStorage.getItem('agendatina_alumno_email'));
+            const stEmail = cliente.email || sessionStorage.getItem('agendatina_alumno_email');
+            loadMisClases(stEmail);
+            loadStudentWaitlistAndNotifs(stEmail);
             startStudentCalendarPolling();
         }
 
@@ -1253,6 +1309,7 @@
                 const sel = document.getElementById('studentSelectNegocio');
                 const contentRes = document.getElementById('tabContentReservar');
                 if (email) {
+                    loadStudentWaitlistAndNotifs(email);
                     loadMisClases(email).then(() => {
                         if (sel && sel.value && contentRes && !contentRes.classList.contains('hidden')) {
                             loadStudentBusinessCalendar(sel.value, true);
@@ -2153,7 +2210,7 @@
                             const cleanHoraDef5 = String(horaDef5).trim().substring(0, 5);
                             const cleanFechaSlot = String(fechaStr).trim();
 
-                            const isAlreadyEnrolled = allStudentClases.some(c => {
+                            const enrolledTurno = allStudentClases.find(c => {
                                 if (!c || c.estado === 'cancelado') return false;
                                 
                                 // Normalizar fecha de la clase del alumno
@@ -2201,6 +2258,7 @@
 
                                 return matchServ;
                             });
+                            const isAlreadyEnrolled = !!enrolledTurno;
 
                             // 1b. Verificar si el alumno ya tiene OTRA clase a esta misma fecha y hora (en otro servicio)
                             const otherEnrolledClass = allStudentClases.find(c => {
@@ -2355,17 +2413,54 @@
                             }
 
                             const cardSlotId = `slot_${sId}_${fechaStr.replace(/-/g, '')}_${cleanHoraDef5.replace(':', '')}`;
+                            const targetBizId = s.id_negocio || currentNegocio.id_negocio || 0;
+                            const isWaitlistSubscribed = isSlotInWaitlist(targetBizId, fechaStr, cleanHoraDef5, sId, sNombre);
+
+                            window.studentClassSlotsMap = window.studentClassSlotsMap || {};
+                            window.studentClassSlotsMap[cardSlotId] = {
+                                cardSlotId,
+                                ruta,
+                                id_negocio: targetBizId,
+                                negocioNombre: negocioNombreSel,
+                                sId,
+                                sNombre,
+                                icono: (s.icono && !String(s.icono).includes('/')) ? s.icono : 'event_available',
+                                prof,
+                                fechaStr,
+                                dayFormattedFull,
+                                horaDef5,
+                                horaFin5,
+                                cleanHoraDef5,
+                                duracionFmt,
+                                cupoMax,
+                                cuposLibres,
+                                alumnosInscriptos,
+                                isAlreadyEnrolled,
+                                enrolledTurnoId: enrolledTurno ? enrolledTurno.id : null,
+                                cancelacionesRestantes: parseInt(currentNegocio.cancelaciones_restantes ?? currentNegocio.cancelaciones_permitidas ?? 4, 10),
+                                isPastTime,
+                                isAnticipationBlocked,
+                                pasesNegocio,
+                                otherEnrolledClass,
+                                cPri,
+                                cSec,
+                                dayColor
+                            };
+
+                            if (!isAlreadyEnrolled && !isPastTime && cuposLibres <= 0 && isWaitlistSubscribed) {
+                                badgeHtml = `<span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full border bg-indigo-50 text-indigo-700 border-indigo-200">🔔 Aviso activado</span>`;
+                            }
 
                             dayClassesList.push({
                                 time: horaDef5,
                                 html: `
                                     <div class="bg-white border ${cardClass} rounded-2xl p-4 shadow-sm transition-all flex flex-col justify-between gap-3">
-                                        <div onclick="toggleStudentClassDetails('${cardSlotId}')" class="cursor-pointer select-none group">
+                                        <div onclick="openStudentClassDetail('${cardSlotId}')" class="cursor-pointer select-none group">
                                             <div class="flex justify-between items-start gap-2 mb-1">
                                                 <div class="flex items-center gap-2 min-w-0">
                                                     ${(s.icono && !String(s.icono).includes('/')) ? `<span class="material-symbols-outlined text-[18px] shrink-0" style="color: ${cPri};">${s.icono}</span>` : ''}
                                                     <h5 class="font-black text-slate-900 text-sm sm:text-base transition-colors truncate">${sNombre}</h5>
-                                                    <span id="chevron_${cardSlotId}" class="material-symbols-outlined text-slate-400 transition-transform duration-200 text-[20px] shrink-0">expand_more</span>
+                                                    <span class="material-symbols-outlined text-slate-400 group-hover:translate-x-0.5 transition-transform text-[18px] shrink-0" title="Ver detalles de la clase">chevron_right</span>
                                                 </div>
                                                 ${badgeHtml}
                                             </div>
@@ -2379,39 +2474,10 @@
                                                     <span>${prof}</span>
                                                 </span>
                                             </div>
-
-                                            <!-- Acordeón Desplegable con Información Detallada -->
-                                            <div id="details_${cardSlotId}" class="hidden mt-3 pt-3 border-t border-slate-100/90 text-xs space-y-2 bg-slate-50/80 p-3 rounded-xl cursor-default" onclick="event.stopPropagation()">
-                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
-                                                    <div class="bg-white p-2 rounded-lg border border-slate-200/70">
-                                                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Servicio</span>
-                                                        <span class="font-bold text-slate-800">${sNombre}</span>
-                                                    </div>
-                                                    <div class="bg-white p-2 rounded-lg border border-slate-200/70">
-                                                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Fecha y Hora</span>
-                                                        <span class="font-bold text-slate-800">${dayFormattedFull} · ${horaDef5} a ${horaFin5} hs</span>
-                                                    </div>
-                                                    <div class="bg-white p-2 rounded-lg border border-slate-200/70">
-                                                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Profesor / Instructor</span>
-                                                        <span class="font-bold text-slate-800">${prof}</span>
-                                                    </div>
-                                                    <div class="bg-white p-2 rounded-lg border border-slate-200/70">
-                                                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Disponibilidad</span>
-                                                        <span class="font-bold ${cuposLibres > 0 ? 'text-emerald-700' : 'text-red-600'}">${cuposLibres} libres / ${cupoMax} cupos</span>
-                                                    </div>
-                                                </div>
-
-                                                <div class="bg-white p-2.5 rounded-lg border border-slate-200/70">
-                                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
-                                                        <span class="material-symbols-outlined text-[14px]" style="color: ${cSec};">group</span>
-                                                        Personas que ya reservaron (${alumnosInscriptos.length}):
-                                                    </span>
-                                                    ${alumnosInscriptos.length > 0 
-                                                        ? `<div class="flex flex-wrap gap-1.5">${alumnosInscriptos.map(al => `<span class="text-slate-800 px-2 py-0.5 rounded-md text-[11px] font-bold flex items-center gap-1" style="background-color: ${cSec}15; border: 1px solid ${cSec}40;"><span class="material-symbols-outlined text-[12px]" style="color: ${cSec};">person</span>${al}</span>`).join('')}</div>`
-                                                        : `<span class="text-slate-400 italic text-[11px]">Aún no hay alumnos inscriptos en este horario.</span>`
-                                                    }
-                                                </div>
-                                            </div>
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-bold mt-2 opacity-80 group-hover:opacity-100" style="color: ${dayColor};">
+                                                <span>Ver asistentes y detalles</span>
+                                                <span class="material-symbols-outlined text-[14px]">open_in_new</span>
+                                            </span>
                                         </div>
                                         ${buttonHtml}
                                     </div>
@@ -2472,6 +2538,9 @@
                 grid.style.minHeight = '';
                 grid.style.opacity = '';
                 grid.style.pointerEvents = '';
+                if (window.activeDetailSlotKey && window.studentClassSlotsMap && window.studentClassSlotsMap[window.activeDetailSlotKey]) {
+                    renderStudentClassDetailView(window.activeDetailSlotKey);
+                }
                 if (prevScrollY > 0) {
                     requestAnimationFrame(() => window.scrollTo({ top: prevScrollY, behavior: 'instant' }));
                 }
@@ -2482,6 +2551,351 @@
                 grid.style.opacity = '';
                 grid.style.pointerEvents = '';
             });
+        }
+
+        // ============================================================
+        // DETALLE EXCLUSIVO DE CLASE, LISTA DE ESPERA Y CAMPANITA
+        // ============================================================
+        window.studentWaitlistItems = [];
+        window.studentNotifsList = [];
+        window.activeDetailSlotKey = null;
+
+        function isSlotInWaitlist(idNegocio, fechaStr, hora5, sId, sNombre) {
+            if (!Array.isArray(window.studentWaitlistItems)) return false;
+            const cleanH = String(hora5 || '').trim().substring(0, 5);
+            const cleanS = String(sNombre || '').trim().toLowerCase();
+            return window.studentWaitlistItems.some(w => {
+                const matchNeg = parseInt(w.id_negocio, 10) === parseInt(idNegocio, 10);
+                const matchF = String(w.fecha || '').substring(0, 10) === String(fechaStr || '').substring(0, 10);
+                const matchH = String(w.hora || '').substring(0, 5) === cleanH;
+                const matchS = (parseInt(w.id_servicio, 10) > 0 && parseInt(sId, 10) > 0 && parseInt(w.id_servicio, 10) === parseInt(sId, 10))
+                    || (String(w.servicio || '').trim().toLowerCase() === cleanS);
+                return matchNeg && matchF && matchH && matchS;
+            });
+        }
+
+        function loadStudentWaitlistAndNotifs(email) {
+            if (!email) return Promise.resolve();
+            return fetch('backend/cliente_auth.php?action=mis_alertas_cupos&email=' + encodeURIComponent(email))
+                .then(r => r.json())
+                .then(d => {
+                    if (d && d.success) {
+                        window.studentWaitlistItems = Array.isArray(d.waitlist) ? d.waitlist : [];
+                        window.studentNotifsList = Array.isArray(d.notifications) ? d.notifications : [];
+                        renderStudentBellDropdown(d.unread_count || 0);
+                        if (window.activeDetailSlotKey && window.studentClassSlotsMap && window.studentClassSlotsMap[window.activeDetailSlotKey]) {
+                            renderStudentClassDetailView(window.activeDetailSlotKey);
+                        }
+                    }
+                })
+                .catch(() => {});
+        }
+
+        function renderStudentBellDropdown(unreadCount) {
+            const badge = document.getElementById('studentBellBadge');
+            const list = document.getElementById('studentBellList');
+            if (badge) {
+                badge.textContent = unreadCount > 9 ? '9+' : String(unreadCount);
+                badge.classList.toggle('hidden', unreadCount <= 0);
+            }
+            if (!list) return;
+            const notifs = window.studentNotifsList || [];
+            if (notifs.length === 0) {
+                list.innerHTML = `<div class="text-center py-6 text-xs text-slate-400 font-semibold">No tenés notificaciones nuevas.</div>`;
+                return;
+            }
+            list.innerHTML = notifs.map(n => {
+                const isUnread = parseInt(n.leida, 10) === 0;
+                const dateFmt = n.created_at ? new Date(String(n.created_at).replace(' ', 'T')).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+                return `
+                    <button type="button" onclick="openStudentNotifTarget(${n.id})" class="w-full text-left p-3 rounded-xl border transition-all cursor-pointer ${isUnread ? 'bg-orange-50/90 border-orange-200 hover:bg-orange-100/70' : 'bg-slate-50/70 border-slate-100 hover:bg-slate-100'}">
+                        <div class="flex items-start justify-between gap-2">
+                            <span class="text-xs font-black text-slate-900">${n.titulo || 'Aviso de Cupo'}</span>
+                            ${isUnread ? '<span class="w-2 h-2 rounded-full bg-[#D11149] shrink-0 mt-1"></span>' : ''}
+                        </div>
+                        <p class="text-[11px] text-slate-600 font-medium mt-1 leading-snug">${n.mensaje || ''}</p>
+                        <div class="flex items-center justify-between mt-2">
+                            <span class="text-[10px] font-bold text-[#FC8712]">Ver clase y reservar →</span>
+                            <span class="text-[10px] text-slate-400">${dateFmt}</span>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function markAllStudentNotifsRead() {
+            const email = sessionStorage.getItem('agendatina_alumno_email');
+            if (!email) return;
+            fetch('backend/cliente_auth.php?action=marcar_notif_leida', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `email=${encodeURIComponent(email)}&id=all`
+            }).then(() => loadStudentWaitlistAndNotifs(email));
+        }
+
+        function openStudentNotifTarget(notifId) {
+            const email = sessionStorage.getItem('agendatina_alumno_email');
+            const notif = (window.studentNotifsList || []).find(n => parseInt(n.id, 10) === parseInt(notifId, 10));
+            closeStudentBell();
+
+            if (email && notifId) {
+                fetch('backend/cliente_auth.php?action=marcar_notif_leida', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `email=${encodeURIComponent(email)}&id=${encodeURIComponent(notifId)}`
+                }).then(() => loadStudentWaitlistAndNotifs(email));
+            }
+            if (!notif) return;
+
+            const ruta = notif.negocio_ruta || (studentNegocios.find(n => parseInt(n.id_negocio, 10) === parseInt(notif.id_negocio, 10))?.negocio_ruta) || '';
+            const fechaStr = String(notif.fecha || '').substring(0, 10);
+            const hora5 = String(notif.hora || '').substring(0, 5);
+            const targetKey = `slot_${notif.id_servicio}_${fechaStr.replace(/-/g, '')}_${hora5.replace(':', '')}`;
+
+            // Calcular weekOffset respecto a hoy para que la fecha esté cargada
+            if (fechaStr) {
+                const p = fechaStr.split('-').map(Number);
+                const targetDate = new Date(p[0], p[1] - 1, p[2]);
+                const now = new Date();
+                const diffDays = Math.floor((targetDate - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
+                studentWeekOffset = Math.max(0, Math.floor(diffDays / 7));
+            }
+
+            if (ruta) {
+                const sel = document.getElementById('studentSelectNegocio');
+                if (sel) sel.value = ruta;
+            }
+
+            window.activeDetailSlotKey = targetKey;
+            switchTab('detalleClase');
+            window.activeDetailSlotKey = targetKey;
+            const cont = document.getElementById('tabContentDetalleClase');
+            if (cont) {
+                cont.innerHTML = `<div class="bg-white/95 border border-slate-200 p-10 rounded-3xl text-center shadow-xl"><span class="material-symbols-outlined animate-spin text-4xl text-[#FC8712]">sync</span><p class="text-slate-600 font-bold text-sm mt-2">Cargando detalles exclusivos de la clase...</p></div>`;
+            }
+
+            if (ruta) {
+                loadStudentBusinessCalendar(ruta, true);
+                setTimeout(() => {
+                    if (window.studentClassSlotsMap && window.studentClassSlotsMap[targetKey]) {
+                        renderStudentClassDetailView(targetKey);
+                    } else {
+                        // Buscar coincidencia aproximada por fecha y hora
+                        const fallbackKey = Object.keys(window.studentClassSlotsMap || {}).find(k => k.includes(fechaStr.replace(/-/g, '')) && k.endsWith('_' + hora5.replace(':', '')));
+                        if (fallbackKey) {
+                            window.activeDetailSlotKey = fallbackKey;
+                            renderStudentClassDetailView(fallbackKey);
+                        }
+                    }
+                }, 700);
+            }
+        }
+
+        function openStudentClassDetail(cardSlotId) {
+            if (!window.studentClassSlotsMap || !window.studentClassSlotsMap[cardSlotId]) return;
+            window.activeDetailSlotKey = cardSlotId;
+            switchTab('detalleClase');
+            window.activeDetailSlotKey = cardSlotId;
+            renderStudentClassDetailView(cardSlotId);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderStudentClassDetailView(cardSlotId) {
+            const container = document.getElementById('tabContentDetalleClase');
+            const slot = window.studentClassSlotsMap ? window.studentClassSlotsMap[cardSlotId] : null;
+            if (!container || !slot) return;
+
+            const isWaitSubscribed = isSlotInWaitlist(slot.id_negocio, slot.fechaStr, slot.cleanHoraDef5, slot.sId, slot.sNombre);
+            const pctOcupado = slot.cupoMax > 0 ? Math.min(100, Math.round(((slot.cupoMax - slot.cuposLibres) / slot.cupoMax) * 100)) : 0;
+
+            let actionAreaHtml = '';
+            if (slot.isAlreadyEnrolled) {
+                actionAreaHtml = `
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                        <div class="flex-1 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-2xl text-xs font-extrabold flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[20px]">verified</span>
+                            <span>✓ Ya tenés tu lugar reservado en esta clase</span>
+                        </div>
+                        ${(!slot.isPastTime && slot.enrolledTurnoId) ? `
+                            <button type="button" onclick="openCancelModal(${slot.enrolledTurnoId}, ${slot.cancelacionesRestantes})" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-black px-5 py-3 rounded-2xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                <span class="material-symbols-outlined text-[18px]">event_busy</span>
+                                <span>Darme de baja de la clase</span>
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+            } else if (slot.isPastTime) {
+                actionAreaHtml = `
+                    <button disabled class="w-full bg-slate-100 text-slate-400 font-extrabold py-3.5 rounded-2xl text-xs uppercase tracking-wider cursor-not-allowed border border-slate-200 flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">${slot.isAnticipationBlocked ? 'schedule' : 'history'}</span>
+                        <span>${slot.isAnticipationBlocked ? 'Reserva Cerrada (Anticipación)' : 'Horario Finalizado'}</span>
+                    </button>
+                `;
+            } else if (slot.cuposLibres <= 0) {
+                const safeServ = String(slot.sNombre).replace(/'/g, "\\'");
+                actionAreaHtml = `
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                        <div class="flex items-center gap-2 text-xs font-bold text-slate-700">
+                            <span class="material-symbols-outlined text-red-500 text-[20px]">group_off</span>
+                            <span>Esta clase alcanzó su capacidad máxima (${slot.cupoMax} cupos).</span>
+                        </div>
+                        ${isWaitSubscribed ? `
+                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-indigo-50 border border-indigo-200 rounded-xl p-3">
+                                <div class="flex items-center gap-2 text-xs font-extrabold text-indigo-800">
+                                    <span class="material-symbols-outlined text-[19px]">notifications_active</span>
+                                    <span>Aviso activado: te enviaremos un mail y una alerta aquí si alguien se da de baja.</span>
+                                </div>
+                                <button type="button" onclick="toggleWaitlistForSlot('${slot.id_negocio}', '${slot.sId}', '${safeServ}', '${slot.fechaStr}', '${slot.cleanHoraDef5}', true, this)" class="text-xs font-extrabold text-indigo-700 hover:underline px-3 py-1.5 rounded-lg bg-white border border-indigo-200 shrink-0 cursor-pointer">
+                                    Cancelar aviso
+                                </button>
+                            </div>
+                        ` : `
+                            <button type="button" onclick="toggleWaitlistForSlot('${slot.id_negocio}', '${slot.sId}', '${safeServ}', '${slot.fechaStr}', '${slot.cleanHoraDef5}', false, this)" class="w-full text-white font-black py-3.5 px-5 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer hover:opacity-90" style="background-color: ${slot.cSec}; box-shadow: 0 4px 12px ${slot.cSec}35;">
+                                <span class="material-symbols-outlined text-[19px]">notification_add</span>
+                                <span>Avisarme por mail si se libera un cupo</span>
+                            </button>
+                        `}
+                    </div>
+                `;
+            } else if (slot.pasesNegocio <= 0) {
+                actionAreaHtml = `
+                    <button disabled class="w-full bg-slate-200 text-slate-500 font-extrabold py-3.5 rounded-2xl text-xs uppercase tracking-wider cursor-not-allowed flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">lock</span>
+                        <span>Sin pases disponibles en este negocio</span>
+                    </button>
+                `;
+            } else if (slot.otherEnrolledClass) {
+                const safeOther = String(slot.otherEnrolledClass.servicio || 'otra clase').replace(/'/g, "\\'");
+                const safeServ = String(slot.sNombre).replace(/'/g, "\\'");
+                actionAreaHtml = `
+                    <button onclick="showStudentClassConflictModal('${safeOther}', '${safeServ}', '${slot.cleanHoraDef5}', '${slot.fechaStr}')" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-extrabold py-3.5 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]">schedule</span>
+                        <span>Tenés otra clase a esta hora</span>
+                    </button>
+                `;
+            } else {
+                const safeServ = String(slot.sNombre).replace(/'/g, "\\'");
+                const safeProf = String(slot.prof).replace(/'/g, "\\'");
+                actionAreaHtml = `
+                    <button onclick="bookStudentClass('${slot.id_negocio}', '${slot.sId}', '${safeServ}', '${slot.fechaStr}', '${slot.horaDef5}', '${safeProf}', this)" class="w-full hover:opacity-90 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer" style="background-color: ${slot.cPri}; box-shadow: 0 4px 14px ${slot.cPri}35;">
+                        <span class="material-symbols-outlined text-[19px]">add_task</span>
+                        <span>Agendarme en esta Clase</span>
+                    </button>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-3xl shadow-xl overflow-hidden">
+                    <div class="p-4 sm:p-6 flex flex-wrap items-center justify-between gap-3" style="background: linear-gradient(90deg, ${slot.cPri}14, ${slot.cSec}10); border-bottom: 1.5px solid ${slot.cPri}25;">
+                        <button type="button" onclick="switchTab('reservar')" class="inline-flex items-center gap-1.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-extrabold shadow-2xs transition-colors cursor-pointer">
+                            <span class="material-symbols-outlined text-[17px]">arrow_back</span>
+                            <span>Volver al Calendario</span>
+                        </button>
+                        <span class="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-white border" style="color: ${slot.cPri}; border-color: ${slot.cPri}35;">
+                            Detalle de la Clase
+                        </span>
+                    </div>
+
+                    <div class="p-5 sm:p-8 space-y-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-md shrink-0" style="background-color: ${slot.cPri};">
+                                    <span class="material-symbols-outlined text-[26px]">${slot.icono}</span>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 block">${slot.negocioNombre}</span>
+                                    <h3 class="text-xl sm:text-2xl font-black text-slate-900 leading-tight">${slot.sNombre}</h3>
+                                </div>
+                            </div>
+                            <span class="text-xs font-black px-3.5 py-1.5 rounded-full border w-fit ${slot.cuposLibres > 0 ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}">
+                                ${slot.cuposLibres > 0 ? `${slot.cuposLibres} de ${slot.cupoMax} cupos libres` : `COMPLETO (${slot.cupoMax}/${slot.cupoMax})`}
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Fecha</span>
+                                <span class="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-[17px]" style="color: ${slot.cPri};">calendar_today</span>
+                                    ${slot.dayFormattedFull}
+                                </span>
+                            </div>
+                            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Horario</span>
+                                <span class="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-[17px]" style="color: ${slot.cSec};">schedule</span>
+                                    ${slot.horaDef5} a ${slot.horaFin5} hs (${slot.duracionFmt})
+                                </span>
+                            </div>
+                            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Profesional / Instructor</span>
+                                <span class="text-sm font-extrabold text-slate-900 flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-[17px]" style="color: ${slot.cPri};">person</span>
+                                    ${slot.prof}
+                                </span>
+                            </div>
+                            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5">
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Ocupación</span>
+                                <span class="text-sm font-extrabold text-slate-900 block">${slot.cupoMax - slot.cuposLibres} / ${slot.cupoMax} inscriptos</span>
+                                <div class="w-full h-1.5 bg-slate-200 rounded-full mt-2 overflow-hidden">
+                                    <div class="h-full rounded-full transition-all" style="width: ${pctOcupado}%; background-color: ${slot.cuposLibres > 0 ? slot.cPri : '#ef4444'};"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-4 sm:p-5">
+                            <h4 class="text-xs font-black uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[18px]" style="color: ${slot.cSec};">group</span>
+                                <span>Quiénes van a asistir (${slot.alumnosInscriptos.length})</span>
+                            </h4>
+                            ${slot.alumnosInscriptos.length > 0 ? `
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                    ${slot.alumnosInscriptos.map(al => `
+                                        <div class="bg-white border px-3 py-2 rounded-xl text-xs font-bold text-slate-800 flex items-center gap-2 shadow-2xs" style="border-color: ${slot.cSec}35;">
+                                            <span class="w-6 h-6 rounded-full flex items-center justify-center text-white text-[11px] font-black shrink-0" style="background-color: ${slot.cSec};">${String(al).trim().charAt(0).toUpperCase()}</span>
+                                            <span class="truncate">${al}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : `
+                                <p class="text-xs text-slate-400 italic font-medium">Aún no hay alumnos inscriptos en este horario. ¡Podés ser el primero!</p>
+                            `}
+                        </div>
+
+                        <div class="pt-2 border-t border-slate-100">
+                            ${actionAreaHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleWaitlistForSlot(idNegocio, idServicio, servicioNombre, fecha, hora, isCurrentlySubscribed, btnEl) {
+            const email = sessionStorage.getItem('agendatina_alumno_email');
+            if (!email) return showStudentToast('Sesión no válida.', 'error');
+            const nombre = document.getElementById('userNameDisplay')?.textContent || '';
+            const action = isCurrentlySubscribed ? 'desuscribir_lista_espera' : 'suscribir_lista_espera';
+            if (btnEl) btnEl.disabled = true;
+
+            fetch(`backend/cliente_auth.php?action=${action}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `email=${encodeURIComponent(email)}&id_negocio=${encodeURIComponent(idNegocio)}&id_servicio=${encodeURIComponent(idServicio)}&servicio=${encodeURIComponent(servicioNombre)}&fecha=${encodeURIComponent(fecha)}&hora=${encodeURIComponent(hora)}&nombre=${encodeURIComponent(nombre)}`
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d && d.success) {
+                    showStudentToast(d.message || 'Actualizado.', 'success');
+                    loadStudentWaitlistAndNotifs(email).then(() => {
+                        const sel = document.getElementById('studentSelectNegocio');
+                        if (sel && sel.value) loadStudentBusinessCalendar(sel.value, true);
+                    });
+                } else {
+                    showStudentToast((d && d.error) || 'No se pudo actualizar el aviso.', 'error');
+                }
+            })
+            .catch(() => showStudentToast('Error de conexión.', 'error'))
+            .finally(() => { if (btnEl) btnEl.disabled = false; });
         }
 
         // RESERVAR CLASE CON 1-CLICK CON PASE DE ALUMNO

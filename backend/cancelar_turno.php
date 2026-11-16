@@ -34,6 +34,11 @@ try {
         $pdo->exec("ALTER TABLE turnos ADD COLUMN fecha_eliminado DATETIME DEFAULT NULL");
     }
 
+    // Obtener datos del turno antes de moverlo a papelera para notificar lista de espera si corresponde
+    $stmtInfo = $pdo->prepare("SELECT id_negocio, id_servicio, servicio, fecha, hora FROM turnos WHERE id = :id LIMIT 1");
+    $stmtInfo->execute(['id' => $id]);
+    $turnoInfo = $stmtInfo->fetch(PDO::FETCH_ASSOC);
+
     // Mover a papelera: estado = 'eliminado' + timestamp
     $stmt = $pdo->prepare(
         "UPDATE turnos SET estado = 'eliminado', fecha_eliminado = NOW() 
@@ -42,6 +47,12 @@ try {
     $stmt->execute(['id' => $id, 'id_negocio' => $id_negocio]);
 
     if ($stmt->rowCount() > 0) {
+        if ($turnoInfo) {
+            try {
+                require_once __DIR__ . '/helpers/cupo_waitlist_helper.php';
+                notificarCupoLiberado($pdo, $turnoInfo['id_negocio'], $turnoInfo['id_servicio'] ?? 0, $turnoInfo['servicio'] ?? '', $turnoInfo['fecha'] ?? '', $turnoInfo['hora'] ?? '');
+            } catch (\Throwable $eWait) {}
+        }
         echo json_encode(['success' => true]);
     } else {
         // Si no actualiza por id_negocio, intentar sin él (compatibilidad con datos viejos)

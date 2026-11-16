@@ -877,7 +877,7 @@ try {
             exit;
         }
 
-        $stmtCheck = $pdo->prepare("SELECT id, id_negocio, servicio, profesional, estado, fecha, hora, cliente_nombre, cliente_celular FROM turnos WHERE id = :id AND (LOWER(TRIM(cliente_celular)) = :email OR LOWER(cliente_nombre) LIKE :emailLike OR LOWER(TRIM(cliente_nombre)) = :emailExact)");
+        $stmtCheck = $pdo->prepare("SELECT id, id_negocio, id_servicio, servicio, profesional, estado, fecha, hora, cliente_nombre, cliente_celular FROM turnos WHERE id = :id AND (LOWER(TRIM(cliente_celular)) = :email OR LOWER(cliente_nombre) LIKE :emailLike OR LOWER(TRIM(cliente_nombre)) = :emailExact)");
         $stmtCheck->execute(['id' => $turnoId, 'email' => $email, 'emailLike' => '%' . $email . '%', 'emailExact' => $email]);
         $turno = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
@@ -931,6 +931,14 @@ try {
         }
 
         $pdo->prepare("UPDATE turnos SET estado = 'cancelado' WHERE id = ?")->execute([$turnoId]);
+
+        // Avisar por mail y campanita a alumnos en lista de espera para este turno
+        try {
+            require_once __DIR__ . '/helpers/cupo_waitlist_helper.php';
+            notificarCupoLiberado($pdo, $turno['id_negocio'], $turno['id_servicio'] ?? 0, $turno['servicio'] ?? '', $fechaClean, substr($turno['hora'], 0, 5));
+        } catch (\Throwable $eWait) {
+            error_log("Error notificando lista de espera al cancelar: " . $eWait->getMessage());
+        }
 
         // Notificar al negocio de la cancelación
         try {
@@ -1311,6 +1319,134 @@ try {
         }
 
         echo json_encode(['success' => true, 'message' => '¡Inscripción confirmada con éxito! Tu clase ha sido agendada.']);
+        exit;
+    }
+
+    // ---------------------------------------------------------
+    // 8. Lista de Espera / Alertas de Cupos Liberados
+    // ---------------------------------------------------------
+    if ($action === 'suscribir_lista_espera') {
+        require_once __DIR__ . '/helpers/cupo_waitlist_helper.php';
+        ensureCupoWaitlistTables($pdo);
+
+        $email = strtolower(trim($_POST['email'] ?? $_SESSION['cliente_email'] ?? ''));
+        $id_negocio = (int)($_POST['id_negocio'] ?? 0);
+        $id_servicio = (int)($_POST['id_servicio'] ?? 0);
+        $servicio = trim($_POST['servicio'] ?? '');
+        $fecha = trim($_POST['fecha'] ?? '');
+        $hora = substr(trim($_POST['hora'] ?? ''), 0, 5);
+        $nombre = trim($_POST['nombre'] ?? $_SESSION['cliente_nombre'] ?? '');
+
+        if (empty($email) || !$id_negocio || empty($servicio) || empty($fecha) || empty($hora)) {
+            echo json_encode(['success' => false, 'error' => 'Faltan datos para activar el aviso de cupo.']);
+            exit;
+        }
+
+        // Evitar duplicados activos
+        $stmtChk = $pdo->prepare("SELECT id, notificado FROM cupos_lista_espera WHERE id_negocio = :id_neg AND fecha = :fecha AND LEFT(hora, 5) = :hora AND LOWER(TRIM(email)) = :email AND ((:id_serv > 0 AND id_servicio = :id_serv2) OR LOWER(TRIM(servicio)) = LOWER(TRIM(:serv))) LIMIT 1");
+        $stmtChk->execute([
+            'id_neg' => $id_negocio,
+            'fecha' => $fecha,
+            'hora' => $hora,
+            'email' => $email,
+            'id_serv' => $id_servicio,
+            'id_serv2' => $id_servicio,
+            'serv' => $servicio
+        ]);
+        $ex = $stmtChk->fetch(PDO::FETCH_ASSOC);
+        if ($ex) {
+            if ((int)$ex['notificado'] === 1) {
+                $pdo->prepare("UPDATE cupos_lista_espera SET notificado = 0, created_at = NOW() WHERE id = ?")->execute([$ex['id']]);
+            }
+        } else {
+            $pdo->prepare("INSERT INTO cupos_lista_espera (id_negocio, id_servicio, servicio, fecha, hora, email, nombre, notificado) VALUES (?, ?, ?, ?, ?, ?, ?, 0)")
+                ->execute([$id_negocio, $id_servicio, $servicio, $fecha, $hora, $email, $nombre]);
+        }
+
+        echo json_encode(['success' => true, 'subscribed' => true, 'message' => '¡Listo! Te avisaremos por mail y en tu campanita si se libera un cupo.']);
+        exit;
+    }
+
+    if ($action === 'desuscribir_lista_espera') {
+        require_once __DIR__ . '/helpers/cupo_waitlist_helper.php';
+        ensureCupoWaitlistTables($pdo);
+
+        $email = strtolower(trim($_POST['email'] ?? $_SESSION['cliente_email'] ?? ''));
+        $id_negocio = (int)($_POST['id_negocio'] ?? 0);
+        $id_servicio = (int)($_POST['id_servicio'] ?? 0);
+        $servicio = trim($_POST['servicio'] ?? '');
+        $fecha = trim($_POST['fecha'] ?? '');
+        $hora = substr(trim($_POST['hora'] ?? ''), 0, 5);
+
+        if (empty($email) || !$id_negocio || empty($fecha) || empty($hora)) {
+            echo json_encode(['success' => false, 'error' => 'Datos insuficientes.']);
+            exit;
+        }
+
+        $pdo->prepare("DELETE FROM cupos_lista_espera WHERE id_negocio = :id_neg AND fecha = :fecha AND LEFT(hora, 5) = :hora AND LOWER(TRIM(email)) = :email AND ((:id_serv > 0 AND id_servicio = :id_serv2) OR LOWER(TRIM(servicio)) = LOWER(TRIM(:serv)))")
+            ->execute([
+                'id_neg' => $id_negocio,
+                'fecha' => $fecha,
+                'hora' => $hora,
+                'email' => $email,
+                'id_serv' => $id_servicio,
+                'id_serv2' => $id_servicio,
+                'serv' => $servicio
+            ]);
+
+        echo json_encode(['success' => true, 'subscribed' => false, 'message' => 'Aviso cancelado.']);
+        exit;
+    }
+
+    if ($action === 'mis_alertas_cupos') {
+        require_once __DIR__ . '/helpers/cupo_waitlist_helper.php';
+        ensureCupoWaitlistTables($pdo);
+
+        $email = strtolower(trim($_GET['email'] ?? $_POST['email'] ?? $_SESSION['cliente_email'] ?? ''));
+        if (empty($email)) {
+            echo json_encode(['success' => false, 'waitlist' => [], 'notifications' => [], 'unread_count' => 0]);
+            exit;
+        }
+
+        $stmtW = $pdo->prepare("SELECT id_negocio, id_servicio, servicio, fecha, LEFT(hora, 5) AS hora FROM cupos_lista_espera WHERE LOWER(TRIM(email)) = :email AND notificado = 0");
+        $stmtW->execute(['email' => $email]);
+        $waitlist = $stmtW->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmtN = $pdo->prepare("SELECT id, id_negocio, negocio_ruta, negocio_nombre, id_servicio, servicio, fecha, LEFT(hora, 5) AS hora, titulo, mensaje, leida, created_at FROM notificaciones_alumnos WHERE LOWER(TRIM(email)) = :email ORDER BY id DESC LIMIT 20");
+        $stmtN->execute(['email' => $email]);
+        $notifications = $stmtN->fetchAll(PDO::FETCH_ASSOC);
+
+        $unread = 0;
+        foreach ($notifications as $n) {
+            if ((int)$n['leida'] === 0) $unread++;
+        }
+
+        echo json_encode([
+            'success' => true,
+            'waitlist' => $waitlist,
+            'notifications' => $notifications,
+            'unread_count' => $unread
+        ]);
+        exit;
+    }
+
+    if ($action === 'marcar_notif_leida') {
+        require_once __DIR__ . '/helpers/cupo_waitlist_helper.php';
+        ensureCupoWaitlistTables($pdo);
+
+        $email = strtolower(trim($_POST['email'] ?? $_SESSION['cliente_email'] ?? ''));
+        $id = trim($_POST['id'] ?? 'all');
+        if (empty($email)) {
+            echo json_encode(['success' => false]);
+            exit;
+        }
+
+        if ($id === 'all' || $id === '') {
+            $pdo->prepare("UPDATE notificaciones_alumnos SET leida = 1 WHERE LOWER(TRIM(email)) = ?")->execute([$email]);
+        } else {
+            $pdo->prepare("UPDATE notificaciones_alumnos SET leida = 1 WHERE id = ? AND LOWER(TRIM(email)) = ?")->execute([(int)$id, $email]);
+        }
+        echo json_encode(['success' => true]);
         exit;
     }
 
