@@ -1052,10 +1052,6 @@ function cal_renderTimeSlots(preserveSelected = true) {
             }
 
             let spotsText = '';
-            if (selectedCapacidad > 1) {
-                const spotsLeft = Math.max(0, selectedCapacidad - countTaken);
-                spotsText = `<span class="block text-[10px] font-semibold opacity-85 leading-none mt-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full">${spotsLeft} lugares</span>`;
-            }
 
             const clockIcon = '<span class="material-symbols-outlined text-[13px] opacity-70 inline-flex shrink-0">schedule</span>';
             slot.innerHTML = `<div class="flex items-center justify-center gap-1 w-full min-w-0">${clockIcon}<span class="whitespace-nowrap font-extrabold text-xs sm:text-[13px] tracking-tight leading-tight">${time}&nbsp;hs</span></div>${spotsText}`;
@@ -1944,6 +1940,13 @@ function getUniqueProfessionals() {
     return unique;
 }
 
+window.isCalendarService = function(s) {
+    if (!s) return false;
+    if (s.tipo_servicio === 'alumnos') return false;
+    if (!s.tipo_servicio && (parseInt(s.cupo_maximo, 10) > 1 || parseInt(s.capacidad, 10) > 1)) return false;
+    return true;
+};
+
 function fetchServices() {
     const queryParam = negocioSlug ? `?n=${negocioSlug}` : '';
     Promise.all([
@@ -1951,7 +1954,7 @@ function fetchServices() {
         fetchTeamProfessionals()
     ]).then(([servData]) => {
         if (Array.isArray(servData)) {
-            services = servData;
+            services = servData.filter(window.isCalendarService);
         } else {
             services = [];
         }
@@ -1993,35 +1996,46 @@ function checkEmptyServicesNotice() {
 
     const existingModal = document.getElementById('noServicesWarningModal');
     const existingBanner = document.getElementById('noServicesWarningBanner');
+    const weeklyView = document.getElementById('weeklyCalendarView');
+    const monthlyMain = document.getElementById('mainCalendarWrapper');
+    const appRoot = typeof window.getCalendarAppRoot === 'function' ? window.getCalendarAppRoot(negocioSlug) : '';
 
     if (!services || services.length === 0) {
-        // 1. Inyectar Banner visual en la cabecera del calendario
+        if (weeklyView) weeklyView.classList.add('hidden');
+        if (monthlyMain) monthlyMain.classList.add('hidden');
+
+        // 1. Inyectar Banner visual bloqueando el calendario cuando no hay servicios de calendario
         if (!existingBanner) {
             const banner = document.createElement('div');
             banner.id = 'noServicesWarningBanner';
-            banner.className = 'w-full mb-8 p-5 sm:p-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 border-2 border-dashed border-amber-300 dark:border-amber-600/50 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm';
+            banner.className = 'max-w-2xl mx-auto my-10 p-6 sm:p-8 bg-white/95 dark:bg-slate-900/95 border-2 border-dashed border-amber-300 dark:border-amber-600/50 rounded-3xl flex flex-col items-center text-center gap-4 shadow-xl';
             banner.innerHTML = `
-                <div class="flex items-center gap-3.5 text-center sm:text-left">
-                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 dark:bg-amber-900/60 dark:text-amber-300 flex items-center justify-center shrink-0 mx-auto sm:mx-0 shadow-xs">
-                        <span class="material-symbols-outlined text-2xl">warning</span>
-                    </div>
-                    <div>
-                        <h4 class="font-extrabold text-amber-950 dark:text-amber-200 text-sm sm:text-base font-display">Aún no has creado ningún servicio</h4>
-                        <p class="text-xs text-amber-800/90 dark:text-amber-300/80 mt-0.5">Para que tus clientes puedan reservar turnos y ver horarios disponibles, debes dar de alta al menos un servicio.</p>
-                    </div>
+                <div class="w-16 h-16 rounded-2xl bg-white border-2 border-amber-200 text-amber-600 flex items-center justify-center shrink-0 shadow-sm">
+                    <span class="material-symbols-outlined text-4xl">event_busy</span>
+                </div>
+                <div>
+                    <h4 class="font-extrabold text-slate-900 dark:text-white text-lg sm:text-xl font-display">No hay servicios configurados para el Calendario</h4>
+                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
+                        ${isOwnerOrAdmin
+                            ? 'Para acceder y usar el calendario de turnos necesitás tener al menos un servicio configurado con destino <strong>Calendario</strong>. Los servicios exclusivos de <strong>Cupos / Alumnos</strong> se gestionan desde el módulo de Alumnos y no se muestran aquí.'
+                            : 'Este establecimiento aún no tiene servicios disponibles para reservar turnos en el calendario.'}
+                    </p>
                 </div>
                 ${isOwnerOrAdmin ? `
-                    <a href="servicios.html" class="px-5 py-3 bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md shadow-[#d11149]/20 flex items-center justify-center gap-1.5 shrink-0 whitespace-nowrap hover:scale-[1.02] active:scale-95">
-                        <span class="material-symbols-outlined text-[18px]">add_task</span> Crear Mi Primer Servicio
-                    </a>
+                    <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mt-2">
+                        <a href="${appRoot}dashboard.html" class="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-1.5">
+                            <span class="material-symbols-outlined text-[18px]">arrow_back</span> Volver al Panel
+                        </a>
+                        <a href="${appRoot}servicios.html" class="px-6 py-3 bg-[#d11149] hover:bg-[#d11149]/90 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md shadow-[#d11149]/20 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-95">
+                            <span class="material-symbols-outlined text-[18px]">add_task</span> Crear Servicio para Calendario
+                        </a>
+                    </div>
                 ` : ''}
             `;
 
-            const weeklyView = document.getElementById('weeklyCalendarView');
-            const monthlyMain = document.getElementById('mainCalendarWrapper');
-            if (weeklyView) {
-                weeklyView.insertBefore(banner, weeklyView.firstChild);
-            } else if (monthlyMain) {
+            if (weeklyView && weeklyView.parentElement) {
+                weeklyView.parentElement.insertBefore(banner, weeklyView);
+            } else if (monthlyMain && monthlyMain.parentElement) {
                 monthlyMain.parentElement.insertBefore(banner, monthlyMain);
             } else {
                 const header = document.querySelector('header');
@@ -2031,26 +2045,26 @@ function checkEmptyServicesNotice() {
             }
         }
 
-        // 2. Si es Admin o Dueño, mostrar cartel emergente si no se ha descartado en esta sesión
-        if (isOwnerOrAdmin && !sessionStorage.getItem('agendatina_dismiss_empty_services_notice')) {
+        // 2. Si es Admin o Dueño, mostrar modal bloqueante sin permitir bypass al calendario vacío
+        if (isOwnerOrAdmin) {
             if (!existingModal) {
                 const modal = document.createElement('div');
                 modal.id = 'noServicesWarningModal';
                 modal.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[10000] flex items-center justify-center p-4 transition-opacity duration-300';
                 modal.innerHTML = `
                     <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl border border-slate-100 transform scale-100 transition-all relative overflow-hidden">
-                        <div class="w-16 h-16 rounded-3xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                        <div class="w-16 h-16 rounded-3xl bg-white border-2 border-amber-200 text-amber-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
                             <span class="material-symbols-outlined text-4xl">add_task</span>
                         </div>
-                        <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display">¡Crea tu Primer Servicio!</h3>
+                        <h3 class="text-xl font-extrabold text-slate-900 mb-2 font-display">¡Crea tu Primer Servicio de Calendario!</h3>
                         <p class="text-xs sm:text-sm text-slate-600 mb-6 leading-relaxed">
-                            Detectamos que tu negocio todavía no tiene ningún servicio registrado. Para habilitar los turnos y permitir que tus clientes agenden citas en este calendario, primero debes configurar tus servicios.
+                            No tenés ningún servicio configurado para el Calendario (los servicios de Cupos/Alumnos no se muestran aquí). Creá al menos un servicio de calendario para habilitar esta sección.
                         </p>
                         <div class="flex flex-col sm:flex-row gap-3">
-                            <button onclick="dismissEmptyServicesNotice()" class="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-xs transition-colors cursor-pointer">
-                                Ver Calendario
-                            </button>
-                            <a href="servicios.html" class="flex-1 py-3 px-4 bg-[#d11149] hover:bg-[#d11149]/90 text-white font-black rounded-2xl text-xs transition-all shadow-lg shadow-[#d11149]/20 flex items-center justify-center gap-1.5">
+                            <a href="${appRoot}dashboard.html" class="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-xs transition-colors flex items-center justify-center gap-1.5">
+                                <span class="material-symbols-outlined text-[16px]">arrow_back</span> Volver al Panel
+                            </a>
+                            <a href="${appRoot}servicios.html" class="flex-1 py-3 px-4 bg-[#d11149] hover:bg-[#d11149]/90 text-white font-black rounded-2xl text-xs transition-all shadow-lg shadow-[#d11149]/20 flex items-center justify-center gap-1.5">
                                 <span class="material-symbols-outlined text-[16px]">add_task</span> Crear Servicio
                             </a>
                         </div>
@@ -2060,6 +2074,8 @@ function checkEmptyServicesNotice() {
             }
         }
     } else {
+        if (weeklyView) weeklyView.classList.remove('hidden');
+        if (monthlyMain) monthlyMain.classList.remove('hidden');
         if (existingBanner) existingBanner.remove();
         if (existingModal) existingModal.remove();
     }
@@ -3942,21 +3958,6 @@ function selectWeeklyDate(date, preserveSelected = false) {
         if (isAvailable) {
             if (!firstAvailableTime) firstAvailableTime = time;
             let spotsText = '';
-            if (selectedCapacidad > 1) {
-                let maxSpotsTaken = 0;
-                const [h, m] = time.split(':').map(Number);
-                const startMins = h * 60 + m;
-                const endMins = startMins + selectedDuration;
-                for (let curMins = startMins; curMins < endMins; curMins += 30) {
-                    const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
-                    const curM = (curMins % 60).toString().padStart(2, '0');
-                    const subSlotStr = `${curH}:${curM}`;
-                    const countTaken = baseOcupadas.filter(t => t.substring(0, 5) === subSlotStr).length;
-                    if (countTaken > maxSpotsTaken) maxSpotsTaken = countTaken;
-                }
-                const spotsLeft = Math.max(0, selectedCapacidad - maxSpotsTaken);
-                spotsText = `<span class="block text-[10px] font-semibold opacity-85 leading-none mt-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full">${spotsLeft} lugares</span>`;
-            }
             
             const isThisSelected = (prevWeeklyTime && time === prevWeeklyTime);
             if (isThisSelected) {
