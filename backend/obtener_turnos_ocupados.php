@@ -69,7 +69,9 @@ try {
     try { $pdo->query("SELECT reserva_sena_1h FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN reserva_sena_1h TINYINT(1) DEFAULT 0"); } catch (Exception $eCol2) {} }
     try { $pdo->query("SELECT tiempo_entre_turnos FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN tiempo_entre_turnos INT DEFAULT 0"); } catch (Exception $eCol2) {} }
     try { $pdo->query("SELECT anticipacion_cupos_min FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN anticipacion_cupos_min INT DEFAULT 0"); } catch (Exception $eCol2) {} }
-    $stmtConf = $pdo->prepare("SELECT hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json, intervalo_turnos, tiempo_entre_turnos, primer_dia_semana, turnos_simultaneos, modo_reservas, anticipacion_turno_min, anticipacion_cupos_min, usar_cupones_descuento, cupon_descuento_pct, cupon_duracion_horas, reserva_sena_1h, metodos_pago, datos_transferencia, porcentaje_sena, whatsapp_comprobante FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");
+    try { $pdo->query("SELECT color_primario_web FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN color_primario_web VARCHAR(20) DEFAULT '#D11149'"); } catch (Exception $eCol2) {} }
+    try { $pdo->query("SELECT color_secundario_web FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN color_secundario_web VARCHAR(20) DEFAULT '#FC8712'"); } catch (Exception $eCol2) {} }
+    $stmtConf = $pdo->prepare("SELECT color_primario, color_secundario, color_primario_web, color_secundario_web, color_fondo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json, intervalo_turnos, tiempo_entre_turnos, primer_dia_semana, turnos_simultaneos, modo_reservas, anticipacion_turno_min, anticipacion_cupos_min, usar_cupones_descuento, cupon_descuento_pct, cupon_duracion_horas, reserva_sena_1h, metodos_pago, datos_transferencia, porcentaje_sena, whatsapp_comprobante FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");
     $stmtConf->execute(['id_negocio' => $id_negocio]);
     $conf = $stmtConf->fetch(PDO::FETCH_ASSOC);
 
@@ -169,6 +171,9 @@ try {
     }
 
     $ocupados['_config'] = [
+        'color_primario' => !empty($conf['color_primario_web']) ? $conf['color_primario_web'] : (!empty($conf['color_primario']) ? $conf['color_primario'] : '#D11149'),
+        'color_secundario' => !empty($conf['color_secundario_web']) ? $conf['color_secundario_web'] : (!empty($conf['color_secundario']) ? $conf['color_secundario'] : '#FC8712'),
+        'color_fondo' => !empty($conf['color_fondo']) ? $conf['color_fondo'] : '#F8FAFC',
         'hora_apertura' => $hApertura,
         'hora_cierre' => $hCierre,
         'hora_descanso_inicio' => $conf['hora_descanso_inicio'] ?? '',

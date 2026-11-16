@@ -159,9 +159,12 @@
                     </div>
                     <span id="userNameDisplay" class="hidden md:inline text-xs sm:text-sm font-extrabold text-slate-800 max-w-[140px] truncate">Alumno</span>
                 </div>
-                <button onclick="logoutCliente()" class="p-2 text-slate-500 hover:text-red-600 rounded-xl hover:bg-red-50 transition-colors flex items-center gap-1 text-xs font-bold" title="Cerrar Sesión">
+                <button onclick="logoutCliente()" class="hidden sm:flex p-2 text-slate-500 hover:text-red-600 rounded-xl hover:bg-red-50 transition-colors items-center gap-1 text-xs font-bold cursor-pointer" title="Cerrar Sesión">
                     <span class="material-symbols-outlined text-[20px]">logout</span>
-                    <span class="hidden sm:inline">Salir</span>
+                    <span class="hidden md:inline">Salir</span>
+                </button>
+                <button type="button" id="studentHamburgerBtn" onclick="toggleStudentMenu(event)" class="p-2 rounded-xl bg-slate-100 hover:bg-orange-50 text-slate-700 hover:text-[#FC8712] border border-slate-200/80 transition-colors flex items-center justify-center cursor-pointer" aria-label="Abrir menú del portal" aria-expanded="false">
+                    <span id="studentHamburgerIcon" class="material-symbols-outlined text-[22px]">menu</span>
                 </button>
             </div>
 
@@ -170,6 +173,43 @@
                     <span class="material-symbols-outlined text-[16px]">arrow_back</span>
                     <span class="hidden sm:inline">Volver al</span> Inicio
                 </a>
+            </div>
+        </div>
+
+        <!-- Menú Hamburguesa Desplegable del Portal del Alumno -->
+        <div id="studentHamburgerMenu" class="hidden absolute top-16 right-4 sm:right-6 w-72 max-w-[calc(100vw-2rem)] bg-white/98 backdrop-blur-xl border border-slate-200/90 rounded-2xl shadow-2xl p-2.5 z-50 space-y-1">
+            <div class="px-3 py-2 border-b border-slate-100 mb-1 flex items-center justify-between">
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-400">Navegación del Portal</span>
+                <span class="text-[10px] font-bold text-[#FC8712] bg-orange-50 px-2 py-0.5 rounded-full">Alumno</span>
+            </div>
+            <button type="button" data-tab="clases" onclick="navigateFromMenu('clases')" class="student-menu-item w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-extrabold bg-orange-50 text-[#FC8712] transition-colors cursor-pointer">
+                <span class="flex items-center gap-2.5">
+                    <span class="material-symbols-outlined text-[19px]">event_upcoming</span>
+                    <span>Mis Clases</span>
+                </span>
+                <span id="menuBadgeClases" class="bg-[#FC8712] text-white text-[10px] font-black px-2 py-0.5 rounded-full hidden">0</span>
+            </button>
+            <button type="button" data-tab="reservar" onclick="navigateFromMenu('reservar')" class="student-menu-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-[19px]">calendar_month</span>
+                <span>Calendario y Cupos</span>
+            </button>
+            <button type="button" data-tab="pagos" onclick="navigateFromMenu('pagos')" class="student-menu-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-[19px]">confirmation_number</span>
+                <span>Mis Pases</span>
+            </button>
+            <button type="button" data-tab="historial" onclick="navigateFromMenu('historial')" class="student-menu-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-[19px]">history</span>
+                <span>Historial</span>
+            </button>
+            <button type="button" data-tab="perfil" onclick="navigateFromMenu('perfil')" class="student-menu-item w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-[19px]">person</span>
+                <span>Mi Perfil</span>
+            </button>
+            <div class="pt-1.5 mt-1.5 border-t border-slate-100">
+                <button type="button" onclick="closeStudentMenu(); logoutCliente()" class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-[19px]">logout</span>
+                    <span>Cerrar Sesión</span>
+                </button>
             </div>
         </div>
     </header>
@@ -344,49 +384,46 @@
         <!-- VISTA 2: PANEL DE CONTROL DEL ALUMNO (ALTO CONTRASTE Y CALENDARIO DE CUPOS) -->
         <div id="dashboardBox" class="hidden space-y-6 w-full">
             
-            <!-- Hero Banner de Bienvenida -->
-            <div class="bg-gradient-to-r from-[#D11149] via-[#FC8712] to-[#FF8A65] text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-white/20 relative overflow-hidden">
-                <div class="absolute -right-12 -bottom-12 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+            <!-- Hero Banner de Bienvenida (Compacto, solo visible en Inicio / Mis Clases) -->
+            <div id="studentHeroBanner" class="bg-gradient-to-r from-[#D11149] via-[#FC8712] to-[#FF8A65] text-white rounded-2xl p-4 sm:p-5 shadow-lg border border-white/20 relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
 
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
                     <div>
-                        <span class="text-[11px] font-black uppercase tracking-wider text-orange-100 bg-white/20 px-3 py-1 rounded-full border border-white/30 inline-block mb-2.5">Portal del Alumno</span>
-                        <h2 class="text-2xl sm:text-3xl font-black text-white" id="dashClientName">¡Hola de nuevo!</h2>
-                        <p class="text-xs sm:text-sm text-orange-50 mt-1 font-medium">Gestioná tus pases activos, revisá los cupos disponibles en el calendario y consultá tu historial.</p>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-orange-100 bg-white/20 px-2.5 py-0.5 rounded-full border border-white/30 inline-block mb-1.5">Portal del Alumno</span>
+                        <h2 class="text-lg sm:text-xl font-black text-white leading-tight" id="dashClientName">¡Hola de nuevo!</h2>
+                        <p class="text-[11px] sm:text-xs text-orange-50/95 mt-0.5 font-medium">Gestioná tus pases, cupos disponibles y tu historial desde un solo lugar.</p>
                     </div>
 
                     <div id="bookNewClassHeaderBtnContainer" class="shrink-0">
-                        <button onclick="switchTab('reservar')" id="btnReservarClaseHeader" class="bg-white hover:bg-orange-50 text-[#FC8712] font-black px-5 py-3 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-2 w-fit cursor-pointer">
-                            <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                        <button onclick="switchTab('reservar')" id="btnReservarClaseHeader" class="bg-white hover:bg-orange-50 text-[#FC8712] font-black px-4 py-2.5 rounded-xl text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-1.5 w-fit cursor-pointer">
+                            <span class="material-symbols-outlined text-[17px]">add_circle</span>
                             <span>Ver Cupos y Reservar</span>
                         </button>
                     </div>
                 </div>
 
                 <!-- Resumen Rápido -->
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-white/20 relative z-10">
-                    <div onclick="switchTab('clases')" class="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 hover:bg-white/25 transition-all cursor-pointer">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-orange-100 block">Próximas Clases</span>
-                        <span class="text-2xl font-black text-white" id="statProximasCount">0</span>
-                        <span class="text-[10px] font-semibold text-orange-100 block">agendadas</span>
+                <div class="grid grid-cols-3 gap-2 sm:gap-3 mt-3.5 pt-3.5 border-t border-white/20 relative z-10">
+                    <div onclick="switchTab('clases')" class="bg-white/15 backdrop-blur-md p-2.5 sm:p-3 rounded-xl border border-white/20 hover:bg-white/25 transition-all cursor-pointer">
+                        <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-orange-100 block truncate">Próximas Clases</span>
+                        <span class="text-lg sm:text-xl font-black text-white" id="statProximasCount">0</span>
                     </div>
 
-                    <div onclick="switchTab('pagos')" class="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 hover:bg-white/25 transition-all cursor-pointer">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-orange-100 block">Pases Activos</span>
-                        <span class="text-2xl font-black text-white" id="statPasesActivosCount">0</span>
-                        <span class="text-[10px] font-semibold text-orange-100 block">paquetes vinculados</span>
+                    <div onclick="switchTab('pagos')" class="bg-white/15 backdrop-blur-md p-2.5 sm:p-3 rounded-xl border border-white/20 hover:bg-white/25 transition-all cursor-pointer">
+                        <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-orange-100 block truncate">Pases Activos</span>
+                        <span class="text-lg sm:text-xl font-black text-white" id="statPasesActivosCount">0</span>
                     </div>
 
-                    <div onclick="switchTab('reservar')" class="bg-white/15 backdrop-blur-md p-3.5 rounded-2xl border border-white/20 hover:bg-white/25 transition-all cursor-pointer col-span-2 sm:col-span-1">
-                        <span class="text-[10px] font-bold uppercase tracking-wider text-orange-100 block">Establecimientos</span>
-                        <span class="text-2xl font-black text-white" id="statNegociosCount">0</span>
-                        <span class="text-[10px] font-semibold text-orange-100 block">asociados</span>
+                    <div onclick="switchTab('reservar')" class="bg-white/15 backdrop-blur-md p-2.5 sm:p-3 rounded-xl border border-white/20 hover:bg-white/25 transition-all cursor-pointer">
+                        <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-orange-100 block truncate">Negocios</span>
+                        <span class="text-lg sm:text-xl font-black text-white" id="statNegociosCount">0</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Navegación por Pestañas (Píldoras de Alto Contraste) -->
-            <div class="bg-white/95 backdrop-blur-md p-2 rounded-2xl border border-slate-200/90 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 shadow-lg">
+            <!-- Navegación por Pestañas (Desktop/Tablet; en móvil se usa el menú hamburguesa) -->
+            <div id="studentTabsBar" class="hidden md:grid bg-white/95 backdrop-blur-md p-2 rounded-2xl border border-slate-200/90 md:grid-cols-5 gap-2 shadow-lg">
                 <button onclick="switchTab('clases')" id="tabBtnClases" class="tab-btn active px-3 py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer">
                     <span class="material-symbols-outlined text-[18px]">event_upcoming</span>
                     <span>Mis Clases</span>
@@ -436,9 +473,9 @@
                 <div class="bg-white/95 backdrop-blur-xl border border-slate-200/90 p-6 sm:p-8 rounded-3xl shadow-xl space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                         <div>
-                            <span class="text-[10px] font-black uppercase tracking-wider text-[#FC8712] bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-full inline-block mb-1">Cupos en Tiempo Real</span>
+                            <span id="calBadgeRealtime" class="text-[10px] font-black uppercase tracking-wider text-[#FC8712] bg-orange-50 border border-orange-200 px-2.5 py-1 rounded-full inline-block mb-1">Cupos en Tiempo Real</span>
                             <h3 class="font-black text-slate-900 text-xl flex items-center gap-2">
-                                <span class="material-symbols-outlined text-[#FC8712]">calendar_month</span>
+                                <span id="calHeaderIcon" class="material-symbols-outlined text-[#FC8712]">calendar_month</span>
                                 <span>Calendario de Clases y Cupos Disponibles</span>
                             </h3>
                             <p class="text-xs text-slate-600 font-medium mt-0.5">Elegí tu establecimiento para consultar las clases abiertas y agendarte con 1 clic usando tus pases.</p>
@@ -710,6 +747,49 @@
             }, 3500);
         }
 
+        function toggleStudentMenu(e) {
+            if (e) e.stopPropagation();
+            const menu = document.getElementById('studentHamburgerMenu');
+            const btn = document.getElementById('studentHamburgerBtn');
+            const icon = document.getElementById('studentHamburgerIcon');
+            if (!menu) return;
+            const willOpen = menu.classList.contains('hidden');
+            menu.classList.toggle('hidden', !willOpen);
+            if (btn) btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            if (icon) icon.textContent = willOpen ? 'close' : 'menu';
+        }
+
+        function closeStudentMenu() {
+            const menu = document.getElementById('studentHamburgerMenu');
+            const btn = document.getElementById('studentHamburgerBtn');
+            const icon = document.getElementById('studentHamburgerIcon');
+            if (menu && !menu.classList.contains('hidden')) {
+                menu.classList.add('hidden');
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+                if (icon) icon.textContent = 'menu';
+            }
+        }
+
+        function navigateFromMenu(tabName) {
+            closeStudentMenu();
+            switchTab(tabName);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('studentHamburgerMenu');
+            const btn = document.getElementById('studentHamburgerBtn');
+            if (menu && !menu.classList.contains('hidden')) {
+                if (!menu.contains(e.target) && (!btn || !btn.contains(e.target))) {
+                    closeStudentMenu();
+                }
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeStudentMenu();
+        });
+
         function switchTab(tabName) {
             const tabs = ['clases', 'reservar', 'historial', 'pagos', 'perfil'];
             tabs.forEach(t => {
@@ -725,6 +805,25 @@
                     }
                 }
             });
+
+            // Aislar banner de bienvenida solo en Inicio ('clases')
+            const heroBanner = document.getElementById('studentHeroBanner');
+            if (heroBanner) {
+                heroBanner.classList.toggle('hidden', tabName !== 'clases');
+            }
+
+            // Sincronizar estado activo en el menú hamburguesa
+            document.querySelectorAll('.student-menu-item[data-tab]').forEach(item => {
+                const isAct = item.getAttribute('data-tab') === tabName;
+                if (isAct) {
+                    item.classList.add('bg-orange-50', 'text-[#FC8712]', 'font-extrabold');
+                    item.classList.remove('text-slate-700', 'hover:bg-slate-50', 'font-bold');
+                } else {
+                    item.classList.remove('bg-orange-50', 'text-[#FC8712]', 'font-extrabold');
+                    item.classList.add('text-slate-700', 'hover:bg-slate-50', 'font-bold');
+                }
+            });
+            closeStudentMenu();
 
             if (tabName === 'reservar' && studentNegocios.length > 0) {
                 const sel = document.getElementById('studentSelectNegocio');
@@ -1318,6 +1417,10 @@
                 document.getElementById('tabBadgeClases').textContent = proximas.length;
                 document.getElementById('tabBadgeClases').classList.toggle('hidden', proximas.length === 0);
             }
+            if (document.getElementById('menuBadgeClases')) {
+                document.getElementById('menuBadgeClases').textContent = proximas.length;
+                document.getElementById('menuBadgeClases').classList.toggle('hidden', proximas.length === 0);
+            }
 
             // Render Pestaña 1: Mis Clases
             const misClasesList = document.getElementById('misClasesList');
@@ -1863,22 +1966,22 @@
             const servNombreSel = currentNegocio.servicio_nombre || currentNegocio.servicio || '';
             const servIconSel = (currentNegocio.servicio_icono && !String(currentNegocio.servicio_icono).includes('/')) ? currentNegocio.servicio_icono : 'event_available';
 
-            let passBannerHtml = '';
-            if (pasesNegocio > 0) {
-                passBannerHtml = `
-                    <div class="mb-4 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-50 border border-orange-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs sm:text-sm font-extrabold text-slate-800 shadow-xs">
-                        <div class="flex items-center gap-2.5">
-                            <span class="material-symbols-outlined text-[#FC8712] text-[22px]">confirmation_number</span>
-                            <div>
-                                <span>Tus pases en <strong>${negocioNombreSel}</strong>:</span>
-                                ${servNombreSel ? `<span class="block text-xs font-bold text-purple-700 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">${servIconSel}</span> ${servNombreSel}</span>` : ''}
+            function buildPassBannerHtml(cPri, cSec) {
+                if (pasesNegocio > 0) {
+                    return `
+                        <div class="mb-4 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs sm:text-sm font-extrabold text-slate-800 shadow-xs" style="background: linear-gradient(135deg, ${cSec}1A, ${cPri}12, #ffffff); border: 1px solid ${cSec}45;">
+                            <div class="flex items-center gap-2.5">
+                                <span class="material-symbols-outlined text-[22px]" style="color: ${cSec};">confirmation_number</span>
+                                <div>
+                                    <span>Tus pases en <strong>${negocioNombreSel}</strong>:</span>
+                                    ${servNombreSel ? `<span class="block text-xs font-bold inline-flex items-center gap-1" style="color: ${cPri};"><span class="material-symbols-outlined text-[13px]">${servIconSel}</span> ${servNombreSel}</span>` : ''}
+                                </div>
                             </div>
+                            <span class="text-white px-3.5 py-1.5 rounded-xl text-xs font-black shadow-xs shrink-0 w-fit" style="background-color: ${cPri};">${pasesNegocio} ${pasesNegocio === 1 ? 'pase libre' : 'pases libres'}</span>
                         </div>
-                        <span class="bg-[#FC8712] text-white px-3.5 py-1.5 rounded-xl text-xs font-black shadow-xs shrink-0 w-fit">${pasesNegocio} ${pasesNegocio === 1 ? 'pase libre' : 'pases libres'}</span>
-                    </div>
-                `;
-            } else {
-                passBannerHtml = `
+                    `;
+                }
+                return `
                     <div class="mb-5 p-4 rounded-2xl bg-red-50 border border-red-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm font-bold text-red-900 shadow-xs">
                         <div class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-red-600 text-[22px]">lock</span>
@@ -1901,6 +2004,24 @@
                 const servicios = rawServicios.filter(s => s.tipo_servicio === 'alumnos' || (!s.tipo_servicio && (parseInt(s.cupo_maximo) > 1 || parseInt(s.capacidad) > 1)));
                 const bizConfig = (ocupadosData && ocupadosData['_config']) ? ocupadosData['_config'] : {};
 
+                const isHexColor = (val) => typeof val === 'string' && /^#[0-9A-Fa-f]{6}$/.test(val.trim());
+                const cPri = isHexColor(bizConfig.color_primario) ? bizConfig.color_primario.trim() : '#D11149';
+                const cSec = isHexColor(bizConfig.color_secundario) ? bizConfig.color_secundario.trim() : '#FC8712';
+
+                // Aplicar colores del negocio seleccionado al encabezado del calendario
+                const calBadgeRealtime = document.getElementById('calBadgeRealtime');
+                if (calBadgeRealtime) {
+                    calBadgeRealtime.style.color = cSec;
+                    calBadgeRealtime.style.backgroundColor = `${cSec}18`;
+                    calBadgeRealtime.style.borderColor = `${cSec}45`;
+                }
+                const calHeaderIcon = document.getElementById('calHeaderIcon');
+                if (calHeaderIcon) calHeaderIcon.style.color = cPri;
+                const selNeg = document.getElementById('studentSelectNegocio');
+                if (selNeg) selNeg.style.borderColor = `${cPri}55`;
+
+                const passBannerHtml = buildPassBannerHtml(cPri, cSec);
+
                 if (servicios.length === 0) {
                     grid.innerHTML = passBannerHtml + `<div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center"><p class="text-slate-600 font-bold text-sm">Este establecimiento no posee clases configuradas activas.</p></div>`;
                     return;
@@ -1915,7 +2036,7 @@
 
                 // Barra Navegación Semanal
                 let weekNavHtml = `
-                    <div class="flex items-center justify-between bg-white border border-slate-200/90 p-3 sm:p-4 rounded-2xl shadow-xs mb-5 gap-2">
+                    <div class="flex items-center justify-between bg-white border p-3 sm:p-4 rounded-2xl shadow-xs mb-5 gap-2" style="border-color: ${cPri}28;">
                         <button type="button" onclick="changeStudentWeek(-1)" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold px-3 py-2 rounded-xl text-xs flex items-center gap-1 cursor-pointer transition-colors shrink-0">
                             <span class="material-symbols-outlined text-[18px]">chevron_left</span>
                             <span class="hidden sm:inline">Semana Anterior</span>
@@ -1923,7 +2044,7 @@
                         
                         <div class="text-center">
                             <span class="text-xs sm:text-sm font-black text-slate-900 block">Semana del ${startFmt} al ${endFmt}</span>
-                            ${studentWeekOffset !== 0 ? `<button type="button" onclick="resetStudentWeek()" class="text-[11px] font-extrabold text-[#FC8712] hover:underline mt-0.5 inline-block">Volver a esta semana</button>` : `<span class="text-[10px] font-extrabold text-slate-400">Semana actual</span>`}
+                            ${studentWeekOffset !== 0 ? `<button type="button" onclick="resetStudentWeek()" class="text-[11px] font-extrabold hover:underline mt-0.5 inline-block cursor-pointer" style="color: ${cPri};">Volver a esta semana</button>` : `<span class="text-[10px] font-extrabold text-slate-400">Semana actual</span>`}
                         </div>
 
                         <button type="button" onclick="changeStudentWeek(1)" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold px-3 py-2 rounded-xl text-xs flex items-center gap-1 cursor-pointer transition-colors shrink-0">
@@ -2184,7 +2305,7 @@
                                 const safeSNombre = String(sNombre).replace(/'/g, "\\'");
                                 const safeProf = String(prof).replace(/'/g, "\\'");
                                 buttonHtml = `
-                                    <button onclick="event.stopPropagation(); bookStudentClass('${targetBizId}', '${sId}', '${safeSNombre}', '${fechaStr}', '${horaDef5}', '${safeProf}', this)" class="w-full bg-[#FC8712] hover:bg-orange-600 text-white font-extrabold py-3 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md shadow-orange-500/20 flex items-center justify-center gap-1.5 cursor-pointer active:scale-98">
+                                    <button onclick="event.stopPropagation(); bookStudentClass('${targetBizId}', '${sId}', '${safeSNombre}', '${fechaStr}', '${horaDef5}', '${safeProf}', this)" class="w-full hover:opacity-90 text-white font-extrabold py-3 rounded-2xl text-xs uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-98" style="background-color: ${cPri}; box-shadow: 0 4px 12px ${cPri}33;">
                                         <span class="material-symbols-outlined text-[18px]">add_task</span>
                                         <span>Agendarme en esta Clase</span>
                                     </button>
@@ -2211,14 +2332,14 @@
                                         <div onclick="toggleStudentClassDetails('${cardSlotId}')" class="cursor-pointer select-none group">
                                             <div class="flex justify-between items-start gap-2 mb-1">
                                                 <div class="flex items-center gap-2 min-w-0">
-                                                    ${(s.icono && !String(s.icono).includes('/')) ? `<span class="material-symbols-outlined text-[18px] text-[#FC8712] shrink-0">${s.icono}</span>` : ''}
-                                                    <h5 class="font-black text-slate-900 text-sm sm:text-base group-hover:text-[#FC8712] transition-colors truncate">${sNombre}</h5>
-                                                    <span id="chevron_${cardSlotId}" class="material-symbols-outlined text-slate-400 group-hover:text-[#FC8712] transition-transform duration-200 text-[20px] shrink-0">expand_more</span>
+                                                    ${(s.icono && !String(s.icono).includes('/')) ? `<span class="material-symbols-outlined text-[18px] shrink-0" style="color: ${cPri};">${s.icono}</span>` : ''}
+                                                    <h5 class="font-black text-slate-900 text-sm sm:text-base transition-colors truncate">${sNombre}</h5>
+                                                    <span id="chevron_${cardSlotId}" class="material-symbols-outlined text-slate-400 transition-transform duration-200 text-[20px] shrink-0">expand_more</span>
                                                 </div>
                                                 ${badgeHtml}
                                             </div>
                                             <p class="text-xs font-bold text-slate-600 flex items-center gap-2 flex-wrap">
-                                                <span class="text-[#FC8712] flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">schedule</span> ${horaDef5} hs (${duracionFmt})</span>
+                                                <span class="flex items-center gap-1" style="color: ${cPri};"><span class="material-symbols-outlined text-[15px]">schedule</span> ${horaDef5} hs (${duracionFmt})</span>
                                                 <span class="flex items-center gap-1 text-slate-500"><span class="material-symbols-outlined text-[15px]">person</span> ${prof}</span>
                                             </p>
 
@@ -2245,11 +2366,11 @@
 
                                                 <div class="bg-white p-2.5 rounded-lg border border-slate-200/70">
                                                     <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
-                                                        <span class="material-symbols-outlined text-[14px] text-[#FC8712]">group</span>
+                                                        <span class="material-symbols-outlined text-[14px]" style="color: ${cSec};">group</span>
                                                         Personas que ya reservaron (${alumnosInscriptos.length}):
                                                     </span>
                                                     ${alumnosInscriptos.length > 0 
-                                                        ? `<div class="flex flex-wrap gap-1.5">${alumnosInscriptos.map(al => `<span class="bg-orange-50/80 border border-orange-200/80 text-slate-800 px-2 py-0.5 rounded-md text-[11px] font-bold flex items-center gap-1"><span class="material-symbols-outlined text-[12px] text-[#FC8712]">person</span>${al}</span>`).join('')}</div>`
+                                                        ? `<div class="flex flex-wrap gap-1.5">${alumnosInscriptos.map(al => `<span class="text-slate-800 px-2 py-0.5 rounded-md text-[11px] font-bold flex items-center gap-1" style="background-color: ${cSec}15; border: 1px solid ${cSec}40;"><span class="material-symbols-outlined text-[12px]" style="color: ${cSec};">person</span>${al}</span>`).join('')}</div>`
                                                         : `<span class="text-slate-400 italic text-[11px]">Aún no hay alumnos inscriptos en este horario.</span>`
                                                     }
                                                 </div>
@@ -2273,10 +2394,10 @@
                                 <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                                     <div class="flex items-center gap-2">
                                         <h4 class="font-black text-slate-900 text-base sm:text-lg flex items-center gap-2">
-                                            <span class="material-symbols-outlined text-[#FC8712]">calendar_today</span>
+                                            <span class="material-symbols-outlined" style="color: ${cPri};">calendar_today</span>
                                             <span>${dayFormattedFull}</span>
                                         </h4>
-                                        ${isToday ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-orange-100 text-orange-700 border border-orange-200"><span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>Hoy</span>` : ''}
+                                        ${isToday ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border" style="background-color: ${cSec}1F; color: ${cSec}; border-color: ${cSec}50;"><span class="w-1.5 h-1.5 rounded-full animate-pulse" style="background-color: ${cSec};"></span>Hoy</span>` : ''}
                                     </div>
                                     <span class="bg-slate-100 text-slate-500 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border border-slate-200">Sin clases</span>
                                 </div>
@@ -2287,16 +2408,16 @@
                         `;
                     } else {
                         htmlDays += `
-                            <div class="bg-white/95 border ${isToday ? 'border-2 border-orange-300 shadow-md ring-2 ring-orange-500/10' : 'border-slate-200/90 shadow-sm'} rounded-3xl p-4 sm:p-6 space-y-4">
+                            <div class="bg-white/95 border ${isToday ? 'border-2 shadow-md' : 'border-slate-200/90 shadow-sm'} rounded-3xl p-4 sm:p-6 space-y-4" ${isToday ? `style="border-color: ${cSec}; box-shadow: 0 4px 14px ${cSec}1A;"` : ''}>
                                 <div class="flex items-center justify-between pb-3.5 border-b border-slate-100">
                                     <div class="flex items-center gap-2">
                                         <h4 class="font-black text-slate-900 text-base sm:text-lg flex items-center gap-2">
-                                            <span class="material-symbols-outlined text-[#FC8712]">calendar_today</span>
+                                            <span class="material-symbols-outlined" style="color: ${cPri};">calendar_today</span>
                                             <span>${dayFormattedFull}</span>
                                         </h4>
-                                        ${isToday ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-orange-100 text-orange-700 border border-orange-200 shadow-2xs"><span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>Hoy</span>` : ''}
+                                        ${isToday ? `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase border shadow-2xs" style="background-color: ${cSec}1F; color: ${cSec}; border-color: ${cSec}50;"><span class="w-1.5 h-1.5 rounded-full animate-pulse" style="background-color: ${cSec};"></span>Hoy</span>` : ''}
                                     </div>
-                                    <span class="bg-orange-50 text-orange-700 text-[11px] font-extrabold px-3 py-1 rounded-xl border border-orange-200/90 shadow-2xs">
+                                    <span class="text-[11px] font-extrabold px-3 py-1 rounded-xl border shadow-2xs" style="background-color: ${cPri}12; color: ${cPri}; border-color: ${cPri}35;">
                                         ${countClassesForDay} ${countClassesForDay === 1 ? 'clase disponible' : 'clases disponibles'}
                                     </span>
                                 </div>
@@ -2319,7 +2440,7 @@
                 }
             })
             .catch(err => {
-                grid.innerHTML = passBannerHtml + `<div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center"><p class="text-slate-500 font-bold text-sm">No se pudieron cargar los cupos. Por favor intentá nuevamente.</p></div>`;
+                grid.innerHTML = buildPassBannerHtml('#D11149', '#FC8712') + `<div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center"><p class="text-slate-500 font-bold text-sm">No se pudieron cargar los cupos. Por favor intentá nuevamente.</p></div>`;
                 grid.style.minHeight = '';
                 grid.style.opacity = '';
                 grid.style.pointerEvents = '';
