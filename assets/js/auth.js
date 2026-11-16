@@ -34,6 +34,38 @@ document.addEventListener('DOMContentLoaded', () => {
     // ---- Lógica para login.html ----
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
+        const checkExistingLoginSession = () => {
+            fetch('backend/perfil.php', { credentials: 'same-origin', cache: 'no-store' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.success && data.user) {
+                        const isDemo = Boolean(
+                            (data.business && (data.business.is_demo === true || data.business.is_demo === 1 || data.business.is_demo === '1')) ||
+                            (data.user.email && data.user.email.includes('demo')) ||
+                            String(data.business?.ruta || '').toLowerCase().startsWith('demo')
+                        );
+                        if (!isDemo) {
+                            try {
+                                sessionStorage.setItem('agendatina_session', 'active');
+                                sessionStorage.setItem('agendatina_logged_user', JSON.stringify(data.user));
+                            } catch (e) {}
+                            window.location.replace('dashboard.html');
+                        }
+                    } else if (data && data.success === false) {
+                        try {
+                            sessionStorage.removeItem('agendatina_session');
+                            sessionStorage.removeItem('agendatina_logged_user');
+                        } catch (e) {}
+                    }
+                })
+                .catch(() => {});
+        };
+
+        checkExistingLoginSession();
+        window.addEventListener('pageshow', (event) => {
+            if (event.persisted) checkExistingLoginSession();
+        });
+
         loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
             const btnSubmit = document.getElementById('btnSubmit');

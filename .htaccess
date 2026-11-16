@@ -54,10 +54,12 @@ ServerSignature Off
 
     # D. Corrección para Recursos Estáticos (Preload Scanner)
     # Evita el error 404 si el navegador busca scripts/imágenes asumiendo la ruta del negocio (ej: /demo/backend/...)
-    RewriteRule ^[a-zA-Z0-9_-]+/(backend|public|modelos|assets|uploads)/(.*)$ $1/$2 [L]
+    RewriteRule ^(?:[a-zA-Z0-9_-]+/)+(backend|public|modelos|assets|uploads)/(.*)$ $1/$2 [L]
+    RewriteRule ^(?!(?:admin|backend|public|modelos|assets|uploads)/)(?:[a-zA-Z0-9_-]+/)+([a-zA-Z0-9_-]+\.(?:html|php))$ $1 [L,QSA]
 
     # A. Caso: agendatina.site/tu-negocio/calendario
     # Regla para el calendario mensual
+    RewriteRule ^([a-zA-Z0-9_-]+)/calendario/?$ index.php?n=$1&v=calendario [L,QSA]
     RewriteRule ^([a-zA-Z0-9_-]+)/calendarioMensual/?$ index.php?n=$1&v=calendario [L,QSA]
     
     # Regla para el calendario semanal

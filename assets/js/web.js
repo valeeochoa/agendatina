@@ -1,3 +1,20 @@
+window.getWebAppRoot = function(slug) {
+    const pathname = window.location.pathname || '/';
+    const cleanSlug = (slug || '').trim();
+    if (cleanSlug) {
+        const escaped = cleanSlug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const match = pathname.match(new RegExp('/' + escaped + '(?:/|$)', 'i'));
+        if (match) {
+            return pathname.slice(0, match.index + 1);
+        }
+    }
+    const routeMatch = pathname.match(/\/(calendarioMensual|calendarioSemanal|calendario|web|dashboard|login)(?:\.html|\.php)?\/?$/i);
+    if (routeMatch) {
+        return pathname.slice(0, routeMatch.index + 1);
+    }
+    return pathname.replace(/[^/]*$/, '') || '/';
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('year').textContent = new Date().getFullYear();
 
@@ -30,8 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- 1. PROCESAR CONFIGURACIÓN WEB ---
             if (data && !data.error) {
                 const planStr = (data.plan || '').toLowerCase();
+                window._webTipoCalendario = data.tipo_calendario || 'clasico';
+                const appRoot = window.getWebAppRoot(negocioSlug || data.ruta || data.subdominio || '');
                 const calSegment = data.tipo_calendario === 'semanal' ? 'calendarioSemanal' : 'calendarioMensual';
-                const cleanLink = negocioSlug ? `/${negocioSlug}/${calSegment}` : `${calSegment}.html${queryParam}`;
+                const cleanLink = negocioSlug ? `${appRoot}${negocioSlug}/${calSegment}` : `${appRoot}${calSegment}.html${queryParam}`;
 
                 const urlParams = new URLSearchParams(window.location.search);
                 const isPreview = urlParams.has('preview') || urlParams.get('preview') === '1' || data.is_demo === true || window.location.pathname.endsWith('web.html');
@@ -126,12 +145,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                                    urlParams.get('from') === 'editor' || 
                                                    (document.referrer && document.referrer.includes('mi-web.html'));
                             if (isExplicitMiWeb) {
-                                btnVolverPanel.href = 'mi-web.html';
+                                btnVolverPanel.href = `${appRoot}mi-web.html`;
                                 btnVolverPanel.title = 'Volver al Editor Web';
                                 const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
                                 if (textSpan) textSpan.textContent = 'Volver al Editor';
                             } else {
-                                btnVolverPanel.href = 'dashboard.html';
+                                btnVolverPanel.href = `${appRoot}dashboard.html`;
                                 btnVolverPanel.title = 'Volver al Panel';
                                 const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
                                 if (textSpan) textSpan.textContent = 'Volver al panel';
@@ -139,6 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         }
                         if (navAgendatinaBrand) {
+                            navAgendatinaBrand.href = `${appRoot}dashboard.html`;
                             navAgendatinaBrand.classList.remove('hidden');
                             navAgendatinaBrand.style.display = 'inline-flex';
                         }
@@ -729,15 +749,17 @@ window.openWebModalService = function(id) {
         imgContainer.innerHTML = `<div class="h-44 w-full bg-primary/10 flex items-center justify-center text-primary rounded-2xl border border-primary/20"><span class="material-symbols-outlined text-6xl">${modalIcon}</span></div>`;
         imgContainer.classList.remove('hidden'); 
     }
-    const negocioSlug = new URLSearchParams(window.location.search).get('n') || (window.location.pathname.split('/').filter(p => p && !p.includes('.'))[0] || '');
+    const negocioSlug = (typeof window.NEGOCIO_SLUG !== 'undefined' && window.NEGOCIO_SLUG) || new URLSearchParams(window.location.search).get('n') || (window.location.pathname.split('/').filter(p => p && !p.includes('.'))[0] || '');
+    const modalAppRoot = typeof window.getWebAppRoot === 'function' ? window.getWebAppRoot(negocioSlug) : '/';
     const isAlumnosModalSvc = (service.tipo_servicio === 'alumnos' || (!service.tipo_servicio && (parseInt(service.cupo_maximo) > 1 || parseInt(service.capacidad) > 1)));
     const btnTarget = document.getElementById('webServiceModalBtn');
     if (btnTarget) {
         if (isAlumnosModalSvc) {
-            btnTarget.href = `alumno.html?n=${negocioSlug}&servicio=${encodeURIComponent(service.nombre)}`;
+            btnTarget.href = `${modalAppRoot}alumno.html?n=${negocioSlug}&servicio=${encodeURIComponent(service.nombre)}`;
             btnTarget.innerHTML = '<span class="material-symbols-outlined text-[18px]">school</span> <span>Ver Clases en Portal de Alumnos</span>';
         } else {
-            btnTarget.href = `calendarioMensual.html?n=${negocioSlug}&servicio=${encodeURIComponent(service.nombre)}${profModalName ? '&profesional=' + encodeURIComponent(profModalName) : ''}`;
+            const calPage = window._webTipoCalendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
+            btnTarget.href = `${modalAppRoot}${calPage}?n=${negocioSlug}&servicio=${encodeURIComponent(service.nombre)}${profModalName ? '&profesional=' + encodeURIComponent(profModalName) : ''}`;
             btnTarget.innerHTML = '<span class="material-symbols-outlined text-[18px]">calendar_month</span> <span>Agendar Turno</span>';
         }
     }

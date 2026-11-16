@@ -50,6 +50,23 @@ if (!negocioSlug) {
 }
 if (!negocioSlug) negocioSlug = '';
 
+window.getCalendarAppRoot = function(slug) {
+    const pathname = window.location.pathname || '/';
+    const cleanSlug = (slug || negocioSlug || '').trim();
+    if (cleanSlug) {
+        const escaped = cleanSlug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const match = pathname.match(new RegExp('/' + escaped + '(?:/|$)', 'i'));
+        if (match) {
+            return pathname.slice(0, match.index + 1);
+        }
+    }
+    const routeMatch = pathname.match(/\/(calendarioMensual|calendarioSemanal|calendario|web|dashboard|login)(?:\.html|\.php)?\/?$/i);
+    if (routeMatch) {
+        return pathname.slice(0, routeMatch.index + 1);
+    }
+    return pathname.replace(/[^/]*$/, '') || '/';
+};
+
 var globalSelectedProfessional = '';
 var isPreviewMode = false;
 var services = [];
@@ -4683,7 +4700,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const navVerWebBtn = document.getElementById('navVerWebBtn');
                 if (navVerWebBtn) {
                     const webSlug = negocioSlug || (config ? config.ruta || config.subdominio : '') || '';
-                    const webRuta = webSlug ? `web.html?n=${webSlug}` : 'web.html';
+                    const appRoot = window.getCalendarAppRoot(webSlug);
+                    const webRuta = webSlug ? `${appRoot}web.html?n=${webSlug}` : `${appRoot}web.html`;
                     navVerWebBtn.href = webRuta;
                     if (window.hasWebPagePlan(config.plan)) {
                         navVerWebBtn.classList.remove('hidden');
@@ -4731,10 +4749,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Sincronizar tipo de vista de calendario exclusivamente según la configuración elegida en Ajustes
                 if (config.tipo_calendario) {
                     const isWeeklyPage = !!document.getElementById('weeklyCalendarView');
+                    const appRoot = window.getCalendarAppRoot(negocioSlug || config.ruta || config.subdominio || '');
                     if (config.tipo_calendario === 'semanal' && !isWeeklyPage) {
-                        window.location.href = 'calendarioSemanal.html' + (negocioSlug ? '?n=' + negocioSlug : '');
+                        window.location.href = `${appRoot}calendarioSemanal.html` + (negocioSlug ? '?n=' + negocioSlug : '');
                     } else if (config.tipo_calendario === 'clasico' && isWeeklyPage) {
-                        window.location.href = 'calendarioMensual.html' + (negocioSlug ? '?n=' + negocioSlug : '');
+                        window.location.href = `${appRoot}calendarioMensual.html` + (negocioSlug ? '?n=' + negocioSlug : '');
                     }
                 }
 
@@ -5036,9 +5055,10 @@ window.logoutAdminSession = function() {
     if (typeof window.clearUserCustomColors === 'function') window.clearUserCustomColors();
     sessionStorage.clear();
     localStorage.clear();
+    const appRoot = window.getCalendarAppRoot();
     fetch('backend/logout.php')
-        .then(() => { window.location.href = 'login.html'; })
-        .catch(() => { window.location.href = 'login.html'; });
+        .then(() => { window.location.href = `${appRoot}login.html`; })
+        .catch(() => { window.location.href = `${appRoot}login.html`; });
 };
 
 window.ensureAgendatinaCalendarFooter = function() {
@@ -5106,10 +5126,12 @@ window.syncCalendarNavbarMode = function(config = null) {
         if (bizIcon) bizIcon.classList.remove('hidden');
     }
 
+    const webSlug = negocioSlug || cfg.ruta || cfg.subdominio || '';
+    const appRoot = window.getCalendarAppRoot(webSlug);
+
     // 2. Botón Página Web: SOLO si el negocio tiene un plan que incluye Página Web (Profesional o Premium; NUNCA en Básico)
     if (navVerWebBtn) {
-        const webSlug = negocioSlug || cfg.ruta || cfg.subdominio || '';
-        navVerWebBtn.href = webSlug ? `web.html?n=${webSlug}` : 'web.html';
+        navVerWebBtn.href = webSlug ? `${appRoot}web.html?n=${webSlug}` : `${appRoot}web.html`;
         if (window.hasWebPagePlan(cfg.plan)) {
             navVerWebBtn.classList.remove('hidden');
             navVerWebBtn.style.display = 'inline-flex';
@@ -5126,6 +5148,8 @@ window.syncCalendarNavbarMode = function(config = null) {
 
     const showAdminUi = Boolean(isAdmin && !isPreviewMode && window._verifiedCalendarAdmin);
     const isDemo = Boolean(window._verifiedCalendarDemo);
+    if (brand) brand.href = `${appRoot}${showAdminUi ? 'dashboard.html' : 'index.html'}`;
+    if (btnVolver) btnVolver.href = `${appRoot}dashboard.html`;
 
     if (showAdminUi) {
         if (bizSep) { bizSep.classList.remove('hidden'); bizSep.style.display = 'inline'; }
@@ -5219,7 +5243,7 @@ function checkAdminCalendarSession(config = null) {
 
                 if (!canCalendario && !canVerCalendarioOtros && !isVisitingOtherBusiness) {
                     sessionStorage.setItem('agendatina_perm_notice', 'No tienes permisos para acceder al calendario.');
-                    window.location.href = 'dashboard.html';
+                    window.location.href = `${window.getCalendarAppRoot()}dashboard.html`;
                     return;
                 }
 
@@ -5267,7 +5291,7 @@ function checkAdminCalendarSession(config = null) {
             // Si el usuario no está autenticado y no hay slug de negocio, redirigir solo si el servidor confirmó explícitamente no autenticado
             const isExplicitlyLoggedOut = data && data.success === false && (data.error && (data.error.includes('sesión') || data.error.includes('autentic')));
             if (!negocioSlug && isExplicitlyLoggedOut && sessionStorage.getItem('agendatina_session') !== 'active') {
-                window.location.href = 'login.html';
+                window.location.href = `${window.getCalendarAppRoot()}login.html`;
                 return;
             }
             if (negocioSlug) {
