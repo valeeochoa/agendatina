@@ -454,17 +454,12 @@
                     </div>
 
                     <div>
-                        <div class="flex items-center justify-between gap-2 mb-1">
-                            <label class="block text-sm font-semibold text-slate-700">¿Permitir turnos simultáneos por profesional?</label>
-                            <span id="badgeCuposSimultaneos" class="hidden text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-800 border border-orange-200 shadow-2xs">
-                                🔒 Requerido para Cupos y Alumnos
-                            </span>
-                        </div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">¿Permitir turnos simultáneos por profesional?</label>
                         <select id="configSimultaneos" name="turnos_simultaneos" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none transition-all font-medium">
                             <option value="no" selected>No, solo 1 turno por profesional a la vez (Bloqueo automático al reservar)</option>
                             <option value="si">Sí, permitir varios turnos simultáneos</option>
                         </select>
-                        <p class="text-xs text-slate-500 mt-1">Si eliges "No", al reservarse un turno se bloqueará la franja horaria correspondiente para ese profesional y los nuevos turnos se generarán a partir de la finalización del servicio. (En el Módulo de Cupos y Alumnos esta opción permanece habilitada permanentemente para permitir múltiples alumnos en las clases).</p>
+                        <p class="text-xs text-slate-500 mt-1">Si eliges "No", al reservarse un turno se bloqueará la franja horaria correspondiente únicamente para ese profesional y los nuevos turnos se generarán a partir de la finalización del servicio.</p>
                     </div>
                     <div class="p-5 bg-gradient-to-r from-purple-50/70 to-slate-50 border border-purple-200/80 rounded-2xl space-y-3">
                         <div class="flex items-center gap-2">
@@ -550,82 +545,7 @@
                 </div>
             </div>
 
-            <!-- Modalidad de Reserva y Registro de Clientes -->
-            <div class="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-slate-200 mb-6">
-                <div class="mb-6">
-                    <div data-ajustes-marker="modalidad" class="flex items-center gap-2 mb-2">
-                        <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-white shadow-2xs flex items-center gap-1" style="background-color: var(--color-primario, #d11149);">
-                            <span class="material-symbols-outlined text-[13px]">groups</span> Modalidad y Cupos
-                        </span>
-                    </div>
-                    <h2 class="text-xl font-bold mb-1 text-slate-900">Modalidad de Reserva y Registro de Clientes</h2>
-                    <p class="text-sm text-slate-500">Elige cómo interactúan tus clientes al solicitar un turno o clase en tu negocio.</p>
-                </div>
-                
-                <input type="hidden" id="selectModoReservas" name="modo_reservas" value="libre">
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="containerModoReservasGrid">
-                    <!-- Opción A: Reserva Libre para Clientes Generales -->
-                    <div id="cardModoLibre" onclick="setModoReserva('libre', true)" class="cursor-pointer relative p-5 rounded-2xl border-2 border-[#D11149] bg-rose-50/40 transition-all flex flex-col justify-between shadow-sm group">
-                        <div class="flex items-start justify-between gap-3 mb-3">
-                            <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-[#D11149] flex items-center justify-center font-bold shrink-0">
-                                <span class="material-symbols-outlined text-2xl">event_available</span>
-                            </div>
-                            <span class="bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-black uppercase px-2.5 py-1 rounded-full">Modo Estándar</span>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-extrabold text-slate-900 mb-1 flex items-center gap-1.5">
-                                Reserva Libre (Público General)
-                            </h3>
-                            <p class="text-xs text-slate-600 leading-relaxed font-medium">
-                                Cualquier visitante ingresa a tu web, elige el servicio y reserva su turno al instante sin necesidad de crear cuenta ni iniciar sesión.
-                            </p>
-                        </div>
-                        <div id="checkModoLibre" class="mt-4 flex items-center gap-1.5 text-xs font-black text-[#D11149]">
-                            <span class="material-symbols-outlined text-[18px]">check_circle</span> Seleccionado
-                        </div>
-                    </div>
-
-                    <!-- Opción B: Módulo de Cupos y Alumnos (Exclusivo Plan Premium) -->
-                    <div id="cardModoCupos" onclick="setModoReserva('cupos_alumnos', true)" class="hidden cursor-pointer relative p-5 rounded-2xl border-2 border-slate-200 hover:border-orange-400 bg-slate-50/50 hover:bg-orange-50/30 transition-all flex flex-col justify-between shadow-sm group">
-                        <div class="flex items-start justify-between gap-3 mb-3">
-                            <div class="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-600 flex items-center justify-center font-bold shrink-0">
-                                <span class="material-symbols-outlined text-2xl">groups</span>
-                            </div>
-                            <span class="bg-purple-100 text-purple-900 border border-purple-200 text-[10px] font-black uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shadow-xs">
-                                <span class="material-symbols-outlined text-[14px] text-purple-600">workspace_premium</span> Exclusivo Plan Premium
-                            </span>
-                        </div>
-                        <div>
-                            <h3 class="text-base font-extrabold text-slate-900 mb-1 flex items-center gap-1.5">
-                                Módulo de Cupos y Alumnos
-                            </h3>
-                            <p class="text-xs text-slate-600 leading-relaxed font-medium">
-                                Acceso exclusivo para alumnos pre-registrados con control de pases. Los visitantes no registrados envían su solicitud de contacto.
-                            </p>
-                        </div>
-                        <div id="checkModoCupos" class="mt-4 flex items-center gap-1.5 text-xs font-bold text-slate-400">
-                            <span class="material-symbols-outlined text-[18px]">radio_button_unchecked</span> Hacer clic para seleccionar
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Banner Informativo para Planes No-Premium -->
-                <div id="noticeNonPremiumModoReserva" class="hidden mt-4 p-4 rounded-2xl bg-gradient-to-r from-amber-50/90 via-purple-50/90 to-pink-50/90 border border-purple-200/80 text-xs text-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
-                            <span class="material-symbols-outlined text-xl">workspace_premium</span>
-                        </div>
-                        <div>
-                            <p class="font-bold text-purple-950 text-xs sm:text-sm">🔒 ¿Deseas activar el Portal de Alumnos y Clases en Grupo?</p>
-                            <p class="text-slate-600 text-[11px] mt-0.5">La modalidad con pases, créditos y portal exclusivo para alumnos requiere el <strong>Plan Premium</strong>. Tu cuenta opera en la modalidad <strong>Reserva Libre</strong>.</p>
-                        </div>
-                    </div>
-                    <button type="button" onclick="openUpgradePlanModal('Premium')" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-extrabold px-4 py-2.5 rounded-xl transition-all shadow-md shadow-purple-600/20 text-xs shrink-0 flex items-center gap-1.5 cursor-pointer">
-                        <span class="material-symbols-outlined text-base">rocket_launch</span> Mejorar a Plan Premium
-                    </button>
-                </div>
-            </div>
+            <input type="hidden" id="selectModoReservas" name="modo_reservas" value="libre">
 
             <!-- Fidelización, Mensajes de Retorno y Cupones de Descuento -->
             <div class="bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-slate-200 mb-6 space-y-5">

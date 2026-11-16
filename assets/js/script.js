@@ -545,78 +545,77 @@ window.openEditTurnoModal = function(id) {
         modal.id = 'editTurnoModal';
         modal.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[250] hidden flex items-center justify-center p-4 pt-16 sm:pt-20 opacity-0 transition-opacity duration-300 overflow-y-auto';
         modal.innerHTML = `
-            <div class="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-2xl border border-slate-100 dark:border-slate-700 max-w-md w-full p-6 sm:p-8 transform scale-95 transition-transform duration-300 flex flex-col max-h-[85vh] my-auto" id="editTurnoModalContent">
-                <div class="flex justify-between items-center mb-4 shrink-0">
-                    <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2" id="editModalTitleText">
-                        <span class="material-symbols-outlined text-primary">edit_calendar</span> Modificar Turno
-                    </h2>
-                    <button type="button" onclick="window.closeEditTurnoModal()" class="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"><span class="material-symbols-outlined text-2xl">close</span></button>
-                </div>
-                
-                <div id="pastTurnoAlert" class="p-3 mb-3 text-slate-600 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-700 flex items-start gap-2 text-xs hidden shrink-0" style="background-color: #f8fafc;">
-                    <span class="material-symbols-outlined text-slate-400 text-[18px] shrink-0 mt-0.5">info</span>
-                    <div>
-                        <p class="font-bold text-slate-700 dark:text-slate-200">Turno en el Historial</p>
-                        <p class="text-slate-500 dark:text-slate-400">Este turno ya transcurrió. Puedes gestionar la asistencia, notas o enviarlo a la papelera.</p>
-                    </div>
-                </div>
-
-                <form id="editTurnoForm" class="space-y-4 overflow-y-auto pr-2 flex-1 custom-scrollbar max-h-[70vh]">
-                    <input type="hidden" id="editTurnoId" name="id">
-                    
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Nombre</label>
-                        <input type="text" id="editTurnoNombre" name="nombre" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
+            <div class="bg-white dark:bg-slate-800 rounded-[2rem] shadow-2xl border-2 max-w-2xl w-full overflow-hidden transform scale-95 transition-transform duration-300 flex flex-col max-h-[88vh] my-auto" id="editTurnoModalContent" style="border-color: color-mix(in srgb, var(--color-secundario, #FC8712) 40%, #e2e8f0);">
+                <div class="h-1.5 w-full shrink-0" style="background: linear-gradient(90deg, var(--color-primario, #D11149) 0%, var(--color-secundario, #FC8712) 100%);"></div>
+                <div class="p-6 sm:p-8 flex flex-col flex-1 min-h-0">
+                    <div class="flex justify-between items-center mb-4 pb-3 border-b shrink-0" style="border-color: color-mix(in srgb, var(--color-secundario, #FC8712) 22%, #e2e8f0);">
+                        <h2 class="text-xl font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2.5" id="editModalTitleText">
+                            <span class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background-color: color-mix(in srgb, var(--color-primario, #D11149) 12%, #ffffff); color: var(--color-primario, #D11149);">
+                                <span class="material-symbols-outlined">edit_calendar</span>
+                            </span>
+                            <span>Modificar Turno</span>
+                        </h2>
+                        <button type="button" onclick="window.closeEditTurnoModal()" class="text-slate-400 hover:text-red-500 transition-colors p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700"><span class="material-symbols-outlined text-2xl">close</span></button>
                     </div>
                     
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Apellido</label>
-                        <input type="text" id="editTurnoApellido" name="apellido" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Celular</label>
-                        <input type="text" id="editTurnoCelular" name="celular" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-4">
+                    <div id="pastTurnoAlert" class="p-3 mb-4 text-slate-600 dark:text-slate-300 rounded-xl border flex items-start gap-2 text-xs hidden shrink-0" style="background-color: color-mix(in srgb, var(--color-secundario, #FC8712) 8%, #f8fafc); border-color: color-mix(in srgb, var(--color-secundario, #FC8712) 28%, #e2e8f0);">
+                        <span class="material-symbols-outlined text-[18px] shrink-0 mt-0.5" style="color: var(--color-secundario, #FC8712);">info</span>
                         <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha</label>
-                            <input type="date" id="editTurnoFecha" name="fecha" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Hora</label>
-                            <input type="time" id="editTurnoHora" name="hora" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
+                            <p class="font-bold text-slate-700 dark:text-slate-200">Turno en el Historial</p>
+                            <p class="text-slate-500 dark:text-slate-400">Este turno ya transcurrió. Puedes gestionar la asistencia, notas o enviarlo a la papelera.</p>
                         </div>
                     </div>
-                    
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Servicio</label>
-                        <select id="editTurnoServicio" name="servicio" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Profesional</label>
-                        <select id="editTurnoProfesional" name="profesional" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
-                        </select>
-                    </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Notas internas (Ej: Mal trato, me cae bien, etc.)</label>
-                        <textarea id="editTurnoNotas" name="notas" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700 resize-none" placeholder="Agregar notas sobre este cliente..."></textarea>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Asistencia al Turno</label>
-                        <select id="editTurnoAsistio" name="asistio" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none text-sm font-bold text-slate-700">
-                            <option value="1">✓ Sí Asistió</option>
-                            <option value="0">✕ No Asistió</option>
-                        </select>
-                    </div>
-                    
-                    <button type="submit" class="w-full bg-primary hover:bg-primary/95 text-white font-bold py-3.5 rounded-xl mt-2 transition-all flex items-center justify-center gap-2 shadow-lg shrink-0">Guardar Cambios</button>
-                </form>
+                    <form id="editTurnoForm" class="space-y-4 overflow-y-auto pr-1 flex-1 custom-scrollbar max-h-[68vh]">
+                        <input type="hidden" id="editTurnoId" name="id">
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider mb-1" style="color: var(--color-primario, #D11149);">Nombre</label>
+                                <input type="text" id="editTurnoNombre" name="nombre" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider mb-1" style="color: var(--color-primario, #D11149);">Apellido</label>
+                                <input type="text" id="editTurnoApellido" name="apellido" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider mb-1" style="color: var(--color-primario, #D11149);">Celular</label>
+                                <input type="text" id="editTurnoCelular" name="celular" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider mb-1" style="color: var(--color-primario, #D11149);">Asistencia al Turno</label>
+                                <select id="editTurnoAsistio" name="asistio" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none text-sm font-bold text-slate-700">
+                                    <option value="1">✓ Sí Asistió</option>
+                                    <option value="0">✕ No Asistió</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider mb-1" style="color: var(--color-primario, #D11149);">Fecha</label>
+                                <input type="date" id="editTurnoFecha" name="fecha" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider mb-1" style="color: var(--color-primario, #D11149);">Hora</label>
+                                <input type="time" id="editTurnoHora" name="hora" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider mb-1" style="color: var(--color-primario, #D11149);">Servicio</label>
+                                <select id="editTurnoServicio" name="servicio" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold uppercase tracking-wider mb-1" style="color: var(--color-primario, #D11149);">Profesional</label>
+                                <select id="editTurnoProfesional" name="profesional" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700">
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-bold uppercase tracking-wider mb-1" style="color: var(--color-primario, #D11149);">Notas internas (Ej: Mal trato, me cae bien, etc.)</label>
+                                <textarea id="editTurnoNotas" name="notas" rows="2" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-primary outline-none text-sm text-slate-700 resize-none" placeholder="Agregar notas sobre este cliente..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-primary hover:bg-primary/95 text-white font-bold py-3.5 rounded-xl mt-2 transition-all flex items-center justify-center gap-2 shadow-lg shrink-0" style="background-color: var(--color-botones, var(--color-primario, #D11149));">Guardar Cambios</button>
+                    </form>
+                </div>
             </div>
         `;
         document.body.appendChild(modal);
@@ -1102,6 +1101,16 @@ function loadDashboardData() {
             const exCol = webData.colores_extra_json || data.colores_extra_json || business.colores_extra_json;
             if (typeof window.applyUserCustomColors === 'function') {
                 window.applyUserCustomColors(pCol, sCol, exCol);
+            }
+            const degradeFlag = (webData && webData.usar_fondo_degrade !== undefined)
+                ? webData.usar_fondo_degrade
+                : (data.usar_fondo_degrade !== undefined ? data.usar_fondo_degrade : business.usar_fondo_degrade);
+            if (degradeFlag == 1 || degradeFlag === '1' || degradeFlag === true) {
+                document.body.setAttribute('data-degrade', '1');
+                document.body.classList.add('calendar-degrade-active');
+            } else if (degradeFlag !== undefined) {
+                document.body.removeAttribute('data-degrade');
+                document.body.classList.remove('calendar-degrade-active');
             }
         
             // Modificar el saludo y el subtítulo
@@ -4372,11 +4381,11 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
             --color-botones: ${btnColor};
         }
 
-        /* 1. Fondo del Body de la página completa */
+        /* 1. Fondo del Body de la página completa (Color secundario súper sutil por defecto) */
         html, body {
             min-height: 100vh !important;
-            background-color: ${finalBg ? finalBg : `color-mix(in srgb, ${pColor} 6%, #ffffff)`} !important;
-            background-image: ${finalBg ? 'none' : `radial-gradient(at 0% 0%, color-mix(in srgb, ${pColor} 7%, transparent) 0px, transparent 48%), radial-gradient(at 100% 100%, color-mix(in srgb, ${sColor} 7%, transparent) 0px, transparent 48%)`} !important;
+            background-color: ${finalBg ? finalBg : `color-mix(in srgb, ${sColor} 9%, #ffffff)`} !important;
+            background-image: ${finalBg ? 'none' : `radial-gradient(at 0% 0%, color-mix(in srgb, ${sColor} 10%, transparent) 0px, transparent 52%), radial-gradient(at 100% 100%, color-mix(in srgb, ${pColor} 5%, transparent) 0px, transparent 52%)`} !important;
             background-attachment: fixed !important;
         }
 
@@ -4385,13 +4394,72 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
             background-image: none !important;
         }
 
-        /* 1.b. Fondo Degradé dinámico de colores de marca para el Calendario */
+        /* 1.b. Fondo Degradé dinámico de colores de marca para Dashboard y Calendario */
         body.calendar-degrade-active, body[data-degrade="1"], html.calendar-degrade-active, html[data-degrade="1"] {
             min-height: 100vh !important;
             background-color: transparent !important;
             background-image: linear-gradient(135deg, color-mix(in srgb, ${pColor} 40%, #ffffff) 0%, color-mix(in srgb, ${pColor} 18%, color-mix(in srgb, ${sColor} 18%, #ffffff)) 50%, color-mix(in srgb, ${sColor} 40%, #ffffff) 100%) !important;
             background-attachment: fixed !important;
             background-size: cover !important;
+        }
+
+        /* 1.d. Calendario: Navbar, Footer y Contenedores con acento del Color Secundario */
+        body#calBody:not([data-degrade="1"]):not(.calendar-degrade-active) {
+            background-color: ${finalBg ? finalBg : `color-mix(in srgb, ${sColor} 11%, #ffffff)`} !important;
+        }
+        body#calBody header:not(#adminHeader):not(#mainNav) {
+            background-color: color-mix(in srgb, ${sColor} 13%, #ffffff) !important;
+            border-bottom-color: color-mix(in srgb, ${sColor} 35%, #e2e8f0) !important;
+        }
+        body#calBody header > div:first-child {
+            background: linear-gradient(90deg, ${pColor} 0%, ${sColor} 100%) !important;
+        }
+        body#calBody #agendatinaFooter {
+            background-color: color-mix(in srgb, ${sColor} 12%, #ffffff) !important;
+            border-top-color: color-mix(in srgb, ${sColor} 35%, #e2e8f0) !important;
+        }
+        body#calBody #calMonthlyBox,
+        body#calBody #dayDetailsContainer,
+        body#calBody #weeklyCalendarView > div,
+        body#calBody #weeklyBookingPanel {
+            border-color: color-mix(in srgb, ${sColor} 35%, #e2e8f0) !important;
+            box-shadow: 0 12px 28px -8px color-mix(in srgb, ${sColor} 18%, transparent) !important;
+        }
+        body#calBody #navVerWebBtn {
+            background-color: color-mix(in srgb, ${sColor} 14%, #ffffff) !important;
+            border-color: color-mix(in srgb, ${sColor} 40%, #e2e8f0) !important;
+            color: ${sColor} !important;
+        }
+        body#calBody #navVerWebBtn:hover {
+            background-color: color-mix(in srgb, ${sColor} 24%, #ffffff) !important;
+        }
+        body#calBody #calendarWeekdaysHeader > div,
+        body#calBody #calLeftCol .grid-cols-7 > div {
+            color: ${sColor} !important;
+        }
+
+        /* 1.f. Dashboard del Cliente: Cards de Módulos con Color Primario */
+        .dash-card {
+            background-color: color-mix(in srgb, ${pColor} 7%, #ffffff) !important;
+            border-color: color-mix(in srgb, ${pColor} 28%, #e2e8f0) !important;
+        }
+        .dash-card:hover {
+            background-color: color-mix(in srgb, ${pColor} 11%, #ffffff) !important;
+            border-color: ${pColor} !important;
+            box-shadow: 0 10px 26px -6px color-mix(in srgb, ${pColor} 25%, transparent) !important;
+        }
+        .dash-card .card-accent {
+            background-color: ${pColor} !important;
+        }
+        .dash-card .w-9.h-9,
+        .dash-card .w-8.h-8,
+        .dash-card .w-10.h-10 {
+            background-color: color-mix(in srgb, ${pColor} 15%, #ffffff) !important;
+            color: ${pColor} !important;
+        }
+        .dash-card span.text-sm.font-bold,
+        .dash-card span.text-\\[11px\\].font-bold {
+            color: ${pColor} !important;
         }
 
         /* 1.c. Barra desplazadora destacada con Color Secundario */
@@ -4580,7 +4648,7 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
             cursor: not-allowed !important;
         }
 
-        /* Día Seleccionado / Activo con Fondo Primario y Número en Color Secundario */
+        /* Día Seleccionado / Activo con Fondo Primario, Anillo Doble y Número en Color Secundario */
         .calendar-day.selected, 
         .mini-calendar-day.selected, 
         .time-slot.selected, 
@@ -4590,15 +4658,18 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
         #adminWeeklyGrid > div.selected {
             background: ${pColor} !important;
             color: #ffffff !important;
-            border: 2px solid ${sColor} !important;
+            border: 3px solid ${sColor} !important;
             font-weight: 900 !important;
-            box-shadow: 0 4px 16px color-mix(in srgb, ${sColor} 35%, transparent) !important;
+            transform: scale(1.07) !important;
+            z-index: 10 !important;
+            box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.88), 0 0 0 3px color-mix(in srgb, ${sColor} 45%, transparent), 0 12px 24px -4px color-mix(in srgb, ${pColor} 50%, transparent) !important;
         }
         .calendar-day.selected .cal-day-number,
         #calendarDays > div.selected .cal-day-number,
         #weeklyCalendarDays > div.selected .cal-day-number,
         #weeklyCalendarDays > div.selected > span:last-of-type {
             color: ${sColor} !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
         }
 
         /* Hover de Franjas Horarias */

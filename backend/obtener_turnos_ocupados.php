@@ -240,6 +240,9 @@ try {
     $ocupados['_details'] = [];
     $ocupados['_alumnos'] = [];
     $ocupados['_by_service'] = [];
+    $ocupados['_by_prof'] = [];
+    $hasProfFilter = ($isProfLogged && !$verTodosTurnos && !empty($profesionalSessionName)) ||
+                     (!empty($profesional) && $profesional !== 'Cualquiera (Sin preferencia)' && $profesional !== 'Cualquiera' && $profesional !== 'columnas' && $profesional !== 'todos');
 
     // Usar intervalos finos de 15 minutos para cubrir exactamente el tiempo ocupado por la atención
     $sliceStep = 15;
@@ -301,23 +304,39 @@ try {
         
         // Agregar los cortes de tiempo ocupados durante la atención
         if (!$permiteSimultaneos) {
-            // El negocio NO permite simultáneos: admite una sola persona por horario en todo el negocio
+            // El negocio NO permite simultáneos por profesional: cada profesional bloquea únicamente sus propios horarios.
+            $profNorm = strtolower(trim((string)$prof));
+            $isUnassignedProf = ($profNorm === '' || $profNorm === 'cualquiera (sin preferencia)' || $profNorm === 'cualquiera');
+            if (!$isUnassignedProf) {
+                if (!isset($ocupados['_by_prof'][$profNorm])) $ocupados['_by_prof'][$profNorm] = [];
+                if (!isset($ocupados['_by_prof'][$profNorm][$f])) $ocupados['_by_prof'][$profNorm][$f] = [];
+            }
+
             for ($subMins = $startMins; $subMins < $endMinsWithBuffer; $subMins += $sliceStep) {
                 $curH = str_pad((string)floor($subMins / 60), 2, '0', STR_PAD_LEFT);
                 $curM = str_pad((string)($subMins % 60), 2, '0', STR_PAD_LEFT);
                 $slotHora = "{$curH}:{$curM}";
-                $keySlot = $f . '_' . $slotHora;
-                
+                $keySlot = $f . '_' . ($isUnassignedProf ? 'all' : $profNorm) . '_' . $slotHora;
+                $slotLleno = false;
+
                 if ($cupo > 1) {
                     if (!isset($conteoTurnosPorSlot[$keySlot])) $conteoTurnosPorSlot[$keySlot] = 0;
                     $conteoTurnosPorSlot[$keySlot]++;
                     $maxCupoPorSlot[$keySlot] = $cupo;
-                    
                     if ($conteoTurnosPorSlot[$keySlot] >= $maxCupoPorSlot[$keySlot]) {
-                        if (!in_array($slotHora, $ocupados[$f])) $ocupados[$f][] = $slotHora;
+                        $slotLleno = true;
                     }
                 } else {
-                    if (!in_array($slotHora, $ocupados[$f])) $ocupados[$f][] = $slotHora;
+                    $slotLleno = true;
+                }
+
+                if ($slotLleno) {
+                    if (!$isUnassignedProf && !in_array($slotHora, $ocupados['_by_prof'][$profNorm][$f])) {
+                        $ocupados['_by_prof'][$profNorm][$f][] = $slotHora;
+                    }
+                    if (($hasProfFilter || $isUnassignedProf) && !in_array($slotHora, $ocupados[$f])) {
+                        $ocupados[$f][] = $slotHora;
+                    }
                 }
             }
         } else {

@@ -884,6 +884,12 @@ window.applyModoReservaUI = function(val) {
     const selectSimultaneos = document.getElementById('configSimultaneos');
     const badgeSimultaneos = document.getElementById('badgeCuposSimultaneos');
 
+    if (selectSimultaneos) {
+        selectSimultaneos.disabled = false;
+        selectSimultaneos.classList.remove('bg-slate-100', 'cursor-not-allowed', 'opacity-80');
+    }
+    if (badgeSimultaneos) badgeSimultaneos.classList.add('hidden');
+
     if (val === 'cupos_alumnos' && isPremium) {
         if (cardCupos) {
             cardCupos.className = 'cursor-pointer relative p-5 rounded-2xl border-2 border-orange-500 bg-orange-50/40 transition-all flex flex-col justify-between shadow-sm group';
@@ -899,13 +905,6 @@ window.applyModoReservaUI = function(val) {
             checkLibre.className = 'mt-4 flex items-center gap-1.5 text-xs font-bold text-slate-400';
             checkLibre.innerHTML = '<span class="material-symbols-outlined text-[18px]">radio_button_unchecked</span> Hacer clic para seleccionar';
         }
-
-        if (selectSimultaneos) {
-            selectSimultaneos.value = 'si';
-            selectSimultaneos.disabled = true;
-            selectSimultaneos.classList.add('bg-slate-100', 'cursor-not-allowed', 'opacity-80');
-        }
-        if (badgeSimultaneos) badgeSimultaneos.classList.remove('hidden');
     } else {
         if (cardLibre) {
             cardLibre.className = 'cursor-pointer relative p-5 rounded-2xl border-2 border-[#D11149] bg-rose-50/40 transition-all flex flex-col justify-between shadow-sm group';
@@ -921,12 +920,6 @@ window.applyModoReservaUI = function(val) {
             checkCupos.className = 'mt-4 flex items-center gap-1.5 text-xs font-bold text-slate-400';
             checkCupos.innerHTML = '<span class="material-symbols-outlined text-[18px]">radio_button_unchecked</span> Hacer clic para seleccionar';
         }
-
-        if (selectSimultaneos) {
-            selectSimultaneos.disabled = false;
-            selectSimultaneos.classList.remove('bg-slate-100', 'cursor-not-allowed', 'opacity-80');
-        }
-        if (badgeSimultaneos) badgeSimultaneos.classList.add('hidden');
     }
 };
 

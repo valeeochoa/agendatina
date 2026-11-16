@@ -493,6 +493,24 @@ function isSlotAvailableForDuration(dateString, timeStr, durationMin, capacity, 
         const cap = parseInt(capacity, 10) || 1;
         if (cap <= 1) return false;
     }
+
+    if (isSpecificProf && bookedDetails) {
+        const cleanP = String(globalSelectedProfessional).trim().toLowerCase();
+        const profBookings = bookedDetails.filter(b => {
+            if (b.cupo_maximo > 1) return false;
+            if (!b.profesional || b.profesional === 'Cualquiera (Sin preferencia)' || b.profesional === '') return true;
+            return (typeof window.isSameProf === 'function')
+                ? window.isSameProf(b.profesional, globalSelectedProfessional)
+                : String(b.profesional).trim().toLowerCase() === cleanP;
+        });
+        const overlaps = profBookings.some(b => {
+            const bStart = b.startMins;
+            const bEndWithBuf = (b.endMinsWithBuffer !== undefined) ? b.endMinsWithBuffer : (b.endMins + bufferMins);
+            return Math.max(startMins, bStart) < Math.min(endMinsWithBuffer, bEndWithBuf);
+        });
+        const cap = parseInt(capacity, 10) || 1;
+        if (cap <= 1) return !overlaps;
+    }
     
     const cap = parseInt(capacity, 10) || 1;
     for (let curMins = startMins; curMins < endMins; curMins += 15) {
@@ -891,13 +909,18 @@ function cal_renderCalendar() {
         } else if (cal_selectedDate && date.getTime() === cal_selectedDate.getTime() && !isMultiSelectMode) {
             dayDiv.classList.add('selected');
             dayDiv.style.background = 'var(--color-primario, #D11149)';
-            dayDiv.style.border = '2px solid var(--color-secundario, #fc8712)';
+            dayDiv.style.border = '3px solid var(--color-secundario, #fc8712)';
             dayDiv.style.color = '#ffffff';
             dayDiv.style.fontWeight = '900';
             dayDiv.style.borderRadius = '1rem';
-            dayDiv.style.boxShadow = '0 10px 22px -3px rgba(209, 17, 73, 0.45)';
+            dayDiv.style.transform = 'scale(1.07)';
+            dayDiv.style.zIndex = '10';
+            dayDiv.style.boxShadow = 'inset 0 0 0 2px rgba(255, 255, 255, 0.88), 0 0 0 3px color-mix(in srgb, var(--color-secundario, #fc8712) 45%, transparent), 0 12px 24px -4px rgba(209, 17, 73, 0.45)';
             const numEl = dayDiv.querySelector('.cal-day-number');
-            if (numEl) numEl.style.setProperty('color', 'var(--color-secundario, #fc8712)', 'important');
+            if (numEl) {
+                numEl.style.setProperty('color', 'var(--color-secundario, #fc8712)', 'important');
+                numEl.style.setProperty('text-shadow', '0 1px 2px rgba(0, 0, 0, 0.25)', 'important');
+            }
         }
 
         if (isClickable) {
@@ -1268,7 +1291,9 @@ function renderAdminDayView(dateString) {
                 if (window.isTimeInBreak(time, dateString)) return;
                 const timeKey = time.substring(0, 5);
                 const apt = profSlotOwnership[timeKey];
-                const isBooked = horasOcupadas.includes('blocked_day') || (!apt && horasOcupadas.includes(timeKey));
+                const profKey = String(prof).trim().toLowerCase();
+                const profBookedTimes = (cal_bookedSlots._by_prof && cal_bookedSlots._by_prof[profKey] && cal_bookedSlots._by_prof[profKey][dateString]) ? cal_bookedSlots._by_prof[profKey][dateString] : [];
+                const isBooked = horasOcupadas.includes('blocked_day') || (!apt && profBookedTimes.includes(timeKey));
 
                 const [hh, mm] = timeKey.split(':').map(Number);
                 const slotDate = new Date(selectedDateObj.getFullYear(), selectedDateObj.getMonth(), selectedDateObj.getDate(), hh, mm, 0, 0);
@@ -3716,12 +3741,13 @@ function renderWeeklyCalendar() {
 
         let dateNumberHtml = '';
         if (isSelected) {
-            bgClass = 'selected shadow-xl shadow-[#D11149]/35 scale-[1.05]';
+            bgClass = 'selected shadow-xl shadow-[#D11149]/35 scale-[1.07] z-10';
             textClass = 'font-black';
-            borderClass = 'ring-2 ring-rose-300/40';
+            borderClass = 'border-[3px]';
             dayDiv.style.background = 'var(--color-primario, #D11149)';
             dayDiv.style.borderColor = 'var(--color-secundario, #fc8712)';
-            dateNumberHtml = `<span class="cal-day-number text-base sm:text-2xl font-black" style="color: var(--color-secundario, #fc8712) !important;">${date.getDate()}</span>`;
+            dayDiv.style.boxShadow = 'inset 0 0 0 2px rgba(255, 255, 255, 0.88), 0 0 0 3px color-mix(in srgb, var(--color-secundario, #fc8712) 45%, transparent), 0 12px 24px -4px rgba(209, 17, 73, 0.45)';
+            dateNumberHtml = `<span class="cal-day-number text-base sm:text-2xl font-black" style="color: var(--color-secundario, #fc8712) !important; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);">${date.getDate()}</span>`;
         } else if (isToday && !visuallyDisabled) {
             dateNumberHtml = `<span class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#D11149] text-white flex items-center justify-center font-black text-sm sm:text-base shadow-xs mx-auto">${date.getDate()}</span>`;
         } else if (isToday && isClosedDay) {
@@ -4726,9 +4752,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (config.color_fondo) {
                     document.body.style.setProperty('background-color', config.color_fondo, 'important');
                 } else if (config.color_primario || config.color_secundario) {
-                    const pColor = config.color_primario || '#D11149';
                     const sColor = config.color_secundario || '#FC8712';
-                    document.body.style.setProperty('background-color', `color-mix(in srgb, ${pColor} 10%, color-mix(in srgb, ${sColor} 7%, #f8fafc))`, 'important');
+                    document.body.style.setProperty('background-color', `color-mix(in srgb, ${sColor} 11%, #ffffff)`, 'important');
                 }
 
                 const isDegradeActive = (config.usar_fondo_degrade === undefined || config.usar_fondo_degrade === null || config.usar_fondo_degrade == 1 || config.usar_fondo_degrade === '1' || config.usar_fondo_degrade === true) && config.usar_fondo_degrade != 0 && config.usar_fondo_degrade !== '0';
@@ -4744,6 +4769,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     document.body.removeAttribute('data-degrade');
                     document.body.classList.remove('calendar-degrade-active');
+                    document.body.style.removeProperty('background-image');
                 }
 
                 // Sincronizar tipo de vista de calendario exclusivamente según la configuración elegida en Ajustes
