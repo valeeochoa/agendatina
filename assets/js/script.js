@@ -3907,21 +3907,48 @@ function checkAdminGlobalSession(config = null) {
                 isUserAdmin = false;
             }
 
-            // Guardia de acceso para perfil Profesional según permisos asignados
+            // Guardia de acceso y ocultamiento de navegación global para perfil Profesional según permisos asignados
             if (data.user && (data.user.rol === 'profesional' || data.user.rol_en_local === 'profesional')) {
                 const perms = data.user.permisos || {};
-                const canAgenda = perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true;
-                const canVerTodosTurnos = perms.ver_todos_turnos !== undefined ? (parseInt(perms.ver_todos_turnos) === 1 || perms.ver_todos_turnos === true) : false;
+                const canAgenda = perms.ver_mi_agenda !== undefined
+                    ? (parseInt(perms.ver_mi_agenda) === 1 || perms.ver_mi_agenda === true || parseInt(perms.ver_agenda_otros) === 1 || perms.ver_agenda_otros === true)
+                    : (perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true);
+                const canCalendario = perms.ver_mi_calendario !== undefined
+                    ? (parseInt(perms.ver_mi_calendario) === 1 || perms.ver_mi_calendario === true || parseInt(perms.ver_calendario_otros) === 1 || perms.ver_calendario_otros === true)
+                    : (perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true);
+                const canClientes = (perms.ver_mis_clientes !== undefined && (parseInt(perms.ver_mis_clientes) === 1 || perms.ver_mis_clientes === true)) ||
+                                    (perms.ver_clientes_todos !== undefined && (parseInt(perms.ver_clientes_todos) === 1 || perms.ver_clientes_todos === true)) ||
+                                    (perms.clientes !== undefined && (parseInt(perms.clientes) === 1 || perms.clientes === true));
+                const canEstadisticas = (perms.ver_mis_estadisticas !== undefined && (parseInt(perms.ver_mis_estadisticas) === 1 || perms.ver_mis_estadisticas === true)) ||
+                                        (perms.ver_estadisticas_otros !== undefined && (parseInt(perms.ver_estadisticas_otros) === 1 || perms.ver_estadisticas_otros === true)) ||
+                                        (perms.estadisticas !== undefined && (parseInt(perms.estadisticas) === 1 || perms.estadisticas === true));
                 const canWeb = perms.web !== undefined ? (parseInt(perms.web) === 1 || perms.web === true) : false;
-                const canServicios = perms.servicios !== undefined ? (parseInt(perms.servicios) === 1 || perms.servicios === true) : false;
-                const canEstadisticas = perms.estadisticas !== undefined ? (parseInt(perms.estadisticas) === 1 || perms.estadisticas === true) : false;
+                const canServicios = perms.servicios !== undefined ? (parseInt(perms.servicios) === 1 || perms.servicios === true) : true;
                 const canEquipo = perms.equipo !== undefined ? (parseInt(perms.equipo) === 1 || perms.equipo === true) : false;
+
+                const hideLinks = (href) => {
+                    document.querySelectorAll(`a[href="${href}"], a[href^="${href}?"]`).forEach(el => {
+                        el.classList.add('hidden');
+                        el.style.setProperty('display', 'none', 'important');
+                    });
+                };
+
+                if (!canAgenda) hideLinks('agenda.html');
+                if (!canCalendario) {
+                    hideLinks('calendarioMensual.html');
+                    hideLinks('calendarioSemanal.html');
+                }
+                if (!canClientes) hideLinks('clientes.html');
+                if (!canEstadisticas) hideLinks('estadisticas.html');
+                if (!canWeb) hideLinks('mi-web.html');
+                if (!canServicios) hideLinks('servicios.html');
+                if (!canEquipo) hideLinks('equipo.html');
 
                 const curFile = (window.location.pathname.split('/').pop() || '').toLowerCase();
                 let blocked = false;
                 let blockedMsg = '';
 
-                if (curFile.includes('ajustes') && !canAgenda) {
+                if (curFile.includes('ajustes') && !canAgenda && !canCalendario) {
                     blocked = true;
                     blockedMsg = 'No tienes permiso para configurar horarios de agenda.';
                 } else if (curFile.includes('mi-web') && !canWeb) {
@@ -3939,7 +3966,10 @@ function checkAdminGlobalSession(config = null) {
                 } else if (curFile.includes('agenda') && !canAgenda) {
                     blocked = true;
                     blockedMsg = 'No tienes permiso para acceder a la agenda virtual.';
-                } else if (curFile.includes('clientes') && !canVerTodosTurnos) {
+                } else if ((curFile.includes('calendariomensual') || curFile.includes('calendariosemanal')) && !canCalendario) {
+                    blocked = true;
+                    blockedMsg = 'No tienes permiso para acceder al calendario.';
+                } else if (curFile.includes('clientes') && !canClientes) {
                     blocked = true;
                     blockedMsg = 'No tienes permiso para acceder al listado de alumnos o clientes.';
                 }

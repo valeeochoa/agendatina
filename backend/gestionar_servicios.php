@@ -117,11 +117,18 @@ if ($method === 'GET') {
         $stmtOwner = $pdo->prepare("SELECT u.nombre_completo FROM usuarios u JOIN personal_negocio pn ON u.id = pn.id_usuario WHERE pn.id_negocio = :id AND pn.rol_en_local = 'admin' LIMIT 1");
         $stmtOwner->execute(['id' => $id_negocio]);
         $ownerName = $stmtOwner->fetchColumn();
+
+        $ctxSvc = ['is_prof' => false, 'nombre_completo' => ''];
+        if (isset($_SESSION['id_negocio']) && (int)$_SESSION['id_negocio'] === (int)$id_negocio && isset($_SESSION['user_id']) && !isset($_GET['n'])) {
+            require_once __DIR__ . '/helpers/permisos_helper.php';
+            $ctxSvc = sincronizarPermisosSesion($pdo, $id_negocio, $_SESSION['user_id']);
+        }
         
         foreach ($servicios as &$serv) {
             if (empty($serv['profesional'])) { $serv['profesional'] = $ownerName; }
             if (empty($serv['icono'])) { $serv['icono'] = 'local_florist'; }
             $serv['enlace_agenda'] = "";
+            $serv['es_mio'] = (!$ctxSvc['is_prof'] || strcasecmp(trim($serv['profesional']), trim($ctxSvc['nombre_completo'])) === 0);
         }
 
         echo json_encode($servicios);

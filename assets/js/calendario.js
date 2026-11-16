@@ -814,27 +814,33 @@ function cal_renderCalendar() {
         const isClickable = effectiveIsAdmin ? true : (!isClosedDay && !isPast && !isDayBlocked);
 
         const isToday = date.getTime() === today.getTime();
+        const todayBadge = isToday ? '<span class="glow-badge-today text-[8px] px-1.5 py-0.2 mb-0.5 scale-90">HOY</span>' : '';
         const dayDiv = document.createElement('div');
         dayDiv.className = `p-2 aspect-square flex flex-col items-center justify-center rounded-2xl transition-all duration-300 relative text-sm sm:text-base font-extrabold calendar-day`;
         
-        if (isToday && !visuallyDisabled) {
+        if (isToday) {
             dayDiv.classList.add('is-today');
         }
 
         if (visuallyDisabled) {
             dayDiv.classList.add('disabled');
             if (isClosedDay) {
-                dayDiv.innerHTML = `<span class="opacity-55">${i}</span>`;
-                dayDiv.title = 'Establecimiento cerrado';
+                if (isToday) {
+                    dayDiv.innerHTML = `${todayBadge}<span class="opacity-65 leading-none">${i}</span><span class="text-[8px] font-black uppercase text-rose-500 leading-none mt-0.5">Cerrado</span>`;
+                    dayDiv.title = 'Hoy está cerrado — Hacé click en otro día habilitado';
+                } else {
+                    dayDiv.innerHTML = `<span class="opacity-55">${i}</span>`;
+                    dayDiv.title = 'Establecimiento cerrado';
+                }
                 dayDiv.classList.add('pointer-events-none', 'cursor-not-allowed', 'select-none');
             } else if (isPast) {
-                dayDiv.innerHTML = `<span class="opacity-55">${i}</span>`;
+                dayDiv.innerHTML = `${todayBadge}<span class="opacity-55">${i}</span>`;
                 dayDiv.title = effectiveIsAdmin ? 'Día pasado (Click para ver horarios)' : 'Día anterior no disponible';
                 if (!effectiveIsAdmin) {
                     dayDiv.classList.add('pointer-events-none', 'cursor-not-allowed', 'select-none');
                 }
             } else {
-                dayDiv.innerHTML = `<span class="opacity-65">${i}</span>`;
+                dayDiv.innerHTML = `${todayBadge}<span class="opacity-65">${i}</span>`;
                 dayDiv.title = effectiveIsAdmin ? 'Sin cupos disponibles (Click para ver horarios)' : 'Sin cupos disponibles';
                 if (!effectiveIsAdmin && isDayBlocked) {
                     dayDiv.classList.add('pointer-events-none', 'cursor-not-allowed', 'select-none');
@@ -847,7 +853,6 @@ function cal_renderCalendar() {
                 dayDiv.title = 'Día bloqueado (Click para gestionar)';
             }
         } else {
-            const todayBadge = isToday ? '<span class="glow-badge-today text-[8px] px-1.5 py-0.2 mb-0.5 scale-90">HOY</span>' : '';
             dayDiv.innerHTML = `${todayBadge}<span>${i}</span>`;
         }
         
@@ -887,6 +892,15 @@ function cal_renderCalendar() {
         }
         calendarDays.appendChild(dayDiv);
     }
+
+    // Actualizar mensaje de estado vacío si hoy está cerrado y aún no se eligió fecha
+    const emptyState = document.getElementById('emptyState');
+    if (emptyState && !cal_selectedDate && !window.isWorkingDay(today)) {
+        const msgEl = emptyState.querySelector('p');
+        if (msgEl) {
+            msgEl.innerHTML = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/50 text-[#D11149] dark:text-rose-300 text-[10px] font-black uppercase mb-1.5">Hoy Cerrado</span><br><strong class="text-slate-700 dark:text-slate-200">Hoy el establecimiento se encuentra cerrado.</strong><br><span class="text-xs text-slate-500 dark:text-slate-400">Hacé click en otro día habilitado del calendario para ver los horarios disponibles.</span>`;
+        }
+    }
 }
 
 function cal_renderTimeSlots(preserveSelected = true) {
@@ -908,6 +922,21 @@ function cal_renderTimeSlots(preserveSelected = true) {
     const todayAtMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const isTodaySelected = selectedAtMidnight.getTime() === todayAtMidnight.getTime();
     const minAdvance = parseInt(window.businessWebConfig?.anticipacion_turno_min || 0, 10) || 0;
+
+    if (!window.isWorkingDay(cal_selectedDate)) {
+        const titleMsg = isTodaySelected ? 'Hoy el establecimiento se encuentra cerrado.' : 'El establecimiento se encuentra cerrado este día.';
+        const badgeText = isTodaySelected ? 'Hoy Cerrado' : 'Cerrado';
+        timeSlotsContainer.innerHTML = `
+            <div class="col-span-full p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-center space-y-1.5">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-[#D11149] dark:text-rose-300 text-[10px] font-black uppercase">
+                    <span class="material-symbols-outlined text-[14px]">event_busy</span> ${badgeText}
+                </div>
+                <p class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100">${titleMsg}</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Por favor, hacé click en otro día habilitado del calendario para ver los horarios disponibles.</p>
+            </div>
+        `;
+        return;
+    }
 
     let selectedDuration = 30;
     let selectedCapacidad = 1;
@@ -1078,7 +1107,7 @@ function renderAdminDayView(dateString) {
     // 1. Filtrar turnos del día
     let appointmentsForDay = allAppointments.filter(t => t.fecha === dateString);
     if (window.currentUserIsProfOnlyOwn && window.currentProfOnlyOwnName) {
-        appointmentsForDay = appointmentsForDay.filter(t => !t.profesional || window.isSameProf(t.profesional, window.currentProfOnlyOwnName));
+        appointmentsForDay = appointmentsForDay.filter(t => t.profesional && window.isSameProf(t.profesional, window.currentProfOnlyOwnName));
         globalSelectedProfessional = window.currentProfOnlyOwnName;
     }
     
@@ -1092,6 +1121,20 @@ function renderAdminDayView(dateString) {
     const selectedDateObj = new Date(dateString + 'T00:00:00');
     const isPastDay = selectedDateObj < todayZero;
     const isTodaySelected = (selectedDateObj.getTime() === todayZero.getTime());
+
+    // Aviso claro si el día de hoy está cerrado
+    let closedNoticeBanner = document.getElementById('adminClosedTodayBanner');
+    if (isTodaySelected && !window.isWorkingDay(selectedDateObj)) {
+        if (!closedNoticeBanner && adminTimeSlots.parentElement) {
+            closedNoticeBanner = document.createElement('div');
+            closedNoticeBanner.id = 'adminClosedTodayBanner';
+            closedNoticeBanner.className = 'mb-3 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 flex items-center gap-2.5 text-xs';
+            closedNoticeBanner.innerHTML = '<span class="material-symbols-outlined text-[#D11149] text-[18px] shrink-0">event_busy</span><div><strong class="text-slate-800 dark:text-slate-100 block">Hoy está cerrado.</strong><span class="text-slate-600 dark:text-slate-400">Hacé click en otro día habilitado del calendario para ver tu agenda abierta.</span></div>';
+            adminTimeSlots.parentElement.insertBefore(closedNoticeBanner, adminTimeSlots);
+        }
+    } else if (closedNoticeBanner) {
+        closedNoticeBanner.remove();
+    }
 
     let adminInterval = 30;
     if (window.businessWebConfig?.intervalo_turnos) {
@@ -1119,16 +1162,16 @@ function renderAdminDayView(dateString) {
 
     if (globalSelectedProfessional === 'columnas') {
         if (mainWrapper) {
-            mainWrapper.classList.remove('max-w-5xl');
-            mainWrapper.classList.add('max-w-[96%]');
+            mainWrapper.classList.remove('max-w-5xl', 'max-w-[96%]');
+            mainWrapper.classList.add('max-w-7xl');
         }
         if (calLeftCol && calRightCol) {
-            calLeftCol.className = 'lg:col-span-4 transition-all duration-500';
-            calRightCol.className = 'lg:col-span-8 transition-all duration-500';
+            calLeftCol.className = 'lg:col-span-5 xl:col-span-5 transition-all duration-500';
+            calRightCol.className = 'lg:col-span-7 xl:col-span-7 transition-all duration-500';
         }
     } else {
         if (mainWrapper) {
-            mainWrapper.classList.remove('max-w-[96%]');
+            mainWrapper.classList.remove('max-w-[96%]', 'max-w-7xl');
             mainWrapper.classList.add('max-w-5xl');
         }
         if (calLeftCol && calRightCol) {
@@ -1144,15 +1187,17 @@ function renderAdminDayView(dateString) {
         const uniqueProfs = [...new Set(services.map(s => s.profesional).filter(p => p && p.trim() !== ''))];
         if (uniqueProfs.length === 0) uniqueProfs.push('General');
 
-        adminTimeSlots.className = 'flex gap-4 overflow-x-auto pb-4 custom-scrollbar w-full min-h-[300px]';
+        adminTimeSlots.className = uniqueProfs.length > 2
+            ? 'flex gap-2.5 overflow-x-auto pb-3 custom-scrollbar w-full min-h-[280px]'
+            : 'grid grid-cols-1 sm:grid-cols-2 gap-3 w-full min-h-[280px]';
 
         uniqueProfs.forEach(prof => {
             const colDiv = document.createElement('div');
-            colDiv.className = 'flex-1 min-w-[240px] sm:min-w-[280px] max-w-[480px] border border-slate-200 dark:border-slate-700 rounded-2xl p-3.5 bg-slate-50/80 dark:bg-slate-800/80 shadow-sm';
-            colDiv.innerHTML = `<h4 class="text-center font-bold text-slate-700 dark:text-slate-300 mb-3 border-b border-slate-200 dark:border-slate-700 pb-2 truncate" title="${prof}">👤 ${prof}</h4>`;
+            colDiv.className = 'flex-1 min-w-[195px] sm:min-w-[210px] max-w-[320px] border border-slate-200 dark:border-slate-700 rounded-2xl p-2.5 bg-slate-50/80 dark:bg-slate-800/80 shadow-xs';
+            colDiv.innerHTML = `<h4 class="text-center text-xs sm:text-sm font-extrabold text-slate-700 dark:text-slate-300 mb-2 border-b border-slate-200 dark:border-slate-700 pb-1.5 truncate" title="${prof}">👤 ${prof}</h4>`;
 
             const slotsDiv = document.createElement('div');
-            slotsDiv.className = 'space-y-2 max-h-[350px] overflow-y-auto pr-1 custom-scrollbar';
+            slotsDiv.className = 'space-y-1.5 max-h-[380px] overflow-y-auto pr-1 custom-scrollbar';
 
             const profApts = appointmentsForDay.filter(a => a.profesional === prof || (prof === 'General'));
             const profSlotOwnership = {};
@@ -1197,7 +1242,7 @@ function renderAdminDayView(dateString) {
                 const isSlotInPast = isPastDay || (isTodaySelected && slotDate.getTime() <= now.getTime());
 
                 const slotDiv = document.createElement('div');
-                slotDiv.className = 'bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-2 shadow-sm flex flex-col justify-between w-full mb-2 gap-1.5';
+                slotDiv.className = 'bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 p-1.5 shadow-2xs flex flex-col justify-between w-full mb-1.5 gap-1';
 
                 if (apt) {
                     const isPend = apt.estado === 'pendiente';
@@ -1206,7 +1251,7 @@ function renderAdminDayView(dateString) {
                     const bgSlotClass = isPend ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' : (apt.estado === 'bloqueado' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-800');
                     const clientName = apt.cliente_nombre || (apt.nombre + ' ' + (apt.apellido || '')) || 'Sin Nombre';
 
-                    slotDiv.className = `rounded-xl border p-2 shadow-sm flex flex-col justify-between w-full mb-2 gap-1.5 cursor-pointer hover:shadow-md transition-all ${bgSlotClass}`;
+                    slotDiv.className = `rounded-lg border p-1.5 shadow-2xs flex flex-col justify-between w-full mb-1.5 gap-0.5 cursor-pointer hover:shadow-md transition-all ${bgSlotClass}`;
                     
                     if (effectiveIsAdmin && apt.estado !== 'bloqueado') {
                         slotDiv.draggable = true;
@@ -1222,10 +1267,10 @@ function renderAdminDayView(dateString) {
                     
                     slotDiv.innerHTML = `
                         <div class="flex justify-between items-center w-full">
-                            <span class="text-sm font-bold text-slate-700 dark:text-slate-300">${time}</span>
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">${time}</span>
                             <span class="${badgeClass} text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">${badgeText}</span>
                         </div>
-                        <div class="text-xs text-slate-600 dark:text-slate-400 font-medium truncate w-full" title="${escapeHtml(clientName)}">${escapeHtml(clientName)}</div>
+                        <div class="text-[11px] text-slate-600 dark:text-slate-400 font-semibold truncate w-full" title="${escapeHtml(clientName)}">${escapeHtml(clientName)}</div>
                         <div class="text-[9px] opacity-80 truncate w-full">${escapeHtml(apt.servicio || "")}</div>
                     `;
                     slotDiv.onclick = () => {
@@ -1236,31 +1281,31 @@ function renderAdminDayView(dateString) {
                 } else if (isBooked) {
                     slotDiv.innerHTML = `
                         <div class="flex justify-between items-center w-full">
-                            <span class="text-sm font-bold text-slate-400">${time}</span>
+                            <span class="text-xs font-bold text-slate-400">${time}</span>
                             <span class="bg-slate-100 dark:bg-slate-800 text-slate-400 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">Ocupado</span>
                         </div>`;
                 } else if (isSlotInPast) {
                     slotDiv.innerHTML = `
                         <div class="flex justify-between items-center w-full">
-                            <span class="text-sm font-bold text-slate-400">${time}</span>
-                            <div class="flex items-center gap-1.5 shrink-0">
-                                <span class="text-[10px] text-slate-400 font-medium bg-slate-100 dark:bg-slate-800/60 px-1.5 py-0.5 rounded uppercase">Pasado</span>
+                            <span class="text-xs font-bold text-slate-400">${time}</span>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <span class="text-[9px] text-slate-400 font-medium bg-slate-100 dark:bg-slate-800/60 px-1.5 py-0.5 rounded uppercase">Pasado</span>
                                 ${effectiveIsAdmin ? `
-                                <button onclick="openManualTurnoModal('${time}', '${prof}')" class="slot-action-btn-add text-primary hover:text-white hover:bg-primary p-1.5 rounded-lg transition-colors flex items-center justify-center cursor-pointer" title="Cargar turno previo (para estadísticas)">
-                                    <span class="material-symbols-outlined text-[16px]">add_circle</span>
+                                <button onclick="openManualTurnoModal('${time}', '${prof}')" class="slot-action-btn-add text-primary hover:text-white hover:bg-primary p-1 rounded-md transition-colors flex items-center justify-center cursor-pointer" title="Cargar turno previo (para estadísticas)">
+                                    <span class="material-symbols-outlined text-[15px]">add_circle</span>
                                 </button>` : ''}
                             </div>
                         </div>`;
                 } else {
                     slotDiv.innerHTML = `
                         <div class="flex justify-between items-center w-full">
-                            <span class="text-sm font-bold text-slate-700 dark:text-slate-300">${time}</span>
-                            <div class="flex items-center gap-1 shrink-0">
-                                <button onclick="openManualTurnoModal('${time}', '${prof}')" class="slot-action-btn-add text-primary hover:text-white hover:bg-primary p-1.5 rounded-lg transition-colors cursor-pointer" title="Agregar turno">
-                                    <span class="material-symbols-outlined text-[16px]">add_circle</span>
+                            <span class="text-xs font-bold text-slate-700 dark:text-slate-300">${time}</span>
+                            <div class="flex items-center gap-0.5 shrink-0">
+                                <button onclick="openManualTurnoModal('${time}', '${prof}')" class="slot-action-btn-add text-primary hover:text-white hover:bg-primary p-1 rounded-md transition-colors cursor-pointer" title="Agregar turno">
+                                    <span class="material-symbols-outlined text-[15px]">add_circle</span>
                                 </button>
-                                <button onclick="bloquearHorario('${dateString}', '${time}', '${prof}')" class="slot-action-btn-block text-slate-400 hover:text-white hover:bg-secondary p-1.5 rounded-lg transition-colors flex items-center justify-center cursor-pointer" title="Bloquear horario">
-                                    <span class="material-symbols-outlined text-[16px]">block</span>
+                                <button onclick="bloquearHorario('${dateString}', '${time}', '${prof}')" class="slot-action-btn-block text-slate-400 hover:text-white hover:bg-secondary p-1 rounded-md transition-colors flex items-center justify-center cursor-pointer" title="Bloquear horario">
+                                    <span class="material-symbols-outlined text-[15px]">block</span>
                                 </button>
                             </div>
                         </div>`;
@@ -2879,7 +2924,11 @@ function renderAdminWeeklyServices() {
     if (!container) return;
     container.innerHTML = '';
     
-    const uniqueServices = [...new Set(services.map(s => s.nombre))];
+    const relevantServices = (window.currentUserIsProfOnlyOwn && window.currentProfOnlyOwnName)
+        ? services.filter(s => s.profesional && window.isSameProf(s.profesional, window.currentProfOnlyOwnName))
+        : services;
+
+    const uniqueServices = [...new Set(relevantServices.map(s => s.nombre))];
     if (uniqueServices.length === 0) {
         container.innerHTML = '<p class="text-xs font-bold text-slate-400 py-2">No hay servicios configurados.</p>';
         return;
@@ -3193,7 +3242,7 @@ function renderAdminWeeklyGrid() {
             if (a.fecha !== dateString) return false;
             if (a.estado === 'cancelado' || a.estado === 'rechazado') return false;
             if (window.currentUserIsProfOnlyOwn && window.currentProfOnlyOwnName) {
-                if (a.profesional && !window.isSameProf(a.profesional, window.currentProfOnlyOwnName)) return false;
+                if (!a.profesional || !window.isSameProf(a.profesional, window.currentProfOnlyOwnName)) return false;
             } else if (!isTodosProf && a.profesional && adminWeeklySelectedProf) {
                 if (!window.isSameProf(a.profesional, adminWeeklySelectedProf)) return false;
             }
@@ -3617,6 +3666,8 @@ function renderWeeklyCalendar() {
             dateNumberHtml = `<span class="text-base sm:text-2xl font-black text-white">${date.getDate()}</span>`;
         } else if (isToday && !visuallyDisabled) {
             dateNumberHtml = `<span class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#D11149] text-white flex items-center justify-center font-black text-sm sm:text-base shadow-xs mx-auto">${date.getDate()}</span>`;
+        } else if (isToday && isClosedDay) {
+            dateNumberHtml = `<span class="text-[8px] font-black uppercase bg-rose-100 text-[#D11149] px-1.5 py-0.5 rounded-full leading-none mb-0.5">HOY</span><span class="text-base sm:text-xl font-black ${textClass} opacity-65">${date.getDate()}</span><span class="text-[8px] font-black uppercase text-rose-500 leading-none">Cerrado</span>`;
         } else {
             dateNumberHtml = `<span class="text-base sm:text-2xl font-black ${textClass}">${date.getDate()}</span>`;
         }
@@ -5101,8 +5152,9 @@ function checkAdminCalendarSession(config = null) {
                 const perms = data.user.permisos || {};
                 const canCalendario = perms.ver_mi_calendario !== undefined ? (parseInt(perms.ver_mi_calendario) === 1 || perms.ver_mi_calendario === true) : 
                                       (perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true);
-                const canVerCalendarioOtros = perms.ver_calendario_otros !== undefined ? (parseInt(perms.ver_calendario_otros) === 1 || perms.ver_calendario_otros === true) : 
-                                              (perms.ver_todos_turnos !== undefined ? (parseInt(perms.ver_todos_turnos) === 1 || perms.ver_todos_turnos === true) : false);
+                const canVerCalendarioOtros = perms.ver_calendario_otros !== undefined
+                    ? (parseInt(perms.ver_calendario_otros) === 1 || perms.ver_calendario_otros === true)
+                    : false;
 
                 if (!canCalendario && !canVerCalendarioOtros && !isVisitingOtherBusiness) {
                     sessionStorage.setItem('agendatina_perm_notice', 'No tienes permisos para acceder al calendario.');
@@ -5116,9 +5168,11 @@ function checkAdminCalendarSession(config = null) {
                     globalSelectedProfessional = window.currentProfOnlyOwnName;
                     adminWeeklySelectedProf = window.currentProfOnlyOwnName;
 
-                    // Ocultar filtro de cambio de profesionales
+                    // Ocultar filtro de cambio de profesionales y selector de columnas
                     const filterContainer = document.getElementById('calendarViewFilterContainer');
                     if (filterContainer) filterContainer.style.setProperty('display', 'none', 'important');
+                    if (typeof renderAdminWeeklyServices === 'function') renderAdminWeeklyServices();
+                    if (typeof renderAdminWeeklyProfs === 'function') renderAdminWeeklyProfs();
                 }
             }
 

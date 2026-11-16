@@ -126,17 +126,20 @@ try {
     }
 } catch (Exception $ePlan) {}
 
-$isProf = ($_SESSION['rol_en_local'] ?? '') === 'profesional';
+$isProf = false;
 $profSessionName = $_SESSION['nombre_completo'] ?? '';
-$userPerms = $_SESSION['permisos'] ?? [];
 $canVerMisClientes = true;
 $canVerTodosClientes = true;
 
-if ($isProf) {
+if (isset($_SESSION['user_id']) && isset($_SESSION['id_negocio']) && (int)$_SESSION['id_negocio'] === (int)$id_negocio) {
     require_once __DIR__ . '/helpers/permisos_helper.php';
-    $normPerms = normalizarPermisos($userPerms, 'profesional');
-    $canVerMisClientes = !empty($normPerms['ver_mis_clientes']);
-    $canVerTodosClientes = !empty($normPerms['ver_clientes_todos']);
+    $ctxCli = sincronizarPermisosSesion($pdo, $id_negocio, $_SESSION['user_id']);
+    $isProf = $ctxCli['is_prof'];
+    $profSessionName = $ctxCli['nombre_completo'];
+    if ($isProf) {
+        $canVerMisClientes = !empty($ctxCli['permisos']['ver_mis_clientes']);
+        $canVerTodosClientes = !empty($ctxCli['permisos']['ver_clientes_todos']);
+    }
 }
 
 try {

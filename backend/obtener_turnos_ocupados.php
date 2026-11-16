@@ -26,36 +26,15 @@ if (empty($ruta)) {
 // Determinar si quien consulta es el dueño/admin autenticado del negocio
 $esAdminDelNegocio = (isset($_SESSION['id_negocio']) && (int)$_SESSION['id_negocio'] === (int)$id_negocio);
 
-// Permisos del usuario en sesión
-$isProfLogged = (isset($_SESSION['rol_en_local']) && $_SESSION['rol_en_local'] === 'profesional');
-if (!$isProfLogged && isset($_SESSION['user_id']) && isset($_SESSION['id_negocio'])) {
-    try {
-        $stmtPn = $pdo->prepare("SELECT rol_en_local, permisos FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ? LIMIT 1");
-        $stmtPn->execute([$_SESSION['id_negocio'], $_SESSION['user_id']]);
-        $pnRow = $stmtPn->fetch(PDO::FETCH_ASSOC);
-        if ($pnRow) {
-            $_SESSION['rol_en_local'] = $pnRow['rol_en_local'];
-            $isProfLogged = ($pnRow['rol_en_local'] === 'profesional');
-            if (!empty($pnRow['permisos'])) {
-                $_SESSION['permisos'] = json_decode($pnRow['permisos'], true);
-            }
-        }
-    } catch (Exception $ePn) {}
-}
-
-if (empty($_SESSION['nombre_completo']) && isset($_SESSION['user_id'])) {
-    try {
-        $stmtU = $pdo->prepare("SELECT nombre_completo FROM usuarios WHERE id = ?");
-        $stmtU->execute([$_SESSION['user_id']]);
-        $uName = $stmtU->fetchColumn();
-        if ($uName) $_SESSION['nombre_completo'] = $uName;
-    } catch (Exception $eU) {}
-}
-
+// Permisos del usuario en sesión sincronizados en vivo desde personal_negocio
 require_once __DIR__ . '/helpers/permisos_helper.php';
-$userPerms = normalizarPermisos($_SESSION['permisos'] ?? [], $isProfLogged ? 'profesional' : 'admin');
+$ctx = ($esAdminDelNegocio && isset($_SESSION['user_id']))
+    ? sincronizarPermisosSesion($pdo, $id_negocio, $_SESSION['user_id'])
+    : ['is_prof' => false, 'permisos' => obtenerPermisosPorDefecto('admin'), 'nombre_completo' => ''];
+$isProfLogged = $ctx['is_prof'];
+$userPerms = $ctx['permisos'];
 $verTodosTurnos = !empty($userPerms['ver_calendario_otros']);
-$profesionalSessionName = $_SESSION['nombre_completo'] ?? '';
+$profesionalSessionName = trim($ctx['nombre_completo']);
 
 // Si es profesional y NO tiene permiso para ver el calendario de otros, forzar su propio nombre
 if ($isProfLogged && !$verTodosTurnos && !empty($profesionalSessionName)) {
@@ -183,8 +162,15 @@ try {
     foreach ($stmtBloqueos->fetchAll() as $b) {
         $f = $b['fecha'];
         if (!isset($ocupados[$f])) $ocupados[$f] = [];
-        if (empty($b['profesional'])) { $ocupados[$f][] = 'blocked_day'; } 
-        else if ($b['profesional'] === $profesional) { $ocupados[$f][] = 'blocked_day_prof'; }
+        if (empty($b['profesional'])) {
+            $ocupados[$f][] = 'blocked_day';
+        } else if ($isProfLogged && !$verTodosTurnos && !empty($profesionalSessionName)) {
+            if (strcasecmp(trim($b['profesional']), $profesionalSessionName) === 0) {
+                $ocupados[$f][] = 'blocked_day_prof';
+            }
+        } else if (!empty($profesional) && strcasecmp(trim($b['profesional']), trim($profesional)) === 0) {
+            $ocupados[$f][] = 'blocked_day_prof';
+        }
     }
 
     // 2. Turnos Ocupados (Calculando su duración y cupos por servicio)
@@ -195,9 +181,8 @@ try {
     $params = ['id_negocio' => $id_negocio];
 
     if ($isProfLogged && !$verTodosTurnos && !empty($profesionalSessionName)) {
-        $sqlTurnos .= " AND (t.profesional = :mi_prof_nombre OR t.profesional LIKE :mi_prof_nombre_like)";
+        $sqlTurnos .= " AND t.profesional IS NOT NULL AND TRIM(t.profesional) != '' AND LOWER(TRIM(t.profesional)) = LOWER(TRIM(:mi_prof_nombre))";
         $params['mi_prof_nombre'] = $profesionalSessionName;
-        $params['mi_prof_nombre_like'] = '%' . $profesionalSessionName . '%';
     } else if (!empty($profesional) && $profesional !== 'Cualquiera (Sin preferencia)' && $profesional !== 'Cualquiera' && $profesional !== 'columnas' && $profesional !== 'todos') {
         $sqlTurnos .= " AND (t.profesional = :profesional OR t.profesional = 'Cualquiera (Sin preferencia)' OR t.profesional IS NULL OR t.profesional = '')";
         $params['profesional'] = $profesional;

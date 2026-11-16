@@ -693,14 +693,20 @@
                     ? `<div class="relative shrink-0"><img src="${img}" class="w-12 h-12 rounded-xl object-cover border border-slate-200 shadow-xs"><span class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white shadow-xs" style="background-color: ${escapeHtml(sColor)};"></span></div>` 
                     : `<div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border shadow-xs relative" style="background-color: ${escapeHtml(sColor)}15; color: ${escapeHtml(sColor)}; border-color: ${escapeHtml(sColor)}30;"><span class="material-symbols-outlined text-[24px]">${iconToUse}</span><span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white shadow-xs" style="background-color: ${escapeHtml(sColor)};"></span></div>`;
 
+                const isOtherProfService = (s.es_mio === false);
+                const ownerTag = isOtherProfService
+                    ? `<span class="bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-md">De: ${escapeHtml(s.profesional || 'Otro profesional')}</span>`
+                    : '';
+
                 html += `
                     <div id="service-card-${s.id}" data-service-id="${s.id}" class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-300 transition-all">
                         <div class="flex items-center gap-3">
                             ${iconBox}
                             <div>
-                                <div class="flex items-center gap-2 mb-1">
+                                <div class="flex flex-wrap items-center gap-2 mb-1">
                                     <h4 class="font-bold text-slate-900 text-base">${s.nombre}</h4>
                                     ${cuposBadge}
+                                    ${ownerTag}
                                 </div>
                                 <p class="text-xs text-slate-500 font-medium mt-0.5 flex flex-wrap items-center gap-2">
                                     <span>⏱️ ${duracionFmt}</span>
@@ -711,8 +717,8 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <button onclick="editService(${s.id})" class="p-2 rounded-xl bg-white text-slate-600 hover:text-primary border border-slate-200 transition-colors cursor-pointer" title="Editar Servicio"><span class="material-symbols-outlined text-[18px]">edit</span></button>
-                            <button onclick="deleteService(${s.id})" class="p-2 rounded-xl bg-white text-slate-600 hover:text-red-600 border border-slate-200 transition-colors cursor-pointer" title="Eliminar Servicio"><span class="material-symbols-outlined text-[18px]">delete</span></button>
+                            ${!isOtherProfService ? `<button onclick="editService(${s.id})" class="p-2 rounded-xl bg-white text-slate-600 hover:text-primary border border-slate-200 transition-colors cursor-pointer" title="Editar Servicio"><span class="material-symbols-outlined text-[18px]">edit</span></button>` : ''}
+                            <button onclick="deleteService(${s.id})" class="p-2 rounded-xl bg-white text-slate-600 hover:text-red-600 border border-slate-200 transition-colors cursor-pointer" title="${isOtherProfService ? 'Solicitar eliminación al administrador' : 'Eliminar Servicio'}"><span class="material-symbols-outlined text-[18px]">delete</span></button>
                         </div>
                     </div>
                 `;

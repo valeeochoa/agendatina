@@ -84,35 +84,13 @@ try {
     $historial = isset($_GET['historial']) && $_GET['historial'] === '1';
     
     $profesional_filter = "";
-    $isProf = (isset($_SESSION['rol_en_local']) && $_SESSION['rol_en_local'] === 'profesional');
-    if (!$isProf && isset($_SESSION['user_id']) && isset($_SESSION['id_negocio'])) {
-        try {
-            $stmtPn = $pdo->prepare("SELECT rol_en_local, permisos FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ? LIMIT 1");
-            $stmtPn->execute([$_SESSION['id_negocio'], $_SESSION['user_id']]);
-            $pnRow = $stmtPn->fetch(PDO::FETCH_ASSOC);
-            if ($pnRow) {
-                $_SESSION['rol_en_local'] = $pnRow['rol_en_local'];
-                $isProf = ($pnRow['rol_en_local'] === 'profesional');
-                if (!empty($pnRow['permisos'])) {
-                    $_SESSION['permisos'] = json_decode($pnRow['permisos'], true);
-                }
-            }
-        } catch (Exception $ePn) {}
-    }
-
-    if (empty($_SESSION['nombre_completo']) && isset($_SESSION['user_id'])) {
-        try {
-            $stmtU = $pdo->prepare("SELECT nombre_completo FROM usuarios WHERE id = ?");
-            $stmtU->execute([$_SESSION['user_id']]);
-            $uName = $stmtU->fetchColumn();
-            if ($uName) $_SESSION['nombre_completo'] = $uName;
-        } catch (Exception $eU) {}
-    }
+    require_once __DIR__ . '/helpers/permisos_helper.php';
+    $ctx = sincronizarPermisosSesion($pdo, $_SESSION['id_negocio'] ?? null, $_SESSION['user_id'] ?? null);
+    $isProf = $ctx['is_prof'];
+    $permisos = $ctx['permisos'];
+    $miNombre = trim($ctx['nombre_completo']);
 
     if ($isProf) {
-        require_once __DIR__ . '/helpers/permisos_helper.php';
-        $permisos = normalizarPermisos($_SESSION['permisos'] ?? null, 'profesional');
-
         // Si el admin deshabilitó el acceso a la agenda personal y a la de otros, retornar vacío
         if (empty($permisos['ver_mi_agenda']) && empty($permisos['ver_agenda_otros'])) {
             echo json_encode([]);
@@ -121,9 +99,9 @@ try {
 
         $verTodos = !empty($permisos['ver_agenda_otros']);
 
-        // Si no tiene permiso de ver la agenda de otros, solo muestra sus turnos propios
-        if (!$verTodos && !empty($_SESSION['nombre_completo'])) {
-            $profesional_filter = " AND (LOWER(TRIM(t.profesional)) = LOWER(TRIM(:mi_nombre)) OR t.profesional LIKE :mi_nombre_like) ";
+        // Si no tiene permiso de ver la agenda de otros, solo muestra sus turnos propios (estricto)
+        if (!$verTodos && !empty($miNombre)) {
+            $profesional_filter = " AND t.profesional IS NOT NULL AND TRIM(t.profesional) != '' AND LOWER(TRIM(t.profesional)) = LOWER(TRIM(:mi_nombre)) ";
         }
     }
 
@@ -142,8 +120,7 @@ try {
         $stmt = $pdo->prepare($sql);
         $params = ['id_negocio' => $_SESSION['id_negocio']];
         if ($profesional_filter) {
-            $params['mi_nombre'] = $_SESSION['nombre_completo'];
-            $params['mi_nombre_like'] = '%' . $_SESSION['nombre_completo'] . '%';
+            $params['mi_nombre'] = $miNombre;
         }
         $stmt->execute($params);
     } else {
@@ -164,8 +141,7 @@ try {
         $stmt = $pdo->prepare($sql);
         $params = ['id_negocio' => $_SESSION['id_negocio'], 'min_fecha' => $min_fecha];
         if ($profesional_filter) {
-            $params['mi_nombre'] = $_SESSION['nombre_completo'];
-            $params['mi_nombre_like'] = '%' . $_SESSION['nombre_completo'] . '%';
+            $params['mi_nombre'] = $miNombre;
         }
         $stmt->execute($params);
     }
