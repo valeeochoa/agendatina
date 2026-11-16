@@ -64,12 +64,17 @@
         </div>
     </nav>
 
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+    <div id="perfilPageContainer" class="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         <div class="mb-8">
             <h1 class="text-3xl font-extrabold font-display flex items-center gap-2.5 text-slate-800">
                 <span class="material-symbols-outlined text-primary text-3xl">person</span> Perfil de Usuario y Negocio
             </h1>
             <p class="text-sm text-slate-500 mt-1">Gestiona tu información personal, personaliza tus colores y administra tu contraseña.</p>
+        </div>
+
+        <div id="perfilLoader" class="flex flex-col items-center justify-center py-20 text-slate-400 transition-all duration-300">
+            <span class="material-symbols-outlined text-5xl animate-spin mb-3 text-primary">refresh</span>
+            <p class="font-bold text-base text-slate-600">Cargando tu perfil...</p>
         </div>
         
         <!-- Banner WhatsApp Light -->
@@ -104,7 +109,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div id="perfilMainGrid" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             <!-- Ajustes del Perfil (6 Columnas) -->
             <div id="perfilMainCol" class="lg:col-span-6 space-y-6">
                 <!-- Formulario 1: Datos del Perfil -->
@@ -516,12 +521,21 @@
                         document.getElementById('perfilColoresBox')?.classList.add('hidden');
                         document.getElementById('perfilEstadoPagoCard')?.classList.add('hidden');
                         document.getElementById('perfilDemoNoticeCard')?.classList.add('hidden');
-                        document.getElementById('perfilSuscripcionCol')?.classList.add('hidden');
 
+                        const pageContainer = document.getElementById('perfilPageContainer');
+                        if (pageContainer) {
+                            pageContainer.classList.remove('max-w-5xl', 'max-w-6xl');
+                            pageContainer.classList.add('max-w-4xl');
+                        }
                         const mainCol = document.getElementById('perfilMainCol');
                         if (mainCol) {
-                            mainCol.classList.remove('lg:col-span-6', 'space-y-6');
-                            mainCol.classList.add('lg:col-span-12', 'grid', 'grid-cols-1', 'lg:grid-cols-2', 'gap-6', 'items-start');
+                            mainCol.className = 'lg:col-span-6 space-y-6';
+                        }
+                        const secSeguridad = document.getElementById('seccionSeguridad');
+                        const susCol = document.getElementById('perfilSuscripcionCol');
+                        if (secSeguridad && susCol) {
+                            susCol.classList.remove('hidden');
+                            susCol.appendChild(secSeguridad);
                         }
                         ['perfilNombre', 'perfilEmail', 'perfilPassActual', 'perfilPassNueva', 'perfilPassConfirmar'].forEach(inpId => {
                             const inp = document.getElementById(inpId);
@@ -673,15 +687,17 @@
                     if (isProf) {
                         const btnUpgrade = document.querySelector('button[onclick="openUpgradePlanModal()"]');
                         if (btnUpgrade) btnUpgrade.classList.add('hidden');
-                        const expBanner = document.getElementById('planExpiredAlertBanner');
-                        if (!expBanner || expBanner.classList.contains('hidden')) {
-                            document.getElementById('perfilSuscripcionCol')?.classList.add('hidden');
-                            const mainCol = document.getElementById('perfilMainCol');
-                            if (mainCol) mainCol.className = 'lg:col-span-8 lg:col-start-3 space-y-6';
-                        }
                     }
                 }
+                const pLoader = document.getElementById('perfilLoader');
+                const pGrid = document.getElementById('perfilMainGrid');
+                if (pLoader) pLoader.classList.add('hidden');
+                if (pGrid) pGrid.classList.remove('hidden');
             }).catch(err => {
+                const pLoader = document.getElementById('perfilLoader');
+                const pGrid = document.getElementById('perfilMainGrid');
+                if (pLoader) pLoader.classList.add('hidden');
+                if (pGrid) pGrid.classList.remove('hidden');
                 console.error('⚠️ [Error de Carga - Perfil] Error al procesar información:', err);
                 if (typeof showToast === 'function') {
                     showToast('Error al cargar datos del perfil: ' + err.message, 'error');

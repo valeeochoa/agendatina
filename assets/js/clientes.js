@@ -533,6 +533,20 @@ function openModalCliente(cliente = null) {
         showPremiumModalNotice();
         return;
     }
+    if (!cliente && (!Array.isArray(allServicios) || allServicios.length === 0)) {
+        if (typeof window.showConfirm === 'function') {
+            window.showConfirm(
+                'Sin servicios de Cupos/Alumnos',
+                'No tenés ningún servicio configurado con la modalidad <strong>Cupos / Portal de Alumnos</strong>. Para poder cargar un alumno, primero creá al menos un servicio con esa modalidad.',
+                'Ir a Servicios',
+                'bg-primary hover:bg-primary/90',
+                () => { window.location.href = 'servicios.html'; }
+            );
+        } else if (typeof showToast === 'function') {
+            showToast('Primero debés crear un servicio configurado para Cupos/Alumnos en la sección Servicios.', 'warning');
+        }
+        return;
+    }
     const form = document.getElementById('formCliente');
     if (form) form.reset();
 
