@@ -366,6 +366,21 @@
 
         let currentOwnerName = '';
 
+        window.syncServiceIconColor = function(val) {
+            const cVal = val || '#d11149';
+            const colorInp = document.getElementById('svcColor');
+            if (colorInp) {
+                colorInp.value = cVal;
+                colorInp.setAttribute('value', cVal);
+            }
+            const lbl = document.getElementById('svcColorLabel');
+            if (lbl) lbl.textContent = cVal;
+            const iconPrev = document.getElementById('svcIconoPreview');
+            if (iconPrev) {
+                iconPrev.style.setProperty('color', cVal, 'important');
+            }
+        };
+
         window.onTipoServicioChange = function(tipo) {
             const lblCal = document.getElementById('labelTipoCalendario');
             const lblAlu = document.getElementById('labelTipoAlumnos');
@@ -477,14 +492,10 @@
 
                         const colorInput = document.getElementById('svcColor');
                         if (colorInput) {
-                            const syncColor = (val) => {
-                                const lbl = document.getElementById('svcColorLabel');
-                                if (lbl) lbl.textContent = val;
-                                colorInput.setAttribute('value', val);
-                            };
                             ['input', 'change'].forEach(evt => {
-                                colorInput.addEventListener(evt, (e) => syncColor(e.target.value));
+                                colorInput.addEventListener(evt, (e) => window.syncServiceIconColor(e.target.value));
                             });
+                            window.syncServiceIconColor(colorInput.value);
                         }
                     } else {
                         const errReason = (d && d.error) ? d.error : 'Sin respuesta válida de sesión en servicios';
@@ -822,8 +833,7 @@
                 if (typeof window.syncIconDisplay === 'function') window.syncIconDisplay('svcIcono');
             }
             if (document.getElementById('svcColor')) {
-                document.getElementById('svcColor').value = '#d11149';
-                if (document.getElementById('svcColorLabel')) document.getElementById('svcColorLabel').textContent = '#d11149';
+                window.syncServiceIconColor('#d11149');
             }
             if (document.getElementById('svcImagen1')) document.getElementById('svcImagen1').value = '';
             document.getElementById('cupoPricingContainer').innerHTML = '';
@@ -854,8 +864,7 @@
             }
             if (document.getElementById('svcColor')) {
                 const cVal = s.color || '#d11149';
-                document.getElementById('svcColor').value = cVal;
-                if (document.getElementById('svcColorLabel')) document.getElementById('svcColorLabel').textContent = cVal;
+                window.syncServiceIconColor(cVal);
             }
             if (document.getElementById('svcImagen1')) document.getElementById('svcImagen1').value = s.imagen1 || '';
             

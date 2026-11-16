@@ -94,8 +94,8 @@ if ($method === 'GET') {
                 $id_negocio = $negocio['id'];
             }
         } 
-        // 2. Si no hay 'n', verificar si hay una sesión de administrador activa
-        else if (isset($_SESSION['id_negocio'])) {
+        // 2. Si no se encontró por 'n' o no se envió 'n', usar la sesión activa si existe
+        if (!$id_negocio && isset($_SESSION['id_negocio'])) {
             $id_negocio = $_SESSION['id_negocio'];
         }
 

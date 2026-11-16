@@ -5,7 +5,9 @@ Allow: /registro.html
 Allow: /login.html
 Allow: /terminos.html
 Disallow: /backend/
+Disallow: /admin
 Disallow: /admin/
+Disallow: /admin/*
 Disallow: /uploads/
 Disallow: /demo.php
 Disallow: /dashboard.html

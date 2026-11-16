@@ -1,6 +1,13 @@
 function escapeHtml(str) { if (!str && str !== 0) return ""; return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
 if (!window.escapeHtml) window.escapeHtml = escapeHtml;
 
+window.isCalendarClassTurno = function(t) {
+    if (!t) return false;
+    return (t.tipo_servicio === 'alumnos') ||
+           (parseInt(t.cupo_maximo, 10) > 1) ||
+           (t.metodo_pago === 'Pase de Alumno');
+};
+
 
 window.onCalendarServiceTipoChange = function(tipo) {
     const lblCal = document.getElementById('lblCalDestinoCalendario');
@@ -35,7 +42,7 @@ const urlParams = new URLSearchParams(window.location.search);
 negocioSlug = urlParams.get('n') || urlParams.get('ruta') || '';
 if (!negocioSlug) {
     const pathParts = window.location.pathname.split('/').filter(p => p && !p.includes('.html') && !p.includes('.php'));
-    const ignoreDirs = ['backend', 'css', 'js', 'public', 'agendatina', 'pruebas', 'public_html', 'htdocs', 'calendario', 'web', 'calendarioMensual', 'calendarioSemanal', 'calendario2'];
+    const ignoreDirs = ['backend', 'css', 'js', 'public', 'agendatina', 'pruebas', 'public_html', 'htdocs', 'calendario', 'web', 'calendariomensual', 'calendariosemanal', 'calendario2', 'index', 'dashboard', 'servicios', 'agenda', 'clientes', 'equipo', 'ajustes', 'perfil', 'estadisticas', 'mi-web', 'login', 'registro', 'alumno', 'manual', 'preguntas-frecuentes', 'terminos', 'admin'];
     const validParts = pathParts.filter(p => !ignoreDirs.includes(p.toLowerCase()));
     if (validParts.length > 0) {
         negocioSlug = validParts[validParts.length - 1];
@@ -830,21 +837,21 @@ function cal_renderCalendar() {
             dayDiv.classList.add('disabled');
             if (isClosedDay) {
                 if (isToday) {
-                    dayDiv.innerHTML = `${todayBadge}<span class="opacity-65 leading-none">${i}</span><span class="text-[8px] font-black uppercase text-rose-500 leading-none mt-0.5">Cerrado</span>`;
+                    dayDiv.innerHTML = `${todayBadge}<span class="cal-day-number opacity-65 leading-none">${i}</span><span class="text-[8px] font-black uppercase text-rose-500 leading-none mt-0.5">Cerrado</span>`;
                     dayDiv.title = 'Hoy está cerrado — Hacé click en otro día habilitado';
                 } else {
-                    dayDiv.innerHTML = `<span class="opacity-55">${i}</span>`;
+                    dayDiv.innerHTML = `<span class="cal-day-number opacity-55">${i}</span>`;
                     dayDiv.title = 'Establecimiento cerrado';
                 }
                 dayDiv.classList.add('pointer-events-none', 'cursor-not-allowed', 'select-none');
             } else if (isPast) {
-                dayDiv.innerHTML = `${todayBadge}<span class="opacity-55">${i}</span>`;
+                dayDiv.innerHTML = `${todayBadge}<span class="cal-day-number opacity-55">${i}</span>`;
                 dayDiv.title = effectiveIsAdmin ? 'Día pasado (Click para ver horarios)' : 'Día anterior no disponible';
                 if (!effectiveIsAdmin) {
                     dayDiv.classList.add('pointer-events-none', 'cursor-not-allowed', 'select-none');
                 }
             } else {
-                dayDiv.innerHTML = `${todayBadge}<span class="opacity-65">${i}</span>`;
+                dayDiv.innerHTML = `${todayBadge}<span class="cal-day-number opacity-65">${i}</span>`;
                 dayDiv.title = effectiveIsAdmin ? 'Sin cupos disponibles (Click para ver horarios)' : 'Sin cupos disponibles';
                 if (!effectiveIsAdmin && isDayBlocked) {
                     dayDiv.classList.add('pointer-events-none', 'cursor-not-allowed', 'select-none');
@@ -857,7 +864,7 @@ function cal_renderCalendar() {
                 dayDiv.title = 'Día bloqueado (Click para gestionar)';
             }
         } else {
-            dayDiv.innerHTML = `${todayBadge}<span>${i}</span>`;
+            dayDiv.innerHTML = `${todayBadge}<span class="cal-day-number">${i}</span>`;
         }
         
         // Multi-select / Single select styling
@@ -866,11 +873,14 @@ function cal_renderCalendar() {
             dayDiv.style.backgroundColor = 'rgba(209, 17, 73, 0.15)';
         } else if (cal_selectedDate && date.getTime() === cal_selectedDate.getTime() && !isMultiSelectMode) {
             dayDiv.classList.add('selected');
-            dayDiv.style.background = 'linear-gradient(135deg, var(--color-primario, #D11149) 0%, #fc8712 100%)';
+            dayDiv.style.background = 'var(--color-primario, #D11149)';
+            dayDiv.style.border = '2px solid var(--color-secundario, #fc8712)';
             dayDiv.style.color = '#ffffff';
             dayDiv.style.fontWeight = '900';
             dayDiv.style.borderRadius = '1rem';
             dayDiv.style.boxShadow = '0 10px 22px -3px rgba(209, 17, 73, 0.45)';
+            const numEl = dayDiv.querySelector('.cal-day-number');
+            if (numEl) numEl.style.setProperty('color', 'var(--color-secundario, #fc8712)', 'important');
         }
 
         if (isClickable) {
@@ -1089,7 +1099,7 @@ function fetchAllAppointments() {
         .then(res => res.json())
         .then(data => {
             if (Array.isArray(data)) {
-                allAppointments = data.filter(t => t && t.estado !== 'eliminado' && t.estado !== 'cancelado' && t.estado !== 'rechazado');
+                allAppointments = data.filter(t => t && t.estado !== 'eliminado' && t.estado !== 'cancelado' && t.estado !== 'rechazado' && !window.isCalendarClassTurno(t));
             } else {
                 allAppointments = [];
             }
@@ -1108,11 +1118,13 @@ function renderAdminDayView(dateString) {
 
     const effectiveIsAdmin = isAdmin && !isPreviewMode;
 
-    // 1. Filtrar turnos del día (excluyendo turnos eliminados/cancelados/rechazados)
-    let appointmentsForDay = allAppointments.filter(t => t.fecha === dateString && t.estado !== 'eliminado' && t.estado !== 'cancelado' && t.estado !== 'rechazado');
+    // 1. Filtrar turnos del día (excluyendo turnos eliminados/cancelados/rechazados y clases de alumnos)
+    let appointmentsForDay = allAppointments.filter(t => t.fecha === dateString && t.estado !== 'eliminado' && t.estado !== 'cancelado' && t.estado !== 'rechazado' && !window.isCalendarClassTurno(t));
     if (window.currentUserIsProfOnlyOwn && window.currentProfOnlyOwnName) {
         appointmentsForDay = appointmentsForDay.filter(t => t.profesional && window.isSameProf(t.profesional, window.currentProfOnlyOwnName));
         globalSelectedProfessional = window.currentProfOnlyOwnName;
+    } else if (globalSelectedProfessional && globalSelectedProfessional !== 'columnas' && globalSelectedProfessional !== 'todos' && globalSelectedProfessional !== 'Cualquiera' && globalSelectedProfessional !== 'Cualquiera (Sin preferencia)') {
+        appointmentsForDay = appointmentsForDay.filter(t => t.profesional && window.isSameProf(t.profesional, globalSelectedProfessional));
     }
     
     // Limpiamos AMBOS contenedores
@@ -1203,7 +1215,7 @@ function renderAdminDayView(dateString) {
             const slotsDiv = document.createElement('div');
             slotsDiv.className = 'space-y-1.5 max-h-[380px] overflow-y-auto pr-1 custom-scrollbar';
 
-            const profApts = appointmentsForDay.filter(a => a.profesional === prof || (prof === 'General'));
+            const profApts = appointmentsForDay.filter(a => (a.profesional && window.isSameProf(a.profesional, prof)) || (prof === 'General'));
             const profSlotOwnership = {};
 
             const profDur = (window.businessWebConfig?.intervalo_turnos === 'servicio' || !window.businessWebConfig?.intervalo_turnos) 
@@ -2745,6 +2757,8 @@ function initWizard() {
     }
 
     uniqueServices.forEach(sName => {
+        const sMatches = services.filter(s => s.nombre === sName);
+        if (sMatches.length === 0) return;
         const validPrices = sMatches.map(s => parseFloat(s.precio) || 0).filter(pr => pr > 0);
         let minPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
         let priceDisplay = minPrice > 0 ? `Desde $${minPrice.toLocaleString('es-AR')}` : '';
@@ -2858,15 +2872,16 @@ function selectWizardService(sName) {
         }
     });
 
-    const createProfBtn = (pName, display, icon) => {
+    const createProfBtn = (pName, display, icon, metaText = '') => {
         const btn = document.createElement('button');
         btn.className = 'w-full text-left p-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-primary hover:shadow-lg hover:-translate-y-0.5 transition-all bg-slate-50 dark:bg-slate-800 flex items-center gap-4 group mb-3';
         btn.innerHTML = `
             <div class="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
                 ${icon ? `<img src="${icon}" class="w-full h-full rounded-full object-cover">` : `<span class="material-symbols-outlined text-2xl">${pName === 'Cualquiera' ? 'groups' : 'person'}</span>`}
             </div>
-            <div class="flex-1">
-                <p class="font-bold text-slate-800 dark:text-white text-lg group-hover:text-primary transition-colors">${display}</p>
+            <div class="flex-1 min-w-0">
+                <p class="font-bold text-slate-800 dark:text-white text-lg group-hover:text-primary transition-colors truncate">${escapeHtml(display)}</p>
+                ${metaText ? `<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">${metaText}</p>` : ''}
             </div>
             <span class="material-symbols-outlined text-slate-300 dark:text-slate-600 group-hover:text-primary group-hover:translate-x-1 transition-transform">chevron_right</span>
         `;
@@ -2874,14 +2889,21 @@ function selectWizardService(sName) {
         return btn;
     };
 
-    if (uniqueProfs.length > 1) {
-        pList.appendChild(createProfBtn('Cualquiera', 'Cualquier profesional (Sin preferencia)', null));
+    if (uniqueProfs.length === 0) {
+        const baseMatch = matchingServices[0];
+        const basePrice = parseFloat(baseMatch?.precio || 0);
+        const baseDur = baseMatch ? formatDuracionText(baseMatch.duracion) : '';
+        const baseMeta = [baseDur, basePrice > 0 ? `$${basePrice.toLocaleString('es-AR')}` : ''].filter(Boolean).join(' • ');
+        pList.appendChild(createProfBtn('Cualquiera', 'Profesional disponible', baseMatch ? (baseMatch.foto_profesional || baseMatch.imagen1) : null, baseMeta));
+    } else {
+        uniqueProfs.forEach(p => {
+            const sMatch = matchingServices.find(s => window.isSameProf ? window.isSameProf(s.profesional, p) : ((s.profesional || '').toLowerCase().includes(p.toLowerCase()) || p.toLowerCase().includes((s.profesional || '').toLowerCase())));
+            const pPrice = parseFloat(sMatch?.precio || 0);
+            const pDur = sMatch ? formatDuracionText(sMatch.duracion) : '';
+            const meta = [pDur, pPrice > 0 ? `$${pPrice.toLocaleString('es-AR')}` : ''].filter(Boolean).join(' • ');
+            pList.appendChild(createProfBtn(p, p, sMatch ? (sMatch.foto_profesional || sMatch.imagen1) : null, meta));
+        });
     }
-
-    uniqueProfs.forEach(p => {
-        const sMatch = matchingServices.find(s => (s.profesional || '').toLowerCase().includes(p.toLowerCase()) || p.toLowerCase().includes((s.profesional || '').toLowerCase()));
-        pList.appendChild(createProfBtn(p, p, sMatch ? (sMatch.foto_profesional || sMatch.imagen1) : null));
-    });
 }
 
 function backToStep1() {
@@ -3257,7 +3279,7 @@ function renderAdminWeeklyGrid() {
         // Turnos del día filtrados por profesional
         const dayApts = allAppointments.filter(a => {
             if (a.fecha !== dateString) return false;
-            if (a.estado === 'eliminado' || a.estado === 'cancelado' || a.estado === 'rechazado') return false;
+            if (a.estado === 'eliminado' || a.estado === 'cancelado' || a.estado === 'rechazado' || window.isCalendarClassTurno(a)) return false;
             if (window.currentUserIsProfOnlyOwn && window.currentProfOnlyOwnName) {
                 if (!a.profesional || !window.isSameProf(a.profesional, window.currentProfOnlyOwnName)) return false;
             } else if (!isTodosProf && a.profesional && adminWeeklySelectedProf) {
@@ -3677,10 +3699,12 @@ function renderWeeklyCalendar() {
 
         let dateNumberHtml = '';
         if (isSelected) {
-            bgClass = 'bg-gradient-to-tr from-[#D11149] via-[#E61B58] to-[#FC8712] shadow-xl shadow-[#D11149]/35 scale-[1.05]';
-            textClass = 'text-white font-black';
-            borderClass = 'border-transparent ring-2 ring-rose-300/40';
-            dateNumberHtml = `<span class="text-base sm:text-2xl font-black text-white">${date.getDate()}</span>`;
+            bgClass = 'selected shadow-xl shadow-[#D11149]/35 scale-[1.05]';
+            textClass = 'font-black';
+            borderClass = 'ring-2 ring-rose-300/40';
+            dayDiv.style.background = 'var(--color-primario, #D11149)';
+            dayDiv.style.borderColor = 'var(--color-secundario, #fc8712)';
+            dateNumberHtml = `<span class="cal-day-number text-base sm:text-2xl font-black" style="color: var(--color-secundario, #fc8712) !important;">${date.getDate()}</span>`;
         } else if (isToday && !visuallyDisabled) {
             dateNumberHtml = `<span class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#D11149] text-white flex items-center justify-center font-black text-sm sm:text-base shadow-xs mx-auto">${date.getDate()}</span>`;
         } else if (isToday && isClosedDay) {
@@ -4732,37 +4756,44 @@ document.addEventListener('DOMContentLoaded', () => {
             serviceSelect.addEventListener('change', () => {
                 const selectedServiceName = serviceSelect.value;
                 const matchingServices = services.filter(s => s.nombre === selectedServiceName);
-                const professionals = matchingServices.map(s => s.profesional).filter(p => p && p.trim() !== '');
+                const professionals = matchingServices
+                    .map(s => (s.profesional || '').trim())
+                    .filter(p => p && p !== 'Cualquiera (Sin preferencia)' && p !== 'Cualquiera' && p !== 'Sin Asignar' && p !== 'Todos');
                 const uniqueProfessionals = [...new Set(professionals)];
 
                 profSelect.innerHTML = '';
                 if (uniqueProfessionals.length === 0) {
-                    profSelect.innerHTML = '<option value="Cualquiera" selected>Cualquiera (Sin preferencia)</option>';
+                    profSelect.innerHTML = '<option value="Cualquiera" selected>Profesional disponible</option>';
                 } else if (uniqueProfessionals.length === 1) {
-                    profSelect.innerHTML = `<option value="${uniqueProfessionals[0]}" selected>${uniqueProfessionals[0]}</option>`;
+                    profSelect.innerHTML = `<option value="${escapeHtml(uniqueProfessionals[0])}" selected>${escapeHtml(uniqueProfessionals[0])}</option>`;
                 } else {
-                    profSelect.innerHTML = '<option value="Cualquiera" selected>Cualquiera (Sin preferencia)</option>';
+                    profSelect.innerHTML = '<option value="" disabled>Seleccioná un profesional...</option>';
                     uniqueProfessionals.forEach(prof => {
-                        profSelect.innerHTML += `<option value="${prof}">${prof}</option>`;
+                        profSelect.innerHTML += `<option value="${escapeHtml(prof)}">${escapeHtml(prof)}</option>`;
                     });
                 }
-                
-                if (globalSelectedProfessional && uniqueProfessionals.includes(globalSelectedProfessional)) {
-                    profSelect.value = globalSelectedProfessional;
-                } else if (uniqueProfessionals.length === 1) {
+
+                const matchedGlobal = globalSelectedProfessional
+                    ? uniqueProfessionals.find(u => (typeof window.isSameProf === 'function' ? window.isSameProf(u, globalSelectedProfessional) : u === globalSelectedProfessional))
+                    : null;
+
+                if (matchedGlobal) {
+                    profSelect.value = matchedGlobal;
+                    globalSelectedProfessional = matchedGlobal;
+                } else if (uniqueProfessionals.length >= 1) {
+                    profSelect.value = uniqueProfessionals[0];
                     globalSelectedProfessional = uniqueProfessionals[0];
                     const globalFilter = document.getElementById('calendarViewFilter');
                     if (globalFilter) {
                         const optExists = Array.from(globalFilter.options).some(opt => opt.value === globalSelectedProfessional);
                         globalFilter.value = optExists ? globalSelectedProfessional : '';
                     }
-                    updateProfServicesDisplay();
                 } else {
                     globalSelectedProfessional = '';
                     const globalFilter = document.getElementById('calendarViewFilter');
                     if (globalFilter) globalFilter.value = '';
-                    updateProfServicesDisplay();
                 }
+                updateProfServicesDisplay();
                 
                 updateSelectedServicePriceDisplay();
                 cal_fetchBookedTimes();
@@ -4772,7 +4803,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (profSelect) {
             profSelect.addEventListener('change', (e) => {
-                globalSelectedProfessional = e.target.value === 'Cualquiera (Sin preferencia)' ? '' : e.target.value;
+                const rawVal = e.target.value;
+                globalSelectedProfessional = (!rawVal || rawVal === 'Cualquiera (Sin preferencia)' || rawVal === 'Cualquiera') ? '' : rawVal;
                 const globalFilter = document.getElementById('calendarViewFilter');
                 if (globalFilter) {
                     const optExists = Array.from(globalFilter.options).some(opt => opt.value === globalSelectedProfessional);
@@ -4803,6 +4835,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 msgDiv.classList.remove('hidden');
                 msgDiv.textContent = 'Por favor, selecciona un horario disponible.';
                 return;
+            }
+
+            const srvElChk = document.getElementById('serviceSelect');
+            const profElChk = document.getElementById('profesionalSelect');
+            if (srvElChk && srvElChk.value && profElChk) {
+                const matchSvcsChk = services.filter(s => s.nombre === srvElChk.value && s.profesional && s.profesional.trim() !== '' && s.profesional !== 'Cualquiera (Sin preferencia)' && s.profesional !== 'Cualquiera');
+                if (matchSvcsChk.length > 0 && (!profElChk.value || profElChk.value === 'Cualquiera' || profElChk.value === 'Cualquiera (Sin preferencia)')) {
+                    msgDiv.className = 'p-4 rounded-xl text-sm mt-2 font-medium bg-red-100 text-red-800';
+                    msgDiv.classList.remove('hidden');
+                    msgDiv.textContent = 'Por favor, seleccioná un profesional para este servicio.';
+                    return;
+                }
             }
 
             const cuponInput = document.getElementById('bookingCuponDescuento');

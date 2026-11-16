@@ -24,6 +24,9 @@ ServerSignature Off
     Header set X-XSS-Protection "1; mode=block"
     # Protege la privacidad evitando enviar URLs completas a terceros
     Header set Referrer-Policy "strict-origin-when-cross-origin"
+    # Evita indexación del panel administrador por buscadores
+    SetEnvIf Request_URI "^/admin" IS_ADMIN_ROUTE
+    Header always set X-Robots-Tag "noindex, nofollow, noarchive, nosnippet" env=IS_ADMIN_ROUTE
     # Restringe APIs sensibles del navegador que no son necesarias
     Header set Permissions-Policy "geolocation=(), camera=(), microphone=()"
 </IfModule>

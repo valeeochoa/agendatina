@@ -492,6 +492,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const isAlumnosSvc = (service.tipo_servicio === 'alumnos' || (!service.tipo_servicio && (parseInt(service.cupo_maximo) > 1 || parseInt(service.capacidad) > 1)));
                 const cuposCount = parseInt(service.cupo_maximo || service.capacidad || 1);
+                const profName = (service.profesional && service.profesional !== 'Cualquiera (Sin preferencia)' && service.profesional !== 'Cualquiera' && !String(service.profesional).toLowerCase().includes('agendatina'))
+                    ? service.profesional.trim()
+                    : '';
                 const tagDestino = isAlumnosSvc 
                     ? `<span class="bg-purple-100 text-purple-800 text-[10px] font-black px-2 py-0.5 rounded-full border border-purple-200 inline-flex items-center gap-1 shadow-2xs"><span class="material-symbols-outlined text-[12px]">school</span> Clase / Alumnos (${cuposCount} cupos)</span>`
                     : `<span class="bg-blue-50 text-blue-700 text-[10px] font-black px-2 py-0.5 rounded-full border border-blue-200/80 inline-flex items-center gap-1 shadow-2xs"><span class="material-symbols-outlined text-[12px]">calendar_month</span> Turno Individual</span>`;
@@ -514,7 +517,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ${tagDestino}
                             </div>
                             <h3 class="text-xl font-bold text-slate-800 leading-tight mb-2 w-full text-left group-hover:text-primary transition-colors">${service.nombre}</h3>
-                            <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-xl mb-3"><span class="material-symbols-outlined text-[16px]">schedule</span> ${durFmt}</div>
+                            <div class="flex flex-wrap items-center gap-2 mb-3">
+                                <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-xl"><span class="material-symbols-outlined text-[16px]">schedule</span> ${durFmt}</div>
+                                ${profName ? `<div class="flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-slate-100 border border-slate-200/80 px-3 py-1 rounded-xl"><span class="material-symbols-outlined text-[15px] text-primary">person</span> <span>${profName}</span></div>` : ''}
+                            </div>
                             ${packagesBadgeHtml}
                             <div class="text-slate-500 text-sm mb-6 flex-1 line-clamp-3 overflow-hidden w-full text-left leading-relaxed" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;" title="Clic para leer más">${plainTextDesc}</div>
                             <div class="flex items-center justify-between w-full mt-auto pt-4 border-t border-slate-100">
@@ -686,7 +692,10 @@ window.openWebModalService = function(id) {
         if (h > 0) return h === 1 ? '1 hora' : `${h} horas`;
         return `${m} min`;
     })(service.duracion);
-    document.getElementById('webServiceModalDuration').innerHTML = `<span class="material-symbols-outlined text-base">schedule</span> ${durFmtModal}`;
+    const profModalName = (service.profesional && service.profesional !== 'Cualquiera (Sin preferencia)' && service.profesional !== 'Cualquiera' && !String(service.profesional).toLowerCase().includes('agendatina'))
+        ? service.profesional.trim()
+        : '';
+    document.getElementById('webServiceModalDuration').innerHTML = `<span class="inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-base">schedule</span> ${durFmtModal}</span>${profModalName ? `<span class="inline-flex items-center gap-1.5 ml-3 text-slate-700 font-bold"><span class="material-symbols-outlined text-base text-primary">person</span> ${profModalName}</span>` : ''}`;
     let packagesModalHtml = '';
     try {
         const pkgs = typeof service.precios_paquetes_json === 'string' ? JSON.parse(service.precios_paquetes_json || '[]') : (service.precios_paquetes_json || []);
@@ -728,7 +737,7 @@ window.openWebModalService = function(id) {
             btnTarget.href = `alumno.html?n=${negocioSlug}&servicio=${encodeURIComponent(service.nombre)}`;
             btnTarget.innerHTML = '<span class="material-symbols-outlined text-[18px]">school</span> <span>Ver Clases en Portal de Alumnos</span>';
         } else {
-            btnTarget.href = `calendarioMensual.html?n=${negocioSlug}&servicio=${encodeURIComponent(service.nombre)}`;
+            btnTarget.href = `calendarioMensual.html?n=${negocioSlug}&servicio=${encodeURIComponent(service.nombre)}${profModalName ? '&profesional=' + encodeURIComponent(profModalName) : ''}`;
             btnTarget.innerHTML = '<span class="material-symbols-outlined text-[18px]">calendar_month</span> <span>Agendar Turno</span>';
         }
     }

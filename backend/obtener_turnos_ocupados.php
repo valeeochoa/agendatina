@@ -7,19 +7,21 @@ $profesional = $_GET['p'] ?? '';
 
 $id_negocio = null;
 
-if (empty($ruta)) {
-    // Si no viene la ruta por URL, intenta usar la sesión del administrador
+if (!empty($ruta)) {
+    $stmtNegocio = $pdo->prepare("SELECT id FROM negocios WHERE ruta = :ruta LIMIT 1");
+    $stmtNegocio->execute(['ruta' => $ruta]);
+    $negocio = $stmtNegocio->fetch();
+    if ($negocio) {
+        $id_negocio = $negocio['id'];
+    }
+}
+
+if (!$id_negocio) {
     if (isset($_SESSION['id_negocio'])) {
         $id_negocio = $_SESSION['id_negocio'];
     } else {
         echo json_encode([]); exit;
     }
-} else {
-    $stmtNegocio = $pdo->prepare("SELECT id FROM negocios WHERE ruta = :ruta LIMIT 1");
-    $stmtNegocio->execute(['ruta' => $ruta]);
-    $negocio = $stmtNegocio->fetch();
-    if (!$negocio) { echo json_encode([]); exit; }
-    $id_negocio = $negocio['id'];
 }
 
 // Determinar si quien consulta es el dueño/admin autenticado del negocio
@@ -211,11 +213,15 @@ try {
         }
     }
 
-    // 2. Turnos Ocupados (Calculando su duración y cupos por servicio)
+    // 2. Turnos Ocupados (Calculando su duración y cupos por servicio, excluyendo clases del Portal de Alumnos)
     $sqlTurnos = "SELECT t.fecha, t.hora, COALESCE(s.duracion_minutos, 30) as duracion, t.id_servicio, COALESCE(s.cupo_maximo, s.capacidad, 1) as cupo_maximo, t.profesional, t.cliente_nombre, t.servicio 
                   FROM turnos t 
                   LEFT JOIN servicios s ON t.id_servicio = s.id 
-                  WHERE t.id_negocio = :id_negocio AND t.estado IN ('pendiente', 'confirmado', 'bloqueado')";
+                  WHERE t.id_negocio = :id_negocio 
+                    AND t.estado IN ('pendiente', 'confirmado', 'bloqueado')
+                    AND COALESCE(s.tipo_servicio, 'calendario') != 'alumnos'
+                    AND COALESCE(s.cupo_maximo, s.capacidad, 1) <= 1
+                    AND COALESCE(t.metodo_pago, '') != 'Pase de Alumno'";
     $params = ['id_negocio' => $id_negocio];
 
     if ($isProfLogged && !$verTodosTurnos && !empty($profesionalSessionName)) {

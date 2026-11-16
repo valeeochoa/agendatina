@@ -281,8 +281,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             if ($negocio) {
                 $id_negocio = $negocio['id'];
             }
-        } else if ($sessionNegocioId) {
-            // Si el administrador/profesional está logueado y no pasa la ruta en la URL, usamos su sesión
+        }
+        if (!$id_negocio && $sessionNegocioId) {
+            // Si el administrador/profesional está logueado y no se resolvió una ruta pública válida, usamos su sesión
             $id_negocio = $sessionNegocioId;
         }
 

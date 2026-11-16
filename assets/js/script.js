@@ -4580,7 +4580,7 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
             cursor: not-allowed !important;
         }
 
-        /* Día Seleccionado / Activo con Gradiente de Primario a Secundario */
+        /* Día Seleccionado / Activo con Fondo Primario y Número en Color Secundario */
         .calendar-day.selected, 
         .mini-calendar-day.selected, 
         .time-slot.selected, 
@@ -4588,11 +4588,17 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
         #calendarDays > div.selected,
         #weeklyCalendarDays > div.selected,
         #adminWeeklyGrid > div.selected {
-            background: linear-gradient(135deg, ${pColor} 0%, ${sColor} 100%) !important;
+            background: ${pColor} !important;
             color: #ffffff !important;
-            border-color: ${sColor} !important;
+            border: 2px solid ${sColor} !important;
             font-weight: 900 !important;
             box-shadow: 0 4px 16px color-mix(in srgb, ${sColor} 35%, transparent) !important;
+        }
+        .calendar-day.selected .cal-day-number,
+        #calendarDays > div.selected .cal-day-number,
+        #weeklyCalendarDays > div.selected .cal-day-number,
+        #weeklyCalendarDays > div.selected > span:last-of-type {
+            color: ${sColor} !important;
         }
 
         /* Hover de Franjas Horarias */

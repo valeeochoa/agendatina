@@ -171,6 +171,7 @@ window.renderIconGrid = function(search = '', category = 'todos') {
 
     const query = search.trim().toLowerCase();
     const currentVal = window.currentIconPickerTarget ? window.currentIconPickerTarget.value : '';
+    const activeColor = document.getElementById('svcColor')?.value || '';
 
     const filtered = window.AGENDATINA_MATERIAL_ICONS.filter(item => {
         const matchCat = category === 'todos' || item.category === category;
@@ -185,13 +186,14 @@ window.renderIconGrid = function(search = '', category = 'todos') {
 
     grid.innerHTML = filtered.map(item => {
         const isSelected = item.id === currentVal;
+        const selectedStyle = (isSelected && activeColor) ? `style="color: ${activeColor}; border-color: ${activeColor};"` : '';
         return `
-            <button type="button" onclick="window.selectMaterialIcon('${item.id}')" class="flex flex-col items-center justify-center p-2 sm:p-3 rounded-xl sm:rounded-2xl border transition-all text-center group cursor-pointer ${
+            <button type="button" onclick="window.selectMaterialIcon('${item.id}')" ${selectedStyle} class="flex flex-col items-center justify-center p-2 sm:p-3 rounded-xl sm:rounded-2xl border transition-all text-center group cursor-pointer ${
                 isSelected 
                     ? 'bg-primary/10 border-primary text-primary shadow-xs ring-2 ring-primary/20' 
                     : 'bg-white border-slate-200/80 hover:border-primary/60 hover:bg-primary/5 text-slate-700 hover:text-primary shadow-2xs'
             }">
-                <span class="material-symbols-outlined text-[24px] sm:text-[28px] group-hover:scale-110 transition-transform">${item.id}</span>
+                <span class="material-symbols-outlined text-[24px] sm:text-[28px] group-hover:scale-110 transition-transform" ${activeColor ? `style="color: ${activeColor};"` : ''}>${item.id}</span>
                 <span class="text-[9px] sm:text-[11px] font-bold mt-1 line-clamp-1">${item.name}</span>
             </button>
         `;
