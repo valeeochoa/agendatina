@@ -303,6 +303,11 @@ function obtenerPaquetesDeServicio(servId) {
 // MANEJO DE FILAS DINÁMICAS DE SERVICIOS Y PASES EN EL MODAL
 // -------------------------------------------------------------
 function renderServiciosAlumnoRows() {
+    const canAddMore = Array.isArray(allServicios) && (serviciosAlumnoEnEdicion.length === 0 ? allServicios.length > 0 : (allServicios.length > 1 && serviciosAlumnoEnEdicion.length < allServicios.length));
+    const btnTop = document.getElementById('btnAsignarOtroServTop');
+    const btnBot = document.getElementById('btnAsignarOtroServBottom');
+    if (btnTop) btnTop.classList.toggle('hidden', !canAddMore);
+    if (btnBot) btnBot.classList.toggle('hidden', !canAddMore);
     const container = document.getElementById('serviciosAlumnoLista');
     if (!container) return;
 
@@ -425,6 +430,10 @@ function renderServiciosAlumnoRows() {
 }
 
 function agregarFilaServicioAlumno(data = null) {
+    if (!data && Array.isArray(allServicios) && allServicios.length > 0 && serviciosAlumnoEnEdicion.length >= allServicios.length) {
+        if (typeof showToast === 'function') showToast('Ya asignaste todos los servicios de Cupos/Alumnos disponibles.', 'warning');
+        return;
+    }
     if (data) {
         serviciosAlumnoEnEdicion.push(data);
     } else {

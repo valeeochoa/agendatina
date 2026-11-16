@@ -318,7 +318,7 @@
                         <span class="text-xs font-extrabold text-orange-900 flex items-center gap-1.5">
                             <span class="material-symbols-outlined text-[18px]">confirmation_number</span> Servicios y Pases del Alumno
                         </span>
-                        <button type="button" onclick="agregarFilaServicioAlumno()" class="px-2.5 py-1 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 shadow-xs transition-all active:scale-95 cursor-pointer" title="Asignar otro servicio a este alumno">
+                        <button type="button" id="btnAsignarOtroServTop" onclick="agregarFilaServicioAlumno()" class="px-2.5 py-1 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 shadow-xs transition-all active:scale-95 cursor-pointer" title="Asignar otro servicio a este alumno">
                             <span class="material-symbols-outlined text-[14px]">add</span> Asignar Otro Servicio
                         </button>
                     </div>
@@ -329,7 +329,7 @@
                         <!-- Se insertan dinámicamente mediante renderServiciosAlumnoRows() -->
                     </div>
 
-                    <button type="button" onclick="agregarFilaServicioAlumno()" class="w-full py-2.5 border-2 border-dashed border-orange-300 hover:border-orange-500 hover:bg-orange-100/50 rounded-xl text-xs font-extrabold text-orange-700 flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+                    <button type="button" id="btnAsignarOtroServBottom" onclick="agregarFilaServicioAlumno()" class="w-full py-2.5 border-2 border-dashed border-orange-300 hover:border-orange-500 hover:bg-orange-100/50 rounded-xl text-xs font-extrabold text-orange-700 flex items-center justify-center gap-1.5 transition-all cursor-pointer">
                         <span class="material-symbols-outlined text-[16px]">add_circle</span> + Asignar Otro Servicio a este Alumno
                     </button>
                 </div>
