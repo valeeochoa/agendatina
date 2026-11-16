@@ -1,22 +1,54 @@
 // backend/js/script.js
 
-// Interceptor global de fetch para inyectar token CSRF en peticiones POST/PUT/DELETE
+// Interceptor global de fetch para inyectar token CSRF y deduplicar GETs frecuentes (perfil / guardar_web)
 (function() {
     const originalFetch = window.fetch;
+    const sharedGetCache = {};
+    const CACHEABLE_GET_PATHS = ['backend/perfil.php', 'backend/guardar_web.php'];
+    const CACHE_TTL_MS = 4000;
+
+    window.clearSharedGetCache = function() {
+        Object.keys(sharedGetCache).forEach(k => delete sharedGetCache[k]);
+    };
+
     window.fetch = function(input, init) {
         init = init || {};
-        const isWrite = init.method && ['POST', 'PUT', 'DELETE'].includes(init.method.toUpperCase());
+        const method = (init.method || 'GET').toUpperCase();
+        const isWrite = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method);
         const csrfToken = document.cookie.match(/csrf_token=([^;]+)/)?.[1];
-        if (isWrite && csrfToken) {
-            init.headers = init.headers || {};
-            if (init.headers instanceof Headers) {
-                init.headers.set('X-CSRF-Token', csrfToken);
-            } else if (Array.isArray(init.headers)) {
-                init.headers.push(['X-CSRF-Token', csrfToken]);
-            } else {
-                init.headers['X-CSRF-Token'] = csrfToken;
+        if (isWrite) {
+            window.clearSharedGetCache();
+            if (csrfToken) {
+                init.headers = init.headers || {};
+                if (init.headers instanceof Headers) {
+                    init.headers.set('X-CSRF-Token', csrfToken);
+                } else if (Array.isArray(init.headers)) {
+                    init.headers.push(['X-CSRF-Token', csrfToken]);
+                } else {
+                    init.headers['X-CSRF-Token'] = csrfToken;
+                }
             }
+            return originalFetch(input, init);
         }
+
+        const urlStr = typeof input === 'string' ? input : (input && input.url ? input.url : '');
+        if (method === 'GET' && CACHEABLE_GET_PATHS.includes(urlStr) && !init.cache) {
+            const now = Date.now();
+            const cached = sharedGetCache[urlStr];
+            if (cached && (now - cached.ts) < CACHE_TTL_MS) {
+                return cached.promise.then(res => res.clone());
+            }
+            const reqPromise = originalFetch(input, init).then(res => {
+                if (!res.ok) delete sharedGetCache[urlStr];
+                return res;
+            }).catch(err => {
+                delete sharedGetCache[urlStr];
+                throw err;
+            });
+            sharedGetCache[urlStr] = { ts: now, promise: reqPromise };
+            return reqPromise.then(res => res.clone());
+        }
+
         return originalFetch(input, init);
     };
 })();

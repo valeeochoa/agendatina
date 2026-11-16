@@ -4,8 +4,10 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/conexion.php';
 
 // =========================================================================
-// Asegurar que las nuevas columnas existan dinámicamente (Migración)
+// Asegurar que las nuevas columnas existan dinámicamente (una sola vez por versión)
 // =========================================================================
+$_servMigFlag = sys_get_temp_dir() . '/agendatina_mig_serv_' . (int)@filemtime(__FILE__) . '.flag';
+if (!file_exists($_servMigFlag)) {
 try { $pdo->query("SELECT descripcion FROM servicios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN descripcion TEXT DEFAULT NULL"); }
 
@@ -53,6 +55,8 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN icono VARCHAR
 
 try { $pdo->query("SELECT color FROM servicios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN color VARCHAR(30) DEFAULT '#d11149'"); }
+@file_put_contents($_servMigFlag, '1');
+}
 
 
 $method = $_SERVER['REQUEST_METHOD'];

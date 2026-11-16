@@ -5,9 +5,18 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/conexion.php';
 
+$sessionNegocioId = $_SESSION['id_negocio'] ?? null;
+$sessionUserId = $_SESSION['user_id'] ?? null;
+$sessionUserRole = $_SESSION['rol_en_local'] ?? null;
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET') {
+    @session_write_close();
+}
+
 // =========================================================================
-// Migraciones automáticas de columnas para configuracion_web
+// Migraciones automáticas de columnas para configuracion_web (una sola vez por versión)
 // =========================================================================
+$_webMigFlag = sys_get_temp_dir() . '/agendatina_mig_web_' . (int)@filemtime(__FILE__) . '.flag';
+if (!file_exists($_webMigFlag)) {
 try { $pdo->query("SELECT color_fondo FROM configuracion_web LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN color_fondo VARCHAR(20) DEFAULT '#ffffff'"); }
 
@@ -244,31 +253,29 @@ try { $pdo->query("SELECT whatsapp_comprobante FROM personal_negocio LIMIT 1"); 
 catch(Exception $e) { try { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN whatsapp_comprobante VARCHAR(60) DEFAULT NULL"); } catch(Exception $ex) {} }
 
 // =========================================================================
-// AUTO-SUSPENSIÓN DE NEGOCIOS VENCIDOS (Pseudo-Cron)
+// AUTO-SUSPENSIÓN DE NEGOCIOS VENCIDOS (ejecución máxima 1 vez por hora)
 // =========================================================================
-// Suspende si pasaron > 40 días de prueba (30 días + 10 de gracia para pagar)
-// Suspende si están Activos y pasaron > 35 días desde su último pago
-try {
-    $pdo->exec("UPDATE negocios n 
-                LEFT JOIN configuracion_global cg ON cg.id = 1 
-                SET n.estado_pago = 'suspendido' 
-                WHERE n.estado_pago NOT IN ('pendiente_revision', 'suspendido') 
-                  AND (
-                      (n.estado_pago = 'prueba' AND DATEDIFF(NOW(), n.fecha_alta) > (COALESCE(n.dias_prueba, cg.dias_prueba_defecto, 15) + 10)) 
-                      OR (n.estado_pago = 'beta' AND DATEDIFF(NOW(), n.fecha_alta) > 45) 
-                      OR (n.estado_pago IN ('activo', 'pagado') AND n.ultimo_pago IS NOT NULL AND DATEDIFF(NOW(), n.ultimo_pago) > 40)
-                  )");
-} catch(Exception $e) { /* Ejecución silenciosa */ }
+@file_put_contents($_webMigFlag, '1');
+}
+
+$_autoSuspFlag = sys_get_temp_dir() . '/agendatina_autosusp.flag';
+if (!file_exists($_autoSuspFlag) || (time() - (int)@filemtime($_autoSuspFlag)) > 3600) {
+    @touch($_autoSuspFlag);
+    try {
+        $pdo->exec("UPDATE negocios n 
+                    LEFT JOIN configuracion_global cg ON cg.id = 1 
+                    SET n.estado_pago = 'suspendido' 
+                    WHERE n.estado_pago NOT IN ('pendiente_revision', 'suspendido') 
+                      AND (
+                          (n.estado_pago = 'prueba' AND DATEDIFF(NOW(), n.fecha_alta) > (COALESCE(n.dias_prueba, cg.dias_prueba_defecto, 15) + 10)) 
+                          OR (n.estado_pago = 'beta' AND DATEDIFF(NOW(), n.fecha_alta) > 45) 
+                          OR (n.estado_pago IN ('activo', 'pagado') AND n.ultimo_pago IS NOT NULL AND DATEDIFF(NOW(), n.ultimo_pago) > 40)
+                      )");
+    } catch(Exception $e) { /* Ejecución silenciosa */ }
+}
 
 // Petición GET: Devolver los datos actuales desde la BD
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-
-    $sessionNegocioId = $_SESSION['id_negocio'] ?? null;
-    $sessionUserId = $_SESSION['user_id'] ?? null;
-    $sessionUserRole = $_SESSION['rol_en_local'] ?? null;
-
-    // Liberar la sesión para permitir peticiones concurrentes
-    session_write_close();
 
     try {
         $id_negocio = null;

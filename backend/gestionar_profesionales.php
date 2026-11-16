@@ -68,8 +68,12 @@ if (!$id_negocio) {
     exit;
 }
 
-// Asegurar la existencia de la columna permisos en personal_negocio
-try { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN permisos TEXT NULL"); } catch(Exception $e) {}
+// Asegurar la existencia de la columna permisos en personal_negocio (una sola vez por versión)
+$_profMigFlag = sys_get_temp_dir() . '/agendatina_mig_prof_' . (int)@filemtime(__FILE__) . '.flag';
+if (!file_exists($_profMigFlag)) {
+    try { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN permisos TEXT NULL"); } catch(Exception $e) {}
+    @file_put_contents($_profMigFlag, '1');
+}
 
 // Validar rol administrativo para operaciones de escritura (POST, PUT, DELETE)
 $userRole = $_SESSION['rol_en_local'] ?? null;
@@ -78,6 +82,10 @@ if (!$userRole && isset($_SESSION['user_id'])) {
     $stmtCheckRole->execute([$id_negocio, $_SESSION['user_id']]);
     $userRole = $stmtCheckRole->fetchColumn();
     if ($userRole) $_SESSION['rol_en_local'] = $userRole;
+}
+
+if ($method === 'GET') {
+    @session_write_close();
 }
 
 if ($method !== 'GET' && $userRole !== 'admin') {

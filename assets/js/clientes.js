@@ -10,7 +10,7 @@ let negocioNombreUnico = '';
 
 document.addEventListener('DOMContentLoaded', () => {
     cargarClientes();
-    setInterval(cargarClientes, 10000);
+    setInterval(() => { if (!document.hidden) cargarClientes(); }, 30000);
 });
 
 function cargarClientes() {
