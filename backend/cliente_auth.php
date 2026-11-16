@@ -586,9 +586,11 @@ try {
         $stmtNegocios = $pdo->prepare("
             SELECT cn.id_negocio, cn.id_servicio, cn.servicio AS servicio_nombre, cn.servicios_pases_json, n.nombre_fantasia AS negocio_nombre, n.ruta AS negocio_ruta, n.estado_pago, 
                    cn.pases_disponibles, COALESCE(cn.pases_totales, cn.pases_disponibles) AS pases_totales, 
-                   cn.fecha_vencimiento, cn.cancelaciones_permitidas, cn.cancelaciones_restantes, cn.telefono, cn.nombre_completo
+                   cn.fecha_vencimiento, cn.cancelaciones_permitidas, cn.cancelaciones_restantes, cn.telefono, cn.nombre_completo,
+                   COALESCE(s.icono, 'event_available') AS servicio_icono, COALESCE(s.color, '#FC8712') AS servicio_color
             FROM clientes_negocio cn
             JOIN negocios n ON cn.id_negocio = n.id
+            LEFT JOIN servicios s ON cn.id_servicio = s.id
             WHERE LOWER(TRIM(cn.email)) = :email AND cn.id_negocio > 0
             ORDER BY cn.id_negocio ASC
         ");
@@ -680,35 +682,43 @@ try {
         $phonesToMatch = array_unique(array_filter($phonesToMatch));
         $namesToMatch = array_unique(array_filter($namesToMatch));
 
+        $linkedBizIds = array_values(array_unique(array_filter(array_map(function($na) {
+            return (int)($na['id_negocio'] ?? 0);
+        }, $negociosAsociados))));
+
         $whereConds = [
             "LOWER(TRIM(t.cliente_celular)) = :email",
-            "LOWER(TRIM(t.cliente_nombre)) = :email_direct",
-            "t.cliente_celular LIKE :email_like",
-            "t.cliente_nombre LIKE :email_like_nom"
+            "LOWER(TRIM(t.cliente_nombre)) = :email_direct"
         ];
         $params = [
             'email' => $email,
-            'email_direct' => $email,
-            'email_like' => '%' . $email . '%',
-            'email_like_nom' => '%' . $email . '%'
+            'email_direct' => $email
         ];
 
-        foreach (array_values($phonesToMatch) as $idx => $phone) {
-            $key = 'phone_' . $idx;
-            $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
-            $whereConds[] = "t.cliente_celular = :" . $key;
-            $params[$key] = $phone;
-            if (!empty($cleanPhone) && strlen($cleanPhone) >= 6) {
-                $kClean = 'phone_c_' . $idx;
-                $whereConds[] = "t.cliente_celular LIKE :" . $kClean;
-                $params[$kClean] = '%' . $cleanPhone . '%';
+        $scopedMatchConds = [];
+        if (!empty($linkedBizIds)) {
+            foreach (array_values($phonesToMatch) as $idx => $phone) {
+                $key = 'phone_' . $idx;
+                $cleanPhone = preg_replace('/[^0-9]/', '', $phone);
+                $scopedMatchConds[] = "t.cliente_celular = :" . $key;
+                $params[$key] = $phone;
+                if (!empty($cleanPhone) && strlen($cleanPhone) >= 6) {
+                    $kClean = 'phone_c_' . $idx;
+                    $scopedMatchConds[] = "t.cliente_celular LIKE :" . $kClean;
+                    $params[$kClean] = '%' . $cleanPhone . '%';
+                }
             }
-        }
 
-        foreach (array_values($namesToMatch) as $idx => $name) {
-            $key = 'name_' . $idx;
-            $whereConds[] = "LOWER(TRIM(t.cliente_nombre)) = :" . $key;
-            $params[$key] = $name;
+            foreach (array_values($namesToMatch) as $idx => $name) {
+                $key = 'name_' . $idx;
+                $scopedMatchConds[] = "LOWER(TRIM(t.cliente_nombre)) = :" . $key;
+                $params[$key] = $name;
+            }
+
+            if (!empty($scopedMatchConds)) {
+                $bizIdListSql = implode(',', $linkedBizIds);
+                $whereConds[] = "(t.id_negocio IN ({$bizIdListSql}) AND (" . implode(" OR ", $scopedMatchConds) . "))";
+            }
         }
 
         $whereClause = "WHERE (" . implode(" OR ", $whereConds) . ")";

@@ -1424,20 +1424,21 @@
                     const cancMax = parseInt(n.cancelaciones_max) || parseInt(n.pases_totales) || 4;
                     const pasesDisp = parseInt(n.pases_disponibles) || 0;
                     const servLabel = n.servicio_nombre || n.servicio || 'Todos los servicios';
+                    const servIconName = (n.servicio_icono && !String(n.servicio_icono).includes('/')) ? n.servicio_icono : 'event_available';
 
                     return `
-                        <div class="bg-white/95 border border-slate-200/90 rounded-3xl p-5 shadow-md space-y-3.5">
-                            <div class="flex justify-between items-start">
-                                <div>
+                        <div class="bg-white/95 border border-slate-200/90 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-md space-y-3">
+                            <div class="flex flex-wrap justify-between items-start gap-2">
+                                <div class="min-w-0">
                                     <div class="flex items-center gap-1.5 mb-1">
                                         <span class="material-symbols-outlined text-[16px] text-[#FC8712]">storefront</span>
-                                        <h4 class="font-black text-slate-900 text-base sm:text-lg">${n.negocio_nombre}</h4>
+                                        <h4 class="font-black text-slate-900 text-base sm:text-lg truncate">${n.negocio_nombre}</h4>
                                     </div>
                                     <span class="inline-flex items-center gap-1 bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold">
-                                        <span class="material-symbols-outlined text-[13px]">fitness_center</span> Servicio: ${servLabel}
+                                        <span class="material-symbols-outlined text-[13px]">${servIconName}</span> ${servLabel}
                                     </span>
                                 </div>
-                                <span class="bg-gradient-to-r from-[#FC8712] to-[#FF8A65] text-white text-xs sm:text-sm font-black px-3.5 py-1.5 rounded-xl shadow-xs">${pasesDisp} pases libres</span>
+                                <span class="bg-gradient-to-r from-[#FC8712] to-[#FF8A65] text-white text-xs sm:text-sm font-black px-3 py-1 rounded-xl shadow-xs shrink-0">${pasesDisp} pases</span>
                             </div>
                             <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
                                 <div class="bg-gradient-to-r from-[#FC8712] to-[#FF8A65] h-full" style="width: ${Math.min(100, ((pasesDisp/Math.max(1, parseInt(n.pases_totales)))*100))}%"></div>
@@ -1469,6 +1470,7 @@
                         const cancMax = parseInt(n.cancelaciones_max) || parseInt(n.pases_totales) || 4;
                         const pasesDisp = parseInt(n.pases_disponibles) || 0;
                         const servLabel = n.servicio_nombre || n.servicio || 'Todos los servicios';
+                        const servIconName = (n.servicio_icono && !String(n.servicio_icono).includes('/')) ? n.servicio_icono : 'event_available';
                         const vencTag = formatVencimientoTag(n.fecha_vencimiento);
 
                         return `
@@ -1477,7 +1479,7 @@
                                     <strong class="text-sm font-black text-slate-800 block flex items-center gap-1">
                                         <span class="material-symbols-outlined text-[15px] text-[#FC8712]">storefront</span> ${n.negocio_nombre}
                                     </strong>
-                                    <span class="text-[11px] font-bold text-purple-700 block mt-0.5">🏋️ Servicio: ${servLabel}</span>
+                                    <span class="text-[11px] font-bold text-purple-700 inline-flex items-center gap-1 mt-0.5"><span class="material-symbols-outlined text-[13px]">${servIconName}</span> ${servLabel}</span>
                                     <div class="mt-1">${vencTag}</div>
                                 </div>
                                 <div class="flex flex-col items-end gap-1 shrink-0">
@@ -1539,20 +1541,23 @@
                 const hDateFmt = formatFriendlyClassDate(c.fecha);
                 const hTimeFmt = formatFriendlyClassTime(c.hora);
                 return `
-                    <div class="bg-white/95 border border-slate-200 rounded-2xl p-4 flex justify-between items-center opacity-85 hover:opacity-100 transition-opacity gap-3">
-                        <div class="flex items-center gap-3">
+                    <div class="bg-white/95 border border-slate-200 rounded-2xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 opacity-90 hover:opacity-100 transition-opacity">
+                        <div class="flex items-start sm:items-center gap-3 min-w-0">
                             ${hIconHtml}
-                            <div>
-                                <span class="text-[10px] font-extrabold uppercase text-[#FC8712] block">${c.negocio}</span>
-                                <h5 class="font-bold text-slate-800 text-sm sm:text-base">${c.servicio}</h5>
-                                <p class="text-xs text-slate-500 flex flex-wrap items-center gap-2 mt-0.5">
-                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">calendar_month</span> ${hDateFmt}</span>
-                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span> ${hTimeFmt}</span>
-                                    <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> ${c.profesional || 'Instructor'}</span>
-                                </p>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center justify-between gap-2 mb-0.5">
+                                    <span class="text-[10px] font-extrabold uppercase text-[#FC8712] truncate">${c.negocio}</span>
+                                    <span class="sm:hidden ${c.estado === 'cancelado' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-slate-100 text-slate-700 border-slate-200'} text-[10px] font-bold px-2 py-0.5 rounded-lg uppercase border shrink-0">${c.estado === 'cancelado' ? 'Cancelada' : 'Finalizada'}</span>
+                                </div>
+                                <h5 class="font-bold text-slate-800 text-sm sm:text-base leading-snug">${c.servicio}</h5>
+                                <div class="text-xs text-slate-500 flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                                    <span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">calendar_month</span> ${hDateFmt}</span>
+                                    <span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">schedule</span> ${hTimeFmt}</span>
+                                    <span class="inline-flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">person</span> ${c.profesional || 'Instructor'}</span>
+                                </div>
                             </div>
                         </div>
-                        <span class="${c.estado === 'cancelado' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-slate-100 text-slate-700 border-slate-200'} text-xs font-bold px-3 py-1 rounded-xl uppercase border shrink-0">${c.estado === 'cancelado' ? 'Cancelada' : 'Finalizada'}</span>
+                        <span class="hidden sm:inline-flex ${c.estado === 'cancelado' ? 'bg-red-100 text-red-700 border-red-200' : 'bg-slate-100 text-slate-700 border-slate-200'} text-xs font-bold px-3 py-1 rounded-xl uppercase border shrink-0">${c.estado === 'cancelado' ? 'Cancelada' : 'Finalizada'}</span>
                     </div>
                 `;
             }).join('');
@@ -1839,8 +1844,16 @@
         function loadStudentBusinessCalendar(ruta, isSilent = false) {
             if (!ruta) return;
             const grid = document.getElementById('studentCalendarGrid');
-            if (!isSilent) {
-                grid.innerHTML = `<div class="p-8 text-center"><span class="material-symbols-outlined animate-spin text-4xl text-[#FC8712] mb-2">sync</span><p class="font-bold text-slate-600 text-sm">Consultando cupos y clases abiertas...</p></div>`;
+            const prevScrollY = window.scrollY;
+            if (!isSilent && grid) {
+                const curH = grid.offsetHeight;
+                if (curH > 160) {
+                    grid.style.minHeight = curH + 'px';
+                    grid.style.opacity = '0.6';
+                    grid.style.pointerEvents = 'none';
+                } else {
+                    grid.innerHTML = `<div class="p-8 text-center"><span class="material-symbols-outlined animate-spin text-4xl text-[#FC8712] mb-2">sync</span><p class="font-bold text-slate-600 text-sm">Consultando cupos y clases abiertas...</p></div>`;
+                }
             }
 
             // Obtener negocio seleccionado para discriminar pases
@@ -1848,19 +1861,20 @@
             const pasesNegocio = parseInt(currentNegocio.pases_disponibles) || 0;
             const negocioNombreSel = currentNegocio.negocio_nombre || 'este negocio';
             const servNombreSel = currentNegocio.servicio_nombre || currentNegocio.servicio || '';
+            const servIconSel = (currentNegocio.servicio_icono && !String(currentNegocio.servicio_icono).includes('/')) ? currentNegocio.servicio_icono : 'event_available';
 
             let passBannerHtml = '';
             if (pasesNegocio > 0) {
                 passBannerHtml = `
-                    <div class="mb-5 p-4 rounded-2xl bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-50 border border-orange-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs sm:text-sm font-extrabold text-slate-800 shadow-xs">
+                    <div class="mb-4 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-orange-500/10 via-amber-500/10 to-orange-50 border border-orange-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs sm:text-sm font-extrabold text-slate-800 shadow-xs">
                         <div class="flex items-center gap-2.5">
                             <span class="material-symbols-outlined text-[#FC8712] text-[22px]">confirmation_number</span>
                             <div>
-                                <span>Tus pases disponibles en <strong>${negocioNombreSel}</strong>:</span>
-                                ${servNombreSel ? `<span class="block text-xs font-bold text-purple-700">🏋️ Válidos para: ${servNombreSel}</span>` : ''}
+                                <span>Tus pases en <strong>${negocioNombreSel}</strong>:</span>
+                                ${servNombreSel ? `<span class="block text-xs font-bold text-purple-700 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">${servIconSel}</span> ${servNombreSel}</span>` : ''}
                             </div>
                         </div>
-                        <span class="bg-[#FC8712] text-white px-3.5 py-1.5 rounded-xl text-xs font-black shadow-xs shrink-0">${pasesNegocio} ${pasesNegocio === 1 ? 'pase libre' : 'pases libres'}</span>
+                        <span class="bg-[#FC8712] text-white px-3.5 py-1.5 rounded-xl text-xs font-black shadow-xs shrink-0 w-fit">${pasesNegocio} ${pasesNegocio === 1 ? 'pase libre' : 'pases libres'}</span>
                     </div>
                 `;
             } else {
@@ -2196,9 +2210,10 @@
                                     <div class="bg-white border ${cardClass} rounded-2xl p-4 shadow-sm transition-all flex flex-col justify-between gap-3">
                                         <div onclick="toggleStudentClassDetails('${cardSlotId}')" class="cursor-pointer select-none group">
                                             <div class="flex justify-between items-start gap-2 mb-1">
-                                                <div class="flex items-center gap-1.5">
-                                                    <h5 class="font-black text-slate-900 text-base group-hover:text-[#FC8712] transition-colors">${sNombre}</h5>
-                                                    <span id="chevron_${cardSlotId}" class="material-symbols-outlined text-slate-400 group-hover:text-[#FC8712] transition-transform duration-200 text-[20px]">expand_more</span>
+                                                <div class="flex items-center gap-2 min-w-0">
+                                                    ${(s.icono && !String(s.icono).includes('/')) ? `<span class="material-symbols-outlined text-[18px] text-[#FC8712] shrink-0">${s.icono}</span>` : ''}
+                                                    <h5 class="font-black text-slate-900 text-sm sm:text-base group-hover:text-[#FC8712] transition-colors truncate">${sNombre}</h5>
+                                                    <span id="chevron_${cardSlotId}" class="material-symbols-outlined text-slate-400 group-hover:text-[#FC8712] transition-transform duration-200 text-[20px] shrink-0">expand_more</span>
                                                 </div>
                                                 ${badgeHtml}
                                             </div>
@@ -2296,9 +2311,18 @@
 
                 htmlDays += '</div>';
                 grid.innerHTML = passBannerHtml + weekNavHtml + htmlDays;
+                grid.style.minHeight = '';
+                grid.style.opacity = '';
+                grid.style.pointerEvents = '';
+                if (prevScrollY > 0) {
+                    requestAnimationFrame(() => window.scrollTo({ top: prevScrollY, behavior: 'instant' }));
+                }
             })
             .catch(err => {
                 grid.innerHTML = passBannerHtml + `<div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center"><p class="text-slate-500 font-bold text-sm">No se pudieron cargar los cupos. Por favor intentá nuevamente.</p></div>`;
+                grid.style.minHeight = '';
+                grid.style.opacity = '';
+                grid.style.pointerEvents = '';
             });
         }
 
