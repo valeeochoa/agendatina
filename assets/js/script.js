@@ -276,7 +276,56 @@ window.showToast = function(message, type = 'success', customDuration = null) {
     }, duration);
 };
 
+window.ensureConfirmModal = function() {
+    if (!document.getElementById('confirmModal')) {
+        const modalHtml = `
+            <div id="confirmModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[80] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+                <div class="bg-white rounded-2xl shadow-2xl border border-slate-200/90 max-w-sm w-full p-6 sm:p-7 transform scale-95 transition-transform duration-300 text-center" id="confirmModalContent">
+                    <div id="confirmIconBox" class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                        <span id="confirmIcon" class="material-symbols-outlined text-2xl">delete</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2" id="confirmTitle">Confirmar Acción</h3>
+                    <p class="text-slate-500 text-xs sm:text-sm mb-6 leading-relaxed" id="confirmMessage">¿Estás seguro de que deseas realizar esta acción?</p>
+                    <div class="flex gap-3 justify-center">
+                        <button type="button" id="btnCancelConfirm" onclick="closeConfirm()" class="px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors flex-1 cursor-pointer">Cancelar</button>
+                        <button type="button" id="btnAcceptConfirm" class="px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl transition-colors flex-1 shadow-2xs cursor-pointer">Aceptar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    const btnAccept = document.getElementById('btnAcceptConfirm');
+    if (btnAccept && btnAccept.dataset.confirmBound !== '1') {
+        btnAccept.dataset.confirmBound = '1';
+        btnAccept.addEventListener('click', async () => {
+            if (window.confirmActionCallback) {
+                const originalText = btnAccept.textContent;
+                btnAccept.disabled = true;
+                btnAccept.classList.add('opacity-70', 'cursor-not-allowed');
+                btnAccept.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px] align-middle mr-1">refresh</span> Procesando...';
+
+                try {
+                    const result = window.confirmActionCallback();
+                    if (result instanceof Promise) await result;
+                } catch (e) {
+                    console.error('Error:', e);
+                } finally {
+                    btnAccept.disabled = false;
+                    btnAccept.classList.remove('opacity-70', 'cursor-not-allowed');
+                    btnAccept.textContent = originalText;
+                    closeConfirm();
+                }
+            } else {
+                closeConfirm();
+            }
+        });
+    }
+};
+
 window.showConfirm = function(title, message, acceptText, acceptColorClass, callback, extraHtml = '') {
+    window.ensureConfirmModal();
     const confirmTitle = document.getElementById('confirmTitle');
     const confirmMessage = document.getElementById('confirmMessage');
     const btnAccept = document.getElementById('btnAcceptConfirm');
@@ -3200,30 +3249,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Inicializador del Modal de Confirmación Global ---
-    const btnAcceptConfirm = document.getElementById('btnAcceptConfirm');
-    if (btnAcceptConfirm) {
-        btnAcceptConfirm.addEventListener('click', async () => {
-            if (confirmActionCallback) {
-                const originalText = btnAcceptConfirm.textContent;
-                btnAcceptConfirm.disabled = true;
-                btnAcceptConfirm.classList.add('opacity-70', 'cursor-not-allowed');
-                btnAcceptConfirm.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px] align-middle mr-1">refresh</span> Procesando...';
-                
-                try {
-                    const result = confirmActionCallback();
-                    if (result instanceof Promise) await result;
-                } catch (e) {
-                    console.error('Error:', e);
-                } finally {
-                    btnAcceptConfirm.disabled = false;
-                    btnAcceptConfirm.classList.remove('opacity-70', 'cursor-not-allowed');
-                    btnAcceptConfirm.textContent = originalText;
-                    closeConfirm();
-                }
-            } else {
-                closeConfirm();
-            }
-        });
+    if (document.getElementById('btnAcceptConfirm') && typeof window.ensureConfirmModal === 'function') {
+        window.ensureConfirmModal();
     }
 
     // --- Enrutador de inicialización por página ---

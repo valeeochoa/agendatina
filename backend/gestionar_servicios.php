@@ -56,6 +56,22 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN color VARCHAR
 
 
 $method = $_SERVER['REQUEST_METHOD'];
+$deletePayload = [];
+$isDeleteRequest = ($method === 'DELETE');
+if ($method === 'POST') {
+    $ctCheck = isset($_SERVER["CONTENT_TYPE"]) ? trim($_SERVER["CONTENT_TYPE"]) : '';
+    if (strpos($ctCheck, 'application/json') !== false) {
+        $rawPostJson = file_get_contents('php://input');
+        $parsedPostJson = json_decode($rawPostJson, true);
+        if (is_array($parsedPostJson) && ($parsedPostJson['action'] ?? '') === 'delete') {
+            $isDeleteRequest = true;
+            $deletePayload = $parsedPostJson;
+        }
+    } elseif (($_POST['action'] ?? '') === 'delete') {
+        $isDeleteRequest = true;
+        $deletePayload = $_POST;
+    }
+}
 
 // =========================================================================
 // OBTENER SERVICIOS (MÉTODO GET)
@@ -142,7 +158,7 @@ if ($method === 'GET') {
 // =========================================================================
 // CREAR O ACTUALIZAR SERVICIO (MÉTODO POST)
 // =========================================================================
-if ($method === 'POST') {
+if ($method === 'POST' && !$isDeleteRequest) {
     if (!isset($_SESSION['id_negocio'])) {
         http_response_code(403);
         echo json_encode(['success' => false, 'error' => 'No autorizado.']);
@@ -427,20 +443,22 @@ if ($method === 'POST') {
 }
 
 // =========================================================================
-// ELIMINAR SERVICIO (MÉTODO DELETE)
+// ELIMINAR SERVICIO (MÉTODO DELETE O POST CON action=delete)
 // =========================================================================
-if ($method === 'DELETE') {
+if ($isDeleteRequest) {
     if (!isset($_SESSION['id_negocio'])) {
         echo json_encode(['success' => false, 'error' => 'No autorizado.']);
         exit;
     }
     
     $id_negocio = (int)$_SESSION['id_negocio'];
-    $userRole = $_SESSION['rol_en_local'] ?? 'admin';
-    $userNombre = trim($_SESSION['nombre_completo'] ?? '');
+    require_once __DIR__ . '/helpers/permisos_helper.php';
+    $ctxDel = sincronizarPermisosSesion($pdo, $id_negocio, $_SESSION['user_id'] ?? null);
+    $userRole = !empty($ctxDel['rol_en_local']) ? $ctxDel['rol_en_local'] : ($_SESSION['rol_en_local'] ?? 'admin');
+    $userNombre = !empty($ctxDel['nombre_completo']) ? trim($ctxDel['nombre_completo']) : trim($_SESSION['nombre_completo'] ?? '');
 
-    // Leer ID de forma tolerante (URL param, form-urlencoded o JSON)
-    $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+    // Leer ID de forma tolerante (URL param, payload POST, form-urlencoded o JSON)
+    $id = isset($_GET['id']) ? (int)$_GET['id'] : (isset($deletePayload['id']) ? (int)$deletePayload['id'] : 0);
     if (!$id) {
         $rawInput = file_get_contents('php://input');
         parse_str($rawInput, $delParams);
@@ -503,28 +521,36 @@ if ($method === 'DELETE') {
         $pdo->beginTransaction();
 
         // 3.1 Eliminar turnos futuros que se habían asignado con este servicio
-        $stmtDelTurnos = $pdo->prepare("
-            DELETE FROM turnos 
-            WHERE id_negocio = :id_negocio 
-              AND (id_servicio = :id OR LOWER(TRIM(servicio)) = LOWER(TRIM(:nom_servicio)))
-              AND (fecha > CURDATE() OR (fecha = CURDATE() AND hora >= CURTIME()))
-        ");
-        $stmtDelTurnos->execute([
-            'id_negocio' => $id_negocio,
-            'id' => $id,
-            'nom_servicio' => $svc['nombre_servicio']
-        ]);
+        try {
+            $stmtDelTurnos = $pdo->prepare("
+                DELETE FROM turnos 
+                WHERE id_negocio = :id_negocio 
+                  AND (id_servicio = :id OR LOWER(TRIM(servicio)) = LOWER(TRIM(:nom_servicio)))
+                  AND (fecha > CURDATE() OR (fecha = CURDATE() AND hora >= CURTIME()))
+            ");
+            $stmtDelTurnos->execute([
+                'id_negocio' => $id_negocio,
+                'id' => $id,
+                'nom_servicio' => $svc['nombre_servicio']
+            ]);
+        } catch (Throwable $eDelTurnos) {
+            error_log("Aviso limpieza turnos futuros al eliminar servicio {$id}: " . $eDelTurnos->getMessage());
+        }
 
         // 3.2 Desvincular id_servicio de los turnos pasados conservando intacto el historial
-        $stmtUnlinkPast = $pdo->prepare("
-            UPDATE turnos 
-            SET id_servicio = NULL 
-            WHERE id_negocio = :id_negocio AND id_servicio = :id
-        ");
-        $stmtUnlinkPast->execute([
-            'id_negocio' => $id_negocio,
-            'id' => $id
-        ]);
+        try {
+            $stmtUnlinkPast = $pdo->prepare("
+                UPDATE turnos 
+                SET id_servicio = NULL 
+                WHERE id_negocio = :id_negocio AND id_servicio = :id
+            ");
+            $stmtUnlinkPast->execute([
+                'id_negocio' => $id_negocio,
+                'id' => $id
+            ]);
+        } catch (Throwable $eUnlinkTurnos) {
+            error_log("Aviso desvincular turnos pasados al eliminar servicio {$id}: " . $eUnlinkTurnos->getMessage());
+        }
 
         // 3.3 Eliminar el servicio del catálogo
         $stmtDelSvc = $pdo->prepare("DELETE FROM servicios WHERE id = :id AND id_negocio = :id_negocio");

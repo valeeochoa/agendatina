@@ -901,10 +901,10 @@
 
         function deleteService(id) {
             const executeDelete = () => {
-                fetch('backend/gestionar_servicios.php', {
+                return fetch('backend/gestionar_servicios.php?id=' + encodeURIComponent(id), {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'id=' + id
+                    body: 'id=' + encodeURIComponent(id)
                 })
                 .then(r => r.json())
                 .then(d => {
@@ -921,6 +921,10 @@
                         if (typeof showToast === 'function') showToast(d.error || 'Error al eliminar servicio.', 'error');
                         else alert(d.error || 'Error al eliminar');
                     }
+                })
+                .catch(err => {
+                    console.error('Error al eliminar servicio:', err);
+                    if (typeof showToast === 'function') showToast('Error de red al eliminar el servicio.', 'error');
                 });
             };
 
@@ -1079,13 +1083,24 @@
         });
 
         function deleteTeamMember(id) {
-            if (confirm('¿Seguro que deseas revocar el acceso a este profesional?')) {
-                fetch('backend/gestionar_profesionales.php?id=' + id, { method: 'DELETE' })
+            const executeRevoke = () => {
+                return fetch('backend/gestionar_profesionales.php?id=' + encodeURIComponent(id), { method: 'DELETE' })
                     .then(r => r.json())
                     .then(d => {
-                        if (d.success) loadTeam();
-                        else alert(d.error || 'Error al revocar');
+                        if (d.success) {
+                            loadTeam();
+                            if (typeof showToast === 'function') showToast('Acceso revocado correctamente.', 'success');
+                        } else if (typeof showToast === 'function') {
+                            showToast(d.error || 'Error al revocar acceso.', 'error');
+                        }
+                    })
+                    .catch(() => {
+                        if (typeof showToast === 'function') showToast('Error de red al revocar acceso.', 'error');
                     });
+            };
+
+            if (typeof showConfirm === 'function') {
+                showConfirm('Revocar Acceso', '¿Seguro que deseas revocar el acceso a este profesional?', 'Revocar', 'bg-red-600 hover:bg-red-700', executeRevoke);
             }
         }
     </script>
