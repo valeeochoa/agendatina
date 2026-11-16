@@ -106,7 +106,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <!-- Ajustes del Perfil (6 Columnas) -->
-            <div class="lg:col-span-6 space-y-6">
+            <div id="perfilMainCol" class="lg:col-span-6 space-y-6">
                 <!-- Formulario 1: Datos del Perfil -->
                 <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-6 sm:p-8">
                     <h2 class="font-extrabold text-xl mb-6 border-b border-slate-100 pb-4 flex items-center gap-2.5 text-slate-800">
@@ -114,17 +114,17 @@
                     </h2>
                     <form id="perfilForm" class="space-y-5">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                            <div>
+                            <div id="perfilNombreNegocioBox">
                                 <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Nombre del Negocio / Marca</label>
                                 <input type="text" id="perfilNombreNegocio" name="nombre_fantasia" class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-primary outline-none transition-all font-medium" placeholder="Ej. Barbería Don Juan" required>
                                 <span id="negocioNombreHelp" class="hidden text-[11px] text-amber-600 font-semibold mt-1 block">Solo el administrador del local puede modificar el nombre del negocio.</span>
                             </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Nombre del Administrador / Usuario</label>
+                            <div id="perfilNombreUsuarioBox">
+                                <label id="lblPerfilNombreUsuario" class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Nombre del Administrador / Usuario</label>
                                 <input type="text" id="perfilNombre" name="nombre" class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-50 text-sm focus:ring-2 focus:ring-primary outline-none transition-all font-medium" placeholder="Tu nombre" required>
                             </div>
                             
-                            <div class="sm:col-span-2">
+                            <div id="perfilRutaBox" class="sm:col-span-2">
                                 <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Enlace Web Personalizado (Página Web / Reservas)</label>
                                 <div class="relative flex items-center">
                                     <span class="absolute left-4 text-slate-400 font-semibold text-xs sm:text-sm select-none pointer-events-none">agendatina.site/</span>
@@ -159,7 +159,7 @@
                                 </div>
                             </div>
                             
-                            <div class="sm:col-span-2 mt-1">
+                            <div id="perfilLogoBox" class="sm:col-span-2 mt-1">
                                 <label class="block text-xs font-bold text-slate-500 mb-2 uppercase tracking-wider">Logo del Negocio</label>
                                 <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
                                     <img id="perfilLogoPreview" class="w-14 h-14 rounded-2xl object-cover hidden border-2 border-white shadow-md">
@@ -167,7 +167,7 @@
                                 </div>
                             </div>
                             
-                            <div class="sm:col-span-2 border-t border-slate-100 pt-5 mt-2">
+                            <div id="perfilColoresBox" class="sm:col-span-2 border-t border-slate-100 pt-5 mt-2">
                                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                                     <div>
                                         <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
@@ -272,7 +272,7 @@
             </div>
             
             <!-- Lateral: Suscripción y Estado de Pago (6 Columnas) -->
-            <div class="lg:col-span-6 space-y-6">
+            <div id="perfilSuscripcionCol" class="lg:col-span-6 space-y-6">
                 <!-- Banner de Alerta cuando el Plan está Vencido / Suspendido -->
                 <div id="planExpiredAlertBanner" class="hidden p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
                     <div class="flex items-center gap-3">
@@ -308,7 +308,7 @@
                 </div>
 
                 <!-- Estado de Suscripción -->
-                <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-6 sm:p-8">
+                <div id="perfilEstadoPagoCard" class="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-6 sm:p-8">
                     <h2 class="font-extrabold text-xl mb-6 border-b border-slate-100 pb-4 flex items-center gap-2.5 text-slate-800">
                         <span class="material-symbols-outlined text-primary">credit_card</span> Estado del Servicio y Pago
                     </h2>
@@ -432,8 +432,9 @@
                     document.getElementById('perfilNombre').value = data.user.nombre_completo || '';
                     document.getElementById('perfilEmail').value = data.user.email || '';
                     
-                    isDemoUser = (data.user.email && data.user.email === 'demo@agendatina.site') || 
-                                 (data.business && (data.business.ruta === 'demo' || data.business.is_demo == 1 || data.business.is_demo === true));
+                    const uEmailLow = (data.user.email || '').toLowerCase();
+                    isDemoUser = (uEmailLow === 'demo@agendatina.site' || uEmailLow.startsWith('demo_')) || 
+                                 (data.business && (data.business.ruta === 'demo' || (data.business.ruta && String(data.business.ruta).startsWith('demo-')) || data.business.is_demo == 1 || data.business.is_demo === true));
                     if (isDemoUser) sessionStorage.setItem('is_demo_user', 'true'); else sessionStorage.removeItem('is_demo_user');
                     window.isDemoUser = isDemoUser;
                     
@@ -494,16 +495,27 @@
                         }
                     }
 
-                    // Restricción de Rol para Nombre del Negocio
+                    // Restricción de Rol para Profesional: ocultar nombre/enlace web/logo/colores del local y tarjeta de suscripción
                     const negocioInput = document.getElementById('perfilNombreNegocio');
                     const negocioHelp = document.getElementById('negocioNombreHelp');
-                    isStaff = (data.user.rol === 'profesional' || data.user.rol === 'empleado');
+                    isStaff = (data.user.rol === 'profesional' || data.user.rol_en_local === 'profesional' || data.user.rol === 'empleado');
                     isProf = isStaff;
-                    if (isStaff && negocioInput) {
-                        negocioInput.disabled = true;
-                        negocioInput.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-400');
-                        negocioInput.title = 'Solo el administrador del local puede modificar el nombre del negocio.';
-                        if (negocioHelp) negocioHelp.classList.remove('hidden');
+                    window.isProfUser = isProf;
+                    if (isStaff) {
+                        if (negocioInput) {
+                            negocioInput.required = false;
+                            negocioInput.disabled = true;
+                        }
+                        if (negocioHelp) negocioHelp.classList.add('hidden');
+                        document.getElementById('perfilNombreNegocioBox')?.classList.add('hidden');
+                        document.getElementById('perfilNombreUsuarioBox')?.classList.add('sm:col-span-2');
+                        const lblNombre = document.getElementById('lblPerfilNombreUsuario');
+                        if (lblNombre) lblNombre.textContent = 'Tu Nombre Completo';
+                        document.getElementById('perfilRutaBox')?.classList.add('hidden');
+                        document.getElementById('perfilLogoBox')?.classList.add('hidden');
+                        document.getElementById('perfilColoresBox')?.classList.add('hidden');
+                        document.getElementById('perfilEstadoPagoCard')?.classList.add('hidden');
+                        document.getElementById('perfilDemoNoticeCard')?.classList.add('hidden');
                     }
                 }
                 if(data.business) {
@@ -647,6 +659,12 @@
                     if (isProf) {
                         const btnUpgrade = document.querySelector('button[onclick="openUpgradePlanModal()"]');
                         if (btnUpgrade) btnUpgrade.classList.add('hidden');
+                        const expBanner = document.getElementById('planExpiredAlertBanner');
+                        if (!expBanner || expBanner.classList.contains('hidden')) {
+                            document.getElementById('perfilSuscripcionCol')?.classList.add('hidden');
+                            const mainCol = document.getElementById('perfilMainCol');
+                            if (mainCol) mainCol.className = 'lg:col-span-8 lg:col-start-3 space-y-6';
+                        }
                     }
                 }
             }).catch(err => {
@@ -794,6 +812,25 @@
                 btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px]">refresh</span> Guardando...';
                 
                 const formData = new FormData(e.target);
+
+                if (window.isProfUser) {
+                    const profFormData = new FormData();
+                    profFormData.append('nombre', formData.get('nombre') || '');
+                    fetch('backend/perfil.php', { method: 'POST', body: profFormData })
+                        .then(r => r.json())
+                        .then(perfilData => {
+                            if (perfilData.success) {
+                                showProfileNoticeModal('¡Perfil Actualizado!', 'Tus datos personales fueron guardados correctamente.', true, () => {
+                                    window.location.reload();
+                                });
+                            } else {
+                                showProfileNoticeModal('Atención', perfilData.error || 'Ocurrió un error al guardar los datos del perfil.', false);
+                            }
+                        })
+                        .catch(() => showProfileNoticeModal('Error de Conexión', 'Ocurrió un error al comunicarse con el servidor.', false))
+                        .finally(() => { btn.disabled = false; btn.innerHTML = origText; });
+                    return;
+                }
                 
                 Promise.all([
                     fetch('backend/perfil.php', { method: 'POST', body: formData }).then(r=>r.json()),

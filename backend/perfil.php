@@ -67,6 +67,7 @@ try {
 
     // Si hay user_id en sesión pero id_negocio quedó vacío o desincronizado, recuperarlo desde personal_negocio
     require_once __DIR__ . '/helpers/permisos_helper.php';
+    asegurarVerificacionProfesionalesPendiente($pdo);
     if (isset($_SESSION['user_id']) && empty($_SESSION['id_negocio'])) {
         sincronizarPermisosSesion($pdo, null, $_SESSION['user_id']);
     }
@@ -283,7 +284,9 @@ try {
             $business['precio_vigente_sistema'] = (float)$precioVigenteSistema;
             $business['hay_subida_precio'] = ($business['precio_vigente_sistema'] > $business['precio_pactado']);
 
-            $business['is_demo'] = (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || (isset($business['ruta']) && $business['ruta'] === 'demo') || (isset($user['email']) && strpos($user['email'], 'demo') !== false);
+            $uEmailLow = strtolower((string)($user['email'] ?? ''));
+            $bRutaLow = strtolower((string)($business['ruta'] ?? ''));
+            $business['is_demo'] = (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true) || ($bRutaLow === 'demo' || strpos($bRutaLow, 'demo-') === 0) || ($uEmailLow === 'demo@agendatina.site' || strpos($uEmailLow, 'demo_') === 0);
         }
 
         if (!$user || !$business) {
@@ -420,8 +423,8 @@ try {
             }
         }
 
-        // 5. Actualizar Colores de la Web
-        if ($color_primario || $color_secundario || $color_fondo || $colores_extra_json) {
+        // 5. Actualizar Colores de la Web (Solo Administrador del negocio)
+        if ($userRole === 'admin' && ($color_primario || $color_secundario || $color_fondo || $colores_extra_json)) {
             $stmtCheckConfig = $pdo->prepare("SELECT id FROM configuracion_web WHERE id_negocio = ?");
             $stmtCheckConfig->execute([$id_negocio]);
             

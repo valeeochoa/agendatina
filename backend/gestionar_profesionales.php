@@ -87,6 +87,7 @@ if ($method !== 'GET' && $userRole !== 'admin') {
 }
 
 require_once __DIR__ . '/helpers/permisos_helper.php';
+asegurarVerificacionProfesionalesPendiente($pdo);
 
 $defaultProfPerms = obtenerPermisosPorDefecto('profesional');
 $defaultAdminPerms = obtenerPermisosPorDefecto('admin');
@@ -254,6 +255,7 @@ if ($method === 'GET') {
         }
 
         $permisosFinal = normalizarPermisos($permisos, 'profesional');
+        $permisosFinal['permisos_configured_by_admin'] = 1;
         $permisosJson = json_encode($permisosFinal);
 
         $stmtUpd = $pdo->prepare("UPDATE personal_negocio SET permisos = ? WHERE id = ?");
@@ -436,9 +438,11 @@ if ($method === 'GET') {
             $hash = password_hash($password, PASSWORD_DEFAULT);
             try { $pdo->query("SELECT debe_cambiar_pass FROM usuarios LIMIT 1"); } 
             catch(Exception $e) { try { $pdo->exec("ALTER TABLE usuarios ADD COLUMN debe_cambiar_pass TINYINT DEFAULT 0"); } catch(Exception $e2) {} }
+            try { $pdo->query("SELECT email_verificado FROM usuarios LIMIT 1"); }
+            catch(Exception $e) { try { $pdo->exec("ALTER TABLE usuarios ADD COLUMN email_verificado TINYINT DEFAULT 0"); } catch(Exception $e2) {} }
 
             try {
-                $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, email_verificado, debe_cambiar_pass) VALUES (?, ?, ?, 1, 1)");
+                $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, email_verificado, debe_cambiar_pass) VALUES (?, ?, ?, 0, 1)");
                 $stmtUser->execute([$nombre, $email, $hash]);
             } catch (Exception $eMailCol) {
                 $stmtUser = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, debe_cambiar_pass) VALUES (?, ?, ?, 1)");

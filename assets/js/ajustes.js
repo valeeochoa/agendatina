@@ -220,9 +220,9 @@ window.applyProfessionalAjustesView = function(userData) {
 
     // 1. Títulos de página
     const pageTitle = document.getElementById('ajustesPageTitle');
-    if (pageTitle) pageTitle.textContent = 'Mis Ajustes y Horarios';
+    if (pageTitle) pageTitle.textContent = 'Ajustes';
     const pageSubtitle = document.getElementById('ajustesPageSubtitle');
-    if (pageSubtitle) pageSubtitle.textContent = 'Configurá tus días de atención, horarios, descansos personales, alias de transferencia y cupones.';
+    if (pageSubtitle) pageSubtitle.textContent = 'Configurá tus días de atención, horarios, descansos, métodos de pago, señas y cupones personales.';
 
     // 2. Banner informativo
     let profBanner = document.getElementById('profHorariosNoticeBanner');
@@ -235,8 +235,8 @@ window.applyProfessionalAjustesView = function(userData) {
                 <span class="material-symbols-outlined text-2xl">badge</span>
             </div>
             <div class="flex-1 min-w-0">
-                <h3 class="text-sm font-extrabold text-purple-900">Ajustes de Agenda y Cobros Personales</h3>
-                <p class="text-xs text-purple-700 mt-0.5 leading-relaxed">Estás configurando tu propia disponibilidad, alias de cobro para señas y cupones de descuento exclusivos. Estos ajustes se aplican únicamente a tus turnos, sin alterar los datos del negocio.</p>
+                <h3 class="text-sm font-extrabold text-purple-900">Ajustes de Agenda, Cobros y Cupones Personales</h3>
+                <p class="text-xs text-purple-700 mt-0.5 leading-relaxed">Estás configurando tu propia disponibilidad, métodos de pago, alias de transferencia para señas y cupones de descuento. Estos ajustes se aplican únicamente a tus turnos, sin alterar los datos del negocio.</p>
             </div>
         `;
         const formEl = document.getElementById('calendarConfigForm');
@@ -245,15 +245,15 @@ window.applyProfessionalAjustesView = function(userData) {
         }
     }
 
-    // 3. Mostrar tarjeta de transferencia personal para el profesional
+    // 3. Ocultar tarjeta simplificada heredada si existiera
     const cardTr = document.getElementById('cardTransferenciaProfesional');
     if (cardTr) {
-        cardTr.classList.remove('hidden');
-        cardTr.style.removeProperty('display');
+        cardTr.classList.add('hidden');
+        cardTr.style.setProperty('display', 'none', 'important');
     }
 
-    // 4. Adaptar chips de categorías
-    const hideChips = ['turnos', 'pagos', 'modalidad', 'notificaciones'];
+    // 4. Adaptar chips de categorías (ocultar diseño del calendario, turnos globales, modalidad y notificaciones)
+    const hideChips = ['diseno', 'turnos', 'modalidad', 'notificaciones'];
     hideChips.forEach(cat => {
         const chip = document.querySelector(`.ajustes-chip[data-cat="${cat}"]`);
         if (chip) {
@@ -262,15 +262,21 @@ window.applyProfessionalAjustesView = function(userData) {
         }
     });
 
+    const chipPagos = document.querySelector(`.ajustes-chip[data-cat="pagos"]`);
+    if (chipPagos) {
+        chipPagos.classList.remove('hidden');
+        chipPagos.style.removeProperty('display');
+    }
+
     const chipFidel = document.querySelector(`.ajustes-chip[data-cat="fidelizacion"]`);
     if (chipFidel) {
-        chipFidel.innerHTML = '<span class="material-symbols-outlined text-[16px]" style="color: var(--color-secundario, #fc8712);">loyalty</span> Mis Cupones';
+        chipFidel.innerHTML = '<span class="material-symbols-outlined text-[16px]" style="color: var(--color-secundario, #fc8712);">loyalty</span> Fidelización y Cupones';
         chipFidel.classList.remove('hidden');
         chipFidel.style.removeProperty('display');
     }
 
-    // 5. Ocultar cards/secciones administrativas
-    const adminCards = ['pagos', 'turnos', 'modalidad', 'notificaciones'];
+    // 5. Ocultar cards/secciones exclusivas del negocio (incluyendo diseño de calendario mensual/semanal y primer día)
+    const adminCards = ['diseno', 'turnos', 'modalidad', 'notificaciones'];
     adminCards.forEach(cat => {
         const marker = document.querySelector(`[data-ajustes-marker="${cat}"]`);
         if (marker) {
@@ -282,7 +288,25 @@ window.applyProfessionalAjustesView = function(userData) {
         }
     });
 
-    // En fidelización: ocultar opciones globales del negocio y adaptar cabecera
+    // Asegurar visible la sección completa de Métodos de Pago para el profesional con nota aclaratoria
+    const markerPagos = document.querySelector(`[data-ajustes-marker="pagos"]`);
+    if (markerPagos) {
+        const cardPagos = markerPagos.closest('.bg-white.rounded-2xl') || markerPagos.parentElement;
+        if (cardPagos) {
+            cardPagos.classList.remove('hidden');
+            cardPagos.style.removeProperty('display');
+            const contPagos = cardPagos.querySelector('#metodosPagoContainer');
+            if (contPagos && !document.getElementById('profPagosNotice')) {
+                const notice = document.createElement('div');
+                notice.id = 'profPagosNotice';
+                notice.className = 'p-3.5 bg-amber-50/80 border border-amber-200/80 rounded-2xl flex items-start gap-2.5 text-amber-950 text-xs';
+                notice.innerHTML = '<span class="material-symbols-outlined text-amber-600 text-[18px] shrink-0 mt-0.5">info</span><span>Estos métodos de pago, tu alias/CBU, porcentaje de seña y WhatsApp se aplicarán <strong>únicamente a los clientes que reserven turnos con vos</strong>. Si dejás el Alias o el WhatsApp en blanco, se usará automáticamente el del negocio.</span>';
+                contPagos.parentNode.insertBefore(notice, contPagos);
+            }
+        }
+    }
+
+    // En fidelización: mostrar tanto mensajes automáticos de WhatsApp de retorno con descuento como mis cupones
     const markerFidel = document.querySelector(`[data-ajustes-marker="fidelizacion"]`);
     if (markerFidel) {
         const cardFidel = markerFidel.closest('.bg-white.rounded-2xl') || markerFidel.parentElement;
@@ -290,17 +314,9 @@ window.applyProfessionalAjustesView = function(userData) {
             cardFidel.classList.remove('hidden');
             cardFidel.style.removeProperty('display');
             const h2 = cardFidel.querySelector('h2');
-            if (h2) h2.textContent = 'Mis Cupones de Descuento';
+            if (h2) h2.textContent = 'Fidelización, WhatsApp de Retorno y Cupones';
             const sub = cardFidel.querySelector('p');
-            if (sub) sub.textContent = 'Creá promociones y descuentos exclusivos para tus turnos o servicios específicos.';
-            
-            // Ocultar switches de retornos y configuración general
-            const q1 = cardFidel.querySelector('#chkEnviarMsjAutomaticos')?.closest('.p-4');
-            if (q1) q1.classList.add('hidden');
-            const q2 = cardFidel.querySelector('#chkUsarCuponesDescuento')?.closest('.p-4');
-            if (q2) q2.classList.add('hidden');
-            const q3 = cardFidel.querySelector('#chkPermitirAcumularCupones')?.closest('.p-4');
-            if (q3) q3.classList.add('hidden');
+            if (sub) sub.textContent = 'Configurá los mensajes por WhatsApp para que tus clientes vuelvan con descuento y creá tus propios cupones.';
         }
     }
 
@@ -320,7 +336,7 @@ window.filterAjustesSections = function() {
 
     const cards = document.querySelectorAll('[data-ajustes-card]');
     let visibleCount = 0;
-    const adminCards = ['pagos', 'turnos', 'modalidad', 'notificaciones'];
+    const adminCards = ['diseno', 'turnos', 'modalidad', 'notificaciones'];
 
     cards.forEach(card => {
         const cat = card.getAttribute('data-ajustes-card');
@@ -580,8 +596,6 @@ window.applyCalendarConfigToForm = function(data) {
     if (data.datos_transferencia !== undefined || data.datos_transferencia_personal !== undefined) {
         const inpDatos = form.querySelector('#configDatosTransferencia');
         if (inpDatos) inpDatos.value = data.datos_transferencia || '';
-        const inpProfDatos = form.querySelector('#profDatosTransferencia');
-        if (inpProfDatos) inpProfDatos.value = data.datos_transferencia_personal || data.datos_transferencia || '';
     }
 
     if (data.porcentaje_sena !== undefined) {
@@ -1520,10 +1534,6 @@ function handleCalendarConfigSubmit(e) {
     if (form.querySelector('#configMetodosPago')) form.querySelector('#configMetodosPago').value = metodosStr;
 
     let datosTrans = form.querySelector('#configDatosTransferencia')?.value || '';
-    if (window.isProfessionalUser) {
-        const profTrInp = form.querySelector('#profDatosTransferencia');
-        if (profTrInp) datosTrans = profTrInp.value;
-    }
     if (window.isDemoAccount) {
         datosTrans = window.businessWebConfig?.datos_transferencia || '';
     }

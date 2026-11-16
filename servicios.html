@@ -418,6 +418,9 @@
                         if (typeof window.applyUserCustomColors === 'function') {
                             window.applyUserCustomColors(d.color_primario, d.color_secundario, d.colores_extra_json, d.color_fondo);
                         }
+                        const usrObj = d.user || d;
+                        window.isProfUser = Boolean(usrObj && (usrObj.rol === 'profesional' || usrObj.rol_en_local === 'profesional'));
+                        window.currentProfName = (usrObj && usrObj.nombre_completo) ? usrObj.nombre_completo.trim() : '';
                         currentOwnerName = (d.nombre_completo && d.nombre_completo !== 'Dueño Principal') ? d.nombre_completo : (d.nombre_fantasia || '');
                         const boxCupoInit = document.getElementById('lblCupoMaximoServicio')?.parentElement;
                         if (boxCupoInit) boxCupoInit.classList.add('hidden');
@@ -498,6 +501,18 @@
             const select = document.getElementById('svcProfesional');
             if (!select) return;
             select.innerHTML = '';
+
+            if (window.isProfUser && window.currentProfName) {
+                select.innerHTML = `<option value="${escapeHtml(window.currentProfName)}" selected>${escapeHtml(window.currentProfName)}</option>`;
+                select.value = window.currentProfName;
+                select.disabled = true;
+                select.classList.add('bg-slate-100', 'cursor-not-allowed', 'text-slate-600');
+                select.title = 'Solo podés crear y asignar servicios a tu propio perfil profesional.';
+                return;
+            }
+            select.disabled = false;
+            select.classList.remove('bg-slate-100', 'cursor-not-allowed', 'text-slate-600');
+            select.removeAttribute('title');
             
             let list = Array.isArray(profs) ? profs : [];
             let html = '';
@@ -850,7 +865,7 @@
 
             document.getElementById('svcCapacidad').value = s.cupo_maximo || s.capacidad || 1;
             
-            if (s.profesional) {
+            if (s.profesional && !window.isProfUser) {
                 document.getElementById('svcProfesional').value = s.profesional;
             }
             document.getElementById('svcDescripcion').value = s.descripcion || '';
@@ -946,6 +961,9 @@
 
             const isEditing = Boolean(document.getElementById('svcId')?.value);
             const formData = new FormData(this);
+            if (window.isProfUser && window.currentProfName) {
+                formData.set('profesional', window.currentProfName);
+            }
             const curColor = document.getElementById('svcColor')?.value || '#d11149';
             formData.set('color', curColor);
 

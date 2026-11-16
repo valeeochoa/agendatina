@@ -231,6 +231,18 @@ catch(Exception $e) { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN horari
 try { $pdo->query("SELECT tipo_calendario FROM personal_negocio LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN tipo_calendario VARCHAR(20) DEFAULT NULL"); }
 
+try { $pdo->query("SELECT metodos_pago FROM personal_negocio LIMIT 1"); } 
+catch(Exception $e) { try { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN metodos_pago VARCHAR(255) DEFAULT NULL"); } catch(Exception $ex) {} }
+
+try { $pdo->query("SELECT porcentaje_sena FROM personal_negocio LIMIT 1"); } 
+catch(Exception $e) { try { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN porcentaje_sena INT DEFAULT NULL"); } catch(Exception $ex) {} }
+
+try { $pdo->query("SELECT reserva_sena_1h FROM personal_negocio LIMIT 1"); } 
+catch(Exception $e) { try { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN reserva_sena_1h TINYINT(1) DEFAULT NULL"); } catch(Exception $ex) {} }
+
+try { $pdo->query("SELECT whatsapp_comprobante FROM personal_negocio LIMIT 1"); } 
+catch(Exception $e) { try { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN whatsapp_comprobante VARCHAR(60) DEFAULT NULL"); } catch(Exception $ex) {} }
+
 // =========================================================================
 // AUTO-SUSPENSIÓN DE NEGOCIOS VENCIDOS (Pseudo-Cron)
 // =========================================================================
@@ -445,12 +457,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
         $config['profesionales_json'] = json_encode($profs_array);
 
-        // Si el usuario en sesión es profesional, superponer sus horarios de agenda personal
+        // Si el usuario en sesión es profesional, superponer sus horarios y formas de pago personales
         $userRole = $sessionUserRole;
         $userId = $sessionUserId;
         if ($userId && $id_negocio) {
             try {
-                $stmtCheckPn = $pdo->prepare("SELECT rol_en_local, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, tipo_calendario, datos_transferencia FROM personal_negocio WHERE id_negocio = :id AND id_usuario = :uid LIMIT 1");
+                $stmtCheckPn = $pdo->prepare("SELECT rol_en_local, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, datos_transferencia, metodos_pago, porcentaje_sena, reserva_sena_1h, whatsapp_comprobante FROM personal_negocio WHERE id_negocio = :id AND id_usuario = :uid LIMIT 1");
                 $stmtCheckPn->execute(['id' => $id_negocio, 'uid' => $userId]);
                 $profRow = $stmtCheckPn->fetch(PDO::FETCH_ASSOC);
                 if ($profRow) {
@@ -466,9 +478,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                         if (!empty($profRow['horarios_detallados_json']) && $profRow['horarios_detallados_json'] !== '{}') {
                             $config['horarios_detallados_json'] = $profRow['horarios_detallados_json'];
                         }
-                        if (!empty($profRow['tipo_calendario'])) $config['tipo_calendario'] = $profRow['tipo_calendario'];
+                        if (!empty($profRow['metodos_pago'])) {
+                            $config['metodos_pago'] = $profRow['metodos_pago'];
+                        }
+                        if ($profRow['porcentaje_sena'] !== null) {
+                            $config['porcentaje_sena'] = (int)$profRow['porcentaje_sena'];
+                        }
+                        if ($profRow['reserva_sena_1h'] !== null) {
+                            $config['reserva_sena_1h'] = (int)$profRow['reserva_sena_1h'];
+                        }
+                        if (isset($profRow['whatsapp_comprobante']) && trim($profRow['whatsapp_comprobante']) !== '') {
+                            $config['whatsapp_comprobante'] = trim($profRow['whatsapp_comprobante']);
+                        }
                         $config['datos_transferencia_negocio'] = $config['datos_transferencia'] ?? '';
-                        $config['datos_transferencia'] = $profRow['datos_transferencia'] ?? '';
+                        $config['datos_transferencia'] = ($profRow['datos_transferencia'] !== null && trim($profRow['datos_transferencia']) !== '') ? trim($profRow['datos_transferencia']) : ($config['datos_transferencia'] ?? '');
                         $config['datos_transferencia_personal'] = $profRow['datos_transferencia'] ?? '';
                     }
                 }
@@ -535,8 +558,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $userPerms = $_SESSION['permisos'] ?? [];
             $canWeb = !empty($userPerms['web']);
 
-            // Si el profesional está guardando horarios de agenda, descansos o sus datos de transferencia personales
-            $isScheduleOrPersonalUpdate = isset($data['hora_apertura']) || isset($data['dias_trabajo']) || isset($data['horarios_detallados_json']) || isset($data['hora_descanso_inicio']) || isset($data['tipo_calendario']) || isset($data['datos_transferencia']) || isset($data['prof_datos_transferencia']);
+            // Si el profesional está guardando horarios de agenda, descansos o sus métodos de pago personales
+            $isScheduleOrPersonalUpdate = isset($data['hora_apertura']) || isset($data['dias_trabajo']) || isset($data['horarios_detallados_json']) || isset($data['hora_descanso_inicio']) || isset($data['datos_transferencia']) || isset($data['metodos_pago']) || isset($data['porcentaje_sena']) || isset($data['reserva_sena_1h']) || isset($data['whatsapp_comprobante']);
 
             if ($isScheduleOrPersonalUpdate) {
                 $fieldsToUpdate = [];
@@ -548,12 +571,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (isset($data['hora_descanso_fin'])) { $fieldsToUpdate[] = "hora_descanso_fin = :hdf"; $params['hdf'] = $data['hora_descanso_fin'] ?? ''; }
                 if (isset($data['dias_trabajo'])) { $fieldsToUpdate[] = "dias_trabajo = :dt"; $params['dt'] = $data['dias_trabajo'] ?? '1,2,3,4,5,6'; }
                 if (isset($data['horarios_detallados_json'])) { $fieldsToUpdate[] = "horarios_detallados_json = :hdj"; $params['hdj'] = $data['horarios_detallados_json'] ?? '{}'; }
-                if (isset($data['tipo_calendario'])) { $fieldsToUpdate[] = "tipo_calendario = :tc"; $params['tc'] = $data['tipo_calendario'] ?? 'clasico'; }
+                if (isset($data['metodos_pago'])) { $fieldsToUpdate[] = "metodos_pago = :mp"; $params['mp'] = trim((string)$data['metodos_pago']); }
+                if (isset($data['porcentaje_sena'])) { $fieldsToUpdate[] = "porcentaje_sena = :ps"; $params['ps'] = max(1, min(100, (int)$data['porcentaje_sena'])); }
+                if (isset($data['reserva_sena_1h'])) { $fieldsToUpdate[] = "reserva_sena_1h = :rs1h"; $params['rs1h'] = !empty($data['reserva_sena_1h']) ? 1 : 0; }
+                if (isset($data['whatsapp_comprobante'])) { $fieldsToUpdate[] = "whatsapp_comprobante = :wc"; $params['wc'] = trim((string)$data['whatsapp_comprobante']); }
                 
-                $dtfVal = $data['prof_datos_transferencia'] ?? ($data['datos_transferencia'] ?? null);
+                $dtfVal = $data['datos_transferencia'] ?? null;
                 if ($dtfVal !== null) {
                     $fieldsToUpdate[] = "datos_transferencia = :dtf";
-                    $params['dtf'] = trim($dtfVal);
+                    $params['dtf'] = trim((string)$dtfVal);
                 }
 
                 if (!empty($fieldsToUpdate)) {
@@ -565,7 +591,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (ob_get_length()) ob_clean();
                 echo json_encode([
                     'success' => true,
-                    'mensaje' => 'Tus ajustes personales y horarios de agenda han sido actualizados con éxito.',
+                    'mensaje' => 'Tus ajustes personales, horarios y formas de pago han sido actualizados con éxito.',
                     'es_horario_personal' => true
                 ]);
                 exit;

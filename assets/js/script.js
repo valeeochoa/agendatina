@@ -2290,6 +2290,13 @@ window.openProfileModal = function() {
     modal.classList.remove('hidden');
     if(window.currentUserData) {
         document.getElementById('profileName').value = window.currentUserData.nombre_completo || '';
+        const isProfProfileModal = (window.currentUserData.rol === 'profesional' || window.currentUserData.rol_en_local === 'profesional');
+        ['profileLogo', 'profileColor', 'profileColorSecundario'].forEach(elId => {
+            const box = document.getElementById(elId)?.closest('#profileForm .grid > div');
+            if (box) {
+                box.classList.toggle('hidden', isProfProfileModal);
+            }
+        });
         
         const secSection = document.getElementById('securitySection');
         if (secSection) {

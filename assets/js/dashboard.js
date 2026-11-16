@@ -84,8 +84,18 @@ window.applyDashboardPermissions = function(userData) {
                             (perms.estadisticas !== undefined && (parseInt(perms.estadisticas) === 1 || perms.estadisticas === true));
     const canEquipo = perms.equipo !== undefined ? (parseInt(perms.equipo) === 1 || perms.equipo === true) : false;
 
+    // Respetar el plan del negocio para módulos exclusivos de planes superiores
+    const bizData = window.currentBusinessData || {};
+    const planStr = String(bizData.plan || '').toLowerCase();
+    const isDemoBiz = Boolean(bizData.is_demo === true || bizData.ruta === 'demo' || (bizData.ruta && String(bizData.ruta).startsWith('demo-')) || bizData.subdominio === 'demo');
+    const isBasicPlan = Boolean(planStr && !isDemoBiz && (planStr.includes('básico') || planStr.includes('basico') || planStr.includes('simple')));
+    const isPremiumPlan = Boolean(isDemoBiz || planStr.includes('premium') || planStr.includes('completo'));
+
+    const effectiveAgenda = canAgenda && !isBasicPlan;
+    const effectiveClientes = canClientes && (!planStr || isPremiumPlan);
+
     // 1. Agenda Virtual
-    if (!canAgenda) {
+    if (!effectiveAgenda) {
         hideEl('cardAgenda');
         hideEl('dashHeroBtnAgenda');
         hideEl('a[href="agenda.html"]');
@@ -105,14 +115,14 @@ window.applyDashboardPermissions = function(userData) {
         showEl('dashHeroBtnCalendario');
     }
 
-    if (!canAgenda && !canCalendario) {
+    if (!effectiveAgenda && !canCalendario) {
         hideEl('dashHeroStatsRow');
     } else {
         showEl('dashHeroStatsRow');
     }
 
     // 2. Alumnos / Clientes
-    if (!canClientes) {
+    if (!effectiveClientes) {
         hideEl('cardClientes');
     } else {
         showEl('cardClientes');
@@ -135,39 +145,36 @@ window.applyDashboardPermissions = function(userData) {
     // 6. Estadísticas
     if (!canEstadisticas) hideEl('cardEstadisticas'); else showEl('cardEstadisticas');
 
-    // 7. Herramientas administrativas generales
-    hideEl('cardManual');
-    hideEl('cardFaq');
-    hideEl('cardMejora');
+    // 7. Manual de Uso, Consultas Frecuentes y Sugerencias y Mejoras SIEMPRE visibles
+    showEl('cardManual');
+    showEl('cardFaq');
+    showEl('cardMejora');
 
-    // 8. Ajustes de Agenda (Configuración de horarios propios para el profesional)
+    // 8. Ajustes
+    showEl('dashHerramientasSectionHeader');
+    showEl('dashHerramientasGrid');
+    const herramientasTitle = document.getElementById('dashHerramientasTitle');
+    if (herramientasTitle) herramientasTitle.textContent = 'Herramientas y configuración';
+
     if (canAgenda || canCalendario) {
         showEl('cardAjustes');
-        showEl('dashHerramientasSectionHeader');
-        showEl('dashHerramientasGrid');
 
         const ajustesTitle = document.getElementById('cardAjustesTitle') || document.querySelector('#cardAjustes h3');
-        if (ajustesTitle) ajustesTitle.textContent = 'Horarios de mi Agenda';
+        if (ajustesTitle) ajustesTitle.textContent = 'Ajustes';
 
         const ajustesDesc = document.getElementById('cardAjustesDesc') || document.querySelector('#cardAjustes p');
-        if (ajustesDesc) ajustesDesc.textContent = 'Días y descansos propios';
+        if (ajustesDesc) ajustesDesc.textContent = 'Horarios, pagos y cupones';
 
         const ajustesAction = document.getElementById('cardAjustesAction') || document.querySelector('#cardAjustes span:last-child');
-        if (ajustesAction) ajustesAction.textContent = 'Configurar horarios →';
-
-        const herramientasTitle = document.getElementById('dashHerramientasTitle');
-        if (herramientasTitle) herramientasTitle.textContent = 'Configuración de Agenda';
+        if (ajustesAction) ajustesAction.textContent = 'Configurar →';
     } else {
         hideEl('cardAjustes');
-        hideEl('dashHerramientasSectionHeader');
-        hideEl('dashHerramientasGrid');
     }
 
-    // 9. Onboarding Guide ("Primeros Pasos en Agendatina") y Alertas
+    // 9. Onboarding Guide ("Primeros Pasos en Agendatina") y Alertas de negocio
     hideEl('onboardingWidget');
     hideEl('configAlertBanner');
     hideEl('subscriptionBanner');
-    hideEl('verifyEmailBanner');
 
     // 10. Mensaje en el subtítulo del Dashboard
     const subGreeting = document.getElementById('dashSubGreeting');
@@ -199,8 +206,9 @@ window.loadDashboardData = function() {
         if (step2Link) step2Link.href = 'servicios.html';
         
         if (window.currentUserData) {
-            const isDemo = (window.currentUserData.email && window.currentUserData.email.includes('demo')) ||
-                           (window.currentBusinessData && (window.currentBusinessData.ruta === 'demo' || window.currentBusinessData.subdominio === 'demo' || window.currentBusinessData.is_demo === true));
+            const uEmail = (window.currentUserData.email || '').toLowerCase();
+            const isDemo = (uEmail === 'demo@agendatina.site' || uEmail.startsWith('demo_')) ||
+                           (window.currentBusinessData && (window.currentBusinessData.ruta === 'demo' || (window.currentBusinessData.ruta && String(window.currentBusinessData.ruta).startsWith('demo-')) || window.currentBusinessData.subdominio === 'demo' || window.currentBusinessData.is_demo === true));
 
             const vBanner = document.getElementById('verifyEmailBanner');
             const sBanner = document.getElementById('subscriptionBanner');
@@ -209,7 +217,7 @@ window.loadDashboardData = function() {
                 if (vBanner) { vBanner.classList.add('hidden'); vBanner.style.setProperty('display', 'none', 'important'); }
                 if (sBanner) { sBanner.classList.add('hidden'); sBanner.style.setProperty('display', 'none', 'important'); }
             } else {
-                if (vBanner && window.currentUserData.rol !== 'profesional') {
+                if (vBanner) {
                     const isVerified = parseInt(window.currentUserData.email_verificado || 0) === 1;
                     if (!isVerified) {
                         vBanner.classList.remove('hidden');

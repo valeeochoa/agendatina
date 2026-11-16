@@ -26,15 +26,15 @@ if (!function_exists('obtenerPermisosPorDefecto')) {
             ];
         }
 
-        // Rol: PROFESIONAL (Por defecto solo ve SU agenda, SU calendario con SUS turnos, y servicios propios)
+        // Rol: PROFESIONAL (Por defecto ve SU agenda, SU calendario, SUS estadísticas, SUS clientes/alumnos y sus servicios)
         return [
             'ver_mi_agenda' => 1,
             'ver_agenda_otros' => 0,
             'ver_mi_calendario' => 1,
             'ver_calendario_otros' => 0,
-            'ver_mis_estadisticas' => 0,
+            'ver_mis_estadisticas' => 1,
             'ver_estadisticas_otros' => 0,
-            'ver_mis_clientes' => 0,
+            'ver_mis_clientes' => 1,
             'ver_clientes_todos' => 0,
             'servicios' => 1,
             'web' => 0,
@@ -42,8 +42,8 @@ if (!function_exists('obtenerPermisosPorDefecto')) {
             // Compatibilidad hacia atrás
             'agenda' => 1,
             'ver_todos_turnos' => 0,
-            'estadisticas' => 0,
-            'clientes' => 0
+            'estadisticas' => 1,
+            'clientes' => 1
         ];
     }
 }
@@ -53,6 +53,17 @@ if (!function_exists('normalizarPermisos')) {
         $p = is_array($rawPerms) ? $rawPerms : (json_decode($rawPerms ?: '[]', true) ?: []);
         $defaults = obtenerPermisosPorDefecto($rol);
 
+        $isLegacyUnconfiguredDefault = (
+            $rol === 'profesional'
+            && is_array($p) && !empty($p)
+            && empty($p['permisos_configured_by_admin'])
+            && isset($p['ver_mis_estadisticas']) && (int)$p['ver_mis_estadisticas'] === 0
+            && isset($p['ver_mis_clientes']) && (int)$p['ver_mis_clientes'] === 0
+            && empty($p['ver_agenda_otros']) && empty($p['ver_calendario_otros'])
+            && empty($p['ver_estadisticas_otros']) && empty($p['ver_clientes_todos'])
+            && empty($p['web']) && empty($p['equipo'])
+        );
+
         $res = [];
         // Mapeo granular sin heredar indebidamente claves globales antiguas para profesionales
         $res['ver_mi_agenda'] = isset($p['ver_mi_agenda']) ? (int)!empty($p['ver_mi_agenda']) : (isset($p['agenda']) ? (int)!empty($p['agenda']) : $defaults['ver_mi_agenda']);
@@ -61,15 +72,19 @@ if (!function_exists('normalizarPermisos')) {
         $res['ver_mi_calendario'] = isset($p['ver_mi_calendario']) ? (int)!empty($p['ver_mi_calendario']) : (isset($p['agenda']) ? (int)!empty($p['agenda']) : $defaults['ver_mi_calendario']);
         $res['ver_calendario_otros'] = isset($p['ver_calendario_otros']) ? (int)!empty($p['ver_calendario_otros']) : $defaults['ver_calendario_otros'];
 
-        $res['ver_mis_estadisticas'] = isset($p['ver_mis_estadisticas']) ? (int)!empty($p['ver_mis_estadisticas']) : (isset($p['estadisticas']) ? (int)!empty($p['estadisticas']) : $defaults['ver_mis_estadisticas']);
+        $res['ver_mis_estadisticas'] = $isLegacyUnconfiguredDefault ? 1 : (isset($p['ver_mis_estadisticas']) ? (int)!empty($p['ver_mis_estadisticas']) : (isset($p['estadisticas']) ? (int)!empty($p['estadisticas']) : $defaults['ver_mis_estadisticas']));
         $res['ver_estadisticas_otros'] = isset($p['ver_estadisticas_otros']) ? (int)!empty($p['ver_estadisticas_otros']) : $defaults['ver_estadisticas_otros'];
 
-        $res['ver_mis_clientes'] = isset($p['ver_mis_clientes']) ? (int)!empty($p['ver_mis_clientes']) : (isset($p['clientes']) ? (int)!empty($p['clientes']) : $defaults['ver_mis_clientes']);
+        $res['ver_mis_clientes'] = $isLegacyUnconfiguredDefault ? 1 : (isset($p['ver_mis_clientes']) ? (int)!empty($p['ver_mis_clientes']) : (isset($p['clientes']) ? (int)!empty($p['clientes']) : $defaults['ver_mis_clientes']));
         $res['ver_clientes_todos'] = isset($p['ver_clientes_todos']) ? (int)!empty($p['ver_clientes_todos']) : $defaults['ver_clientes_todos'];
 
         $res['servicios'] = isset($p['servicios']) ? (int)!empty($p['servicios']) : $defaults['servicios'];
         $res['web'] = isset($p['web']) ? (int)!empty($p['web']) : $defaults['web'];
         $res['equipo'] = isset($p['equipo']) ? (int)!empty($p['equipo']) : $defaults['equipo'];
+
+        if (!empty($p['permisos_configured_by_admin'])) {
+            $res['permisos_configured_by_admin'] = 1;
+        }
 
         // Derivados para retrocompatibilidad
         $res['agenda'] = ($res['ver_mi_agenda'] || $res['ver_agenda_otros'] || $res['ver_mi_calendario'] || $res['ver_calendario_otros']) ? 1 : 0;
@@ -78,6 +93,32 @@ if (!function_exists('normalizarPermisos')) {
         $res['clientes'] = ($res['ver_mis_clientes'] || $res['ver_clientes_todos']) ? 1 : 0;
 
         return $res;
+    }
+}
+
+if (!function_exists('asegurarVerificacionProfesionalesPendiente')) {
+    function asegurarVerificacionProfesionalesPendiente($pdo) {
+        try {
+            $pdo->query("SELECT prof_verif_fix FROM usuarios LIMIT 1");
+        } catch (\Throwable $e) {
+            try {
+                $pdo->exec("ALTER TABLE usuarios ADD COLUMN prof_verif_fix TINYINT(1) NOT NULL DEFAULT 1");
+                $pdo->exec("
+                    UPDATE usuarios u
+                    SET u.email_verificado = 0
+                    WHERE u.email_verificado = 1
+                      AND u.email NOT LIKE 'demo%'
+                      AND EXISTS (
+                          SELECT 1 FROM personal_negocio pn
+                          WHERE pn.id_usuario = u.id AND pn.rol_en_local = 'profesional'
+                      )
+                      AND NOT EXISTS (
+                          SELECT 1 FROM personal_negocio pn2
+                          WHERE pn2.id_usuario = u.id AND pn2.rol_en_local = 'admin'
+                      )
+                ");
+            } catch (\Throwable $e2) {}
+        }
     }
 }
 

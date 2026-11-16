@@ -66,11 +66,22 @@ try {
     try { $pdo->query("SELECT cupon_duracion_horas FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN cupon_duracion_horas INT DEFAULT 24"); } catch (Exception $eCol2) {} }
     try { $pdo->query("SELECT reserva_sena_1h FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN reserva_sena_1h TINYINT(1) DEFAULT 0"); } catch (Exception $eCol2) {} }
     try { $pdo->query("SELECT tiempo_entre_turnos FROM configuracion_web LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN tiempo_entre_turnos INT DEFAULT 0"); } catch (Exception $eCol2) {} }
-    $stmtConf = $pdo->prepare("SELECT hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json, intervalo_turnos, tiempo_entre_turnos, primer_dia_semana, turnos_simultaneos, modo_reservas, usar_cupones_descuento, cupon_descuento_pct, cupon_duracion_horas, reserva_sena_1h FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");
+    $stmtConf = $pdo->prepare("SELECT hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, dias_trabajo, horarios_detallados_json, intervalo_turnos, tiempo_entre_turnos, primer_dia_semana, turnos_simultaneos, modo_reservas, usar_cupones_descuento, cupon_descuento_pct, cupon_duracion_horas, reserva_sena_1h, metodos_pago, datos_transferencia, porcentaje_sena, whatsapp_comprobante FROM configuracion_web WHERE id_negocio = :id_negocio LIMIT 1");
     $stmtConf->execute(['id_negocio' => $id_negocio]);
     $conf = $stmtConf->fetch(PDO::FETCH_ASSOC);
 
-    // Si se consulta para un profesional específico o el usuario logueado es profesional, buscar sus horarios propios
+    // Asegurar columnas de cobro/horarios en personal_negocio
+    foreach ([
+        'datos_transferencia' => 'TEXT DEFAULT NULL',
+        'metodos_pago' => 'VARCHAR(255) DEFAULT NULL',
+        'porcentaje_sena' => 'INT DEFAULT NULL',
+        'reserva_sena_1h' => 'TINYINT(1) DEFAULT NULL',
+        'whatsapp_comprobante' => 'VARCHAR(60) DEFAULT NULL'
+    ] as $colPn => $defPn) {
+        try { $pdo->query("SELECT $colPn FROM personal_negocio LIMIT 1"); } catch (Exception $eCol) { try { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN $colPn $defPn"); } catch (Exception $eCol2) {} }
+    }
+
+    // Si se consulta para un profesional específico o el usuario logueado es profesional, buscar sus horarios y formas de pago propias
     $targetProfName = null;
     if ($isProfLogged && !$verTodosTurnos && !empty($profesionalSessionName)) {
         $targetProfName = $profesionalSessionName;
@@ -82,7 +93,7 @@ try {
 
     if ($targetProfName && $id_negocio) {
         try {
-            $stmtProfPn = $pdo->prepare("SELECT pn.dias_trabajo, pn.hora_apertura, pn.hora_cierre, pn.hora_descanso_inicio, pn.hora_descanso_fin, pn.horarios_detallados_json 
+            $stmtProfPn = $pdo->prepare("SELECT pn.dias_trabajo, pn.hora_apertura, pn.hora_cierre, pn.hora_descanso_inicio, pn.hora_descanso_fin, pn.horarios_detallados_json, pn.datos_transferencia, pn.metodos_pago, pn.porcentaje_sena, pn.reserva_sena_1h, pn.whatsapp_comprobante 
                                          FROM personal_negocio pn 
                                          JOIN usuarios u ON u.id = pn.id_usuario 
                                          WHERE pn.id_negocio = :id AND (u.nombre_completo = :p OR pn.id_usuario = :p_uid) 
@@ -102,6 +113,21 @@ try {
                 if (!empty($profSched['horarios_detallados_json']) && $profSched['horarios_detallados_json'] !== '{}') {
                     $conf['horarios_detallados_json'] = $profSched['horarios_detallados_json'];
                 }
+                if (!empty(trim($profSched['datos_transferencia'] ?? ''))) {
+                    $conf['datos_transferencia'] = trim($profSched['datos_transferencia']);
+                }
+                if (!empty(trim($profSched['metodos_pago'] ?? ''))) {
+                    $conf['metodos_pago'] = trim($profSched['metodos_pago']);
+                }
+                if (isset($profSched['porcentaje_sena']) && $profSched['porcentaje_sena'] !== null) {
+                    $conf['porcentaje_sena'] = (int)$profSched['porcentaje_sena'];
+                }
+                if (isset($profSched['reserva_sena_1h']) && $profSched['reserva_sena_1h'] !== null) {
+                    $conf['reserva_sena_1h'] = (int)$profSched['reserva_sena_1h'];
+                }
+                if (!empty(trim($profSched['whatsapp_comprobante'] ?? ''))) {
+                    $conf['whatsapp_comprobante'] = trim($profSched['whatsapp_comprobante']);
+                }
             }
         } catch (Exception $eProfSched) {}
     }
@@ -112,14 +138,24 @@ try {
     $hCierre = (!empty($conf['hora_cierre']) && $conf['hora_cierre'] !== '00:00:00' && $conf['hora_cierre'] !== '00:00') ? substr($conf['hora_cierre'], 0, 5) : '18:00';
     $diasTrabajo = !empty($conf['dias_trabajo']) ? $conf['dias_trabajo'] : '1,2,3,4,5';
 
-    // Resolver mapa de datos de transferencia por profesional
+    // Resolver mapa de datos de transferencia y cobro por profesional
     $profsTransferencia = [];
+    $profsPagos = [];
     try {
-        $stmtProfTrList = $pdo->prepare("SELECT LOWER(TRIM(nombre)) as p_nombre, datos_transferencia FROM personal_negocio WHERE id_negocio = :id_negocio AND datos_transferencia IS NOT NULL AND TRIM(datos_transferencia) != ''");
+        $stmtProfTrList = $pdo->prepare("SELECT LOWER(TRIM(u.nombre_completo)) AS p_nombre, pn.datos_transferencia, pn.metodos_pago, pn.porcentaje_sena, pn.reserva_sena_1h, pn.whatsapp_comprobante FROM personal_negocio pn JOIN usuarios u ON u.id = pn.id_usuario WHERE pn.id_negocio = :id_negocio");
         $stmtProfTrList->execute(['id_negocio' => $id_negocio]);
         foreach ($stmtProfTrList->fetchAll(PDO::FETCH_ASSOC) as $ptr) {
-            if (!empty($ptr['p_nombre']) && !empty(trim($ptr['datos_transferencia']))) {
-                $profsTransferencia[$ptr['p_nombre']] = trim($ptr['datos_transferencia']);
+            if (!empty($ptr['p_nombre'])) {
+                if (!empty(trim($ptr['datos_transferencia'] ?? ''))) {
+                    $profsTransferencia[$ptr['p_nombre']] = trim($ptr['datos_transferencia']);
+                }
+                $profsPagos[$ptr['p_nombre']] = [
+                    'datos_transferencia' => trim($ptr['datos_transferencia'] ?? ''),
+                    'metodos_pago' => trim($ptr['metodos_pago'] ?? ''),
+                    'porcentaje_sena' => $ptr['porcentaje_sena'] !== null ? (int)$ptr['porcentaje_sena'] : null,
+                    'reserva_sena_1h' => $ptr['reserva_sena_1h'] !== null ? (int)$ptr['reserva_sena_1h'] : null,
+                    'whatsapp_comprobante' => trim($ptr['whatsapp_comprobante'] ?? '')
+                ];
             }
         }
     } catch (Exception $eTrList) {}
@@ -145,9 +181,12 @@ try {
         'cupon_descuento_pct' => (int)($conf['cupon_descuento_pct'] ?? 10),
         'cupon_duracion_horas' => (int)($conf['cupon_duracion_horas'] ?? 24),
         'reserva_sena_1h' => (int)($conf['reserva_sena_1h'] ?? 0),
+        'metodos_pago' => $conf['metodos_pago'] ?? '',
         'datos_transferencia' => $datosTransferenciaConfig,
         'porcentaje_sena' => (int)($conf['porcentaje_sena'] ?? 50),
+        'whatsapp_comprobante' => $conf['whatsapp_comprobante'] ?? '',
         'profs_datos_transferencia' => $profsTransferencia,
+        'profs_pagos' => $profsPagos,
         'profesional_fijado' => ($isProfLogged && !$verTodosTurnos) ? $profesionalSessionName : null,
         'es_profesional_propio' => ($isProfLogged && !$verTodosTurnos)
     ];

@@ -307,6 +307,17 @@ foreach ([
  * $pdo->prepare("UPDATE turnos SET estado = 'cancelado' WHERE id_negocio = ? AND estado = 'pendiente' AND creado_en < DATE_SUB(NOW(), INTERVAL 1 HOUR)")->execute([$id_negocio]);
  */
 
+foreach ([
+    'datos_transferencia' => 'TEXT DEFAULT NULL',
+    'metodos_pago' => 'VARCHAR(255) DEFAULT NULL',
+    'porcentaje_sena' => 'INT DEFAULT NULL',
+    'reserva_sena_1h' => 'TINYINT(1) DEFAULT NULL',
+    'whatsapp_comprobante' => 'VARCHAR(60) DEFAULT NULL'
+] as $colPn => $defPn) {
+    try { $pdo->query("SELECT $colPn FROM personal_negocio LIMIT 1"); }
+    catch(\Throwable $ePn) { try { $pdo->exec("ALTER TABLE personal_negocio ADD COLUMN $colPn $defPn"); } catch(\Throwable $ePn2) {} }
+}
+
 $cuponAplicadoCodigo = null;
 $descuentoAplicadoPct = 0;
 $precio_servicio = 0;
@@ -347,13 +358,13 @@ try {
     $configWeb = $stmtConfig->fetch(PDO::FETCH_ASSOC);
     if (!is_array($configWeb)) $configWeb = [];
 
-    // Si el turno se reserva con un profesional específico, consultar si tiene horarios propios en personal_negocio
+    // Si el turno se reserva con un profesional específico, consultar si tiene horarios o formas de pago propias en personal_negocio
     if (!empty($profesional) && $profesional !== 'Cualquiera (Sin preferencia)' && $profesional !== 'Cualquiera') {
         try {
-            $stmtProfPn = $pdo->prepare("SELECT pn.dias_trabajo, pn.hora_apertura, pn.hora_cierre, pn.hora_descanso_inicio, pn.hora_descanso_fin, pn.horarios_detallados_json 
+            $stmtProfPn = $pdo->prepare("SELECT pn.dias_trabajo, pn.hora_apertura, pn.hora_cierre, pn.hora_descanso_inicio, pn.hora_descanso_fin, pn.horarios_detallados_json, pn.datos_transferencia, pn.metodos_pago, pn.porcentaje_sena, pn.reserva_sena_1h, pn.whatsapp_comprobante 
                                          FROM personal_negocio pn 
                                          JOIN usuarios u ON u.id = pn.id_usuario 
-                                         WHERE pn.id_negocio = :id AND (u.nombre_completo = :p OR pn.id_usuario = :p_uid) 
+                                         WHERE pn.id_negocio = :id AND (LOWER(TRIM(u.nombre_completo)) = LOWER(TRIM(:p)) OR pn.id_usuario = :p_uid) 
                                          LIMIT 1");
             $stmtProfPn->execute([
                 'id' => $id_negocio,
@@ -369,6 +380,21 @@ try {
                 if (!empty($profSched['dias_trabajo'])) $configWeb['dias_trabajo'] = $profSched['dias_trabajo'];
                 if (!empty($profSched['horarios_detallados_json']) && $profSched['horarios_detallados_json'] !== '{}') {
                     $configWeb['horarios_detallados_json'] = $profSched['horarios_detallados_json'];
+                }
+                if (!empty(trim($profSched['datos_transferencia'] ?? ''))) {
+                    $configWeb['datos_transferencia'] = trim($profSched['datos_transferencia']);
+                }
+                if (!empty(trim($profSched['metodos_pago'] ?? ''))) {
+                    $configWeb['metodos_pago'] = trim($profSched['metodos_pago']);
+                }
+                if (isset($profSched['porcentaje_sena']) && $profSched['porcentaje_sena'] !== null) {
+                    $configWeb['porcentaje_sena'] = (int)$profSched['porcentaje_sena'];
+                }
+                if (isset($profSched['reserva_sena_1h']) && $profSched['reserva_sena_1h'] !== null) {
+                    $configWeb['reserva_sena_1h'] = (int)$profSched['reserva_sena_1h'];
+                }
+                if (!empty(trim($profSched['whatsapp_comprobante'] ?? ''))) {
+                    $configWeb['whatsapp_comprobante'] = trim($profSched['whatsapp_comprobante']);
                 }
             }
         } catch (Exception $eProfSched) {}
@@ -627,19 +653,8 @@ if ($isProOrPremium) {
 }
 $agendaFocusUrl = $turnoFocusUrl;
 
-// Resolver datos de transferencia: Si el profesional tiene alias/CBU propio en personal_negocio, usarlo para sus reservas
+// Los datos de transferencia / pagos del profesional (con fallback al negocio) ya fueron resueltos en $configWeb arriba
 $datosTransferenciaResuelto = $configWeb['datos_transferencia'] ?? '';
-if (!empty($profesional)) {
-    try {
-        $stmtProfTr = $pdo->prepare("SELECT datos_transferencia FROM personal_negocio WHERE id_negocio = :nid AND LOWER(TRIM(nombre)) = LOWER(TRIM(:pname)) AND datos_transferencia IS NOT NULL AND TRIM(datos_transferencia) != '' LIMIT 1");
-        $stmtProfTr->execute(['nid' => $id_negocio, 'pname' => $profesional]);
-        $rowProfTr = $stmtProfTr->fetch(PDO::FETCH_ASSOC);
-        if ($rowProfTr && !empty(trim($rowProfTr['datos_transferencia']))) {
-            $datosTransferenciaResuelto = trim($rowProfTr['datos_transferencia']);
-            $configWeb['datos_transferencia'] = $datosTransferenciaResuelto;
-        }
-    } catch (Exception $eProfTr) {}
-}
 
 // Responder al cliente de forma instantánea para que el modal de comprobante abra en < 1 segundo
 $responseJson = json_encode([

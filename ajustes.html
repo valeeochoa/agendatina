@@ -77,8 +77,8 @@
 
     <main class="max-w-4xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12 overflow-x-hidden">
         <div class="mb-10">
-            <h1 class="text-3xl font-extrabold font-display mb-2">Ajustes del Sistema</h1>
-            <p class="text-slate-500">Configura colores, horarios de atención y la modalidad de tus turnos.</p>
+            <h1 id="ajustesPageTitle" class="text-3xl font-extrabold font-display mb-2">Ajustes del Sistema</h1>
+            <p id="ajustesPageSubtitle" class="text-slate-500">Configura colores, horarios de atención y la modalidad de tus turnos.</p>
 
             <!-- Buscador y Chips / Clips de Segmentos de Ajustes (ID #36) -->
             <div class="mt-6 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
@@ -212,55 +212,60 @@
                 <!-- Resumen Visual de Horarios Personalizados por Día (Lunes a Domingo) -->
                 <div id="horariosDetalladosResumenContainer" class="mb-6 hidden bg-purple-50/80 border border-purple-200/80 rounded-2xl p-4 transition-all"></div>
                 
-                <div class="grid grid-cols-2 gap-3 sm:gap-6 max-w-md mx-auto">
-                    <div class="min-w-0 flex flex-col items-center text-center">
-                        <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">Hora Apertura</label>
-                        <input type="time" id="configHoraApertura" name="hora_apertura" class="w-28 sm:w-32 mx-auto text-center bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-extrabold text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
-                    </div>
-                    <div class="min-w-0 flex flex-col items-center text-center">
-                        <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">Hora Cierre</label>
-                        <input type="time" id="configHoraCierre" name="hora_cierre" class="w-28 sm:w-32 mx-auto text-center bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-extrabold text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
-                    </div>
-                </div>
-                <div class="grid grid-cols-2 gap-3 sm:gap-6 max-w-md mx-auto border-t border-slate-100 mt-5 pt-5 sm:mt-6 sm:pt-6">
-                    <div class="min-w-0 flex flex-col items-center text-center">
-                        <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">Inicio Descanso</label>
-                        <input type="time" id="configHoraDescansoInicio" name="hora_descanso_inicio" class="w-28 sm:w-32 mx-auto text-center bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-extrabold text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
-                        <p class="text-[11px] text-slate-500 mt-1">Ej: 13:00</p>
-                    </div>
-                    <div class="min-w-0 flex flex-col items-center text-center">
-                        <label class="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">Fin Descanso</label>
-                        <input type="time" id="configHoraDescansoFin" name="hora_descanso_fin" class="w-28 sm:w-32 mx-auto text-center bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs sm:text-sm font-extrabold text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
-                        <p class="text-[11px] text-slate-500 mt-1">Ej: 16:00</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Cobros y Transferencia Personal (Exclusivo para Profesional) -->
-            <div id="cardTransferenciaProfesional" data-ajustes-card="transferencia_prof" class="hidden bg-white p-5 sm:p-8 rounded-2xl shadow-sm border border-slate-200 mb-6 space-y-4">
-                <div class="flex items-start justify-between gap-4 pb-4 border-b border-slate-100">
-                    <div class="flex items-center gap-3.5">
-                        <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
-                            <span class="material-symbols-outlined text-xl">account_balance</span>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="px-2.5 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider text-white shadow-2xs flex items-center gap-1" style="background-color: var(--color-secundario, #fc8712);">
-                                    <span class="material-symbols-outlined text-[13px]">payments</span> Cobros
-                                </span>
-                                <span class="text-xs font-bold text-slate-400">Tus datos personales</span>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-3 border-t border-slate-100">
+                    <!-- Franja Principal de Atención -->
+                    <div class="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 sm:p-5 space-y-3.5">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 shadow-2xs" style="color: var(--color-primario, #d11149);">
+                                <span class="material-symbols-outlined text-[20px]">schedule</span>
                             </div>
-                            <h2 class="text-lg sm:text-xl font-bold text-slate-900">Alias o CBU para tus Turnos</h2>
-                            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Configurá el alias bancario o billetera virtual donde querés recibir las señas y pagos de tus clientes.</p>
+                            <div>
+                                <h3 class="text-sm font-extrabold text-slate-800 leading-tight">Franja Principal de Atención</h3>
+                                <p class="text-[11px] text-slate-500">Horario de apertura y cierre de tu jornada.</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="configHoraApertura" class="block text-xs font-bold text-slate-700 mb-1">Hora de Apertura</label>
+                                <input type="time" id="configHoraApertura" name="hora_apertura" style="max-width: 100% !important;" class="w-full text-center bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-extrabold text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none transition-all shadow-2xs">
+                            </div>
+                            <div>
+                                <label for="configHoraCierre" class="block text-xs font-bold text-slate-700 mb-1">Hora de Cierre</label>
+                                <input type="time" id="configHoraCierre" name="hora_cierre" style="max-width: 100% !important;" class="w-full text-center bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-extrabold text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none transition-all shadow-2xs">
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="space-y-3">
-                    <label class="block text-xs font-bold text-slate-700">Tu Alias, CBU o CVU Personal:</label>
-                    <input type="text" id="profDatosTransferencia" name="prof_datos_transferencia" placeholder="Ej: MI.ALIAS.PERSONAL / CBU 000000000000" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-amber-500 outline-none transition-all">
-                    <div class="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl flex items-start gap-2.5 text-amber-900 text-xs">
-                        <span class="material-symbols-outlined text-amber-600 text-base shrink-0 mt-0.5">info</span>
-                        <span>Este alias o CBU se mostrará <strong>únicamente a los clientes que reserven un turno con vos</strong>. Si lo dejás en blanco, tus clientes verán automáticamente el alias configurado por el negocio.</span>
+
+                    <!-- Horario de Descanso / Corte (Opcional) -->
+                    <div class="bg-amber-50/40 border border-amber-200/70 rounded-2xl p-4 sm:p-5 space-y-3.5">
+                        <div class="flex items-start sm:items-center justify-between gap-2">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-xl bg-white border border-amber-200 text-amber-600 flex items-center justify-center shrink-0 shadow-2xs">
+                                    <span class="material-symbols-outlined text-[20px]">free_breakfast</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-extrabold text-slate-800 leading-tight flex flex-wrap items-center gap-1.5">
+                                        <span>Horario de Descanso / Corte</span>
+                                        <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">Opcional</span>
+                                    </h3>
+                                    <p class="text-[11px] text-slate-500">Corte intermedio (ej: 13:00 a 16:00).</p>
+                                </div>
+                            </div>
+                            <button type="button" onclick="const i1=document.getElementById('configHoraDescansoInicio'),i2=document.getElementById('configHoraDescansoFin');if(i1)i1.value='';if(i2)i2.value='';if(typeof window.handleGeneralHoursChange==='function')window.handleGeneralHoursChange();" class="text-[11px] font-bold text-slate-500 hover:text-red-600 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 px-2.5 py-1 rounded-lg transition-colors shrink-0 cursor-pointer" title="Quitar descanso para trabajar en horario corrido">
+                                Limpiar
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label for="configHoraDescansoInicio" class="block text-xs font-bold text-slate-700 mb-1">Inicio de Descanso</label>
+                                <input type="time" id="configHoraDescansoInicio" name="hora_descanso_inicio" style="max-width: 100% !important;" class="w-full text-center bg-white border border-amber-200/90 rounded-xl px-3 py-2.5 text-sm font-extrabold text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none transition-all shadow-2xs">
+                            </div>
+                            <div>
+                                <label for="configHoraDescansoFin" class="block text-xs font-bold text-slate-700 mb-1">Fin de Descanso</label>
+                                <input type="time" id="configHoraDescansoFin" name="hora_descanso_fin" style="max-width: 100% !important;" class="w-full text-center bg-white border border-amber-200/90 rounded-xl px-3 py-2.5 text-sm font-extrabold text-slate-800 focus:ring-2 focus:ring-amber-500 outline-none transition-all shadow-2xs">
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-slate-500">Dejá ambos campos vacíos si atendés en horario corrido.</p>
                     </div>
                 </div>
             </div>

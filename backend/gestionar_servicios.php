@@ -149,9 +149,13 @@ if ($method === 'POST') {
         exit;
     }
 
-    // Validar permisos si el rol es profesional
-    if (isset($_SESSION['rol_en_local']) && $_SESSION['rol_en_local'] === 'profesional') {
-        $perms = $_SESSION['permisos'] ?? [];
+    // Sincronizar permisos reales en vivo y validar acceso
+    require_once __DIR__ . '/helpers/permisos_helper.php';
+    $ctxSvcPost = sincronizarPermisosSesion($pdo, $_SESSION['id_negocio'], $_SESSION['user_id'] ?? null);
+    $isProfPost = !empty($ctxSvcPost['is_prof']);
+
+    if ($isProfPost) {
+        $perms = $ctxSvcPost['permisos'] ?? [];
         $hasServPerm = !empty($perms['servicios']) || !empty($perms['perm_servicios']);
         if (!$hasServPerm) {
             echo json_encode(['success' => false, 'error' => 'Acceso denegado. No tienes permisos para administrar o crear servicios en este negocio. Contacta al Administrador.']);
@@ -204,7 +208,9 @@ if ($method === 'POST') {
         $cupo_maximo = $capacidad;
     }
     $descripcion = $data['descripcion'] ?? '';
-    $profesional = $data['profesional'] ?? '';
+    $profesional = $isProfPost && !empty($ctxSvcPost['nombre_completo'])
+        ? trim($ctxSvcPost['nombre_completo'])
+        : ($data['profesional'] ?? '');
     $email_profesional = $data['email_profesional'] ?? '';
     $foto_profesional = $data['foto_profesional'] ?? '';
     $imagen1 = $data['imagen1'] ?? $_POST['imagen1'] ?? '';
@@ -315,6 +321,16 @@ if ($method === 'POST') {
     }
 
     try {
+        if ($isProfPost && $id) {
+            $stmtOwnSvc = $pdo->prepare("SELECT profesional FROM servicios WHERE id = :id AND id_negocio = :id_negocio LIMIT 1");
+            $stmtOwnSvc->execute(['id' => $id, 'id_negocio' => $id_negocio]);
+            $existingOwner = $stmtOwnSvc->fetchColumn();
+            if ($existingOwner === false || strcasecmp(trim((string)$existingOwner), trim((string)$ctxSvcPost['nombre_completo'])) !== 0) {
+                echo json_encode(['success' => false, 'error' => 'Solo puedes editar los servicios asignados a tu perfil.']);
+                exit;
+            }
+        }
+
         // Verificar si ya existe un servicio idéntico (mismo nombre, duración y profesional)
         if ($id) {
             $stmtCheck = $pdo->prepare("SELECT id FROM servicios WHERE id_negocio = :id_negocio AND nombre_servicio = :nombre AND duracion_minutos = :duracion AND profesional = :profesional AND id != :id LIMIT 1");
@@ -362,7 +378,9 @@ if ($method === 'POST') {
 
                 if (!$uId) {
                     $hash = password_hash('profesional123', PASSWORD_DEFAULT);
-                    $stmtInsU = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, role, fecha_creacion) VALUES (:nombre, :email, :pass, 'profesional', NOW())");
+                    try { $pdo->query("SELECT email_verificado FROM usuarios LIMIT 1"); }
+                    catch(Exception $e) { try { $pdo->exec("ALTER TABLE usuarios ADD COLUMN email_verificado TINYINT DEFAULT 0"); } catch(Exception $e2) {} }
+                    $stmtInsU = $pdo->prepare("INSERT INTO usuarios (nombre_completo, email, password, role, email_verificado, fecha_creacion) VALUES (:nombre, :email, :pass, 'profesional', 0, NOW())");
                     $stmtInsU->execute(['nombre' => $profTrim, 'email' => $cleanEmail, 'pass' => $hash]);
                     $uId = $pdo->lastInsertId();
                 }

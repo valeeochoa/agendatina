@@ -3,9 +3,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Forzar siempre el entorno DEMO en esta ruta
-$_SESSION['is_demo'] = true;
-
 try {
     require_once __DIR__ . '/backend/conexion.php';
 
@@ -13,24 +10,49 @@ try {
         throw new Exception("No se pudo establecer la conexión con la base de datos.");
     }
 
-    // Si ya existe una sesión Demo activa válida, reutilizarla y no volver a crear filas en la base de datos
-    if (isset($_SESSION['is_demo']) && $_SESSION['is_demo'] === true && !empty($_SESSION['user_id']) && !empty($_SESSION['id_negocio']) && !isset($_GET['reset'])) {
+    // Verificar si ya existe una sesión Demo genuina (no una cuenta real de admin o profesional)
+    $hasValidDemoSession = false;
+    if (!empty($_SESSION['is_demo']) && $_SESSION['is_demo'] === true
+        && ($_SESSION['rol_en_local'] ?? '') === 'admin'
+        && !empty($_SESSION['user_id'])
+        && !empty($_SESSION['id_negocio'])
+        && !isset($_GET['reset'])) {
         try {
-            $stmtCheckExist = $pdo->prepare("SELECT id FROM negocios WHERE id = ? LIMIT 1");
-            $stmtCheckExist->execute([$_SESSION['id_negocio']]);
+            $stmtCheckExist = $pdo->prepare("
+                SELECT n.id
+                FROM negocios n
+                JOIN personal_negocio pn ON pn.id_negocio = n.id
+                JOIN usuarios u ON u.id = pn.id_usuario
+                WHERE n.id = ?
+                  AND u.id = ?
+                  AND (n.ruta LIKE 'demo%' OR n.ruta = 'demo')
+                  AND u.email LIKE 'demo%'
+                  AND pn.rol_en_local = 'admin'
+                LIMIT 1
+            ");
+            $stmtCheckExist->execute([(int)$_SESSION['id_negocio'], (int)$_SESSION['user_id']]);
             if ($stmtCheckExist->fetchColumn()) {
-                session_write_close();
-                echo "<!DOCTYPE html>\n<html>\n<head>\n<title>Redirigiendo a Demo...</title>\n</head>\n<body>\n";
-                echo "<script>\n";
-                echo "  sessionStorage.setItem('agendatina_session', 'active');\n";
-                echo "  sessionStorage.setItem('is_demo_user', 'true');\n";
-                echo "  window.location.replace('dashboard.html');\n";
-                echo "</script>\n";
-                echo "</body>\n</html>";
-                exit;
+                $hasValidDemoSession = true;
             }
         } catch (Throwable $eExist) {}
     }
+
+    if ($hasValidDemoSession) {
+        session_write_close();
+        echo "<!DOCTYPE html>\n<html>\n<head>\n<title>Redirigiendo a Demo...</title>\n</head>\n<body>\n";
+        echo "<script>\n";
+        echo "  sessionStorage.removeItem('agendatina_logged_user');\n";
+        echo "  sessionStorage.setItem('agendatina_session', 'active');\n";
+        echo "  sessionStorage.setItem('is_demo_user', 'true');\n";
+        echo "  window.location.replace('dashboard.html');\n";
+        echo "</script>\n";
+        echo "</body>\n</html>";
+        exit;
+    }
+
+    // Limpiar completamente cualquier sesión real previa (ej. cuenta de profesional o admin real)
+    $_SESSION = [];
+    $_SESSION['is_demo'] = true;
 
     // 1. LIMPIEZA AUTOMÁTICA DE CUENTAS DEMO EXPIRADAS (Probabilística 1 de cada 10 para acelerar la carga en celular)
     if (mt_rand(1, 10) === 1) {
@@ -103,6 +125,7 @@ try {
 
     echo "<!DOCTYPE html>\n<html>\n<head>\n<title>Redirigiendo a Demo...</title>\n</head>\n<body>\n";
     echo "<script>\n";
+    echo "  sessionStorage.removeItem('agendatina_logged_user');\n";
     echo "  localStorage.removeItem('user_color_primario');\n";
     echo "  localStorage.removeItem('user_color_secundario');\n";
     echo "  localStorage.removeItem('user_colores_extra_json');\n";
