@@ -1690,28 +1690,30 @@ function renderGrillaSemanal() {
         if (isHoy) {
             headerHtml = `
                 <div class="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white px-3.5 py-2.5 rounded-t-2xl shadow-sm select-none flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-1.5 min-w-0">
-                        <span class="text-[11px] font-black uppercase tracking-wider text-orange-100">${dayNameDisplay}</span>
-                        <span class="text-sm font-black text-white whitespace-nowrap">${dayNum} ${monthShort}</span>
-                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-white text-orange-600 tracking-wider shadow-2xs">
-                            <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
-                            Hoy
-                        </span>
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-orange-100 leading-none block">${dayNameDisplay}</span>
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-white text-orange-700 tracking-wider shadow-2xs leading-none">
+                                <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+                                Hoy
+                            </span>
+                        </div>
+                        <span class="text-sm sm:text-[15px] font-black text-white leading-tight mt-1 block whitespace-nowrap">${dayNum} ${monthShort}</span>
                     </div>
-                    <span class="shrink-0 inline-block px-2 py-0.5 rounded-lg text-[10px] font-black bg-white/20 backdrop-blur-xs text-white">${clasesBadgeTexto}</span>
+                    <span class="shrink-0 inline-block px-2.5 py-1 rounded-lg text-[10px] font-black bg-white/25 backdrop-blur-xs text-white whitespace-nowrap">${clasesBadgeTexto}</span>
                 </div>
             `;
         } else {
             headerHtml = `
                 <div class="bg-white border-b border-slate-200/80 px-3.5 py-2.5 rounded-t-2xl select-none flex items-center justify-between gap-2">
-                    <div class="flex items-baseline gap-1.5 min-w-0">
-                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">${dayNameDisplay}</span>
-                        <span class="text-sm font-black text-slate-900 whitespace-nowrap">${dayNum} ${monthShort}</span>
+                    <div class="min-w-0">
+                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 leading-none block">${dayNameDisplay}</span>
+                        <span class="text-sm sm:text-[15px] font-black text-slate-900 leading-tight mt-1 block whitespace-nowrap">${dayNum} ${monthShort}</span>
                     </div>
                     <div class="shrink-0">
                         ${tieneClases 
-                            ? `<span class="inline-block px-2 py-0.5 rounded-lg text-[10px] font-black bg-orange-50 text-orange-700 border border-orange-200/90">${clasesBadgeTexto}</span>`
-                            : `<span class="text-[10px] font-semibold text-slate-400">Sin clases</span>`
+                            ? `<span class="inline-block px-2.5 py-1 rounded-lg text-[10px] font-black bg-orange-50 text-orange-700 border border-orange-200/90 whitespace-nowrap">${clasesBadgeTexto}</span>`
+                            : `<span class="text-[10px] font-semibold text-slate-400 whitespace-nowrap">Sin clases</span>`
                         }
                     </div>
                 </div>
@@ -1742,22 +1744,22 @@ function renderGrillaSemanal() {
                 let barraColor = cConf.progressBar;
 
                 if (ocupados >= cupoMax) {
-                    badgeOcupacion = `<span class="px-2.5 py-1 rounded-xl text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200/90 shadow-2xs inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>COMPLETO</span>`;
+                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-lg text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200/90 shadow-2xs inline-flex items-center gap-1 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>COMPLETO</span>`;
                     barraColor = 'bg-rose-500';
                 } else if (ocupados > 0 && libres <= 2) {
-                    badgeOcupacion = `<span class="px-2.5 py-1 rounded-xl text-[10px] font-black bg-amber-50 text-amber-900 border border-amber-200/90 shadow-2xs inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Últimos ${libres} ${libres === 1 ? 'cupo' : 'cupos'}</span>`;
+                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-lg text-[10px] font-black bg-amber-50 text-amber-900 border border-amber-200/90 shadow-2xs inline-flex items-center gap-1 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Últimos ${libres} ${libres === 1 ? 'cupo' : 'cupos'}</span>`;
                     barraColor = 'bg-amber-500';
                 } else if (ocupados > 0) {
-                    badgeOcupacion = `<span class="px-2.5 py-1 rounded-xl text-[10px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>${libres} libres</span>`;
+                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-lg text-[10px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs inline-flex items-center gap-1 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>${libres} libres</span>`;
                     barraColor = 'bg-emerald-500';
                 } else {
-                    badgeOcupacion = `<span class="px-2.5 py-1 rounded-xl text-[10px] font-bold bg-slate-50 text-slate-600 border border-slate-200/90 shadow-2xs">Disponible (${cupoMax})</span>`;
+                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-50 text-slate-600 border border-slate-200/90 shadow-2xs whitespace-nowrap">Disponible (${cupoMax})</span>`;
                     barraColor = 'bg-slate-300';
                 }
 
                 // Badge de superposición horaria
                 const superpuestaBadge = esSuperpuesta ? `
-                    <span class="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-md border border-amber-200 shrink-0" title="Horario compartido con otra actividad simultánea">
+                    <span class="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-800 bg-amber-100/80 px-1.5 py-0.5 rounded border border-amber-200 shrink-0 whitespace-nowrap" title="Horario compartido con otra actividad simultánea">
                         <span class="material-symbols-outlined text-[13px]">layers</span>
                         <span>Simultánea</span>
                     </span>
@@ -1786,26 +1788,26 @@ function renderGrillaSemanal() {
                 // RECUADRO DE CLASE COMPACTO Y EQUILIBRADO
                 return `
                     <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" ${cardBorderStyle} class="bg-white hover:bg-slate-50/90 border border-slate-200/90 hover:border-orange-300 ${cardBorderClass} rounded-xl p-2.5 sm:p-3 shadow-2xs hover:shadow-sm transition-all cursor-pointer flex flex-col gap-1.5 group">
-                        <!-- Fila 1: Hora + Simultánea + Estado ocupación -->
+                        <!-- Fila 1: Hora + Estado ocupación -->
                         <div class="flex items-center justify-between gap-1.5">
-                            <div class="flex items-center gap-1 min-w-0">
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-black text-orange-800 bg-orange-100/70 border border-orange-200/90">
-                                    <span class="material-symbols-outlined text-[13px] text-orange-600">schedule</span>
-                                    <span>${c.hora}</span>
-                                </span>
-                                ${superpuestaBadge}
-                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-black text-orange-800 bg-orange-100/70 border border-orange-200/90 whitespace-nowrap shrink-0">
+                                <span class="material-symbols-outlined text-[13px] text-orange-600">schedule</span>
+                                <span>${c.hora}</span>
+                            </span>
                             <div class="shrink-0">${badgeOcupacion}</div>
                         </div>
 
-                        <!-- Fila 2: Servicio + Profesional -->
+                        <!-- Fila 2: Servicio + Profesional (+ Simultánea si aplica) -->
                         <div>
                             <h4 class="text-xs font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors leading-tight line-clamp-1">
                                 ${escapeHtml(c.servicioNombre)}
                             </h4>
-                            <div class="flex items-center gap-1 text-[10px] font-semibold text-slate-400 group-hover:text-slate-500 transition-colors mt-0.5">
-                                <span class="material-symbols-outlined text-[12px] text-slate-400">person</span>
-                                <span class="truncate">${escapeHtml(c.profesional)}</span>
+                            <div class="flex items-center justify-between gap-1.5 mt-0.5">
+                                <div class="flex items-center gap-1 text-[10px] font-semibold text-slate-400 group-hover:text-slate-500 transition-colors min-w-0">
+                                    <span class="material-symbols-outlined text-[12px] text-slate-400 shrink-0">person</span>
+                                    <span class="truncate">${escapeHtml(c.profesional)}</span>
+                                </div>
+                                ${superpuestaBadge}
                             </div>
                         </div>
 
@@ -1841,7 +1843,9 @@ function renderGrillaSemanal() {
         `);
     });
 
-    if (diasGenerados.length === 0) {
+    const countCols = diasGenerados.length;
+    if (countCols === 0) {
+        container.className = 'grid grid-cols-1 gap-3.5 items-start';
         container.innerHTML = `
             <div class="col-span-full py-16 text-center text-slate-400 bg-white rounded-3xl border border-dashed border-slate-200">
                 <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">event_busy</span>
@@ -1850,6 +1854,19 @@ function renderGrillaSemanal() {
             </div>
         `;
     } else {
+        if (countCols === 1) {
+            container.className = 'grid grid-cols-1 max-w-md gap-3.5 items-start';
+        } else if (countCols === 2) {
+            container.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start';
+        } else if (countCols === 3) {
+            container.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 items-start';
+        } else if (countCols === 4) {
+            container.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 items-start';
+        } else if (countCols === 5) {
+            container.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5 items-start';
+        } else {
+            container.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 items-start';
+        }
         container.innerHTML = diasGenerados.join('');
     }
 
