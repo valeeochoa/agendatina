@@ -992,10 +992,30 @@ try {
 
         // 0. Validar que la clase no sea para un horario que ya transcurrió
         date_default_timezone_set('America/Argentina/Buenos_Aires');
-        $classTimestamp = strtotime($fecha . ' ' . $hora);
-        if ($classTimestamp !== false && $classTimestamp < time()) {
-            echo json_encode(['success' => false, 'error' => 'No podés reservar una clase cuyo horario ya transcurrió.']);
-            exit;
+        try { $pdo->query("SELECT anticipacion_cupos_min FROM configuracion_web LIMIT 1"); } catch (Throwable $eCol) { try { $pdo->exec("ALTER TABLE configuracion_web ADD COLUMN anticipacion_cupos_min INT DEFAULT 0"); } catch (Throwable $eCol2) {} }
+        $minCuposAdv = 0;
+        try {
+            $stmtAdv = $pdo->prepare("SELECT anticipacion_cupos_min FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
+            $stmtAdv->execute(['id' => $id_negocio]);
+            $minCuposAdv = max(0, (int)$stmtAdv->fetchColumn());
+        } catch (Throwable $eAdv) {}
+
+        $horaShort = substr(trim($hora), 0, 5);
+        $classTimestamp = strtotime(substr($fecha, 0, 10) . ' ' . $horaShort . ':00');
+        $classEndMinuteTs = strtotime(substr($fecha, 0, 10) . ' ' . $horaShort . ':59');
+        if ($classTimestamp !== false) {
+            if ($minCuposAdv > 0) {
+                if ($classTimestamp < (time() + ($minCuposAdv * 60))) {
+                    $hAdv = intdiv($minCuposAdv, 60);
+                    $mAdv = $minCuposAdv % 60;
+                    $advLabel = ($hAdv > 0 && $mAdv > 0) ? "{$hAdv} h {$mAdv} min" : ($hAdv > 0 ? "{$hAdv} hs" : "{$mAdv} min");
+                    echo json_encode(['success' => false, 'error' => "Esta clase requiere reservar con al menos {$advLabel} de anticipación."]);
+                    exit;
+                }
+            } else if ($classEndMinuteTs !== false && time() > $classEndMinuteTs) {
+                echo json_encode(['success' => false, 'error' => 'No podés reservar una clase cuyo horario ya transcurrió.']);
+                exit;
+            }
         }
 
         // 1. Verificar si el alumno ya está inscripto en esta misma clase, fecha y hora

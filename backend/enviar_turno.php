@@ -353,7 +353,7 @@ try {
         }
     }
 
-    $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos, tipo_calendario, tiempo_entre_turnos, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, reserva_sena_1h, whatsapp_comprobante, datos_transferencia, porcentaje_sena, usar_cupones_descuento, cupon_descuento_pct, cupon_duracion_horas, whatsapp_contacto, notificaciones_email, email_notif_inmediata FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
+    $stmtConfig = $pdo->prepare("SELECT turnos_simultaneos, tipo_calendario, tiempo_entre_turnos, anticipacion_turno_min, dias_trabajo, hora_apertura, hora_cierre, hora_descanso_inicio, hora_descanso_fin, horarios_detallados_json, reserva_sena_1h, whatsapp_comprobante, datos_transferencia, porcentaje_sena, usar_cupones_descuento, cupon_descuento_pct, cupon_duracion_horas, whatsapp_contacto, notificaciones_email, email_notif_inmediata FROM configuracion_web WHERE id_negocio = :id LIMIT 1");
     $stmtConfig->execute(['id' => $id_negocio]);
     $configWeb = $stmtConfig->fetch(PDO::FETCH_ASSOC);
     if (!is_array($configWeb)) $configWeb = [];
@@ -401,6 +401,25 @@ try {
     }
 
     if ($configWeb && !($isOwnerAdmin && $isPastTurno)) {
+        $minAdvTurno = max(0, (int)($configWeb['anticipacion_turno_min'] ?? 0));
+        $horaShort5 = substr(trim($hora), 0, 5);
+        $turnoStartTs = strtotime("$fecha $horaShort5:00");
+        $turnoEndMinTs = strtotime("$fecha $horaShort5:59");
+        if ($turnoStartTs !== false) {
+            if ($minAdvTurno > 0) {
+                if ($turnoStartTs < (time() + ($minAdvTurno * 60))) {
+                    $pdo->rollBack();
+                    http_response_code(400);
+                    echo json_encode(['success' => false, 'error' => 'El horario seleccionado no cumple con la anticipación mínima configurada por el establecimiento.']);
+                    exit;
+                }
+            } elseif ($turnoEndMinTs !== false && time() > $turnoEndMinTs) {
+                $pdo->rollBack();
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'El horario seleccionado ya transcurrió. Por favor elige otro horario disponible.']);
+                exit;
+            }
+        }
         $dayOfWeek = (int)date('w', strtotime($fecha)); // 0 = Domingo, 1 = Lunes...
         $hDet = !empty($configWeb['horarios_detallados_json']) ? json_decode($configWeb['horarios_detallados_json'], true) : null;
         $dayData = null;

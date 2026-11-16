@@ -451,10 +451,14 @@ function isSlotAvailableForDuration(dateString, timeStr, durationMin, capacity, 
     if (isSpecificProf && baseOcupadas.includes('blocked_day_prof')) return false;
     
     const now = new Date();
-    if (isToday && slotDate && slotDate.getTime() <= now.getTime()) return false;
-    
     const minAdvance = parseInt(window.businessWebConfig?.anticipacion_turno_min || 0, 10) || 0;
-    if (minAdvance > 0 && slotDate && slotDate.getTime() < (now.getTime() + (minAdvance * 60000))) return false;
+    if (isToday && slotDate) {
+        if (minAdvance > 0) {
+            if (slotDate.getTime() < (now.getTime() + (minAdvance * 60000))) return false;
+        } else {
+            if (now.getTime() > (slotDate.getTime() + 59999)) return false;
+        }
+    }
     
     const [h, m] = timeStr.split(':').map(Number);
     if (isNaN(h) || isNaN(m)) return false;
@@ -529,8 +533,12 @@ function getSlotStatus(dateString, timeStr, durationMin, capacity, baseOcupadas,
     const now = new Date();
     const minAdvance = parseInt(window.businessWebConfig?.anticipacion_turno_min || 0, 10) || 0;
     
-    // 1. Determinar si el horario es viejo / pasado
-    const isPastSlot = isPastDay || (isToday && slotDate && slotDate.getTime() <= now.getTime()) || (minAdvance > 0 && slotDate && slotDate.getTime() < (now.getTime() + (minAdvance * 60000)));
+    // 1. Determinar si el horario es viejo / pasado (hasta el minuto exacto si no hay anticipación mínima)
+    const isPastSlot = isPastDay || (slotDate && (
+        minAdvance > 0
+            ? slotDate.getTime() < (now.getTime() + (minAdvance * 60000))
+            : (isToday && now.getTime() > (slotDate.getTime() + 59999))
+    ));
 
     // 2. Determinar si tiene cupo disponible (ignorando hora actual)
     const hasCapacity = isSlotAvailableForDuration(dateString, timeStr, durationMin, capacity, baseOcupadas, false, null);

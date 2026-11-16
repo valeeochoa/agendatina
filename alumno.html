@@ -1974,10 +1974,14 @@
 
                         const timeSlots = getServiceTimeSlotsForDay(s, dateObj, bizConfig);
 
+                        const minCuposAdv = Math.max(0, parseInt(bizConfig?.anticipacion_cupos_min ?? 0, 10) || 0);
                         timeSlots.forEach(horaDef5 => {
                             const [hr, mn] = horaDef5.split(':').map(Number);
                             const slotDateObj = new Date(y, dateObj.getMonth(), parseInt(d, 10), hr, mn, 0);
-                            const isPastTime = slotDateObj < hoy;
+                            const isPastTime = minCuposAdv > 0
+                                ? (slotDateObj.getTime() < (hoy.getTime() + (minCuposAdv * 60000)))
+                                : (hoy.getTime() > (slotDateObj.getTime() + 59999));
+                            const isAnticipationBlocked = minCuposAdv > 0 && isPastTime && (hoy.getTime() <= (slotDateObj.getTime() + 59999));
 
                             // 1. Verificar si el alumno ya está inscripto en esta clase (fecha, hora y servicio)
                             const cleanHoraDef5 = String(horaDef5).trim().substring(0, 5);
@@ -2135,8 +2139,8 @@
                             } else if (isPastTime) {
                                 buttonHtml = `
                                     <button disabled class="w-full bg-slate-100 text-slate-400 font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider cursor-not-allowed shadow-none border border-slate-200/80 flex items-center justify-center gap-1.5">
-                                        <span class="material-symbols-outlined text-[18px]">history</span>
-                                        <span>Horario Finalizado</span>
+                                        <span class="material-symbols-outlined text-[18px]">${isAnticipationBlocked ? 'schedule' : 'history'}</span>
+                                        <span>${isAnticipationBlocked ? 'Reserva Cerrada (Anticipación)' : 'Horario Finalizado'}</span>
                                     </button>
                                 `;
                             } else if (pasesNegocio <= 0) {

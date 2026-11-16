@@ -553,6 +553,15 @@ window.applyCalendarConfigToForm = function(data) {
         if (form.querySelector('#configAnticipacionMin')) form.querySelector('#configAnticipacionMin').value = totalMin;
     }
 
+    if (data.anticipacion_cupos_min !== undefined) {
+        const totalCuposMin = parseInt(data.anticipacion_cupos_min) || 0;
+        const hc = Math.floor(totalCuposMin / 60);
+        const mc = totalCuposMin % 60;
+        if (form.querySelector('#configAnticipacionCuposH')) form.querySelector('#configAnticipacionCuposH').value = hc || '';
+        if (form.querySelector('#configAnticipacionCuposM')) form.querySelector('#configAnticipacionCuposM').value = mc || '';
+        if (form.querySelector('#configAnticipacionCuposMin')) form.querySelector('#configAnticipacionCuposMin').value = totalCuposMin;
+    }
+
     const selectInter = form.querySelector('#configIntervalo');
     if (selectInter) {
         const valInter = data.intervalo_turnos ? String(data.intervalo_turnos) : 'servicio';
@@ -1542,6 +1551,7 @@ function handleCalendarConfigSubmit(e) {
         turnos_simultaneos: form.querySelector('#configSimultaneos')?.value,
         confirmacion_automatica: form.querySelector('#configConfirmacionAutomatica')?.value,
         anticipacion_turno_min: form.querySelector('#configAnticipacionMin')?.value,
+        anticipacion_cupos_min: form.querySelector('#configAnticipacionCuposMin')?.value,
         intervalo_turnos: intervalo || 'servicio',
         tiempo_entre_turnos: tiempoEntreTurnos,
         tipo_calendario: tipoCalendario,
