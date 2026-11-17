@@ -54,7 +54,7 @@ if ((!empty($negocioParam) && stripos($negocioParam, 'demo') === 0) || (isset($_
 }
 
 try {
-    $stmtNeg = $pdo->prepare("SELECT id FROM negocios WHERE LOWER(TRIM(ruta)) = LOWER(:slug) OR LOWER(TRIM(subdominio)) = LOWER(:slug) OR LOWER(TRIM(nombre_fantasia)) = LOWER(:slug) OR (id = :id AND :id > 0) LIMIT 1");
+    $stmtNeg = $pdo->prepare("SELECT id FROM negocios WHERE LOWER(TRIM(ruta)) = LOWER(:slug) OR LOWER(TRIM(nombre_fantasia)) = LOWER(:slug) OR (id = :id AND :id > 0) LIMIT 1");
     $stmtNeg->execute(['slug' => $negocioParam, 'id' => $idVal]);
     $negocioRow = $stmtNeg->fetch(PDO::FETCH_ASSOC);
 

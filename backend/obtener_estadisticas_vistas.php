@@ -28,7 +28,7 @@ try {
 
 try {
     // Consultar plan y fecha de inicio del negocio
-    $stmtNeg = $pdo->prepare("SELECT plan, fecha_alta, created_at FROM negocios WHERE id = ? LIMIT 1");
+    $stmtNeg = $pdo->prepare("SELECT plan, fecha_alta FROM negocios WHERE id = ? LIMIT 1");
     $stmtNeg->execute([$id_negocio]);
     $negocio = $stmtNeg->fetch(PDO::FETCH_ASSOC);
 
@@ -124,7 +124,7 @@ try {
 
     // 5. Comparativa Porcentual y Validación de Historial
     // Solo mostrar comparativa si el negocio ya existía/pagaba antes del primer día del mes actual Y hubo vistas
-    $fechaInicio = $negocio['fecha_alta'] ?? ($negocio['created_at'] ?? null);
+    $fechaInicio = $negocio['fecha_alta'] ?? null;
     $primerDiaMesActual = date('Y-m-01');
     $esNegocioConHistorial = false;
     if ($fechaInicio) {
