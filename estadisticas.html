@@ -134,6 +134,9 @@
         </div>
 
         <!-- Gráficos interactivos -->
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Análisis de Demanda y Servicios</h2>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 mb-6 sm:mb-8">
             <!-- Gráfico 1: Demanda por Día de la Semana -->
             <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-slate-200/90 shadow-2xs relative">
@@ -174,7 +177,7 @@
         </div>
 
         <!-- Bloque Combinado: Tráfico (Web / Calendario) y Alumnos -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 mb-6 sm:mb-8">
+        <div id="gridTraficoYAlumnos" class="grid grid-cols-1 gap-5 sm:gap-8 mb-6 sm:mb-8">
             <!-- Tráfico y Visualizaciones -->
             <div id="secEstadisticasVistas" class="hidden bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 border border-slate-200/90 shadow-2xs flex flex-col justify-between">
                 <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
@@ -374,6 +377,19 @@
             if (elCal) elCal.textContent = (metricas?.calendario || 0).toLocaleString('es-AR');
             if (elWeb) elWeb.textContent = (metricas?.web || 0).toLocaleString('es-AR');
             if (elTot) elTot.textContent = (metricas?.total || 0).toLocaleString('es-AR');
+            if (typeof syncTraficoAlumnosGrid === 'function') syncTraficoAlumnosGrid();
+        }
+
+        function syncTraficoAlumnosGrid() {
+            const grid = document.getElementById('gridTraficoYAlumnos');
+            const secV = document.getElementById('secEstadisticasVistas');
+            const secA = document.getElementById('secEstadisticasAlumnos');
+            if (!grid) return;
+            const showV = secV && !secV.classList.contains('hidden');
+            const showA = secA && !secA.classList.contains('hidden');
+            grid.className = (showV && showA)
+                ? 'grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-8 mb-6 sm:mb-8'
+                : 'grid grid-cols-1 gap-5 sm:gap-8 mb-6 sm:mb-8';
         }
 
         function renderBannerMensual(data) {
@@ -439,6 +455,7 @@
 
                 // Cargar estadísticas de vistas y banner mensual para todos los planes
                 cargarEstadisticasVistas();
+                syncTraficoAlumnosGrid();
 
                 processStats();
             }).catch(err => {
