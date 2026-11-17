@@ -79,33 +79,52 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
-                // Actualizar enlaces al calendario usando la ruta dinámica
-                if (data.modo_reservas === 'cupos_alumnos') {
-                    const isAlumnoLoggedIn = !!sessionStorage.getItem('cliente_email');
-                    const handleCuposClick = (e) => {
-                        if (!isAlumnoLoggedIn) {
-                            e.preventDefault();
-                            if (typeof window.openContactoAlumnosModal === 'function') window.openContactoAlumnosModal();
-                        }
-                    };
+                // Determinar si el negocio tiene calendario de turnos configurado
+                const calendarServices = Array.isArray(servicesData)
+                    ? servicesData.filter(s => s && s.tipo_servicio !== 'alumnos' && !(!s.tipo_servicio && (parseInt(s.cupo_maximo) > 1 || parseInt(s.capacidad) > 1)))
+                    : [];
+                const hasCalendarConfigured = (data.modo_reservas !== 'cupos_alumnos' && calendarServices.length > 0);
+                window._webHasCalendarConfigured = hasCalendarConfigured;
 
-                    const navBtn = document.getElementById('navReservarBtn');
-                    const heroBtn = document.getElementById('heroReservarBtn');
-                    const comoFuncionaBtn = document.getElementById('btnComoFuncionaReservar');
-                    const stickyMobileBtn = document.getElementById('stickyMobileReservarBtn');
+                const navBtn = document.getElementById('navReservarBtn');
+                const heroBtn = document.getElementById('heroReservarBtn');
+                const comoFuncionaBtn = document.getElementById('btnComoFuncionaReservar');
+                const stickyMobileBtn = document.getElementById('stickyMobileReservarBtn');
+                const sectionComoFunciona = document.getElementById('sectionComoFunciona');
 
-                    [navBtn, heroBtn, comoFuncionaBtn, stickyMobileBtn].forEach(btn => {
-                        if (btn) {
-                            btn.href = isAlumnoLoggedIn ? cleanLink : 'javascript:void(0)';
-                            btn.addEventListener('click', handleCuposClick);
+                if (!hasCalendarConfigured) {
+                    // Omitir toda la información de "Cómo Reservar tu Turno"
+                    if (sectionComoFunciona) sectionComoFunciona.classList.add('hidden');
+
+                    const waNumClean = data.whatsapp_contacto ? String(data.whatsapp_contacto).replace(/\D/g, '') : '';
+                    const waContactUrl = waNumClean ? `https://wa.me/${waNumClean}` : '';
+
+                    if (waContactUrl) {
+                        if (navBtn) {
+                            navBtn.href = waContactUrl;
+                            navBtn.target = '_blank';
+                            navBtn.rel = 'noopener noreferrer';
+                            navBtn.textContent = 'Contactame';
                         }
-                    });
+                        if (heroBtn) {
+                            heroBtn.href = waContactUrl;
+                            heroBtn.target = '_blank';
+                            heroBtn.rel = 'noopener noreferrer';
+                            heroBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">chat</span><span>Contactame</span>';
+                        }
+                        if (stickyMobileBtn) {
+                            stickyMobileBtn.href = waContactUrl;
+                            stickyMobileBtn.target = '_blank';
+                            stickyMobileBtn.rel = 'noopener noreferrer';
+                            stickyMobileBtn.textContent = 'Contactame';
+                        }
+                    } else {
+                        [navBtn, heroBtn, stickyMobileBtn].forEach(btn => {
+                            if (btn) btn.classList.add('hidden');
+                        });
+                    }
                 } else {
-                    const navBtn = document.getElementById('navReservarBtn');
-                    const heroBtn = document.getElementById('heroReservarBtn');
-                    const comoFuncionaBtn = document.getElementById('btnComoFuncionaReservar');
-                    const stickyMobileBtn = document.getElementById('stickyMobileReservarBtn');
-
+                    if (sectionComoFunciona) sectionComoFunciona.classList.remove('hidden');
                     [navBtn, heroBtn, comoFuncionaBtn, stickyMobileBtn].forEach(btn => {
                         if (btn) btn.href = cleanLink;
                     });
