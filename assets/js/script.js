@@ -1,17 +1,17 @@
 // backend/js/script.js
 
 // Interceptor global de fetch para inyectar token CSRF y deduplicar GETs frecuentes (perfil / guardar_web)
-(function() {
+(function () {
     const originalFetch = window.fetch;
     const sharedGetCache = {};
     const CACHEABLE_GET_PATHS = ['backend/perfil.php', 'backend/guardar_web.php'];
     const CACHE_TTL_MS = 4000;
 
-    window.clearSharedGetCache = function() {
+    window.clearSharedGetCache = function () {
         Object.keys(sharedGetCache).forEach(k => delete sharedGetCache[k]);
     };
 
-    window.fetch = function(input, init) {
+    window.fetch = function (input, init) {
         init = init || {};
         const method = (init.method || 'GET').toUpperCase();
         const isWrite = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(method);
@@ -57,7 +57,7 @@
 // LÓGICA COMPARTIDA Y UTILIDADES
 // ==========================================
 
-window.escapeHtml = function(text) {
+window.escapeHtml = function (text) {
     if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
@@ -67,22 +67,22 @@ function escapeHtml(text) {
     return window.escapeHtml(text);
 }
 
-window.normalizeProfName = function(name) {
+window.normalizeProfName = function (name) {
     if (!name || typeof name !== 'string') return '';
     return name.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, "");
 };
 
-window.isSameProf = function(profA, profB) {
+window.isSameProf = function (profA, profB) {
     if (!profA || !profB) return false;
     const a = window.normalizeProfName(profA);
     const b = window.normalizeProfName(profB);
     if (!a || !b) return false;
     if (a === b) return true;
-    
+
     const aParts = a.split(/\s+/).filter(Boolean);
     const bParts = b.split(/\s+/).filter(Boolean);
     if (aParts.length === 0 || bParts.length === 0) return false;
-    
+
     if (aParts[0] === bParts[0]) {
         if (aParts.length === 1 || bParts.length === 1) return true;
         return aParts.slice(1).join(' ') === bParts.slice(1).join(' ');
@@ -90,9 +90,9 @@ window.isSameProf = function(profA, profB) {
     return false;
 };
 
-window.formatProfDisplayNames = function(profsList) {
+window.formatProfDisplayNames = function (profsList) {
     if (!Array.isArray(profsList)) return {};
-    
+
     const firstNameCounts = {};
     profsList.forEach(fullName => {
         if (!fullName || typeof fullName !== 'string') return;
@@ -108,10 +108,10 @@ window.formatProfDisplayNames = function(profsList) {
         const clean = fullName.trim();
         const parts = clean.split(/\s+/).filter(Boolean);
         if (parts.length === 0) return;
-        
+
         const firstName = parts[0];
         const normFirst = window.normalizeProfName(firstName);
-        
+
         if (firstNameCounts[normFirst] > 1 && parts.length > 1) {
             displayMap[clean] = clean;
         } else {
@@ -141,7 +141,7 @@ if (!document.getElementById('global-modal-animations')) {
     document.head.appendChild(style);
 }
 
-window.openRegisterModal = function(selectedPlan = 'Básico') {
+window.openRegisterModal = function (selectedPlan = 'Básico') {
     const modal = document.getElementById('registerModal');
     const content = document.getElementById('registerModalContent');
     if (!modal) return;
@@ -161,7 +161,7 @@ window.openRegisterModal = function(selectedPlan = 'Básico') {
     setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
 };
 
-window.closeRegisterModal = function() {
+window.closeRegisterModal = function () {
     const modal = document.getElementById('registerModal');
     const content = document.getElementById('registerModalContent');
     if (!modal) return;
@@ -170,7 +170,7 @@ window.closeRegisterModal = function() {
     setTimeout(() => { modal.classList.add('hidden'); }, 300);
 };
 
-window.selectPlan = function(planName) {
+window.selectPlan = function (planName) {
     let p = 'Básico';
     if (planName) {
         const s = planName.toString().toLowerCase();
@@ -181,7 +181,7 @@ window.selectPlan = function(planName) {
     window.location.href = 'registro.html?plan=' + encodeURIComponent(p);
 };
 
-window.submitRegister = function(e) {
+window.submitRegister = function (e) {
     e.preventDefault();
     const btn = document.getElementById('btnRegisterSubmit');
     const errorDiv = document.getElementById('registerError');
@@ -205,24 +205,24 @@ window.submitRegister = function(e) {
     });
 
     fetch('backend/registrarse.php', { method: 'POST', body: formData })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            window.location.href = data.redirect || 'dashboard.html';
-        } else {
-            errorDiv.textContent = data.error || 'Error al crear la cuenta.';
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect || 'dashboard.html';
+            } else {
+                errorDiv.textContent = data.error || 'Error al crear la cuenta.';
+                errorDiv.classList.remove('hidden');
+            }
+        })
+        .catch(() => {
+            errorDiv.textContent = 'Error de conexión con el servidor. Por favor reintenta.';
             errorDiv.classList.remove('hidden');
-        }
-    })
-    .catch(() => {
-        errorDiv.textContent = 'Error de conexión con el servidor. Por favor reintenta.';
-        errorDiv.classList.remove('hidden');
-    })
-    .finally(() => { btn.disabled = false; btn.innerHTML = orig; });
+        })
+        .finally(() => { btn.disabled = false; btn.innerHTML = orig; });
 };
 
 // Listener global para cerrar modales con la tecla Escape (ESC)
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' || e.key === 'Esc') {
         // 1. Invocar funciones específicas de cierre de modales
         if (typeof window.closeHorariosDetalladosModal === 'function') window.closeHorariosDetalladosModal();
@@ -250,7 +250,7 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-window.getFetchErrorMessage = function(err, defaultMsg = 'Error al procesar la solicitud.') {
+window.getFetchErrorMessage = function (err, defaultMsg = 'Error al procesar la solicitud.') {
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
         return 'No tienes conexión a internet. Por favor verifica tu red Wi-Fi o datos móviles e intenta nuevamente.';
     }
@@ -261,7 +261,7 @@ window.getFetchErrorMessage = function(err, defaultMsg = 'Error al procesar la s
     return (err && err.message) ? err.message : defaultMsg;
 };
 
-window.showToast = function(message, type = 'success', customDuration = null) {
+window.showToast = function (message, type = 'success', customDuration = null) {
     // Si es un error y no hay conexión a internet o el error es de red/servidor caído, avisar claramente la falta de internet
     if (type === 'error') {
         if (typeof navigator !== 'undefined' && navigator.onLine === false) {
@@ -284,7 +284,7 @@ window.showToast = function(message, type = 'success', customDuration = null) {
     const toast = document.createElement('div');
     const bgColor = type === 'success' ? 'bg-green-600' : 'bg-red-600';
     const icon = type === 'success' ? 'check_circle' : 'error';
-    
+
     // Si es error se otorga tiempo extendido de 8 segundos para lectura comoda
     const duration = customDuration || (type === 'error' ? 8000 : 4000);
 
@@ -300,15 +300,15 @@ window.showToast = function(message, type = 'success', customDuration = null) {
     `;
     container.appendChild(toast);
     requestAnimationFrame(() => toast.classList.remove('translate-y-12', 'opacity-0'));
-    setTimeout(() => { 
+    setTimeout(() => {
         if (toast && toast.parentElement) {
-            toast.classList.add('translate-y-12', 'opacity-0'); 
-            setTimeout(() => toast.remove(), 300); 
+            toast.classList.add('translate-y-12', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
         }
     }, duration);
 };
 
-window.ensureConfirmModal = function() {
+window.ensureConfirmModal = function () {
     if (!document.getElementById('confirmModal')) {
         const modalHtml = `
             <div id="confirmModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[80] hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
@@ -356,14 +356,14 @@ window.ensureConfirmModal = function() {
     }
 };
 
-window.showConfirm = function(title, message, acceptText, acceptColorClass, callback, extraHtml = '') {
+window.showConfirm = function (title, message, acceptText, acceptColorClass, callback, extraHtml = '') {
     window.ensureConfirmModal();
     const confirmTitle = document.getElementById('confirmTitle');
     const confirmMessage = document.getElementById('confirmMessage');
     const btnAccept = document.getElementById('btnAcceptConfirm');
     const iconBox = document.getElementById('confirmIconBox');
     const iconEl = document.getElementById('confirmIcon');
-    if(!confirmTitle || !confirmMessage || !btnAccept) return;
+    if (!confirmTitle || !confirmMessage || !btnAccept) return;
     confirmTitle.textContent = title;
     confirmMessage.innerHTML = message + extraHtml;
     btnAccept.textContent = acceptText;
@@ -391,11 +391,11 @@ window.showConfirm = function(title, message, acceptText, acceptColorClass, call
     window.confirmActionCallback = callback;
     const modal = document.getElementById('confirmModal');
     const content = document.getElementById('confirmModalContent');
-    if(modal) modal.classList.remove('hidden');
+    if (modal) modal.classList.remove('hidden');
     setTimeout(() => {
-        if(modal) modal.classList.remove('opacity-0');
-        if(content) content.classList.remove('scale-95');
-        if(content) {
+        if (modal) modal.classList.remove('opacity-0');
+        if (content) content.classList.remove('scale-95');
+        if (content) {
             content.classList.remove('scale-95', 'animate-modal-pop');
             void content.offsetWidth;
             content.classList.add('animate-modal-pop');
@@ -403,19 +403,19 @@ window.showConfirm = function(title, message, acceptText, acceptColorClass, call
     }, 10);
 };
 
-window.closeConfirm = function() {
+window.closeConfirm = function () {
     const modal = document.getElementById('confirmModal');
     const content = document.getElementById('confirmModalContent');
-    if(modal) modal.classList.add('opacity-0');
-    if(content) content.classList.add('scale-95');
-    if(content) {
+    if (modal) modal.classList.add('opacity-0');
+    if (content) content.classList.add('scale-95');
+    if (content) {
         content.classList.remove('animate-modal-pop');
         content.classList.add('scale-95');
     }
-    setTimeout(() => { if(modal) modal.classList.add('hidden'); }, 300);
+    setTimeout(() => { if (modal) modal.classList.add('hidden'); }, 300);
 };
 
-window.confirmarTurnoAdmin = function(id) {
+window.confirmarTurnoAdmin = function (id) {
     // Verificar si el turno está en el pasado
     let targetTurno = null;
     if (Array.isArray(window.agendaData)) {
@@ -424,7 +424,7 @@ window.confirmarTurnoAdmin = function(id) {
     if (!targetTurno && Array.isArray(window.allAppointments)) {
         targetTurno = window.allAppointments.find(t => t.id == id);
     }
-    
+
     if (targetTurno) {
         const tDate = new Date(targetTurno.fecha.replace(/-/g, '/') + ' ' + targetTurno.hora);
         const now = new Date();
@@ -437,74 +437,74 @@ window.confirmarTurnoAdmin = function(id) {
     }
 
     showConfirm('Confirmar Turno', '¿Agendar y confirmar este turno? Aparecerá como ocupado para los clientes.', 'Confirmar Turno', 'bg-emerald-600 hover:bg-emerald-700', () => {
-        return fetch('backend/confirmar_turno.php', { method: 'POST', body: new URLSearchParams({id: id}) })
-        .then(res => res.json())
-        .then(data => {
-            if(data.success) {
-                showToast('Turno confirmado exitosamente', 'success');
-                if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
-                if (typeof window.cargarAgenda === 'function') window.cargarAgenda();
-                
-                if (data.turno && data.turno.celular) {
-                    const fParts = data.turno.fecha.split('-');
-                    const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}/${fParts[0]}` : data.turno.fecha;
-                    const negocio = window.currentBusinessData ? window.currentBusinessData.nombre_fantasia : 'nuestro local';
-                    const text = `Hola ${data.turno.nombre}, te confirmamos tu turno en ${negocio} para el ${fDisplay} a las ${data.turno.hora} hs (${data.turno.servicio}). ¡Te esperamos!`;
-                    const phone = data.turno.celular.replace(/\D/g, '');
-                    const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
-                    
-                    setTimeout(() => {
-                        showConfirm('Avisar al cliente', '¿Deseas enviarle un WhatsApp al cliente avisándole que su turno fue confirmado?', 'Enviar WhatsApp', 'bg-emerald-500 hover:bg-emerald-600', () => { window.open(url, '_blank'); });
-                    }, 500);
+        return fetch('backend/confirmar_turno.php', { method: 'POST', body: new URLSearchParams({ id: id }) })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Turno confirmado exitosamente', 'success');
+                    if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
+                    if (typeof window.cargarAgenda === 'function') window.cargarAgenda();
+
+                    if (data.turno && data.turno.celular) {
+                        const fParts = data.turno.fecha.split('-');
+                        const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}/${fParts[0]}` : data.turno.fecha;
+                        const negocio = window.currentBusinessData ? window.currentBusinessData.nombre_fantasia : 'nuestro local';
+                        const text = `Hola ${data.turno.nombre}, te confirmamos tu turno en ${negocio} para el ${fDisplay} a las ${data.turno.hora} hs (${data.turno.servicio}). ¡Te esperamos!`;
+                        const phone = data.turno.celular.replace(/\D/g, '');
+                        const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+
+                        setTimeout(() => {
+                            showConfirm('Avisar al cliente', '¿Deseas enviarle un WhatsApp al cliente avisándole que su turno fue confirmado?', 'Enviar WhatsApp', 'bg-emerald-500 hover:bg-emerald-600', () => { window.open(url, '_blank'); });
+                        }, 500);
+                    }
+                } else {
+                    showToast(data.error || 'No se pudo confirmar el turno.', 'error');
                 }
-            } else {
-                showToast(data.error || 'No se pudo confirmar el turno.', 'error');
-            }
-        }).catch(() => showToast('Error de conexión', 'error'));
+            }).catch(() => showToast('Error de conexión', 'error'));
     });
 };
 
-window.cancelarTurnoAdmin = function(id, skipConfirm = false) {
+window.cancelarTurnoAdmin = function (id, skipConfirm = false) {
     const doCancel = () => {
         const targetTurno = (window.agendaData || []).find(t => t.id == id) ||
             ((typeof allAppointments !== 'undefined' && Array.isArray(allAppointments)) ? allAppointments.find(t => t.id == id) : null);
-        return fetch('backend/cancelar_turno.php', { method: 'POST', body: new URLSearchParams({id: id}) })
-        .then(res => res.json())
-        .then(data => {
-            if(data.success) {
-                showToast('Turno movido a la papelera exitosamente', 'success');
-                localStorage.setItem('agendatina_unread_trash', 'true');
-                
-                if (Array.isArray(window.agendaData)) {
-                    const idxAg = window.agendaData.findIndex(t => String(t.id) === String(id));
-                    if (idxAg !== -1) window.agendaData[idxAg].estado = 'eliminado';
-                }
-                if (typeof allAppointments !== 'undefined' && Array.isArray(allAppointments)) {
-                    allAppointments = allAppointments.filter(t => String(t.id) !== String(id));
-                }
-                const domTurnoEl = document.getElementById('turno-' + id);
-                if (domTurnoEl) domTurnoEl.remove();
+        return fetch('backend/cancelar_turno.php', { method: 'POST', body: new URLSearchParams({ id: id }) })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('Turno movido a la papelera exitosamente', 'success');
+                    localStorage.setItem('agendatina_unread_trash', 'true');
 
-                // Abrir notificación por WhatsApp al cliente si hay celular disponible
-                if (targetTurno) {
-                    const rawCel = targetTurno.cliente_celular || targetTurno.celular || '';
-                    const cel = rawCel.replace(/\D/g, '');
-                    const clientName = targetTurno.cliente_nombre || (targetTurno.nombre + ' ' + (targetTurno.apellido || '')) || 'Cliente';
-                    const servicio = targetTurno.servicio || 'tu servicio';
-                    const fParts = (targetTurno.fecha || '').split('-');
-                    const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}/${fParts[0]}` : targetTurno.fecha;
-                    const text = encodeURIComponent(`Hola ${clientName}, te informamos que tu turno para ${servicio} el día ${fDisplay} a las ${targetTurno.hora} hs ha sido cancelado.`);
-                    if (cel) {
-                        window.open(`https://wa.me/${cel}?text=${text}`, '_blank');
+                    if (Array.isArray(window.agendaData)) {
+                        const idxAg = window.agendaData.findIndex(t => String(t.id) === String(id));
+                        if (idxAg !== -1) window.agendaData[idxAg].estado = 'eliminado';
                     }
+                    if (typeof allAppointments !== 'undefined' && Array.isArray(allAppointments)) {
+                        allAppointments = allAppointments.filter(t => String(t.id) !== String(id));
+                    }
+                    const domTurnoEl = document.getElementById('turno-' + id);
+                    if (domTurnoEl) domTurnoEl.remove();
+
+                    // Abrir notificación por WhatsApp al cliente si hay celular disponible
+                    if (targetTurno) {
+                        const rawCel = targetTurno.cliente_celular || targetTurno.celular || '';
+                        const cel = rawCel.replace(/\D/g, '');
+                        const clientName = targetTurno.cliente_nombre || (targetTurno.nombre + ' ' + (targetTurno.apellido || '')) || 'Cliente';
+                        const servicio = targetTurno.servicio || 'tu servicio';
+                        const fParts = (targetTurno.fecha || '').split('-');
+                        const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}/${fParts[0]}` : targetTurno.fecha;
+                        const text = encodeURIComponent(`Hola ${clientName}, te informamos que tu turno para ${servicio} el día ${fDisplay} a las ${targetTurno.hora} hs ha sido cancelado.`);
+                        if (cel) {
+                            window.open(`https://wa.me/${cel}?text=${text}`, '_blank');
+                        }
+                    }
+
+                    if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
+                    if (typeof window.cargarAgenda === 'function') window.cargarAgenda(true);
+                } else {
+                    showToast(data.error || 'No se pudo cancelar el turno.', 'error');
                 }
-                
-                if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
-                if (typeof window.cargarAgenda === 'function') window.cargarAgenda(true);
-            } else {
-                showToast(data.error || 'No se pudo cancelar el turno.', 'error');
-            }
-        }).catch(() => showToast('Error de conexión', 'error'));
+            }).catch(() => showToast('Error de conexión', 'error'));
     };
 
     if (skipConfirm) {
@@ -514,7 +514,7 @@ window.cancelarTurnoAdmin = function(id, skipConfirm = false) {
     }
 };
 
-window.ensureServicesLoaded = function() {
+window.ensureServicesLoaded = function () {
     if (window.services && window.services.length > 0) {
         return Promise.resolve(window.services);
     }
@@ -529,7 +529,7 @@ window.ensureServicesLoaded = function() {
         .catch(() => window.services || []);
 };
 
-window.isTurnoAsistido = function(t) {
+window.isTurnoAsistido = function (t) {
     if (!t) return false;
     // Si fue explícitamente marcado como que NO asistió:
     if (parseInt(t.no_asistio) === 1 || t.no_asistio === 'si' || t.no_asistio === true) {
@@ -550,7 +550,7 @@ window.isTurnoAsistido = function(t) {
     return esPasado;
 };
 
-window.openEditTurnoModal = function(id) {
+window.openEditTurnoModal = function (id) {
     // 1. Obtener datos del turno
     let turno = null;
     if (Array.isArray(window.agendaData)) {
@@ -559,12 +559,12 @@ window.openEditTurnoModal = function(id) {
     if (!turno && Array.isArray(window.allAppointments)) {
         turno = window.allAppointments.find(t => t.id == id);
     }
-    
+
     if (!turno) {
         showToast('No se encontraron los datos del turno.', 'error');
         return;
     }
-    
+
     // Determinar si el turno está en el pasado (historial)
     const tDate = new Date(turno.fecha.replace(/-/g, '/') + ' ' + turno.hora);
     const now = new Date();
@@ -651,54 +651,54 @@ window.openEditTurnoModal = function(id) {
             </div>
         `;
         document.body.appendChild(modal);
-        
+
         // Registrar evento submit
-        document.getElementById('editTurnoForm').addEventListener('submit', function(e) {
+        document.getElementById('editTurnoForm').addEventListener('submit', function (e) {
             e.preventDefault();
             const submitBtn = e.target.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerHTML;
             submitBtn.disabled = true;
             submitBtn.innerHTML = 'Guardando...';
-            
+
             const formData = new FormData(this);
             fetch('backend/editar_turno.php', {
                 method: 'POST',
                 body: new URLSearchParams(formData)
             })
-            .then(res => res.json())
-            .then(data => {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-                if (data.success) {
-                    showToast('Turno y asistencia modificados correctamente', 'success');
-                    window.closeEditTurnoModal();
-                    if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
-                    if (typeof window.cargarAgenda === 'function') window.cargarAgenda();
-                    if (typeof window.loadStatistics === 'function') window.loadStatistics();
-                } else {
-                    showToast(data.error || 'Error al modificar el turno', 'error');
-                }
-            })
-            .catch(() => {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-                showToast('Error de conexión', 'error');
-            });
+                .then(res => res.json())
+                .then(data => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    if (data.success) {
+                        showToast('Turno y asistencia modificados correctamente', 'success');
+                        window.closeEditTurnoModal();
+                        if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
+                        if (typeof window.cargarAgenda === 'function') window.cargarAgenda();
+                        if (typeof window.loadStatistics === 'function') window.loadStatistics();
+                    } else {
+                        showToast(data.error || 'Error al modificar el turno', 'error');
+                    }
+                })
+                .catch(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    showToast('Error de conexión', 'error');
+                });
         });
     }
-    
+
     // 3. Cargar opciones de servicios y profesionales
     window.ensureServicesLoaded().then(servs => {
         const servSelect = document.getElementById('editTurnoServicio');
         servSelect.innerHTML = '';
-        
+
         // Servicios únicos
         const uniqueServNames = [...new Set(servs.map(s => s.nombre))];
         uniqueServNames.forEach(s => {
             const selected = s === turno.servicio ? 'selected' : '';
             servSelect.innerHTML += `<option value="${s}" ${selected}>${s}</option>`;
         });
-        
+
         // Profesionales
         const profSelect = document.getElementById('editTurnoProfesional');
         profSelect.innerHTML = '<option value="Cualquiera (Sin preferencia)">Cualquiera (Sin preferencia)</option>';
@@ -717,7 +717,7 @@ window.openEditTurnoModal = function(id) {
             if (profSelect) { profSelect.disabled = false; profSelect.classList.remove('bg-slate-100', 'opacity-70', 'pointer-events-none'); }
         }
     });
-    
+
     // 4. Poblar datos
     let nombre = turno.nombre || '';
     let apellido = turno.apellido || '';
@@ -726,7 +726,7 @@ window.openEditTurnoModal = function(id) {
         nombre = parts[0] || '';
         apellido = parts.slice(1).join(' ') || '';
     }
-    
+
     document.getElementById('editTurnoId').value = id;
     document.getElementById('editTurnoNombre').value = nombre;
     document.getElementById('editTurnoApellido').value = apellido;
@@ -738,21 +738,21 @@ window.openEditTurnoModal = function(id) {
         const estAsistio = window.isTurnoAsistido(turno) ? '1' : '0';
         document.getElementById('editTurnoAsistio').value = estAsistio;
     }
-    
+
     // Configurar UI según sea pasado o futuro
     const alertEl = document.getElementById('pastTurnoAlert');
     if (alertEl) {
         if (isPast) alertEl.classList.remove('hidden');
         else alertEl.classList.add('hidden');
     }
-    
+
     const modalTitleText = document.getElementById('editModalTitleText');
     if (modalTitleText) {
-        modalTitleText.innerHTML = isPast 
-            ? '<span class="material-symbols-outlined text-primary">description</span> Detalles del Turno' 
+        modalTitleText.innerHTML = isPast
+            ? '<span class="material-symbols-outlined text-primary">description</span> Detalles del Turno'
             : '<span class="material-symbols-outlined text-primary">edit_calendar</span> Modificar Turno';
     }
-    
+
     const submitBtn = document.getElementById('editTurnoForm')?.querySelector('button[type="submit"]');
     if (submitBtn) {
         submitBtn.textContent = isPast ? 'Guardar Cambios / Asistencia' : 'Guardar Cambios';
@@ -797,7 +797,7 @@ window.openEditTurnoModal = function(id) {
     }, 10);
 };
 
-window.closeEditTurnoModal = function() {
+window.closeEditTurnoModal = function () {
     const modal = document.getElementById('editTurnoModal');
     const content = document.getElementById('editTurnoModalContent');
     if (typeof window.setModalScrollLock === 'function') window.setModalScrollLock(false);
@@ -811,7 +811,7 @@ window.closeEditTurnoModal = function() {
 };
 
 // --- Modal Global de Papelera de Reciclaje ---
-window.openPapeleraModal = function() {
+window.openPapeleraModal = function () {
     let modal = document.getElementById('papeleraModal');
     if (!modal) {
         modal = document.createElement('div');
@@ -849,7 +849,7 @@ window.openPapeleraModal = function() {
         `;
         document.body.appendChild(modal);
     }
-    
+
     modal.classList.remove('hidden');
     if (typeof window.setModalScrollLock === 'function') window.setModalScrollLock(true);
     setTimeout(() => {
@@ -875,7 +875,7 @@ window.openPapeleraModal = function() {
         });
 };
 
-window.closePapeleraModal = function() {
+window.closePapeleraModal = function () {
     const modal = document.getElementById('papeleraModal');
     const content = document.getElementById('papeleraModalContent');
     if (typeof window.setModalScrollLock === 'function') window.setModalScrollLock(false);
@@ -886,7 +886,7 @@ window.closePapeleraModal = function() {
     }
 };
 
-window.renderPapeleraModalList = function(list) {
+window.renderPapeleraModalList = function (list) {
     const container = document.getElementById('papeleraList');
     if (!container) return;
     if (!Array.isArray(list) || list.length === 0) {
@@ -928,39 +928,39 @@ window.renderPapeleraModalList = function(list) {
     container.innerHTML = html;
 };
 
-window.toggleAsistenciaTurno = function(idTurno, nuevoEstado) {
+window.toggleAsistenciaTurno = function (idTurno, nuevoEstado) {
     fetch('backend/marcar_asistencia.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id_turno: idTurno, asistio: nuevoEstado })
     })
-    .then(r => r.json())
-    .then(res => {
-        if (res.success) {
-            if (typeof showToast === 'function') {
-                showToast(nuevoEstado === 1 ? '✓ Asistencia confirmada' : 'Asistencia registrada como no asistió', 'success');
+        .then(r => r.json())
+        .then(res => {
+            if (res.success) {
+                if (typeof showToast === 'function') {
+                    showToast(nuevoEstado === 1 ? '✓ Asistencia confirmada' : 'Asistencia registrada como no asistió', 'success');
+                }
+                if (typeof window.cargarAgenda === 'function') window.cargarAgenda();
+                if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
+                if (typeof window.loadStatistics === 'function') window.loadStatistics();
+            } else {
+                if (typeof showToast === 'function') showToast(res.error || 'Error al actualizar asistencia', 'error');
             }
-            if (typeof window.cargarAgenda === 'function') window.cargarAgenda();
-            if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
-            if (typeof window.loadStatistics === 'function') window.loadStatistics();
-        } else {
-            if (typeof showToast === 'function') showToast(res.error || 'Error al actualizar asistencia', 'error');
-        }
-    })
-    .catch(() => {
-        if (typeof showToast === 'function') showToast('Error de conexión', 'error');
-    });
+        })
+        .catch(() => {
+            if (typeof showToast === 'function') showToast('Error de conexión', 'error');
+        });
 };
 
 // Función global para iniciar demostración interactiva (Botón Pruébalo ahora)
-window.iniciarDemo = function() {
+window.iniciarDemo = function () {
     const btn = document.activeElement;
     const originalText = btn && btn.tagName === 'BUTTON' ? btn.textContent : '';
     if (btn && btn.tagName === 'BUTTON') {
         btn.disabled = true;
         btn.textContent = 'Iniciando Demo...';
     }
-    
+
     // Redirige al script que inicializa y resetea la DB temporal automáticamente
     window.location.href = 'demo.php';
 };
@@ -1002,21 +1002,21 @@ function handleWebConfigSubmit(e) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            showToast('Configuración visual guardada', 'success');
-            applyWebCustomization(); // Refrescar los colores en pantalla sin recargar
-        } else {
-            showToast(data.error || 'Error al guardar la configuración.', 'error');
-        }
-    })
-    .catch(err => console.error('Error:', err))
-    .finally(() => { if (submitBtn) submitBtn.innerHTML = originalText; });
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Configuración visual guardada', 'success');
+                applyWebCustomization(); // Refrescar los colores en pantalla sin recargar
+            } else {
+                showToast(data.error || 'Error al guardar la configuración.', 'error');
+            }
+        })
+        .catch(err => console.error('Error:', err))
+        .finally(() => { if (submitBtn) submitBtn.innerHTML = originalText; });
 }
 
 // ==========================================
-window.clearUserCustomColors = function() {
+window.clearUserCustomColors = function () {
     localStorage.removeItem('user_color_primario');
     localStorage.removeItem('user_color_secundario');
     localStorage.removeItem('user_colores_extra_json');
@@ -1078,41 +1078,41 @@ function loadDashboardData() {
         fetch('backend/gestionar_servicios.php').then(res => res.json()).catch(() => []),
         fetch('backend/obtener_agenda.php').then(res => res.json()).catch(() => [])
     ])
-    .then(([data, webData, pData, services, turnos]) => {
-        if (!data || !data.success) {
-            if (window.location.protocol === 'file:') {
-                console.warn('Protocolo file: detectado. Mostrando preview visual del dashboard...');
-                const loader = document.getElementById('dashboardLoader');
-                if (loader) loader.classList.add('hidden');
-                const content = document.getElementById('dashboardMainContent');
-                if (content) {
-                    content.classList.remove('hidden', 'opacity-0');
-                    content.classList.add('opacity-100');
+        .then(([data, webData, pData, services, turnos]) => {
+            if (!data || !data.success) {
+                if (window.location.protocol === 'file:') {
+                    console.warn('Protocolo file: detectado. Mostrando preview visual del dashboard...');
+                    const loader = document.getElementById('dashboardLoader');
+                    if (loader) loader.classList.add('hidden');
+                    const content = document.getElementById('dashboardMainContent');
+                    if (content) {
+                        content.classList.remove('hidden', 'opacity-0');
+                        content.classList.add('opacity-100');
+                    }
+                    return;
                 }
-                return;
-            }
-            const errReason = (data && data.error) ? data.error : 'Sin respuesta del servidor o desconexión de red';
-            console.error('⚠️ [Error al cargar información del panel] No se pudo recuperar la sesión o datos del negocio. Motivo:', errReason);
-            const loader = document.getElementById('dashboardLoader');
-            if (loader) {
-                loader.innerHTML = `
+                const errReason = (data && data.error) ? data.error : 'Sin respuesta del servidor o desconexión de red';
+                console.error('⚠️ [Error al cargar información del panel] No se pudo recuperar la sesión o datos del negocio. Motivo:', errReason);
+                const loader = document.getElementById('dashboardLoader');
+                if (loader) {
+                    loader.innerHTML = `
                     <div class="text-center py-12 px-4 max-w-md mx-auto">
                         <span class="material-symbols-outlined text-4xl text-amber-500 mb-3 animate-spin">refresh</span>
                         <h3 class="text-lg font-bold text-slate-800 mb-2">Redirigiendo a inicio de sesión...</h3>
                         <p class="text-xs text-slate-500 mb-5">${errReason}</p>
                     </div>
                 `;
+                }
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 600);
+                return;
             }
-            setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 600);
-            return;
-        }
-        window.hasRetriedDashboardAuth = false;
-        sessionStorage.removeItem('demo_retry_attempted');
+            window.hasRetriedDashboardAuth = false;
+            sessionStorage.removeItem('demo_retry_attempted');
 
-        sessionStorage.setItem('agendatina_session', 'active');
-        const business = data.business || {};
+            sessionStorage.setItem('agendatina_session', 'active');
+            const business = data.business || {};
             if (webData && !webData.error && webData.fecha_alta) {
                 business.fecha_alta = webData.fecha_alta;
                 if (webData.plan) business.plan = webData.plan;
@@ -1144,7 +1144,7 @@ function loadDashboardData() {
                 document.body.removeAttribute('data-degrade');
                 document.body.classList.remove('calendar-degrade-active');
             }
-        
+
             // Modificar el saludo y el subtítulo
             const dashGreeting = document.getElementById('dashGreeting');
             const dashSubGreeting = document.getElementById('dashSubGreeting');
@@ -1176,7 +1176,7 @@ function loadDashboardData() {
                     }
                 }, 1200);
             }
-            
+
             // Modo DEMO: Ocultar botones de reporte y soporte / Mostrar para usuarios reales
             const isDemoUserCheck = (window.currentUserData && window.currentUserData.email === 'demo@agendatina.site') || (business && (business.ruta === 'demo' || business.is_demo));
             const cardSupport = document.getElementById('cardSupport');
@@ -1202,8 +1202,8 @@ function loadDashboardData() {
             }
             const navAvatarQuick = document.getElementById('navAvatar');
             if (navAvatarQuick && !navAvatarQuick.querySelector('img')) {
-                const initials = (typeof window.getCleanInitials === 'function') 
-                    ? window.getCleanInitials(bName) 
+                const initials = (typeof window.getCleanInitials === 'function')
+                    ? window.getCleanInitials(bName)
                     : bName.replace(/[^a-zA-Z0-9]/g, '').substring(0, 2).toUpperCase();
                 navAvatarQuick.textContent = initials || 'AG';
             }
@@ -1229,9 +1229,9 @@ function loadDashboardData() {
             // Configurar modal de pago con el plan correcto
             const paymentPlanName = document.getElementById('paymentPlanName');
             if (paymentPlanName) paymentPlanName.textContent = displayPlan;
-            
+
             const paymentPrice = document.getElementById('paymentPrice');
-            
+
             const planStr = (business.plan || '').toLowerCase();
             const dbStatus = business.estado_pago || 'prueba';
 
@@ -1240,7 +1240,7 @@ function loadDashboardData() {
             const cardWeb = document.getElementById('cardWeb');
             const cardCalendario = document.getElementById('cardCalendario');
             const cardClientes = document.getElementById('cardClientes');
-            
+
             // Actualizar el enlace al calendario detectando si es mensual o semanal
             if (cardCalendario) {
                 const isWeekly = webData.tipo_calendario === 'semanal';
@@ -1253,10 +1253,10 @@ function loadDashboardData() {
                 cardAgenda.style.display = 'flex';
                 cardWeb.style.display = 'flex';
                 if (cardClientes) cardClientes.style.display = 'flex';
-                
+
                 const isDemoAcc = business.ruta === 'demo' || business.subdominio === 'demo' || business.is_demo === true;
                 const isPremAcc = isDemoAcc || planStr.includes('premium') || planStr.includes('completo');
-                
+
                 if (planStr.includes('básico') || planStr.includes('basico') || planStr.includes('simple')) {
                     cardAgenda.style.display = 'none'; // Plan simple: Oculta Agenda, Web y Clientes
                     cardWeb.style.display = 'none';
@@ -1276,7 +1276,7 @@ function loadDashboardData() {
                 if (cardClientes && !isPremAcc) {
                     cardClientes.style.display = 'none';
                 }
-                
+
                 // Respaldo de seguridad por si el plan falló en cargar antes
                 if (data.plan) {
                     const navPlanName = document.getElementById('navPlanName');
@@ -1307,8 +1307,8 @@ function loadDashboardData() {
             }
 
             let finalPrice = window.getEffectivePrice(planStr, profCount);
-            let formattedPrice = finalPrice.toLocaleString('es-AR', {maximumFractionDigits:0});
-            
+            let formattedPrice = finalPrice.toLocaleString('es-AR', { maximumFractionDigits: 0 });
+
             if (paymentPrice) {
                 let discountBadge = '';
                 if (profCount > 1) {
@@ -1317,14 +1317,14 @@ function loadDashboardData() {
                 } else if (pData && pData.success && parseInt(pData.data.descuento_porcentaje) > 0) {
                     const discount = parseInt(pData.data.descuento_porcentaje);
                     const basePrice = (planStr.includes('intermedio') || planStr.includes('profesional')) ? parseFloat(pData.data.precio_intermedio) : ((planStr.includes('completo') || planStr.includes('premium')) ? parseFloat(pData.data.precio_premium) : parseFloat(pData.data.precio_basico));
-                    discountBadge = `<div class="flex flex-wrap items-center justify-center gap-2 mb-1"><span class="text-sm text-slate-400 line-through font-medium">$${basePrice.toLocaleString('es-AR', {maximumFractionDigits:0})}</span><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-${discount}% OFF</span></div>`;
+                    discountBadge = `<div class="flex flex-wrap items-center justify-center gap-2 mb-1"><span class="text-sm text-slate-400 line-through font-medium">$${basePrice.toLocaleString('es-AR', { maximumFractionDigits: 0 })}</span><span class="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md text-xs font-bold">-${discount}% OFF</span></div>`;
                 }
                 paymentPrice.innerHTML = `${discountBadge}$${formattedPrice} <span class="text-base font-normal text-slate-400">/mes</span>`;
             }
-            
+
             subscriptionData.priceFormatted = formattedPrice;
             checkSubscription(subscriptionData);
-            
+
             // --- ONBOARDING WIDGET (TUTORIAL & TOUR VIRTUAL) ---
             const onboardingWidget = document.getElementById('onboardingWidget');
             if (onboardingWidget) {
@@ -1333,68 +1333,68 @@ function loadDashboardData() {
                     onboardingWidget.style.display = 'none';
                 } else {
                     let hasConfig = webData.dias_trabajo && webData.dias_trabajo.trim() !== '';
-                let hasServices = Array.isArray(services) && services.length > 0;
-                let hasTurnos = Array.isArray(turnos) && turnos.length > 0;
+                    let hasServices = Array.isArray(services) && services.length > 0;
+                    let hasTurnos = Array.isArray(turnos) && turnos.length > 0;
 
-                const isDemoUser = (window.currentUserData && window.currentUserData.email && window.currentUserData.email.includes('demo')) ||
-                                   (business && (business.ruta === 'demo' || business.subdominio === 'demo' || business.is_demo === true)) ||
-                                   sessionStorage.getItem('is_demo_user') === 'true';
+                    const isDemoUser = (window.currentUserData && window.currentUserData.email && window.currentUserData.email.includes('demo')) ||
+                        (business && (business.ruta === 'demo' || business.subdominio === 'demo' || business.is_demo === true)) ||
+                        sessionStorage.getItem('is_demo_user') === 'true';
 
-                // En cuentas reales se oculta al completar los 3 pasos. En cuentas DEMO permanece SIEMPRE visible.
-                if (hasConfig && hasServices && hasTurnos && !isDemoUser) {
-                    onboardingWidget.classList.add('hidden');
-                    onboardingWidget.style.display = 'none';
-                } else {
-                    onboardingWidget.classList.remove('hidden');
-                    onboardingWidget.style.display = 'block';
-                    
-                    const step1Icon = document.getElementById('step1Icon');
-                    const step1Text = document.getElementById('step1Text');
-                    if (hasConfig && !isDemoUser) {
-                        if(step1Icon) { step1Icon.innerHTML = '<span class="material-symbols-outlined text-white text-xs">check</span>'; step1Icon.className = 'w-6 h-6 rounded bg-emerald-500 text-white flex items-center justify-center shrink-0'; }
-                        if(step1Text) {
-                            step1Text.classList.add('line-through', 'text-slate-400');
-                            const desc = step1Text.parentElement.nextElementSibling;
-                            if (desc) desc.classList.add('line-through', 'opacity-50');
-                            const link = desc ? desc.nextElementSibling : null;
-                            if (link) link.style.display = 'none';
+                    // En cuentas reales se oculta al completar los 3 pasos. En cuentas DEMO permanece SIEMPRE visible.
+                    if (hasConfig && hasServices && hasTurnos && !isDemoUser) {
+                        onboardingWidget.classList.add('hidden');
+                        onboardingWidget.style.display = 'none';
+                    } else {
+                        onboardingWidget.classList.remove('hidden');
+                        onboardingWidget.style.display = 'block';
+
+                        const step1Icon = document.getElementById('step1Icon');
+                        const step1Text = document.getElementById('step1Text');
+                        if (hasConfig && !isDemoUser) {
+                            if (step1Icon) { step1Icon.innerHTML = '<span class="material-symbols-outlined text-white text-xs">check</span>'; step1Icon.className = 'w-6 h-6 rounded bg-emerald-500 text-white flex items-center justify-center shrink-0'; }
+                            if (step1Text) {
+                                step1Text.classList.add('line-through', 'text-slate-400');
+                                const desc = step1Text.parentElement.nextElementSibling;
+                                if (desc) desc.classList.add('line-through', 'opacity-50');
+                                const link = desc ? desc.nextElementSibling : null;
+                                if (link) link.style.display = 'none';
+                            }
+                        }
+
+                        const step2Icon = document.getElementById('step2Icon');
+                        const step2Text = document.getElementById('step2Text');
+                        const step2Link = document.getElementById('step2Link');
+                        if (step2Link) step2Link.href = 'servicios.html';
+
+                        if (hasServices && !isDemoUser) {
+                            if (step2Icon) { step2Icon.innerHTML = '<span class="material-symbols-outlined text-white text-xs">check</span>'; step2Icon.className = 'w-6 h-6 rounded bg-emerald-500 text-white flex items-center justify-center shrink-0'; }
+                            if (step2Text) {
+                                step2Text.classList.add('line-through', 'text-slate-400');
+                                const desc = step2Text.parentElement.nextElementSibling;
+                                if (desc) desc.classList.add('line-through', 'opacity-50');
+                                const link = desc ? desc.nextElementSibling : null;
+                                if (link) link.style.display = 'none';
+                            }
+                        }
+
+                        const step3Link = document.getElementById('step3Link');
+                        const step3Icon = document.getElementById('step3Icon');
+                        const step3Text = document.getElementById('step3Text');
+                        if (hasConfig && hasServices && step3Link) {
+                            step3Link.classList.remove('opacity-50', 'pointer-events-none');
+                            step3Link.href = (business.ruta || business.subdominio) ? '/' + (business.ruta || business.subdominio) : '#';
+                        }
+                        if (hasTurnos && !isDemoUser) {
+                            if (step3Icon) { step3Icon.innerHTML = '<span class="material-symbols-outlined text-white text-xs">check</span>'; step3Icon.className = 'w-6 h-6 rounded bg-emerald-500 text-white flex items-center justify-center shrink-0'; }
+                            if (step3Text) {
+                                step3Text.classList.add('line-through', 'text-slate-400');
+                                const desc = step3Text.parentElement.nextElementSibling;
+                                if (desc) desc.classList.add('line-through', 'opacity-50');
+                                const link = desc ? desc.nextElementSibling : null;
+                                if (link) link.style.display = 'none';
+                            }
                         }
                     }
-
-                    const step2Icon = document.getElementById('step2Icon');
-                    const step2Text = document.getElementById('step2Text');
-                    const step2Link = document.getElementById('step2Link');
-                    if(step2Link) step2Link.href = 'servicios.html';
-                    
-                    if (hasServices && !isDemoUser) {
-                        if(step2Icon) { step2Icon.innerHTML = '<span class="material-symbols-outlined text-white text-xs">check</span>'; step2Icon.className = 'w-6 h-6 rounded bg-emerald-500 text-white flex items-center justify-center shrink-0'; }
-                        if(step2Text) {
-                            step2Text.classList.add('line-through', 'text-slate-400');
-                            const desc = step2Text.parentElement.nextElementSibling;
-                            if (desc) desc.classList.add('line-through', 'opacity-50');
-                            const link = desc ? desc.nextElementSibling : null;
-                            if (link) link.style.display = 'none';
-                        }
-                    }
-
-                    const step3Link = document.getElementById('step3Link');
-                    const step3Icon = document.getElementById('step3Icon');
-                    const step3Text = document.getElementById('step3Text');
-                    if (hasConfig && hasServices && step3Link) {
-                        step3Link.classList.remove('opacity-50', 'pointer-events-none');
-                        step3Link.href = (business.ruta || business.subdominio) ? '/' + (business.ruta || business.subdominio) : '#';
-                    }
-                    if (hasTurnos && !isDemoUser) {
-                        if(step3Icon) { step3Icon.innerHTML = '<span class="material-symbols-outlined text-white text-xs">check</span>'; step3Icon.className = 'w-6 h-6 rounded bg-emerald-500 text-white flex items-center justify-center shrink-0'; }
-                        if(step3Text) {
-                            step3Text.classList.add('line-through', 'text-slate-400');
-                            const desc = step3Text.parentElement.nextElementSibling;
-                            if (desc) desc.classList.add('line-through', 'opacity-50');
-                            const link = desc ? desc.nextElementSibling : null;
-                            if (link) link.style.display = 'none';
-                        }
-                    }
-                }
                 }
             }
 
@@ -1415,32 +1415,32 @@ function loadDashboardData() {
                     return d.getMonth() === mesActual && d.getFullYear() === anioActual && (t.estado === 'confirmado' || t.estado === 'completado');
                 }).length;
 
-                const elHoy  = document.getElementById('statHoy');
+                const elHoy = document.getElementById('statHoy');
                 const elPend = document.getElementById('statPendHero');
-                const elMes  = document.getElementById('statMes');
-                const elTot  = document.getElementById('statTotalHero');
-                if (elHoy)  elHoy.textContent  = todayCount;
-                if (elPend) elPend.textContent  = pendCount;
-                if (elMes)  elMes.textContent   = mesCount;
-                if (elTot)  elTot.textContent   = totalCount;
+                const elMes = document.getElementById('statMes');
+                const elTot = document.getElementById('statTotalHero');
+                if (elHoy) elHoy.textContent = todayCount;
+                if (elPend) elPend.textContent = pendCount;
+                if (elMes) elMes.textContent = mesCount;
+                if (elTot) elTot.textContent = totalCount;
 
                 // También actualizar los stats del modal de perfil (IDs statTotal, statConf, statPend)
                 const elStatTotal = document.getElementById('statTotal');
-                const elStatConf  = document.getElementById('statConf');
+                const elStatConf = document.getElementById('statConf');
                 const elStatPend2 = document.getElementById('statPend');
                 if (elStatTotal) elStatTotal.textContent = totalCount;
-                if (elStatConf)  elStatConf.textContent  = allTurnos.filter(t => t.estado === 'confirmado' || t.estado === 'completado').length;
+                if (elStatConf) elStatConf.textContent = allTurnos.filter(t => t.estado === 'confirmado' || t.estado === 'completado').length;
                 if (elStatPend2) elStatPend2.textContent = pendCount;
-            } catch(e) { /* silencioso */ }
+            } catch (e) { /* silencioso */ }
 
             checkNotifications(); // Cargar notificaciones en la campanita
             loadDashboardChart(webData.color_primario || '#d11149');
-            
+
             // Aplicar permisos del rol antes de revelar el contenido del panel
             if (typeof window.applyDashboardPermissions === 'function') {
                 window.applyDashboardPermissions(window.currentUserData);
             }
-            
+
             // Revelar el dashboard suavemente
             const loader = document.getElementById('dashboardLoader');
             const mainContent = document.getElementById('dashboardMainContent');
@@ -1449,12 +1449,12 @@ function loadDashboardData() {
                 mainContent.classList.remove('hidden');
                 setTimeout(() => mainContent.classList.remove('opacity-0'), 50);
             }
-    })
-    .catch(err => {
-        console.error('Error al cargar datos del dashboard:', err);
-        const errMsg = window.getFetchErrorMessage(err, 'No se pudo cargar la información del panel.');
-        showDashboardError(errMsg);
-    });
+        })
+        .catch(err => {
+            console.error('Error al cargar datos del dashboard:', err);
+            const errMsg = window.getFetchErrorMessage(err, 'No se pudo cargar la información del panel.');
+            showDashboardError(errMsg);
+        });
 }
 
 
@@ -1482,12 +1482,12 @@ function checkSubscription(subscriptionData) {
     const subMessage = document.getElementById('subMessage');
     const subIcon = document.getElementById('subIcon');
     const subActionBtn = document.getElementById('subActionBtn');
-    
+
     if (!banner) return;
 
     const todayZero = new Date();
-    todayZero.setHours(0,0,0,0);
-    
+    todayZero.setHours(0, 0, 0, 0);
+
     const fechaAlta = new Date(subscriptionData.fechaAlta.replace(/-/g, '/') + ' 00:00:00');
     const lastPayment = subscriptionData.lastPaymentDate ? new Date(subscriptionData.lastPaymentDate.replace(/-/g, '/') + ' 00:00:00') : null;
 
@@ -1519,8 +1519,8 @@ function checkSubscription(subscriptionData) {
     let dashBtnClass = '';
     let showActionBtn = false;
 
-    const isProf = (window.currentUserRole === 'profesional') || 
-                   (window.currentUserData && (window.currentUserData.rol === 'profesional' || window.currentUserData.rol_en_local === 'profesional'));
+    const isProf = (window.currentUserRole === 'profesional') ||
+        (window.currentUserData && (window.currentUserData.rol === 'profesional' || window.currentUserData.rol_en_local === 'profesional'));
 
     let priceStr = (!isProf && subscriptionData.priceFormatted) ? ` <strong>$${subscriptionData.priceFormatted}</strong>` : '';
 
@@ -1529,8 +1529,8 @@ function checkSubscription(subscriptionData) {
             isDashboardBannerHidden = !showRoutineNotice;
             dashBannerClass = 'mb-8 p-4 rounded-2xl shadow-sm flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between bg-blue-50 border border-blue-200 text-blue-800';
             dashIcon = 'schedule';
-            dashMsg = isProf ? 
-                `Estás en tu período de prueba. Te quedan <strong>${diffToCycleEnd} días</strong> de acceso gratuito.` : 
+            dashMsg = isProf ?
+                `Estás en tu período de prueba. Te quedan <strong>${diffToCycleEnd} días</strong> de acceso gratuito.` :
                 `Estás en tu período de prueba. Te quedan <strong>${diffToCycleEnd} días</strong> de acceso gratuito. Tu próximo período de facturación inicia el <strong>${nextBillingStr}</strong> (Abonarás tu primer mes${priceStr}). <em>Nota: Los aumentos de tarifa se aplican a partir de tu siguiente ciclo de facturación.</em>`;
             showActionBtn = false; // El botón de pago no estará habilitado durante la prueba gratuita
         } else {
@@ -1608,9 +1608,9 @@ function checkSubscription(subscriptionData) {
         showActionBtn = !isProf;
     }
 
-    const isDemo = (window.currentUserData && window.currentUserData.email && window.currentUserData.email.includes('demo')) || 
-                   (window.currentBusinessData && (window.currentBusinessData.ruta === 'demo' || window.currentBusinessData.is_demo)) ||
-                   (sessionStorage.getItem('is_demo_user') === 'true');
+    const isDemo = (window.currentUserData && window.currentUserData.email && window.currentUserData.email.includes('demo')) ||
+        (window.currentBusinessData && (window.currentBusinessData.ruta === 'demo' || window.currentBusinessData.is_demo)) ||
+        (sessionStorage.getItem('is_demo_user') === 'true');
 
     if (isDemo) {
         isDashboardBannerHidden = true;
@@ -1646,7 +1646,7 @@ function checkSubscription(subscriptionData) {
     }
 }
 
-window.showDemoPaymentNoticeModal = function() {
+window.showDemoPaymentNoticeModal = function () {
     let modal = document.getElementById('globalDemoPaymentModal');
     if (!modal) {
         modal = document.createElement('div');
@@ -1672,11 +1672,11 @@ window.showDemoPaymentNoticeModal = function() {
     }
 };
 
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function (e) {
     const link = e.target.closest('a[href*="pago.html"]');
     if (link) {
         const isDemo = (sessionStorage.getItem('is_demo_user') === 'true') ||
-                       (sessionStorage.getItem('agendatina_demo_alert') === 'true');
+            (sessionStorage.getItem('agendatina_demo_alert') === 'true');
         if (isDemo) {
             e.preventDefault();
             window.showDemoPaymentNoticeModal();
@@ -1702,46 +1702,46 @@ function loadDashboardChart(chartColor) {
 
 function renderWeeklyChart(ctx, chartColor) {
     fetch('backend/obtener_agenda.php')
-    .then(res => res.json())
-    .then(data => {
-        if (data && data.error) return;
-        if (!Array.isArray(data)) return;
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.error) return;
+            if (!Array.isArray(data)) return;
 
-        const days = [];
-        const counts = [];
-        const labels = [];
-        
-        // Construir los últimos 7 días (De hace 6 días a Hoy)
-        for (let i = 6; i >= 0; i--) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            days.push(d.toISOString().split('T')[0]);
-            counts.push(0);
-            // Obtener el día de la semana (ej: LUN, MAR)
-            labels.push(new Intl.DateTimeFormat('es-ES', { weekday: 'short' }).format(d).toUpperCase());
-        }
+            const days = [];
+            const counts = [];
+            const labels = [];
 
-        // Contar los turnos que coincidan con esos días (excluyendo los bloqueos)
-        data.forEach(t => {
-            const idx = days.indexOf(t.fecha);
-            if (idx !== -1 && t.estado !== 'bloqueado') counts[idx]++;
-        });
-
-        if (window.myWeeklyChart) window.myWeeklyChart.destroy();
-
-        window.myWeeklyChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{ label: 'Turnos', data: counts, backgroundColor: chartColor, borderRadius: 6, borderSkipped: false }]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } }, x: { grid: { display: false } } },
-                plugins: { legend: { display: false } }
+            // Construir los últimos 7 días (De hace 6 días a Hoy)
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                days.push(d.toISOString().split('T')[0]);
+                counts.push(0);
+                // Obtener el día de la semana (ej: LUN, MAR)
+                labels.push(new Intl.DateTimeFormat('es-ES', { weekday: 'short' }).format(d).toUpperCase());
             }
-        });
-    }).catch(err => console.error('Error al cargar datos del gráfico:', err));
+
+            // Contar los turnos que coincidan con esos días (excluyendo los bloqueos)
+            data.forEach(t => {
+                const idx = days.indexOf(t.fecha);
+                if (idx !== -1 && t.estado !== 'bloqueado') counts[idx]++;
+            });
+
+            if (window.myWeeklyChart) window.myWeeklyChart.destroy();
+
+            window.myWeeklyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{ label: 'Turnos', data: counts, backgroundColor: chartColor, borderRadius: 6, borderSkipped: false }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 } }, x: { grid: { display: false } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }).catch(err => console.error('Error al cargar datos del gráfico:', err));
 }
 
 // Generador seguro de clave LocalStorage para notificaciones
@@ -1755,155 +1755,155 @@ function checkNotifications() {
     const notifList = document.getElementById('notifList');
     const notifBadge = document.getElementById('notifBadge');
     if (!notifList) return;
-    
+
     // Auto-refresco en segundo plano cada 30 segundos (Tiempo real)
     if (!window.notifPollingInterval) {
         window.notifPollingInterval = setInterval(checkNotifications, 30000);
     }
 
     fetch('backend/obtener_agenda.php')
-    .then(res => {
-        if (!res.ok) throw new Error('Error en respuesta del servidor (' + res.status + ')');
-        return res.json();
-    })
-    .then(data => {
-        let notifState = JSON.parse(localStorage.getItem(window.getNotifStorageKey()) || '{}');
-        let currentNotifs = [];
-        if(Array.isArray(data)) {
-            const businessPlan = window.currentBusinessData?.plan?.toLowerCase() || 'basico';
-            const isBasic = businessPlan.includes('básico') || businessPlan.includes('basico') || businessPlan.includes('simple') || businessPlan.includes('basico');
+        .then(res => {
+            if (!res.ok) throw new Error('Error en respuesta del servidor (' + res.status + ')');
+            return res.json();
+        })
+        .then(data => {
+            let notifState = JSON.parse(localStorage.getItem(window.getNotifStorageKey()) || '{}');
+            let currentNotifs = [];
+            if (Array.isArray(data)) {
+                const businessPlan = window.currentBusinessData?.plan?.toLowerCase() || 'basico';
+                const isBasic = businessPlan.includes('básico') || businessPlan.includes('basico') || businessPlan.includes('simple') || businessPlan.includes('basico');
 
-            const pendientes = data.filter(t => t.estado === 'pendiente');
-            if (pendientes.length > 0) {
-                pendientes.forEach(t => {
-                    const calPage = window.currentWebData?.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
-                    const notifLink = isBasic ? `${calPage}?date=${t.fecha}&focus=${t.id}` : `agenda.html?tab=pendientes&date=${t.fecha}&focus=${t.id}`;
-                    currentNotifs.push({ 
-                        id: 'turno_' + t.id,
-                        icon: 'event', 
-                        color: 'text-primary', 
-                        bg: 'bg-primary/10', 
-                        title: `Nuevo turno: ${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}`, 
-                        text: `Solicitud para el ${t.fecha} a las ${t.hora} hs.`,
-                        link: notifLink,
-                        timestamp: new Date(t.fecha.replace(/-/g, '/') + ' ' + t.hora).getTime() || Date.now()
+                const pendientes = data.filter(t => t.estado === 'pendiente');
+                if (pendientes.length > 0) {
+                    pendientes.forEach(t => {
+                        const calPage = window.currentWebData?.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
+                        const notifLink = isBasic ? `${calPage}?date=${t.fecha}&focus=${t.id}` : `agenda.html?tab=pendientes&date=${t.fecha}&focus=${t.id}`;
+                        currentNotifs.push({
+                            id: 'turno_' + t.id,
+                            icon: 'event',
+                            color: 'text-primary',
+                            bg: 'bg-primary/10',
+                            title: `Nuevo turno: ${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}`,
+                            text: `Solicitud para el ${t.fecha} a las ${t.hora} hs.`,
+                            link: notifLink,
+                            timestamp: new Date(t.fecha.replace(/-/g, '/') + ' ' + t.hora).getTime() || Date.now()
+                        });
                     });
-                });
-            }
-        }
-
-        const cNotifs = window.currentCustomNotifs || [];
-        const businessPlan = window.currentBusinessData?.plan?.toLowerCase() || 'basico';
-        const isBasic = businessPlan.includes('básico') || businessPlan.includes('basico') || businessPlan.includes('simple');
-        const calPage = window.currentWebData?.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
-
-        cNotifs.forEach(n => {
-            let nLink = '#';
-            let meta = null;
-            try {
-                if (n.metadata_json) meta = typeof n.metadata_json === 'string' ? JSON.parse(n.metadata_json) : n.metadata_json;
-            } catch(eMeta) {}
-
-            if (meta && meta.tipo === 'solicitud_eliminar_servicio' && meta.id_servicio) {
-                nLink = `servicios.html?highlight_service=${meta.id_servicio}&solicitud_eliminar=1`;
-            } else if (n.titulo && n.titulo.includes('Solicitud de eliminación de servicio')) {
-                nLink = 'servicios.html?solicitud_eliminar=1';
-            } else if (n.titulo && (n.titulo.includes('Inscripción') || n.titulo.includes('Clase') || n.titulo.includes('Turno') || n.titulo.includes('Reserva'))) {
-                const matchDate = (n.mensaje || '').match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-                if (matchDate) {
-                    const isoDate = `${matchDate[3]}-${matchDate[2].padStart(2, '0')}-${matchDate[1].padStart(2, '0')}`;
-                    nLink = isBasic ? `${calPage}?date=${isoDate}` : `agenda.html?tab=pendientes&date=${isoDate}`;
-                } else {
-                    nLink = isBasic ? calPage : 'agenda.html?tab=pendientes';
                 }
-            } else if (n.titulo && (n.titulo.includes('Alumno') || n.titulo.includes('Vinculad'))) {
-                nLink = 'clientes.html';
             }
 
-            let notifIcon = (n.titulo && n.titulo.includes('Inscripción')) ? 'backpack' : ((n.titulo && n.titulo.includes('Alumno')) ? 'person' : 'campaign');
-            let notifColor = (n.titulo && n.titulo.includes('Inscripción')) ? 'text-purple-600' : ((n.titulo && n.titulo.includes('Alumno')) ? 'text-orange-500' : 'text-blue-500');
-            let notifBg = (n.titulo && n.titulo.includes('Inscripción')) ? 'bg-purple-100' : ((n.titulo && n.titulo.includes('Alumno')) ? 'bg-orange-100' : 'bg-blue-100');
+            const cNotifs = window.currentCustomNotifs || [];
+            const businessPlan = window.currentBusinessData?.plan?.toLowerCase() || 'basico';
+            const isBasic = businessPlan.includes('básico') || businessPlan.includes('basico') || businessPlan.includes('simple');
+            const calPage = window.currentWebData?.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
 
-            if (meta && meta.tipo === 'solicitud_eliminar_servicio') {
-                notifIcon = 'delete_sweep';
-                notifColor = 'text-red-600';
-                notifBg = 'bg-red-100';
-            }
+            cNotifs.forEach(n => {
+                let nLink = '#';
+                let meta = null;
+                try {
+                    if (n.metadata_json) meta = typeof n.metadata_json === 'string' ? JSON.parse(n.metadata_json) : n.metadata_json;
+                } catch (eMeta) { }
 
-            currentNotifs.push({
-                id: 'custom_' + n.id,
-                id_reporte: n.id_reporte || null,
-                icon: notifIcon,
-                color: notifColor,
-                bg: notifBg,
-                title: n.titulo,
-                text: n.mensaje,
-                link: nLink,
-                timestamp: new Date(n.fecha ? n.fecha.replace(/-/g, '/') : Date.now()).getTime() || Date.now()
+                if (meta && meta.tipo === 'solicitud_eliminar_servicio' && meta.id_servicio) {
+                    nLink = `servicios.html?highlight_service=${meta.id_servicio}&solicitud_eliminar=1`;
+                } else if (n.titulo && n.titulo.includes('Solicitud de eliminación de servicio')) {
+                    nLink = 'servicios.html?solicitud_eliminar=1';
+                } else if (n.titulo && (n.titulo.includes('Inscripción') || n.titulo.includes('Clase') || n.titulo.includes('Turno') || n.titulo.includes('Reserva'))) {
+                    const matchDate = (n.mensaje || '').match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+                    if (matchDate) {
+                        const isoDate = `${matchDate[3]}-${matchDate[2].padStart(2, '0')}-${matchDate[1].padStart(2, '0')}`;
+                        nLink = isBasic ? `${calPage}?date=${isoDate}` : `agenda.html?tab=pendientes&date=${isoDate}`;
+                    } else {
+                        nLink = isBasic ? calPage : 'agenda.html?tab=pendientes';
+                    }
+                } else if (n.titulo && (n.titulo.includes('Alumno') || n.titulo.includes('Vinculad'))) {
+                    nLink = 'clientes.html';
+                }
+
+                let notifIcon = (n.titulo && n.titulo.includes('Inscripción')) ? 'backpack' : ((n.titulo && n.titulo.includes('Alumno')) ? 'person' : 'campaign');
+                let notifColor = (n.titulo && n.titulo.includes('Inscripción')) ? 'text-purple-600' : ((n.titulo && n.titulo.includes('Alumno')) ? 'text-orange-500' : 'text-blue-500');
+                let notifBg = (n.titulo && n.titulo.includes('Inscripción')) ? 'bg-purple-100' : ((n.titulo && n.titulo.includes('Alumno')) ? 'bg-orange-100' : 'bg-blue-100');
+
+                if (meta && meta.tipo === 'solicitud_eliminar_servicio') {
+                    notifIcon = 'delete_sweep';
+                    notifColor = 'text-red-600';
+                    notifBg = 'bg-red-100';
+                }
+
+                currentNotifs.push({
+                    id: 'custom_' + n.id,
+                    id_reporte: n.id_reporte || null,
+                    icon: notifIcon,
+                    color: notifColor,
+                    bg: notifBg,
+                    title: n.titulo,
+                    text: n.mensaje,
+                    link: nLink,
+                    timestamp: new Date(n.fecha ? n.fecha.replace(/-/g, '/') : Date.now()).getTime() || Date.now()
+                });
             });
-        });
 
-        if (window.currentBusinessData) {
-            const status = window.currentBusinessData.estado_pago;
-            // Calcular horas desde el último pago aprobado para que no se muestre por siempre
-            const ultimoPagoDate = window.currentBusinessData.ultimo_pago ? new Date(window.currentBusinessData.ultimo_pago.replace(/-/g, '/')) : new Date(0);
-            const diffHours = (new Date() - ultimoPagoDate) / (1000 * 60 * 60);
+            if (window.currentBusinessData) {
+                const status = window.currentBusinessData.estado_pago;
+                // Calcular horas desde el último pago aprobado para que no se muestre por siempre
+                const ultimoPagoDate = window.currentBusinessData.ultimo_pago ? new Date(window.currentBusinessData.ultimo_pago.replace(/-/g, '/')) : new Date(0);
+                const diffHours = (new Date() - ultimoPagoDate) / (1000 * 60 * 60);
 
-            if ((status === 'activo' || status === 'pagado') && diffHours < 72) {
-                currentNotifs.push({ id: 'pago_ok_' + ultimoPagoDate.getTime(), icon: 'check_circle', color: 'text-emerald-500', bg: 'bg-emerald-100', title: 'Pago Aprobado', text: 'Tu último comprobante ha sido verificado.', link: '#', timestamp: ultimoPagoDate.getTime() });
-            } else if (status === 'pendiente_revision') {
-                currentNotifs.push({ id: 'pago_rev', icon: 'hourglass_empty', color: 'text-amber-500', bg: 'bg-amber-100', title: 'Pago en Revisión', text: 'Estamos verificando tu comprobante.', link: '#', timestamp: Date.now() });
+                if ((status === 'activo' || status === 'pagado') && diffHours < 72) {
+                    currentNotifs.push({ id: 'pago_ok_' + ultimoPagoDate.getTime(), icon: 'check_circle', color: 'text-emerald-500', bg: 'bg-emerald-100', title: 'Pago Aprobado', text: 'Tu último comprobante ha sido verificado.', link: '#', timestamp: ultimoPagoDate.getTime() });
+                } else if (status === 'pendiente_revision') {
+                    currentNotifs.push({ id: 'pago_rev', icon: 'hourglass_empty', color: 'text-amber-500', bg: 'bg-amber-100', title: 'Pago en Revisión', text: 'Estamos verificando tu comprobante.', link: '#', timestamp: Date.now() });
+                }
             }
-        }
 
-        currentNotifs.forEach(n => {
-            if (!notifState[n.id]) { notifState[n.id] = { ...n, read: false, deleted: false, time: Date.now() }; } 
-            else { notifState[n.id].title = n.title; notifState[n.id].text = n.text; notifState[n.id].link = n.link; notifState[n.id].id_reporte = n.id_reporte; }
-        });
+            currentNotifs.forEach(n => {
+                if (!notifState[n.id]) { notifState[n.id] = { ...n, read: false, deleted: false, time: Date.now() }; }
+                else { notifState[n.id].title = n.title; notifState[n.id].text = n.text; notifState[n.id].link = n.link; notifState[n.id].id_reporte = n.id_reporte; }
+            });
 
-        // Auto-Limpieza: Eliminamos notificaciones huérfanas (ej. de la Demo o turnos borrados) para no mezclarlas
-        const validIds = currentNotifs.map(n => n.id);
-        Object.keys(notifState).forEach(key => {
-            if (!validIds.includes(key)) {
-                delete notifState[key];
+            // Auto-Limpieza: Eliminamos notificaciones huérfanas (ej. de la Demo o turnos borrados) para no mezclarlas
+            const validIds = currentNotifs.map(n => n.id);
+            Object.keys(notifState).forEach(key => {
+                if (!validIds.includes(key)) {
+                    delete notifState[key];
+                }
+            });
+
+            let displayNotifs = Object.values(notifState).filter(n => !n.deleted);
+            displayNotifs.sort((a, b) => b.time - a.time);
+
+            if (displayNotifs.length > 100) {
+                const toDelete = displayNotifs.slice(100);
+                toDelete.forEach(n => delete notifState[n.id]);
+                displayNotifs = displayNotifs.slice(0, 100);
             }
-        });
+            localStorage.setItem(window.getNotifStorageKey(), JSON.stringify(notifState));
 
-        let displayNotifs = Object.values(notifState).filter(n => !n.deleted);
-        displayNotifs.sort((a, b) => b.time - a.time);
+            // Evitar parpadeos en el menú (No re-escribir HTML si los datos no cambiaron)
+            const currentNotifHash = JSON.stringify(displayNotifs);
+            if (window.lastNotifHash === currentNotifHash) return;
+            window.lastNotifHash = currentNotifHash;
 
-        if (displayNotifs.length > 100) {
-            const toDelete = displayNotifs.slice(100);
-            toDelete.forEach(n => delete notifState[n.id]);
-            displayNotifs = displayNotifs.slice(0, 100);
-        }
-        localStorage.setItem(window.getNotifStorageKey(), JSON.stringify(notifState));
+            notifList.innerHTML = '';
+            const unreadCount = displayNotifs.filter(n => !n.read).length;
 
-        // Evitar parpadeos en el menú (No re-escribir HTML si los datos no cambiaron)
-        const currentNotifHash = JSON.stringify(displayNotifs);
-        if (window.lastNotifHash === currentNotifHash) return;
-        window.lastNotifHash = currentNotifHash;
+            if (unreadCount > 0 && notifBadge) {
+                if (notifBadge) notifBadge.classList.remove('hidden');
+            } else if (notifBadge) {
+                if (notifBadge) notifBadge.classList.add('hidden');
+            }
 
-        notifList.innerHTML = '';
-        const unreadCount = displayNotifs.filter(n => !n.read).length;
+            if (displayNotifs.length > 0) {
+                displayNotifs.forEach(n => {
+                    const isReport = n.id_reporte || (n.title && (n.title.includes('Soporte') || n.title.includes('Reporte')));
+                    const safeTitle = (n.title || '').replace(/'/g, "\\'");
+                    const onClickAction = isReport
+                        ? `onclick="window.abrirHiloSoporteCliente(${n.id_reporte || 0}, '${safeTitle}')"`
+                        : (n.link === '#' ? '' : `onclick="window.abrirNotificacionYNavegar(event, '${n.id}', '${n.link}')"`);
+                    const cursorStyle = (n.link === '#' && !isReport) ? 'cursor-default' : 'cursor-pointer hover:bg-slate-100';
+                    const dot = n.read ? '' : '<span class="w-2 h-2 rounded-full bg-red-500 mt-2"></span>';
 
-        if (unreadCount > 0 && notifBadge) {
-            if(notifBadge) notifBadge.classList.remove('hidden');
-        } else if (notifBadge) {
-            if(notifBadge) notifBadge.classList.add('hidden');
-        }
-
-        if (displayNotifs.length > 0) {
-            displayNotifs.forEach(n => {
-                const isReport = n.id_reporte || (n.title && (n.title.includes('Soporte') || n.title.includes('Reporte')));
-                const safeTitle = (n.title || '').replace(/'/g, "\\'");
-                const onClickAction = isReport 
-                    ? `onclick="window.abrirHiloSoporteCliente(${n.id_reporte || 0}, '${safeTitle}')"` 
-                    : (n.link === '#' ? '' : `onclick="window.abrirNotificacionYNavegar(event, '${n.id}', '${n.link}')"`);
-                const cursorStyle = (n.link === '#' && !isReport) ? 'cursor-default' : 'cursor-pointer hover:bg-slate-100';
-                const dot = n.read ? '' : '<span class="w-2 h-2 rounded-full bg-red-500 mt-2"></span>';
-                
-                notifList.innerHTML += `
+                    notifList.innerHTML += `
                     <div class="p-3 ${cursorStyle} rounded-xl transition-colors flex gap-3 items-start relative group" ${onClickAction}>
                         <div class="${n.bg} ${n.color} p-2 rounded-lg flex-shrink-0 flex items-center justify-center">
                             <span class="material-symbols-outlined text-[18px]">${n.icon}</span>
@@ -1920,19 +1920,19 @@ function checkNotifications() {
                             </button>
                         </div>
                     </div>`;
-            });
-        } else {
-            notifList.innerHTML = '<div class="p-4 text-center text-sm text-slate-400">No hay notificaciones nuevas</div>';
-        }
-    }).catch(err => {
-        // Manejo silencioso de desconexión/DNS temporal sin interrumpir el funcionamiento de la app
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            console.warn('Conexión con el servidor intermitente:', err.message);
-        }
-    });
+                });
+            } else {
+                notifList.innerHTML = '<div class="p-4 text-center text-sm text-slate-400">No hay notificaciones nuevas</div>';
+            }
+        }).catch(err => {
+            // Manejo silencioso de desconexión/DNS temporal sin interrumpir el funcionamiento de la app
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                console.warn('Conexión con el servidor intermitente:', err.message);
+            }
+        });
 }
 
-window.abrirNotificacionYNavegar = function(e, id, link) {
+window.abrirNotificacionYNavegar = function (e, id, link) {
     if (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -1995,27 +1995,27 @@ window.abrirNotificacionYNavegar = function(e, id, link) {
     }
 };
 
-window.toggleNotifications = function(e) {
+window.toggleNotifications = function (e) {
     e.stopPropagation();
     const dropdown = document.getElementById('notifDropdown');
     if (dropdown) dropdown.classList.toggle('hidden');
 };
 
-window.markAllRead = function(e) {
-    if(e) e.stopPropagation();
+window.markAllRead = function (e) {
+    if (e) e.stopPropagation();
     let notifState = JSON.parse(localStorage.getItem(window.getNotifStorageKey()) || '{}');
     Object.values(notifState).forEach(n => n.read = true);
     localStorage.setItem(window.getNotifStorageKey(), JSON.stringify(notifState));
     checkNotifications();
 };
 
-window.deleteAllNotifs = function(e) {
-    if(e) e.stopPropagation();
+window.deleteAllNotifs = function (e) {
+    if (e) e.stopPropagation();
     localStorage.setItem(window.getNotifStorageKey(), '{}');
     checkNotifications();
 };
 
-window.deleteNotif = function(e, id) {
+window.deleteNotif = function (e, id) {
     e.stopPropagation();
     let notifState = JSON.parse(localStorage.getItem(window.getNotifStorageKey()) || '{}');
     if (notifState[id]) {
@@ -2031,23 +2031,23 @@ document.addEventListener('click', () => { const dropdown = document.getElementB
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         const modalsToClose = [
-            { id: 'servicesModal', closeFn: () => { if(typeof closeServicesModal === 'function') closeServicesModal(); } },
-            { id: 'manualTurnoModal', closeFn: () => { if(typeof closeManualTurnoModal === 'function') closeManualTurnoModal(); } },
-            { id: 'confirmModal', closeFn: () => { if(typeof closeConfirm === 'function') closeConfirm(); } },
-            { id: 'profileModal', closeFn: () => { if(typeof closeProfileModal === 'function') closeProfileModal(); } },
-            { id: 'paymentModal', closeFn: () => { if(typeof closePaymentModal === 'function') closePaymentModal(); } },
-            { id: 'webServiceModal', closeFn: () => { if(typeof closeWebModalService === 'function') closeWebModalService(); } },
-            { id: 'newClientModal', closeFn: () => { if(typeof closeModal === 'function') closeModal(); } },
-            { id: 'editClientModal', closeFn: () => { if(typeof closeEditModal === 'function') closeEditModal(); } },
-            { id: 'editInfoModal', closeFn: () => { if(typeof closeEditInfoModal === 'function') closeEditInfoModal(); } },
-            { id: 'scheduleModal', closeFn: () => { if(typeof closeScheduleModal === 'function') closeScheduleModal(); } },
-            { id: 'supportModal', closeFn: () => { if(typeof closeSupportModal === 'function') closeSupportModal(); } },
-            { id: 'notificationModal', closeFn: () => { if(typeof closeNotificationModal === 'function') closeNotificationModal(); } },
-            { id: 'receiptModal', closeFn: () => { if(typeof closeReceiptModal === 'function') closeReceiptModal(); } },
-            { id: 'calendarConfigModal', closeFn: () => { if(typeof closeCalendarConfigModal === 'function') closeCalendarConfigModal(); } },
-            { id: 'confirmDeleteModal', closeFn: () => { if(typeof closeConfirmDelete === 'function') closeConfirmDelete(); } },
-            { id: 'customNotifModal', closeFn: () => { if(typeof closeCustomNotifModal === 'function') closeCustomNotifModal(); } },
-            { id: 'reportErrorModal', closeFn: () => { if(typeof closeReportErrorModal === 'function') closeReportErrorModal(); } }
+            { id: 'servicesModal', closeFn: () => { if (typeof closeServicesModal === 'function') closeServicesModal(); } },
+            { id: 'manualTurnoModal', closeFn: () => { if (typeof closeManualTurnoModal === 'function') closeManualTurnoModal(); } },
+            { id: 'confirmModal', closeFn: () => { if (typeof closeConfirm === 'function') closeConfirm(); } },
+            { id: 'profileModal', closeFn: () => { if (typeof closeProfileModal === 'function') closeProfileModal(); } },
+            { id: 'paymentModal', closeFn: () => { if (typeof closePaymentModal === 'function') closePaymentModal(); } },
+            { id: 'webServiceModal', closeFn: () => { if (typeof closeWebModalService === 'function') closeWebModalService(); } },
+            { id: 'newClientModal', closeFn: () => { if (typeof closeModal === 'function') closeModal(); } },
+            { id: 'editClientModal', closeFn: () => { if (typeof closeEditModal === 'function') closeEditModal(); } },
+            { id: 'editInfoModal', closeFn: () => { if (typeof closeEditInfoModal === 'function') closeEditInfoModal(); } },
+            { id: 'scheduleModal', closeFn: () => { if (typeof closeScheduleModal === 'function') closeScheduleModal(); } },
+            { id: 'supportModal', closeFn: () => { if (typeof closeSupportModal === 'function') closeSupportModal(); } },
+            { id: 'notificationModal', closeFn: () => { if (typeof closeNotificationModal === 'function') closeNotificationModal(); } },
+            { id: 'receiptModal', closeFn: () => { if (typeof closeReceiptModal === 'function') closeReceiptModal(); } },
+            { id: 'calendarConfigModal', closeFn: () => { if (typeof closeCalendarConfigModal === 'function') closeCalendarConfigModal(); } },
+            { id: 'confirmDeleteModal', closeFn: () => { if (typeof closeConfirmDelete === 'function') closeConfirmDelete(); } },
+            { id: 'customNotifModal', closeFn: () => { if (typeof closeCustomNotifModal === 'function') closeCustomNotifModal(); } },
+            { id: 'reportErrorModal', closeFn: () => { if (typeof closeReportErrorModal === 'function') closeReportErrorModal(); } }
         ];
         modalsToClose.forEach(m => {
             const el = document.getElementById(m.id);
@@ -2061,10 +2061,10 @@ function showWelcomeAnimation(plan, isDemo = false) {
     const overlay = document.createElement('div');
     overlay.id = 'welcomeAnimationOverlay';
     overlay.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-sm transition-opacity duration-500 opacity-0';
-    
+
     let planName = plan || 'Básico';
     if (!planName.toLowerCase().includes('plan')) planName = 'Plan ' + planName.charAt(0).toUpperCase() + planName.slice(1);
-    
+
     let title = '¡Bienvenido a Agendatina!';
     let desc = `Hemos preparado una <strong>Guía de Inicio Rápido</strong> en tu panel para que dejes tu agenda lista en menos de 2 minutos.`;
     let icon = 'celebration';
@@ -2130,8 +2130,8 @@ function openSupportModal() {
     if (!modal || !content) return;
     modal.classList.remove('hidden');
     setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
-    setTimeout(() => { 
-        modal.classList.remove('opacity-0'); 
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
         content.classList.remove('scale-95', 'animate-modal-pop');
         void content.offsetWidth;
         content.classList.add('animate-modal-pop');
@@ -2145,14 +2145,14 @@ function closeSupportModal() {
     modal.classList.add('opacity-0');
     content.classList.remove('animate-modal-pop');
     content.classList.add('scale-95');
-    setTimeout(() => { 
-        modal.classList.add('hidden'); 
+    setTimeout(() => {
+        modal.classList.add('hidden');
         const form = document.getElementById('supportForm');
         if (form) form.reset();
     }, 300);
 }
 
-window.getCleanInitials = function(name) {
+window.getCleanInitials = function (name) {
     if (!name || typeof name !== 'string') return 'AG';
     const clean = name.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g, ' ').trim();
     if (!clean) return 'AG';
@@ -2167,16 +2167,16 @@ function loadCustomization() {
     fetch('backend/guardar_web.php')
         .then(async res => {
             const raw = await res.text();
-            try { return JSON.parse(raw); } catch(e) { return null; }
+            try { return JSON.parse(raw); } catch (e) { return null; }
         })
         .then(data => {
             if (data && !data.error) {
                 currentWebData = data;
                 checkAdminGlobalSession(data);
-                if(document.getElementById('profTitulo')) document.getElementById('profTitulo').value = data.titulo || '';
-                if(document.getElementById('profColor1')) document.getElementById('profColor1').value = data.color_primario || '#D11149';
-                if(document.getElementById('profColor2')) document.getElementById('profColor2').value = data.color_secundario || '#FC8712';
-                if(document.getElementById('profileColor')) document.getElementById('profileColor').value = data.color_primario || '#D11149';
+                if (document.getElementById('profTitulo')) document.getElementById('profTitulo').value = data.titulo || '';
+                if (document.getElementById('profColor1')) document.getElementById('profColor1').value = data.color_primario || '#D11149';
+                if (document.getElementById('profColor2')) document.getElementById('profColor2').value = data.color_secundario || '#FC8712';
+                if (document.getElementById('profileColor')) document.getElementById('profileColor').value = data.color_primario || '#D11149';
 
                 const rawTitulo = (data.titulo || '').trim();
                 const bizRealName = (window.currentBusinessData && window.currentBusinessData.nombre_fantasia) || '';
@@ -2186,7 +2186,7 @@ function loadCustomization() {
                     : rawTitulo;
                 const displayName = resolvedTitulo || bizRealName || 'Mi Negocio';
                 const userFullName = (window.currentUserData && window.currentUserData.nombre_completo) || '';
-                
+
                 const dashBusinessName = document.getElementById('dashboardBusinessName');
                 if (dashBusinessName) {
                     const existingBtn = document.getElementById('navSwitchBizBtn');
@@ -2195,7 +2195,7 @@ function loadCustomization() {
                         dashBusinessName.insertBefore(existingBtn, dashBusinessName.firstChild);
                     }
                 }
-                
+
                 const navBusinessName = document.getElementById('navBusinessNameText');
                 if (navBusinessName && displayName) {
                     navBusinessName.textContent = displayName;
@@ -2205,9 +2205,9 @@ function loadCustomization() {
                         } else {
                             localStorage.setItem('cached_business_name', displayName);
                         }
-                    } catch(e) {}
+                    } catch (e) { }
                 }
-                
+
                 const logoImg = document.getElementById('navBusinessLogoImg');
                 const iconEl = document.getElementById('navBusinessIcon');
                 const logoUrl = data.logo || data.url_logo;
@@ -2216,7 +2216,7 @@ function loadCustomization() {
                     logoImg.classList.remove('hidden');
                     if (iconEl) iconEl.classList.add('hidden');
                 }
-                
+
                 if (data.color_primario && document.getElementById('navIcon')) {
                     document.getElementById('navIcon').style.color = data.color_primario;
                 }
@@ -2238,7 +2238,7 @@ function loadCustomization() {
                     const navLogoImg = document.getElementById('navLogoImg');
                     if (navIcon) navIcon.classList.add('hidden');
                     if (navLogoImg) { navLogoImg.src = data.logo; navLogoImg.classList.remove('hidden'); }
-                    
+
                     const navAvatar = document.getElementById('navAvatar');
                     if (navAvatar) {
                         const safeInitials = window.getCleanInitials(displayName);
@@ -2252,7 +2252,7 @@ function loadCustomization() {
                         navAvatar.innerHTML = safeInitials;
                     }
                 }
-                
+
                 if (data.color_primario || data.color_secundario || data.colores_extra_json) {
                     window.applyUserCustomColors(data.color_primario, data.color_secundario, data.colores_extra_json);
                 }
@@ -2266,7 +2266,7 @@ function loadCustomization() {
                 if (data.logo && data.logo !== 'null' && data.logo !== 'undefined') {
                     // Corregir la ruta del logo si solo viene el nombre de archivo
                     const logoUrl = data.logo.includes('/') ? data.logo : `backend/uploads/logos/${data.logo}`;
-                    
+
                     const profilePreview = document.getElementById('profileLogoPreview');
                     if (profilePreview) { profilePreview.src = logoUrl; profilePreview.classList.remove('hidden'); }
                     const webPreview = document.getElementById('webLogoPreview');
@@ -2281,7 +2281,7 @@ function loadCustomization() {
         .catch(err => console.error('Error al cargar personalización:', err));
 }
 
-window.renderWppQuotaWidget = function(stats) {
+window.renderWppQuotaWidget = function (stats) {
     const widget = document.getElementById('wppQuotaWidget');
     if (!widget || !stats) return;
 
@@ -2348,8 +2348,8 @@ function openPaymentModal() {
     if (!modal || !content) return;
     modal.classList.remove('hidden');
     setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
-    setTimeout(() => { 
-        modal.classList.remove('opacity-0'); 
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
         content.classList.remove('scale-95', 'animate-modal-pop');
         void content.offsetWidth;
         content.classList.add('animate-modal-pop');
@@ -2363,8 +2363,8 @@ function closePaymentModal() {
     modal.classList.add('opacity-0');
     content.classList.remove('animate-modal-pop');
     content.classList.add('scale-95');
-    setTimeout(() => { 
-        modal.classList.add('hidden'); 
+    setTimeout(() => {
+        modal.classList.add('hidden');
         const form = document.getElementById('receiptForm');
         if (form) form.reset();
         document.getElementById('paymentFormContainer').classList.remove('hidden');
@@ -2373,22 +2373,22 @@ function closePaymentModal() {
     }, 300);
 }
 
-window.openProfileModal = function() {
+window.openProfileModal = function () {
     const modal = document.getElementById('profileModal');
     const content = document.getElementById('profileModalContent');
     if (!modal || !content) return;
-    
+
     // Configurar estadísticas del perfil
     const statConf = document.getElementById('statConf');
     const statPend = document.getElementById('statPend');
     const statTotal = document.getElementById('statTotal');
-    const totalConf = window.currentStats ? window.currentStats.reduce((a,b)=>a+(parseInt(b.confirmados)||0), 0) : 0;
-    const totalPend = window.currentStats ? window.currentStats.reduce((a,b)=>a+(parseInt(b.pendientes)||0), 0) : 0;
-    
+    const totalConf = window.currentStats ? window.currentStats.reduce((a, b) => a + (parseInt(b.confirmados) || 0), 0) : 0;
+    const totalPend = window.currentStats ? window.currentStats.reduce((a, b) => a + (parseInt(b.pendientes) || 0), 0) : 0;
+
     if (statConf) statConf.textContent = totalConf;
     if (statPend) statPend.textContent = totalPend;
     if (statTotal) statTotal.textContent = totalConf + totalPend;
-    
+
     // Configurar botón de comprobante en perfil
     const receiptContainer = document.getElementById('profileReceiptContainer');
     const btnReceipt = document.getElementById('btnProfileViewReceipt');
@@ -2404,7 +2404,7 @@ window.openProfileModal = function() {
     }
 
     modal.classList.remove('hidden');
-    if(window.currentUserData) {
+    if (window.currentUserData) {
         document.getElementById('profileName').value = window.currentUserData.nombre_completo || '';
         const isProfProfileModal = (window.currentUserData.rol === 'profesional' || window.currentUserData.rol_en_local === 'profesional');
         ['profileLogo', 'profileColor', 'profileColorSecundario'].forEach(elId => {
@@ -2413,7 +2413,7 @@ window.openProfileModal = function() {
                 box.classList.toggle('hidden', isProfProfileModal);
             }
         });
-        
+
         const secSection = document.getElementById('securitySection');
         if (secSection) {
             if (window.currentUserData.email === 'demo@agendatina.site' || (window.currentUserData.nombre_completo && window.currentUserData.nombre_completo.includes('DEMO'))) {
@@ -2423,31 +2423,31 @@ window.openProfileModal = function() {
             }
         }
     }
-        
-        // Cargar estadísticas para el modal
-        fetch('backend/obtener_agenda.php')
+
+    // Cargar estadísticas para el modal
+    fetch('backend/obtener_agenda.php')
         .then(res => res.json())
         .then(data => {
             if (Array.isArray(data)) {
                 let total = data.length;
                 let confirmados = data.filter(t => t.estado === 'confirmado').length;
                 let pendientes = data.filter(t => t.estado === 'pendiente').length;
-                
+
                 const statTotal = document.getElementById('statTotal');
                 const statConf = document.getElementById('statConf');
                 const statPend = document.getElementById('statPend');
-                
-                if(statTotal) statTotal.textContent = total + " turnos";
-                if(statConf) statConf.textContent = confirmados + " turnos";
-                if(statPend) statPend.textContent = pendientes + " turnos";
+
+                if (statTotal) statTotal.textContent = total + " turnos";
+                if (statConf) statConf.textContent = confirmados + " turnos";
+                if (statPend) statPend.textContent = pendientes + " turnos";
             }
-            
+
         }).catch(err => console.error('Error stats:', err));
 
     modal.classList.remove('hidden');
     setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
-    setTimeout(() => { 
-        modal.classList.remove('opacity-0'); 
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
         content.classList.remove('scale-95', 'animate-modal-pop');
         void content.offsetWidth;
         content.classList.add('animate-modal-pop');
@@ -2461,10 +2461,10 @@ function closeProfileModal() {
     modal.classList.add('opacity-0');
     content.classList.remove('animate-modal-pop');
     content.classList.add('scale-95');
-    setTimeout(() => { 
-        modal.classList.add('hidden'); 
+    setTimeout(() => {
+        modal.classList.add('hidden');
         const form = document.getElementById('profileForm');
-        if (form) form.reset(); 
+        if (form) form.reset();
         document.getElementById('profileMessage').classList.add('hidden');
     }, 300);
 }
@@ -2486,27 +2486,27 @@ function applyCalendarConfigToForm(c) {
     }
     const ha = c.hora_apertura ? c.hora_apertura.substring(0, 5) : '09:00';
     const hc = c.hora_cierre ? c.hora_cierre.substring(0, 5) : '18:00';
-    if(document.getElementById('configHoraApertura')) document.getElementById('configHoraApertura').value = ha;
-    if(document.getElementById('configHoraCierre')) document.getElementById('configHoraCierre').value = hc;
-    if(document.getElementById('configHoraDescansoInicio')) document.getElementById('configHoraDescansoInicio').value = c.hora_descanso_inicio ? c.hora_descanso_inicio.substring(0, 5) : '';
-    if(document.getElementById('configHoraDescansoFin')) document.getElementById('configHoraDescansoFin').value = c.hora_descanso_fin ? c.hora_descanso_fin.substring(0, 5) : '';
-    
+    if (document.getElementById('configHoraApertura')) document.getElementById('configHoraApertura').value = ha;
+    if (document.getElementById('configHoraCierre')) document.getElementById('configHoraCierre').value = hc;
+    if (document.getElementById('configHoraDescansoInicio')) document.getElementById('configHoraDescansoInicio').value = c.hora_descanso_inicio ? c.hora_descanso_inicio.substring(0, 5) : '';
+    if (document.getElementById('configHoraDescansoFin')) document.getElementById('configHoraDescansoFin').value = c.hora_descanso_fin ? c.hora_descanso_fin.substring(0, 5) : '';
+
     if (c.dias_trabajo !== undefined) {
         const diasArr = c.dias_trabajo.split(',');
         document.querySelectorAll('input[name="dias_trabajo"]').forEach(cb => {
             cb.checked = diasArr.includes(cb.value);
         });
     } else {
-        const defaultDays = ['1','2','3','4','5','6'];
+        const defaultDays = ['1', '2', '3', '4', '5', '6'];
         document.querySelectorAll('input[name="dias_trabajo"]').forEach(cb => {
             cb.checked = defaultDays.includes(cb.value);
         });
     }
-    if(document.getElementById('configSimultaneos')) document.getElementById('configSimultaneos').value = c.turnos_simultaneos || 'no';
-    if(document.getElementById('configConfirmacionAutomatica')) document.getElementById('configConfirmacionAutomatica').value = c.confirmacion_automatica || 'no';
-    if(document.getElementById('configMetodosPago')) document.getElementById('configMetodosPago').value = c.metodos_pago || '';
-    if(document.getElementById('configLimiteEliminacion')) document.getElementById('configLimiteEliminacion').value = c.limite_eliminacion_dias !== undefined ? c.limite_eliminacion_dias : 0;
-    
+    if (document.getElementById('configSimultaneos')) document.getElementById('configSimultaneos').value = c.turnos_simultaneos || 'no';
+    if (document.getElementById('configConfirmacionAutomatica')) document.getElementById('configConfirmacionAutomatica').value = c.confirmacion_automatica || 'no';
+    if (document.getElementById('configMetodosPago')) document.getElementById('configMetodosPago').value = c.metodos_pago || '';
+    if (document.getElementById('configLimiteEliminacion')) document.getElementById('configLimiteEliminacion').value = c.limite_eliminacion_dias !== undefined ? c.limite_eliminacion_dias : 0;
+
     const tipoCalVal = c.tipo_calendario || 'clasico';
     const calRadio = document.querySelector(`input[name="tipo_calendario"][value="${tipoCalVal}"]`);
     if (calRadio) calRadio.checked = true;
@@ -2515,17 +2515,17 @@ function applyCalendarConfigToForm(c) {
     if (degradeCb) {
         degradeCb.checked = (c.usar_fondo_degrade == 1 || c.usar_fondo_degrade === '1' || c.usar_fondo_degrade === true);
     }
-    
+
     const ant = parseInt(c.anticipacion_turno_min || 0, 10);
-    if(document.getElementById('configAnticipacionMin')) document.getElementById('configAnticipacionMin').value = ant;
-    if(document.getElementById('configAnticipacionH')) document.getElementById('configAnticipacionH').value = Math.floor(ant / 60);
-    if(document.getElementById('configAnticipacionM')) document.getElementById('configAnticipacionM').value = ant % 60;
+    if (document.getElementById('configAnticipacionMin')) document.getElementById('configAnticipacionMin').value = ant;
+    if (document.getElementById('configAnticipacionH')) document.getElementById('configAnticipacionH').value = Math.floor(ant / 60);
+    if (document.getElementById('configAnticipacionM')) document.getElementById('configAnticipacionM').value = ant % 60;
 
     const selectInterval = document.getElementById('configIntervalo');
-    if(selectInterval) {
+    if (selectInterval) {
         const valInter = c.intervalo_turnos ? c.intervalo_turnos.toString() : 'servicio';
         const validOpts = ['servicio', '15', '30', '45', '60', '90', '120'];
-        if(validOpts.includes(valInter)) {
+        if (validOpts.includes(valInter)) {
             selectInterval.value = valInter;
             if (document.getElementById('divIntervaloCustom')) document.getElementById('divIntervaloCustom').classList.add('hidden');
         } else {
@@ -2544,7 +2544,7 @@ function applyCalendarConfigToForm(c) {
     }
 }
 
-window.handleWelcomePrimaryAction = function(isDemo) {
+window.handleWelcomePrimaryAction = function (isDemo) {
     const welcomeOverlay = document.getElementById('welcomeAnimationOverlay');
     if (welcomeOverlay) {
         welcomeOverlay.classList.remove('opacity-100');
@@ -2564,7 +2564,7 @@ window.handleWelcomePrimaryAction = function(isDemo) {
     }, 350);
 }
 
-window.closeCalendarConfigModal = function() {
+window.closeCalendarConfigModal = function () {
     const modal = document.getElementById('calendarConfigModal');
     const content = document.getElementById('calendarConfigModalContent');
     if (!modal || !content) return;
@@ -2574,7 +2574,7 @@ window.closeCalendarConfigModal = function() {
     setTimeout(() => { modal.classList.add('hidden'); }, 300);
 }
 
-window.toggleProfPasswordVisibility = function(inputId, btn) {
+window.toggleProfPasswordVisibility = function (inputId, btn) {
     const input = document.getElementById(inputId);
     if (!input) return;
     const icon = btn ? btn.querySelector('.material-symbols-outlined') : null;
@@ -2587,7 +2587,7 @@ window.toggleProfPasswordVisibility = function(inputId, btn) {
     }
 };
 
-window.openObligatoryPasswordModal = function() {
+window.openObligatoryPasswordModal = function () {
     let modal = document.getElementById('modalCambiarPasswordObligatorio');
     if (!modal) {
         modal = document.createElement('div');
@@ -2636,7 +2636,7 @@ window.openObligatoryPasswordModal = function() {
     modal.classList.remove('hidden');
 };
 
-window.handleCambiarPasswordObligatorio = function(e) {
+window.handleCambiarPasswordObligatorio = function (e) {
     e.preventDefault();
     const pass1 = document.getElementById('inputNuevaPasswordProf')?.value || '';
     const pass2 = document.getElementById('inputConfirmarPasswordProf')?.value || '';
@@ -2669,40 +2669,40 @@ window.handleCambiarPasswordObligatorio = function(e) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nueva_password: pass1 })
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            if (msgEl) {
-                msgEl.textContent = '¡Contraseña actualizada con éxito!';
-                msgEl.className = 'text-xs font-bold p-3 rounded-xl text-center bg-emerald-100 text-emerald-800 border border-emerald-200 block';
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                if (msgEl) {
+                    msgEl.textContent = '¡Contraseña actualizada con éxito!';
+                    msgEl.className = 'text-xs font-bold p-3 rounded-xl text-center bg-emerald-100 text-emerald-800 border border-emerald-200 block';
+                }
+                if (typeof showToast === 'function') showToast('Contraseña actualizada correctamente.', 'success');
+                setTimeout(() => {
+                    const modal = document.getElementById('modalCambiarPasswordObligatorio');
+                    if (modal) modal.classList.add('hidden');
+                }, 1200);
+            } else {
+                if (msgEl) {
+                    msgEl.textContent = data.error || 'Error al actualizar la contraseña.';
+                    msgEl.className = 'text-xs font-bold p-3 rounded-xl text-center bg-red-100 text-red-700 border border-red-200 block';
+                }
             }
-            if (typeof showToast === 'function') showToast('Contraseña actualizada correctamente.', 'success');
-            setTimeout(() => {
-                const modal = document.getElementById('modalCambiarPasswordObligatorio');
-                if (modal) modal.classList.add('hidden');
-            }, 1200);
-        } else {
+        })
+        .catch(err => {
             if (msgEl) {
-                msgEl.textContent = data.error || 'Error al actualizar la contraseña.';
+                msgEl.textContent = 'Error de conexión. Inténtalo nuevamente.';
                 msgEl.className = 'text-xs font-bold p-3 rounded-xl text-center bg-red-100 text-red-700 border border-red-200 block';
             }
-        }
-    })
-    .catch(err => {
-        if (msgEl) {
-            msgEl.textContent = 'Error de conexión. Inténtalo nuevamente.';
-            msgEl.className = 'text-xs font-bold p-3 rounded-xl text-center bg-red-100 text-red-700 border border-red-200 block';
-        }
-    })
-    .finally(() => {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">verified_user</span> Guardar Nueva Contraseña';
-        }
-    });
+        })
+        .finally(() => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">verified_user</span> Guardar Nueva Contraseña';
+            }
+        });
 };
 
-window.closeContactSuccessModal = function() {
+window.closeContactSuccessModal = function () {
     const modal = document.getElementById('contactSuccessModal');
     const content = document.getElementById('contactSuccessModalContent');
     if (modal && content) {
@@ -2713,7 +2713,7 @@ window.closeContactSuccessModal = function() {
     }
 }
 
-window.closeBookingSuccessModal = function() {
+window.closeBookingSuccessModal = function () {
     const modal = document.getElementById('bookingSuccessModal');
     const content = document.getElementById('bookingSuccessModalContent');
     if (modal && content) {
@@ -2727,7 +2727,7 @@ window.closeBookingSuccessModal = function() {
 // ==========================================
 // LÓGICA PARA REPORTE DE ERRORES AL SUPERADMIN
 // ==========================================
-window.openReportErrorModal = function(segment) {
+window.openReportErrorModal = function (segment) {
     let modal = document.getElementById('reportErrorModal');
     if (!modal) {
         const div = document.createElement('div');
@@ -2777,8 +2777,8 @@ window.openReportErrorModal = function(segment) {
     if (segInput) segInput.value = segment || 'General';
     if (segDisp) segDisp.value = segment || 'General';
     modal.classList.remove('hidden');
-    setTimeout(() => { 
-        modal.classList.remove('opacity-0'); 
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
         if (content) {
             content.classList.remove('scale-95', 'animate-modal-pop');
             void content.offsetWidth;
@@ -2787,7 +2787,7 @@ window.openReportErrorModal = function(segment) {
     }, 10);
 };
 
-window.submitReportError = function(e) {
+window.submitReportError = function (e) {
     if (e) e.preventDefault();
     const form = document.getElementById('reportErrorForm');
     if (!form) return;
@@ -2815,32 +2815,32 @@ window.submitReportError = function(e) {
         method: 'POST',
         body: formData
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            if (typeof showToast === 'function') showToast('Reporte de error enviado con éxito.', 'success');
-            else alert('Reporte de error enviado con éxito.');
-            if (typeof closeReportErrorModal === 'function') closeReportErrorModal();
-            form.reset();
-        } else {
-            if (typeof showToast === 'function') showToast(data.error || 'Error al enviar el reporte.', 'error');
-            else alert(data.error || 'Error al enviar el reporte.');
-        }
-    })
-    .catch(err => {
-        console.error('Error al enviar reporte:', err);
-        if (typeof showToast === 'function') showToast('Error de conexión al enviar el reporte.', 'error');
-        else alert('Error de conexión.');
-    })
-    .finally(() => {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = origText;
-        }
-    });
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                if (typeof showToast === 'function') showToast('Reporte de error enviado con éxito.', 'success');
+                else alert('Reporte de error enviado con éxito.');
+                if (typeof closeReportErrorModal === 'function') closeReportErrorModal();
+                form.reset();
+            } else {
+                if (typeof showToast === 'function') showToast(data.error || 'Error al enviar el reporte.', 'error');
+                else alert(data.error || 'Error al enviar el reporte.');
+            }
+        })
+        .catch(err => {
+            console.error('Error al enviar reporte:', err);
+            if (typeof showToast === 'function') showToast('Error de conexión al enviar el reporte.', 'error');
+            else alert('Error de conexión.');
+        })
+        .finally(() => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = origText;
+            }
+        });
 };
 
-window.closeReportErrorModal = function() {
+window.closeReportErrorModal = function () {
     const modal = document.getElementById('reportErrorModal');
     const content = document.getElementById('reportErrorModalContent');
     if (!modal) return;
@@ -2850,7 +2850,7 @@ window.closeReportErrorModal = function() {
     setTimeout(() => { modal.classList.add('hidden'); document.getElementById('reportErrorForm').reset(); }, 300);
 };
 
-window.renderAdminReports = function(notificaciones) {
+window.renderAdminReports = function (notificaciones) {
     const listContainer = document.getElementById('adminReportsList');
     if (!listContainer) return;
 
@@ -2880,12 +2880,12 @@ window.renderAdminReports = function(notificaciones) {
     });
 };
 
-window.deleteAdminReport = function(id) {
+window.deleteAdminReport = function (id) {
     if (confirm('¿Marcar como solucionado y eliminar este reporte?')) {
         fetch('backend/admin_api.php?id_reporte=' + id, { method: 'DELETE' })
-        .then(res => res.json())
-        .then(data => { if (data.success) { showToast('Reporte eliminado', 'success'); if (typeof loadAdminData === 'function') loadAdminData(); else window.location.reload(); } else alert(data.error || 'Error al eliminar el reporte.'); })
-        .catch(() => alert('Error de conexión al eliminar.'));
+            .then(res => res.json())
+            .then(data => { if (data.success) { showToast('Reporte eliminado', 'success'); if (typeof loadAdminData === 'function') loadAdminData(); else window.location.reload(); } else alert(data.error || 'Error al eliminar el reporte.'); })
+            .catch(() => alert('Error de conexión al eliminar.'));
     }
 };
 
@@ -2893,11 +2893,11 @@ window.deleteAdminReport = function(id) {
 // LÓGICA PARA AGENDA.HTML
 // ==========================================
 
-window.contactarWhatsApp = function(id) {
+window.contactarWhatsApp = function (id) {
     let t = null;
     if (window.agendaData) t = window.agendaData.find(x => x.id == id);
     if (!t && typeof allAppointments !== 'undefined') t = allAppointments.find(x => x.id == id);
-    
+
     if (!t) {
         showToast('No se encontró la información del turno', 'error');
         return;
@@ -2907,26 +2907,26 @@ window.contactarWhatsApp = function(id) {
         showToast('No hay número de teléfono registrado', 'error');
         return;
     }
-    
+
     let nombre = t.cliente_nombre || (t.nombre + ' ' + (t.apellido || '')) || 'Cliente';
     let phone = telefono.replace(/\D/g, '');
     let negocio = window.currentBusinessData ? window.currentBusinessData.nombre_fantasia : 'nuestro local';
     let fParts = t.fecha.split('-');
     let fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}/${fParts[0]}` : t.fecha;
-    
+
     let text = `Hola ${nombre}, te escribo desde ${negocio}. `;
     if (t.estado === 'pendiente') text = `Hola ${nombre}, te escribo desde ${negocio} por tu solicitud de turno para el ${fDisplay} a las ${t.hora} hs (${t.servicio}). `;
     else if (t.estado === 'confirmado') text = `Hola ${nombre}, te escribo desde ${negocio} por tu turno del ${fDisplay} a las ${t.hora} hs (${t.servicio}). `;
-    
+
     let url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
 };
 
-window.recordatorioWhatsApp = function(id) {
+window.recordatorioWhatsApp = function (id) {
     let t = null;
     if (window.agendaData) t = window.agendaData.find(x => x.id == id);
     if (!t && typeof allAppointments !== 'undefined') t = allAppointments.find(x => x.id == id);
-    
+
     if (!t) {
         showToast('No se encontró la información del turno', 'error');
         return;
@@ -2936,7 +2936,7 @@ window.recordatorioWhatsApp = function(id) {
         showToast('No hay número de teléfono registrado', 'error');
         return;
     }
-    
+
     let nombre = t.cliente_nombre || (t.nombre + ' ' + (t.apellido || '')) || 'Cliente';
     let phone = telefono.replace(/\D/g, '');
     let text = `Hola ${nombre}, te recordamos tu turno hoy a las ${t.hora} hs. ¡Te esperamos!`;
@@ -2944,13 +2944,13 @@ window.recordatorioWhatsApp = function(id) {
     window.open(url, '_blank');
 };
 
-window.enableImagePreview = function(input) {
+window.enableImagePreview = function (input) {
     if (!input) return;
-    input.addEventListener('change', function(e) {
+    input.addEventListener('change', function (e) {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(event) {
+        reader.onload = function (event) {
             let preview = null;
             if (input.id) preview = document.getElementById(input.id + 'Preview');
             if (!preview && input.parentElement) preview = input.parentElement.querySelector('img');
@@ -2969,11 +2969,11 @@ window.enableImagePreview = function(input) {
 // ==========================================
 
 var carouselData = [
-    { 
-        title: 'Plan Simple', 
-        desc: 'Calendario de turnos online para que tus clientes soliciten reservas de forma rápida y organizada 24/7.', 
+    {
+        title: 'Plan Simple',
+        desc: 'Calendario de turnos online para que tus clientes soliciten reservas de forma rápida y organizada 24/7.',
         oldPrice: '$8.889',
-        price: '$8.000', 
+        price: '$8.000',
         tag: 'Ideal para comenzar',
         showOldPrice: true,
         badgeText: '-10% OFF',
@@ -2989,11 +2989,11 @@ var carouselData = [
             'Bloqueo manual de días feriados y vacaciones'
         ]
     },
-    { 
-        title: 'Plan Profesional', 
-        desc: 'Sistema de turnos con Agenda Virtual interactiva y página web pública de reservas personalizada.', 
+    {
+        title: 'Plan Profesional',
+        desc: 'Sistema de turnos con Agenda Virtual interactiva y página web pública de reservas personalizada.',
         oldPrice: '$11.111',
-        price: '$10.000', 
+        price: '$10.000',
         tag: 'Más Elegido',
         showOldPrice: true,
         badgeText: '-10% OFF',
@@ -3007,11 +3007,11 @@ var carouselData = [
             'Clientes y alumnos ilimitados (por el momento)'
         ]
     },
-    { 
-        title: 'Plan Premium', 
-        desc: 'Plataforma completa con Agenda Virtual, página web, módulo de cupos y clases, portal del alumno y máximo nivel de personalización.', 
+    {
+        title: 'Plan Premium',
+        desc: 'Plataforma completa con Agenda Virtual, página web, módulo de cupos y clases, portal del alumno y máximo nivel de personalización.',
         oldPrice: '$16.667',
-        price: '$15.000', 
+        price: '$15.000',
         tag: 'Presencia & Cupos',
         showOldPrice: true,
         badgeText: '-10% OFF',
@@ -3060,7 +3060,7 @@ function renderShowcaseStep(stepIdx, animate = true) {
 
         // Actualizar Textos y Datos del Plan
         titleEl.textContent = plan.title;
-        
+
         const descEl = document.getElementById('carouselDesc');
         if (descEl) descEl.textContent = plan.desc;
 
@@ -3073,12 +3073,12 @@ function renderShowcaseStep(stepIdx, animate = true) {
                 </li>
             `).join('');
         }
-        
+
         const oldPriceEl = document.getElementById('carouselOldPrice');
         const priceEl = document.getElementById('carouselPrice');
         if (oldPriceEl) oldPriceEl.textContent = plan.oldPrice;
         if (priceEl) priceEl.textContent = plan.price;
-            
+
         const tagEl = document.getElementById('carouselTagText');
         if (tagEl) tagEl.textContent = plan.tag;
 
@@ -3092,7 +3092,7 @@ function renderShowcaseStep(stepIdx, animate = true) {
             } else {
                 carouselOldPriceContainer.style.display = 'none';
             }
-            
+
             const perPersonEl = document.getElementById('carouselPerPerson');
             if (perPersonEl) {
                 const planKeys = ['basic', 'inter', 'prem'];
@@ -3100,7 +3100,7 @@ function renderShowcaseStep(stepIdx, animate = true) {
                 if (currentCount && currentCount > 1) {
                     let numericPrice = parseInt(plan.price.replace(/[^0-9]/g, ''));
                     let perPerson = numericPrice / currentCount;
-                    perPersonEl.textContent = `¡Queda en $${perPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} por persona!`;
+                    perPersonEl.textContent = `¡Queda en $${perPerson.toLocaleString('es-AR', { maximumFractionDigits: 0 })} por persona!`;
                     perPersonEl.classList.remove('hidden');
                 } else {
                     perPersonEl.classList.add('hidden');
@@ -3150,7 +3150,7 @@ function startShowcaseTimer() {
     stopShowcaseTimer();
     const titleEl = document.getElementById('carouselTitle');
     if (!titleEl) return;
-    
+
     showcaseInterval = setInterval(() => {
         renderShowcaseStep(currentShowcaseStep + 1, true);
     }, 5000);
@@ -3163,23 +3163,23 @@ function stopShowcaseTimer() {
     }
 }
 
-window.setCarouselIndex = function(index) {
+window.setCarouselIndex = function (index) {
     stopShowcaseTimer();
     let targetStep = 0;
     if (index === 0) targetStep = 0;
     else if (index === 1) targetStep = 2;
     else if (index === 2) targetStep = 3;
-    
+
     renderShowcaseStep(targetStep, true);
     startShowcaseTimer();
 };
 
-window.selectPlan = function(planName, planKey = 'inter') {
+window.selectPlan = function (planName, planKey = 'inter') {
     let count = (window.numProfessionals && window.numProfessionals[planKey]) ? window.numProfessionals[planKey] : 1;
     window.location.href = `registro.html?plan=${encodeURIComponent(planName)}&profs=${count}`;
 };
 
-window.resetForm = function() {
+window.resetForm = function () {
     const planBox = document.getElementById('planSelectionBox');
     const inputPlan = document.getElementById('inputPlan');
     if (planBox) planBox.classList.add('hidden');
@@ -3193,79 +3193,79 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Formularios de Reporte de Error y Soporte ---
     const reportForm = document.getElementById('reportErrorForm');
     if (reportForm) {
-        reportForm.addEventListener('submit', function(e) {
+        reportForm.addEventListener('submit', function (e) {
             e.preventDefault();
             const btn = document.getElementById('btnReportSubmit');
             const orig = btn.innerHTML;
             btn.disabled = true; btn.innerHTML = 'Enviando...';
-            
+
             const formData = new FormData(this);
             formData.append('action', 'report_error');
-            
+
             fetch('backend/enviar_soporte.php', { method: 'POST', body: formData })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    if (typeof showToast === 'function') showToast('Reporte enviado con éxito.', 'success');
-                    if (typeof closeReportErrorModal === 'function') closeReportErrorModal();
-                    this.reset();
-                } else {
-                    if (typeof showToast === 'function') showToast(data.error || 'Error al enviar reporte.', 'error');
-                }
-            }).catch(() => {
-                if (typeof showToast === 'function') showToast('Error de conexión.', 'error');
-            }).finally(() => { btn.disabled = false; btn.innerHTML = orig; });
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof showToast === 'function') showToast('Reporte enviado con éxito.', 'success');
+                        if (typeof closeReportErrorModal === 'function') closeReportErrorModal();
+                        this.reset();
+                    } else {
+                        if (typeof showToast === 'function') showToast(data.error || 'Error al enviar reporte.', 'error');
+                    }
+                }).catch(() => {
+                    if (typeof showToast === 'function') showToast('Error de conexión.', 'error');
+                }).finally(() => { btn.disabled = false; btn.innerHTML = orig; });
         });
     }
 
     const supportForm = document.getElementById('supportForm');
     if (supportForm) {
-        supportForm.addEventListener('submit', function(e) {
+        supportForm.addEventListener('submit', function (e) {
             e.preventDefault();
             const btn = document.getElementById('btnSupportSubmit');
             const orig = btn.innerHTML;
             btn.disabled = true; btn.innerHTML = 'Enviando...';
-            
+
             const formData = new FormData(this);
             formData.append('action', 'support_message');
             formData.append('segmento', 'Soporte y Sugerencias');
-            
+
             fetch('backend/enviar_soporte.php', { method: 'POST', body: formData })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    if (typeof showToast === 'function') showToast('Mensaje enviado con éxito.', 'success');
-                    if (typeof closeSupportModal === 'function') closeSupportModal();
-                    this.reset();
-                } else {
-                    if (typeof showToast === 'function') showToast(data.error || 'Error al enviar mensaje.', 'error');
-                }
-            }).catch(() => {
-                if (typeof showToast === 'function') showToast('Error de conexión.', 'error');
-            }).finally(() => { btn.disabled = false; btn.innerHTML = orig; });
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof showToast === 'function') showToast('Mensaje enviado con éxito.', 'success');
+                        if (typeof closeSupportModal === 'function') closeSupportModal();
+                        this.reset();
+                    } else {
+                        if (typeof showToast === 'function') showToast(data.error || 'Error al enviar mensaje.', 'error');
+                    }
+                }).catch(() => {
+                    if (typeof showToast === 'function') showToast('Error de conexión.', 'error');
+                }).finally(() => { btn.disabled = false; btn.innerHTML = orig; });
         });
     }
 
     // --- Formulario de Contacto en Landing (Validaciones Visuales y AJAX) ---
     const mainContactForm = document.getElementById('mainContactForm');
     if (mainContactForm) {
-        mainContactForm.addEventListener('submit', function(e) {
+        mainContactForm.addEventListener('submit', function (e) {
             e.preventDefault(); // Interceptamos siempre para validar antes de enviar
-            
+
             let isValid = true;
             const requiredFields = this.querySelectorAll('[required]');
-            
+
             requiredFields.forEach(field => {
                 const isEmpty = !field.value.trim();
                 const isInvalidEmail = field.type === 'email' && field.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(field.value);
-                
+
                 if (isEmpty || isInvalidEmail) {
                     isValid = false;
                     field.classList.remove('border-slate-200');
                     field.classList.add('border-red-500', 'bg-red-50', 'placeholder-red-300');
-                    
+
                     // Evento para limpiar el error visual en cuanto el usuario empiece a escribir
-                    field.addEventListener('input', function() {
+                    field.addEventListener('input', function () {
                         this.classList.remove('border-red-500', 'bg-red-50', 'placeholder-red-300');
                         this.classList.add('border-slate-200');
                     }, { once: true });
@@ -3281,20 +3281,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 if (msgDiv) msgDiv.classList.add('hidden');
-                
+
                 const btn = document.getElementById('submitBtn');
                 const origText = btn.innerHTML;
                 if (btn) {
                     btn.disabled = true;
                     btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[20px] align-middle mr-2">refresh</span> Enviando...';
                 }
-                
+
                 // Aquí puedes reemplazar este bloque setTimeout con tu fetch() real hacia tu enviador de correos PHP
                 setTimeout(() => {
                     const modal = document.getElementById('contactSuccessModal');
                     const content = document.getElementById('contactSuccessModalContent');
                     if (modal && content) { modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10); }
-                    
+
                     this.reset();
                     window.resetForm(); // Oculta la caja de plan seleccionado
                     if (btn) { btn.disabled = false; btn.innerHTML = origText; }
@@ -3327,210 +3327,210 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('input[type="file"]').forEach(enableImagePreview);
     }
 
-        // --- Inicialización del Carrusel (Landing Page) ---
-        if (document.getElementById('carouselTitle')) {
-            window.numProfessionals = { basic: 1, inter: 1, prem: 1 };
-            window.pricingData = { precio_basico: 8889, precio_intermedio: 11111, precio_premium: 16667, descuento_porcentaje: 10, dias_prueba_defecto: 30 };
-            
-            window.updateProfCount = function(change, planKey) {
-                let currentVal = window.numProfessionals[planKey] || 1;
-                
-                // Si ya tiene 5 profesionales y sigue haciendo clic en +, llevar a la sección de contacto
-                if (change > 0 && currentVal >= 5) {
-                    const planNames = { basic: 'Plan Simple', inter: 'Plan Profesional', prem: 'Plan Premium' };
-                    const planName = planNames[planKey] || 'Agendatina';
-                    
-                    const contactSection = document.getElementById('contacto');
-                    if (contactSection) {
-                        contactSection.scrollIntoView({ behavior: 'smooth' });
-                        
-                        const msgInput = document.querySelector('#mainContactForm textarea[name="mensaje"]') || document.querySelector('textarea[name="mensaje"]');
-                        if (msgInput) {
-                            msgInput.value = `¡Hola! Me interesa contratar el ${planName} para un equipo de más de 5 profesionales. Quisiera recibir una propuesta y cotización a medida para mi negocio.`;
-                            setTimeout(() => {
-                                msgInput.focus();
-                            }, 600);
-                        }
-                        
-                        if (typeof showToast === 'function') {
-                            showToast('¿Necesitás más de 5 profesionales? Envianos tu consulta y armamos un plan a tu medida.', 'info');
-                        }
-                    }
-                    return;
-                }
-                
-                let newVal = currentVal + change;
-                if (newVal < 1) newVal = 1;
-                if (newVal > 5) newVal = 5;
-                window.numProfessionals[planKey] = newVal;
-                
-                if (document.getElementById('profCountDisplay_' + planKey)) {
-                    document.getElementById('profCountDisplay_' + planKey).textContent = window.numProfessionals[planKey];
-                }
-                window.renderPricing();
-            };
-            
-            window.renderPricing = function() {
-                const pData = window.pricingData || {};
-                
-                let rawB = parseFloat(pData.precio_basico) || 8889;
-                let rawI = parseFloat(pData.precio_intermedio) || 11111;
-                let rawP = parseFloat(pData.precio_premium) || 16667;
+    // --- Inicialización del Carrusel (Landing Page) ---
+    if (document.getElementById('carouselTitle')) {
+        window.numProfessionals = { basic: 1, inter: 1, prem: 1 };
+        window.pricingData = { precio_basico: 8889, precio_intermedio: 11111, precio_premium: 16667, descuento_porcentaje: 10, dias_prueba_defecto: 30 };
 
-                let discPct = (pData.descuento_porcentaje !== undefined && pData.descuento_porcentaje !== null) 
-                    ? parseInt(pData.descuento_porcentaje) 
-                    : 10;
-                if (isNaN(discPct) || discPct < 0) discPct = 0;
-                if (pData.descuento_hasta) {
-                    const exp = new Date(String(pData.descuento_hasta).replace(/-/g, '/'));
-                    if (!isNaN(exp.getTime()) && exp < new Date()) {
-                        discPct = 0;
+        window.updateProfCount = function (change, planKey) {
+            let currentVal = window.numProfessionals[planKey] || 1;
+
+            // Si ya tiene 5 profesionales y sigue haciendo clic en +, llevar a la sección de contacto
+            if (change > 0 && currentVal >= 5) {
+                const planNames = { basic: 'Plan Simple', inter: 'Plan Profesional', prem: 'Plan Premium' };
+                const planName = planNames[planKey] || 'Agendatina';
+
+                const contactSection = document.getElementById('contacto');
+                if (contactSection) {
+                    contactSection.scrollIntoView({ behavior: 'smooth' });
+
+                    const msgInput = document.querySelector('#mainContactForm textarea[name="mensaje"]') || document.querySelector('textarea[name="mensaje"]');
+                    if (msgInput) {
+                        msgInput.value = `¡Hola! Me interesa contratar el ${planName} para un equipo de más de 5 profesionales. Quisiera recibir una propuesta y cotización a medida para mi negocio.`;
+                        setTimeout(() => {
+                            msgInput.focus();
+                        }, 600);
+                    }
+
+                    if (typeof showToast === 'function') {
+                        showToast('¿Necesitás más de 5 profesionales? Envianos tu consulta y armamos un plan a tu medida.', 'info');
                     }
                 }
+                return;
+            }
 
-                const factor = (100 - discPct) / 100;
+            let newVal = currentVal + change;
+            if (newVal < 1) newVal = 1;
+            if (newVal > 5) newVal = 5;
+            window.numProfessionals[planKey] = newVal;
 
-                const b = Math.round(rawB * factor);
-                const i = Math.round(rawI * factor);
-                const p = Math.round(rawP * factor);
-                
-                const getFinalPrice = (finalPriceForOne, rawBasePrice, count) => {
-                    if (count === 1) {
-                        return {
-                            final: finalPriceForOne,
-                            oldPrice: rawBasePrice,
-                            badgeText: discPct > 0 ? `-${discPct}% OFF` : '',
-                            showOldPrice: discPct > 0
-                        };
-                    } else {
-                        let volumeDiscount = count * 5;
-                        if (volumeDiscount > 50) volumeDiscount = 50;
-                        
-                        let totalBeforeVol = finalPriceForOne * count;
-                        let final = totalBeforeVol * (1 - volumeDiscount / 100);
-                        
-                        return {
-                            final: Math.round(final),
-                            oldPrice: Math.round(totalBeforeVol),
-                            badgeText: `-${volumeDiscount}% POR EQUIPO`,
-                            showOldPrice: true
-                        };
-                    }
-                };
-                
-                const updateBox = (boxId, oldId, finalPriceOne, rawBaseOne, labelClass, perPersonId, planKey) => {
-                    const box = document.getElementById(boxId);
-                    const old = document.getElementById(oldId);
-                    const perPerson = document.getElementById(perPersonId);
-                    
-                    let count = window.numProfessionals[planKey];
-                    let info = getFinalPrice(finalPriceOne, rawBaseOne, count);
-                    
-                    if (box) box.innerHTML = `$${info.final.toLocaleString('es-AR', {maximumFractionDigits:0})}<span class="text-sm font-normal ${labelClass} ml-1">/mes</span>`;
-                    if (old) {
-                        const container = old.parentElement;
-                        if (info.showOldPrice) {
-                            old.textContent = `$${info.oldPrice.toLocaleString('es-AR', {maximumFractionDigits:0})}`;
-                            container.style.display = 'flex';
-                            const badge = container.querySelector('span:last-child');
-                            if (badge) badge.textContent = info.badgeText;
-                        } else {
-                            container.style.display = 'none';
-                        }
-                    }
-                    
-                    // Mostrar precio por cabeza
-                    if (perPerson) {
-                        if (count > 1) {
-                            let pricePerPerson = info.final / count;
-                            perPerson.innerHTML = `¡Queda en $${pricePerPerson.toLocaleString('es-AR', {maximumFractionDigits:0})} p/persona!<br><span class="text-xs font-normal text-slate-500 mt-1 block">Ya incluye ${discPct > 0 ? `${discPct}% OFF base + ` : ''}descuento por equipo (5% por prof.)</span>`;
-                            perPerson.classList.remove('hidden');
-                        } else {
-                            perPerson.classList.add('hidden');
-                        }
-                    }
-                };
-                
-                updateBox('priceBasicBox', 'priceBasicOld', b, rawB, 'text-slate-500', 'perPersonBasic', 'basic');
-                updateBox('priceInterBox', 'priceInterOld', i, rawI, 'text-white/80', 'perPersonInter', 'inter');
-                updateBox('pricePremBox', 'pricePremOld', p, rawP, 'text-slate-500', 'perPersonPrem', 'prem');
-                
-                // Actualizar opciones del select del modal si está presente
-                const selectRegPlan = document.getElementById('regPlan');
-                if (selectRegPlan && selectRegPlan.options && selectRegPlan.options.length >= 3) {
-                    selectRegPlan.options[0].textContent = `Plan Simple ($${b.toLocaleString('es-AR')} / mes)`;
-                    selectRegPlan.options[1].textContent = `Plan Profesional ($${i.toLocaleString('es-AR')} / mes)`;
-                    selectRegPlan.options[2].textContent = `Plan Premium ($${p.toLocaleString('es-AR')} / mes)`;
-                }
-
-                // Actualizar insignias de notificaciones de WhatsApp dinámicamente según cantidad de profesionales
-                const countInter = window.numProfessionals['inter'] || 1;
-                const countPrem = window.numProfessionals['prem'] || 1;
-
-                const extraInter = Math.max(0, countInter - 1);
-                const extraPrem = Math.max(0, countPrem - 1);
-
-                const wppInter = 50 + (extraInter * 10);
-                const wppPrem = 100 + (extraPrem * 10);
-
-                const badgeInter = document.getElementById('wppQuotaDisplay_inter');
-                if (badgeInter) {
-                    badgeInter.textContent = `${wppInter} WPP/mes total negocio`;
-                }
-
-                const badgePrem = document.getElementById('wppQuotaDisplay_prem');
-                if (badgePrem) {
-                    badgePrem.textContent = `${wppPrem} WPP/mes total negocio`;
-                }
-
-                // El Carrusel ("Visualizá tu éxito") debe mostrar SIEMPRE el precio BASE de 1 profesional con su descuento establecido
-                const planKeys = ['basic', 'inter', 'prem'];
-                const finalPrices = [b, i, p];
-                const rawPrices = [rawB, rawI, rawP];
-                
-                for(let idx = 0; idx < 3; idx++) {
-                    let infoBase = getFinalPrice(finalPrices[idx], rawPrices[idx], 1);
-                    carouselData[idx].price = '$' + infoBase.final.toLocaleString('es-AR', {maximumFractionDigits:0});
-                    carouselData[idx].oldPrice = '$' + infoBase.oldPrice.toLocaleString('es-AR', {maximumFractionDigits:0});
-                    carouselData[idx].badgeText = infoBase.badgeText;
-                    carouselData[idx].showOldPrice = infoBase.showOldPrice;
-                }
-                
-                const trialDays = (window.pricingData && window.pricingData.dias_prueba_defecto) ? window.pricingData.dias_prueba_defecto : 30;
-                document.querySelectorAll('.trial-days-display').forEach(el => el.textContent = trialDays);
-
-                setCarouselIndex(currentCarouselIndex);
-            };
-
-            // Renderizar de inmediato para evitar que el botón '+' no responda si el servidor tarda en contestar
+            if (document.getElementById('profCountDisplay_' + planKey)) {
+                document.getElementById('profCountDisplay_' + planKey).textContent = window.numProfessionals[planKey];
+            }
             window.renderPricing();
+        };
 
-            fetch('backend/obtener_precios.php').then(res=>res.json()).then(pData => {
-                if(pData && pData.success && pData.data) {
-                    window.pricingData = pData.data;
-                    window.globalPricesData = pData.data;
-                    window.renderPricing();
+        window.renderPricing = function () {
+            const pData = window.pricingData || {};
+
+            let rawB = parseFloat(pData.precio_basico) || 8889;
+            let rawI = parseFloat(pData.precio_intermedio) || 11111;
+            let rawP = parseFloat(pData.precio_premium) || 16667;
+
+            let discPct = (pData.descuento_porcentaje !== undefined && pData.descuento_porcentaje !== null)
+                ? parseInt(pData.descuento_porcentaje)
+                : 10;
+            if (isNaN(discPct) || discPct < 0) discPct = 0;
+            if (pData.descuento_hasta) {
+                const exp = new Date(String(pData.descuento_hasta).replace(/-/g, '/'));
+                if (!isNaN(exp.getTime()) && exp < new Date()) {
+                    discPct = 0;
                 }
-            }).catch(() => setCarouselIndex(1));
+            }
 
-            const prevBtn = document.getElementById('prevCarouselBtn');
-            const nextBtn = document.getElementById('nextCarouselBtn');
-            
-            if (prevBtn) {
-                prevBtn.addEventListener('click', () => {
-                    stopShowcaseTimer();
-                    renderShowcaseStep(currentShowcaseStep - 1, true);
-                    startShowcaseTimer();
-                });
+            const factor = (100 - discPct) / 100;
+
+            const b = Math.round(rawB * factor);
+            const i = Math.round(rawI * factor);
+            const p = Math.round(rawP * factor);
+
+            const getFinalPrice = (finalPriceForOne, rawBasePrice, count) => {
+                if (count === 1) {
+                    return {
+                        final: finalPriceForOne,
+                        oldPrice: rawBasePrice,
+                        badgeText: discPct > 0 ? `-${discPct}% OFF` : '',
+                        showOldPrice: discPct > 0
+                    };
+                } else {
+                    let volumeDiscount = count * 5;
+                    if (volumeDiscount > 50) volumeDiscount = 50;
+
+                    let totalBeforeVol = finalPriceForOne * count;
+                    let final = totalBeforeVol * (1 - volumeDiscount / 100);
+
+                    return {
+                        final: Math.round(final),
+                        oldPrice: Math.round(totalBeforeVol),
+                        badgeText: `-${volumeDiscount}% POR EQUIPO`,
+                        showOldPrice: true
+                    };
+                }
+            };
+
+            const updateBox = (boxId, oldId, finalPriceOne, rawBaseOne, labelClass, perPersonId, planKey) => {
+                const box = document.getElementById(boxId);
+                const old = document.getElementById(oldId);
+                const perPerson = document.getElementById(perPersonId);
+
+                let count = window.numProfessionals[planKey];
+                let info = getFinalPrice(finalPriceOne, rawBaseOne, count);
+
+                if (box) box.innerHTML = `$${info.final.toLocaleString('es-AR', { maximumFractionDigits: 0 })}<span class="text-sm font-normal ${labelClass} ml-1">/mes</span>`;
+                if (old) {
+                    const container = old.parentElement;
+                    if (info.showOldPrice) {
+                        old.textContent = `$${info.oldPrice.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
+                        container.style.display = 'flex';
+                        const badge = container.querySelector('span:last-child');
+                        if (badge) badge.textContent = info.badgeText;
+                    } else {
+                        container.style.display = 'none';
+                    }
+                }
+
+                // Mostrar precio por cabeza
+                if (perPerson) {
+                    if (count > 1) {
+                        let pricePerPerson = info.final / count;
+                        perPerson.innerHTML = `¡Queda en $${pricePerPerson.toLocaleString('es-AR', { maximumFractionDigits: 0 })} p/persona!<br><span class="text-xs font-normal text-slate-500 mt-1 block">Ya incluye ${discPct > 0 ? `${discPct}% OFF base + ` : ''}descuento por equipo (5% por prof.)</span>`;
+                        perPerson.classList.remove('hidden');
+                    } else {
+                        perPerson.classList.add('hidden');
+                    }
+                }
+            };
+
+            updateBox('priceBasicBox', 'priceBasicOld', b, rawB, 'text-slate-500', 'perPersonBasic', 'basic');
+            updateBox('priceInterBox', 'priceInterOld', i, rawI, 'text-white/80', 'perPersonInter', 'inter');
+            updateBox('pricePremBox', 'pricePremOld', p, rawP, 'text-slate-500', 'perPersonPrem', 'prem');
+
+            // Actualizar opciones del select del modal si está presente
+            const selectRegPlan = document.getElementById('regPlan');
+            if (selectRegPlan && selectRegPlan.options && selectRegPlan.options.length >= 3) {
+                selectRegPlan.options[0].textContent = `Plan Simple ($${b.toLocaleString('es-AR')} / mes)`;
+                selectRegPlan.options[1].textContent = `Plan Profesional ($${i.toLocaleString('es-AR')} / mes)`;
+                selectRegPlan.options[2].textContent = `Plan Premium ($${p.toLocaleString('es-AR')} / mes)`;
             }
-            if (nextBtn) {
-                nextBtn.addEventListener('click', () => {
-                    stopShowcaseTimer();
-                    renderShowcaseStep(currentShowcaseStep + 1, true);
-                    startShowcaseTimer();
-                });
+
+            // Actualizar insignias de notificaciones de WhatsApp dinámicamente según cantidad de profesionales
+            const countInter = window.numProfessionals['inter'] || 1;
+            const countPrem = window.numProfessionals['prem'] || 1;
+
+            const extraInter = Math.max(0, countInter - 1);
+            const extraPrem = Math.max(0, countPrem - 1);
+
+            const wppInter = 50 + (extraInter * 10);
+            const wppPrem = 100 + (extraPrem * 10);
+
+            const badgeInter = document.getElementById('wppQuotaDisplay_inter');
+            if (badgeInter) {
+                badgeInter.textContent = `${wppInter} WPP/mes total negocio`;
             }
+
+            const badgePrem = document.getElementById('wppQuotaDisplay_prem');
+            if (badgePrem) {
+                badgePrem.textContent = `${wppPrem} WPP/mes total negocio`;
+            }
+
+            // El Carrusel ("Visualizá tu éxito") debe mostrar SIEMPRE el precio BASE de 1 profesional con su descuento establecido
+            const planKeys = ['basic', 'inter', 'prem'];
+            const finalPrices = [b, i, p];
+            const rawPrices = [rawB, rawI, rawP];
+
+            for (let idx = 0; idx < 3; idx++) {
+                let infoBase = getFinalPrice(finalPrices[idx], rawPrices[idx], 1);
+                carouselData[idx].price = '$' + infoBase.final.toLocaleString('es-AR', { maximumFractionDigits: 0 });
+                carouselData[idx].oldPrice = '$' + infoBase.oldPrice.toLocaleString('es-AR', { maximumFractionDigits: 0 });
+                carouselData[idx].badgeText = infoBase.badgeText;
+                carouselData[idx].showOldPrice = infoBase.showOldPrice;
+            }
+
+            const trialDays = (window.pricingData && window.pricingData.dias_prueba_defecto) ? window.pricingData.dias_prueba_defecto : 30;
+            document.querySelectorAll('.trial-days-display').forEach(el => el.textContent = trialDays);
+
+            setCarouselIndex(currentCarouselIndex);
+        };
+
+        // Renderizar de inmediato para evitar que el botón '+' no responda si el servidor tarda en contestar
+        window.renderPricing();
+
+        fetch('backend/obtener_precios.php').then(res => res.json()).then(pData => {
+            if (pData && pData.success && pData.data) {
+                window.pricingData = pData.data;
+                window.globalPricesData = pData.data;
+                window.renderPricing();
+            }
+        }).catch(() => setCarouselIndex(1));
+
+        const prevBtn = document.getElementById('prevCarouselBtn');
+        const nextBtn = document.getElementById('nextCarouselBtn');
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                stopShowcaseTimer();
+                renderShowcaseStep(currentShowcaseStep - 1, true);
+                startShowcaseTimer();
+            });
         }
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                stopShowcaseTimer();
+                renderShowcaseStep(currentShowcaseStep + 1, true);
+                startShowcaseTimer();
+            });
+        }
+    }
 });
 
 function openWebModal() {
@@ -3546,8 +3546,8 @@ function closeWebModal() {
 }
 
 function showSuspendedAccountModal(message) {
-    const isProf = (window.currentUserRole === 'profesional') || 
-                   (window.currentUserData && (window.currentUserData.rol === 'profesional' || window.currentUserData.rol_en_local === 'profesional'));
+    const isProf = (window.currentUserRole === 'profesional') ||
+        (window.currentUserData && (window.currentUserData.rol === 'profesional' || window.currentUserData.rol_en_local === 'profesional'));
 
     const displayMsg = isProf ?
         'La cuenta del negocio se encuentra suspendida por falta de pago. Por favor, comunícate con el administrador o dueño del negocio para que realice el pago o abonado de la cuenta.' :
@@ -3581,9 +3581,9 @@ function showSuspendedAccountModal(message) {
 function isAccountSuspended(dbStatus, lastPaymentStr, fechaAltaStr) {
     // Si es cuenta Demo o está en sesión demo, NUNCA está suspendida
     const isDemo = (window.currentUserData && window.currentUserData.email && window.currentUserData.email.includes('demo')) ||
-                   (window.currentBusinessData && (window.currentBusinessData.ruta === 'demo' || (window.currentBusinessData.ruta && window.currentBusinessData.ruta.indexOf('demo') === 0) || window.currentBusinessData.is_demo)) ||
-                   (sessionStorage.getItem('is_demo_user') === 'true') ||
-                   (sessionStorage.getItem('agendatina_demo_alert') === 'true');
+        (window.currentBusinessData && (window.currentBusinessData.ruta === 'demo' || (window.currentBusinessData.ruta && window.currentBusinessData.ruta.indexOf('demo') === 0) || window.currentBusinessData.is_demo)) ||
+        (sessionStorage.getItem('is_demo_user') === 'true') ||
+        (sessionStorage.getItem('agendatina_demo_alert') === 'true');
     if (isDemo) return false;
 
     // La cuenta se considera suspendida únicamente si la base de datos la marcó explícitamente como 'suspendido'
@@ -3598,17 +3598,17 @@ function applyWebCustomization() {
         .then(res => res.json())
         .then(data => {
             if (data && !data.error) {
-                
+
                 // Validar suspensión automática por fechas o manual
                 if (isAccountSuspended(data.estado_pago, data.ultimo_pago, data.fecha_alta)) {
                     const path = window.location.pathname;
                     const isDashboard = path.includes('dashboard');
-                    
+
                     if (!isDashboard) {
                         const isAdminPage = path.includes('agenda') ||
-                                            path.includes('mi-web') ||
-                                            ((path.includes('calendarioMensual') || path.includes('calendarioSemanal')) && (!negocioSlug || negocioSlug === ''));
-                                            
+                            path.includes('mi-web') ||
+                            ((path.includes('calendarioMensual') || path.includes('calendarioSemanal')) && (!negocioSlug || negocioSlug === ''));
+
                         if (isAdminPage) {
                             showSuspendedAccountModal('Tu cuenta está suspendida por falta de pago. Serás redirigido al panel de control para regularizar tu situación.');
                             setTimeout(() => {
@@ -3637,31 +3637,31 @@ function applyWebCustomization() {
 
                 if (data.titulo) {
                     document.title = `${data.titulo} | Reservar Turno`;
-                    
+
                     const navBusinessNameText = document.getElementById('navBusinessNameText');
                     if (navBusinessNameText && data.titulo) {
                         navBusinessNameText.textContent = data.titulo;
                     }
-                    
+
                     const navLinks = document.querySelectorAll('a[href="index.html"], a[href="/"], a[href="#"]');
                     navLinks.forEach(link => {
                         if (negocioSlug && (link.closest('nav') || link.closest('header'))) {
-                                if (window.location.search.includes('n=')) {
-                                    link.href = 'web.html?n=' + negocioSlug;
-                                } else {
-                                    link.href = `/${negocioSlug}`;
-                                }
+                            if (window.location.search.includes('n=')) {
+                                link.href = 'web.html?n=' + negocioSlug;
+                            } else {
+                                link.href = `/${negocioSlug}`;
+                            }
                         }
                     });
                 }
-                
+
                 // --- INYECCIÓN PARA WEB.HTML (PÁGINA PÚBLICA) ---
                 if (data.texto_local && document.getElementById('publicTextoLocal')) {
                     document.getElementById('publicTextoLocal').textContent = data.texto_local;
                     const section = document.getElementById('sectionTextoLocal');
                     if (section) section.classList.remove('hidden');
                 }
-                
+
                 if (data.ubicacion_maps && document.getElementById('publicUbicacionMaps')) {
                     const mapsContainer = document.getElementById('publicUbicacionMaps');
                     if (data.ubicacion_maps.includes('<iframe')) {
@@ -3706,7 +3706,7 @@ function applyWebCustomization() {
                     try {
                         const parsed = JSON.parse(data.profesionales_json);
                         if (Array.isArray(parsed)) allProfsScript = parsed;
-                    } catch (e) {}
+                    } catch (e) { }
                 }
                 if (typeof servicesData !== 'undefined' && Array.isArray(servicesData) && servicesData.length > 0) {
                     servicesData.forEach(s => {
@@ -3740,7 +3740,7 @@ function applyWebCustomization() {
                     if (section) section.classList.remove('hidden');
                 }
                 // ------------------------------------------------
-                
+
                 if (data.alineacion_servicios) {
                     const alignVal = data.alineacion_servicios;
                     const flexAlign = alignVal === 'center' ? 'center' : (alignVal === 'right' ? 'flex-end' : 'flex-start');
@@ -3764,7 +3764,7 @@ function applyWebCustomization() {
                     footer.id = 'agendatinaFooter';
                     footer.className = 'text-center py-6 mt-8 w-full flex justify-center';
                     footer.innerHTML = '<a href="https://agendatina.site" target="_blank" class="inline-block hover:opacity-80 transition-opacity"><img src="public/logoletras.png" alt="Agendatina" class="h-14 w-auto opacity-80 hover:opacity-100 transition-all"></a>';
-                    
+
                     const main = document.querySelector('main') || document.body;
                     if (main === document.body) {
                         document.body.appendChild(footer);
@@ -3775,12 +3775,12 @@ function applyWebCustomization() {
                 if (data.logo && data.logo !== 'null' && data.logo !== 'undefined') {
                     const favicon = document.querySelector('link[rel="icon"]');
                     if (favicon) favicon.href = data.logo;
-                    
+
                     const navIconContainer = document.getElementById('navIconContainer');
                     const navLogoImg = document.getElementById('navLogoImg');
                     if (navIconContainer) navIconContainer.classList.add('hidden');
                     if (navLogoImg) { navLogoImg.src = data.logo; navLogoImg.classList.remove('hidden'); }
-                
+
                     const navAvatar = document.getElementById('navAvatar');
                     if (navAvatar) {
                         navAvatar.innerHTML = `<img src="${data.logo}" class="w-full h-full object-cover" alt="Logo">`;
@@ -3794,14 +3794,14 @@ function applyWebCustomization() {
                 if (data.color_primario || data.color_secundario || data.color_fondo) {
                     const pColor = data.color_primario || '#d11149';
                     const sColor = data.color_secundario || '#fc8712';
-                    
+
                     let hex = pColor.replace('#', '');
-                    if(hex.length === 3) hex = hex.split('').map(x => x+x).join('');
+                    if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
                     let r = parseInt(hex.substr(0, 2), 16) || 0;
                     let g = parseInt(hex.substr(2, 2), 16) || 0;
                     let b = parseInt(hex.substr(4, 2), 16) || 0;
                     let yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-                    
+
                     let textColor = (yiq >= 128) ? '#1e293b' : '#ffffff';
 
                     // Eliminar la etiqueta de estilo anterior si existe (útil al guardar desde el panel admin)
@@ -3810,7 +3810,7 @@ function applyWebCustomization() {
 
                     const style = document.createElement('style');
                     style.id = 'dynamic-business-styles';
-                    
+
                     let styleHTML = `
                         :root {
                             --color-primario: ${pColor};
@@ -3837,27 +3837,27 @@ function applyWebCustomization() {
                     style.innerHTML = styleHTML;
                     document.head.appendChild(style);
                 }
-        
-            if (data.metodos_pago) {
-                const metodos = data.metodos_pago.split(',').map(m => m.trim()).filter(m => m);
-                if (metodos.length > 0) {
-                    ['bookingMetodoPago', 'weeklyMetodoPago'].forEach(id => {
-                        const sel = document.getElementById(id);
-                        if (sel) {
-                            sel.innerHTML = '<option value="" disabled selected>Elige cómo abonarás</option>';
-                            metodos.forEach(m => sel.innerHTML += `<option value="${m}">${m}</option>`);
-                            if (sel.parentElement) sel.parentElement.classList.remove('hidden');
-                            sel.required = true;
-                        }
-                    });
+
+                if (data.metodos_pago) {
+                    const metodos = data.metodos_pago.split(',').map(m => m.trim()).filter(m => m);
+                    if (metodos.length > 0) {
+                        ['bookingMetodoPago', 'weeklyMetodoPago'].forEach(id => {
+                            const sel = document.getElementById(id);
+                            if (sel) {
+                                sel.innerHTML = '<option value="" disabled selected>Elige cómo abonarás</option>';
+                                metodos.forEach(m => sel.innerHTML += `<option value="${m}">${m}</option>`);
+                                if (sel.parentElement) sel.parentElement.classList.remove('hidden');
+                                sel.required = true;
+                            }
+                        });
+                    }
                 }
-            }
             }
         })
         .catch(err => console.error('Error al cargar personalización:', err));
 }                   // Eliminar la etiqueta de estilo anterior si existe (útil al guardar desde el panel admin)
 
-window.verComprobanteModal = function(url) {
+window.verComprobanteModal = function (url) {
     let modal = document.getElementById('reusableReceiptModal');
     if (!modal) {
         const div = document.createElement('div');
@@ -3883,10 +3883,10 @@ window.verComprobanteModal = function(url) {
     const content = document.getElementById('reusableReceiptModalContent');
     const img = document.getElementById('reusableReceiptImage');
     const pdf = document.getElementById('reusableReceiptPdf');
-    
+
     img.classList.add('hidden');
     pdf.classList.add('hidden');
-    
+
     if (url.toLowerCase().endsWith('.pdf')) {
         pdf.src = url.includes('/') ? url : `backend/uploads/comprobantes/${url}`;
         pdf.classList.remove('hidden');
@@ -3894,7 +3894,7 @@ window.verComprobanteModal = function(url) {
         img.src = url.includes('/') ? url : `backend/uploads/comprobantes/${url}`;
         img.classList.remove('hidden');
     }
-    
+
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     setTimeout(() => {
@@ -3903,7 +3903,7 @@ window.verComprobanteModal = function(url) {
     }, 10);
 };
 
-window.closeReusableReceiptModal = function() {
+window.closeReusableReceiptModal = function () {
     const modal = document.getElementById('reusableReceiptModal');
     if (!modal) return;
     const content = document.getElementById('reusableReceiptModalContent');
@@ -3937,7 +3937,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (cachedBizName) {
             localStorage.removeItem('cached_business_name');
         }
-    } catch(e) {}
+    } catch (e) { }
 
     const applyDemoButtonVisibility = (isDemo) => {
         const cardSupport = document.getElementById('cardSupport');
@@ -3963,7 +3963,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ));
                 if (isDemoUser) {
                     sessionStorage.setItem('is_demo_user', 'true');
-                    try { localStorage.removeItem('cached_business_name'); } catch(e) {}
+                    try { localStorage.removeItem('cached_business_name'); } catch (e) { }
                 } else {
                     sessionStorage.removeItem('is_demo_user');
                     sessionStorage.removeItem('agendatina_demo_alert');
@@ -3990,265 +3990,265 @@ function checkAdminGlobalSession(config = null) {
     }
 
     fetch('backend/perfil.php')
-    .then(res => res.json())
-    .then(data => {
-        let isDemo = false;
-        let isUserAdmin = false;
+        .then(res => res.json())
+        .then(data => {
+            let isDemo = false;
+            let isUserAdmin = false;
 
-        if (data && data.success && data.business) {
-            const isRealDemoBackend = !!(
-                data.business.is_demo === true || data.business.is_demo === 1 || data.business.is_demo === '1' ||
-                data.business.ruta === 'demo' ||
-                (data.user && data.user.email && data.user.email.includes('demo')) ||
-                (config && config.is_demo === true)
-            );
+            if (data && data.success && data.business) {
+                const isRealDemoBackend = !!(
+                    data.business.is_demo === true || data.business.is_demo === 1 || data.business.is_demo === '1' ||
+                    data.business.ruta === 'demo' ||
+                    (data.user && data.user.email && data.user.email.includes('demo')) ||
+                    (config && config.is_demo === true)
+                );
 
-            if (isRealDemoBackend) {
-                isDemo = true;
-                sessionStorage.setItem('is_demo_user', 'true');
-            } else {
-                isDemo = false;
-                sessionStorage.removeItem('is_demo_user');
-                sessionStorage.removeItem('agendatina_demo_alert');
+                if (isRealDemoBackend) {
+                    isDemo = true;
+                    sessionStorage.setItem('is_demo_user', 'true');
+                } else {
+                    isDemo = false;
+                    sessionStorage.removeItem('is_demo_user');
+                    sessionStorage.removeItem('agendatina_demo_alert');
+                }
+
+                const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
+                const urlParams = new URLSearchParams(window.location.search);
+                const ignorePathParts = ['backend', 'css', 'js', 'public', 'agendatina', 'pruebas', 'public_html', 'htdocs', 'calendario', 'web'];
+                const pathSlug = window.location.pathname.split('/').filter(p => p && !p.includes('.html') && !p.includes('.php') && !ignorePathParts.includes(p.toLowerCase())).pop() || '';
+                const negocioSlug = urlParams.get('n') || pathSlug;
+                const currentRuta = (negocioSlug || (config ? config.ruta || config.subdominio : '') || '').toLowerCase().trim();
+
+                const adminPages = ['dashboard', 'ajustes', 'estadisticas', 'servicios', 'equipo', 'mi-web', 'agenda', 'manual', 'consultas', 'perfil', 'pago', 'clientes', 'mi-cuenta'];
+                const currentPath = window.location.pathname.toLowerCase();
+                const isPublicPage = ((currentPath.endsWith('web.html') || currentPath.includes('/web.html')) && !currentPath.includes('mi-web')) || currentPath.includes('calendario');
+                const isStrictAdminPage = adminPages.some(page => currentPath.includes(page));
+
+                const effectiveIsDemo = isDemo && (!currentRuta || currentRuta.startsWith('demo'));
+
+                if (effectiveIsDemo || (!isPublicPage && isStrictAdminPage) || (currentRuta && loggedRuta === currentRuta) || (config && config.id_negocio && data.business.id == config.id_negocio)) {
+                    isUserAdmin = true;
+                } else {
+                    isUserAdmin = false;
+                }
+
+                // Guardia de acceso y ocultamiento de navegación global para perfil Profesional según permisos asignados
+                if (data.user && (data.user.rol === 'profesional' || data.user.rol_en_local === 'profesional')) {
+                    const perms = data.user.permisos || {};
+                    const canAgenda = perms.ver_mi_agenda !== undefined
+                        ? (parseInt(perms.ver_mi_agenda) === 1 || perms.ver_mi_agenda === true || parseInt(perms.ver_agenda_otros) === 1 || perms.ver_agenda_otros === true)
+                        : (perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true);
+                    const canCalendario = perms.ver_mi_calendario !== undefined
+                        ? (parseInt(perms.ver_mi_calendario) === 1 || perms.ver_mi_calendario === true || parseInt(perms.ver_calendario_otros) === 1 || perms.ver_calendario_otros === true)
+                        : (perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true);
+                    const canClientes = (perms.ver_mis_clientes !== undefined && (parseInt(perms.ver_mis_clientes) === 1 || perms.ver_mis_clientes === true)) ||
+                        (perms.ver_clientes_todos !== undefined && (parseInt(perms.ver_clientes_todos) === 1 || perms.ver_clientes_todos === true)) ||
+                        (perms.clientes !== undefined && (parseInt(perms.clientes) === 1 || perms.clientes === true));
+                    const canEstadisticas = (perms.ver_mis_estadisticas !== undefined && (parseInt(perms.ver_mis_estadisticas) === 1 || perms.ver_mis_estadisticas === true)) ||
+                        (perms.ver_estadisticas_otros !== undefined && (parseInt(perms.ver_estadisticas_otros) === 1 || perms.ver_estadisticas_otros === true)) ||
+                        (perms.estadisticas !== undefined && (parseInt(perms.estadisticas) === 1 || perms.estadisticas === true));
+                    const canWeb = perms.web !== undefined ? (parseInt(perms.web) === 1 || perms.web === true) : false;
+                    const canServicios = perms.servicios !== undefined ? (parseInt(perms.servicios) === 1 || perms.servicios === true) : true;
+                    const canEquipo = perms.equipo !== undefined ? (parseInt(perms.equipo) === 1 || perms.equipo === true) : false;
+
+                    const hideLinks = (href) => {
+                        document.querySelectorAll(`a[href="${href}"], a[href^="${href}?"]`).forEach(el => {
+                            el.classList.add('hidden');
+                            el.style.setProperty('display', 'none', 'important');
+                        });
+                    };
+
+                    if (!canAgenda) hideLinks('agenda.html');
+                    if (!canCalendario) {
+                        hideLinks('calendarioMensual.html');
+                        hideLinks('calendarioSemanal.html');
+                    }
+                    if (!canClientes) hideLinks('clientes.html');
+                    if (!canEstadisticas) hideLinks('estadisticas.html');
+                    if (!canWeb) hideLinks('mi-web.html');
+                    if (!canServicios) hideLinks('servicios.html');
+                    if (!canEquipo) hideLinks('equipo.html');
+
+                    const curFile = (window.location.pathname.split('/').pop() || '').toLowerCase();
+                    let blocked = false;
+                    let blockedMsg = '';
+
+                    if (curFile.includes('ajustes') && !canAgenda && !canCalendario) {
+                        blocked = true;
+                        blockedMsg = 'No tienes permiso para configurar horarios de agenda.';
+                    } else if (curFile.includes('mi-web') && !canWeb) {
+                        blocked = true;
+                        blockedMsg = 'No tienes permiso para editar la página web.';
+                    } else if (curFile.includes('servicios') && !canServicios) {
+                        blocked = true;
+                        blockedMsg = 'No tienes permiso para gestionar los servicios.';
+                    } else if (curFile.includes('equipo') && !canEquipo) {
+                        blocked = true;
+                        blockedMsg = 'No tienes permiso para gestionar el equipo.';
+                    } else if (curFile.includes('estadisticas') && !canEstadisticas) {
+                        blocked = true;
+                        blockedMsg = 'No tienes permiso para ver las estadísticas.';
+                    } else if (curFile.includes('agenda') && !canAgenda) {
+                        blocked = true;
+                        blockedMsg = 'No tienes permiso para acceder a la agenda virtual.';
+                    } else if ((curFile.includes('calendariomensual') || curFile.includes('calendariosemanal')) && !canCalendario) {
+                        blocked = true;
+                        blockedMsg = 'No tienes permiso para acceder al calendario.';
+                    } else if (curFile.includes('clientes') && !canClientes) {
+                        blocked = true;
+                        blockedMsg = 'No tienes permiso para acceder al listado de alumnos o clientes.';
+                    }
+
+                    if (blocked) {
+                        console.warn('⛔ [Agendatina Permisos] Acceso restringido para profesional a:', curFile);
+                        sessionStorage.setItem('agendatina_perm_notice', blockedMsg);
+                        window.location.href = 'dashboard.html';
+                        return;
+                    }
+                }
+
+                // Actualizar nombre del negocio e imagen del logo en el Header SOLAMENTE si es admin del negocio actual
+                const bizNameText = document.getElementById('navBusinessNameText');
+                const bizLogoImg = document.getElementById('navBusinessLogoImg');
+                const bizIcon = document.getElementById('navBusinessIcon');
+
+                if (bizNameText && (isUserAdmin || !isPublicPage)) {
+                    bizNameText.textContent = data.business.nombre_fantasia || (isDemo ? 'Agendatina' : 'Mi Negocio');
+                }
+                if (bizLogoImg && (isUserAdmin || !isPublicPage) && (data.business.logo || data.business.url_logo)) {
+                    const logoUrl = data.business.logo || data.business.url_logo;
+                    if (logoUrl && logoUrl !== 'null' && logoUrl !== 'undefined' && logoUrl.trim() !== '') {
+                        bizLogoImg.src = logoUrl;
+                        bizLogoImg.classList.remove('hidden');
+                        if (bizIcon) bizIcon.classList.add('hidden');
+                    }
+                }
             }
 
-            const loggedRuta = (data.business.ruta || '').toLowerCase().trim();
-            const urlParams = new URLSearchParams(window.location.search);
-            const ignorePathParts = ['backend', 'css', 'js', 'public', 'agendatina', 'pruebas', 'public_html', 'htdocs', 'calendario', 'web'];
-            const pathSlug = window.location.pathname.split('/').filter(p => p && !p.includes('.html') && !p.includes('.php') && !ignorePathParts.includes(p.toLowerCase())).pop() || '';
-            const negocioSlug = urlParams.get('n') || pathSlug;
-            const currentRuta = (negocioSlug || (config ? config.ruta || config.subdominio : '') || '').toLowerCase().trim();
-            
-            const adminPages = ['dashboard', 'ajustes', 'estadisticas', 'servicios', 'equipo', 'mi-web', 'agenda', 'manual', 'consultas', 'perfil', 'pago', 'clientes', 'mi-cuenta'];
+            // 1. Badge del Dashboard (solo si es demo)
+            const demoBadge = document.getElementById('demoBadge');
+            if (demoBadge) {
+                if (isDemo) {
+                    demoBadge.classList.remove('hidden');
+                    demoBadge.style.display = 'inline-flex';
+                } else {
+                    demoBadge.classList.add('hidden');
+                    demoBadge.style.display = 'none';
+                }
+            }
+
+            // 2. Menú de perfil y badge de sesión en el Header
+            const adminMenu = document.getElementById('adminProfileMenu');
+            const sessionBadge = document.getElementById('adminSessionBadge');
+            const sessionBadgeText = document.getElementById('adminSessionBadgeText');
+            const btnVolverPanel = document.getElementById('btnVolverPanel');
+            const navLogoutBtn = document.getElementById('navLogoutBtn');
+            const brand = document.getElementById('navAgendatinaBrand');
+            const sep = document.getElementById('navBrandSeparator');
+            const bizSep = document.getElementById('navBizSeparator');
             const currentPath = window.location.pathname.toLowerCase();
             const isPublicPage = ((currentPath.endsWith('web.html') || currentPath.includes('/web.html')) && !currentPath.includes('mi-web')) || currentPath.includes('calendario');
-            const isStrictAdminPage = adminPages.some(page => currentPath.includes(page));
 
-            const effectiveIsDemo = isDemo && (!currentRuta || currentRuta.startsWith('demo'));
-
-            if (effectiveIsDemo || (!isPublicPage && isStrictAdminPage) || (currentRuta && loggedRuta === currentRuta) || (config && config.id_negocio && data.business.id == config.id_negocio)) {
-                isUserAdmin = true;
-            } else {
-                isUserAdmin = false;
-            }
-
-            // Guardia de acceso y ocultamiento de navegación global para perfil Profesional según permisos asignados
-            if (data.user && (data.user.rol === 'profesional' || data.user.rol_en_local === 'profesional')) {
-                const perms = data.user.permisos || {};
-                const canAgenda = perms.ver_mi_agenda !== undefined
-                    ? (parseInt(perms.ver_mi_agenda) === 1 || perms.ver_mi_agenda === true || parseInt(perms.ver_agenda_otros) === 1 || perms.ver_agenda_otros === true)
-                    : (perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true);
-                const canCalendario = perms.ver_mi_calendario !== undefined
-                    ? (parseInt(perms.ver_mi_calendario) === 1 || perms.ver_mi_calendario === true || parseInt(perms.ver_calendario_otros) === 1 || perms.ver_calendario_otros === true)
-                    : (perms.agenda !== undefined ? (parseInt(perms.agenda) === 1 || perms.agenda === true) : true);
-                const canClientes = (perms.ver_mis_clientes !== undefined && (parseInt(perms.ver_mis_clientes) === 1 || perms.ver_mis_clientes === true)) ||
-                                    (perms.ver_clientes_todos !== undefined && (parseInt(perms.ver_clientes_todos) === 1 || perms.ver_clientes_todos === true)) ||
-                                    (perms.clientes !== undefined && (parseInt(perms.clientes) === 1 || perms.clientes === true));
-                const canEstadisticas = (perms.ver_mis_estadisticas !== undefined && (parseInt(perms.ver_mis_estadisticas) === 1 || perms.ver_mis_estadisticas === true)) ||
-                                        (perms.ver_estadisticas_otros !== undefined && (parseInt(perms.ver_estadisticas_otros) === 1 || perms.ver_estadisticas_otros === true)) ||
-                                        (perms.estadisticas !== undefined && (parseInt(perms.estadisticas) === 1 || perms.estadisticas === true));
-                const canWeb = perms.web !== undefined ? (parseInt(perms.web) === 1 || perms.web === true) : false;
-                const canServicios = perms.servicios !== undefined ? (parseInt(perms.servicios) === 1 || perms.servicios === true) : true;
-                const canEquipo = perms.equipo !== undefined ? (parseInt(perms.equipo) === 1 || perms.equipo === true) : false;
-
-                const hideLinks = (href) => {
-                    document.querySelectorAll(`a[href="${href}"], a[href^="${href}?"]`).forEach(el => {
-                        el.classList.add('hidden');
-                        el.style.setProperty('display', 'none', 'important');
-                    });
-                };
-
-                if (!canAgenda) hideLinks('agenda.html');
-                if (!canCalendario) {
-                    hideLinks('calendarioMensual.html');
-                    hideLinks('calendarioSemanal.html');
+            if (isUserAdmin) {
+                if (brand) { brand.classList.remove('hidden'); brand.style.display = 'inline-flex'; }
+                if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
+                if (bizSep) { bizSep.classList.remove('hidden'); bizSep.style.display = 'inline'; }
+                if (adminMenu) {
+                    adminMenu.classList.remove('hidden');
+                    adminMenu.style.display = 'flex';
                 }
-                if (!canClientes) hideLinks('clientes.html');
-                if (!canEstadisticas) hideLinks('estadisticas.html');
-                if (!canWeb) hideLinks('mi-web.html');
-                if (!canServicios) hideLinks('servicios.html');
-                if (!canEquipo) hideLinks('equipo.html');
-
-                const curFile = (window.location.pathname.split('/').pop() || '').toLowerCase();
-                let blocked = false;
-                let blockedMsg = '';
-
-                if (curFile.includes('ajustes') && !canAgenda && !canCalendario) {
-                    blocked = true;
-                    blockedMsg = 'No tienes permiso para configurar horarios de agenda.';
-                } else if (curFile.includes('mi-web') && !canWeb) {
-                    blocked = true;
-                    blockedMsg = 'No tienes permiso para editar la página web.';
-                } else if (curFile.includes('servicios') && !canServicios) {
-                    blocked = true;
-                    blockedMsg = 'No tienes permiso para gestionar los servicios.';
-                } else if (curFile.includes('equipo') && !canEquipo) {
-                    blocked = true;
-                    blockedMsg = 'No tienes permiso para gestionar el equipo.';
-                } else if (curFile.includes('estadisticas') && !canEstadisticas) {
-                    blocked = true;
-                    blockedMsg = 'No tienes permiso para ver las estadísticas.';
-                } else if (curFile.includes('agenda') && !canAgenda) {
-                    blocked = true;
-                    blockedMsg = 'No tienes permiso para acceder a la agenda virtual.';
-                } else if ((curFile.includes('calendariomensual') || curFile.includes('calendariosemanal')) && !canCalendario) {
-                    blocked = true;
-                    blockedMsg = 'No tienes permiso para acceder al calendario.';
-                } else if (curFile.includes('clientes') && !canClientes) {
-                    blocked = true;
-                    blockedMsg = 'No tienes permiso para acceder al listado de alumnos o clientes.';
-                }
-
-                if (blocked) {
-                    console.warn('⛔ [Agendatina Permisos] Acceso restringido para profesional a:', curFile);
-                    sessionStorage.setItem('agendatina_perm_notice', blockedMsg);
-                    window.location.href = 'dashboard.html';
-                    return;
-                }
-            }
-
-            // Actualizar nombre del negocio e imagen del logo en el Header SOLAMENTE si es admin del negocio actual
-            const bizNameText = document.getElementById('navBusinessNameText');
-            const bizLogoImg = document.getElementById('navBusinessLogoImg');
-            const bizIcon = document.getElementById('navBusinessIcon');
-            
-            if (bizNameText && (isUserAdmin || !isPublicPage)) {
-                bizNameText.textContent = data.business.nombre_fantasia || (isDemo ? 'Agendatina' : 'Mi Negocio');
-            }
-            if (bizLogoImg && (isUserAdmin || !isPublicPage) && (data.business.logo || data.business.url_logo)) {
-                const logoUrl = data.business.logo || data.business.url_logo;
-                if (logoUrl && logoUrl !== 'null' && logoUrl !== 'undefined' && logoUrl.trim() !== '') {
-                    bizLogoImg.src = logoUrl;
-                    bizLogoImg.classList.remove('hidden');
-                    if (bizIcon) bizIcon.classList.add('hidden');
-                }
-            }
-        }
-
-        // 1. Badge del Dashboard (solo si es demo)
-        const demoBadge = document.getElementById('demoBadge');
-        if (demoBadge) {
-            if (isDemo) {
-                demoBadge.classList.remove('hidden');
-                demoBadge.style.display = 'inline-flex';
-            } else {
-                demoBadge.classList.add('hidden');
-                demoBadge.style.display = 'none';
-            }
-        }
-
-        // 2. Menú de perfil y badge de sesión en el Header
-        const adminMenu = document.getElementById('adminProfileMenu');
-        const sessionBadge = document.getElementById('adminSessionBadge');
-        const sessionBadgeText = document.getElementById('adminSessionBadgeText');
-        const btnVolverPanel = document.getElementById('btnVolverPanel');
-        const navLogoutBtn = document.getElementById('navLogoutBtn');
-        const brand = document.getElementById('navAgendatinaBrand');
-        const sep = document.getElementById('navBrandSeparator');
-        const bizSep = document.getElementById('navBizSeparator');
-        const currentPath = window.location.pathname.toLowerCase();
-        const isPublicPage = ((currentPath.endsWith('web.html') || currentPath.includes('/web.html')) && !currentPath.includes('mi-web')) || currentPath.includes('calendario');
-
-        if (isUserAdmin) {
-            if (brand) { brand.classList.remove('hidden'); brand.style.display = 'inline-flex'; }
-            if (sep) { sep.classList.remove('hidden'); sep.style.display = 'inline'; }
-            if (bizSep) { bizSep.classList.remove('hidden'); bizSep.style.display = 'inline'; }
-            if (adminMenu) {
-                adminMenu.classList.remove('hidden');
-                adminMenu.style.display = 'flex';
-            }
-            if (sessionBadge) {
-                if (isDemo) {
-                    sessionBadge.classList.remove('hidden');
-                    sessionBadge.style.display = 'flex';
-                    const dot = sessionBadge.querySelector('span:first-child');
-                    if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
-                    if (sessionBadgeText) {
-                        sessionBadgeText.textContent = 'Modo Demo';
-                        sessionBadgeText.className = 'text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider hidden md:inline';
+                if (sessionBadge) {
+                    if (isDemo) {
+                        sessionBadge.classList.remove('hidden');
+                        sessionBadge.style.display = 'flex';
+                        const dot = sessionBadge.querySelector('span:first-child');
+                        if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse';
+                        if (sessionBadgeText) {
+                            sessionBadgeText.textContent = 'Modo Demo';
+                            sessionBadgeText.className = 'text-[11px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider hidden md:inline';
+                        }
+                    } else {
+                        sessionBadge.classList.add('hidden');
+                        sessionBadge.style.display = 'none';
                     }
-                } else {
-                    sessionBadge.classList.add('hidden');
-                    sessionBadge.style.display = 'none';
                 }
-            }
-            if (btnVolverPanel) {
-                btnVolverPanel.classList.remove('hidden');
-                btnVolverPanel.style.display = 'inline-flex';
-
-                const urlParams = new URLSearchParams(window.location.search);
-                const isExplicitMiWeb = urlParams.get('from') === 'mi-web' || 
-                                       urlParams.get('from') === 'editor' || 
-                                       (document.referrer && document.referrer.includes('mi-web.html'));
-
-                if (isExplicitMiWeb) {
-                    btnVolverPanel.href = 'mi-web.html';
-                    btnVolverPanel.title = 'Volver al Editor Web';
-                    const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
-                    if (textSpan) textSpan.textContent = 'Volver';
-                } else {
-                    btnVolverPanel.href = 'dashboard.html';
-                    btnVolverPanel.title = 'Volver al Panel';
-                    const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
-                    if (textSpan) textSpan.textContent = 'Volver al panel';
-                    try { sessionStorage.removeItem('agendatina_nav_from'); } catch(e) {}
-                }
-            }
-            if (navLogoutBtn) {
-                navLogoutBtn.classList.remove('hidden');
-                navLogoutBtn.style.display = 'inline-flex';
-            }
-        } else {
-            // Usuario es cliente / visitante sin sesión de admin en este local: OCULTAR TODOS LOS BOTONES DE ADMIN
-            if (brand && isPublicPage) { brand.classList.add('hidden'); brand.style.display = 'none'; }
-            if (sep && isPublicPage) { sep.classList.add('hidden'); sep.style.display = 'none'; }
-            if (bizSep && isPublicPage) { bizSep.classList.add('hidden'); bizSep.style.display = 'none'; }
-            if (adminMenu) { adminMenu.classList.add('hidden'); adminMenu.style.display = 'none'; }
-            if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
-            if (btnVolverPanel) {
-                if (window.isPublicAgendatinaOfficialPage && window.isPublicAgendatinaOfficialPage()) {
+                if (btnVolverPanel) {
                     btnVolverPanel.classList.remove('hidden');
                     btnVolverPanel.style.display = 'inline-flex';
-                    btnVolverPanel.href = 'login.html';
-                    btnVolverPanel.title = 'Iniciar Sesión';
-                    const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
-                    if (textSpan) textSpan.textContent = 'Iniciar Sesión';
-                } else {
-                    btnVolverPanel.classList.add('hidden'); btnVolverPanel.style.display = 'none';
-                }
-            }
-            if (navLogoutBtn) { navLogoutBtn.classList.add('hidden'); navLogoutBtn.style.display = 'none'; }
-        }
 
-        // 3. Botón de Reportar Bug: SOLAMENTE visible para Administradores de Cuentas Reales (no demo, no clientes)
-        document.querySelectorAll('#navReportBugBtn, #btnReportarErrorAgenda').forEach(btn => {
-            if (isUserAdmin && !isDemo) {
-                btn.classList.remove('hidden');
-                btn.style.display = 'inline-flex';
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const isExplicitMiWeb = urlParams.get('from') === 'mi-web' ||
+                        urlParams.get('from') === 'editor' ||
+                        (document.referrer && document.referrer.includes('mi-web.html'));
+
+                    if (isExplicitMiWeb) {
+                        btnVolverPanel.href = 'mi-web.html';
+                        btnVolverPanel.title = 'Volver al Editor Web';
+                        const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
+                        if (textSpan) textSpan.textContent = 'Volver';
+                    } else {
+                        btnVolverPanel.href = 'dashboard.html';
+                        btnVolverPanel.title = 'Volver al Panel';
+                        const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
+                        if (textSpan) textSpan.textContent = 'Volver al panel';
+                        try { sessionStorage.removeItem('agendatina_nav_from'); } catch (e) { }
+                    }
+                }
+                if (navLogoutBtn) {
+                    navLogoutBtn.classList.remove('hidden');
+                    navLogoutBtn.style.display = 'inline-flex';
+                }
             } else {
-                btn.classList.add('hidden');
-                btn.style.display = 'none';
+                // Usuario es cliente / visitante sin sesión de admin en este local: OCULTAR TODOS LOS BOTONES DE ADMIN
+                if (brand && isPublicPage) { brand.classList.add('hidden'); brand.style.display = 'none'; }
+                if (sep && isPublicPage) { sep.classList.add('hidden'); sep.style.display = 'none'; }
+                if (bizSep && isPublicPage) { bizSep.classList.add('hidden'); bizSep.style.display = 'none'; }
+                if (adminMenu) { adminMenu.classList.add('hidden'); adminMenu.style.display = 'none'; }
+                if (sessionBadge) { sessionBadge.classList.add('hidden'); sessionBadge.style.display = 'none'; }
+                if (btnVolverPanel) {
+                    if (window.isPublicAgendatinaOfficialPage && window.isPublicAgendatinaOfficialPage()) {
+                        btnVolverPanel.classList.remove('hidden');
+                        btnVolverPanel.style.display = 'inline-flex';
+                        btnVolverPanel.href = 'login.html';
+                        btnVolverPanel.title = 'Iniciar Sesión';
+                        const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
+                        if (textSpan) textSpan.textContent = 'Iniciar Sesión';
+                    } else {
+                        btnVolverPanel.classList.add('hidden'); btnVolverPanel.style.display = 'none';
+                    }
+                }
+                if (navLogoutBtn) { navLogoutBtn.classList.add('hidden'); navLogoutBtn.style.display = 'none'; }
+            }
+
+            // 3. Botón de Reportar Bug: SOLAMENTE visible para Administradores de Cuentas Reales (no demo, no clientes)
+            document.querySelectorAll('#navReportBugBtn, #btnReportarErrorAgenda').forEach(btn => {
+                if (isUserAdmin && !isDemo) {
+                    btn.classList.remove('hidden');
+                    btn.style.display = 'inline-flex';
+                } else {
+                    btn.classList.add('hidden');
+                    btn.style.display = 'none';
+                }
+            });
+        })
+        .catch(() => {
+            // En caso de error de red o sin sesión, asegurar que la vista cliente esté limpia de botones admin
+            document.querySelectorAll('#navReportBugBtn, #btnReportarErrorAgenda, #navLogoutBtn, #adminSessionBadge, #adminProfileMenu').forEach(el => {
+                if (el) { el.classList.add('hidden'); el.style.display = 'none'; }
+            });
+            const btnVolverPanel = document.getElementById('btnVolverPanel');
+            if (btnVolverPanel && window.isPublicAgendatinaOfficialPage && window.isPublicAgendatinaOfficialPage()) {
+                btnVolverPanel.classList.remove('hidden');
+                btnVolverPanel.style.display = 'inline-flex';
+                btnVolverPanel.href = 'login.html';
+                btnVolverPanel.title = 'Iniciar Sesión';
+                const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
+                if (textSpan) textSpan.textContent = 'Iniciar Sesión';
             }
         });
-    })
-    .catch(() => {
-        // En caso de error de red o sin sesión, asegurar que la vista cliente esté limpia de botones admin
-        document.querySelectorAll('#navReportBugBtn, #btnReportarErrorAgenda, #navLogoutBtn, #adminSessionBadge, #adminProfileMenu').forEach(el => {
-            if (el) { el.classList.add('hidden'); el.style.display = 'none'; }
-        });
-        const btnVolverPanel = document.getElementById('btnVolverPanel');
-        if (btnVolverPanel && window.isPublicAgendatinaOfficialPage && window.isPublicAgendatinaOfficialPage()) {
-            btnVolverPanel.classList.remove('hidden');
-            btnVolverPanel.style.display = 'inline-flex';
-            btnVolverPanel.href = 'login.html';
-            btnVolverPanel.title = 'Iniciar Sesión';
-            const textSpan = btnVolverPanel.querySelector('.hidden.sm\\:inline') || btnVolverPanel.querySelector('#btnVolverText');
-            if (textSpan) textSpan.textContent = 'Iniciar Sesión';
-        }
-    });
 }
 
-window.isPublicAgendatinaOfficialPage = function() {
+window.isPublicAgendatinaOfficialPage = function () {
     const path = window.location.pathname.toLowerCase();
     // Excepción explícita: Si estamos en la página web del negocio (mi-web.html o landing pública del negocio), NO es página oficial del SaaS
     if (path.includes('mi-web') || window.location.search.includes('ruta=')) {
@@ -4265,16 +4265,16 @@ window.isPublicAgendatinaOfficialPage = function() {
         '/modelos/',
         '/admin/'
     ];
-    
+
     // Si la ruta es la raíz del dominio o index.html o carpeta admin
     if (path === '/' || path.endsWith('/agendatina/') || path.endsWith('/agendatina/index.html')) {
         return true;
     }
-    
+
     return officialPages.some(page => path.includes(page));
 };
 
-window.getContrastColor = function(hexColor, lightFallback = '#ffffff', darkFallback = '#1e293b') {
+window.getContrastColor = function (hexColor, lightFallback = '#ffffff', darkFallback = '#1e293b') {
     if (!hexColor || typeof hexColor !== 'string') return darkFallback;
     let cleanHex = hexColor.replace('#', '').trim();
     if (cleanHex.length === 3) {
@@ -4289,7 +4289,7 @@ window.getContrastColor = function(hexColor, lightFallback = '#ffffff', darkFall
     return luminance < 140 ? lightFallback : darkFallback;
 };
 
-window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
+window.applyUserCustomColors = function (pColor, sColor, extraColors, bgColor) {
     let style = document.getElementById('agendatina-user-custom-colors');
 
     // Si estamos en una página oficial institucional de Agendatina o en la web pública de un negocio (web.html),
@@ -4307,12 +4307,12 @@ window.applyUserCustomColors = function(pColor, sColor, extraColors, bgColor) {
     if (extraColors === undefined || extraColors === null) {
         const cachedExtra = localStorage.getItem('user_colores_extra_json');
         if (cachedExtra) {
-            try { extraColors = JSON.parse(cachedExtra); } catch(e) { extraColors = {}; }
+            try { extraColors = JSON.parse(cachedExtra); } catch (e) { extraColors = {}; }
         } else {
             extraColors = {};
         }
     } else if (typeof extraColors === 'string') {
-        try { extraColors = JSON.parse(extraColors); } catch(e) { extraColors = {}; }
+        try { extraColors = JSON.parse(extraColors); } catch (e) { extraColors = {}; }
     }
     extraColors = (extraColors && typeof extraColors === 'object') ? extraColors : {};
 
@@ -4788,7 +4788,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- LÓGICA DE HILO DE SOPORTE PARA CLIENTES / NEGOCIOS ---
-window.abrirHiloSoporteCliente = function(idReporte, titulo) {
+window.abrirHiloSoporteCliente = function (idReporte, titulo) {
     let modal = document.getElementById('modalSoporteHiloCliente');
     if (!modal) {
         const div = document.createElement('div');
@@ -4876,7 +4876,7 @@ window.abrirHiloSoporteCliente = function(idReporte, titulo) {
     }, 10);
 };
 
-window.cerrarHiloSoporteCliente = function() {
+window.cerrarHiloSoporteCliente = function () {
     const modal = document.getElementById('modalSoporteHiloCliente');
     if (!modal) return;
     const content = document.getElementById('modalSoporteHiloClienteContent');
@@ -4888,12 +4888,12 @@ window.cerrarHiloSoporteCliente = function() {
     }, 300);
 };
 
-window.enviarRespuestaClienteSoporte = function(e) {
+window.enviarRespuestaClienteSoporte = function (e) {
     e.preventDefault();
     const idReporte = document.getElementById('hiloClienteReporteId').value;
     const mensaje = document.getElementById('hiloClienteTextarea').value;
     const btn = document.getElementById('btnEnviarClienteSoporte');
-    
+
     if (!mensaje.trim()) return;
 
     btn.disabled = true;
@@ -4942,7 +4942,7 @@ window.calculatedUpgradeAmount = 0;
 window.upgradeBusinessData = null;
 window.upgradeProfCount = 1;
 
-window.fetchGlobalPrices = function(callback) {
+window.fetchGlobalPrices = function (callback) {
     if (window.globalPricesData) {
         if (typeof callback === 'function') callback(window.globalPricesData);
         return;
@@ -4975,7 +4975,7 @@ window.fetchGlobalPrices = function(callback) {
         });
 };
 
-window.getEffectivePrice = function(planName, profCount = 1) {
+window.getEffectivePrice = function (planName, profCount = 1) {
     const prices = window.globalPricesData || {
         precio_basico: 8889,
         precio_intermedio: 11111,
@@ -5020,7 +5020,7 @@ window.getEffectivePrice = function(planName, profCount = 1) {
     return finalTotal;
 };
 
-window.ensureUpgradePlanModalExists = function() {
+window.ensureUpgradePlanModalExists = function () {
     if (document.getElementById('upgradePlanModal')) return;
 
     const modalHtml = `
@@ -5162,7 +5162,7 @@ window.ensureUpgradePlanModalExists = function() {
     document.body.insertAdjacentHTML('beforeend', modalHtml);
 };
 
-window.openUpgradePlanModal = function(defaultTarget) {
+window.openUpgradePlanModal = function (defaultTarget) {
     window.ensureUpgradePlanModalExists();
 
     window.fetchGlobalPrices(() => {
@@ -5175,8 +5175,8 @@ window.openUpgradePlanModal = function(defaultTarget) {
             window.upgradeProfCount = profCount;
 
             const curPlanRaw = b.plan || 'Basico';
-            const curPlanNorm = (curPlanRaw.toLowerCase().includes('profesional') || curPlanRaw.toLowerCase().includes('intermedio')) ? 'Profesional' : 
-                                ((curPlanRaw.toLowerCase().includes('premium') || curPlanRaw.toLowerCase().includes('completo')) ? 'Premium' : 'Basico');
+            const curPlanNorm = (curPlanRaw.toLowerCase().includes('profesional') || curPlanRaw.toLowerCase().includes('intermedio')) ? 'Profesional' :
+                ((curPlanRaw.toLowerCase().includes('premium') || curPlanRaw.toLowerCase().includes('completo')) ? 'Premium' : 'Basico');
 
             const badge = document.getElementById('upgradeCurrentPlanBadge');
             if (badge) badge.textContent = (curPlanNorm === 'Basico') ? 'Simple (Básico)' : curPlanNorm;
@@ -5263,7 +5263,7 @@ window.openUpgradePlanModal = function(defaultTarget) {
     });
 };
 
-window.closeUpgradePlanModal = function() {
+window.closeUpgradePlanModal = function () {
     const modal = document.getElementById('upgradePlanModal');
     const content = document.getElementById('upgradePlanModalContent');
     if (!modal) return;
@@ -5275,7 +5275,7 @@ window.closeUpgradePlanModal = function() {
     }, 300);
 };
 
-window.selectUpgradePlan = function(planTarget) {
+window.selectUpgradePlan = function (planTarget) {
     let targetNorm = 'Basico';
     if (typeof planTarget === 'string') {
         const pt = planTarget.toLowerCase().trim();
@@ -5287,8 +5287,8 @@ window.selectUpgradePlan = function(planTarget) {
 
     const b = window.upgradeBusinessData || {};
     const curPlanRaw = b.plan || 'Basico';
-    const curPlanNorm = (curPlanRaw.toLowerCase().includes('profesional') || curPlanRaw.toLowerCase().includes('intermedio')) ? 'Profesional' : 
-                        ((curPlanRaw.toLowerCase().includes('premium') || curPlanRaw.toLowerCase().includes('completo')) ? 'Premium' : 'Basico');
+    const curPlanNorm = (curPlanRaw.toLowerCase().includes('profesional') || curPlanRaw.toLowerCase().includes('intermedio')) ? 'Profesional' :
+        ((curPlanRaw.toLowerCase().includes('premium') || curPlanRaw.toLowerCase().includes('completo')) ? 'Premium' : 'Basico');
 
     const plans = [
         { id: 'Basico', card: document.getElementById('cardPlanBasico'), radio: document.getElementById('radioLabelBasico'), name: 'Simple' },
@@ -5324,15 +5324,15 @@ window.selectUpgradePlan = function(planTarget) {
     window.renderUpgradeBreakdown();
 };
 
-window.renderUpgradeBreakdown = function() {
+window.renderUpgradeBreakdown = function () {
     if (!window.upgradeBusinessData) return;
 
     const b = window.upgradeBusinessData;
     const profCount = window.upgradeProfCount || 1;
     const estado = (b.estado_pago || 'prueba').toLowerCase();
     const curPlanRaw = b.plan || 'Basico';
-    const curPlanNorm = (curPlanRaw.toLowerCase().includes('profesional') || curPlanRaw.toLowerCase().includes('intermedio')) ? 'Profesional' : 
-                        ((curPlanRaw.toLowerCase().includes('premium') || curPlanRaw.toLowerCase().includes('completo')) ? 'Premium' : 'Basico');
+    const curPlanNorm = (curPlanRaw.toLowerCase().includes('profesional') || curPlanRaw.toLowerCase().includes('intermedio')) ? 'Profesional' :
+        ((curPlanRaw.toLowerCase().includes('premium') || curPlanRaw.toLowerCase().includes('completo')) ? 'Premium' : 'Basico');
 
     const container = document.getElementById('upgradeBreakdownDetails');
     const totalEl = document.getElementById('upgradeTotalToday');
@@ -5415,10 +5415,12 @@ window.renderUpgradeBreakdown = function() {
                     ✨ ${isDowngrade ? 'Al cambiar al' : 'Conservás tus'} <strong>${trialDaysRemaining} días restantes</strong> de prueba con las funciones y condiciones del <strong>Plan ${targetName}</strong>${teamNote}. El cambio es inmediato y sin costo hoy ($0).
                 </div>
                 <div class="flex justify-between items-center py-1 border-t border-slate-200 pt-2">
+                    <span class="text-slate-500 font-semibold">Valor del plan si continuás luego del ${nextBillingStr}:</span>
                     <span class="text-slate-500 font-semibold">Primer ciclo pago si continuás (${nextBillingStr} al ${firstCycleEndStr}):</span>
                     <span class="font-bold text-purple-700">$${priceTarget.toLocaleString('es-AR')}/mes</span>
                 </div>
-                <p class="text-[11px] text-slate-500 font-medium leading-relaxed">Pago al inicio de cada ciclo, sin débito automático: al finalizar tu prueba el ${nextBillingStr}, si elegís continuar abonás el mes por adelantado para cubrir el período del ${nextBillingStr} al ${firstCycleEndStr}.</p>
+                <p class="text-[11px] text-slate-400 font-medium">Sin débito automático: al finalizar la prueba vos elegís si querés abonar para seguir usando el servicio.</p>
+                <p class="text-[11px] text-slate-500 font-medium leading-relaxed">Pago al inicio del ciclo, sin débito automático: si decidís continuar al terminar tu prueba el ${nextBillingStr}, tenés los primeros 10 días para abonar el período (${nextBillingStr} al ${firstCycleEndStr}). A partir del día 11 sin pago registrado, el servicio se suspende automáticamente.</p>
             `;
         }
 
@@ -5534,7 +5536,7 @@ window.renderUpgradeBreakdown = function() {
     }
 };
 
-window.confirmPlanUpgradeAction = function() {
+window.confirmPlanUpgradeAction = function () {
     if (window.isTrialUpgrade || window.calculatedUpgradeAmount === 0) {
         const btn = document.getElementById('btnConfirmUpgradePlan');
         if (btn) { btn.disabled = true; btn.textContent = 'Procesando cambio...'; }
@@ -5544,38 +5546,38 @@ window.confirmPlanUpgradeAction = function() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ plan: window.selectedUpgradeTarget })
         })
-        .then(r => r.json())
-        .then(res => {
-            if (res && res.success) {
-                window.closeUpgradePlanModal();
-                
-                const pModal = document.getElementById('profileNoticeModal');
-                const pContent = document.getElementById('profileNoticeModalContent');
-                const modalTitle = document.getElementById('profileNoticeTitle');
-                const modalMsg = document.getElementById('profileNoticeMessage');
-                
-                const planNameDisplay = (res.plan === 'Basico') ? 'Simple' : (res.plan || window.selectedUpgradeTarget);
+            .then(r => r.json())
+            .then(res => {
+                if (res && res.success) {
+                    window.closeUpgradePlanModal();
 
-                if (pModal && pContent) {
-                    if (modalTitle) modalTitle.textContent = '¡Plan Actualizado!';
-                    if (modalMsg) modalMsg.textContent = res.message || `Tu cuenta ha sido actualizada exitosamente al Plan ${planNameDisplay}.`;
-                    pModal.classList.remove('hidden');
-                    setTimeout(() => { pModal.classList.remove('opacity-0'); pContent.classList.remove('scale-95'); }, 10);
-                } else if (typeof window.showToast === 'function') {
-                    window.showToast(res.message || `¡Plan actualizado exitosamente al Plan ${planNameDisplay}!`, 'success');
+                    const pModal = document.getElementById('profileNoticeModal');
+                    const pContent = document.getElementById('profileNoticeModalContent');
+                    const modalTitle = document.getElementById('profileNoticeTitle');
+                    const modalMsg = document.getElementById('profileNoticeMessage');
+
+                    const planNameDisplay = (res.plan === 'Basico') ? 'Simple' : (res.plan || window.selectedUpgradeTarget);
+
+                    if (pModal && pContent) {
+                        if (modalTitle) modalTitle.textContent = '¡Plan Actualizado!';
+                        if (modalMsg) modalMsg.textContent = res.message || `Tu cuenta ha sido actualizada exitosamente al Plan ${planNameDisplay}.`;
+                        pModal.classList.remove('hidden');
+                        setTimeout(() => { pModal.classList.remove('opacity-0'); pContent.classList.remove('scale-95'); }, 10);
+                    } else if (typeof window.showToast === 'function') {
+                        window.showToast(res.message || `¡Plan actualizado exitosamente al Plan ${planNameDisplay}!`, 'success');
+                    } else {
+                        alert(res.message || `¡Plan actualizado exitosamente al Plan ${planNameDisplay}!`);
+                    }
+
+                    setTimeout(() => { location.reload(); }, 1800);
                 } else {
-                    alert(res.message || `¡Plan actualizado exitosamente al Plan ${planNameDisplay}!`);
+                    alert(res.error || 'Ocurrió un error al actualizar el plan.');
+                    if (btn) { btn.disabled = false; window.renderUpgradeBreakdown(); }
                 }
-
-                setTimeout(() => { location.reload(); }, 1800);
-            } else {
-                alert(res.error || 'Ocurrió un error al actualizar el plan.');
+            }).catch(() => {
+                alert('Error de conexión al procesar la actualización del plan.');
                 if (btn) { btn.disabled = false; window.renderUpgradeBreakdown(); }
-            }
-        }).catch(() => {
-            alert('Error de conexión al procesar la actualización del plan.');
-            if (btn) { btn.disabled = false; window.renderUpgradeBreakdown(); }
-        });
+            });
     } else {
         window.location.href = 'pago.html?plan=' + encodeURIComponent(window.selectedUpgradeTarget) + '&monto=' + window.calculatedUpgradeAmount;
     }
@@ -5584,7 +5586,7 @@ window.confirmPlanUpgradeAction = function() {
 // =========================================================================
 // GESTIÓN MULTI-NEGOCIO (Detección, Ruedita Selector en Header y Perfil)
 // =========================================================================
-window.checkUserMultipleBusinesses = function() {
+window.checkUserMultipleBusinesses = function () {
     fetch('backend/obtener_negocios_usuario.php')
         .then(r => r.json())
         .then(data => {
@@ -5604,7 +5606,7 @@ window.checkUserMultipleBusinesses = function() {
                         const btn = document.createElement('button');
                         btn.id = 'navSwitchBizBtn';
                         btn.type = 'button';
-                        btn.onclick = function(e) {
+                        btn.onclick = function (e) {
                             e.preventDefault();
                             e.stopPropagation();
                             window.openGlobalSwitchBusinessModal();
@@ -5631,11 +5633,11 @@ window.checkUserMultipleBusinesses = function() {
                     const card = document.createElement('div');
                     const isCurrent = b.is_current;
                     card.className = `p-4 rounded-2xl border flex items-center justify-between gap-3 transition-all ${isCurrent ? 'bg-purple-50/70 border-purple-300 ring-2 ring-purple-500/20' : 'bg-slate-50 border-slate-200'}`;
-                    
+
                     const roleBadge = b.rol === 'admin'
                         ? '<span class="bg-purple-100 text-purple-700 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border border-purple-200">Administrador / Dueño</span>'
                         : '<span class="bg-blue-100 text-blue-700 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border border-blue-200">Profesional</span>';
-                    
+
                     const activeBadge = isCurrent
                         ? '<span class="bg-emerald-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full flex items-center gap-1 shadow-xs"><span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span> ACTIVO</span>'
                         : '<span class="text-[11px] font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">Cambio desde Dashboard</span>';
@@ -5657,10 +5659,10 @@ window.checkUserMultipleBusinesses = function() {
                 });
             }
         })
-        .catch(() => {});
+        .catch(() => { });
 };
 
-window.openGlobalSwitchBusinessModal = function() {
+window.openGlobalSwitchBusinessModal = function () {
     const pathname = (window.location.pathname || '').toLowerCase();
     const isDashboard = pathname.endsWith('dashboard.html') || pathname.endsWith('dashboard') || pathname === '/' || pathname === '';
     if (!isDashboard) {
@@ -5705,7 +5707,7 @@ window.openGlobalSwitchBusinessModal = function() {
             const isCurrent = b.is_current;
             const card = document.createElement('div');
             card.className = `flex items-center justify-between p-3.5 border rounded-2xl transition-all ${isCurrent ? 'bg-purple-50/80 border-purple-300' : 'bg-slate-50 border-slate-200 hover:border-purple-500 hover:bg-purple-50/40 cursor-pointer'}`;
-            
+
             const roleBadge = b.rol === 'admin'
                 ? '<span class="bg-purple-100 text-purple-700 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border border-purple-200">Administrador / Dueño</span>'
                 : '<span class="bg-blue-100 text-blue-700 text-[10px] font-extrabold px-2 py-0.5 rounded-lg border border-blue-200">Profesional</span>';
@@ -5728,7 +5730,7 @@ window.openGlobalSwitchBusinessModal = function() {
             `;
 
             if (!isCurrent) {
-                card.onclick = function() {
+                card.onclick = function () {
                     window.switchActiveBusiness(b.id_negocio);
                 };
             }
@@ -5749,7 +5751,7 @@ window.openGlobalSwitchBusinessModal = function() {
     }, 10);
 };
 
-window.closeGlobalSwitchBusinessModal = function() {
+window.closeGlobalSwitchBusinessModal = function () {
     const modal = document.getElementById('globalSwitchBusinessModal');
     const content = document.getElementById('globalSwitchModalContent');
     if (!modal) return;
@@ -5761,7 +5763,7 @@ window.closeGlobalSwitchBusinessModal = function() {
     setTimeout(() => { modal.classList.add('hidden'); }, 300);
 };
 
-window.switchActiveBusiness = function(idNegocio) {
+window.switchActiveBusiness = function (idNegocio) {
     const pathname = (window.location.pathname || '').toLowerCase();
     const isDashboard = pathname.endsWith('dashboard.html') || pathname.endsWith('dashboard') || pathname === '/' || pathname === '';
     if (!isDashboard) {
@@ -5781,26 +5783,26 @@ window.switchActiveBusiness = function(idNegocio) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id_negocio: idNegocio })
     })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            window.location.reload();
-        } else {
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                if (msgDiv) {
+                    msgDiv.textContent = data.error || 'Error al cambiar de negocio.';
+                    msgDiv.classList.remove('hidden');
+                }
+            }
+        })
+        .catch(() => {
             if (msgDiv) {
-                msgDiv.textContent = data.error || 'Error al cambiar de negocio.';
+                msgDiv.textContent = 'Error de conexión al cambiar de negocio.';
                 msgDiv.classList.remove('hidden');
             }
-        }
-    })
-    .catch(() => {
-        if (msgDiv) {
-            msgDiv.textContent = 'Error de conexión al cambiar de negocio.';
-            msgDiv.classList.remove('hidden');
-        }
-    });
+        });
 };
 
-window.setModalScrollLock = function(isLocked) {
+window.setModalScrollLock = function (isLocked) {
     if (isLocked) {
         document.documentElement.classList.add('modal-open');
         document.body.classList.add('modal-open');

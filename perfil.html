@@ -361,9 +361,9 @@
                     <div class="mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-200/80 text-xs text-slate-600 leading-relaxed space-y-1.5">
                         <div class="flex items-center gap-1.5 font-extrabold text-slate-800 text-xs">
                             <span class="material-symbols-outlined text-purple-600 text-[18px]">event_repeat</span>
-                            <span>Información de Facturación de 30 Días</span>
+                            <span>Información de Facturación y Plazos de Pago</span>
                         </div>
-                        <p>Cada ciclo de facturación se contempla de forma general como un período de <strong>30 días</strong>.</p>
+                        <p>Cada ciclo de facturación dura <strong>30 días</strong> y se abona al inicio del período. Contás con los <strong>primeros 10 días corridos</strong> desde la fecha de vencimiento (o fin de prueba) para registrar el pago; a partir del día 11 sin pago registrado, <strong>el servicio se suspenderá automáticamente</strong> hasta regularizarlo.</p>
                         <p class="text-slate-500"><strong>Aumentos de tarifa:</strong> Si se modifica el precio del plan, el nuevo valor se aplicará a partir de tu <strong>próximo período de facturación</strong>, respetando la tarifa acordada durante tu ciclo en curso.</p>
                     </div>
 
@@ -639,8 +639,8 @@
                             cycleEnd.setMonth(cycleEnd.getMonth() + 1);
                             const cycleEndStr = cycleEnd.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
                             vencSubEl.textContent = daysLeft > 0
-                                ? `Tu prueba sin costo finaliza el ${formattedVenc}. Si decidís continuar, el abono se paga al inicio del ciclo mensual (del ${formattedVenc} al ${cycleEndStr}), sin débito automático.`
-                                : `Tu prueba finalizó. Si querés continuar, podés abonar tu primer ciclo mensual al inicio del período.`;
+                                ? `Tu prueba sin costo finaliza el ${formattedVenc}. Si decidís continuar, abonás dentro de los primeros 10 días del ciclo (${formattedVenc} al ${cycleEndStr}); a partir del día 11 sin pago el servicio se suspende.`
+                                : `Tu prueba finalizó. Si querés continuar, tenés los primeros 10 días para abonar antes de que el servicio se suspenda.`;
                             vencSubEl.classList.remove('hidden');
                         }
                     } else {
