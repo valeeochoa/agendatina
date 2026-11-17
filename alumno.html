@@ -1531,8 +1531,8 @@
                         const safeFecha = String(c.fecha).replace(/'/g, "\\'");
                         const safeHora = String(c.hora).replace(/'/g, "\\'");
                         cancelBtnHtml = `
-                            <button onclick="promptCancelTurno(${c.id}, ${cancRest}, '${safeFecha}', '${safeHora}')" class="text-xs font-extrabold text-red-600 hover:bg-red-50 px-3.5 py-1.5 rounded-xl border border-red-200 transition-colors ml-auto flex items-center gap-1 cursor-pointer">
-                                <span class="material-symbols-outlined text-[16px]">cancel</span> Cancelar Reserva
+                            <button onclick="promptCancelTurno(${c.id}, ${cancRest}, '${safeFecha}', '${safeHora}')" class="text-xs font-extrabold text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-xl border border-red-200 transition-colors ml-auto flex items-center gap-1 cursor-pointer shrink-0 whitespace-nowrap">
+                                <span class="material-symbols-outlined text-[16px]">cancel</span> Cancelar
                             </button>
                         `;
                     }
