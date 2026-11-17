@@ -221,15 +221,27 @@ try {
         }
     }
 
-    // 2. Turnos Ocupados (Calculando su duración y cupos por servicio, excluyendo clases del Portal de Alumnos)
-    $sqlTurnos = "SELECT t.fecha, t.hora, COALESCE(s.duracion_minutos, 30) as duracion, t.id_servicio, COALESCE(s.cupo_maximo, s.capacidad, 1) as cupo_maximo, t.profesional, t.cliente_nombre, t.servicio 
-                  FROM turnos t 
-                  LEFT JOIN servicios s ON t.id_servicio = s.id 
-                  WHERE t.id_negocio = :id_negocio 
-                    AND t.estado IN ('pendiente', 'confirmado', 'bloqueado')
-                    AND COALESCE(s.tipo_servicio, 'calendario') != 'alumnos'
-                    AND COALESCE(s.cupo_maximo, s.capacidad, 1) <= 1
-                    AND COALESCE(t.metodo_pago, '') != 'Pase de Alumno'";
+    // 2. Turnos Ocupados (Separando calendario individual vs clases de Portal de Alumnos según ?destino=alumnos)
+    $destino = trim($_GET['destino'] ?? '');
+    if ($destino === 'alumnos') {
+        $sqlTurnos = "SELECT t.id, t.fecha, t.hora, COALESCE(s.duracion_minutos, 30) as duracion, t.id_servicio, COALESCE(s.cupo_maximo, s.capacidad, 1) as cupo_maximo, t.profesional, t.cliente_nombre, t.servicio 
+                      FROM turnos t 
+                      LEFT JOIN servicios s ON t.id_servicio = s.id 
+                      WHERE t.id_negocio = :id_negocio 
+                        AND t.estado IN ('pendiente', 'confirmado', 'bloqueado')
+                        AND (s.tipo_servicio = 'alumnos' OR COALESCE(s.cupo_maximo, s.capacidad, 1) > 1 OR COALESCE(t.metodo_pago, '') = 'Pase de Alumno')
+                      ORDER BY t.id ASC";
+    } else {
+        $sqlTurnos = "SELECT t.id, t.fecha, t.hora, COALESCE(s.duracion_minutos, 30) as duracion, t.id_servicio, COALESCE(s.cupo_maximo, s.capacidad, 1) as cupo_maximo, t.profesional, t.cliente_nombre, t.servicio 
+                      FROM turnos t 
+                      LEFT JOIN servicios s ON t.id_servicio = s.id 
+                      WHERE t.id_negocio = :id_negocio 
+                        AND t.estado IN ('pendiente', 'confirmado', 'bloqueado')
+                        AND COALESCE(s.tipo_servicio, 'calendario') != 'alumnos'
+                        AND COALESCE(s.cupo_maximo, s.capacidad, 1) <= 1
+                        AND COALESCE(t.metodo_pago, '') != 'Pase de Alumno'
+                      ORDER BY t.id ASC";
+    }
     $params = ['id_negocio' => $id_negocio];
 
     if ($isProfLogged && !$verTodosTurnos && !empty($profesionalSessionName)) {

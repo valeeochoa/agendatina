@@ -1471,6 +1471,12 @@
                 // Considerar próxima si la clase finaliza después de la hora actual, o si es para el día de hoy o futuro
                 const classEndTime = new Date(classDate.getTime() + 90 * 60 * 1000);
                 return classEndTime >= hoy || classDate >= startOfToday;
+            }).sort((a, b) => {
+                const da = parseClassDateTime(a.fecha, a.hora);
+                const db = parseClassDateTime(b.fecha, b.hora);
+                const ta = da ? da.getTime() : Number.MAX_SAFE_INTEGER;
+                const tb = db ? db.getTime() : Number.MAX_SAFE_INTEGER;
+                return ta - tb;
             });
 
             document.getElementById('statProximasCount').textContent = proximas.length;
@@ -1513,7 +1519,7 @@
                             const gDetails = encodeURIComponent(`Clase en ${c.negocio} con ${c.profesional || 'Instructor'}.\n¡Te esperamos en Agendatina!`);
                             const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${gTitle}&dates=${startIso}/${endIso}&details=${gDetails}`;
                             gCalBtnHtml = `
-                                <a href="${gCalUrl}" target="_blank" rel="noopener noreferrer" class="text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 transition-colors inline-flex items-center gap-1 shadow-2xs hover:text-[#fc8712]" title="Añadir a Google Calendar">
+                                <a href="${gCalUrl}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 transition-colors inline-flex items-center gap-1 shadow-2xs hover:text-[#fc8712]" title="Añadir a Google Calendar">
                                     <span class="material-symbols-outlined text-[15px] text-[#FC8712]">calendar_add_on</span> <span class="hidden sm:inline">Agendar en</span> Google
                                 </a>
                             `;
@@ -1523,7 +1529,7 @@
                     let cancelBtnHtml = '';
                     if (hasStarted) {
                         cancelBtnHtml = `
-                            <button disabled class="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 ml-auto flex items-center gap-1 cursor-not-allowed shadow-none" title="No podés cancelar una clase cuyo horario ya inició">
+                            <button disabled onclick="event.stopPropagation()" class="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 ml-auto flex items-center gap-1 cursor-not-allowed shadow-none" title="No podés cancelar una clase cuyo horario ya inició">
                                 <span class="material-symbols-outlined text-[16px]">lock</span> Clase en curso / iniciada
                             </button>
                         `;
@@ -1531,14 +1537,14 @@
                         const safeFecha = String(c.fecha).replace(/'/g, "\\'");
                         const safeHora = String(c.hora).replace(/'/g, "\\'");
                         cancelBtnHtml = `
-                            <button onclick="promptCancelTurno(${c.id}, ${cancRest}, '${safeFecha}', '${safeHora}')" class="text-xs font-extrabold text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-xl border border-red-200 transition-colors ml-auto flex items-center gap-1 cursor-pointer shrink-0 whitespace-nowrap">
+                            <button onclick="event.stopPropagation(); promptCancelTurno(${c.id}, ${cancRest}, '${safeFecha}', '${safeHora}')" class="text-xs font-extrabold text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-xl border border-red-200 transition-colors ml-auto flex items-center gap-1 cursor-pointer shrink-0 whitespace-nowrap">
                                 <span class="material-symbols-outlined text-[16px]">cancel</span> Cancelar
                             </button>
                         `;
                     }
 
                     return `
-                        <div class="bg-white/95 border ${isNextClass ? 'border-[#FC8712]/60 ring-2 ring-[#FC8712]/20 shadow-lg' : 'border-slate-200/90 shadow-md'} rounded-3xl p-5 sm:p-6 hover:shadow-xl transition-all flex flex-col justify-between gap-4">
+                        <div onclick="openStudentDetailFromBooking(${c.id})" class="cursor-pointer bg-white/95 border ${isNextClass ? 'border-[#FC8712]/60 ring-2 ring-[#FC8712]/20 shadow-lg' : 'border-slate-200/90 shadow-md'} rounded-3xl p-5 sm:p-6 hover:shadow-xl transition-all flex flex-col justify-between gap-4">
                             ${isNextClass ? `
                                 <div class="flex items-center justify-between gap-2 pb-1 border-b border-orange-100">
                                     <span class="bg-gradient-to-r from-[#d11149] to-[#fc8712] text-white text-[11px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full flex items-center gap-1.5 shadow-xs">
@@ -2082,7 +2088,7 @@
 
             Promise.all([
                 fetch('backend/gestionar_servicios.php?n=' + encodeURIComponent(ruta) + '&destino=alumnos').then(r => r.json()),
-                fetch('backend/obtener_turnos_ocupados.php?n=' + encodeURIComponent(ruta)).then(r => r.json())
+                fetch('backend/obtener_turnos_ocupados.php?n=' + encodeURIComponent(ruta) + '&destino=alumnos').then(r => r.json())
             ])
             .then(([serviciosData, ocupadosData]) => {
                 const rawServicios = Array.isArray(serviciosData) ? serviciosData : (serviciosData.servicios || []);
@@ -2691,6 +2697,53 @@
             }
         }
 
+        function openStudentDetailFromBooking(turnoId) {
+            const c = (allStudentClases || []).find(item => parseInt(item.id, 10) === parseInt(turnoId, 10));
+            if (!c) return;
+            const ruta = c.negocio_ruta || (studentNegocios.find(n => parseInt(n.id_negocio, 10) === parseInt(c.id_negocio, 10))?.negocio_ruta) || '';
+            const fechaStr = String(c.fecha || '').substring(0, 10);
+            const hora5 = String(c.hora || '').substring(0, 5);
+            const targetKey = `slot_${c.id_servicio || 0}_${fechaStr.replace(/-/g, '')}_${hora5.replace(':', '')}`;
+
+            if (fechaStr) {
+                const p = fechaStr.split('-').map(Number);
+                if (p.length === 3) {
+                    const targetDate = new Date(p[0], p[1] - 1, p[2]);
+                    const now = new Date();
+                    const diffDays = Math.floor((targetDate - new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
+                    studentWeekOffset = Math.max(0, Math.floor(diffDays / 7));
+                }
+            }
+
+            if (ruta) {
+                const sel = document.getElementById('studentSelectNegocio');
+                if (sel) sel.value = ruta;
+            }
+
+            window.activeDetailSlotKey = targetKey;
+            switchTab('detalleClase');
+            window.activeDetailSlotKey = targetKey;
+            const cont = document.getElementById('tabContentDetalleClase');
+            if (cont) {
+                cont.innerHTML = `<div class="bg-white/95 border border-slate-200 p-10 rounded-3xl text-center shadow-xl"><span class="material-symbols-outlined animate-spin text-4xl text-[#FC8712]">sync</span><p class="text-slate-600 font-bold text-sm mt-2">Cargando detalles de tu clase...</p></div>`;
+            }
+
+            if (ruta) {
+                loadStudentBusinessCalendar(ruta, true);
+                setTimeout(() => {
+                    if (window.studentClassSlotsMap && window.studentClassSlotsMap[targetKey]) {
+                        renderStudentClassDetailView(targetKey);
+                    } else {
+                        const fallbackKey = Object.keys(window.studentClassSlotsMap || {}).find(k => k.includes(fechaStr.replace(/-/g, '')) && k.endsWith('_' + hora5.replace(':', '')));
+                        if (fallbackKey) {
+                            window.activeDetailSlotKey = fallbackKey;
+                            renderStudentClassDetailView(fallbackKey);
+                        }
+                    }
+                }, 650);
+            }
+        }
+
         function openStudentClassDetail(cardSlotId) {
             if (!window.studentClassSlotsMap || !window.studentClassSlotsMap[cardSlotId]) return;
             window.activeDetailSlotKey = cardSlotId;
@@ -2717,7 +2770,7 @@
                             <span>✓ Ya tenés tu lugar reservado en esta clase</span>
                         </div>
                         ${(!slot.isPastTime && slot.enrolledTurnoId) ? `
-                            <button type="button" onclick="openCancelModal(${slot.enrolledTurnoId}, ${slot.cancelacionesRestantes})" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-black px-5 py-3 rounded-2xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer">
+                            <button type="button" onclick="promptCancelTurno(${slot.enrolledTurnoId}, ${slot.cancelacionesRestantes}, '${slot.fechaStr}', '${slot.cleanHoraDef5}')" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-black px-5 py-3 rounded-2xl text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer">
                                 <span class="material-symbols-outlined text-[18px]">event_busy</span>
                                 <span>Darme de baja de la clase</span>
                             </button>
@@ -2844,11 +2897,14 @@
                         </div>
 
                         <div class="bg-slate-50/80 border border-slate-200/80 rounded-2xl p-4 sm:p-5">
-                            <h4 class="text-xs font-black uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
+                            <h4 class="text-xs font-black uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1.5">
                                 <span class="material-symbols-outlined text-[18px]" style="color: ${slot.cSec};">group</span>
                                 <span>Quiénes van a asistir (${slot.alumnosInscriptos.length})</span>
                             </h4>
                             ${slot.alumnosInscriptos.length > 0 ? `
+                                <p class="text-xs sm:text-sm font-bold text-slate-800 mb-3 bg-white border border-slate-200/80 rounded-xl px-3.5 py-2.5">
+                                    <span class="text-slate-500 font-extrabold">Asisten:</span> ${slot.alumnosInscriptos.join(', ')}
+                                </p>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                                     ${slot.alumnosInscriptos.map(al => `
                                         <div class="bg-white border px-3 py-2 rounded-xl text-xs font-bold text-slate-800 flex items-center gap-2 shadow-2xs" style="border-color: ${slot.cSec}35;">
@@ -3107,13 +3163,14 @@
 
             if (cancelacionesRestantes <= 0) {
                 title.textContent = 'Límite de cancelaciones alcanzado';
-                desc.textContent = 'Has alcanzado el límite máximo de cancelaciones permitidas para tu pase actual en este establecimiento. No podés realizar más devoluciones en este ciclo.';
-                badge.innerHTML = '<span class="bg-red-100 text-red-800 text-xs font-black px-3.5 py-1.5 rounded-full border border-red-200 inline-block">0 cancelaciones disponibles</span>';
+                desc.textContent = 'Has alcanzado el límite máximo de devoluciones permitidas para tu pase actual en este establecimiento. No podés cancelar más turnos en este ciclo y deberás asistir.';
+                badge.innerHTML = '<span class="bg-red-100 text-red-800 text-xs font-black px-3.5 py-1.5 rounded-full border border-red-200 inline-block">0 devoluciones disponibles</span>';
                 btn.classList.add('hidden');
             } else {
+                const luego = Math.max(0, cancelacionesRestantes - 1);
                 title.textContent = '¿Cancelar esta reserva?';
-                desc.textContent = 'Al cancelar la clase, se te devolverá 1 pase disponible a tu cuenta.';
-                badge.innerHTML = `<span class="bg-orange-100 text-orange-800 text-xs font-black px-3 py-1 rounded-full border border-orange-200 inline-block">Te quedan ${cancelacionesRestantes} cancelaciones disponibles</span>`;
+                desc.textContent = 'Si cancelás la clase, se te devolverá 1 cupón/pase disponible a tu cuenta para volver a reservar.';
+                badge.innerHTML = `<span class="bg-orange-100 text-orange-800 text-xs font-black px-3 py-1.5 rounded-full border border-orange-200 inline-block">Tenés ${cancelacionesRestantes} ${cancelacionesRestantes === 1 ? 'devolución disponible' : 'devoluciones disponibles'} (te quedarán ${luego})</span>`;
                 btn.classList.remove('hidden');
             }
 
