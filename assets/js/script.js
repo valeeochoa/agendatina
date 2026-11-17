@@ -245,7 +245,9 @@ document.addEventListener('keydown', function (e) {
         openModals.forEach(m => {
             if (m.id === 'suspendedAccountModal') return; // Excluir modal de cuenta suspendida
             m.classList.add('hidden');
-            m.style.display = 'none';
+            if (m.style.display && m.style.display !== 'none') {
+                m.style.display = 'none';
+            }
         });
     }
 });
