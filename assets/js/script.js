@@ -5412,9 +5412,10 @@ window.renderUpgradeBreakdown = function() {
                     ✨ ${isDowngrade ? 'Al cambiar al' : 'Conservás tus'} <strong>${trialDaysRemaining} días restantes</strong> de prueba con las funciones y condiciones del <strong>Plan ${targetName}</strong>${teamNote}. El cambio es inmediato y sin costo hoy ($0).
                 </div>
                 <div class="flex justify-between items-center py-1 border-t border-slate-200 pt-2">
-                    <span class="text-slate-500 font-semibold">Próximo cobro al finalizar la prueba (${nextBillingStr}):</span>
+                    <span class="text-slate-500 font-semibold">Valor del plan si continuás luego del ${nextBillingStr}:</span>
                     <span class="font-bold text-purple-700">$${priceTarget.toLocaleString('es-AR')}/mes</span>
                 </div>
+                <p class="text-[11px] text-slate-400 font-medium">Sin débito automático: al finalizar la prueba vos elegís si querés abonar para seguir usando el servicio.</p>
             `;
         }
 
