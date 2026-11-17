@@ -827,18 +827,24 @@ window.updateModoReservasVisibility = function(planName) {
     const noticeNonPremium = document.getElementById('noticeNonPremiumModoReserva');
     const containerGrid = document.getElementById('containerModoReservasGrid');
     const boxAutoRenovar = document.getElementById('boxAutoRenovarVencimiento');
+    const boxAnticipacionCupos = document.getElementById('boxAnticipacionCuposAlumnos');
+    const gridAnticipacion = document.getElementById('gridAnticipacionMinima');
 
     if (!isPremium) {
         if (cardCupos) { cardCupos.classList.add('hidden'); cardCupos.style.display = 'none'; }
         if (noticeNonPremium) { noticeNonPremium.classList.remove('hidden'); noticeNonPremium.style.display = 'flex'; }
         if (containerGrid) containerGrid.className = 'grid grid-cols-1 gap-4';
         if (boxAutoRenovar) { boxAutoRenovar.classList.add('hidden'); boxAutoRenovar.style.display = 'none'; }
+        if (boxAnticipacionCupos) { boxAnticipacionCupos.classList.add('hidden'); boxAnticipacionCupos.style.display = 'none'; }
+        if (gridAnticipacion) gridAnticipacion.className = 'grid grid-cols-1 gap-4';
         window.setModoReserva('libre');
     } else {
         if (cardCupos) { cardCupos.classList.remove('hidden'); cardCupos.style.display = 'flex'; }
         if (noticeNonPremium) { noticeNonPremium.classList.add('hidden'); noticeNonPremium.style.display = 'none'; }
         if (containerGrid) containerGrid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
         if (boxAutoRenovar) { boxAutoRenovar.classList.remove('hidden'); boxAutoRenovar.style.display = ''; }
+        if (boxAnticipacionCupos) { boxAnticipacionCupos.classList.remove('hidden'); boxAnticipacionCupos.style.display = ''; }
+        if (gridAnticipacion) gridAnticipacion.className = 'grid grid-cols-1 md:grid-cols-2 gap-4';
     }
 };
 
