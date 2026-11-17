@@ -5391,6 +5391,9 @@ window.renderUpgradeBreakdown = function() {
         const nextBillingDate = new Date(fAlta);
         nextBillingDate.setDate(nextBillingDate.getDate() + totalTrialConfigured);
         const nextBillingStr = nextBillingDate.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const firstCycleEnd = new Date(nextBillingDate);
+        firstCycleEnd.setMonth(firstCycleEnd.getMonth() + 1);
+        const firstCycleEndStr = firstCycleEnd.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
         if (cycleInfoEl) cycleInfoEl.textContent = `En prueba (${trialDaysRemaining} días restantes)`;
 
@@ -5412,10 +5415,10 @@ window.renderUpgradeBreakdown = function() {
                     ✨ ${isDowngrade ? 'Al cambiar al' : 'Conservás tus'} <strong>${trialDaysRemaining} días restantes</strong> de prueba con las funciones y condiciones del <strong>Plan ${targetName}</strong>${teamNote}. El cambio es inmediato y sin costo hoy ($0).
                 </div>
                 <div class="flex justify-between items-center py-1 border-t border-slate-200 pt-2">
-                    <span class="text-slate-500 font-semibold">Valor del plan si continuás luego del ${nextBillingStr}:</span>
+                    <span class="text-slate-500 font-semibold">Primer ciclo pago si continuás (${nextBillingStr} al ${firstCycleEndStr}):</span>
                     <span class="font-bold text-purple-700">$${priceTarget.toLocaleString('es-AR')}/mes</span>
                 </div>
-                <p class="text-[11px] text-slate-400 font-medium">Sin débito automático: al finalizar la prueba vos elegís si querés abonar para seguir usando el servicio.</p>
+                <p class="text-[11px] text-slate-500 font-medium leading-relaxed">Pago al inicio de cada ciclo, sin débito automático: al finalizar tu prueba el ${nextBillingStr}, si elegís continuar abonás el mes por adelantado para cubrir el período del ${nextBillingStr} al ${firstCycleEndStr}.</p>
             `;
         }
 

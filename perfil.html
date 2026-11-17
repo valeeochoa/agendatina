@@ -635,9 +635,12 @@
                                 : `Tu prueba finaliza hoy (${formattedVenc})`;
                         }
                         if (vencSubEl) {
+                            const cycleEnd = new Date(nextBilling);
+                            cycleEnd.setMonth(cycleEnd.getMonth() + 1);
+                            const cycleEndStr = cycleEnd.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
                             vencSubEl.textContent = daysLeft > 0
-                                ? `Tu prueba sin costo termina el ${formattedVenc}. Recién a partir de esa fecha iniciaría tu ciclo si decidís continuar.`
-                                : `Si querés continuar con el servicio, podés activar tu plan cuando quieras.`;
+                                ? `Tu prueba sin costo finaliza el ${formattedVenc}. Si decidís continuar, el abono se paga al inicio del ciclo mensual (del ${formattedVenc} al ${cycleEndStr}), sin débito automático.`
+                                : `Tu prueba finalizó. Si querés continuar, podés abonar tu primer ciclo mensual al inicio del período.`;
                             vencSubEl.classList.remove('hidden');
                         }
                     } else {
