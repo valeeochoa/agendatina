@@ -891,13 +891,16 @@ try {
                     $nuevoTotales += (int)($sItem['pases_totales'] ?? 0);
                 }
 
+                $curRestCanc = $currCliente && $currCliente['cancelaciones_restantes'] !== null ? max(0, (int)$currCliente['cancelaciones_restantes']) : 0;
+                $nuevoCancRest = min($nuevoTotales, $curRestCanc + $cantAdd);
+
                 $stmtAdd = $pdo->prepare("
                     UPDATE clientes_negocio 
                     SET pases_disponibles = :disp, 
                         pases_totales = :tot, 
                         fecha_vencimiento = :newVenc, 
                         cancelaciones_permitidas = :tot, 
-                        cancelaciones_restantes = :disp,
+                        cancelaciones_restantes = :cancRest,
                         servicios_pases_json = :json
                     WHERE id = :id AND id_negocio = :id_negocio
                 ");
@@ -905,6 +908,7 @@ try {
                     'disp' => $nuevoDisponibles, 
                     'tot' => $nuevoTotales, 
                     'newVenc' => $newVenc, 
+                    'cancRest' => $nuevoCancRest,
                     'json' => json_encode($serviciosList, JSON_UNESCAPED_UNICODE),
                     'id' => $id, 
                     'id_negocio' => $id_negocio
@@ -917,6 +921,8 @@ try {
                     $nuevoDisponibles = $cantAdd;
                     $nuevoTotales = $cantAdd;
                 }
+                $curRestCanc = $currCliente && $currCliente['cancelaciones_restantes'] !== null ? max(0, (int)$currCliente['cancelaciones_restantes']) : 0;
+                $nuevoCancRest = min($nuevoTotales, $curRestCanc + $cantAdd);
 
                 $stmtAdd = $pdo->prepare("
                     UPDATE clientes_negocio 
@@ -924,13 +930,14 @@ try {
                         pases_totales = :tot, 
                         fecha_vencimiento = :newVenc, 
                         cancelaciones_permitidas = :tot, 
-                        cancelaciones_restantes = :disp 
+                        cancelaciones_restantes = :cancRest 
                     WHERE id = :id AND id_negocio = :id_negocio
                 ");
                 $stmtAdd->execute([
                     'disp' => $nuevoDisponibles, 
                     'tot' => $nuevoTotales, 
                     'newVenc' => $newVenc, 
+                    'cancRest' => $nuevoCancRest,
                     'id' => $id, 
                     'id_negocio' => $id_negocio
                 ]);

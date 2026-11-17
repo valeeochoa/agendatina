@@ -628,16 +628,14 @@ try {
         }
 
         foreach ($negociosAsociados as &$neg) {
-            $pDisp = (int)($neg['pases_disponibles'] ?? 0);
             $pTotales = max(1, (int)$neg['pases_totales']);
             $maxCanc = isset($neg['cancelaciones_permitidas']) && $neg['cancelaciones_permitidas'] !== null ? (int)$neg['cancelaciones_permitidas'] : $pTotales;
-            
-            if ($pDisp <= 0) {
-                $restCanc = 0;
-            } else {
-                $restCanc = isset($neg['cancelaciones_restantes']) && $neg['cancelaciones_restantes'] !== null ? (int)$neg['cancelaciones_restantes'] : $maxCanc;
-                $restCanc = min($restCanc, $maxCanc);
-            }
+
+            // Las cancelaciones disponibles son independientes de los pases restantes:
+            // aunque el alumno haya reservado todos sus cupos (pases_disponibles = 0),
+            // conserva sus cancelaciones restantes para poder darse de baja y recuperar el pase.
+            $restCanc = isset($neg['cancelaciones_restantes']) && $neg['cancelaciones_restantes'] !== null ? max(0, (int)$neg['cancelaciones_restantes']) : $maxCanc;
+            $restCanc = min($restCanc, $maxCanc);
 
             $neg['cancelaciones_max'] = $maxCanc;
             $neg['cancelaciones_restantes'] = $restCanc;
@@ -904,7 +902,7 @@ try {
         }
 
         // Obtener el registro del cliente en este establecimiento para controlar el límite de cancelaciones
-        $stmtClient = $pdo->prepare("SELECT id, nombre_completo, pases_totales, pases_disponibles, cancelaciones_permitidas, cancelaciones_restantes FROM clientes_negocio WHERE id_negocio = :id_negocio AND LOWER(TRIM(email)) = :email LIMIT 1");
+        $stmtClient = $pdo->prepare("SELECT id, nombre_completo, pases_totales, pases_disponibles, cancelaciones_permitidas, cancelaciones_restantes, servicios_pases_json FROM clientes_negocio WHERE id_negocio = :id_negocio AND LOWER(TRIM(email)) = :email LIMIT 1");
         $stmtClient->execute(['id_negocio' => $turno['id_negocio'], 'email' => $email]);
         $cn = $stmtClient->fetch(PDO::FETCH_ASSOC);
 
@@ -925,7 +923,39 @@ try {
             }
 
             $nuevasRestantes = max(0, $restCanc - 1);
-            $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + 1, cancelaciones_restantes = ? WHERE id = ?")->execute([$nuevasRestantes, $cn['id']]);
+            $updatedServiciosJson = $cn['servicios_pases_json'] ?? null;
+            if (!empty($updatedServiciosJson)) {
+                $sList = json_decode($updatedServiciosJson, true);
+                if (is_array($sList) && count($sList) > 0) {
+                    $tIdServ = (int)($turno['id_servicio'] ?? 0);
+                    $tServName = strtolower(trim($turno['servicio'] ?? ''));
+                    $matchedIdx = -1;
+                    foreach ($sList as $idx => $sItem) {
+                        if ($tIdServ > 0 && (int)($sItem['id_servicio'] ?? 0) === $tIdServ) {
+                            $matchedIdx = $idx;
+                            break;
+                        }
+                        if ($tServName !== '' && strtolower(trim($sItem['servicio'] ?? '')) === $tServName) {
+                            $matchedIdx = $idx;
+                            break;
+                        }
+                    }
+                    if ($matchedIdx === -1) $matchedIdx = 0;
+                    $sList[$matchedIdx]['pases_disponibles'] = ((int)($sList[$matchedIdx]['pases_disponibles'] ?? 0)) + 1;
+                    $nuevoTotDisp = 0;
+                    foreach ($sList as $sItem) {
+                        $nuevoTotDisp += (int)($sItem['pases_disponibles'] ?? 0);
+                    }
+                    $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = ?, cancelaciones_restantes = ?, servicios_pases_json = ? WHERE id = ?")
+                        ->execute([$nuevoTotDisp, $nuevasRestantes, json_encode($sList, JSON_UNESCAPED_UNICODE), $cn['id']]);
+                } else {
+                    $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + 1, cancelaciones_restantes = ? WHERE id = ?")
+                        ->execute([$nuevasRestantes, $cn['id']]);
+                }
+            } else {
+                $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + 1, cancelaciones_restantes = ? WHERE id = ?")
+                    ->execute([$nuevasRestantes, $cn['id']]);
+            }
         } else {
             $pdo->prepare("UPDATE clientes_negocio SET pases_disponibles = pases_disponibles + 1 WHERE id_negocio = ? AND LOWER(TRIM(email)) = ?")->execute([$turno['id_negocio'], $email]);
         }
