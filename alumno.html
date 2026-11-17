@@ -1468,9 +1468,8 @@
                     return c.estado === 'confirmado' || c.estado === 'pendiente';
                 }
 
-                // Considerar próxima si la clase finaliza después de la hora actual, o si es para el día de hoy o futuro
-                const classEndTime = new Date(classDate.getTime() + 90 * 60 * 1000);
-                return classEndTime >= hoy || classDate >= startOfToday;
+                // Considerar próxima únicamente si la clase todavía NO inició
+                return classDate > hoy;
             }).sort((a, b) => {
                 const da = parseClassDateTime(a.fecha, a.hora);
                 const db = parseClassDateTime(b.fecha, b.hora);
@@ -2304,8 +2303,8 @@
                                 return !isSameServ;
                             });
 
-                            // 2. Calcular conteo de cupos ocupados respetando si el negocio permite simultáneos o no
-                            const permiteSimultaneos = !!(bizConfig && (bizConfig.turnos_simultaneos === 'si' || bizConfig.modo_reservas === 'cupos_alumnos' || bizConfig.permite_simultaneos === true));
+                            // 2. Calcular conteo de cupos ocupados por clase (servicios con cupo > 1 siempre cuentan por servicio)
+                            const permiteSimultaneos = !!(cupoMax > 1 || (bizConfig && (bizConfig.turnos_simultaneos === 'si' || bizConfig.modo_reservas === 'cupos_alumnos' || bizConfig.permite_simultaneos === true)));
                             const keyServSlot = fechaStr + '_' + sId + '_' + cleanHoraDef5;
                             const keyHoraSlot = fechaStr + '_' + cleanHoraDef5;
                             let ocupadosCount = 0;
@@ -2902,17 +2901,9 @@
                                 <span>Quiénes van a asistir (${slot.alumnosInscriptos.length})</span>
                             </h4>
                             ${slot.alumnosInscriptos.length > 0 ? `
-                                <p class="text-xs sm:text-sm font-bold text-slate-800 mb-3 bg-white border border-slate-200/80 rounded-xl px-3.5 py-2.5">
+                                <p class="text-xs sm:text-sm font-bold text-slate-800 bg-white border border-slate-200/80 rounded-xl px-3.5 py-2.5">
                                     <span class="text-slate-500 font-extrabold">Asisten:</span> ${slot.alumnosInscriptos.join(', ')}
                                 </p>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                                    ${slot.alumnosInscriptos.map(al => `
-                                        <div class="bg-white border px-3 py-2 rounded-xl text-xs font-bold text-slate-800 flex items-center gap-2 shadow-2xs" style="border-color: ${slot.cSec}35;">
-                                            <span class="w-6 h-6 rounded-full flex items-center justify-center text-white text-[11px] font-black shrink-0" style="background-color: ${slot.cSec};">${String(al).trim().charAt(0).toUpperCase()}</span>
-                                            <span class="truncate">${al}</span>
-                                        </div>
-                                    `).join('')}
-                                </div>
                             ` : `
                                 <p class="text-xs text-slate-400 italic font-medium">Aún no hay alumnos inscriptos en este horario. ¡Podés ser el primero!</p>
                             `}
