@@ -835,13 +835,13 @@
                 }, { passive: true });
             }
 
-            // Si alguien entra sin barra final (/secret), normalizar para resolver rutas relativas dentro de /secret/
+            // Si alguien entra sin barra final (/pura), normalizar para resolver rutas relativas dentro de /pura/
             if (!window.location.pathname.endsWith('/') && !window.location.pathname.endsWith('.html')) {
                 window.history.replaceState(null, '', window.location.pathname + '/' + window.location.search + window.location.hash);
             }
 
             // Fallback automático de rutas si las imágenes fueron subidas a subcarpetas (img/, assets/, ../assets/, ../public/)
-            const prefixCandidates = ['', 'img/', 'assets/', '../assets/', '../public/', '/secret/', '/modelos/secret/'];
+            const prefixCandidates = ['', 'img/', 'assets/', '../assets/', '../public/', '/pura/', '/modelos/pura/'];
             document.querySelectorAll('img[src]').forEach(img => {
                 const origFile = img.getAttribute('src');
                 if (!origFile || origFile.startsWith('http') || origFile.startsWith('data:')) return;
