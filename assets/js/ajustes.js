@@ -525,6 +525,9 @@ window.applyCalendarConfigToForm = function(data) {
         if (data.hora_descanso_inicio !== undefined && form.querySelector('#configHoraDescansoInicio')) form.querySelector('#configHoraDescansoInicio').value = data.hora_descanso_inicio || '';
         if (data.hora_descanso_fin !== undefined && form.querySelector('#configHoraDescansoFin')) form.querySelector('#configHoraDescansoFin').value = data.hora_descanso_fin || '';
     }
+    if (typeof window.validateGeneralHoursLive === 'function') {
+        window.validateGeneralHoursLive();
+    }
 
     if (data.dias_trabajo !== undefined) {
         const diasArr = (typeof data.dias_trabajo === 'string') ? data.dias_trabajo.split(',') : (data.dias_trabajo || []);
@@ -1272,7 +1275,77 @@ window.computeSharedHoursFromHorarios = function(dataJsonOrObj) {
     return { hasCustom: true, isUniform: false, apertura: '', cierre: '', descansoInicio: '', descansoFin: '' };
 };
 
+window.validateGeneralHoursLive = function() {
+    const inpAp = document.getElementById('configHoraApertura');
+    const inpCi = document.getElementById('configHoraCierre');
+    const inpDi = document.getElementById('configHoraDescansoInicio');
+    const inpDf = document.getElementById('configHoraDescansoFin');
+    const errFranja = document.getElementById('errorFranjaPrincipalHorarios');
+    const errDescanso = document.getElementById('errorDescansoHorarios');
+
+    const ap = (inpAp?.value || '').trim();
+    const ci = (inpCi?.value || '').trim();
+    const di = (inpDi?.value || '').trim();
+    const df = (inpDf?.value || '').trim();
+
+    let franjaErrorMsg = '';
+    if ((ap && !ci) || (!ap && ci)) {
+        franjaErrorMsg = 'Completá tanto la hora de apertura como la hora de cierre.';
+    } else if (ap && ci && ap >= ci) {
+        franjaErrorMsg = `Intervalo inválido: la hora de apertura (${ap}) debe ser anterior a la hora de cierre (${ci}).`;
+    }
+
+    if (errFranja) {
+        if (franjaErrorMsg) {
+            errFranja.innerHTML = `<span class="material-symbols-outlined text-[16px] shrink-0 mt-0.5">error</span><span>${franjaErrorMsg}</span>`;
+            errFranja.classList.remove('hidden');
+        } else {
+            errFranja.innerHTML = '';
+            errFranja.classList.add('hidden');
+        }
+    }
+    [inpAp, inpCi].forEach(el => {
+        if (!el) return;
+        el.classList.toggle('border-red-400', !!franjaErrorMsg);
+        el.classList.toggle('bg-red-50/40', !!franjaErrorMsg);
+    });
+
+    let descansoErrorMsg = '';
+    if ((di && !df) || (!di && df)) {
+        descansoErrorMsg = 'Completá tanto el inicio como el fin del descanso, o usá "Limpiar" para horario corrido.';
+    } else if (di && df) {
+        if (di >= df) {
+            descansoErrorMsg = `Intervalo de descanso inválido: el inicio (${di}) debe ser anterior al fin (${df}).`;
+        } else if (ap && ci && ap < ci && (di <= ap || df >= ci)) {
+            descansoErrorMsg = `El descanso (${di} a ${df}) está mal configurado: debe ubicarse dentro de la franja de atención (${ap} a ${ci}).`;
+        }
+    }
+
+    if (errDescanso) {
+        if (descansoErrorMsg) {
+            errDescanso.innerHTML = `<span class="material-symbols-outlined text-[16px] shrink-0 mt-0.5">warning</span><span>${descansoErrorMsg}</span>`;
+            errDescanso.classList.remove('hidden');
+        } else {
+            errDescanso.innerHTML = '';
+            errDescanso.classList.add('hidden');
+        }
+    }
+    [inpDi, inpDf].forEach(el => {
+        if (!el) return;
+        el.classList.toggle('border-red-400', !!descansoErrorMsg);
+        el.classList.toggle('bg-red-50/40', !!descansoErrorMsg);
+    });
+
+    return {
+        valid: !franjaErrorMsg && !descansoErrorMsg,
+        errorMsg: franjaErrorMsg || descansoErrorMsg || ''
+    };
+};
+
 window.handleGeneralHoursChange = function() {
+    if (typeof window.validateGeneralHoursLive === 'function') {
+        window.validateGeneralHoursLive();
+    }
     const inpAp = document.getElementById('configHoraApertura');
     const inpCi = document.getElementById('configHoraCierre');
     const inpDi = document.getElementById('configHoraDescansoInicio');
@@ -1482,6 +1555,15 @@ window.saveHorariosDetalladosModal = function() {
 
 function handleCalendarConfigSubmit(e) {
     e.preventDefault();
+    if (typeof window.validateGeneralHoursLive === 'function') {
+        const resVal = window.validateGeneralHoursLive();
+        if (!resVal.valid) {
+            if (typeof showToast === 'function') showToast(resVal.errorMsg || 'Revisá los intervalos de horarios configurados.', 'error');
+            const targetErr = document.querySelector('#errorFranjaPrincipalHorarios:not(.hidden), #errorDescansoHorarios:not(.hidden)');
+            if (targetErr) targetErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+    }
     const form = e.target;
     const submitBtns = document.querySelectorAll('button[type="submit"][form="calendarConfigForm"], #calendarConfigForm button[type="submit"]');
     submitBtns.forEach(btn => {
