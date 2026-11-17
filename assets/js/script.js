@@ -1149,8 +1149,8 @@ function loadDashboardData() {
             const dashGreeting = document.getElementById('dashGreeting');
             const dashSubGreeting = document.getElementById('dashSubGreeting');
             if (dashGreeting && window.currentUserData.nombre_completo) {
-                const firstName = window.currentUserData.nombre_completo.split(' ')[0];
-                dashGreeting.innerHTML = `¡Hola, <span style="color: var(--color-secundario, #fc8712);" class="font-black">${firstName}</span>!`;
+                const fullName = window.currentUserData.nombre_completo.trim();
+                dashGreeting.innerHTML = `¡Hola, <span style="color: var(--color-secundario, #fc8712);" class="font-black">${fullName}</span>!`;
             }
             if (dashSubGreeting && business.nombre_fantasia) {
                 dashSubGreeting.innerHTML = `Gestionemos juntos tu negocio <span style="color: var(--color-secundario, #fc8712); background-color: color-mix(in srgb, var(--color-secundario, #fc8712) 10%, transparent); border-color: color-mix(in srgb, var(--color-secundario, #fc8712) 20%, transparent);" class="font-extrabold px-2 py-0.5 rounded-lg border inline-block">${business.nombre_fantasia}</span>`;
