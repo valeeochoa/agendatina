@@ -1793,6 +1793,7 @@ function renderGrillaSemanal() {
                     servicioId: sObj.id,
                     servicioNombre: sObj.nombre_servicio || t.servicio || 'Clase',
                     hora: tHora,
+                    duracion: parseInt(sObj.duracion || sObj.duracion_minutos || 30, 10) || 30,
                     profesional: t.profesional || sObj.profesional || 'Instructor',
                     cupoMaximo: parseInt(sObj.cupo_maximo || 10, 10) || 10,
                     inscriptos: inscriptos
@@ -1830,6 +1831,7 @@ function renderGrillaSemanal() {
                                     servicioId: s.id,
                                     servicioNombre: sNombre,
                                     hora: horaSlot,
+                                    duracion: parseInt(s.duracion || s.duracion_minutos || 30, 10) || 30,
                                     profesional: prof,
                                     cupoMaximo: cupoMax,
                                     inscriptos: inscriptos
@@ -1998,29 +2000,39 @@ function renderGrillaSemanal() {
                             cupoMaximo: c.cupoMaximo
                         }).replace(/"/g, '&quot;');
 
+                        const [ch, cm] = String(c.hora || '09:00').split(':').map(Number);
+                        const durMin = parseInt(c.duracion || 30, 10) || 30;
+                        const endTot = ((isNaN(ch) ? 9 : ch) * 60) + (isNaN(cm) ? 0 : cm) + durMin;
+                        const horaFin = `${String(Math.floor(endTot / 60) % 24).padStart(2, '0')}:${String(endTot % 60).padStart(2, '0')}`;
+
                         const isCustom = Boolean(cConf.customHex);
-                        const borderStyle = isCustom ? `style="border-left: 4px solid ${cConf.customHex};"` : '';
-                        const borderClass = isCustom ? '' : `${cConf.border} border-l-4`;
-                        const barStyle = isCustom ? `style="width: ${pctOcupacion}%; background-color: ${cConf.customHex};"` : `style="width: ${pctOcupacion}%;"`;
+                        const svcHex = isCustom ? cConf.customHex : '#f97316';
+                        const cardStyle = `style="background-color: ${svcHex}12; border-color: ${svcHex}45; border-left: 4px solid ${svcHex};"`;
+                        const timePillStyle = `style="background-color: ${svcHex}1F; color: ${svcHex}; border-color: ${svcHex}40;"`;
+                        const dotStyle = `style="background-color: ${svcHex};"`;
+                        const barStyle = isCustom ? `style="width: ${pctOcupacion}%; background-color: ${svcHex};"` : `style="width: ${pctOcupacion}%;"`;
                         const barClass = isCustom ? 'h-full rounded-full' : `${barraColor} h-full rounded-full`;
 
                         return `
-                            <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" ${borderStyle} class="bg-white hover:bg-orange-50/40 border border-slate-200 hover:border-orange-300 ${borderClass} rounded-lg p-2 shadow-2xs hover:shadow-xs transition-all cursor-pointer group">
-                                <div class="flex items-center justify-between gap-1.5 mb-1">
-                                    <span class="inline-flex items-center gap-0.5 text-[10px] font-black text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200/70 whitespace-nowrap">
-                                        <span class="material-symbols-outlined text-[11px]">schedule</span> ${c.hora}
+                            <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" ${cardStyle} class="border rounded-lg p-2 shadow-2xs hover:shadow-sm transition-all cursor-pointer group">
+                                <div class="flex flex-wrap items-center justify-between gap-1 mb-1">
+                                    <span ${timePillStyle} class="inline-flex items-center gap-0.5 text-[10px] font-black px-1.5 py-0.5 rounded border whitespace-nowrap">
+                                        <span class="material-symbols-outlined text-[11px]">schedule</span> ${c.hora} - ${horaFin}
                                     </span>
                                     ${badgeOcupacion}
                                 </div>
-                                <h4 class="text-xs font-extrabold text-slate-900 group-hover:text-orange-600 leading-tight truncate">${escapeHtml(c.servicioNombre)}</h4>
+                                <h4 class="text-xs font-extrabold text-slate-900 leading-tight truncate flex items-center gap-1.5">
+                                    <span ${dotStyle} class="w-2 h-2 rounded-full shrink-0"></span>
+                                    <span class="truncate">${escapeHtml(c.servicioNombre)}</span>
+                                </h4>
                                 <div class="flex items-center justify-between gap-1.5 mt-1 text-[10px]">
-                                    <span class="text-slate-500 font-medium truncate flex items-center gap-0.5">
+                                    <span class="text-slate-600 font-medium truncate flex items-center gap-0.5">
                                         <span class="material-symbols-outlined text-[11px] text-slate-400">person</span>
                                         ${escapeHtml(c.profesional)}
                                     </span>
-                                    <span class="font-extrabold text-slate-700 shrink-0">${ocupados}/${cupoMax}</span>
+                                    <span class="font-extrabold text-slate-800 shrink-0">${ocupados}/${cupoMax}</span>
                                 </div>
-                                <div class="w-full bg-slate-100 h-1 rounded-full overflow-hidden mt-1.5">
+                                <div class="w-full bg-white/80 h-1 rounded-full overflow-hidden mt-1.5">
                                     <div class="${barClass}" ${barStyle}></div>
                                 </div>
                             </div>
