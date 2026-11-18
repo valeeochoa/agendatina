@@ -1738,8 +1738,9 @@ function renderGrillaSemanal() {
     let totalInscriptosSemana = 0;
     let totalCapacidadSemana = 0;
 
-    // Procesar y renderizar días
-    const diasGenerados = [];
+    // Procesar días y recopilar matriz horaria tipo Excel
+    const diasMatrix = [];
+    const allHorasSet = new Set();
 
     dias.forEach(dateObj => {
         const fechaStr = formatLocalDateStr(dateObj);
@@ -1753,7 +1754,6 @@ function renderGrillaSemanal() {
         const isOpen = isNegocioOpenOnDay(dateObj, config);
         const turnosDelDia = turnos.filter(t => t.fecha === fechaStr);
 
-        // REGLA SOLICITADA POR EL USUARIO:
         // Los días que están cerrados NO deben aparecer en la grilla para no ocupar espacio
         if (!isOpen && turnosDelDia.length === 0) {
             return;
@@ -1848,220 +1848,182 @@ function renderGrillaSemanal() {
             return a.servicioNombre.localeCompare(b.servicioNombre);
         });
 
-        // Detectar superposición de horarios
-        const horasCount = {};
-        clasesDelDia.forEach(c => {
-            horasCount[c.hora] = (horasCount[c.hora] || 0) + 1;
-        });
-
-        // Acumular métricas
+        // Acumular métricas y horarios globales
         clasesDelDia.forEach(c => {
             totalClasesSemana++;
             totalInscriptosSemana += c.inscriptos.length;
             totalCapacidadSemana += c.cupoMaximo;
+            allHorasSet.add(c.hora);
         });
 
-        const tieneClases = clasesDelDia.length > 0;
-
-        // Encabezado del día: 2 renglones organizados según solicitud del usuario
-        // Renglón 1: Nombre del día con el número y la abreviación del mes
-        // Renglón 2: En el medio (o centrado/destacado) si es HOY, y del lado derecho cantidad de clases que se dictan en el día
-        let headerHtml = '';
-        const clasesBadgeTexto = tieneClases 
-            ? `${clasesDelDia.length} ${clasesDelDia.length === 1 ? 'clase' : 'clases'}` 
-            : 'Sin clases';
-
-        if (isHoy) {
-            headerHtml = `
-                <div class="bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 text-white px-3.5 py-2.5 rounded-t-2xl shadow-sm select-none flex items-center justify-between gap-2">
-                    <div class="min-w-0">
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-[10px] font-extrabold uppercase tracking-wider text-orange-100 leading-none block">${dayNameDisplay}</span>
-                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-white text-orange-700 tracking-wider shadow-2xs leading-none">
-                                <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
-                                Hoy
-                            </span>
-                        </div>
-                        <span class="text-sm sm:text-[15px] font-black text-white leading-tight mt-1 block whitespace-nowrap">${dayNum} ${monthShort}</span>
-                    </div>
-                    <span class="shrink-0 inline-block px-2.5 py-1 rounded-lg text-[10px] font-black bg-white/25 backdrop-blur-xs text-white whitespace-nowrap">${clasesBadgeTexto}</span>
-                </div>
-            `;
-        } else {
-            headerHtml = `
-                <div class="bg-white border-b border-slate-200/80 px-3.5 py-2.5 rounded-t-2xl select-none flex items-center justify-between gap-2">
-                    <div class="min-w-0">
-                        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500 leading-none block">${dayNameDisplay}</span>
-                        <span class="text-sm sm:text-[15px] font-black text-slate-900 leading-tight mt-1 block whitespace-nowrap">${dayNum} ${monthShort}</span>
-                    </div>
-                    <div class="shrink-0">
-                        ${tieneClases 
-                            ? `<span class="inline-block px-2.5 py-1 rounded-lg text-[10px] font-black bg-orange-50 text-orange-700 border border-orange-200/90 whitespace-nowrap">${clasesBadgeTexto}</span>`
-                            : `<span class="text-[10px] font-semibold text-slate-400 whitespace-nowrap">Sin clases</span>`
-                        }
-                    </div>
-                </div>
-            `;
-        }
-
-        let clasesHtml = '';
-        if (clasesDelDia.length === 0) {
-            const hasCuposServs = Array.isArray(semanaData?.servicios) && semanaData.servicios.length > 0;
-            const chkSolo = document.getElementById('chkSoloConInscriptos');
-            const emptyTitle = hasCuposServs ? 'Sin clases agendadas' : 'Sin servicios de Cupos/Alumnos';
-            const emptyHint = !hasCuposServs
-                ? 'Creá un servicio configurado para Cupos/Alumnos en la sección Servicios para ver sus clases aquí.'
-                : (chkSolo && chkSolo.checked
-                    ? 'Desmarca "Solo clases con inscriptos" para ver los horarios disponibles.'
-                    : 'No hay horarios disponibles configurados para este día.');
-            clasesHtml = `
-                <div class="py-8 px-3 text-center text-slate-400 bg-white/80 rounded-2xl border border-dashed border-slate-200 my-1">
-                    <span class="material-symbols-outlined text-2xl text-slate-300 block mb-1">schedule</span>
-                    <span class="text-xs font-bold text-slate-500 block">${emptyTitle}</span>
-                    <p class="text-[11px] text-slate-400 mt-1">${emptyHint}</p>
-                </div>
-            `;
-        } else {
-            clasesHtml = clasesDelDia.map(c => {
-                const ocupados = c.inscriptos.length;
-                const cupoMax = c.cupoMaximo;
-                const libres = Math.max(0, cupoMax - ocupados);
-                const pctOcupacion = cupoMax > 0 ? Math.min(100, Math.round((ocupados / cupoMax) * 100)) : 0;
-                const esSuperpuesta = (horasCount[c.hora] > 1);
-
-                const cConf = getServiceColorConfig(c.servicioId);
-
-                // Badge de ocupación refinado y moderno
-                let badgeOcupacion = '';
-                let barraColor = cConf.progressBar;
-
-                if (ocupados >= cupoMax) {
-                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-lg text-[10px] font-black bg-rose-50 text-rose-700 border border-rose-200/90 shadow-2xs inline-flex items-center gap-1 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>COMPLETO</span>`;
-                    barraColor = 'bg-rose-500';
-                } else if (ocupados > 0 && libres <= 2) {
-                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-lg text-[10px] font-black bg-amber-50 text-amber-900 border border-amber-200/90 shadow-2xs inline-flex items-center gap-1 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Últimos ${libres} ${libres === 1 ? 'cupo' : 'cupos'}</span>`;
-                    barraColor = 'bg-amber-500';
-                } else if (ocupados > 0) {
-                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-lg text-[10px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs inline-flex items-center gap-1 whitespace-nowrap"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>${libres} libres</span>`;
-                    barraColor = 'bg-emerald-500';
-                } else {
-                    badgeOcupacion = `<span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-50 text-slate-600 border border-slate-200/90 shadow-2xs whitespace-nowrap">Disponible (${cupoMax})</span>`;
-                    barraColor = 'bg-slate-300';
-                }
-
-                // Badge de superposición horaria
-                const superpuestaBadge = esSuperpuesta ? `
-                    <span class="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-800 bg-amber-100/80 px-1.5 py-0.5 rounded border border-amber-200 shrink-0 whitespace-nowrap" title="Horario compartido con otra actividad simultánea">
-                        <span class="material-symbols-outlined text-[13px]">layers</span>
-                        <span>Simultánea</span>
-                    </span>
-                ` : '';
-
-                const jsonCardData = JSON.stringify({
-                    servicioId: c.servicioId,
-                    servicioNombre: c.servicioNombre,
-                    fecha: fechaStr,
-                    hora: c.hora,
-                    profesional: c.profesional,
-                    cupoMaximo: c.cupoMaximo
-                }).replace(/"/g, '&quot;');
-
-                const isCustom = Boolean(cConf.customHex);
-                const cardBorderStyle = isCustom 
-                    ? `style="border-left-color: ${cConf.customHex}; border-left-width: 4px;"` 
-                    : '';
-                const cardBorderClass = isCustom ? '' : `${cConf.border} border-l-4`;
-
-                const barStyle = isCustom 
-                    ? `style="width: ${pctOcupacion}%; background-color: ${cConf.customHex};"` 
-                    : `style="width: ${pctOcupacion}%;"`;
-                const barClass = isCustom ? 'h-full rounded-full transition-all duration-300' : `${barraColor} h-full rounded-full transition-all duration-300`;
-
-                // RECUADRO DE CLASE COMPACTO Y EQUILIBRADO
-                return `
-                    <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" ${cardBorderStyle} class="bg-white hover:bg-slate-50/90 border border-slate-200/90 hover:border-orange-300 ${cardBorderClass} rounded-xl p-2.5 sm:p-3 shadow-2xs hover:shadow-sm transition-all cursor-pointer flex flex-col gap-1.5 group">
-                        <!-- Fila 1: Hora + Estado ocupación -->
-                        <div class="flex flex-wrap items-center justify-between gap-1.5">
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-black text-orange-800 bg-orange-100/70 border border-orange-200/90 whitespace-nowrap shrink-0">
-                                <span class="material-symbols-outlined text-[13px] text-orange-600">schedule</span>
-                                <span>${c.hora}</span>
-                            </span>
-                            <div class="shrink-0">${badgeOcupacion}</div>
-                        </div>
-
-                        <!-- Fila 2: Servicio + Profesional (+ Simultánea si aplica) -->
-                        <div>
-                            <h4 class="text-xs font-extrabold text-slate-900 group-hover:text-orange-600 transition-colors leading-tight line-clamp-1">
-                                ${escapeHtml(c.servicioNombre)}
-                            </h4>
-                            <div class="flex items-center justify-between gap-1.5 mt-0.5">
-                                <div class="flex items-center gap-1 text-[10px] font-semibold text-slate-400 group-hover:text-slate-500 transition-colors min-w-0">
-                                    <span class="material-symbols-outlined text-[12px] text-slate-400 shrink-0">person</span>
-                                    <span class="truncate">${escapeHtml(c.profesional)}</span>
-                                </div>
-                                ${superpuestaBadge}
-                            </div>
-                        </div>
-
-                        <!-- Fila 3: Ocupación y barra -->
-                        <div class="space-y-1">
-                            <div class="flex items-center justify-between text-[10px]">
-                                <span class="font-bold text-slate-700">${ocupados}/${cupoMax} alumnos</span>
-                                <span class="font-extrabold ${ocupados >= cupoMax ? 'text-rose-600' : 'text-slate-400'}">${pctOcupacion}%</span>
-                            </div>
-                            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200/50">
-                                <div class="${barClass}" ${barStyle}></div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // Columna del día: compacta con scroll interno
-        const colContainerClass = tieneClases
-            ? (isHoy 
-                ? 'bg-slate-50/80 border-2 border-orange-300 rounded-2xl shadow-sm overflow-hidden flex flex-col transition-all'
-                : 'bg-slate-50/60 hover:bg-slate-50/90 border border-slate-200/90 hover:border-slate-300 rounded-2xl shadow-2xs hover:shadow-xs overflow-hidden flex flex-col transition-all')
-            : 'bg-slate-50/30 border border-dashed border-slate-200/80 rounded-2xl overflow-hidden flex flex-col opacity-75';
-
-        diasGenerados.push(`
-            <div class="${colContainerClass}">
-                ${headerHtml}
-                <div class="p-2.5 space-y-2 flex-1 max-h-[70vh] min-h-[280px] overflow-y-auto custom-scrollbar">
-                    ${clasesHtml}
-                </div>
-            </div>
-        `);
+        diasMatrix.push({
+            fechaStr,
+            isHoy,
+            dayNameDisplay,
+            dayNum,
+            monthShort,
+            clasesDelDia
+        });
     });
 
-    const countCols = diasGenerados.length;
-    if (countCols === 0) {
-        container.className = 'grid grid-cols-1 gap-3.5 items-start';
+    if (diasMatrix.length === 0) {
+        container.className = 'w-full';
         container.innerHTML = `
-            <div class="col-span-full py-16 text-center text-slate-400 bg-white rounded-3xl border border-dashed border-slate-200">
+            <div class="py-16 text-center text-slate-400 bg-white rounded-3xl border border-dashed border-slate-200">
                 <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">event_busy</span>
                 <p class="font-bold text-slate-600 text-sm">No hay clases o días habilitados para esta semana.</p>
                 <p class="text-xs text-slate-400 mt-1">Podés navegar a otra semana o revisar los horarios en Ajustes.</p>
             </div>
         `;
     } else {
-        if (countCols === 1) {
-            container.className = 'grid grid-cols-1 max-w-md mx-auto gap-3.5 items-start';
-        } else if (countCols === 2) {
-            container.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start';
-        } else if (countCols === 3) {
-            container.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 items-start';
-        } else if (countCols === 4) {
-            container.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 items-start';
-        } else if (countCols === 5) {
-            container.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5 items-start';
-        } else if (countCols === 6) {
-            container.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5 items-start';
+        const allHoras = Array.from(allHorasSet).sort();
+
+        const thDiasHtml = diasMatrix.map(d => {
+            const count = d.clasesDelDia.length;
+            const badgeText = count > 0 ? `${count} ${count === 1 ? 'clase' : 'clases'}` : 'Sin clases';
+            if (d.isHoy) {
+                return `
+                    <th class="bg-gradient-to-b from-orange-500 to-amber-500 text-white border-b border-r last:border-r-0 border-orange-400 px-3 py-2.5 text-center min-w-[160px]">
+                        <div class="flex items-center justify-center gap-1.5">
+                            <span class="text-[11px] font-black uppercase tracking-wider">${d.dayNameDisplay}</span>
+                            <span class="px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-white text-orange-700 leading-none">Hoy</span>
+                        </div>
+                        <div class="flex items-center justify-center gap-2 mt-1">
+                            <span class="text-sm font-black">${d.dayNum} ${d.monthShort}</span>
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-white/25 text-white">${badgeText}</span>
+                        </div>
+                    </th>
+                `;
+            }
+            return `
+                <th class="bg-slate-100/90 text-slate-800 border-b border-r last:border-r-0 border-slate-300 px-3 py-2.5 text-center min-w-[160px]">
+                    <span class="text-[11px] font-black uppercase tracking-wider text-slate-500 block">${d.dayNameDisplay}</span>
+                    <div class="flex items-center justify-center gap-2 mt-1">
+                        <span class="text-sm font-black text-slate-900">${d.dayNum} ${d.monthShort}</span>
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold ${count > 0 ? 'bg-orange-100 text-orange-800' : 'bg-slate-200/70 text-slate-500'}">${badgeText}</span>
+                    </div>
+                </th>
+            `;
+        }).join('');
+
+        let tbodyHtml = '';
+        if (allHoras.length === 0) {
+            const hasCuposServs = Array.isArray(semanaData?.servicios) && semanaData.servicios.length > 0;
+            const msgEmpty = !hasCuposServs
+                ? 'Creá un servicio configurado para Cupos/Alumnos en la sección Servicios para ver sus clases aquí.'
+                : (soloConInscriptos
+                    ? 'No hay alumnos inscriptos esta semana. Desmarcá "Solo clases con inscriptos" para ver toda la grilla horaria.'
+                    : 'No hay horarios configurados para los días de esta semana.');
+            tbodyHtml = `
+                <tr>
+                    <td colspan="${diasMatrix.length + 1}" class="py-14 px-4 text-center bg-white">
+                        <span class="material-symbols-outlined text-3xl text-slate-300 block mb-1.5">grid_off</span>
+                        <p class="text-sm font-bold text-slate-600">Sin clases para mostrar en la grilla</p>
+                        <p class="text-xs text-slate-400 mt-1">${msgEmpty}</p>
+                    </td>
+                </tr>
+            `;
         } else {
-            container.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 items-start';
+            tbodyHtml = allHoras.map((hora, rowIdx) => {
+                const rowBg = rowIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40';
+                const tdsHtml = diasMatrix.map(d => {
+                    const cellClasses = d.clasesDelDia.filter(c => c.hora === hora);
+                    const tdBg = d.isHoy ? 'bg-orange-50/30' : '';
+
+                    if (cellClasses.length === 0) {
+                        return `<td class="border-b border-r last:border-r-0 border-slate-200 p-1.5 align-middle text-center ${tdBg}"><span class="text-slate-300 text-xs select-none">—</span></td>`;
+                    }
+
+                    const cardsInCell = cellClasses.map(c => {
+                        const ocupados = c.inscriptos.length;
+                        const cupoMax = c.cupoMaximo;
+                        const libres = Math.max(0, cupoMax - ocupados);
+                        const pctOcupacion = cupoMax > 0 ? Math.min(100, Math.round((ocupados / cupoMax) * 100)) : 0;
+                        const cConf = getServiceColorConfig(c.servicioId);
+
+                        let badgeOcupacion = '';
+                        let barraColor = cConf.progressBar;
+                        if (ocupados >= cupoMax) {
+                            badgeOcupacion = `<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-rose-100 text-rose-700 whitespace-nowrap">COMPLETO</span>`;
+                            barraColor = 'bg-rose-500';
+                        } else if (ocupados > 0 && libres <= 2) {
+                            badgeOcupacion = `<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-100 text-amber-800 whitespace-nowrap">${libres} lib.</span>`;
+                            barraColor = 'bg-amber-500';
+                        } else if (ocupados > 0) {
+                            badgeOcupacion = `<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-100 text-emerald-800 whitespace-nowrap">${libres} lib.</span>`;
+                            barraColor = 'bg-emerald-500';
+                        } else {
+                            badgeOcupacion = `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-600 whitespace-nowrap">${cupoMax} cupos</span>`;
+                            barraColor = 'bg-slate-300';
+                        }
+
+                        const jsonCardData = JSON.stringify({
+                            servicioId: c.servicioId,
+                            servicioNombre: c.servicioNombre,
+                            fecha: d.fechaStr,
+                            hora: c.hora,
+                            profesional: c.profesional,
+                            cupoMaximo: c.cupoMaximo
+                        }).replace(/"/g, '&quot;');
+
+                        const isCustom = Boolean(cConf.customHex);
+                        const borderStyle = isCustom ? `style="border-left: 4px solid ${cConf.customHex};"` : '';
+                        const borderClass = isCustom ? '' : `${cConf.border} border-l-4`;
+                        const barStyle = isCustom ? `style="width: ${pctOcupacion}%; background-color: ${cConf.customHex};"` : `style="width: ${pctOcupacion}%;"`;
+                        const barClass = isCustom ? 'h-full rounded-full' : `${barraColor} h-full rounded-full`;
+
+                        return `
+                            <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" ${borderStyle} class="bg-white hover:bg-orange-50/40 border border-slate-200 hover:border-orange-300 ${borderClass} rounded-lg p-2 shadow-2xs hover:shadow-xs transition-all cursor-pointer group">
+                                <div class="flex items-start justify-between gap-1.5">
+                                    <h4 class="text-xs font-extrabold text-slate-900 group-hover:text-orange-600 leading-tight truncate">${escapeHtml(c.servicioNombre)}</h4>
+                                    ${badgeOcupacion}
+                                </div>
+                                <div class="flex items-center justify-between gap-1.5 mt-1 text-[10px]">
+                                    <span class="text-slate-500 font-medium truncate flex items-center gap-0.5">
+                                        <span class="material-symbols-outlined text-[11px] text-slate-400">person</span>
+                                        ${escapeHtml(c.profesional)}
+                                    </span>
+                                    <span class="font-extrabold text-slate-700 shrink-0">${ocupados}/${cupoMax}</span>
+                                </div>
+                                <div class="w-full bg-slate-100 h-1 rounded-full overflow-hidden mt-1.5">
+                                    <div class="${barClass}" ${barStyle}></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    return `<td class="border-b border-r last:border-r-0 border-slate-200 p-1.5 align-top space-y-1.5 ${tdBg}">${cardsInCell}</td>`;
+                }).join('');
+
+                return `
+                    <tr class="${rowBg} hover:bg-slate-50/80 transition-colors">
+                        <td class="sticky left-0 z-10 bg-slate-100/95 backdrop-blur-xs border-b border-r border-slate-300 px-2.5 py-3 text-center align-middle font-black text-xs sm:text-sm text-slate-800 whitespace-nowrap">
+                            ${hora} <span class="text-[10px] font-bold text-slate-400">hs</span>
+                        </td>
+                        ${tdsHtml}
+                    </tr>
+                `;
+            }).join('');
         }
-        container.innerHTML = diasGenerados.join('');
+
+        container.className = 'w-full';
+        container.innerHTML = `
+            <div class="bg-white rounded-2xl border border-slate-300 shadow-sm overflow-x-auto custom-scrollbar">
+                <table class="w-full border-collapse min-w-[780px] text-left">
+                    <thead>
+                        <tr>
+                            <th class="sticky left-0 z-20 w-24 sm:w-28 bg-slate-200/90 border-b border-r border-slate-300 px-3 py-3 text-[11px] font-black uppercase tracking-wider text-slate-700 text-center">
+                                Horario
+                            </th>
+                            ${thDiasHtml}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tbodyHtml}
+                    </tbody>
+                </table>
+            </div>
+        `;
     }
 
     // Actualizar métricas superiores de la semana
