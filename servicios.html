@@ -824,27 +824,35 @@
             renderSvcHorariosDays();
         }
 
-        function updateSvcHorarioTramo(dayKey, idx, field, val) {
+        function updateSvcHorarioTramo(dayKey, idx, field, val, inputEl = null) {
             if (!svcHorariosState[dayKey] || !svcHorariosState[dayKey].tramos[idx]) return;
+            if (!/^\d{2}:\d{2}$/.test(val || '')) return;
             const dur = parseInt(document.getElementById('svcDuracion')?.value || 45, 10) || 45;
             if (field === 'inicio') {
                 svcHorariosState[dayKey].tramos[idx].inicio = val;
-                svcHorariosState[dayKey].tramos[idx].fin = calcEndTimeFromSvcDuration(val);
-                renderSvcHorariosDays();
+                const autoFin = calcEndTimeFromSvcDuration(val);
+                svcHorariosState[dayKey].tramos[idx].fin = autoFin;
+                const finInp = inputEl?.parentElement?.querySelector('.svc-tramo-fin');
+                if (finInp) {
+                    finInp.value = autoFin;
+                } else {
+                    renderSvcHorariosDays();
+                }
                 return;
             }
             if (field === 'fin') {
                 const ini = svcHorariosState[dayKey].tramos[idx].inicio || '09:00';
                 const [sh, sm] = ini.split(':').map(Number);
-                const [eh, em] = (val || '10:00').split(':').map(Number);
+                const [eh, em] = val.split(':').map(Number);
                 const diffMins = (eh * 60 + em) - (sh * 60 + sm);
                 if (diffMins <= 0 || diffMins > dur) {
                     const autoFin = calcEndTimeFromSvcDuration(ini);
                     svcHorariosState[dayKey].tramos[idx].fin = autoFin;
+                    if (inputEl) inputEl.value = autoFin;
                     if (typeof showToast === 'function') {
                         showToast(`La duración del horario no puede superar la del servicio (${dur} min). Se ajustó automáticamente a ${autoFin}.`, 'error');
                     }
-                    renderSvcHorariosDays();
+                    if (!inputEl) renderSvcHorariosDays();
                     return;
                 }
                 svcHorariosState[dayKey].tramos[idx].fin = val;
@@ -874,9 +882,9 @@
                 const active = Boolean(dayObj.activo);
                 const tramosHtml = active ? dayObj.tramos.map((tr, idx) => `
                     <div class="flex flex-wrap items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 shadow-2xs">
-                        <input type="time" value="${tr.inicio}" onchange="updateSvcHorarioTramo('${d.key}', ${idx}, 'inicio', this.value)" class="text-xs font-bold text-slate-800 bg-transparent outline-none cursor-pointer">
+                        <input type="time" value="${tr.inicio}" oninput="updateSvcHorarioTramo('${d.key}', ${idx}, 'inicio', this.value, this)" onchange="updateSvcHorarioTramo('${d.key}', ${idx}, 'inicio', this.value, this)" class="svc-tramo-inicio text-xs font-bold text-slate-800 bg-transparent outline-none cursor-pointer">
                         <span class="text-[11px] font-bold text-slate-400">a</span>
-                        <input type="time" value="${tr.fin}" onchange="updateSvcHorarioTramo('${d.key}', ${idx}, 'fin', this.value)" class="text-xs font-bold text-slate-800 bg-transparent outline-none cursor-pointer">
+                        <input type="time" value="${tr.fin}" onchange="updateSvcHorarioTramo('${d.key}', ${idx}, 'fin', this.value, this)" class="svc-tramo-fin text-xs font-bold text-slate-800 bg-transparent outline-none cursor-pointer">
                         <button type="button" onclick="removeSvcHorarioTramo('${d.key}', ${idx})" class="text-slate-400 hover:text-red-500 p-0.5 cursor-pointer" title="Quitar horario">
                             <span class="material-symbols-outlined text-[15px] block">close</span>
                         </button>
