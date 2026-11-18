@@ -2082,19 +2082,49 @@
             const negocioNombreSel = currentNegocio.negocio_nombre || 'este negocio';
             const servNombreSel = currentNegocio.servicio_nombre || currentNegocio.servicio || '';
             const servIconSel = (currentNegocio.servicio_icono && !String(currentNegocio.servicio_icono).includes('/')) ? currentNegocio.servicio_icono : 'event_available';
+            let studentServPasses = [];
+            try {
+                if (typeof currentNegocio.servicios_pases_json === 'string' && currentNegocio.servicios_pases_json.trim()) {
+                    studentServPasses = JSON.parse(currentNegocio.servicios_pases_json || '[]');
+                } else if (Array.isArray(currentNegocio.servicios_pases_json)) {
+                    studentServPasses = currentNegocio.servicios_pases_json;
+                }
+            } catch(e) { studentServPasses = []; }
+
+            function canStudentBookService(sId, sNombre) {
+                if (pasesNegocio <= 0) return false;
+                if (!Array.isArray(studentServPasses) || studentServPasses.length === 0) return true;
+                const cleanName = String(sNombre || '').trim().toLowerCase();
+                return studentServPasses.some(p => {
+                    const disp = parseInt(p.pases_disponibles, 10) || 0;
+                    if (disp <= 0) return false;
+                    const isLibre = Boolean(p.es_pase_libre) || parseInt(p.id_servicio, 10) === 0 || String(p.servicio || '').toLowerCase().includes('pase libre');
+                    if (isLibre) return true;
+                    if (sId && parseInt(p.id_servicio, 10) === parseInt(sId, 10)) return true;
+                    if (cleanName && String(p.servicio || '').trim().toLowerCase() === cleanName) return true;
+                    return false;
+                });
+            }
 
             function buildPassBannerHtml(cPri, cSec) {
                 if (pasesNegocio > 0) {
+                    const passPills = (Array.isArray(studentServPasses) && studentServPasses.length > 0)
+                        ? studentServPasses.filter(p => (parseInt(p.pases_disponibles, 10) || 0) > 0).map(p => {
+                            const isLibre = Boolean(p.es_pase_libre) || parseInt(p.id_servicio, 10) === 0 || String(p.servicio || '').toLowerCase().includes('pase libre');
+                            const label = isLibre ? '🎟️ Pase Libre (Todas las clases)' : `🔒 ${p.servicio || 'Clase específica'}`;
+                            return `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-white border border-slate-200 text-slate-800 shadow-2xs">${label}: <strong style="color:${cPri};">${p.pases_disponibles}</strong></span>`;
+                        }).join('')
+                        : '';
                     return `
                         <div class="mb-4 p-3.5 sm:p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs sm:text-sm font-extrabold text-slate-800 shadow-xs" style="background: linear-gradient(135deg, ${cSec}1A, ${cPri}12, #ffffff); border: 1px solid ${cSec}45;">
-                            <div class="flex items-center gap-2.5">
+                            <div class="flex items-center gap-2.5 flex-wrap">
                                 <span class="material-symbols-outlined text-[22px]" style="color: ${cSec};">confirmation_number</span>
                                 <div>
                                     <span>Tus pases en <strong>${negocioNombreSel}</strong>:</span>
-                                    ${servNombreSel ? `<span class="block text-xs font-bold inline-flex items-center gap-1" style="color: ${cPri};"><span class="material-symbols-outlined text-[13px]">${servIconSel}</span> ${servNombreSel}</span>` : ''}
+                                    ${passPills ? `<div class="flex flex-wrap items-center gap-1.5 mt-1">${passPills}</div>` : (servNombreSel ? `<span class="block text-xs font-bold inline-flex items-center gap-1" style="color: ${cPri};"><span class="material-symbols-outlined text-[13px]">${servIconSel}</span> ${servNombreSel}</span>` : '')}
                                 </div>
                             </div>
-                            <span class="text-white px-3.5 py-1.5 rounded-xl text-xs font-black shadow-xs shrink-0 w-fit" style="background-color: ${cPri};">${pasesNegocio} ${pasesNegocio === 1 ? 'pase libre' : 'pases libres'}</span>
+                            <span class="text-white px-3.5 py-1.5 rounded-xl text-xs font-black shadow-xs shrink-0 w-fit" style="background-color: ${cPri};">${pasesNegocio} ${pasesNegocio === 1 ? 'pase disponible' : 'pases disponibles'}</span>
                         </div>
                     `;
                 }
@@ -2371,10 +2401,14 @@
                                     ? ocupadosData['_alumnos'][fechaStr + '_0_' + cleanHoraDef5] 
                                     : []);
 
+                            const isPassAllowedForClass = canStudentBookService(sId, sNombre);
+
                             let badgeHtml = '';
                             if (!isAlreadyEnrolled && !isPastTime) {
                                 if (pasesNegocio <= 0) {
                                     badgeHtml = `<span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full border bg-red-100 text-red-800 border-red-200">🔒 Sin pases</span>`;
+                                } else if (!isPassAllowedForClass) {
+                                    badgeHtml = `<span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full border bg-slate-100 text-slate-600 border-slate-200">🔒 Solo Pase Libre</span>`;
                                 } else if (cuposLibres === 1) {
                                     badgeHtml = `<span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full border bg-amber-100 text-amber-800 border-amber-200">⚠️ 1 cupo libre</span>`;
                                 } else if (cuposLibres <= 0) {
@@ -2404,6 +2438,13 @@
                                     <button disabled class="w-full bg-slate-200 text-slate-500 font-extrabold py-2.5 rounded-xl text-xs uppercase tracking-wider cursor-not-allowed shadow-xs flex items-center justify-center gap-1.5">
                                         <span class="material-symbols-outlined text-[18px]">lock</span>
                                         <span>Sin pases en este negocio</span>
+                                    </button>
+                                `;
+                            } else if (!isPassAllowedForClass) {
+                                buttonHtml = `
+                                    <button disabled class="w-full bg-slate-100 text-slate-500 border border-slate-200 font-extrabold py-2.5 rounded-xl text-[11px] uppercase tracking-wider cursor-not-allowed flex items-center justify-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[16px]">lock</span>
+                                        <span>Requiere Pase Libre o pase de esta clase</span>
                                     </button>
                                 `;
                             } else if (cuposLibres <= 0) {

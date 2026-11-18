@@ -631,25 +631,32 @@
             renderServicesList(filtered);
         }
 
-        function addCupoPricingRow(cupos = 4, precio = 55000, etiqueta = '') {
+        function addCupoPricingRow(cupos = 4, precio = 55000, etiqueta = '', esPaseLibre = false) {
             const container = document.getElementById('cupoPricingContainer');
             if (!container) return;
             const rowId = 'cupo_row_' + Date.now() + '_' + Math.floor(Math.random()*1000);
             const div = document.createElement('div');
             div.id = rowId;
-            div.className = 'flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200';
+            div.className = 'flex flex-wrap sm:flex-nowrap items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200';
             div.innerHTML = `
-                <div class="w-24 shrink-0">
+                <div class="w-20 sm:w-24 shrink-0">
                     <span class="text-[9px] font-bold text-slate-400 block uppercase">Clases / Cupos</span>
                     <input type="number" min="1" max="100" value="${cupos}" class="cupo-qty-input w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-slate-800 outline-none" oninput="collectCupoPricingRows()">
                 </div>
-                <div class="flex-1">
+                <div class="w-24 sm:flex-1">
                     <span class="text-[9px] font-bold text-slate-400 block uppercase">Precio Total ($)</span>
                     <input type="number" min="0" step="100" value="${precio}" placeholder="55000" class="cupo-price-input w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-emerald-700 outline-none" oninput="collectCupoPricingRows()">
                 </div>
                 <div class="flex-1 hidden sm:block">
                     <span class="text-[9px] font-bold text-slate-400 block uppercase">Etiqueta (Opcional)</span>
                     <input type="text" value="${etiqueta}" placeholder="Pase Mensual" class="cupo-label-input w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-medium text-slate-700 outline-none" oninput="collectCupoPricingRows()">
+                </div>
+                <div class="w-36 sm:w-40 shrink-0">
+                    <span class="text-[9px] font-bold text-slate-400 block uppercase">Alcance</span>
+                    <select class="cupo-scope-select w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-slate-800 outline-none cursor-pointer" onchange="collectCupoPricingRows()">
+                        <option value="exclusivo" ${!esPaseLibre ? 'selected' : ''}>🔒 Solo esta clase</option>
+                        <option value="libre" ${esPaseLibre ? 'selected' : ''}>🎟️ Pase Libre (Todas)</option>
+                    </select>
                 </div>
                 <button type="button" onclick="removeCupoPricingRow('${rowId}')" class="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors mt-3 cursor-pointer" title="Eliminar Paquete">
                     <span class="material-symbols-outlined text-[16px]">delete</span>
@@ -706,8 +713,9 @@
                 const cupos = parseInt(r.querySelector('.cupo-qty-input')?.value || 1);
                 const precio = parseFloat(r.querySelector('.cupo-price-input')?.value || 0);
                 const etiqueta = r.querySelector('.cupo-label-input')?.value?.trim() || '';
+                const esPaseLibre = r.querySelector('.cupo-scope-select')?.value === 'libre';
                 if (cupos > 0 && precio >= 0) {
-                    result.push({ cupos, precio, etiqueta: etiqueta || `Pase ${cupos} Clases` });
+                    result.push({ cupos, precio, etiqueta: etiqueta || `Pase ${cupos} Clases`, es_pase_libre: esPaseLibre });
                 }
             });
             document.getElementById('svcPreciosPaquetesJson').value = JSON.stringify(result);
@@ -966,7 +974,8 @@
                         paquetesBadges = '<div class="flex flex-wrap items-center gap-1.5 mt-2">' + pkgs.map(p => {
                             const cuposVal = parseInt(p.cupos ?? p.pases ?? p.clases ?? 0, 10) || 1;
                             const etiqVal = (p.etiqueta || p.nombre || '').trim();
-                            return `<span class="bg-purple-50 text-purple-800 text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-purple-200/80 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">inventory_2</span> ${etiqVal ? escapeHtml(etiqVal) + ' (' + cuposVal + ' cl.)' : cuposVal + ' clases'} x $${parseFloat(p.precio || 0).toLocaleString('es-AR')}</span>`;
+                            const scopeTag = p.es_pase_libre ? '🎟️ Pase Libre' : '🔒 Exclusivo';
+                            return `<span class="bg-purple-50 text-purple-800 text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-purple-200/80 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">inventory_2</span> ${etiqVal ? escapeHtml(etiqVal) + ' (' + cuposVal + ' cl.)' : cuposVal + ' clases'} x $${parseFloat(p.precio || 0).toLocaleString('es-AR')} · ${scopeTag}</span>`;
                         }).join('') + '</div>';
                     }
                 } catch(e) {}
@@ -1169,7 +1178,7 @@
                     paquetes = typeof s.precios_paquetes_json === 'string' ? JSON.parse(s.precios_paquetes_json || '[]') : (s.precios_paquetes_json || []);
                 } catch(e) {}
                 if (Array.isArray(paquetes) && paquetes.length > 0) {
-                    paquetes.forEach(p => addCupoPricingRow(p.cupos ?? p.pases ?? p.clases ?? 1, p.precio ?? '', p.etiqueta || p.nombre || ''));
+                    paquetes.forEach(p => addCupoPricingRow(p.cupos ?? p.pases ?? p.clases ?? 1, p.precio ?? '', p.etiqueta || p.nombre || '', Boolean(p.es_pase_libre)));
                 }
             }
 

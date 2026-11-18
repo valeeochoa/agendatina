@@ -354,10 +354,11 @@ function renderServiciosAlumnoRows() {
                 
                 // Si el negocio configuró una etiqueta personalizada para el pase (ej: "Pase 8 Clases", "Plan Mensual 12 Clases")
                 let textoOpcion = '';
+                const scopeLabel = p.es_pase_libre ? '🎟️ Pase Libre' : '🔒 Exclusivo';
                 if (p.etiqueta && p.etiqueta.trim()) {
-                    textoOpcion = `🏷️ ${escapeHtml(p.etiqueta)} (${cupos} clases${precioFmt})`;
+                    textoOpcion = `🏷️ ${escapeHtml(p.etiqueta)} (${cupos} clases${precioFmt}) · ${scopeLabel}`;
                 } else {
-                    textoOpcion = `📦 Paquete ${cupos} clases${precioFmt}`;
+                    textoOpcion = `📦 Paquete ${cupos} clases${precioFmt} · ${scopeLabel}`;
                 }
 
                 // Identificar si coincide con la opción seleccionada
@@ -368,7 +369,7 @@ function renderServiciosAlumnoRows() {
 
                 if (isSelected) matchedPkg = true;
 
-                paqOptionsHtml += `<option value="${cupos}" data-etiqueta="${escapeHtml(p.etiqueta || '')}" data-precio="${precio}" ${isSelected ? 'selected' : ''}>${textoOpcion}</option>`;
+                paqOptionsHtml += `<option value="${cupos}" data-etiqueta="${escapeHtml(p.etiqueta || '')}" data-precio="${precio}" data-pase-libre="${p.es_pase_libre ? '1' : '0'}" ${isSelected ? 'selected' : ''}>${textoOpcion}</option>`;
             });
         }
 
@@ -414,12 +415,20 @@ function renderServiciosAlumnoRows() {
                         </div>
                     </div>
                 ` : (item.id_servicio ? `
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Pase / Paquete Configurado del Servicio</label>
-                        <select onchange="onPaqueteRowChange(${idx}, this)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-extrabold text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none">
-                            ${paqOptionsHtml}
-                        </select>
-                        <span class="text-[10px] text-slate-400 mt-1 block">Muestra los pases y etiquetas comerciales que definiste en la configuración de este servicio.</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Pase / Paquete Configurado</label>
+                            <select onchange="onPaqueteRowChange(${idx}, this)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-extrabold text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none">
+                                ${paqOptionsHtml}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Alcance de Uso</label>
+                            <select onchange="onAlcancePaseRowChange(${idx}, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-extrabold text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none">
+                                <option value="exclusivo" ${!item.es_pase_libre ? 'selected' : ''}>🔒 Exclusivo de esta clase</option>
+                                <option value="libre" ${item.es_pase_libre ? 'selected' : ''}>🎟️ Pase Libre (Todas las clases)</option>
+                            </select>
+                        </div>
                     </div>
                 ` : '')}
 
@@ -529,14 +538,22 @@ function onServicioRowChange(idx, newServId) {
         serviciosAlumnoEnEdicion[idx].pases_disponibles = c;
         serviciosAlumnoEnEdicion[idx].pases_totales = c;
         serviciosAlumnoEnEdicion[idx].etiqueta_pase = p0.etiqueta || `Pase ${c} Clases`;
+        serviciosAlumnoEnEdicion[idx].es_pase_libre = Boolean(p0.es_pase_libre);
         serviciosAlumnoEnEdicion[idx].es_manual = false;
     } else {
         serviciosAlumnoEnEdicion[idx].pases_disponibles = 4;
         serviciosAlumnoEnEdicion[idx].pases_totales = 4;
         serviciosAlumnoEnEdicion[idx].etiqueta_pase = 'Manual';
+        serviciosAlumnoEnEdicion[idx].es_pase_libre = false;
         serviciosAlumnoEnEdicion[idx].es_manual = true;
     }
 
+    renderServiciosAlumnoRows();
+}
+
+function onAlcancePaseRowChange(idx, val) {
+    if (!serviciosAlumnoEnEdicion[idx]) return;
+    serviciosAlumnoEnEdicion[idx].es_pase_libre = (val === 'libre');
     renderServiciosAlumnoRows();
 }
 
@@ -551,12 +568,14 @@ function onPaqueteRowChange(idx, selectEl) {
     } else if (val) {
         const selectedOpt = selectEl.options[selectEl.selectedIndex];
         const etq = selectedOpt ? selectedOpt.getAttribute('data-etiqueta') : '';
+        const isLibre = selectedOpt ? selectedOpt.getAttribute('data-pase-libre') === '1' : false;
         const cupos = parseInt(val, 10);
 
         serviciosAlumnoEnEdicion[idx].es_manual = false;
         serviciosAlumnoEnEdicion[idx].pases_disponibles = cupos;
         serviciosAlumnoEnEdicion[idx].pases_totales = cupos;
         serviciosAlumnoEnEdicion[idx].etiqueta_pase = etq || `Pase ${cupos} Clases`;
+        serviciosAlumnoEnEdicion[idx].es_pase_libre = isLibre;
         renderServiciosAlumnoRows();
     }
 }
