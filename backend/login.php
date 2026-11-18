@@ -70,10 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_once __DIR__ . '/conexion.php';
 
     // =========================================================================
-    // RATE LIMITING (Prevención de Fuerza Bruta)
+    // RATE LIMITING (Prevención de Fuerza Bruta individual por cuenta + IP)
     // =========================================================================
-    $ip_address = $_SERVER['REMOTE_ADDR'];
-    $max_attempts = 5;  // Máximo de intentos permitidos
+    $ip_address = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    $rate_key = md5($ip_address . '|' . strtolower(trim($email)));
+    $max_attempts = 5;  // Máximo de intentos permitidos por cuenta
     $lockout_time = 15; // Minutos de bloqueo si se supera el límite
 
     try {
@@ -86,9 +87,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 2. Limpiar bloqueos expirados (más antiguos que $lockout_time)
         $pdo->exec("DELETE FROM login_attempts WHERE ultimo_intento < NOW() - INTERVAL $lockout_time MINUTE");
 
-        // 3. Verificar si la IP actual está bloqueada
-        $stmtCheck = $pdo->prepare("SELECT intentos, ultimo_intento FROM login_attempts WHERE ip_address = :ip");
-        $stmtCheck->execute(['ip' => $ip_address]);
+        // 3. Verificar si esta cuenta desde la IP actual está bloqueada
+        $stmtCheck = $pdo->prepare("SELECT intentos, ultimo_intento FROM login_attempts WHERE ip_address = :rate_key");
+        $stmtCheck->execute(['rate_key' => $rate_key]);
         $attemptData = $stmtCheck->fetch();
 
         if ($attemptData && $attemptData['intentos'] >= $max_attempts) {
@@ -99,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             echo json_encode([
                 'success' => false, 
-                'error' => "Demasiados intentos fallidos. Por seguridad, la cuenta o IP está pausada temporalmente por {$minsRestantes} minutos."
+                'error' => "Demasiados intentos fallidos para esta cuenta. Por seguridad, está pausada temporalmente por {$minsRestantes} minutos."
             ]);
             exit;
         }
@@ -154,12 +155,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute(['email' => $email]);
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Helper: registrar intento fallido y calcular intentos restantes
-        $registrarFallo = function() use ($pdo, $ip_address, $max_attempts) {
-            $stmtFail = $pdo->prepare("INSERT INTO login_attempts (ip_address, intentos, ultimo_intento) VALUES (:ip, 1, NOW()) ON DUPLICATE KEY UPDATE intentos = intentos + 1, ultimo_intento = NOW()");
-            $stmtFail->execute(['ip' => $ip_address]);
-            $stmtCnt = $pdo->prepare("SELECT intentos FROM login_attempts WHERE ip_address = :ip");
-            $stmtCnt->execute(['ip' => $ip_address]);
+        // Helper: registrar intento fallido y calcular intentos restantes (individual por cuenta)
+        $registrarFallo = function() use ($pdo, $rate_key, $max_attempts) {
+            $stmtFail = $pdo->prepare("INSERT INTO login_attempts (ip_address, intentos, ultimo_intento) VALUES (:rate_key, 1, NOW()) ON DUPLICATE KEY UPDATE intentos = intentos + 1, ultimo_intento = NOW()");
+            $stmtFail->execute(['rate_key' => $rate_key]);
+            $stmtCnt = $pdo->prepare("SELECT intentos FROM login_attempts WHERE ip_address = :rate_key");
+            $stmtCnt->execute(['rate_key' => $rate_key]);
             $usados = (int)($stmtCnt->fetchColumn() ?: 1);
             return max(0, $max_attempts - $usados);
         };
@@ -201,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Reseteamos los intentos si el login es exitoso
-        $pdo->prepare("DELETE FROM login_attempts WHERE ip_address = :ip")->execute(['ip' => $ip_address]);
+        $pdo->prepare("DELETE FROM login_attempts WHERE ip_address = :rate_key")->execute(['rate_key' => $rate_key]);
 
         // Consultar todos los negocios vinculados a este usuario y deduplicar por id_negocio
         $allBiz = [];
