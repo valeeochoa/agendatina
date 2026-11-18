@@ -1981,7 +1981,7 @@ function renderGrillaSemanal() {
                 return `
                     <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" ${cardBorderStyle} class="bg-white hover:bg-slate-50/90 border border-slate-200/90 hover:border-orange-300 ${cardBorderClass} rounded-xl p-2.5 sm:p-3 shadow-2xs hover:shadow-sm transition-all cursor-pointer flex flex-col gap-1.5 group">
                         <!-- Fila 1: Hora + Estado ocupación -->
-                        <div class="flex items-center justify-between gap-1.5">
+                        <div class="flex flex-wrap items-center justify-between gap-1.5">
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-black text-orange-800 bg-orange-100/70 border border-orange-200/90 whitespace-nowrap shrink-0">
                                 <span class="material-symbols-outlined text-[13px] text-orange-600">schedule</span>
                                 <span>${c.hora}</span>
@@ -2028,7 +2028,7 @@ function renderGrillaSemanal() {
         diasGenerados.push(`
             <div class="${colContainerClass}">
                 ${headerHtml}
-                <div class="p-2.5 space-y-2 flex-1 max-h-[420px] overflow-y-auto custom-scrollbar">
+                <div class="p-2.5 space-y-2 flex-1 max-h-[70vh] min-h-[280px] overflow-y-auto custom-scrollbar">
                     ${clasesHtml}
                 </div>
             </div>
@@ -2047,7 +2047,7 @@ function renderGrillaSemanal() {
         `;
     } else {
         if (countCols === 1) {
-            container.className = 'grid grid-cols-1 max-w-md gap-3.5 items-start';
+            container.className = 'grid grid-cols-1 max-w-md mx-auto gap-3.5 items-start';
         } else if (countCols === 2) {
             container.className = 'grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start';
         } else if (countCols === 3) {
@@ -2056,8 +2056,10 @@ function renderGrillaSemanal() {
             container.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 items-start';
         } else if (countCols === 5) {
             container.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5 items-start';
+        } else if (countCols === 6) {
+            container.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5 items-start';
         } else {
-            container.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 items-start';
+            container.className = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 items-start';
         }
         container.innerHTML = diasGenerados.join('');
     }

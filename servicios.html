@@ -294,6 +294,10 @@
                         </label>
                     </div>
                     <div id="svcHorariosEspecificosBody" class="hidden mt-4 pt-4 border-t border-slate-200/80 space-y-2.5">
+                        <div class="px-3 py-2 rounded-xl bg-blue-50/80 border border-blue-200/70 text-[11px] font-semibold text-blue-900 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[16px] text-blue-600 shrink-0">info</span>
+                            <span>Solo elegí la hora de inicio: el horario de fin se calcula automáticamente según la duración configurada (<strong id="svcHorariosDuracionHint">45 min</strong>) y no puede superarla.</span>
+                        </div>
                         <div id="svcHorariosDaysContainer" class="space-y-2"></div>
                     </div>
                     <input type="hidden" name="horarios_especificos_json" id="svcHorariosEspecificosJson" value="">
@@ -589,6 +593,21 @@
             let total = (h * 60) + m;
             if (isNaN(total) || total < 1) total = 15;
             document.getElementById('svcDuracion').value = total;
+            const hint = document.getElementById('svcHorariosDuracionHint');
+            if (hint) hint.textContent = formatDuracionText(total);
+            if (typeof svcHorariosState === 'object' && svcHorariosState) {
+                Object.keys(svcHorariosState).forEach(k => {
+                    if (svcHorariosState[k] && Array.isArray(svcHorariosState[k].tramos)) {
+                        svcHorariosState[k].tramos.forEach(tr => {
+                            tr.fin = calcEndTimeFromSvcDuration(tr.inicio);
+                        });
+                    }
+                });
+                const toggle = document.getElementById('svcHorariosEspecificosToggle');
+                if (toggle && toggle.checked && typeof renderSvcHorariosDays === 'function') {
+                    renderSvcHorariosDays();
+                }
+            }
         }
 
         function formatDuracionText(minutosRaw) {
@@ -807,10 +826,28 @@
 
         function updateSvcHorarioTramo(dayKey, idx, field, val) {
             if (!svcHorariosState[dayKey] || !svcHorariosState[dayKey].tramos[idx]) return;
-            svcHorariosState[dayKey].tramos[idx][field] = val;
-            if (field === 'inicio' && svcHorariosState[dayKey].tramos[idx].fin <= val) {
+            const dur = parseInt(document.getElementById('svcDuracion')?.value || 45, 10) || 45;
+            if (field === 'inicio') {
+                svcHorariosState[dayKey].tramos[idx].inicio = val;
                 svcHorariosState[dayKey].tramos[idx].fin = calcEndTimeFromSvcDuration(val);
                 renderSvcHorariosDays();
+                return;
+            }
+            if (field === 'fin') {
+                const ini = svcHorariosState[dayKey].tramos[idx].inicio || '09:00';
+                const [sh, sm] = ini.split(':').map(Number);
+                const [eh, em] = (val || '10:00').split(':').map(Number);
+                const diffMins = (eh * 60 + em) - (sh * 60 + sm);
+                if (diffMins <= 0 || diffMins > dur) {
+                    const autoFin = calcEndTimeFromSvcDuration(ini);
+                    svcHorariosState[dayKey].tramos[idx].fin = autoFin;
+                    if (typeof showToast === 'function') {
+                        showToast(`La duración del horario no puede superar la del servicio (${dur} min). Se ajustó automáticamente a ${autoFin}.`, 'error');
+                    }
+                    renderSvcHorariosDays();
+                    return;
+                }
+                svcHorariosState[dayKey].tramos[idx].fin = val;
             }
         }
 
@@ -829,6 +866,9 @@
         function renderSvcHorariosDays() {
             const container = document.getElementById('svcHorariosDaysContainer');
             if (!container) return;
+            const hint = document.getElementById('svcHorariosDuracionHint');
+            const curDur = parseInt(document.getElementById('svcDuracion')?.value || 45, 10) || 45;
+            if (hint && typeof formatDuracionText === 'function') hint.textContent = formatDuracionText(curDur);
             container.innerHTML = SVC_DAYS_ORDER.map(d => {
                 const dayObj = svcHorariosState[d.key] || { activo: false, tramos: [] };
                 const active = Boolean(dayObj.activo);
