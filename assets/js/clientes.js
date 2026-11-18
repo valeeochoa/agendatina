@@ -1867,7 +1867,7 @@ function renderGrillaSemanal() {
     });
 
     if (diasMatrix.length === 0) {
-        container.className = 'w-full';
+        container.className = 'w-full max-w-[1680px] mx-auto';
         container.innerHTML = `
             <div class="py-16 text-center text-slate-400 bg-white rounded-3xl border border-dashed border-slate-200">
                 <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">event_busy</span>
@@ -1924,14 +1924,46 @@ function renderGrillaSemanal() {
                 </tr>
             `;
         } else {
-            tbodyHtml = allHoras.map((hora, rowIdx) => {
+            // Construir bloques horarios cada 2 horas (ej. 08:00 - 10:00, 10:00 - 12:00, ...)
+            let minStartHour = 8;
+            let maxEndHour = 22;
+            if (config && config.hora_apertura) {
+                const openH = parseInt(String(config.hora_apertura).split(':')[0], 10);
+                if (!isNaN(openH)) minStartHour = Math.min(minStartHour, Math.floor(openH / 2) * 2);
+            }
+            if (config && config.hora_cierre) {
+                const closeH = parseInt(String(config.hora_cierre).split(':')[0], 10);
+                if (!isNaN(closeH)) maxEndHour = Math.max(maxEndHour, Math.ceil(closeH / 2) * 2);
+            }
+            allHoras.forEach(hStr => {
+                const hh = parseInt(hStr.split(':')[0], 10);
+                if (!isNaN(hh)) {
+                    minStartHour = Math.min(minStartHour, Math.floor(hh / 2) * 2);
+                    maxEndHour = Math.max(maxEndHour, Math.floor(hh / 2) * 2 + 2);
+                }
+            });
+
+            const timeBlocks = [];
+            for (let b = minStartHour; b < maxEndHour; b += 2) {
+                timeBlocks.push({
+                    startHour: b,
+                    endHour: b + 2,
+                    labelStart: `${String(b).padStart(2, '0')}:00`,
+                    labelEnd: `${String(b + 2).padStart(2, '0')}:00`
+                });
+            }
+
+            tbodyHtml = timeBlocks.map((blk, rowIdx) => {
                 const rowBg = rowIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40';
                 const tdsHtml = diasMatrix.map(d => {
-                    const cellClasses = d.clasesDelDia.filter(c => c.hora === hora);
+                    const cellClasses = d.clasesDelDia.filter(c => {
+                        const cHour = parseInt(String(c.hora).split(':')[0], 10);
+                        return !isNaN(cHour) && cHour >= blk.startHour && cHour < blk.endHour;
+                    });
                     const tdBg = d.isHoy ? 'bg-orange-50/30' : '';
 
                     if (cellClasses.length === 0) {
-                        return `<td class="border-b border-r last:border-r-0 border-slate-200 p-1.5 align-middle text-center ${tdBg}"><span class="text-slate-300 text-xs select-none">—</span></td>`;
+                        return `<td class="border-b border-r last:border-r-0 border-slate-200 p-2 align-middle text-center h-[58px] ${tdBg}"><span class="text-slate-300 text-xs select-none">—</span></td>`;
                     }
 
                     const cardsInCell = cellClasses.map(c => {
@@ -1974,10 +2006,13 @@ function renderGrillaSemanal() {
 
                         return `
                             <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" ${borderStyle} class="bg-white hover:bg-orange-50/40 border border-slate-200 hover:border-orange-300 ${borderClass} rounded-lg p-2 shadow-2xs hover:shadow-xs transition-all cursor-pointer group">
-                                <div class="flex items-start justify-between gap-1.5">
-                                    <h4 class="text-xs font-extrabold text-slate-900 group-hover:text-orange-600 leading-tight truncate">${escapeHtml(c.servicioNombre)}</h4>
+                                <div class="flex items-center justify-between gap-1.5 mb-1">
+                                    <span class="inline-flex items-center gap-0.5 text-[10px] font-black text-orange-700 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-200/70 whitespace-nowrap">
+                                        <span class="material-symbols-outlined text-[11px]">schedule</span> ${c.hora}
+                                    </span>
                                     ${badgeOcupacion}
                                 </div>
+                                <h4 class="text-xs font-extrabold text-slate-900 group-hover:text-orange-600 leading-tight truncate">${escapeHtml(c.servicioNombre)}</h4>
                                 <div class="flex items-center justify-between gap-1.5 mt-1 text-[10px]">
                                     <span class="text-slate-500 font-medium truncate flex items-center gap-0.5">
                                         <span class="material-symbols-outlined text-[11px] text-slate-400">person</span>
@@ -1997,8 +2032,9 @@ function renderGrillaSemanal() {
 
                 return `
                     <tr class="${rowBg} hover:bg-slate-50/80 transition-colors">
-                        <td class="sticky left-0 z-10 bg-slate-100/95 backdrop-blur-xs border-b border-r border-slate-300 px-2.5 py-3 text-center align-middle font-black text-xs sm:text-sm text-slate-800 whitespace-nowrap">
-                            ${hora} <span class="text-[10px] font-bold text-slate-400">hs</span>
+                        <td class="sticky left-0 z-10 bg-slate-100/95 backdrop-blur-xs border-b border-r border-slate-300 px-2.5 py-3 text-center align-middle whitespace-nowrap">
+                            <span class="block text-xs font-black text-slate-800">${blk.labelStart}</span>
+                            <span class="block text-[10px] font-bold text-slate-400">a ${blk.labelEnd}</span>
                         </td>
                         ${tdsHtml}
                     </tr>
@@ -2006,7 +2042,7 @@ function renderGrillaSemanal() {
             }).join('');
         }
 
-        container.className = 'w-full';
+        container.className = 'w-full max-w-[1680px] mx-auto';
         container.innerHTML = `
             <div class="bg-white rounded-2xl border border-slate-300 shadow-sm overflow-x-auto custom-scrollbar">
                 <table class="w-full border-collapse min-w-[780px] text-left">
