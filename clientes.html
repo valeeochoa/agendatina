@@ -105,49 +105,49 @@
         <!-- VISTA 1: PADRÓN DE ALUMNOS (Existente) -->
         <div id="vistaPadron" class="space-y-6">
         <!-- Tarjetas de Métricas -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Alumnos</span>
-                    <div class="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
-                        <span class="material-symbols-outlined text-lg">group</span>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 mb-5 sm:mb-6">
+            <div class="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs">
+                <div class="flex items-center justify-between gap-1.5 mb-1 sm:mb-1.5">
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Total Alumnos</span>
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold shrink-0">
+                        <span class="material-symbols-outlined text-base sm:text-lg">group</span>
                     </div>
                 </div>
-                <div class="text-3xl font-extrabold text-slate-900" id="statTotalAlumnos">0</div>
-                <p class="text-[11px] text-slate-400 mt-1">Registrados en el sistema</p>
+                <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-none" id="statTotalAlumnos">0</div>
+                <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1 truncate">Registrados en el sistema</p>
             </div>
 
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Alumnos Activos</span>
-                    <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
-                        <span class="material-symbols-outlined text-lg">check_circle</span>
+            <div class="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs">
+                <div class="flex items-center justify-between gap-1.5 mb-1 sm:mb-1.5">
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Alumnos Activos</span>
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold shrink-0">
+                        <span class="material-symbols-outlined text-base sm:text-lg">check_circle</span>
                     </div>
                 </div>
-                <div class="text-3xl font-extrabold text-emerald-600" id="statAlumnosActivos">0</div>
-                <p class="text-[11px] text-slate-400 mt-1">Con pases vigentes disponibles</p>
+                <div class="text-2xl sm:text-3xl font-extrabold text-emerald-600 leading-none" id="statAlumnosActivos">0</div>
+                <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1 truncate">Con pases vigentes</p>
             </div>
 
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Sin Clases / Pases</span>
-                    <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold">
-                        <span class="material-symbols-outlined text-lg">hourglass_disabled</span>
+            <div class="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs">
+                <div class="flex items-center justify-between gap-1.5 mb-1 sm:mb-1.5">
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Sin Clases / Pases</span>
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold shrink-0">
+                        <span class="material-symbols-outlined text-base sm:text-lg">hourglass_disabled</span>
                     </div>
                 </div>
-                <div class="text-3xl font-extrabold text-amber-600" id="statAlumnosSinPases">0</div>
-                <p class="text-[11px] text-slate-400 mt-1">Agotaron sus créditos</p>
+                <div class="text-2xl sm:text-3xl font-extrabold text-amber-600 leading-none" id="statAlumnosSinPases">0</div>
+                <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1 truncate">Agotaron sus créditos</p>
             </div>
 
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Pases Vencidos</span>
-                    <div class="w-8 h-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold">
-                        <span class="material-symbols-outlined text-lg">event_busy</span>
+            <div class="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs">
+                <div class="flex items-center justify-between gap-1.5 mb-1 sm:mb-1.5">
+                    <span class="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Pases Vencidos</span>
+                    <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold shrink-0">
+                        <span class="material-symbols-outlined text-base sm:text-lg">event_busy</span>
                     </div>
                 </div>
-                <div class="text-3xl font-extrabold text-rose-600" id="statAlumnosVencidos">0</div>
-                <p class="text-[11px] text-slate-400 mt-1">Excedieron fecha límite</p>
+                <div class="text-2xl sm:text-3xl font-extrabold text-rose-600 leading-none" id="statAlumnosVencidos">0</div>
+                <p class="text-[10px] sm:text-[11px] text-slate-400 mt-1 truncate">Excedieron fecha límite</p>
             </div>
         </div>
 
