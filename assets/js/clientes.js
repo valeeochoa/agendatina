@@ -262,6 +262,7 @@ function poblarServiciosDropdowns() {
     if (selInvite) {
         const currentVal = selInvite.value;
         let html = '<option value="">-- Seleccionar Servicio --</option>';
+        html += '<option value="0">🎟️ Pase Libre (Todas las Clases)</option>';
         allServicios.forEach(s => {
             html += `<option value="${s.id}">${escapeHtml(s.nombre)}</option>`;
         });
@@ -303,7 +304,7 @@ function obtenerPaquetesDeServicio(servId) {
 // MANEJO DE FILAS DINÁMICAS DE SERVICIOS Y PASES EN EL MODAL
 // -------------------------------------------------------------
 function renderServiciosAlumnoRows() {
-    const canAddMore = Array.isArray(allServicios) && (serviciosAlumnoEnEdicion.length === 0 ? allServicios.length > 0 : (allServicios.length > 1 && serviciosAlumnoEnEdicion.length < allServicios.length));
+    const canAddMore = Array.isArray(allServicios) && (serviciosAlumnoEnEdicion.length === 0 ? allServicios.length > 0 : serviciosAlumnoEnEdicion.length < (allServicios.length + 1));
     const btnTop = document.getElementById('btnAsignarOtroServTop');
     const btnBot = document.getElementById('btnAsignarOtroServBottom');
     if (btnTop) btnTop.classList.toggle('hidden', !canAddMore);
@@ -330,10 +331,13 @@ function renderServiciosAlumnoRows() {
         const pkgs = obtenerPaquetesDeServicio(item.id_servicio);
         const totalRows = serviciosAlumnoEnEdicion.length;
 
+        const isPaseLibre = (item.id_servicio === 0 || item.id_servicio === '0' || Boolean(item.es_pase_libre));
+
         // Opciones del selector de servicios
         let servOptionsHtml = `<option value="">-- Seleccionar Servicio --</option>`;
+        servOptionsHtml += `<option value="0" ${isPaseLibre ? 'selected' : ''}>🎟️ Pase Libre (Todas las Clases del Local)</option>`;
         allServicios.forEach(s => {
-            const isSel = s.id == item.id_servicio ? 'selected' : '';
+            const isSel = !isPaseLibre && s.id == item.id_servicio ? 'selected' : '';
             const cupoText = s.cupo_maximo ? `${s.cupo_maximo} cupos` : '1 cupo';
             servOptionsHtml += `<option value="${s.id}" ${isSel}>${escapeHtml(s.nombre)} (${cupoText})</option>`;
         });
@@ -400,7 +404,16 @@ function renderServiciosAlumnoRows() {
                 </div>
 
                 <!-- Selector de Paquetes / Pases con Etiquetas -->
-                ${item.id_servicio ? `
+                ${isPaseLibre ? `
+                    <div class="p-2.5 bg-purple-50/80 border border-purple-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <span class="text-[11px] font-bold text-purple-900">🎟️ Válido para anotarse en <strong>cualquier clase</strong> de la grilla de alumnos.</span>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button type="button" onclick="setPaseLibrePreset(${idx}, 4)" class="px-2 py-1 text-[10px] font-extrabold bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg cursor-pointer">4 cl.</button>
+                            <button type="button" onclick="setPaseLibrePreset(${idx}, 8)" class="px-2 py-1 text-[10px] font-extrabold bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg cursor-pointer">8 cl.</button>
+                            <button type="button" onclick="setPaseLibrePreset(${idx}, 12)" class="px-2 py-1 text-[10px] font-extrabold bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg cursor-pointer">12 cl.</button>
+                        </div>
+                    </div>
+                ` : (item.id_servicio ? `
                     <div>
                         <label class="block text-[11px] font-bold text-slate-700 mb-1">Pase / Paquete Configurado del Servicio</label>
                         <select onchange="onPaqueteRowChange(${idx}, this)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-extrabold text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none">
@@ -408,7 +421,7 @@ function renderServiciosAlumnoRows() {
                         </select>
                         <span class="text-[10px] text-slate-400 mt-1 block">Muestra los pases y etiquetas comerciales que definiste en la configuración de este servicio.</span>
                     </div>
-                ` : ''}
+                ` : '')}
 
                 <!-- Grilla de Clases y Vencimiento -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
@@ -479,12 +492,35 @@ function eliminarFilaServicioAlumno(idx) {
     renderServiciosAlumnoRows();
 }
 
+function setPaseLibrePreset(idx, qty) {
+    if (!serviciosAlumnoEnEdicion[idx]) return;
+    serviciosAlumnoEnEdicion[idx].pases_disponibles = qty;
+    serviciosAlumnoEnEdicion[idx].pases_totales = qty;
+    serviciosAlumnoEnEdicion[idx].etiqueta_pase = `Pase Libre ${qty} Clases`;
+    serviciosAlumnoEnEdicion[idx].es_manual = true;
+    renderServiciosAlumnoRows();
+}
+
 function onServicioRowChange(idx, newServId) {
     if (!serviciosAlumnoEnEdicion[idx]) return;
+
+    if (String(newServId) === '0') {
+        const curPases = parseInt(serviciosAlumnoEnEdicion[idx].pases_disponibles, 10) || 8;
+        serviciosAlumnoEnEdicion[idx].id_servicio = 0;
+        serviciosAlumnoEnEdicion[idx].servicio = 'Pase Libre (Todas las Clases)';
+        serviciosAlumnoEnEdicion[idx].es_pase_libre = true;
+        serviciosAlumnoEnEdicion[idx].etiqueta_pase = `Pase Libre ${curPases} Clases`;
+        serviciosAlumnoEnEdicion[idx].pases_disponibles = curPases;
+        serviciosAlumnoEnEdicion[idx].pases_totales = Math.max(curPases, parseInt(serviciosAlumnoEnEdicion[idx].pases_totales, 10) || curPases);
+        serviciosAlumnoEnEdicion[idx].es_manual = true;
+        renderServiciosAlumnoRows();
+        return;
+    }
 
     const serv = allServicios.find(s => s.id == newServId);
     serviciosAlumnoEnEdicion[idx].id_servicio = newServId ? parseInt(newServId, 10) : null;
     serviciosAlumnoEnEdicion[idx].servicio = serv ? serv.nombre : '';
+    serviciosAlumnoEnEdicion[idx].es_pase_libre = false;
 
     const pkgs = obtenerPaquetesDeServicio(newServId);
     if (pkgs.length > 0) {
@@ -640,18 +676,18 @@ function guardarCliente(e) {
     const btn = document.getElementById('btnGuardarCliente');
     if (btn) { btn.disabled = true; btn.textContent = 'Guardando...'; }
 
-    // Asegurar que al menos un servicio tenga id_servicio seleccionado si hay servicios en la cuenta
+    // Asegurar que al menos un servicio tenga id_servicio seleccionado (o Pase Libre id_servicio === 0) si hay servicios en la cuenta
     if (allServicios.length > 0) {
-        const algunValido = serviciosAlumnoEnEdicion.some(s => s.id_servicio);
+        const algunValido = serviciosAlumnoEnEdicion.some(s => s.id_servicio === 0 || s.id_servicio === '0' || Boolean(s.es_pase_libre) || Boolean(s.id_servicio));
         if (!algunValido) {
             if (btn) { btn.disabled = false; btn.textContent = 'Guardar Alumno'; }
-            if (typeof showToast === 'function') showToast('Debes seleccionar al menos un servicio para asignar al alumno.', 'error');
+            if (typeof showToast === 'function') showToast('Debes seleccionar al menos un servicio o Pase Libre para asignar al alumno.', 'error');
             return;
         }
     }
 
     // Filtrar servicios vacíos sin servicio seleccionado si hay más de 1
-    const serviciosFiltrados = serviciosAlumnoEnEdicion.filter(s => s.id_servicio || serviciosAlumnoEnEdicion.length === 1);
+    const serviciosFiltrados = serviciosAlumnoEnEdicion.filter(s => s.id_servicio === 0 || s.id_servicio === '0' || Boolean(s.es_pase_libre) || Boolean(s.id_servicio) || serviciosAlumnoEnEdicion.length === 1);
 
     const payload = {
         id: document.getElementById('clienteId')?.value || null,

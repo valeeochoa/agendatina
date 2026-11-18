@@ -1236,9 +1236,10 @@ try {
             $targetIndex = 0;
             $foundMatch = false;
 
+            // 1. Priorizar pase específico para este servicio con créditos disponibles
             if ($id_servicio > 0) {
                 foreach ($serviciosList as $idx => $sItem) {
-                    if ((int)($sItem['id_servicio'] ?? 0) === (int)$id_servicio) {
+                    if ((int)($sItem['id_servicio'] ?? 0) === (int)$id_servicio && (int)($sItem['pases_disponibles'] ?? 0) > 0) {
                         $targetIndex = $idx;
                         $foundMatch = true;
                         break;
@@ -1249,7 +1250,21 @@ try {
             if (!$foundMatch && !empty($servicio)) {
                 $servLower = strtolower(trim($servicio));
                 foreach ($serviciosList as $idx => $sItem) {
-                    if (strtolower(trim($sItem['servicio'] ?? '')) === $servLower) {
+                    if (strtolower(trim($sItem['servicio'] ?? '')) === $servLower && (int)($sItem['pases_disponibles'] ?? 0) > 0) {
+                        $targetIndex = $idx;
+                        $foundMatch = true;
+                        break;
+                    }
+                }
+            }
+
+            // 2. Si no tiene pase específico activo, buscar un Pase Libre (id_servicio === 0 o es_pase_libre)
+            if (!$foundMatch) {
+                foreach ($serviciosList as $idx => $sItem) {
+                    $isLibre = !empty($sItem['es_pase_libre'])
+                        || (isset($sItem['id_servicio']) && (int)$sItem['id_servicio'] === 0)
+                        || stripos((string)($sItem['servicio'] ?? ''), 'pase libre') !== false;
+                    if ($isLibre && (int)($sItem['pases_disponibles'] ?? 0) > 0) {
                         $targetIndex = $idx;
                         $foundMatch = true;
                         break;
@@ -1258,13 +1273,19 @@ try {
             }
 
             if (!$foundMatch) {
-                foreach ($serviciosList as $idx => $sItem) {
-                    if ((int)($sItem['pases_disponibles'] ?? 0) > 0) {
-                        $targetIndex = $idx;
-                        $foundMatch = true;
-                        break;
+                $otrosConPases = [];
+                foreach ($serviciosList as $sItem) {
+                    if ((int)($sItem['pases_disponibles'] ?? 0) > 0 && !empty($sItem['servicio'])) {
+                        $otrosConPases[] = $sItem['servicio'];
                     }
                 }
+                if (count($otrosConPases) > 0) {
+                    $listaOtros = implode(', ', array_unique($otrosConPases));
+                    echo json_encode(['success' => false, 'error' => "Tu pase actual es exclusivo para {$listaOtros}. Para anotarte en {$servicio} necesitás un Pase Libre o un pase específico para esta clase."]);
+                } else {
+                    echo json_encode(['success' => false, 'error' => "No tenés pases disponibles para {$servicio}."]);
+                }
+                exit;
             }
 
             $curDisp = (int)($serviciosList[$targetIndex]['pases_disponibles'] ?? 0);

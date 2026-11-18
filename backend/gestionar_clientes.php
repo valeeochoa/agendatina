@@ -976,9 +976,12 @@ try {
 
         if (is_array($servicios_asignados) && count($servicios_asignados) > 0) {
             foreach ($servicios_asignados as $sa) {
-                $sId = !empty($sa['id_servicio']) ? (int)$sa['id_servicio'] : null;
+                $esPaseLibre = !empty($sa['es_pase_libre']) || (isset($sa['id_servicio']) && (string)$sa['id_servicio'] === '0');
+                $sId = $esPaseLibre ? 0 : (!empty($sa['id_servicio']) ? (int)$sa['id_servicio'] : null);
                 $sNom = trim($sa['servicio'] ?? '');
-                if ($sId && empty($sNom)) {
+                if ($esPaseLibre && empty($sNom)) {
+                    $sNom = 'Pase Libre (Todas las Clases)';
+                } elseif ($sId && empty($sNom)) {
                     $stmtSName = $pdo->prepare("SELECT nombre_servicio FROM servicios WHERE id = :id_serv AND id_negocio = :id_neg LIMIT 1");
                     $stmtSName->execute(['id_serv' => $sId, 'id_neg' => $id_negocio]);
                     $sNom = $stmtSName->fetchColumn() ?: 'Servicio';
@@ -997,6 +1000,7 @@ try {
                 $parsedServicios[] = [
                     'id_servicio' => $sId,
                     'servicio' => $sNom,
+                    'es_pase_libre' => $esPaseLibre,
                     'etiqueta_pase' => $pEtiqueta,
                     'pases_disponibles' => $pDisp,
                     'pases_totales' => $pTot,
