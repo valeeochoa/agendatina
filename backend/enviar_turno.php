@@ -70,6 +70,9 @@ catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE servicios ADD COLUMN email_
 try { $pdo->query("SELECT duracion_minutos FROM servicios LIMIT 1"); } 
 catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE servicios ADD COLUMN duracion_minutos INT DEFAULT 30"); } catch(\Throwable $ex) {} }
 
+try { $pdo->query("SELECT horarios_especificos_json FROM servicios LIMIT 1"); } 
+catch(\Throwable $e) { try { $pdo->exec("ALTER TABLE servicios ADD COLUMN horarios_especificos_json LONGTEXT DEFAULT NULL"); } catch(\Throwable $ex) {} }
+
 // Auto-migración tabla dias_bloqueados
 try {
     $pdo->exec("CREATE TABLE IF NOT EXISTS dias_bloqueados (
@@ -330,7 +333,7 @@ try {
 
     // Buscar el ID del servicio en base al nombre para insertarlo como Clave Foránea
     $idServNum = (is_numeric($servicio) && (int)$servicio > 0) ? (int)$servicio : 0;
-    $stmtServ = $pdo->prepare("SELECT id, precio, duracion_minutos, email_profesional, capacidad, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo FROM servicios WHERE id_negocio = :id_negocio AND (nombre_servicio = :servicio OR (id = :id_serv_num AND :id_serv_num > 0)) LIMIT 1");
+    $stmtServ = $pdo->prepare("SELECT id, precio, duracion_minutos, email_profesional, capacidad, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo, horarios_especificos_json FROM servicios WHERE id_negocio = :id_negocio AND (nombre_servicio = :servicio OR (id = :id_serv_num AND :id_serv_num > 0)) LIMIT 1");
     $stmtServ->execute(['id_negocio' => $id_negocio, 'servicio' => $servicio, 'id_serv_num' => $idServNum]);
     $serv = $stmtServ->fetch();
     $id_servicio = $serv ? $serv['id'] : null;
@@ -421,13 +424,22 @@ try {
             }
         }
         $dayOfWeek = (int)date('w', strtotime($fecha)); // 0 = Domingo, 1 = Lunes...
-        $hDet = !empty($configWeb['horarios_detallados_json']) ? json_decode($configWeb['horarios_detallados_json'], true) : null;
+        $servHDet = ($serv && !empty($serv['horarios_especificos_json'])) ? json_decode($serv['horarios_especificos_json'], true) : null;
+        $hasServSchedule = (is_array($servHDet) && count($servHDet) > 0);
+        $hDet = $hasServSchedule ? $servHDet : (!empty($configWeb['horarios_detallados_json']) ? json_decode($configWeb['horarios_detallados_json'], true) : null);
         $dayData = null;
         if (is_array($hDet)) {
             $numKey = (string)$dayOfWeek;
             $dayNames = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
             if (isset($hDet[$numKey])) $dayData = $hDet[$numKey];
             elseif (isset($dayNames[$dayOfWeek]) && isset($hDet[$dayNames[$dayOfWeek]])) $dayData = $hDet[$dayNames[$dayOfWeek]];
+        }
+
+        if ($hasServSchedule && !is_array($dayData)) {
+            $pdo->rollBack();
+            http_response_code(400);
+            echo json_encode(['success' => false, 'error' => 'El servicio seleccionado no tiene horarios habilitados en el día elegido.']);
+            exit;
         }
 
         if (is_array($dayData)) {

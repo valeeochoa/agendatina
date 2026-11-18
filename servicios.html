@@ -278,6 +278,27 @@
                     </div>
                 </div>
 
+                <!-- Sección Especial: Horarios Específicos por Servicio -->
+                <div id="boxHorariosEspecificosServicio" class="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-4 sm:p-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <label for="svcHorariosEspecificosToggle" class="text-xs sm:text-sm font-extrabold text-slate-900 flex items-center gap-1.5 cursor-pointer">
+                                <span class="material-symbols-outlined text-primary text-[18px]">event_available</span>
+                                <span>Horarios específicos para este servicio (Opcional)</span>
+                            </label>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Activá esta opción si este servicio o clase se dicta únicamente en días y horarios puntuales (ej. clases de gimnasio) en lugar de usar todo el horario del local.</p>
+                        </div>
+                        <label class="inline-flex items-center gap-2 cursor-pointer shrink-0 select-none">
+                            <input type="checkbox" id="svcHorariosEspecificosToggle" onchange="toggleSvcHorariosEspecificos(this.checked)" class="w-4 h-4 accent-primary rounded cursor-pointer">
+                            <span class="text-xs font-bold text-slate-700">Usar horarios propios</span>
+                        </label>
+                    </div>
+                    <div id="svcHorariosEspecificosBody" class="hidden mt-4 pt-4 border-t border-slate-200/80 space-y-2.5">
+                        <div id="svcHorariosDaysContainer" class="space-y-2"></div>
+                    </div>
+                    <input type="hidden" name="horarios_especificos_json" id="svcHorariosEspecificosJson" value="">
+                </div>
+
                 <!-- Sección Especial: Paquetes de Pases / Tarifas por Cantidad de Cupos -->
                 <div id="boxPaquetesPasesServicio" class="hidden bg-gradient-to-br from-amber-50/60 to-orange-50/40 border border-amber-200/80 rounded-2xl p-4 sm:p-5">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
@@ -674,6 +695,205 @@
             actualizarRequisitoPrecio(result.length > 0);
         }
 
+        const SVC_DAYS_ORDER = [
+            { key: '1', label: 'Lunes' },
+            { key: '2', label: 'Martes' },
+            { key: '3', label: 'Miércoles' },
+            { key: '4', label: 'Jueves' },
+            { key: '5', label: 'Viernes' },
+            { key: '6', label: 'Sábado' },
+            { key: '0', label: 'Domingo' }
+        ];
+        let svcHorariosState = {};
+
+        function getDefaultSvcHorariosState() {
+            const state = {};
+            SVC_DAYS_ORDER.forEach(d => {
+                state[d.key] = { activo: false, tramos: [] };
+            });
+            return state;
+        }
+
+        function calcEndTimeFromSvcDuration(startStr) {
+            const dur = parseInt(document.getElementById('svcDuracion')?.value || 60, 10) || 60;
+            const [sh, sm] = (startStr || '09:00').split(':').map(Number);
+            const total = Math.min(23 * 60 + 55, (isNaN(sh) ? 9 : sh) * 60 + (isNaN(sm) ? 0 : sm) + dur);
+            return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+        }
+
+        function toggleSvcHorariosEspecificos(enabled) {
+            const body = document.getElementById('svcHorariosEspecificosBody');
+            if (!body) return;
+            if (enabled) {
+                body.classList.remove('hidden');
+                if (!svcHorariosState || Object.keys(svcHorariosState).length === 0) {
+                    svcHorariosState = getDefaultSvcHorariosState();
+                }
+                renderSvcHorariosDays();
+            } else {
+                body.classList.add('hidden');
+            }
+        }
+
+        function resetSvcHorariosEspecificos() {
+            svcHorariosState = getDefaultSvcHorariosState();
+            const toggle = document.getElementById('svcHorariosEspecificosToggle');
+            if (toggle) toggle.checked = false;
+            const body = document.getElementById('svcHorariosEspecificosBody');
+            if (body) body.classList.add('hidden');
+            const inp = document.getElementById('svcHorariosEspecificosJson');
+            if (inp) inp.value = '';
+        }
+
+        function loadSvcHorariosEspecificos(rawJson) {
+            svcHorariosState = getDefaultSvcHorariosState();
+            let hasAny = false;
+            try {
+                const parsed = typeof rawJson === 'string' ? JSON.parse(rawJson || 'null') : rawJson;
+                if (parsed && typeof parsed === 'object') {
+                    SVC_DAYS_ORDER.forEach(d => {
+                        const item = parsed[d.key];
+                        if (item && item.activo && Array.isArray(item.tramos) && item.tramos.length > 0) {
+                            svcHorariosState[d.key] = {
+                                activo: true,
+                                tramos: item.tramos.map(t => ({ inicio: t.inicio || '09:00', fin: t.fin || '10:00' }))
+                            };
+                            hasAny = true;
+                        }
+                    });
+                }
+            } catch(e) {}
+
+            const toggle = document.getElementById('svcHorariosEspecificosToggle');
+            if (toggle) toggle.checked = hasAny;
+            const body = document.getElementById('svcHorariosEspecificosBody');
+            if (body) {
+                if (hasAny) body.classList.remove('hidden');
+                else body.classList.add('hidden');
+            }
+            renderSvcHorariosDays();
+            collectSvcHorariosEspecificos();
+        }
+
+        function toggleSvcHorarioDay(dayKey, isActive) {
+            if (!svcHorariosState[dayKey]) svcHorariosState[dayKey] = { activo: false, tramos: [] };
+            svcHorariosState[dayKey].activo = isActive;
+            if (isActive && svcHorariosState[dayKey].tramos.length === 0) {
+                svcHorariosState[dayKey].tramos.push({ inicio: '09:00', fin: calcEndTimeFromSvcDuration('09:00') });
+            }
+            renderSvcHorariosDays();
+        }
+
+        function addSvcHorarioTramo(dayKey) {
+            if (!svcHorariosState[dayKey]) svcHorariosState[dayKey] = { activo: true, tramos: [] };
+            svcHorariosState[dayKey].activo = true;
+            const last = svcHorariosState[dayKey].tramos[svcHorariosState[dayKey].tramos.length - 1];
+            let nextStart = '09:00';
+            if (last && last.fin) {
+                nextStart = last.fin < '22:00' ? last.fin : '18:00';
+            }
+            svcHorariosState[dayKey].tramos.push({ inicio: nextStart, fin: calcEndTimeFromSvcDuration(nextStart) });
+            renderSvcHorariosDays();
+        }
+
+        function removeSvcHorarioTramo(dayKey, idx) {
+            if (!svcHorariosState[dayKey]) return;
+            svcHorariosState[dayKey].tramos.splice(idx, 1);
+            if (svcHorariosState[dayKey].tramos.length === 0) {
+                svcHorariosState[dayKey].activo = false;
+            }
+            renderSvcHorariosDays();
+        }
+
+        function updateSvcHorarioTramo(dayKey, idx, field, val) {
+            if (!svcHorariosState[dayKey] || !svcHorariosState[dayKey].tramos[idx]) return;
+            svcHorariosState[dayKey].tramos[idx][field] = val;
+            if (field === 'inicio' && svcHorariosState[dayKey].tramos[idx].fin <= val) {
+                svcHorariosState[dayKey].tramos[idx].fin = calcEndTimeFromSvcDuration(val);
+                renderSvcHorariosDays();
+            }
+        }
+
+        function copySvcHorarioToWeekdays(sourceDayKey) {
+            const src = svcHorariosState[sourceDayKey];
+            if (!src || !src.activo || src.tramos.length === 0) return;
+            ['1','2','3','4','5'].forEach(k => {
+                svcHorariosState[k] = {
+                    activo: true,
+                    tramos: src.tramos.map(t => ({ inicio: t.inicio, fin: t.fin }))
+                };
+            });
+            renderSvcHorariosDays();
+        }
+
+        function renderSvcHorariosDays() {
+            const container = document.getElementById('svcHorariosDaysContainer');
+            if (!container) return;
+            container.innerHTML = SVC_DAYS_ORDER.map(d => {
+                const dayObj = svcHorariosState[d.key] || { activo: false, tramos: [] };
+                const active = Boolean(dayObj.activo);
+                const tramosHtml = active ? dayObj.tramos.map((tr, idx) => `
+                    <div class="flex flex-wrap items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 shadow-2xs">
+                        <input type="time" value="${tr.inicio}" onchange="updateSvcHorarioTramo('${d.key}', ${idx}, 'inicio', this.value)" class="text-xs font-bold text-slate-800 bg-transparent outline-none cursor-pointer">
+                        <span class="text-[11px] font-bold text-slate-400">a</span>
+                        <input type="time" value="${tr.fin}" onchange="updateSvcHorarioTramo('${d.key}', ${idx}, 'fin', this.value)" class="text-xs font-bold text-slate-800 bg-transparent outline-none cursor-pointer">
+                        <button type="button" onclick="removeSvcHorarioTramo('${d.key}', ${idx})" class="text-slate-400 hover:text-red-500 p-0.5 cursor-pointer" title="Quitar horario">
+                            <span class="material-symbols-outlined text-[15px] block">close</span>
+                        </button>
+                    </div>
+                `).join('') : '<span class="text-[11px] text-slate-400 italic">Sin horarios</span>';
+
+                const copyBtn = (active && dayObj.tramos.length > 0 && ['1','2','3','4','5'].includes(d.key))
+                    ? `<button type="button" onclick="copySvcHorarioToWeekdays('${d.key}')" class="text-[10px] font-bold text-slate-500 hover:text-primary px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer" title="Copiar estos horarios de Lunes a Viernes">Copiar L-V</button>`
+                    : '';
+
+                return `
+                    <div class="p-2.5 sm:p-3 rounded-xl border ${active ? 'bg-white border-slate-200' : 'bg-slate-100/60 border-slate-200/60'} flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                        <label class="inline-flex items-center gap-2 cursor-pointer min-w-[110px] shrink-0 select-none">
+                            <input type="checkbox" ${active ? 'checked' : ''} onchange="toggleSvcHorarioDay('${d.key}', this.checked)" class="w-4 h-4 accent-primary rounded cursor-pointer">
+                            <span class="text-xs font-extrabold ${active ? 'text-slate-800' : 'text-slate-400'}">${d.label}</span>
+                        </label>
+                        <div class="flex flex-wrap items-center gap-2 flex-1">
+                            ${tramosHtml}
+                        </div>
+                        <div class="flex items-center gap-1 shrink-0">
+                            ${copyBtn}
+                            <button type="button" onclick="addSvcHorarioTramo('${d.key}')" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 inline-flex items-center gap-1 transition-colors cursor-pointer">
+                                <span class="material-symbols-outlined text-[14px]">add</span> Horario
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function collectSvcHorariosEspecificos() {
+            const inp = document.getElementById('svcHorariosEspecificosJson');
+            const toggle = document.getElementById('svcHorariosEspecificosToggle');
+            if (!inp) return;
+            if (!toggle || !toggle.checked) {
+                inp.value = '';
+                return;
+            }
+            const clean = {};
+            let hasActive = false;
+            SVC_DAYS_ORDER.forEach(d => {
+                const dayObj = svcHorariosState[d.key];
+                if (dayObj && dayObj.activo && Array.isArray(dayObj.tramos)) {
+                    const validTramos = dayObj.tramos.filter(t => t.inicio && t.fin && t.inicio < t.fin);
+                    if (validTramos.length > 0) {
+                        clean[d.key] = { activo: true, tramos: validTramos };
+                        hasActive = true;
+                    } else {
+                        clean[d.key] = { activo: false, tramos: [] };
+                    }
+                } else {
+                    clean[d.key] = { activo: false, tramos: [] };
+                }
+            });
+            inp.value = hasActive ? JSON.stringify(clean) : '';
+        }
+
         function renderServicesList(list) {
             const container = document.getElementById('servicesList');
             if (!container) return;
@@ -723,6 +943,18 @@
                     : `<div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border shadow-xs relative" style="background-color: ${escapeHtml(sColor)}15; color: ${escapeHtml(sColor)}; border-color: ${escapeHtml(sColor)}30;"><span class="material-symbols-outlined text-[24px]">${iconToUse}</span><span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white shadow-xs" style="background-color: ${escapeHtml(sColor)};"></span></div>`;
 
                 const isOtherProfService = (s.es_mio === false);
+                let hasCustomSched = false;
+                try {
+                    const hSpec = typeof s.horarios_especificos_json === 'string'
+                        ? JSON.parse(s.horarios_especificos_json || 'null')
+                        : s.horarios_especificos_json;
+                    if (hSpec && typeof hSpec === 'object') {
+                        hasCustomSched = Object.values(hSpec).some(d => d && d.activo && Array.isArray(d.tramos) && d.tramos.length > 0);
+                    }
+                } catch(e) {}
+                const schedBadge = hasCustomSched
+                    ? `<span class="bg-amber-50 text-amber-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-amber-200 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[13px]">schedule</span> Horarios propios</span>`
+                    : '';
 
                 html += `
                     <div id="service-card-${s.id}" data-service-id="${s.id}" class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-slate-300 transition-all">
@@ -732,6 +964,7 @@
                                 <div class="flex flex-wrap items-center gap-2 mb-1">
                                     <h4 class="font-bold text-slate-900 text-base">${s.nombre}</h4>
                                     ${cuposBadge}
+                                    ${schedBadge}
                                 </div>
                                 <p class="text-xs text-slate-500 font-medium mt-0.5 flex flex-wrap items-center gap-2">
                                     <span>⏱️ ${duracionFmt}</span>
@@ -834,6 +1067,7 @@
             if (document.getElementById('svcImagen1')) document.getElementById('svcImagen1').value = '';
             document.getElementById('cupoPricingContainer').innerHTML = '';
             document.getElementById('svcPreciosPaquetesJson').value = '[]';
+            resetSvcHorariosEspecificos();
             actualizarRequisitoPrecio(false);
             populateProfSelect(professionalsData);
             document.getElementById('serviceModalTitle').innerHTML = '<span class="material-symbols-outlined text-[24px]" style="color: var(--color-primario, #d11149);">add_task</span> <span>Nuevo Servicio</span>';
@@ -900,6 +1134,8 @@
             } else {
                 document.getElementById('svcPrecio').value = '';
             }
+
+            loadSvcHorariosEspecificos(s.horarios_especificos_json || null);
 
             document.getElementById('serviceModalTitle').innerHTML = '<span class="material-symbols-outlined text-[24px]" style="color: var(--color-primario, #d11149);">edit</span> <span>Editar Servicio</span>';
             document.getElementById('serviceModal').classList.remove('hidden');
@@ -972,6 +1208,7 @@
             btn.textContent = 'Guardando...';
 
             const isEditing = Boolean(document.getElementById('svcId')?.value);
+            collectSvcHorariosEspecificos();
             const formData = new FormData(this);
             if (window.isProfUser && window.currentProfName) {
                 formData.set('profesional', window.currentProfName);

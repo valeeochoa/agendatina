@@ -29,6 +29,9 @@ try {
 try { $pdo->query("SELECT color FROM servicios LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE servicios ADD COLUMN color VARCHAR(30) DEFAULT '#d11149'"); }
 
+try { $pdo->query("SELECT horarios_especificos_json FROM servicios LIMIT 1"); } 
+catch(Exception $e) { try { $pdo->exec("ALTER TABLE servicios ADD COLUMN horarios_especificos_json LONGTEXT DEFAULT NULL"); } catch(Exception $ex) {} }
+
 try { $pdo->query("SELECT pases_totales FROM clientes_negocio LIMIT 1"); } 
 catch(Exception $e) { $pdo->exec("ALTER TABLE clientes_negocio ADD COLUMN pases_totales INT DEFAULT 0"); }
 
@@ -187,7 +190,7 @@ try {
                 SELECT id, nombre_servicio AS nombre, nombre_servicio, 
                        COALESCE(duracion_minutos, 30) AS duracion, 
                        COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo, 
-                       profesional, tipo_servicio, precios_paquetes_json, icono,
+                       profesional, tipo_servicio, precios_paquetes_json, horarios_especificos_json, icono,
                        COALESCE(color, '#d11149') AS color
                 FROM servicios 
                 WHERE id_negocio = :id_negocio 
@@ -362,7 +365,7 @@ try {
         // Obtener la lista de servicios activos habilitados para Cupos/Alumnos (y propios si es profesional)
         $servicios = [];
         try {
-            $sqlServ = "SELECT id, nombre_servicio AS nombre, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo, precios_paquetes_json, profesional, tipo_servicio 
+            $sqlServ = "SELECT id, nombre_servicio AS nombre, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo, precios_paquetes_json, horarios_especificos_json, profesional, tipo_servicio 
                         FROM servicios 
                         WHERE id_negocio = :id_negocio 
                           AND (tipo_servicio = 'alumnos' OR COALESCE(cupo_maximo, capacidad, 1) > 1)";

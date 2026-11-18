@@ -1931,6 +1931,32 @@
             }
 
             let tramos = [];
+            let hasServiceSpecificSchedule = false;
+            if (s && s.horarios_especificos_json) {
+                try {
+                    const hSpec = typeof s.horarios_especificos_json === 'string'
+                        ? JSON.parse(s.horarios_especificos_json)
+                        : s.horarios_especificos_json;
+                    if (hSpec && typeof hSpec === 'object' && Object.keys(hSpec).length > 0) {
+                        hasServiceSpecificSchedule = true;
+                        const dayKeyMap = { 1: 'lun', 2: 'mar', 3: 'mie', 4: 'jue', 5: 'vie', 6: 'sab', 0: 'dom' };
+                        const textKey = dayKeyMap[dateObj.getDay()];
+                        const numKey = String(dateObj.getDay());
+                        const diaData = hSpec[numKey] !== undefined ? hSpec[numKey] : (textKey ? hSpec[textKey] : null);
+                        if (!diaData || diaData.activo === false || !Array.isArray(diaData.tramos) || diaData.tramos.length === 0) {
+                            return [];
+                        }
+                        tramos = diaData.tramos.map(t => {
+                            let [sh, sm] = (t.inicio || '09:00').split(':').map(Number);
+                            let [eh, em] = (t.fin || '18:00').split(':').map(Number);
+                            return { start: sh * 60 + sm, end: eh * 60 + em };
+                        }).filter(t => t.start < t.end);
+                        if (tramos.length === 0) return [];
+                    }
+                } catch(e) {}
+            }
+
+            if (!hasServiceSpecificSchedule) {
             let hDet = {};
             if (bizConfig && bizConfig.horarios_detallados_json) {
                 try {
@@ -1955,6 +1981,7 @@
                 let [openH, openM] = (bizConfig?.hora_apertura || '09:00').split(':').map(Number);
                 let [closeH, closeM] = (bizConfig?.hora_cierre || '18:00').split(':').map(Number);
                 tramos = [{ start: openH * 60 + openM, end: closeH * 60 + closeM }];
+            }
             }
 
             let breakStartMins = -1, breakEndMins = -1;

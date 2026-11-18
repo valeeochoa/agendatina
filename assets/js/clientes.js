@@ -1609,7 +1609,31 @@ function getServiceSlotsForDayBusiness(servicio, dateObj, config) {
     }
 
     let tramos = [];
-    if (config && config.horarios_detallados_json) {
+    let hasServiceSpecificSchedule = false;
+    if (servicio && servicio.horarios_especificos_json) {
+        try {
+            const hSpec = typeof servicio.horarios_especificos_json === 'string'
+                ? JSON.parse(servicio.horarios_especificos_json)
+                : servicio.horarios_especificos_json;
+            if (hSpec && typeof hSpec === 'object' && Object.keys(hSpec).length > 0) {
+                hasServiceSpecificSchedule = true;
+                const dayKeyMap = { 1: 'lun', 2: 'mar', 3: 'mie', 4: 'jue', 5: 'vie', 6: 'sab', 0: 'dom' };
+                const textKey = dayKeyMap[dateObj.getDay()];
+                const diaData = hSpec[String(dateObj.getDay())] !== undefined ? hSpec[String(dateObj.getDay())] : (textKey ? hSpec[textKey] : null);
+                if (!diaData || diaData.activo === false || !Array.isArray(diaData.tramos) || diaData.tramos.length === 0) {
+                    return [];
+                }
+                tramos = diaData.tramos.map(t => {
+                    let [sh, sm] = (t.inicio || '09:00').split(':').map(Number);
+                    let [eh, em] = (t.fin || '18:00').split(':').map(Number);
+                    return { start: sh * 60 + sm, end: eh * 60 + em };
+                }).filter(t => t.start < t.end);
+                if (tramos.length === 0) return [];
+            }
+        } catch(e) {}
+    }
+
+    if (!hasServiceSpecificSchedule && config && config.horarios_detallados_json) {
         try {
             const hDet = typeof config.horarios_detallados_json === 'string'
                 ? JSON.parse(config.horarios_detallados_json)

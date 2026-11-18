@@ -184,7 +184,29 @@ let weeklySelectedProf = null;
 let cal2_selectedDate = null;
 let cal2_selectedTime = null;
 
-window.getDayScheduleTramos = function(dateOrDateStr) {
+window.getActiveCalendarServiceObj = function(explicitServiceName = null, explicitProfName = null) {
+    if (typeof services === 'undefined' || !Array.isArray(services) || services.length === 0) return null;
+    let sName = explicitServiceName;
+    if (!sName) {
+        if (typeof adminWeeklySelectedService !== 'undefined' && adminWeeklySelectedService && adminWeeklySelectedService !== 'todos') sName = adminWeeklySelectedService;
+        else if (typeof weeklySelectedService !== 'undefined' && weeklySelectedService && weeklySelectedService !== 'todos') sName = weeklySelectedService;
+        else if (document.getElementById('serviceSelect')?.value) sName = document.getElementById('serviceSelect').value;
+        else if (document.getElementById('manualServicio')?.value) sName = document.getElementById('manualServicio').value;
+    }
+    if (!sName) return null;
+    const cleanS = String(sName).trim().toLowerCase();
+    const pName = explicitProfName || (typeof adminWeeklySelectedProf !== 'undefined' && adminWeeklySelectedProf) || (typeof globalSelectedProfessional !== 'undefined' && globalSelectedProfessional) || null;
+    const cleanP = (pName && pName !== 'columnas' && pName !== 'Cualquiera (Sin preferencia)' && pName !== 'Cualquiera' && pName !== 'todos')
+        ? String(pName).trim().toLowerCase()
+        : null;
+    if (cleanP) {
+        const exact = services.find(s => String(s.nombre || '').trim().toLowerCase() === cleanS && String(s.profesional || '').trim().toLowerCase() === cleanP);
+        if (exact) return exact;
+    }
+    return services.find(s => String(s.nombre || '').trim().toLowerCase() === cleanS) || null;
+};
+
+window.getDayScheduleTramos = function(dateOrDateStr, serviceOverride = null) {
     if (!dateOrDateStr) {
         let openStr = window.businessWebConfig?.hora_apertura || '09:00';
         let closeStr = window.businessWebConfig?.hora_cierre || '18:00';
@@ -220,7 +242,21 @@ window.getDayScheduleTramos = function(dateOrDateStr) {
     const dayShorts = ['dom', 'lun', 'mar', 'mie', 'jue', 'vie', 'sab'];
 
     let hDet = {};
-    if (window.businessWebConfig?.horarios_detallados_json) {
+    let isServiceSpecificSchedule = false;
+    const activeSvc = serviceOverride || (typeof window.getActiveCalendarServiceObj === 'function' ? window.getActiveCalendarServiceObj() : null);
+    if (activeSvc && activeSvc.horarios_especificos_json) {
+        try {
+            const hSpec = typeof activeSvc.horarios_especificos_json === 'string'
+                ? JSON.parse(activeSvc.horarios_especificos_json)
+                : activeSvc.horarios_especificos_json;
+            if (hSpec && typeof hSpec === 'object' && Object.keys(hSpec).length > 0) {
+                hDet = hSpec;
+                isServiceSpecificSchedule = true;
+            }
+        } catch(e) {}
+    }
+
+    if (!isServiceSpecificSchedule && window.businessWebConfig?.horarios_detallados_json) {
         try {
             hDet = typeof window.businessWebConfig.horarios_detallados_json === 'string'
                 ? JSON.parse(window.businessWebConfig.horarios_detallados_json)
@@ -234,6 +270,10 @@ window.getDayScheduleTramos = function(dateOrDateStr) {
         else if (dayNames[dayOfWeek] && hDet[dayNames[dayOfWeek]] !== undefined) diaData = hDet[dayNames[dayOfWeek]];
         else if (dayNamesAcc[dayOfWeek] && hDet[dayNamesAcc[dayOfWeek]] !== undefined) diaData = hDet[dayNamesAcc[dayOfWeek]];
         else if (dayShorts[dayOfWeek] && hDet[dayShorts[dayOfWeek]] !== undefined) diaData = hDet[dayShorts[dayOfWeek]];
+    }
+
+    if (isServiceSpecificSchedule && (diaData === null || diaData === undefined)) {
+        return { isClosed: true, tramos: [], hasCustomTramos: true };
     }
 
     // 1. Si el día está definido explícitamente en horarios detallados
@@ -4853,6 +4893,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 updateSelectedServicePriceDisplay();
                 cal_fetchBookedTimes();
+                if (typeof renderCalendar === 'function') renderCalendar();
+                if (typeof cal2_renderWeek === 'function') cal2_renderWeek();
                 if (cal_selectedDate && (!isAdmin || isPreviewMode)) cal_renderTimeSlots();
             });
         }
@@ -4870,6 +4912,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateProfServicesDisplay();
                 updateSelectedServicePriceDisplay();
                 cal_fetchBookedTimes();
+                if (typeof renderCalendar === 'function') renderCalendar();
+                if (typeof cal2_renderWeek === 'function') cal2_renderWeek();
                 if (cal_selectedDate && (!isAdmin || isPreviewMode)) cal_renderTimeSlots();
             });
         }
