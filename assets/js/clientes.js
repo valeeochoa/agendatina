@@ -2054,9 +2054,125 @@ function renderGrillaSemanal() {
             }).join('');
         }
 
+        // Vista Móvil (< md): Tarjetas limpias por día sin scroll horizontal para celulares
+        const mobileDaysWithClasses = diasMatrix.filter(d => d.clasesDelDia.length > 0);
+        let mobileHtml = '';
+        if (mobileDaysWithClasses.length === 0) {
+            const hasCuposServs = Array.isArray(semanaData?.servicios) && semanaData.servicios.length > 0;
+            const msgEmpty = !hasCuposServs
+                ? 'Creá un servicio configurado para Cupos/Alumnos en la sección Servicios para ver sus clases aquí.'
+                : (soloConInscriptos
+                    ? 'No hay alumnos inscriptos esta semana. Desmarcá "Solo clases con inscriptos" para ver toda la grilla horaria.'
+                    : 'No hay horarios configurados para los días de esta semana.');
+            mobileHtml = `
+                <div class="md:hidden py-12 px-4 text-center bg-white rounded-2xl border border-slate-200 shadow-xs">
+                    <span class="material-symbols-outlined text-3xl text-slate-300 block mb-1.5">grid_off</span>
+                    <p class="text-sm font-bold text-slate-600">Sin clases para mostrar en la grilla</p>
+                    <p class="text-xs text-slate-400 mt-1">${msgEmpty}</p>
+                </div>
+            `;
+        } else {
+            mobileHtml = `<div class="md:hidden space-y-3">` + mobileDaysWithClasses.map(d => {
+                const count = d.clasesDelDia.length;
+                const badgeText = `${count} ${count === 1 ? 'clase' : 'clases'}`;
+                const dayHeader = d.isHoy
+                    ? `<div class="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2.5 flex items-center justify-between gap-2">
+                           <div class="flex items-center gap-2">
+                               <span class="text-xs font-black uppercase tracking-wider">${d.dayNameDisplay} ${d.dayNum} ${d.monthShort}</span>
+                               <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-white text-orange-700">Hoy</span>
+                           </div>
+                           <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-white/25 text-white">${badgeText}</span>
+                       </div>`
+                    : `<div class="bg-slate-100/90 border-b border-slate-200 px-4 py-2.5 flex items-center justify-between gap-2">
+                           <span class="text-xs font-black uppercase tracking-wider text-slate-800">${d.dayNameDisplay} <span class="text-slate-500 font-bold">${d.dayNum} ${d.monthShort}</span></span>
+                           <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-orange-100 text-orange-800">${badgeText}</span>
+                       </div>`;
+
+                const mobileCards = d.clasesDelDia.map(c => {
+                    const ocupados = c.inscriptos.length;
+                    const cupoMax = c.cupoMaximo;
+                    const libres = Math.max(0, cupoMax - ocupados);
+                    const pctOcupacion = cupoMax > 0 ? Math.min(100, Math.round((ocupados / cupoMax) * 100)) : 0;
+                    const cConf = getServiceColorConfig(c.servicioId);
+                    const isCustom = Boolean(cConf.customHex);
+                    const svcHex = isCustom ? cConf.customHex : '#f97316';
+
+                    const [ch, cm] = String(c.hora || '09:00').split(':').map(Number);
+                    const durMin = parseInt(c.duracion || 30, 10) || 30;
+                    const endTot = ((isNaN(ch) ? 9 : ch) * 60) + (isNaN(cm) ? 0 : cm) + durMin;
+                    const horaFin = `${String(Math.floor(endTot / 60) % 24).padStart(2, '0')}:${String(endTot % 60).padStart(2, '0')}`;
+
+                    let badgeOcupacion = '';
+                    let barraColor = cConf.progressBar;
+                    if (ocupados >= cupoMax) {
+                        badgeOcupacion = `<span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-100 text-rose-700 whitespace-nowrap">COMPLETO</span>`;
+                        barraColor = 'bg-rose-500';
+                    } else if (ocupados > 0 && libres <= 2) {
+                        badgeOcupacion = `<span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-100 text-amber-800 whitespace-nowrap">Últimos ${libres}</span>`;
+                        barraColor = 'bg-amber-500';
+                    } else if (ocupados > 0) {
+                        badgeOcupacion = `<span class="px-2 py-0.5 rounded-md text-[10px] font-black bg-emerald-100 text-emerald-800 whitespace-nowrap">${libres} libres</span>`;
+                        barraColor = 'bg-emerald-500';
+                    } else {
+                        badgeOcupacion = `<span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600 whitespace-nowrap">Disponible (${cupoMax})</span>`;
+                        barraColor = 'bg-slate-300';
+                    }
+
+                    const jsonCardData = JSON.stringify({
+                        servicioId: c.servicioId,
+                        servicioNombre: c.servicioNombre,
+                        fecha: d.fechaStr,
+                        hora: c.hora,
+                        profesional: c.profesional,
+                        cupoMaximo: c.cupoMaximo
+                    }).replace(/"/g, '&quot;');
+
+                    const barStyle = isCustom ? `style="width: ${pctOcupacion}%; background-color: ${svcHex};"` : `style="width: ${pctOcupacion}%;"`;
+                    const barClass = isCustom ? 'h-full rounded-full' : `${barraColor} h-full rounded-full`;
+
+                    return `
+                        <div onclick="abrirModalDetalleClaseFromCard('${jsonCardData}')" style="background-color: ${svcHex}12; border-color: ${svcHex}45; border-left: 4px solid ${svcHex};" class="border rounded-xl p-3 active:scale-[0.99] transition-all cursor-pointer">
+                            <div class="flex items-center justify-between gap-2 mb-1.5">
+                                <span style="background-color: ${svcHex}1F; color: ${svcHex}; border-color: ${svcHex}40;" class="inline-flex items-center gap-1 text-xs font-black px-2 py-0.5 rounded-md border">
+                                    <span class="material-symbols-outlined text-[13px]">schedule</span> ${c.hora} - ${horaFin}
+                                </span>
+                                ${badgeOcupacion}
+                            </div>
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="min-w-0">
+                                    <h4 class="text-sm font-extrabold text-slate-900 truncate flex items-center gap-1.5">
+                                        <span style="background-color: ${svcHex};" class="w-2.5 h-2.5 rounded-full shrink-0"></span>
+                                        <span class="truncate">${escapeHtml(c.servicioNombre)}</span>
+                                    </h4>
+                                    <p class="text-[11px] font-semibold text-slate-600 mt-0.5 flex items-center gap-1">
+                                        <span class="material-symbols-outlined text-[13px] text-slate-400">person</span>
+                                        <span class="truncate">${escapeHtml(c.profesional)}</span>
+                                    </p>
+                                </div>
+                                <span class="text-xs font-black text-slate-800 shrink-0">${ocupados}/${cupoMax}</span>
+                            </div>
+                            <div class="w-full bg-white/80 h-1.5 rounded-full overflow-hidden mt-2">
+                                <div class="${barClass}" ${barStyle}></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="bg-white rounded-2xl border ${d.isHoy ? 'border-orange-300 shadow-sm' : 'border-slate-200 shadow-xs'} overflow-hidden">
+                        ${dayHeader}
+                        <div class="p-3 space-y-2.5">
+                            ${mobileCards}
+                        </div>
+                    </div>
+                `;
+            }).join('') + `</div>`;
+        }
+
         container.className = 'w-full max-w-[1680px] mx-auto';
         container.innerHTML = `
-            <div class="bg-white rounded-2xl border border-slate-300 shadow-sm overflow-x-auto custom-scrollbar">
+            ${mobileHtml}
+            <div class="hidden md:block bg-white rounded-2xl border border-slate-300 shadow-sm overflow-x-auto custom-scrollbar">
                 <table class="w-full border-collapse min-w-[780px] text-left">
                     <thead>
                         <tr>
