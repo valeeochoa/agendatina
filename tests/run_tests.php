@@ -154,25 +154,29 @@ $turnoSrc = file_get_contents(__DIR__ . '/../backend/enviar_turno.php');
 assertTrue(strpos($servSrc, 'horarios_especificos_json') !== false, "gestionar_servicios.php persiste horarios_especificos_json");
 assertTrue(strpos($turnoSrc, 'horarios_especificos_json') !== false, "enviar_turno.php valida reservas contra horarios_especificos_json");
 
-echo "\n=== 7. Simulacion de Pase Libre vs Pase Exclusivo ===\n";
-$resolverPase = function (array $serviciosList, int $idServicio, string $nombreServicio) {
+echo "\n=== 7. Simulacion de Pase Libre vs Pase Exclusivo (Sin Mezcla) ===\n";
+$resolverPase = function (array $serviciosList, int $idServicio, string $nombreServicio, bool $servicioAceptaPaseLibre) {
     $servLower = strtolower(trim($nombreServicio));
     foreach ($serviciosList as $idx => $sItem) {
-        if ((int)($sItem['id_servicio'] ?? 0) === $idServicio && (int)($sItem['pases_disponibles'] ?? 0) > 0) {
+        $isLibre = !empty($sItem['es_pase_libre']) || (isset($sItem['id_servicio']) && (int)$sItem['id_servicio'] === 0);
+        if (!$isLibre && (int)($sItem['id_servicio'] ?? 0) === $idServicio && (int)($sItem['pases_disponibles'] ?? 0) > 0) {
             return $idx;
         }
     }
     foreach ($serviciosList as $idx => $sItem) {
-        if (strtolower(trim($sItem['servicio'] ?? '')) === $servLower && (int)($sItem['pases_disponibles'] ?? 0) > 0) {
+        $isLibre = !empty($sItem['es_pase_libre']) || (isset($sItem['id_servicio']) && (int)$sItem['id_servicio'] === 0);
+        if (!$isLibre && strtolower(trim($sItem['servicio'] ?? '')) === $servLower && (int)($sItem['pases_disponibles'] ?? 0) > 0) {
             return $idx;
         }
     }
-    foreach ($serviciosList as $idx => $sItem) {
-        $isLibre = !empty($sItem['es_pase_libre'])
-            || (isset($sItem['id_servicio']) && (int)$sItem['id_servicio'] === 0)
-            || stripos((string)($sItem['servicio'] ?? ''), 'pase libre') !== false;
-        if ($isLibre && (int)($sItem['pases_disponibles'] ?? 0) > 0) {
-            return $idx;
+    if ($servicioAceptaPaseLibre) {
+        foreach ($serviciosList as $idx => $sItem) {
+            $isLibre = !empty($sItem['es_pase_libre'])
+                || (isset($sItem['id_servicio']) && (int)$sItem['id_servicio'] === 0)
+                || stripos((string)($sItem['servicio'] ?? ''), 'pase libre') !== false;
+            if ($isLibre && (int)($sItem['pases_disponibles'] ?? 0) > 0) {
+                return $idx;
+            }
         }
     }
     return -1;
@@ -189,14 +193,15 @@ $pasesMixtos = [
     ['id_servicio' => 10, 'servicio' => 'Spinning', 'es_pase_libre' => false, 'pases_disponibles' => 2],
 ];
 
-assertTrue($resolverPase($pasesSoloSpinning, 10, 'Spinning') === 0, "Pase exclusivo de Spinning permite reservar Spinning");
-assertTrue($resolverPase($pasesSoloSpinning, 20, 'PowerJump') === -1, "Pase exclusivo de Spinning bloquea reservar PowerJump");
-assertTrue($resolverPase($pasesConLibre, 20, 'PowerJump') === 0, "Pase Libre permite reservar cualquier clase de la grilla");
-assertTrue($resolverPase($pasesMixtos, 10, 'Spinning') === 1, "Con Pase Libre y pase especifico, prioriza descontar el especifico");
-assertTrue($resolverPase($pasesMixtos, 20, 'PowerJump') === 0, "Con Pase Libre y pase especifico, usa Pase Libre para otras clases");
+assertTrue($resolverPase($pasesSoloSpinning, 10, 'Spinning', false) === 0, "Pase exclusivo de Spinning permite reservar Spinning");
+assertTrue($resolverPase($pasesSoloSpinning, 20, 'PowerJump', true) === -1, "Pase exclusivo de Spinning bloquea reservar PowerJump aunque PowerJump sea Pase Libre");
+assertTrue($resolverPase($pasesConLibre, 20, 'PowerJump', true) === 0, "Pase Libre permite reservar clases que tambien tienen Pase Libre");
+assertTrue($resolverPase($pasesConLibre, 30, 'Pilates Reformer', false) === -1, "Pase Libre bloquea reservar clases exclusivas (sin opcion Pase Libre)");
+assertTrue($resolverPase($pasesMixtos, 10, 'Spinning', true) === 1, "Con Pase Libre y pase especifico, prioriza descontar el especifico");
+assertTrue($resolverPase($pasesMixtos, 20, 'PowerJump', true) === 0, "Con Pase Libre y pase especifico, usa Pase Libre para otras clases habilitadas");
 
 $cliAuthSrc = file_get_contents(__DIR__ . '/../backend/cliente_auth.php');
-assertTrue(strpos($cliAuthSrc, 'es_pase_libre') !== false, "cliente_auth.php soporta logica de es_pase_libre");
+assertTrue(strpos($cliAuthSrc, 'servicioAceptaPaseLibre') !== false, "cliente_auth.php valida que el servicio destino admita Pase Libre sin mezclar exclusivos");
 
 echo "\n=== 8. Simulacion de Rate-Limit Individual por Cuenta en Login ===\n";
 $ip = '190.10.20.30';

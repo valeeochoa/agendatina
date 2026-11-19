@@ -407,7 +407,7 @@ function renderServiciosAlumnoRows() {
                 <!-- Selector de Paquetes / Pases con Etiquetas -->
                 ${isPaseLibre ? `
                     <div class="p-2.5 bg-purple-50/80 border border-purple-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <span class="text-[11px] font-bold text-purple-900">🎟️ Válido para anotarse en <strong>cualquier clase</strong> de la grilla de alumnos.</span>
+                        <span class="text-[11px] font-bold text-purple-900">🎟️ Válido <strong>solo</strong> para clases que también tengan habilitada la opción de <strong>Pase Libre</strong> (no se mezcla con clases de pase exclusivo).</span>
                         <div class="flex items-center gap-1.5 shrink-0">
                             <button type="button" onclick="setPaseLibrePreset(${idx}, 4)" class="px-2 py-1 text-[10px] font-extrabold bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg cursor-pointer">4 cl.</button>
                             <button type="button" onclick="setPaseLibrePreset(${idx}, 8)" class="px-2 py-1 text-[10px] font-extrabold bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg cursor-pointer">8 cl.</button>

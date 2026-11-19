@@ -1233,13 +1233,38 @@ try {
         $serviciosList = $serviciosJson ? json_decode($serviciosJson, true) : null;
 
         if (is_array($serviciosList) && count($serviciosList) > 0) {
+            // Determinar si la clase/servicio destino habilitó la opción de Pase Libre en sus paquetes
+            $servicioAceptaPaseLibre = false;
+            try {
+                if ($id_servicio > 0) {
+                    $stmtPkgTarget = $pdo->prepare("SELECT precios_paquetes_json FROM servicios WHERE id = :sid AND id_negocio = :nid LIMIT 1");
+                    $stmtPkgTarget->execute(['sid' => $id_servicio, 'nid' => $id_negocio]);
+                } else {
+                    $stmtPkgTarget = $pdo->prepare("SELECT precios_paquetes_json FROM servicios WHERE LOWER(TRIM(nombre_servicio)) = LOWER(TRIM(:snom)) AND id_negocio = :nid LIMIT 1");
+                    $stmtPkgTarget->execute(['snom' => $servicio, 'nid' => $id_negocio]);
+                }
+                $rawTargetPkgs = $stmtPkgTarget->fetchColumn();
+                $targetPkgs = $rawTargetPkgs ? json_decode($rawTargetPkgs, true) : [];
+                if (is_array($targetPkgs)) {
+                    foreach ($targetPkgs as $tp) {
+                        if (!empty($tp['es_pase_libre'])) {
+                            $servicioAceptaPaseLibre = true;
+                            break;
+                        }
+                    }
+                }
+            } catch (Throwable $ePkgT) {}
+
             $targetIndex = 0;
             $foundMatch = false;
 
-            // 1. Priorizar pase específico para este servicio con créditos disponibles
+            // 1. Priorizar pase exclusivo/específico para este servicio con créditos disponibles
             if ($id_servicio > 0) {
                 foreach ($serviciosList as $idx => $sItem) {
-                    if ((int)($sItem['id_servicio'] ?? 0) === (int)$id_servicio && (int)($sItem['pases_disponibles'] ?? 0) > 0) {
+                    $isItemLibre = !empty($sItem['es_pase_libre'])
+                        || (isset($sItem['id_servicio']) && (int)$sItem['id_servicio'] === 0)
+                        || stripos((string)($sItem['servicio'] ?? ''), 'pase libre') !== false;
+                    if (!$isItemLibre && (int)($sItem['id_servicio'] ?? 0) === (int)$id_servicio && (int)($sItem['pases_disponibles'] ?? 0) > 0) {
                         $targetIndex = $idx;
                         $foundMatch = true;
                         break;
@@ -1250,7 +1275,10 @@ try {
             if (!$foundMatch && !empty($servicio)) {
                 $servLower = strtolower(trim($servicio));
                 foreach ($serviciosList as $idx => $sItem) {
-                    if (strtolower(trim($sItem['servicio'] ?? '')) === $servLower && (int)($sItem['pases_disponibles'] ?? 0) > 0) {
+                    $isItemLibre = !empty($sItem['es_pase_libre'])
+                        || (isset($sItem['id_servicio']) && (int)$sItem['id_servicio'] === 0)
+                        || stripos((string)($sItem['servicio'] ?? ''), 'pase libre') !== false;
+                    if (!$isItemLibre && strtolower(trim($sItem['servicio'] ?? '')) === $servLower && (int)($sItem['pases_disponibles'] ?? 0) > 0) {
                         $targetIndex = $idx;
                         $foundMatch = true;
                         break;
@@ -1258,21 +1286,29 @@ try {
                 }
             }
 
-            // 2. Si no tiene pase específico activo, buscar un Pase Libre (id_servicio === 0 o es_pase_libre)
+            // 2. Si no tiene pase exclusivo activo, buscar un Pase Libre SOLO si esta clase también admite Pase Libre
+            $tienePaseLibreDisponible = false;
             if (!$foundMatch) {
                 foreach ($serviciosList as $idx => $sItem) {
                     $isLibre = !empty($sItem['es_pase_libre'])
                         || (isset($sItem['id_servicio']) && (int)$sItem['id_servicio'] === 0)
                         || stripos((string)($sItem['servicio'] ?? ''), 'pase libre') !== false;
                     if ($isLibre && (int)($sItem['pases_disponibles'] ?? 0) > 0) {
-                        $targetIndex = $idx;
-                        $foundMatch = true;
+                        $tienePaseLibreDisponible = true;
+                        if ($servicioAceptaPaseLibre) {
+                            $targetIndex = $idx;
+                            $foundMatch = true;
+                        }
                         break;
                     }
                 }
             }
 
             if (!$foundMatch) {
+                if ($tienePaseLibreDisponible && !$servicioAceptaPaseLibre) {
+                    echo json_encode(['success' => false, 'error' => "La clase {$servicio} utiliza pases exclusivos y no admite Pase Libre. El Pase Libre aplica únicamente a actividades que también tengan habilitada la opción de Pase Libre."]);
+                    exit;
+                }
                 $otrosConPases = [];
                 foreach ($serviciosList as $sItem) {
                     if ((int)($sItem['pases_disponibles'] ?? 0) > 0 && !empty($sItem['servicio'])) {
@@ -1281,7 +1317,7 @@ try {
                 }
                 if (count($otrosConPases) > 0) {
                     $listaOtros = implode(', ', array_unique($otrosConPases));
-                    echo json_encode(['success' => false, 'error' => "Tu pase actual es exclusivo para {$listaOtros}. Para anotarte en {$servicio} necesitás un Pase Libre o un pase específico para esta clase."]);
+                    echo json_encode(['success' => false, 'error' => "Tu pase actual es exclusivo para {$listaOtros}. Para anotarte en {$servicio} necesitás un pase específico para esta clase."]);
                 } else {
                     echo json_encode(['success' => false, 'error' => "No tenés pases disponibles para {$servicio}."]);
                 }

@@ -2091,15 +2091,28 @@
                 }
             } catch(e) { studentServPasses = []; }
 
-            function canStudentBookService(sId, sNombre) {
+            function serviceAcceptsPaseLibre(sObj) {
+                if (!sObj || !sObj.precios_paquetes_json) return false;
+                try {
+                    const pkgs = typeof sObj.precios_paquetes_json === 'string'
+                        ? JSON.parse(sObj.precios_paquetes_json || '[]')
+                        : sObj.precios_paquetes_json;
+                    return Array.isArray(pkgs) && pkgs.some(p => Boolean(p && p.es_pase_libre));
+                } catch(e) { return false; }
+            }
+
+            function canStudentBookService(sObj) {
                 if (pasesNegocio <= 0) return false;
                 if (!Array.isArray(studentServPasses) || studentServPasses.length === 0) return true;
-                const cleanName = String(sNombre || '').trim().toLowerCase();
+                const sId = sObj ? sObj.id : 0;
+                const sNombre = sObj ? (sObj.nombre_servicio || sObj.nombre || '') : '';
+                const cleanName = String(sNombre).trim().toLowerCase();
+                const classAllowsLibre = serviceAcceptsPaseLibre(sObj);
                 return studentServPasses.some(p => {
                     const disp = parseInt(p.pases_disponibles, 10) || 0;
                     if (disp <= 0) return false;
                     const isLibre = Boolean(p.es_pase_libre) || parseInt(p.id_servicio, 10) === 0 || String(p.servicio || '').toLowerCase().includes('pase libre');
-                    if (isLibre) return true;
+                    if (isLibre) return classAllowsLibre;
                     if (sId && parseInt(p.id_servicio, 10) === parseInt(sId, 10)) return true;
                     if (cleanName && String(p.servicio || '').trim().toLowerCase() === cleanName) return true;
                     return false;
@@ -2401,14 +2414,14 @@
                                     ? ocupadosData['_alumnos'][fechaStr + '_0_' + cleanHoraDef5] 
                                     : []);
 
-                            const isPassAllowedForClass = canStudentBookService(sId, sNombre);
+                            const isPassAllowedForClass = canStudentBookService(s);
 
                             let badgeHtml = '';
                             if (!isAlreadyEnrolled && !isPastTime) {
                                 if (pasesNegocio <= 0) {
                                     badgeHtml = `<span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full border bg-red-100 text-red-800 border-red-200">🔒 Sin pases</span>`;
                                 } else if (!isPassAllowedForClass) {
-                                    badgeHtml = `<span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full border bg-slate-100 text-slate-600 border-slate-200">🔒 Solo Pase Libre</span>`;
+                                    badgeHtml = `<span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full border bg-slate-100 text-slate-600 border-slate-200">🔒 Pase exclusivo</span>`;
                                 } else if (cuposLibres === 1) {
                                     badgeHtml = `<span class="text-[10px] font-extrabold px-2.5 py-1 rounded-full border bg-amber-100 text-amber-800 border-amber-200">⚠️ 1 cupo libre</span>`;
                                 } else if (cuposLibres <= 0) {
