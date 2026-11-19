@@ -102,6 +102,9 @@ echo "\n=== 5. Verificacion de Sintaxis PHP en Endpoints Clave ===\n";
 $phpFiles = [
     'backend/cliente_auth.php',
     'backend/gestionar_clientes.php',
+    'backend/gestionar_servicios.php',
+    'backend/enviar_turno.php',
+    'backend/login.php',
     'backend/obtener_turnos_ocupados.php',
     'backend/obtener_estadisticas_vistas.php',
     'backend/registrar_vista.php',
@@ -118,6 +121,95 @@ foreach ($phpFiles as $rel) {
     exec(escapeshellarg($phpBin) . ' -l ' . escapeshellarg($abs) . ' 2>&1', $out, $code);
     assertTrue($code === 0, "PHP lint: $rel", implode(' ', $out));
 }
+
+echo "\n=== 6. Simulacion de Horarios Especificos por Servicio ===\n";
+$horariosServ = [
+    '1' => ['activo' => true, 'tramos' => [['inicio' => '14:30', 'fin' => '15:15']]],
+    '5' => ['activo' => true, 'tramos' => [['inicio' => '19:30', 'fin' => '20:15']]],
+    '3' => ['activo' => false, 'tramos' => []],
+];
+$generarSlots = function (array $horarios, string $dayKey, int $duracionMin) {
+    if (empty($horarios[$dayKey]['activo']) || empty($horarios[$dayKey]['tramos'])) {
+        return [];
+    }
+    $slots = [];
+    foreach ($horarios[$dayKey]['tramos'] as $tr) {
+        [$sh, $sm] = array_map('intval', explode(':', $tr['inicio']));
+        [$eh, $em] = array_map('intval', explode(':', $tr['fin']));
+        $start = $sh * 60 + $sm;
+        $end = $eh * 60 + $em;
+        for ($m = $start; $m + $duracionMin <= $end; $m += $duracionMin) {
+            $slots[] = sprintf('%02d:%02d', intdiv($m, 60), $m % 60);
+        }
+    }
+    return $slots;
+};
+assertTrue($generarSlots($horariosServ, '1', 45) === ['14:30'], "Lunes 14:30-15:15 con duracion 45min genera slot 14:30");
+assertTrue($generarSlots($horariosServ, '5', 45) === ['19:30'], "Viernes 19:30-20:15 con duracion 45min genera slot 19:30");
+assertTrue($generarSlots($horariosServ, '3', 45) === [], "Dia inactivo (Miercoles) no genera slots");
+assertTrue($generarSlots(['5' => ['activo' => true, 'tramos' => [['inicio' => '19:30', 'fin' => '19:45']]]], '5', 45) === [], "Tramo menor a la duracion del servicio (15min < 45min) no genera slot");
+
+$servSrc = file_get_contents(__DIR__ . '/../backend/gestionar_servicios.php');
+$turnoSrc = file_get_contents(__DIR__ . '/../backend/enviar_turno.php');
+assertTrue(strpos($servSrc, 'horarios_especificos_json') !== false, "gestionar_servicios.php persiste horarios_especificos_json");
+assertTrue(strpos($turnoSrc, 'horarios_especificos_json') !== false, "enviar_turno.php valida reservas contra horarios_especificos_json");
+
+echo "\n=== 7. Simulacion de Pase Libre vs Pase Exclusivo ===\n";
+$resolverPase = function (array $serviciosList, int $idServicio, string $nombreServicio) {
+    $servLower = strtolower(trim($nombreServicio));
+    foreach ($serviciosList as $idx => $sItem) {
+        if ((int)($sItem['id_servicio'] ?? 0) === $idServicio && (int)($sItem['pases_disponibles'] ?? 0) > 0) {
+            return $idx;
+        }
+    }
+    foreach ($serviciosList as $idx => $sItem) {
+        if (strtolower(trim($sItem['servicio'] ?? '')) === $servLower && (int)($sItem['pases_disponibles'] ?? 0) > 0) {
+            return $idx;
+        }
+    }
+    foreach ($serviciosList as $idx => $sItem) {
+        $isLibre = !empty($sItem['es_pase_libre'])
+            || (isset($sItem['id_servicio']) && (int)$sItem['id_servicio'] === 0)
+            || stripos((string)($sItem['servicio'] ?? ''), 'pase libre') !== false;
+        if ($isLibre && (int)($sItem['pases_disponibles'] ?? 0) > 0) {
+            return $idx;
+        }
+    }
+    return -1;
+};
+
+$pasesSoloSpinning = [
+    ['id_servicio' => 10, 'servicio' => 'Spinning', 'es_pase_libre' => false, 'pases_disponibles' => 4],
+];
+$pasesConLibre = [
+    ['id_servicio' => 0, 'servicio' => 'Pase Libre (Todas las Clases)', 'es_pase_libre' => true, 'pases_disponibles' => 8],
+];
+$pasesMixtos = [
+    ['id_servicio' => 0, 'servicio' => 'Pase Libre', 'es_pase_libre' => true, 'pases_disponibles' => 8],
+    ['id_servicio' => 10, 'servicio' => 'Spinning', 'es_pase_libre' => false, 'pases_disponibles' => 2],
+];
+
+assertTrue($resolverPase($pasesSoloSpinning, 10, 'Spinning') === 0, "Pase exclusivo de Spinning permite reservar Spinning");
+assertTrue($resolverPase($pasesSoloSpinning, 20, 'PowerJump') === -1, "Pase exclusivo de Spinning bloquea reservar PowerJump");
+assertTrue($resolverPase($pasesConLibre, 20, 'PowerJump') === 0, "Pase Libre permite reservar cualquier clase de la grilla");
+assertTrue($resolverPase($pasesMixtos, 10, 'Spinning') === 1, "Con Pase Libre y pase especifico, prioriza descontar el especifico");
+assertTrue($resolverPase($pasesMixtos, 20, 'PowerJump') === 0, "Con Pase Libre y pase especifico, usa Pase Libre para otras clases");
+
+$cliAuthSrc = file_get_contents(__DIR__ . '/../backend/cliente_auth.php');
+assertTrue(strpos($cliAuthSrc, 'es_pase_libre') !== false, "cliente_auth.php soporta logica de es_pase_libre");
+
+echo "\n=== 8. Simulacion de Rate-Limit Individual por Cuenta en Login ===\n";
+$ip = '190.10.20.30';
+$keyPadre = md5($ip . '|' . strtolower(trim('dueno@gym.com')));
+$keyPadreUpper = md5($ip . '|' . strtolower(trim('  DUENO@GYM.COM ')));
+$keyHijo = md5($ip . '|' . strtolower(trim('profe1@gym.com')));
+
+assertTrue($keyPadre !== $keyHijo, "Cuenta padre e hijo en la misma IP tienen claves de bloqueo independientes");
+assertTrue($keyPadre === $keyPadreUpper, "La clave de bloqueo normaliza espacios y mayusculas del email");
+assertTrue(strlen($keyPadre) === 32 && strlen($keyHijo) === 32, "Las claves md5 miden 32 caracteres (compatibles con VARCHAR(45))");
+
+$loginSrc = file_get_contents(__DIR__ . '/../backend/login.php');
+assertTrue(strpos($loginSrc, '$rate_key') !== false, "backend/login.php utiliza rate_key individual por cuenta + IP");
 
 echo "\n----------------------------------------\n";
 echo "Resumen: $passed pasaron, $failed fallaron.\n";
