@@ -303,6 +303,72 @@ function obtenerPaquetesDeServicio(servId) {
 // -------------------------------------------------------------
 // MANEJO DE FILAS DINÁMICAS DE SERVICIOS Y PASES EN EL MODAL
 // -------------------------------------------------------------
+function obtenerServiciosPaseLibre() {
+    if (!Array.isArray(allServicios)) return [];
+    return allServicios.filter(s => {
+        const pkgs = obtenerPaquetesDeServicio(s.id);
+        return pkgs.some(p => Boolean(p.es_pase_libre));
+    });
+}
+
+function obtenerServiciosExclusivos() {
+    if (!Array.isArray(allServicios)) return [];
+    const excl = allServicios.filter(s => {
+        const pkgs = obtenerPaquetesDeServicio(s.id);
+        return pkgs.length === 0 || pkgs.some(p => !p.es_pase_libre);
+    });
+    return excl.length > 0 ? excl : allServicios;
+}
+
+function obtenerPaquetesPaseLibreCompartidos() {
+    const seen = new Set();
+    const res = [];
+    if (!Array.isArray(allServicios)) return res;
+    allServicios.forEach(s => {
+        obtenerPaquetesDeServicio(s.id).forEach(p => {
+            if (p.es_pase_libre) {
+                const cupos = parseInt(p.cupos, 10) || 1;
+                const precio = parseFloat(p.precio || 0);
+                const etq = (p.etiqueta || `Pase Libre ${cupos} Clases`).trim();
+                const key = `${cupos}|${precio}|${etq.toLowerCase()}`;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    res.push({ ...p, cupos, precio, etiqueta: etq, es_pase_libre: true });
+                }
+            }
+        });
+    });
+    return res;
+}
+
+function onTipoPaseRowChange(idx, tipo) {
+    if (!serviciosAlumnoEnEdicion[idx]) return;
+    if (tipo === 'libre') {
+        const librePkgs = obtenerPaquetesPaseLibreCompartidos();
+        const p0 = librePkgs[0] || null;
+        const c = p0 ? parseInt(p0.cupos, 10) : (parseInt(serviciosAlumnoEnEdicion[idx].pases_disponibles, 10) || 8);
+        serviciosAlumnoEnEdicion[idx].id_servicio = 0;
+        serviciosAlumnoEnEdicion[idx].servicio = 'Pase Libre (Todas las Clases)';
+        serviciosAlumnoEnEdicion[idx].es_pase_libre = true;
+        serviciosAlumnoEnEdicion[idx].pases_disponibles = c;
+        serviciosAlumnoEnEdicion[idx].pases_totales = c;
+        serviciosAlumnoEnEdicion[idx].etiqueta_pase = p0 ? (p0.etiqueta || `Pase Libre ${c} Clases`) : `Pase Libre ${c} Clases`;
+        serviciosAlumnoEnEdicion[idx].es_manual = !p0;
+        renderServiciosAlumnoRows();
+    } else {
+        const exclServs = obtenerServiciosExclusivos();
+        const firstExcl = exclServs[0] || allServicios[0] || null;
+        if (firstExcl) {
+            onServicioRowChange(idx, firstExcl.id);
+        } else {
+            serviciosAlumnoEnEdicion[idx].id_servicio = null;
+            serviciosAlumnoEnEdicion[idx].servicio = '';
+            serviciosAlumnoEnEdicion[idx].es_pase_libre = false;
+            renderServiciosAlumnoRows();
+        }
+    }
+}
+
 function renderServiciosAlumnoRows() {
     const canAddMore = Array.isArray(allServicios) && (serviciosAlumnoEnEdicion.length === 0 ? allServicios.length > 0 : serviciosAlumnoEnEdicion.length < (allServicios.length + 1));
     const btnTop = document.getElementById('btnAsignarOtroServTop');
@@ -327,22 +393,27 @@ function renderServiciosAlumnoRows() {
     defaultVencDate.setDate(defaultVencDate.getDate() + 30);
     const defaultVencIso = defaultVencDate.toISOString().split('T')[0];
 
-    container.innerHTML = serviciosAlumnoEnEdicion.map((item, idx) => {
-        const pkgs = obtenerPaquetesDeServicio(item.id_servicio);
-        const totalRows = serviciosAlumnoEnEdicion.length;
+    const serviciosConPaseLibre = obtenerServiciosPaseLibre();
+    const serviciosExclusivos = obtenerServiciosExclusivos();
+    const paquetesLibreCompartidos = obtenerPaquetesPaseLibreCompartidos();
 
+    container.innerHTML = serviciosAlumnoEnEdicion.map((item, idx) => {
+        const totalRows = serviciosAlumnoEnEdicion.length;
         const isPaseLibre = (item.id_servicio === 0 || item.id_servicio === '0' || Boolean(item.es_pase_libre));
 
-        // Opciones del selector de servicios
-        let servOptionsHtml = `<option value="">-- Seleccionar Servicio --</option>`;
-        servOptionsHtml += `<option value="0" ${isPaseLibre ? 'selected' : ''}>🎟️ Pase Libre (Todas las Clases del Local)</option>`;
-        allServicios.forEach(s => {
+        // Paquetes aplicables según tipo de pase
+        const pkgs = isPaseLibre
+            ? paquetesLibreCompartidos
+            : obtenerPaquetesDeServicio(item.id_servicio).filter(p => !p.es_pase_libre);
+
+        // Opciones de servicios exclusivos (solo se muestra cuando elige Pase Exclusivo)
+        let servOptionsHtml = `<option value="">-- Seleccionar Servicio Exclusivo --</option>`;
+        serviciosExclusivos.forEach(s => {
             const isSel = !isPaseLibre && s.id == item.id_servicio ? 'selected' : '';
             const cupoText = s.cupo_maximo ? `${s.cupo_maximo} cupos` : '1 cupo';
             servOptionsHtml += `<option value="${s.id}" ${isSel}>${escapeHtml(s.nombre)} (${cupoText})</option>`;
         });
 
-        // Opciones del selector de paquetes con etiquetas configuradas por el negocio
         let paqOptionsHtml = `<option value="">-- Seleccionar Paquete / Pase --</option>`;
         let matchedPkg = false;
 
@@ -351,25 +422,17 @@ function renderServiciosAlumnoRows() {
                 const cupos = parseInt(p.cupos, 10);
                 const precio = parseFloat(p.precio || 0);
                 const precioFmt = precio > 0 ? ` - $${precio.toLocaleString('es-AR')}` : '';
-                
-                // Si el negocio configuró una etiqueta personalizada para el pase (ej: "Pase 8 Clases", "Plan Mensual 12 Clases")
-                let textoOpcion = '';
-                const scopeLabel = p.es_pase_libre ? '🎟️ Pase Libre' : '🔒 Exclusivo';
-                if (p.etiqueta && p.etiqueta.trim()) {
-                    textoOpcion = `🏷️ ${escapeHtml(p.etiqueta)} (${cupos} clases${precioFmt}) · ${scopeLabel}`;
-                } else {
-                    textoOpcion = `📦 Paquete ${cupos} clases${precioFmt} · ${scopeLabel}`;
-                }
+                const textoOpcion = (p.etiqueta && p.etiqueta.trim())
+                    ? `🏷️ ${escapeHtml(p.etiqueta)} (${cupos} clases${precioFmt})`
+                    : `📦 Paquete ${cupos} clases${precioFmt}`;
 
-                // Identificar si coincide con la opción seleccionada
                 const isSelected = (!item.es_manual && (
-                    (item.etiqueta_pase && item.etiqueta_pase === p.etiqueta) || 
+                    (item.etiqueta_pase && item.etiqueta_pase === p.etiqueta) ||
                     (!item.etiqueta_pase && parseInt(item.pases_disponibles, 10) === cupos)
                 ));
-
                 if (isSelected) matchedPkg = true;
 
-                paqOptionsHtml += `<option value="${cupos}" data-etiqueta="${escapeHtml(p.etiqueta || '')}" data-precio="${precio}" data-pase-libre="${p.es_pase_libre ? '1' : '0'}" ${isSelected ? 'selected' : ''}>${textoOpcion}</option>`;
+                paqOptionsHtml += `<option value="${cupos}" data-etiqueta="${escapeHtml(p.etiqueta || '')}" data-precio="${precio}" data-pase-libre="${isPaseLibre ? '1' : '0'}" ${isSelected ? 'selected' : ''}>${textoOpcion}</option>`;
             });
         }
 
@@ -379,58 +442,70 @@ function renderServiciosAlumnoRows() {
         const pasesDisp = item.pases_disponibles !== undefined && item.pases_disponibles !== null ? item.pases_disponibles : 4;
         const vencVal = item.fecha_vencimiento || defaultVencIso;
 
+        const clasesLibreChips = serviciosConPaseLibre.length > 0
+            ? `<div class="flex flex-wrap items-center gap-1 mt-1.5">${serviciosConPaseLibre.map(s => `<span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-white text-purple-800 border border-purple-200">${escapeHtml(s.nombre)}</span>`).join('')}</div>`
+            : `<p class="text-[10px] text-amber-800 font-bold mt-1">⚠️ Aún no marcaste ningún servicio con paquetes de Pase Libre en la sección Servicios.</p>`;
+
         return `
-            <div class="p-3.5 bg-white border border-orange-200/90 rounded-2xl shadow-2xs space-y-3 relative group" id="filaServicioAlumno_${idx}">
+            <div class="p-3.5 bg-white border ${isPaseLibre ? 'border-purple-200' : 'border-orange-200/90'} rounded-2xl shadow-2xs space-y-3 relative group" id="filaServicioAlumno_${idx}">
                 <!-- Encabezado de la Fila -->
                 <div class="flex items-center justify-between pb-2 border-b border-slate-100">
                     <div class="flex items-center gap-2">
-                        <span class="w-5 h-5 rounded-full bg-orange-100 text-orange-700 text-[11px] font-black flex items-center justify-center shrink-0">${idx + 1}</span>
-                        <span class="text-xs font-extrabold text-slate-800">Servicio y Pases</span>
+                        <span class="w-5 h-5 rounded-full ${isPaseLibre ? 'bg-purple-100 text-purple-700' : 'bg-orange-100 text-orange-700'} text-[11px] font-black flex items-center justify-center shrink-0">${idx + 1}</span>
+                        <span class="text-xs font-extrabold text-slate-800">${isPaseLibre ? 'Pase Libre Compartido' : 'Pase Exclusivo'}</span>
                         ${item.etiqueta_pase ? `<span class="bg-amber-100 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full truncate max-w-[170px]">🏷️ ${escapeHtml(item.etiqueta_pase)}</span>` : ''}
                     </div>
 
                     ${totalRows > 1 ? `
-                        <button type="button" onclick="eliminarFilaServicioAlumno(${idx})" class="text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-2 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer" title="Quitar este servicio">
+                        <button type="button" onclick="eliminarFilaServicioAlumno(${idx})" class="text-rose-500 hover:text-rose-700 hover:bg-rose-50 px-2 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer" title="Quitar este pase">
                             <span class="material-symbols-outlined text-[14px]">delete</span> Quitar
                         </button>
                     ` : ''}
                 </div>
 
-                <!-- Selector de Servicio -->
+                <!-- Paso 1: Tipo de Pase (Pase Libre vs Exclusivo) -->
                 <div>
-                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Servicio Asignado *</label>
-                    <select onchange="onServicioRowChange(${idx}, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-extrabold text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none">
-                        ${servOptionsHtml}
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Tipo de Pase *</label>
+                    <select onchange="onTipoPaseRowChange(${idx}, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-extrabold text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none">
+                        <option value="libre" ${isPaseLibre ? 'selected' : ''}>🎟️ Pase Libre (Todas las clases con Pase Libre)</option>
+                        <option value="exclusivo" ${!isPaseLibre ? 'selected' : ''}>🔒 Pase Exclusivo (Elegir un servicio puntual)</option>
                     </select>
                 </div>
 
-                <!-- Selector de Paquetes / Pases con Etiquetas -->
                 ${isPaseLibre ? `
-                    <div class="p-2.5 bg-purple-50/80 border border-purple-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                        <span class="text-[11px] font-bold text-purple-900">🎟️ Válido <strong>solo</strong> para clases que también tengan habilitada la opción de <strong>Pase Libre</strong> (no se mezcla con clases de pase exclusivo).</span>
-                        <div class="flex items-center gap-1.5 shrink-0">
-                            <button type="button" onclick="setPaseLibrePreset(${idx}, 4)" class="px-2 py-1 text-[10px] font-extrabold bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg cursor-pointer">4 cl.</button>
-                            <button type="button" onclick="setPaseLibrePreset(${idx}, 8)" class="px-2 py-1 text-[10px] font-extrabold bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg cursor-pointer">8 cl.</button>
-                            <button type="button" onclick="setPaseLibrePreset(${idx}, 12)" class="px-2 py-1 text-[10px] font-extrabold bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg cursor-pointer">12 cl.</button>
+                    <div class="p-2.5 bg-purple-50/80 border border-purple-200 rounded-xl space-y-2">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <span class="text-[11px] font-bold text-purple-900">🎟️ Aplica automáticamente a <strong>todas</strong> las clases con Pase Libre (sin asignar un solo servicio):</span>
+                            <div class="flex items-center gap-1.5 shrink-0">
+                                <button type="button" onclick="setPaseLibrePreset(${idx}, 4)" class="px-2 py-1 text-[10px] font-extrabold bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg cursor-pointer">4 cl.</button>
+                                <button type="button" onclick="setPaseLibrePreset(${idx}, 8)" class="px-2 py-1 text-[10px] font-extrabold bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg cursor-pointer">8 cl.</button>
+                                <button type="button" onclick="setPaseLibrePreset(${idx}, 12)" class="px-2 py-1 text-[10px] font-extrabold bg-white hover:bg-purple-100 text-purple-800 border border-purple-200 rounded-lg cursor-pointer">12 cl.</button>
+                            </div>
                         </div>
+                        ${clasesLibreChips}
                     </div>
-                ` : (item.id_servicio ? `
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Paquete de Pase Libre</label>
+                        <select onchange="onPaqueteRowChange(${idx}, this)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-extrabold text-slate-900 focus:ring-2 focus:ring-purple-500 outline-none">
+                            ${paqOptionsHtml}
+                        </select>
+                    </div>
+                ` : `
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Pase / Paquete Configurado</label>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Servicio Exclusivo *</label>
+                            <select onchange="onServicioRowChange(${idx}, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-extrabold text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none">
+                                ${servOptionsHtml}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Paquete del Servicio</label>
                             <select onchange="onPaqueteRowChange(${idx}, this)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-extrabold text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none">
                                 ${paqOptionsHtml}
                             </select>
                         </div>
-                        <div>
-                            <label class="block text-[11px] font-bold text-slate-700 mb-1">Alcance de Uso</label>
-                            <select onchange="onAlcancePaseRowChange(${idx}, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-extrabold text-slate-900 focus:ring-2 focus:ring-orange-500 outline-none">
-                                <option value="exclusivo" ${!item.es_pase_libre ? 'selected' : ''}>🔒 Exclusivo de esta clase</option>
-                                <option value="libre" ${item.es_pase_libre ? 'selected' : ''}>🎟️ Pase Libre (Todas las clases)</option>
-                            </select>
-                        </div>
                     </div>
-                ` : '')}
+                `}
 
                 <!-- Grilla de Clases y Vencimiento -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">

@@ -310,10 +310,16 @@
                             <span class="material-symbols-outlined text-amber-600 text-[18px]">inventory_2</span>
                             <span>Paquetes de Pases / Tarifas por Cupos (Opcional)</span>
                         </label>
-                        <button type="button" onclick="addCupoPricingRow()" class="text-xs font-black px-3 py-1.5 rounded-xl bg-white hover:bg-amber-100/80 border border-amber-300 text-amber-800 flex items-center gap-1 cursor-pointer transition-all shadow-xs w-fit">
-                            <span class="material-symbols-outlined text-[16px] text-amber-600">add_circle</span>
-                            <span>Agregar Paquete</span>
-                        </button>
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <button type="button" onclick="cargarPaquetesPaseLibreCompartidos()" class="text-xs font-black px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-300 text-purple-800 flex items-center gap-1 cursor-pointer transition-all shadow-2xs w-fit" title="Importar automáticamente todos los paquetes de Pase Libre ya creados en otros servicios">
+                                <span class="material-symbols-outlined text-[15px] text-purple-600">confirmation_number</span>
+                                <span>Usar Pase Libre</span>
+                            </button>
+                            <button type="button" onclick="addCupoPricingRow()" class="text-xs font-black px-3 py-1.5 rounded-xl bg-white hover:bg-amber-100/80 border border-amber-300 text-amber-800 flex items-center gap-1 cursor-pointer transition-all shadow-xs w-fit">
+                                <span class="material-symbols-outlined text-[16px] text-amber-600">add_circle</span>
+                                <span>Agregar Paquete</span>
+                            </button>
+                        </div>
                     </div>
                     <p class="text-[11px] text-slate-500 mb-2">Definí precios promocionales por cantidad de clases (ej: 4 clases = $55.000, 8 clases = $99.000).</p>
                     <div class="mb-3 px-3 py-2 rounded-xl bg-white/80 border border-amber-200/90 text-[11px] text-amber-950 leading-relaxed">
@@ -634,9 +640,101 @@
             renderServicesList(filtered);
         }
 
-        function addCupoPricingRow(cupos = 4, precio = 55000, etiqueta = '', esPaseLibre = false) {
+        function getExistingPaseLibrePackages() {
+            if (!Array.isArray(servicesData) || servicesData.length === 0) return [];
+            const editingId = String(document.getElementById('svcId')?.value || '').trim();
+            const seen = new Set();
+            const found = [];
+            servicesData.forEach(s => {
+                if (!s || (editingId && String(s.id) === editingId)) return;
+                let pkgs = [];
+                try {
+                    pkgs = typeof s.precios_paquetes_json === 'string'
+                        ? JSON.parse(s.precios_paquetes_json || '[]')
+                        : (s.precios_paquetes_json || []);
+                } catch(e) {}
+                if (Array.isArray(pkgs)) {
+                    pkgs.forEach(p => {
+                        if (p && p.es_pase_libre) {
+                            const cupos = parseInt(p.cupos ?? p.pases ?? p.clases ?? 0, 10) || 1;
+                            const precio = parseFloat(p.precio ?? 0);
+                            const etiqueta = (p.etiqueta || p.nombre || `Pase Libre ${cupos} Clases`).trim();
+                            const key = `${cupos}|${precio}|${etiqueta.toLowerCase()}`;
+                            if (!seen.has(key)) {
+                                seen.add(key);
+                                found.push({ cupos, precio, etiqueta });
+                            }
+                        }
+                    });
+                }
+            });
+            return found;
+        }
+
+        function cargarPaquetesPaseLibreCompartidos(silentIfEmpty = false) {
             const container = document.getElementById('cupoPricingContainer');
             if (!container) return;
+            const shared = getExistingPaseLibrePackages();
+            if (shared.length === 0) {
+                if (!silentIfEmpty) {
+                    addCupoPricingRow(8, 55000, 'Pase Libre 8 Clases', true);
+                    if (typeof showToast === 'function') {
+                        showToast('Todavía no había paquetes de Pase Libre en otros servicios. Se creó uno base para editar.', 'info');
+                    }
+                }
+                return;
+            }
+            container.innerHTML = '';
+            shared.forEach(p => addCupoPricingRow(p.cupos, p.precio, p.etiqueta, true));
+            if (typeof showToast === 'function') {
+                showToast(`Se cargaron automáticamente ${shared.length} ${shared.length === 1 ? 'paquete' : 'paquetes'} de Pase Libre compartidos.`, 'success');
+            }
+        }
+
+        function onCupoScopeChange(selectEl) {
+            if (!selectEl) {
+                collectCupoPricingRows();
+                return;
+            }
+            const val = selectEl.value;
+            const container = document.getElementById('cupoPricingContainer');
+            if (val === 'libre') {
+                // Sincronizar todos los paquetes a Pase Libre e importar los ya creados en otros servicios
+                if (container) {
+                    container.querySelectorAll('.cupo-scope-select').forEach(sel => { sel.value = 'libre'; });
+                    const shared = getExistingPaseLibrePackages();
+                    if (shared.length > 0) {
+                        const existingKeys = new Set();
+                        container.querySelectorAll('[id^="cupo_row_"]').forEach(r => {
+                            const c = parseInt(r.querySelector('.cupo-qty-input')?.value || 0, 10);
+                            const pr = parseFloat(r.querySelector('.cupo-price-input')?.value || 0);
+                            const et = (r.querySelector('.cupo-label-input')?.value || '').trim().toLowerCase();
+                            existingKeys.add(`${c}|${pr}|${et}`);
+                        });
+                        let added = 0;
+                        shared.forEach(p => {
+                            const key = `${p.cupos}|${p.precio}|${p.etiqueta.toLowerCase()}`;
+                            if (!existingKeys.has(key)) {
+                                addCupoPricingRow(p.cupos, p.precio, p.etiqueta, true);
+                                added++;
+                            }
+                        });
+                        if (added > 0 && typeof showToast === 'function') {
+                            showToast(`Se agregaron automáticamente ${added} ${added === 1 ? 'paquete' : 'paquetes'} de Pase Libre existentes para mantener coherencia.`, 'success');
+                        }
+                    }
+                }
+            }
+            collectCupoPricingRows();
+        }
+
+        function addCupoPricingRow(cupos = 4, precio = 55000, etiqueta = '', esPaseLibre = null) {
+            const container = document.getElementById('cupoPricingContainer');
+            if (!container) return;
+            if (esPaseLibre === null) {
+                const anyLibre = Array.from(container.querySelectorAll('.cupo-scope-select')).some(s => s.value === 'libre');
+                esPaseLibre = anyLibre;
+            }
             const rowId = 'cupo_row_' + Date.now() + '_' + Math.floor(Math.random()*1000);
             const div = document.createElement('div');
             div.id = rowId;
@@ -656,7 +754,7 @@
                 </div>
                 <div class="w-36 sm:w-40 shrink-0">
                     <span class="text-[9px] font-bold text-slate-400 block uppercase">Alcance</span>
-                    <select class="cupo-scope-select w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-slate-800 outline-none cursor-pointer" onchange="collectCupoPricingRows()">
+                    <select class="cupo-scope-select w-full bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-slate-800 outline-none cursor-pointer" onchange="onCupoScopeChange(this)">
                         <option value="exclusivo" ${!esPaseLibre ? 'selected' : ''}>🔒 Solo esta clase</option>
                         <option value="libre" ${esPaseLibre ? 'selected' : ''}>🎟️ Pase Libre (Todas)</option>
                     </select>
