@@ -882,6 +882,54 @@
             renderSvcHorariosDays();
         }
 
+        function getOtherServicesChipsForDay(dayKey) {
+            if (!Array.isArray(servicesData) || servicesData.length === 0) return '';
+            const editingId = String(document.getElementById('svcId')?.value || '').trim();
+            const chips = [];
+
+            servicesData.forEach(s => {
+                if (!s || !s.horarios_especificos_json) return;
+                if (editingId && String(s.id) === editingId) return;
+                try {
+                    const hSpec = typeof s.horarios_especificos_json === 'string'
+                        ? JSON.parse(s.horarios_especificos_json || 'null')
+                        : s.horarios_especificos_json;
+                    const dInfo = hSpec && hSpec[dayKey];
+                    if (dInfo && dInfo.activo && Array.isArray(dInfo.tramos) && dInfo.tramos.length > 0) {
+                        const col = (s.color && String(s.color).startsWith('#')) ? s.color : '#64748b';
+                        dInfo.tramos.forEach(tr => {
+                            if (tr && tr.inicio && tr.fin) {
+                                chips.push({
+                                    nombre: s.nombre || s.nombre_servicio || 'Servicio',
+                                    color: col,
+                                    inicio: tr.inicio,
+                                    fin: tr.fin
+                                });
+                            }
+                        });
+                    }
+                } catch(e) {}
+            });
+
+            if (chips.length === 0) return '';
+            chips.sort((a, b) => a.inicio.localeCompare(b.inicio));
+
+            const chipsHtml = chips.map(c => `
+                <span style="background-color: ${escapeHtml(c.color)}14; border-color: ${escapeHtml(c.color)}40;" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[10px] font-bold text-slate-700">
+                    <span style="background-color: ${escapeHtml(c.color)};" class="w-1.5 h-1.5 rounded-full shrink-0"></span>
+                    <span>${escapeHtml(c.nombre)}</span>
+                    <span class="text-slate-500 font-semibold">${c.inicio}–${c.fin}</span>
+                </span>
+            `).join('');
+
+            return `
+                <div class="pt-2 mt-1 border-t border-slate-200/70 flex flex-wrap items-center gap-1.5">
+                    <span class="text-[10px] font-bold text-slate-400">Ya agendados este día:</span>
+                    ${chipsHtml}
+                </div>
+            `;
+        }
+
         function renderSvcHorariosDays() {
             const container = document.getElementById('svcHorariosDaysContainer');
             if (!container) return;
@@ -906,21 +954,26 @@
                     ? `<button type="button" onclick="copySvcHorarioToWeekdays('${d.key}')" class="text-[10px] font-bold text-slate-500 hover:text-primary px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer" title="Copiar estos horarios de Lunes a Viernes">Copiar L-V</button>`
                     : '';
 
+                const otherChipsHtml = getOtherServicesChipsForDay(d.key);
+
                 return `
-                    <div class="p-2.5 sm:p-3 rounded-xl border ${active ? 'bg-white border-slate-200' : 'bg-slate-100/60 border-slate-200/60'} flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                        <label class="inline-flex items-center gap-2 cursor-pointer min-w-[110px] shrink-0 select-none">
-                            <input type="checkbox" ${active ? 'checked' : ''} onchange="toggleSvcHorarioDay('${d.key}', this.checked)" class="w-4 h-4 accent-primary rounded cursor-pointer">
-                            <span class="text-xs font-extrabold ${active ? 'text-slate-800' : 'text-slate-400'}">${d.label}</span>
-                        </label>
-                        <div class="flex flex-wrap items-center gap-2 flex-1">
-                            ${tramosHtml}
+                    <div class="p-2.5 sm:p-3 rounded-xl border ${active ? 'bg-white border-slate-200' : 'bg-slate-100/60 border-slate-200/60'}">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                            <label class="inline-flex items-center gap-2 cursor-pointer min-w-[110px] shrink-0 select-none">
+                                <input type="checkbox" ${active ? 'checked' : ''} onchange="toggleSvcHorarioDay('${d.key}', this.checked)" class="w-4 h-4 accent-primary rounded cursor-pointer">
+                                <span class="text-xs font-extrabold ${active ? 'text-slate-800' : 'text-slate-400'}">${d.label}</span>
+                            </label>
+                            <div class="flex flex-wrap items-center gap-2 flex-1">
+                                ${tramosHtml}
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0">
+                                ${copyBtn}
+                                <button type="button" onclick="addSvcHorarioTramo('${d.key}')" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 inline-flex items-center gap-1 transition-colors cursor-pointer">
+                                    <span class="material-symbols-outlined text-[14px]">add</span> Horario
+                                </button>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-1 shrink-0">
-                            ${copyBtn}
-                            <button type="button" onclick="addSvcHorarioTramo('${d.key}')" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 inline-flex items-center gap-1 transition-colors cursor-pointer">
-                                <span class="material-symbols-outlined text-[14px]">add</span> Horario
-                            </button>
-                        </div>
+                        ${otherChipsHtml}
                     </div>
                 `;
             }).join('');
