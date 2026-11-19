@@ -4,15 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>Catálogo Digital con Consulta a WhatsApp | Marca Ejemplo</title>
+    <title>Casa Brava · Catálogo de Mobiliario &amp; Objetos | Modelo 3</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='hg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23d11149'/%3E%3Cstop offset='100%25' stop-color='%23fc8712'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='18' fill='%231e1e24'/%3E%3Cpath d='M32 50.5l-2.6-2.37C20.18 40 14 34.4 14 27.5 14 21.98 18.38 17.6 23.9 17.6c3.12 0 6.11 1.45 8.1 3.75 1.99-2.3 4.98-3.75 8.1-3.75 5.52 0 9.9 4.38 9.9 9.9 0 6.9-6.18 12.5-15.4 20.63L32 50.5z' fill='url(%23hg)'/%3E%3C/svg%3E">
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Google Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 
     <script>
@@ -21,18 +18,18 @@
                 extend: {
                     fontFamily: {
                         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        serif: ['"DM Serif Display"', 'Georgia', 'serif'],
                     },
                     colors: {
-                        azul: {
-                            DEFAULT: '#2e5aac',
-                            dark: '#1e3f7d',
-                            light: '#eef4fc',
-                            border: '#c5d8f6',
+                        alabaster: '#f7f6f2',
+                        cobalt: {
+                            DEFAULT: '#23468c',
+                            dark: '#183266',
+                            light: '#edf2fa'
                         },
-                        pastel: {
-                            yellow: '#fce38a',
-                            yellowLight: '#fff9e6',
-                            yellowDark: '#d4b745',
+                        ochre: {
+                            DEFAULT: '#e8c458',
+                            light: '#fbf6e2'
                         },
                         wpp: {
                             DEFAULT: '#25D366',
@@ -43,518 +40,381 @@
             }
         }
     </script>
-    <style>
-        /* Animación suave de formas flotantes (confeti / geométrica) */
-        .shapes-wrap {
-            position: absolute;
-            inset: 0;
-            overflow: hidden;
-            pointer-events: none;
-            z-index: 0;
-        }
-        .shape-item {
-            position: absolute;
-            animation: floatShape 14s infinite alternate ease-in-out;
-            will-change: transform;
-        }
-        .shape-1 {
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            background: #fce38a;
-            opacity: 0.35;
-            top: 10%;
-            left: 5%;
-            animation-duration: 12s;
-        }
-        .shape-2 {
-            width: 80px;
-            height: 80px;
-            border: 10px solid #2e5aac;
-            border-radius: 26px;
-            opacity: 0.25;
-            bottom: 15%;
-            right: 8%;
-            animation-duration: 16s;
-        }
-        .shape-3 {
-            width: 130px;
-            height: 45px;
-            border-radius: 24px;
-            background: #fce38a;
-            opacity: 0.3;
-            top: 25%;
-            right: 20%;
-            transform: rotate(20deg);
-            animation-duration: 13s;
-        }
-        .shape-4 {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            background: #2e5aac;
-            opacity: 0.2;
-            bottom: 25%;
-            left: 22%;
-            animation-duration: 15s;
-        }
-        @keyframes floatShape {
-            0% { transform: translateY(0) rotate(0deg); }
-            100% { transform: translateY(-30px) rotate(15deg); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .shape-item { animation: none; }
-        }
-    </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-azul selection:text-white">
+<body class="bg-alabaster text-stone-800 font-sans antialiased selection:bg-cobalt selection:text-white">
 
-    <!-- Barra de demostración sobria -->
-    <aside aria-label="Aviso de demostración" class="bg-slate-900 text-slate-300 text-xs py-2 px-3 sm:px-4 border-b border-slate-800 relative z-30">
+    <!-- Barra superior de demostración -->
+    <aside aria-label="Aviso de demostración" class="bg-stone-900 text-stone-300 text-xs py-2 px-3 sm:px-4 border-b border-stone-800 relative z-30">
         <div class="max-w-7xl mx-auto flex items-center justify-between gap-2 text-[11px] sm:text-xs">
             <div class="flex items-center gap-2 min-w-0">
-                <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-white border border-slate-700 text-[#d11149] shadow-xs shrink-0">
+                <span class="inline-flex items-center justify-center w-5 h-5 rounded-md bg-white border border-stone-700 text-[#d11149] shrink-0">
                     <svg class="w-3 h-3 fill-[#d11149]" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                 </span>
-                <span class="inline-block w-1.5 h-1.5 rounded-full bg-azul shrink-0"></span>
                 <span class="font-medium text-white truncate">Modelo 3: Catálogo Digital</span>
-                <span class="hidden sm:inline text-slate-400">· Paleta Azul & Amarillo · Fondo Formas</span>
+                <span class="hidden sm:inline text-stone-400">· Consulta directa por WhatsApp</span>
             </div>
-            <a href="index.html" class="inline-flex items-center gap-1 text-slate-300 hover:text-white transition-colors underline underline-offset-2 shrink-0">
+            <a href="index.html" class="inline-flex items-center gap-1 text-stone-300 hover:text-white transition-colors underline underline-offset-4 shrink-0">
                 <span>Volver a modelos</span>
                 <span class="material-symbols-outlined text-[14px]">arrow_back</span>
             </a>
         </div>
     </aside>
 
-    <!-- HEADER / CABECERA DE TIENDA COMPACTA Y RESPONSIVE -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 transition-all duration-300 shadow-2xs">
-        <!-- Fila Principal: Marca y Buscador -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-2.5 sm:gap-3">
-            
+    <!-- Header de Tienda -->
+    <header class="bg-white/95 backdrop-blur-md border-b border-stone-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div class="flex items-center justify-between gap-2 w-full md:w-auto">
-                <!-- Nombre de Tienda / Marca -->
-                <a href="#" class="flex items-center gap-2 sm:gap-2.5 shrink-0">
-                    <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-azul text-white flex items-center justify-center font-bold text-xs sm:text-sm shadow-xs">
-                        ME
-                    </div>
-                    <div>
-                        <span class="font-bold text-base sm:text-xl tracking-tight text-slate-900 block leading-tight">
-                            Marca <span class="text-azul">Ejemplo</span>
-                        </span>
-                        <span class="text-[10px] sm:text-[11px] text-slate-500 font-medium block">Catálogo de Productos</span>
-                    </div>
+                <a href="#" class="flex items-baseline gap-2 shrink-0">
+                    <span class="font-serif text-xl sm:text-2xl text-stone-900 tracking-tight">Casa Brava</span>
+                    <span class="text-[10px] uppercase tracking-[0.18em] text-stone-400 font-semibold hidden sm:inline">Objetos &amp; Deco</span>
                 </a>
 
-                <!-- Botón WhatsApp Móvil Rápido -->
-                <a href="https://wa.me/5491100000000?text=Hola!%20Quisiera%20hacer%20una%20consulta%20general%20del%20catálogo" 
-                   target="_blank" 
+                <a href="https://wa.me/5491100000000?text=Hola!%20Quisiera%20hacer%20una%20consulta%20general%20del%20catálogo"
+                   target="_blank"
                    rel="noopener noreferrer"
-                   class="md:hidden bg-wpp hover:bg-wpp-hover text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5 shrink-0">
+                   class="md:hidden bg-wpp hover:bg-wpp-hover text-white font-semibold text-xs px-3 py-1.5 rounded-full transition-colors flex items-center gap-1.5 shrink-0">
                     <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
                     <span>WhatsApp</span>
                 </a>
             </div>
 
-            <!-- Buscador Rápido de Productos Integrado en el Navbar -->
             <div class="relative flex-1 max-w-md w-full">
-                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
-                <input type="text" id="searchInput" oninput="searchProducts(this.value)" placeholder="Buscar producto por nombre..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3.5 py-2 text-xs font-medium outline-none focus:bg-white focus:border-azul transition-all">
+                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-lg">search</span>
+                <input type="text" id="searchInput" oninput="searchProducts(this.value)" placeholder="Buscar por nombre o línea..." class="w-full bg-alabaster border border-stone-200 rounded-full pl-10 pr-4 py-2 text-xs font-medium outline-none focus:bg-white focus:border-cobalt transition-all">
             </div>
 
-            <!-- Botón WhatsApp Escritorio -->
             <div class="hidden md:flex items-center gap-3 shrink-0">
-                <a href="https://wa.me/5491100000000?text=Hola!%20Quisiera%20hacer%20una%20consulta%20general%20del%20catálogo" 
-                   target="_blank" 
+                <a href="https://wa.me/5491100000000?text=Hola!%20Quisiera%20hacer%20una%20consulta%20general%20del%20catálogo"
+                   target="_blank"
                    rel="noopener noreferrer"
-                   class="bg-wpp hover:bg-wpp-hover text-white font-bold text-xs px-4 py-2 rounded-xl shadow-xs transition-all flex items-center gap-2">
-                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-                    </svg>
+                   class="bg-wpp hover:bg-wpp-hover text-white font-semibold text-xs px-4 py-2 rounded-full transition-colors flex items-center gap-2">
+                    <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
                     <span>Consultar por WhatsApp</span>
                 </a>
             </div>
         </div>
 
-        <!-- Fila Secundaria: Filtros de Categoría tipo Tabs con scroll táctil suave -->
-        <div class="border-t border-slate-100 bg-slate-50/70">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-1.5 overflow-x-auto" style="-webkit-overflow-scrolling: touch; scrollbar-width: none;" id="categoryFilterBar">
-                <button type="button" onclick="filterProducts('all', this)" class="category-btn active px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap bg-azul text-white shadow-2xs">
+        <!-- Categorías -->
+        <div class="border-t border-stone-100 bg-alabaster/70">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center gap-2 overflow-x-auto" style="-webkit-overflow-scrolling: touch; scrollbar-width: none;" id="categoryFilterBar">
+                <button type="button" onclick="filterProducts('all', this)" class="category-btn active px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap bg-stone-900 text-white cursor-pointer">
                     Todos (<span id="countAll">8</span>)
                 </button>
-                <button type="button" onclick="filterProducts('muebles', this)" class="category-btn px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap bg-white text-slate-600 hover:bg-slate-100 border border-slate-200">
-                    Mobiliario & Deco
+                <button type="button" onclick="filterProducts('muebles', this)" class="category-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap bg-white text-stone-600 hover:bg-stone-100 border border-stone-200 cursor-pointer">
+                    Mobiliario &amp; Deco
                 </button>
-                <button type="button" onclick="filterProducts('iluminacion', this)" class="category-btn px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap bg-white text-slate-600 hover:bg-slate-100 border border-slate-200">
+                <button type="button" onclick="filterProducts('iluminacion', this)" class="category-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap bg-white text-stone-600 hover:bg-stone-100 border border-stone-200 cursor-pointer">
                     Iluminación
                 </button>
-                <button type="button" onclick="filterProducts('textil', this)" class="category-btn px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap bg-white text-slate-600 hover:bg-slate-100 border border-slate-200">
+                <button type="button" onclick="filterProducts('textil', this)" class="category-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap bg-white text-stone-600 hover:bg-stone-100 border border-stone-200 cursor-pointer">
                     Textil Hogar
                 </button>
-                <button type="button" onclick="filterProducts('ofertas', this)" class="category-btn px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap bg-pastel-yellowLight text-slate-800 border border-pastel-yellow hover:bg-pastel-yellow transition-colors">
-                    Ofertas Destacadas
+                <button type="button" onclick="filterProducts('ofertas', this)" class="category-btn px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap bg-ochre-light text-stone-800 border border-ochre hover:bg-ochre cursor-pointer">
+                    Selección en Oferta
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- BANNER HERO CON FORMAS FLOTANTES ANIMADAS -->
-    <section class="bg-gradient-to-r from-azul to-azul-dark text-white py-8 sm:py-16 relative overflow-hidden">
-        
-        <!-- Formas Flotantes Animadas -->
-        <div class="shapes-wrap">
-            <div class="shape-item shape-1"></div>
-            <div class="shape-item shape-2"></div>
-            <div class="shape-item shape-3"></div>
-            <div class="shape-item shape-4"></div>
-        </div>
-        
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="max-w-2xl space-y-3 text-center sm:text-left">
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-900 bg-pastel-yellow px-3 py-1 rounded-full inline-block">
-                    Nueva Colección
-                </span>
-                <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight leading-tight">
-                    Catálogo de Productos
-                </h1>
-                <!-- Párrafo Descriptivo en Lorem Ipsum -->
-                <p class="text-sm sm:text-base text-azul-light leading-relaxed font-normal">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Elegí los productos de tu interés y consultanos disponibilidad por WhatsApp sin formularios complejos.
-                </p>
+    <!-- EDITORIAL LOOKBOOK BANNER -->
+    <section class="bg-white border-b border-stone-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-cobalt">
+                        <span class="w-6 h-px bg-cobalt"></span>
+                        <span>Colección Otoño / Invierno</span>
+                    </div>
+                    <h1 class="font-serif text-3xl sm:text-5xl text-stone-900 leading-[1.08] tracking-tight">
+                        Piezas nobles para habitar con calidez y oficio.
+                    </h1>
+                    <p class="text-sm sm:text-base text-stone-600 leading-relaxed max-w-xl">
+                        Explorá nuestro catálogo actualizado con stock real. Tocá cualquier producto para consultar medidas, tapizados o coordinación de envío directo por WhatsApp.
+                    </p>
+                </div>
+                <div class="lg:col-span-5">
+                    <div class="aspect-[16/9] rounded-xl overflow-hidden border border-stone-200 bg-stone-100">
+                        <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=900&h=500&fit=crop"
+                             alt="Living Casa Brava con mobiliario de madera y lino"
+                             class="w-full h-full object-cover">
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- GRILLA DE FICHAS DE PRODUCTOS -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-        <!-- Indicador de Resultados -->
-        <div class="flex items-center justify-between mb-8 pb-3 border-b border-slate-200">
-            <span class="text-xs font-medium text-slate-500">Mostrando productos en exhibición</span>
-            <span class="text-xs font-bold text-slate-800" id="productCountBadge">8 productos disponibles</span>
+    <!-- GRILLA DE PRODUCTOS -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+        <div class="flex items-center justify-between mb-7 pb-3 border-b border-stone-200">
+            <span class="text-xs font-medium text-stone-500">Catálogo con consulta inmediata</span>
+            <span class="text-xs font-semibold text-stone-800" id="productCountBadge">8 productos disponibles</span>
         </div>
 
-        <!-- Alerta de Sin Resultados -->
-        <div id="noResultsAlert" class="hidden text-center py-16 bg-white rounded-3xl border border-slate-200 p-8 my-6">
-            <span class="material-symbols-outlined text-4xl text-slate-400 mb-2">search_off</span>
-            <h3 class="font-bold text-slate-800 text-lg mb-1">No se encontraron productos</h3>
-            <p class="text-slate-500 text-xs sm:text-sm">Probá buscando con otro término o seleccionando otra categoría.</p>
+        <div id="noResultsAlert" class="hidden text-center py-16 bg-white rounded-2xl border border-stone-200 p-8 my-6">
+            <span class="material-symbols-outlined text-4xl text-stone-400 mb-2">search_off</span>
+            <h3 class="font-bold text-stone-800 text-lg mb-1">No encontramos coincidencias</h3>
+            <p class="text-stone-500 text-xs sm:text-sm">Probá con otro nombre o seleccioná otra categoría arriba.</p>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="productsGrid">
-            
+
             <!-- Producto 1 -->
-            <div class="product-card group bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-azul/50 transition-all duration-300 overflow-hidden flex flex-col justify-between" 
-                 data-category="muebles" 
+            <div class="product-card group bg-white rounded-xl border border-stone-200/90 hover:border-stone-300 transition-all duration-300 overflow-hidden flex flex-col justify-between"
+                 data-category="muebles"
                  data-title="Sillón Nórdico Bouclé Marfil"
                  data-price="148500">
                 <div>
-                    <div class="relative h-60 overflow-hidden bg-slate-100">
-                        <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=600&fit=crop" alt="Sillón Nórdico Bouclé" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                        <span class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-md">
+                    <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
+                        <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=600&h=750&fit=crop" alt="Sillón Nórdico Bouclé Marfil" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 bg-white/95 text-stone-800 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full">
                             Mobiliario
                         </span>
-                        <span class="absolute top-3 right-3 bg-pastel-yellow text-slate-900 text-[10px] font-bold uppercase px-2 py-0.5 rounded-md shadow-2xs">
-                            En Stock
-                        </span>
                     </div>
-
-                    <div class="p-5">
-                        <div class="flex items-baseline justify-between mb-1.5">
-                            <span class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Línea Living</span>
-                            <span class="text-lg font-bold text-slate-900">$148.500</span>
+                    <div class="p-4 sm:p-5">
+                        <div class="flex items-baseline justify-between gap-2 mb-1">
+                            <span class="text-[10px] font-semibold text-stone-400 uppercase tracking-wider">Línea Living</span>
+                            <span class="text-base font-bold text-stone-900">$148.500</span>
                         </div>
-                        <h3 class="product-title font-bold text-base text-slate-900 leading-snug mb-2">
+                        <h3 class="product-title font-bold text-sm sm:text-base text-stone-900 leading-snug mb-1.5">
                             Sillón Nórdico Bouclé Marfil
                         </h3>
-                        <!-- Descripción en Lorem Ipsum -->
-                        <p class="text-xs text-slate-500 leading-relaxed font-normal mb-4 line-clamp-3">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Estructura de madera maciza de paraíso lustrada, tapizado en tejido bouclé premium de alta resistencia al roce.
+                        <p class="text-xs text-stone-500 leading-relaxed line-clamp-2">
+                            Estructura de madera maciza de paraíso lustrada y tapizado en tejido bouclé de alta resistencia.
                         </p>
                     </div>
                 </div>
-
-                <div class="p-5 pt-0">
-                    <button type="button" 
-                            onclick="consultarWhatsApp('Sillón Nórdico Bouclé Marfil')"
-                            class="w-full py-2.5 px-4 rounded-xl bg-wpp hover:bg-wpp-hover text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                <div class="p-4 sm:p-5 pt-0">
+                    <button type="button" onclick="consultarWhatsApp('Sillón Nórdico Bouclé Marfil')" class="w-full py-2.5 px-4 rounded-lg bg-stone-900 hover:bg-wpp text-white font-semibold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <span>Consultar por WhatsApp</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Producto 2 (Oferta) -->
-            <div class="product-card group bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-azul/50 transition-all duration-300 overflow-hidden flex flex-col justify-between" 
-                 data-category="iluminacion ofertas" 
-                 data-title="Lámpara Colgante Vintage Cúpula Bronce"
+            <!-- Producto 2 -->
+            <div class="product-card group bg-white rounded-xl border border-stone-200/90 hover:border-stone-300 transition-all duration-300 overflow-hidden flex flex-col justify-between"
+                 data-category="iluminacion ofertas"
+                 data-title="Lámpara Colgante Cúpula Bronce"
                  data-price="38900">
                 <div>
-                    <div class="relative h-60 overflow-hidden bg-slate-100">
-                        <img src="https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=600&h=600&fit=crop" alt="Lámpara Colgante" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                        <span class="absolute top-3 left-3 bg-azul text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-md">
+                    <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
+                        <img src="https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=600&h=750&fit=crop" alt="Lámpara Colgante Cúpula Bronce" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 bg-ochre text-stone-900 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
                             Oferta
                         </span>
-                        <span class="absolute top-3 right-3 bg-slate-900/80 text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-md">
-                            Iluminación
-                        </span>
                     </div>
-
-                    <div class="p-5">
-                        <div class="flex items-baseline justify-between mb-1.5">
-                            <span class="text-[11px] font-bold text-azul uppercase tracking-wider">Promoción</span>
-                            <div class="text-right">
-                                <span class="text-[11px] text-slate-400 line-through mr-1">$48.900</span>
-                                <span class="text-lg font-bold text-slate-900">$38.900</span>
+                    <div class="p-4 sm:p-5">
+                        <div class="flex items-baseline justify-between gap-2 mb-1">
+                            <span class="text-[10px] font-semibold text-cobalt uppercase tracking-wider">Iluminación</span>
+                            <div>
+                                <span class="text-[11px] text-stone-400 line-through mr-1">$48.900</span>
+                                <span class="text-base font-bold text-stone-900">$38.900</span>
                             </div>
                         </div>
-                        <h3 class="product-title font-bold text-base text-slate-900 leading-snug mb-2">
-                            Lámpara Colgante Vintage Bronce
+                        <h3 class="product-title font-bold text-sm sm:text-base text-stone-900 leading-snug mb-1.5">
+                            Lámpara Colgante Cúpula Bronce
                         </h3>
-                        <p class="text-xs text-slate-500 leading-relaxed font-normal mb-4 line-clamp-3">
-                            Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium. Terminación cobriza con cable textil regulable.
+                        <p class="text-xs text-stone-500 leading-relaxed line-clamp-2">
+                            Pantalla de aluminio cepillado en bronce mate con cable textil trenzado y florón metálico.
                         </p>
                     </div>
                 </div>
-
-                <div class="p-5 pt-0">
-                    <button type="button" 
-                            onclick="consultarWhatsApp('Lámpara Colgante Vintage Bronce')"
-                            class="w-full py-2.5 px-4 rounded-xl bg-wpp hover:bg-wpp-hover text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                <div class="p-4 sm:p-5 pt-0">
+                    <button type="button" onclick="consultarWhatsApp('Lámpara Colgante Cúpula Bronce')" class="w-full py-2.5 px-4 rounded-lg bg-stone-900 hover:bg-wpp text-white font-semibold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <span>Consultar por WhatsApp</span>
                     </button>
                 </div>
             </div>
 
             <!-- Producto 3 -->
-            <div class="product-card group bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-azul/50 transition-all duration-300 overflow-hidden flex flex-col justify-between" 
-                 data-category="muebles" 
-                 data-title="Mesa de Centro Ratona en Roble Macizo"
+            <div class="product-card group bg-white rounded-xl border border-stone-200/90 hover:border-stone-300 transition-all duration-300 overflow-hidden flex flex-col justify-between"
+                 data-category="muebles"
+                 data-title="Mesa de Centro Roble Macizo"
                  data-price="87200">
                 <div>
-                    <div class="relative h-60 overflow-hidden bg-slate-100">
-                        <img src="https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=600&h=600&fit=crop" alt="Mesa de Centro Ratona" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                        <span class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-md">
+                    <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
+                        <img src="https://images.unsplash.com/photo-1533090161767-e6ffed986c88?w=600&h=750&fit=crop" alt="Mesa de Centro Roble Macizo" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 bg-white/95 text-stone-800 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full">
                             Mobiliario
                         </span>
                     </div>
-
-                    <div class="p-5">
-                        <div class="flex items-baseline justify-between mb-1.5">
-                            <span class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Living</span>
-                            <span class="text-lg font-bold text-slate-900">$87.200</span>
+                    <div class="p-4 sm:p-5">
+                        <div class="flex items-baseline justify-between gap-2 mb-1">
+                            <span class="text-[10px] font-semibold text-stone-400 uppercase tracking-wider">Carpintería</span>
+                            <span class="text-base font-bold text-stone-900">$87.200</span>
                         </div>
-                        <h3 class="product-title font-bold text-base text-slate-900 leading-snug mb-2">
-                            Mesa de Centro Ratona en Roble
+                        <h3 class="product-title font-bold text-sm sm:text-base text-stone-900 leading-snug mb-1.5">
+                            Mesa de Centro Roble Macizo
                         </h3>
-                        <p class="text-xs text-slate-500 leading-relaxed font-normal mb-4 line-clamp-3">
-                            Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit. Acabado poliuretánico mate resistente a manchas y humedad.
+                        <p class="text-xs text-stone-500 leading-relaxed line-clamp-2">
+                            Tapa de roble natural sellada con cera mate al agua y patas torneadas de encastre firme.
                         </p>
                     </div>
                 </div>
-
-                <div class="p-5 pt-0">
-                    <button type="button" 
-                            onclick="consultarWhatsApp('Mesa de Centro Ratona en Roble')"
-                            class="w-full py-2.5 px-4 rounded-xl bg-wpp hover:bg-wpp-hover text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                <div class="p-4 sm:p-5 pt-0">
+                    <button type="button" onclick="consultarWhatsApp('Mesa de Centro Roble Macizo')" class="w-full py-2.5 px-4 rounded-lg bg-stone-900 hover:bg-wpp text-white font-semibold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <span>Consultar por WhatsApp</span>
                     </button>
                 </div>
             </div>
 
             <!-- Producto 4 -->
-            <div class="product-card group bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-azul/50 transition-all duration-300 overflow-hidden flex flex-col justify-between" 
-                 data-category="textil" 
-                 data-title="Set x2 Almohadones Lino Lavado Natural"
+            <div class="product-card group bg-white rounded-xl border border-stone-200/90 hover:border-stone-300 transition-all duration-300 overflow-hidden flex flex-col justify-between"
+                 data-category="textil"
+                 data-title="Set x2 Almohadones Lino Lavado"
                  data-price="21400">
                 <div>
-                    <div class="relative h-60 overflow-hidden bg-slate-100">
-                        <img src="https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=600&h=600&fit=crop" alt="Almohadones Lino" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                        <span class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-md">
+                    <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
+                        <img src="https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=600&h=750&fit=crop" alt="Set x2 Almohadones Lino Lavado" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 bg-white/95 text-stone-800 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full">
                             Textil
                         </span>
                     </div>
-
-                    <div class="p-5">
-                        <div class="flex items-baseline justify-between mb-1.5">
-                            <span class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Decoración</span>
-                            <span class="text-lg font-bold text-slate-900">$21.400</span>
+                    <div class="p-4 sm:p-5">
+                        <div class="flex items-baseline justify-between gap-2 mb-1">
+                            <span class="text-[10px] font-semibold text-stone-400 uppercase tracking-wider">Textil Hogar</span>
+                            <span class="text-base font-bold text-stone-900">$21.400</span>
                         </div>
-                        <h3 class="product-title font-bold text-base text-slate-900 leading-snug mb-2">
-                            Almohadones Lino Lavado Natural
+                        <h3 class="product-title font-bold text-sm sm:text-base text-stone-900 leading-snug mb-1.5">
+                            Set x2 Almohadones Lino Lavado
                         </h3>
-                        <p class="text-xs text-slate-500 leading-relaxed font-normal mb-4 line-clamp-3">
-                            Neque porro quisquam est qui dolorem ipsum quia dolor sit amet. Fundas desmontables con cierre invisible y relleno de vellón siliconado.
+                        <p class="text-xs text-stone-500 leading-relaxed line-clamp-2">
+                            Fundas desmontables en lino prelavado color arena (50x50 cm) con relleno de vellón siliconado.
                         </p>
                     </div>
                 </div>
-
-                <div class="p-5 pt-0">
-                    <button type="button" 
-                            onclick="consultarWhatsApp('Almohadones Lino Lavado Natural')"
-                            class="w-full py-2.5 px-4 rounded-xl bg-wpp hover:bg-wpp-hover text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                <div class="p-4 sm:p-5 pt-0">
+                    <button type="button" onclick="consultarWhatsApp('Set x2 Almohadones Lino Lavado')" class="w-full py-2.5 px-4 rounded-lg bg-stone-900 hover:bg-wpp text-white font-semibold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <span>Consultar por WhatsApp</span>
                     </button>
                 </div>
             </div>
 
             <!-- Producto 5 -->
-            <div class="product-card group bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-azul/50 transition-all duration-300 overflow-hidden flex flex-col justify-between" 
-                 data-category="muebles" 
-                 data-title="Espejo Orgánico Arco con Marco Metálico"
+            <div class="product-card group bg-white rounded-xl border border-stone-200/90 hover:border-stone-300 transition-all duration-300 overflow-hidden flex flex-col justify-between"
+                 data-category="muebles"
+                 data-title="Espejo Arco Marco Metálico"
                  data-price="62300">
                 <div>
-                    <div class="relative h-60 overflow-hidden bg-slate-100">
-                        <img src="https://images.unsplash.com/photo-1618220179428-22790b461013?w=600&h=600&fit=crop" alt="Espejo Orgánico" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                        <span class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-md">
-                            Mobiliario
+                    <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
+                        <img src="https://images.unsplash.com/photo-1618220179428-22790b461013?w=600&h=750&fit=crop" alt="Espejo Arco Marco Metálico" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 bg-white/95 text-stone-800 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full">
+                            Deco
                         </span>
                     </div>
-
-                    <div class="p-5">
-                        <div class="flex items-baseline justify-between mb-1.5">
-                            <span class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Decoración</span>
-                            <span class="text-lg font-bold text-slate-900">$62.300</span>
+                    <div class="p-4 sm:p-5">
+                        <div class="flex items-baseline justify-between gap-2 mb-1">
+                            <span class="text-[10px] font-semibold text-stone-400 uppercase tracking-wider">Objetos</span>
+                            <span class="text-base font-bold text-stone-900">$62.300</span>
                         </div>
-                        <h3 class="product-title font-bold text-base text-slate-900 leading-snug mb-2">
-                            Espejo Orgánico Arco Metálico
+                        <h3 class="product-title font-bold text-sm sm:text-base text-stone-900 leading-snug mb-1.5">
+                            Espejo Arco Marco Metálico
                         </h3>
-                        <p class="text-xs text-slate-500 leading-relaxed font-normal mb-4 line-clamp-3">
-                            Ut enim ad minima veniam quis nostrum exercitationem ullam corporis suscipit. Marco de hierro terminado con pintura electrostática microtexturada.
+                        <p class="text-xs text-stone-500 leading-relaxed line-clamp-2">
+                            Cristal de 4 mm sin distorsión con marco fino de hierro pintado al horno en negro satinado.
                         </p>
                     </div>
                 </div>
-
-                <div class="p-5 pt-0">
-                    <button type="button" 
-                            onclick="consultarWhatsApp('Espejo Orgánico Arco Metálico')"
-                            class="w-full py-2.5 px-4 rounded-xl bg-wpp hover:bg-wpp-hover text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                <div class="p-4 sm:p-5 pt-0">
+                    <button type="button" onclick="consultarWhatsApp('Espejo Arco Marco Metálico')" class="w-full py-2.5 px-4 rounded-lg bg-stone-900 hover:bg-wpp text-white font-semibold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <span>Consultar por WhatsApp</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Producto 6 (Oferta) -->
-            <div class="product-card group bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-azul/50 transition-all duration-300 overflow-hidden flex flex-col justify-between" 
-                 data-category="iluminacion ofertas" 
+            <!-- Producto 6 -->
+            <div class="product-card group bg-white rounded-xl border border-stone-200/90 hover:border-stone-300 transition-all duration-300 overflow-hidden flex flex-col justify-between"
+                 data-category="iluminacion ofertas"
                  data-title="Lámpara de Pie Trípode Escandinava"
                  data-price="54000">
                 <div>
-                    <div class="relative h-60 overflow-hidden bg-slate-100">
-                        <img src="https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600&h=600&fit=crop" alt="Lámpara de pie trípode" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                        <span class="absolute top-3 left-3 bg-azul text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-md">
+                    <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
+                        <img src="https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600&h=750&fit=crop" alt="Lámpara de Pie Trípode Escandinava" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 bg-ochre text-stone-900 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">
                             Oferta
                         </span>
-                        <span class="absolute top-3 right-3 bg-slate-900/80 text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-md">
-                            Iluminación
-                        </span>
                     </div>
-
-                    <div class="p-5">
-                        <div class="flex items-baseline justify-between mb-1.5">
-                            <span class="text-[11px] font-bold text-azul uppercase tracking-wider">Promoción</span>
-                            <div class="text-right">
-                                <span class="text-[11px] text-slate-400 line-through mr-1">$63.500</span>
-                                <span class="text-lg font-bold text-slate-900">$54.000</span>
+                    <div class="p-4 sm:p-5">
+                        <div class="flex items-baseline justify-between gap-2 mb-1">
+                            <span class="text-[10px] font-semibold text-cobalt uppercase tracking-wider">Iluminación</span>
+                            <div>
+                                <span class="text-[11px] text-stone-400 line-through mr-1">$65.000</span>
+                                <span class="text-base font-bold text-stone-900">$54.000</span>
                             </div>
                         </div>
-                        <h3 class="product-title font-bold text-base text-slate-900 leading-snug mb-2">
+                        <h3 class="product-title font-bold text-sm sm:text-base text-stone-900 leading-snug mb-1.5">
                             Lámpara de Pie Trípode Escandinava
                         </h3>
-                        <p class="text-xs text-slate-500 leading-relaxed font-normal mb-4 line-clamp-3">
-                            Patas de madera natural lustrada y pantalla cilíndrica de lino crudo traslúcido de excelente difusión lumínica.
+                        <p class="text-xs text-stone-500 leading-relaxed line-clamp-2">
+                            Base trípode en fresno natural con pantalla cilíndrica de lino crudo e interruptor de pie.
                         </p>
                     </div>
                 </div>
-
-                <div class="p-5 pt-0">
-                    <button type="button" 
-                            onclick="consultarWhatsApp('Lámpara de Pie Trípode Escandinava')"
-                            class="w-full py-2.5 px-4 rounded-xl bg-wpp hover:bg-wpp-hover text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                <div class="p-4 sm:p-5 pt-0">
+                    <button type="button" onclick="consultarWhatsApp('Lámpara de Pie Trípode Escandinava')" class="w-full py-2.5 px-4 rounded-lg bg-stone-900 hover:bg-wpp text-white font-semibold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <span>Consultar por WhatsApp</span>
                     </button>
                 </div>
             </div>
 
             <!-- Producto 7 -->
-            <div class="product-card group bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-azul/50 transition-all duration-300 overflow-hidden flex flex-col justify-between" 
-                 data-category="textil" 
-                 data-title="Manta de Sillón Tejida en Telar Crudo"
+            <div class="product-card group bg-white rounded-xl border border-stone-200/90 hover:border-stone-300 transition-all duration-300 overflow-hidden flex flex-col justify-between"
+                 data-category="textil"
+                 data-title="Manta de Sillón Tejida en Telar"
                  data-price="29800">
                 <div>
-                    <div class="relative h-60 overflow-hidden bg-slate-100">
-                        <img src="https://images.unsplash.com/photo-1580301762395-21ce84d00bc6?w=600&h=600&fit=crop" alt="Manta telar" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                        <span class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-md">
+                    <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
+                        <img src="https://images.unsplash.com/photo-1580301762395-21ce84d00bc6?w=600&h=750&fit=crop" alt="Manta de Sillón Tejida en Telar" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 bg-white/95 text-stone-800 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full">
                             Textil
                         </span>
-                        <span class="absolute top-3 right-3 bg-pastel-yellow text-slate-900 text-[10px] font-bold uppercase px-2 py-0.5 rounded-md shadow-2xs">
-                            En Stock
-                        </span>
                     </div>
-
-                    <div class="p-5">
-                        <div class="flex items-baseline justify-between mb-1.5">
-                            <span class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Artesanal</span>
-                            <span class="text-lg font-bold text-slate-900">$29.800</span>
+                    <div class="p-4 sm:p-5">
+                        <div class="flex items-baseline justify-between gap-2 mb-1">
+                            <span class="text-[10px] font-semibold text-stone-400 uppercase tracking-wider">Artesanal</span>
+                            <span class="text-base font-bold text-stone-900">$29.800</span>
                         </div>
-                        <h3 class="product-title font-bold text-base text-slate-900 leading-snug mb-2">
+                        <h3 class="product-title font-bold text-sm sm:text-base text-stone-900 leading-snug mb-1.5">
                             Manta de Sillón Tejida en Telar
                         </h3>
-                        <p class="text-xs text-slate-500 leading-relaxed font-normal mb-4 line-clamp-3">
-                            Itaque earum rerum hic tenetur a sapiente delectus. Hilado de algodón puro 100% natural con flecos terminados a mano.
+                        <p class="text-xs text-stone-500 leading-relaxed line-clamp-2">
+                            Algodón peinado 100% natural con terminación en flecos anudados a mano (140x200 cm).
                         </p>
                     </div>
                 </div>
-
-                <div class="p-5 pt-0">
-                    <button type="button" 
-                            onclick="consultarWhatsApp('Manta de Sillón Tejida en Telar')"
-                            class="w-full py-2.5 px-4 rounded-xl bg-wpp hover:bg-wpp-hover text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                <div class="p-4 sm:p-5 pt-0">
+                    <button type="button" onclick="consultarWhatsApp('Manta de Sillón Tejida en Telar')" class="w-full py-2.5 px-4 rounded-lg bg-stone-900 hover:bg-wpp text-white font-semibold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <span>Consultar por WhatsApp</span>
                     </button>
                 </div>
             </div>
 
             <!-- Producto 8 -->
-            <div class="product-card group bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-azul/50 transition-all duration-300 overflow-hidden flex flex-col justify-between" 
-                 data-category="muebles" 
-                 data-title="Set x4 Sillas Eames Tapizadas Gris"
+            <div class="product-card group bg-white rounded-xl border border-stone-200/90 hover:border-stone-300 transition-all duration-300 overflow-hidden flex flex-col justify-between"
+                 data-category="muebles"
+                 data-title="Set x4 Sillas Tapizadas Gris"
                  data-price="112000">
                 <div>
-                    <div class="relative h-60 overflow-hidden bg-slate-100">
-                        <img src="https://images.unsplash.com/photo-1503602642458-232111445657?w=600&h=600&fit=crop" alt="Set Sillas Eames" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                        <span class="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold uppercase px-2 py-0.5 rounded-md">
-                            Mobiliario
-                        </span>
-                        <span class="absolute top-3 right-3 bg-pastel-yellow text-slate-900 text-[10px] font-bold uppercase px-2 py-0.5 rounded-md shadow-2xs">
-                            En Stock
+                    <div class="relative aspect-[4/5] overflow-hidden bg-stone-100">
+                        <img src="https://images.unsplash.com/photo-1503602642458-232111445657?w=600&h=750&fit=crop" alt="Set x4 Sillas Tapizadas Gris" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 left-3 bg-white/95 text-stone-800 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full">
+                            Comedor
                         </span>
                     </div>
-
-                    <div class="p-5">
-                        <div class="flex items-baseline justify-between mb-1.5">
-                            <span class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Comedor</span>
-                            <span class="text-lg font-bold text-slate-900">$112.000</span>
+                    <div class="p-4 sm:p-5">
+                        <div class="flex items-baseline justify-between gap-2 mb-1">
+                            <span class="text-[10px] font-semibold text-stone-400 uppercase tracking-wider">Set x4</span>
+                            <span class="text-base font-bold text-stone-900">$112.000</span>
                         </div>
-                        <h3 class="product-title font-bold text-base text-slate-900 leading-snug mb-2">
-                            Set x4 Sillas Eames Tapizadas
+                        <h3 class="product-title font-bold text-sm sm:text-base text-stone-900 leading-snug mb-1.5">
+                            Set x4 Sillas Tapizadas Gris
                         </h3>
-                        <p class="text-xs text-slate-500 leading-relaxed font-normal mb-4 line-clamp-3">
-                            Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae. Patas de madera de haya con estructura metálica de refuerzo.
+                        <p class="text-xs text-stone-500 leading-relaxed line-clamp-2">
+                            Patas en madera de haya lustrada con refuerzo interno y tapizado antimanchas gris piedra.
                         </p>
                     </div>
                 </div>
-
-                <div class="p-5 pt-0">
-                    <button type="button" 
-                            onclick="consultarWhatsApp('Set x4 Sillas Eames Tapizadas')"
-                            class="w-full py-2.5 px-4 rounded-xl bg-wpp hover:bg-wpp-hover text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                <div class="p-4 sm:p-5 pt-0">
+                    <button type="button" onclick="consultarWhatsApp('Set x4 Sillas Tapizadas Gris')" class="w-full py-2.5 px-4 rounded-lg bg-stone-900 hover:bg-wpp text-white font-semibold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer">
                         <span>Consultar por WhatsApp</span>
                     </button>
                 </div>
@@ -564,45 +424,36 @@
     </main>
 
     <!-- FOOTER -->
-    <footer class="bg-white border-t border-slate-200 py-10 text-xs text-slate-500">
+    <footer class="bg-white border-t border-stone-200 py-10 text-xs text-stone-500">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-                <span class="font-bold text-slate-800 text-sm">Marca Ejemplo</span>
-                <span class="text-slate-400 ml-1">· Catálogo Digital</span>
-                <p class="text-[11px] text-slate-400 mt-1">© 2026 Todos los derechos reservados.</p>
+                <span class="font-serif text-lg text-stone-900">Casa Brava</span>
+                <span class="text-stone-400 ml-1">· Catálogo Digital</span>
+                <p class="text-[11px] text-stone-400 mt-1">© 2026 Casa Brava · Modelo 3 de demostración.</p>
             </div>
-            <div class="flex items-center gap-3">
-                <a href="https://wa.me/5491100000000" target="_blank" rel="noopener noreferrer" class="bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-                    <span>Consultar por WhatsApp</span>
-                </a>
-            </div>
+            <a href="https://wa.me/5491100000000" target="_blank" rel="noopener noreferrer" class="bg-stone-900 hover:bg-wpp text-white px-4 py-2 rounded-full text-xs font-semibold transition-colors flex items-center gap-2">
+                <span>Consultar por WhatsApp</span>
+            </a>
         </div>
     </footer>
 
-    <!-- JAVASCRIPT VANILLA -->
     <script>
         const WHATSAPP_PHONE = '5491100000000';
 
-        // Función para armar dinámicamente el enlace de WhatsApp con el producto consultado
         function consultarWhatsApp(productName) {
             const message = `Hola, me interesa consultar por ${productName}`;
-            const encoded = encodeURIComponent(message);
-            const url = `https://wa.me/${WHATSAPP_PHONE}?text=${encoded}`;
+            const url = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(message)}`;
             window.open(url, '_blank');
         }
 
-        // Filtro de productos por categoría
         function filterProducts(category, btnElement) {
-            // Actualizar estado visual de los botones de categoría
             document.querySelectorAll('#categoryFilterBar .category-btn').forEach(btn => {
-                btn.className = 'category-btn px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap bg-white text-slate-600 hover:bg-slate-100 border border-slate-200';
+                btn.className = 'category-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition-all whitespace-nowrap bg-white text-stone-600 hover:bg-stone-100 border border-stone-200 cursor-pointer';
             });
             if (btnElement) {
-                btnElement.className = 'category-btn active px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap bg-azul text-white shadow-2xs';
+                btnElement.className = 'category-btn active px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap bg-stone-900 text-white cursor-pointer';
             }
 
-            // Limpiar buscador de texto al pulsar categoría
             const searchInput = document.getElementById('searchInput');
             if (searchInput) searchInput.value = '';
 
@@ -622,7 +473,6 @@
             updateProductCounter(visibleCount);
         }
 
-        // Buscador de productos en tiempo real por título
         function searchProducts(query) {
             const cleanQuery = query.toLowerCase().trim();
             const cards = document.querySelectorAll('.product-card');
@@ -644,7 +494,7 @@
         function updateProductCounter(count) {
             const badge = document.getElementById('productCountBadge');
             const noResults = document.getElementById('noResultsAlert');
-            
+
             if (badge) {
                 badge.textContent = `${count} producto${count === 1 ? '' : 's'} disponible${count === 1 ? '' : 's'}`;
             }
