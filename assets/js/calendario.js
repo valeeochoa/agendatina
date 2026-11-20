@@ -889,6 +889,38 @@ function cal_renderCalendar() {
     
     const calendarDays = document.getElementById('calendarDays');
     calendarDays.innerHTML = '';
+
+    // Detectar si el cliente eligió un servicio con horarios propios para resaltar visualmente sus días disponibles
+    const activeSvcForHighlight = (!effectiveIsAdmin && typeof window.getActiveCalendarServiceObj === 'function')
+        ? window.getActiveCalendarServiceObj()
+        : null;
+    let hasSvcCustomSchedule = false;
+    if (activeSvcForHighlight && activeSvcForHighlight.horarios_especificos_json) {
+        try {
+            const parsedSpec = typeof activeSvcForHighlight.horarios_especificos_json === 'string'
+                ? JSON.parse(activeSvcForHighlight.horarios_especificos_json)
+                : activeSvcForHighlight.horarios_especificos_json;
+            hasSvcCustomSchedule = Boolean(parsedSpec && typeof parsedSpec === 'object' && Object.keys(parsedSpec).length > 0);
+        } catch (e) {}
+    }
+
+    // Mostrar/ocultar leyenda intuitiva debajo de la grilla cuando hay un servicio con horarios propios seleccionado
+    let svcLegendEl = document.getElementById('serviceScheduleLegend');
+    if (hasSvcCustomSchedule && activeSvcForHighlight && calendarDays.parentElement) {
+        if (!svcLegendEl) {
+            svcLegendEl = document.createElement('div');
+            svcLegendEl.id = 'serviceScheduleLegend';
+            calendarDays.insertAdjacentElement('afterend', svcLegendEl);
+        }
+        const safeSvcName = typeof escapeHtml === 'function' ? escapeHtml(activeSvcForHighlight.nombre || '') : (activeSvcForHighlight.nombre || '');
+        svcLegendEl.className = 'mt-3 px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center gap-2 text-xs font-bold text-emerald-800 dark:text-emerald-200 text-center flex-wrap w-full max-w-full';
+        svcLegendEl.innerHTML = `
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
+            <span class="break-words leading-snug">Días resaltados en verde: disponibles para <strong class="font-extrabold">${safeSvcName}</strong></span>
+        `;
+    } else if (svcLegendEl) {
+        svcLegendEl.remove();
+    }
     
     // Desplazamiento inicial según el primer día de la semana (Lunes vs Domingo)
     const offset = (firstDay - startDay + 7) % 7;
@@ -913,7 +945,7 @@ function cal_renderCalendar() {
         const isToday = date.getTime() === today.getTime();
         const todayBadge = isToday ? '<span class="glow-badge-today text-[8px] px-1.5 py-0.2 mb-0.5 scale-90">HOY</span>' : '';
         const dayDiv = document.createElement('div');
-        dayDiv.className = `p-2 aspect-square flex flex-col items-center justify-center rounded-2xl transition-all duration-300 relative text-sm sm:text-base font-extrabold calendar-day`;
+        dayDiv.className = `p-1.5 sm:p-2 aspect-square flex flex-col items-center justify-center rounded-2xl transition-all duration-300 relative text-sm sm:text-base font-extrabold calendar-day`;
         
         if (isToday) {
             dayDiv.classList.add('is-today');
@@ -923,11 +955,16 @@ function cal_renderCalendar() {
             dayDiv.classList.add('disabled');
             if (isClosedDay) {
                 if (isToday) {
-                    dayDiv.innerHTML = `${todayBadge}<span class="cal-day-number opacity-65 leading-none">${i}</span><span class="text-[8px] font-black uppercase text-rose-500 leading-none mt-0.5">Cerrado</span>`;
-                    dayDiv.title = 'Hoy está cerrado — Hacé click en otro día habilitado';
+                    const closedLabel = hasSvcCustomSchedule ? 'Sin disp.' : 'Cerrado';
+                    dayDiv.innerHTML = `${todayBadge}<span class="cal-day-number opacity-65 leading-none">${i}</span><span class="text-[8px] font-black uppercase text-rose-500 leading-none mt-0.5">${closedLabel}</span>`;
+                    dayDiv.title = hasSvcCustomSchedule
+                        ? `${activeSvcForHighlight.nombre} no tiene horarios hoy — Elegí un día resaltado en verde`
+                        : 'Hoy está cerrado — Hacé click en otro día habilitado';
                 } else {
-                    dayDiv.innerHTML = `<span class="cal-day-number opacity-55">${i}</span>`;
-                    dayDiv.title = 'Establecimiento cerrado';
+                    dayDiv.innerHTML = `<span class="cal-day-number opacity-45">${i}</span>`;
+                    dayDiv.title = hasSvcCustomSchedule
+                        ? `${activeSvcForHighlight.nombre} no atiende este día`
+                        : 'Establecimiento cerrado';
                 }
                 dayDiv.classList.add('pointer-events-none', 'cursor-not-allowed', 'select-none');
             } else if (isPast) {
@@ -950,7 +987,13 @@ function cal_renderCalendar() {
                 dayDiv.title = 'Día bloqueado (Click para gestionar)';
             }
         } else {
-            dayDiv.innerHTML = `${todayBadge}<span class="cal-day-number">${i}</span>`;
+            if (hasSvcCustomSchedule) {
+                dayDiv.classList.add('bg-emerald-50', 'dark:bg-emerald-950/50', 'border-2', 'border-emerald-400', 'dark:border-emerald-500/70', 'text-emerald-800', 'dark:text-emerald-200', 'shadow-xs', 'hover:bg-emerald-100', 'hover:border-emerald-500', 'hover:-translate-y-0.5', 'cursor-pointer');
+                dayDiv.innerHTML = `${todayBadge}<span class="cal-day-number leading-none">${i}</span><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-0.5"></span>`;
+                dayDiv.title = `Disponible para ${activeSvcForHighlight.nombre}`;
+            } else {
+                dayDiv.innerHTML = `${todayBadge}<span class="cal-day-number">${i}</span>`;
+            }
         }
         
         // Multi-select / Single select styling
@@ -1031,17 +1074,24 @@ function cal_renderTimeSlots(preserveSelected = true) {
     if (!window.isWorkingDay(cal_selectedDate)) {
         const daySchedInfo = window.getDayScheduleTramos(cal_selectedDate);
         const isSvcClosed = Boolean(daySchedInfo && daySchedInfo.isServiceSpecificSchedule);
+        const activeSvcObj = typeof window.getActiveCalendarServiceObj === 'function' ? window.getActiveCalendarServiceObj() : null;
+        const safeSvcName = activeSvcObj && activeSvcObj.nombre
+            ? (typeof escapeHtml === 'function' ? escapeHtml(activeSvcObj.nombre) : activeSvcObj.nombre)
+            : 'Este servicio';
         const titleMsg = isSvcClosed
-            ? 'Este servicio no tiene horarios disponibles en el día seleccionado.'
+            ? `<strong>${safeSvcName}</strong> no tiene horarios disponibles este día.`
             : (isTodaySelected ? 'Hoy el establecimiento se encuentra cerrado.' : 'El establecimiento se encuentra cerrado este día.');
+        const subMsg = isSvcClosed
+            ? 'Elegí uno de los días resaltados en verde en el calendario.'
+            : 'Por favor, hacé click en otro día habilitado del calendario para ver los horarios disponibles.';
         const badgeText = isSvcClosed ? 'Sin horarios' : (isTodaySelected ? 'Hoy Cerrado' : 'Cerrado');
         timeSlotsContainer.innerHTML = `
-            <div class="col-span-full p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-center space-y-1.5">
+            <div class="col-span-full w-full max-w-full min-w-0 overflow-hidden p-3.5 sm:p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-center space-y-1.5 break-words">
                 <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-[#D11149] dark:text-rose-300 text-[10px] font-black uppercase">
                     <span class="material-symbols-outlined text-[14px]">event_busy</span> ${badgeText}
                 </div>
-                <p class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100">${titleMsg}</p>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Por favor, hacé click en otro día habilitado del calendario para ver los horarios disponibles.</p>
+                <p class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 leading-snug break-words">${titleMsg}</p>
+                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-snug break-words">${subMsg}</p>
             </div>
         `;
         return;

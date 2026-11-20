@@ -280,21 +280,21 @@ window.showToast = function (message, type = 'success', customDuration = null) {
     if (!container) {
         container = document.createElement('div');
         container.id = 'toast-container';
-        container.className = 'fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none';
+        container.className = 'fixed bottom-4 left-3 right-3 sm:left-auto sm:bottom-6 sm:right-6 z-[9999] flex flex-col items-stretch sm:items-end gap-2.5 pointer-events-none max-w-[calc(100vw-1.5rem)] sm:max-w-md';
         document.body.appendChild(container);
     }
     const toast = document.createElement('div');
-    const bgColor = type === 'success' ? 'bg-green-600' : 'bg-red-600';
-    const icon = type === 'success' ? 'check_circle' : 'error';
+    const bgColor = type === 'success' ? 'bg-green-600' : (type === 'warning' ? 'bg-amber-600' : (type === 'info' ? 'bg-slate-800' : 'bg-red-600'));
+    const icon = type === 'success' ? 'check_circle' : (type === 'warning' ? 'warning' : (type === 'info' ? 'info' : 'error'));
 
     // Si es error se otorga tiempo extendido de 8 segundos para lectura comoda
-    const duration = customDuration || (type === 'error' ? 8000 : 4000);
+    const duration = customDuration || (type === 'error' ? 8000 : 4500);
 
-    toast.className = `${bgColor} text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center justify-between gap-3 transform transition-all duration-300 translate-y-12 opacity-0 font-medium text-xs sm:text-sm max-w-md pointer-events-auto border border-white/20`;
+    toast.className = `${bgColor} text-white px-4 py-3 sm:px-5 sm:py-3.5 rounded-2xl shadow-2xl flex items-start sm:items-center justify-between gap-2.5 sm:gap-3 transform transition-all duration-300 translate-y-12 opacity-0 font-medium text-xs sm:text-sm w-full sm:w-auto sm:max-w-md pointer-events-auto border border-white/20 break-words`;
     toast.innerHTML = `
-        <div class="flex items-center gap-2.5">
-            <span class="material-symbols-outlined shrink-0 text-[22px]">${icon}</span> 
-            <span class="leading-snug">${message}</span>
+        <div class="flex items-start sm:items-center gap-2.5 min-w-0 flex-1">
+            <span class="material-symbols-outlined shrink-0 text-[20px] sm:text-[22px] mt-0.5 sm:mt-0">${icon}</span> 
+            <span class="leading-snug break-words min-w-0">${message}</span>
         </div>
         <button onclick="this.parentElement.remove()" class="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors shrink-0" title="Cerrar aviso">
             <span class="material-symbols-outlined text-[18px]">close</span>
