@@ -273,13 +273,13 @@ window.getDayScheduleTramos = function(dateOrDateStr, serviceOverride = null) {
     }
 
     if (isServiceSpecificSchedule && (diaData === null || diaData === undefined)) {
-        return { isClosed: true, tramos: [], hasCustomTramos: true };
+        return { isClosed: true, tramos: [], hasCustomTramos: true, isServiceSpecificSchedule: true };
     }
 
     // 1. Si el día está definido explícitamente en horarios detallados
     if (diaData !== null && diaData !== undefined) {
-        if (diaData.activo === false) {
-            return { isClosed: true, tramos: [] };
+        if (diaData.activo === false || diaData.activo === 0 || diaData.activo === '0') {
+            return { isClosed: true, tramos: [], hasCustomTramos: true, isServiceSpecificSchedule };
         }
         if (Array.isArray(diaData.tramos) && diaData.tramos.length > 0) {
             const parsedTramos = diaData.tramos.map(t => {
@@ -292,8 +292,11 @@ window.getDayScheduleTramos = function(dateOrDateStr, serviceOverride = null) {
 
             if (parsedTramos.length > 0) {
                 parsedTramos.sort((a, b) => a.start - b.start);
-                return { isClosed: false, tramos: parsedTramos, hasCustomTramos: true };
+                return { isClosed: false, tramos: parsedTramos, hasCustomTramos: true, isServiceSpecificSchedule };
             }
+        }
+        if (isServiceSpecificSchedule) {
+            return { isClosed: true, tramos: [], hasCustomTramos: true, isServiceSpecificSchedule: true };
         }
     }
 
@@ -622,8 +625,8 @@ function formatDuracionText(minutosRaw) {
     return `${m} min`;
 }
 
-function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration = 30, servCapacidad = 1, startStr = null, endStr = null) {
-    const sched = window.getDayScheduleTramos(dateStr);
+function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration = 30, servCapacidad = 1, startStr = null, endStr = null, serviceOverride = null) {
+    const sched = window.getDayScheduleTramos(dateStr, serviceOverride);
     if (sched.isClosed || !sched.tramos || sched.tramos.length === 0) {
         return [];
     }
@@ -1026,8 +1029,12 @@ function cal_renderTimeSlots(preserveSelected = true) {
     const minAdvance = parseInt(window.businessWebConfig?.anticipacion_turno_min || 0, 10) || 0;
 
     if (!window.isWorkingDay(cal_selectedDate)) {
-        const titleMsg = isTodaySelected ? 'Hoy el establecimiento se encuentra cerrado.' : 'El establecimiento se encuentra cerrado este día.';
-        const badgeText = isTodaySelected ? 'Hoy Cerrado' : 'Cerrado';
+        const daySchedInfo = window.getDayScheduleTramos(cal_selectedDate);
+        const isSvcClosed = Boolean(daySchedInfo && daySchedInfo.isServiceSpecificSchedule);
+        const titleMsg = isSvcClosed
+            ? 'Este servicio no tiene horarios disponibles en el día seleccionado.'
+            : (isTodaySelected ? 'Hoy el establecimiento se encuentra cerrado.' : 'El establecimiento se encuentra cerrado este día.');
+        const badgeText = isSvcClosed ? 'Sin horarios' : (isTodaySelected ? 'Hoy Cerrado' : 'Cerrado');
         timeSlotsContainer.innerHTML = `
             <div class="col-span-full p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-center space-y-1.5">
                 <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/60 text-[#D11149] dark:text-rose-300 text-[10px] font-black uppercase">
@@ -1786,14 +1793,17 @@ function openManualTurnoModal(preselectedTime = null, preselectedProf = null) {
         const curServ = servSelect.value;
         const curProf = profSelect.value || profToSelect;
         const curDur = getServiceDuration(curServ, curProf);
-        const curMatching = services.find(s => String(s.nombre || '').trim().toLowerCase() === String(curServ || '').trim().toLowerCase());
+        const curMatching = services.find(s => String(s.nombre || '').trim().toLowerCase() === String(curServ || '').trim().toLowerCase() && (!curProf || curProf === 'Cualquiera' || curProf === 'Cualquiera (Sin preferencia)' || String(s.profesional || '').trim().toLowerCase() === String(curProf || '').trim().toLowerCase()))
+            || services.find(s => String(s.nombre || '').trim().toLowerCase() === String(curServ || '').trim().toLowerCase());
         const curCap = curMatching ? (parseInt(curMatching.capacidad || curMatching.cupo_maximo, 10) || 1) : 1;
+        const curSched = window.getDayScheduleTramos(fechaActual, curMatching || null);
+        const curValidTramos = (curSched && !curSched.isClosed && Array.isArray(curSched.tramos)) ? curSched.tramos : [];
         const prevSelectedTime = horaSelect.value || timeToSelect;
-        const dynamicTimes = computeDynamicTimeSlotsForDate(fechaActual, curProf, curDur, curCap, window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre);
+        const dynamicTimes = computeDynamicTimeSlotsForDate(fechaActual, curProf, curDur, curCap, window.businessWebConfig?.hora_apertura, window.businessWebConfig?.hora_cierre, curMatching || null);
         horaSelect.innerHTML = '';
 
-        if (validTramos.length === 0 || dynamicTimes.length === 0) {
-            horaSelect.innerHTML = '<option value="" disabled selected>Día cerrado / Sin horarios de atención</option>';
+        if (curValidTramos.length === 0 || dynamicTimes.length === 0) {
+            horaSelect.innerHTML = '<option value="" disabled selected>Día cerrado / Sin horarios para este servicio</option>';
             if (saveBtn) {
                 saveBtn.disabled = true;
                 saveBtn.classList.add('opacity-50', 'pointer-events-none');
@@ -1809,8 +1819,8 @@ function openManualTurnoModal(preselectedTime = null, preselectedProf = null) {
         dynamicTimes.forEach(t => {
             const [hh, mm] = t.split(':').map(Number);
             const tmTotal = hh * 60 + mm;
-            // Restricción estricta: Solo horarios dentro de los tramos configurados del negocio
-            const isInsideBusinessHours = validTramos.some(tr => tmTotal >= tr.start && (tmTotal + curDur) <= tr.end);
+            // Restricción estricta: Solo horarios dentro de los tramos configurados del servicio / negocio
+            const isInsideBusinessHours = curValidTramos.some(tr => tmTotal >= tr.start && (tmTotal + curDur) <= tr.end);
             if (!isInsideBusinessHours) return;
             if (window.isTimeInBreak(t, fechaActual)) return;
 
@@ -3058,6 +3068,8 @@ function selectWizardProf(pName) {
         profSelect.value = globalSelectedProfessional;
     }
 
+    cal2_selectedDate = null;
+    cal2_selectedTime = null;
     cal_fetchBookedTimesWeekly();
 }
 
@@ -4892,10 +4904,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateProfServicesDisplay();
                 
                 updateSelectedServicePriceDisplay();
+                if (typeof cal_renderCalendar === 'function') cal_renderCalendar();
+                if (typeof renderWeeklyCalendar === 'function') renderWeeklyCalendar();
+                if (cal_selectedDate && (!isAdmin || isPreviewMode)) cal_renderTimeSlots(false);
                 cal_fetchBookedTimes();
-                if (typeof renderCalendar === 'function') renderCalendar();
-                if (typeof cal2_renderWeek === 'function') cal2_renderWeek();
-                if (cal_selectedDate && (!isAdmin || isPreviewMode)) cal_renderTimeSlots();
             });
         }
 
@@ -4911,10 +4923,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateServiceDropdown();
                 updateProfServicesDisplay();
                 updateSelectedServicePriceDisplay();
+                if (typeof cal_renderCalendar === 'function') cal_renderCalendar();
+                if (typeof renderWeeklyCalendar === 'function') renderWeeklyCalendar();
+                if (cal_selectedDate && (!isAdmin || isPreviewMode)) cal_renderTimeSlots(false);
                 cal_fetchBookedTimes();
-                if (typeof renderCalendar === 'function') renderCalendar();
-                if (typeof cal2_renderWeek === 'function') cal2_renderWeek();
-                if (cal_selectedDate && (!isAdmin || isPreviewMode)) cal_renderTimeSlots();
             });
         }
 

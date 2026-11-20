@@ -333,8 +333,16 @@ try {
 
     // Buscar el ID del servicio en base al nombre para insertarlo como Clave Foránea
     $idServNum = (is_numeric($servicio) && (int)$servicio > 0) ? (int)$servicio : 0;
-    $stmtServ = $pdo->prepare("SELECT id, precio, duracion_minutos, email_profesional, capacidad, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo, horarios_especificos_json FROM servicios WHERE id_negocio = :id_negocio AND (nombre_servicio = :servicio OR (id = :id_serv_num AND :id_serv_num > 0)) LIMIT 1");
-    $stmtServ->execute(['id_negocio' => $id_negocio, 'servicio' => $servicio, 'id_serv_num' => $idServNum]);
+    $profCleanMatch = (!empty($profesional) && $profesional !== 'Cualquiera (Sin preferencia)' && $profesional !== 'Cualquiera') ? trim($profesional) : '';
+    $stmtServ = $pdo->prepare("SELECT id, precio, duracion_minutos, email_profesional, capacidad, COALESCE(cupo_maximo, capacidad, 1) AS cupo_maximo, horarios_especificos_json FROM servicios WHERE id_negocio = :id_negocio AND (LOWER(TRIM(nombre_servicio)) = LOWER(TRIM(:servicio)) OR (id = :id_serv_num AND :id_serv_num_chk > 0)) ORDER BY (CASE WHEN :prof_match != '' AND LOWER(TRIM(COALESCE(profesional, ''))) = LOWER(TRIM(:prof_match2)) THEN 1 ELSE 0 END) DESC, (CASE WHEN horarios_especificos_json IS NOT NULL AND horarios_especificos_json != '' THEN 1 ELSE 0 END) DESC LIMIT 1");
+    $stmtServ->execute([
+        'id_negocio' => $id_negocio,
+        'servicio' => trim((string)$servicio),
+        'id_serv_num' => $idServNum,
+        'id_serv_num_chk' => $idServNum,
+        'prof_match' => $profCleanMatch,
+        'prof_match2' => $profCleanMatch
+    ]);
     $serv = $stmtServ->fetch();
     $id_servicio = $serv ? $serv['id'] : null;
     $duracion_nuevo = $serv && !empty($serv['duracion_minutos']) ? (int)$serv['duracion_minutos'] : 30;
@@ -435,7 +443,7 @@ try {
             elseif (isset($dayNames[$dayOfWeek]) && isset($hDet[$dayNames[$dayOfWeek]])) $dayData = $hDet[$dayNames[$dayOfWeek]];
         }
 
-        if ($hasServSchedule && !is_array($dayData)) {
+        if ($hasServSchedule && (!is_array($dayData) || empty($dayData['activo']) || empty($dayData['tramos']) || !is_array($dayData['tramos']))) {
             $pdo->rollBack();
             http_response_code(400);
             echo json_encode(['success' => false, 'error' => 'El servicio seleccionado no tiene horarios habilitados en el día elegido.']);
@@ -443,20 +451,22 @@ try {
         }
 
         if (is_array($dayData)) {
-            if (isset($dayData['activo']) && $dayData['activo'] === false) {
+            if (isset($dayData['activo']) && ($dayData['activo'] === false || $dayData['activo'] === 0 || $dayData['activo'] === '0')) {
                 $pdo->rollBack();
                 http_response_code(400);
-                echo json_encode(['success' => false, 'error' => 'El establecimiento no realiza atenciones en el día seleccionado.']);
+                echo json_encode(['success' => false, 'error' => $hasServSchedule ? 'El servicio seleccionado no tiene horarios habilitados en el día elegido.' : 'El establecimiento no realiza atenciones en el día seleccionado.']);
                 exit;
             }
             if (!empty($dayData['tramos']) && is_array($dayData['tramos'])) {
-                $tHora = strtotime("$fecha $hora:00");
+                $tHora = strtotime("$fecha $horaShort5:00");
                 $tFin = $tHora + ($duracion_nuevo * 60);
                 $fitsInTramo = false;
                 foreach ($dayData['tramos'] as $tramo) {
-                    $trStart = strtotime("$fecha " . ($tramo['inicio'] ?? '09:00') . ":00");
-                    $trEnd = strtotime("$fecha " . ($tramo['fin'] ?? '18:00') . ":00");
-                    if ($tHora >= $trStart && $tFin <= $trEnd) {
+                    $trIni5 = substr(trim((string)($tramo['inicio'] ?? '09:00')), 0, 5);
+                    $trFin5 = substr(trim((string)($tramo['fin'] ?? '18:00')), 0, 5);
+                    $trStart = strtotime("$fecha $trIni5:00");
+                    $trEnd = strtotime("$fecha $trFin5:00");
+                    if ($tHora !== false && $trStart !== false && $trEnd !== false && $tHora >= $trStart && $tFin <= $trEnd) {
                         $fitsInTramo = true;
                         break;
                     }
@@ -464,7 +474,7 @@ try {
                 if (!$fitsInTramo) {
                     $pdo->rollBack();
                     http_response_code(400);
-                    echo json_encode(['success' => false, 'error' => 'El horario seleccionado no coincide con los turnos de atención del establecimiento.']);
+                    echo json_encode(['success' => false, 'error' => $hasServSchedule ? 'El horario seleccionado no corresponde a los horarios habilitados para este servicio.' : 'El horario seleccionado no coincide con los turnos de atención del establecimiento.']);
                     exit;
                 }
             }
