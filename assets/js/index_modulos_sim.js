@@ -873,76 +873,81 @@
     function getSimHtml_Servicios() {
         return `
             <div class="space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                <!-- Cabecera fiel a servicios.html -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
                     <div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#10B981]"></span>
-                            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">Catálogo de Servicios y Tarifas</h4>
-                            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">Todos los planes</span>
-                        </div>
-                        <p class="text-xs text-slate-500">Duraciones exactas en horas y minutos, precios en efectivo y descansos</p>
+                        <h4 class="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[#D11149] text-[20px]">content_cut</span>
+                            <span>Catálogo de Servicios</span>
+                            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">Todos los planes</span>
+                        </h4>
+                        <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">Colores propios, horarios específicos, tarifas por pases y destino (Calendario o Portal de Alumnos).</p>
                     </div>
-
                     <button type="button" onclick="window.openSimCreateServiceModal()"
-                        class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition-all flex items-center gap-1.5 self-start sm:self-auto">
-                        <span class="material-symbols-outlined text-[16px]">add</span>
-                        <span>+ Crear Servicio</span>
+                        class="px-4 py-2 rounded-xl bg-[#D11149] hover:bg-[#b50e3e] text-white font-extrabold text-xs shadow-sm transition-all flex items-center gap-1.5 self-start sm:self-auto cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px]">add_task</span>
+                        <span>Nuevo Servicio</span>
                     </button>
                 </div>
 
-                <!-- Grilla de Servicios -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-emerald-300 transition-all flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-start justify-between mb-2">
-                                <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">Corte</span>
-                                <span class="text-xs font-bold text-slate-400">40 min</span>
+                <!-- Lista fiel a servicios.html -->
+                <div class="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200 space-y-2.5">
+                    <!-- Servicio 1: Turnos 1 a 1 -->
+                    <div style="border-left: 4px solid #D11149;" class="p-3 sm:p-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl space-y-2">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-start gap-2.5 min-w-0">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border relative" style="background-color:#D1114915; color:#D11149; border-color:#D1114930;">
+                                    <span class="material-symbols-outlined text-[20px]">content_cut</span>
+                                    <span class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white bg-[#D11149]"></span>
+                                </div>
+                                <div class="min-w-0">
+                                    <h5 class="font-extrabold text-slate-900 text-xs sm:text-sm">Corte &amp; Styling Personalizado</h5>
+                                    <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                                        <span class="bg-blue-50 text-blue-700 text-[10px] font-black px-2 py-0.5 rounded-full border border-blue-200 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">calendar_month</span> Calendario de Turnos</span>
+                                    </div>
+                                </div>
                             </div>
-                            <h5 class="font-extrabold text-slate-800 text-sm">Corte de Cabello Clásico</h5>
-                            <p class="text-[11px] text-slate-500 mt-1">+10 min de descanso automático incluido</p>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button type="button" onclick="window.openSimCreateServiceModal()" class="p-1.5 rounded-lg bg-white text-slate-500 hover:text-[#D11149] border border-slate-200 cursor-pointer"><span class="material-symbols-outlined text-[16px] block">edit</span></button>
+                                <button type="button" onclick="window.openSimCta('Administrá tu catálogo completo', 'Creá servicios ilimitados con colores, duraciones y horarios propios.', 'Simple')" class="p-1.5 rounded-lg bg-white text-slate-500 hover:text-red-600 border border-slate-200 cursor-pointer"><span class="material-symbols-outlined text-[16px] block">delete</span></button>
+                            </div>
                         </div>
-                        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                            <div>
-                                <span class="text-[10px] text-slate-400 block">Efectivo</span>
-                                <span class="font-black text-slate-900 text-sm">$6.800</span>
-                            </div>
-                            <span class="text-xs font-bold text-slate-400 line-through">$7.500</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-emerald-300 transition-all flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-start justify-between mb-2">
-                                <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-rose-50 text-[#D11149] border border-rose-200">Color</span>
-                                <span class="text-xs font-bold text-slate-400">1h 30m</span>
-                            </div>
-                            <h5 class="font-extrabold text-slate-800 text-sm">Coloración Global & Reflejos</h5>
-                            <p class="text-[11px] text-slate-500 mt-1">+15 min de descanso automático incluido</p>
-                        </div>
-                        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                            <div>
-                                <span class="text-[10px] text-slate-400 block">Efectivo</span>
-                                <span class="font-black text-slate-900 text-sm">$17.500</span>
-                            </div>
-                            <span class="text-xs font-bold text-slate-400 line-through">$19.000</span>
+                        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-200/60 text-[11px] text-slate-600 font-semibold">
+                            <span class="bg-white px-2 py-0.5 rounded-lg border border-slate-200/80">⏱️ 45 min</span>
+                            <span class="font-bold text-emerald-700">💲 $12.500</span>
+                            <span class="bg-white px-2 py-0.5 rounded-lg border border-slate-200/80">👨‍⚕️ Sofía Valenzuela</span>
                         </div>
                     </div>
 
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs hover:border-emerald-300 transition-all flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-start justify-between mb-2">
-                                <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">Barba</span>
-                                <span class="text-xs font-bold text-slate-400">30 min</span>
+                    <!-- Servicio 2: Clases con Pase Libre y Horarios Propios -->
+                    <div style="border-left: 4px solid #0EA5E9;" class="p-3 sm:p-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl space-y-2">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-start gap-2.5 min-w-0">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border relative" style="background-color:#0EA5E915; color:#0EA5E9; border-color:#0EA5E930;">
+                                    <span class="material-symbols-outlined text-[20px]">fitness_center</span>
+                                    <span class="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white bg-[#0EA5E9]"></span>
+                                </div>
+                                <div class="min-w-0">
+                                    <h5 class="font-extrabold text-slate-900 text-xs sm:text-sm">Pilates Mat / Funcional</h5>
+                                    <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                                        <span class="bg-purple-100 text-purple-800 text-[10px] font-black px-2 py-0.5 rounded-full border border-purple-200 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">school</span> Portal de Alumnos (10 cupos)</span>
+                                        <span class="bg-amber-50 text-amber-800 text-[10px] font-extrabold px-2 py-0.5 rounded-full border border-amber-200 inline-flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">schedule</span> Horarios propios</span>
+                                    </div>
+                                </div>
                             </div>
-                            <h5 class="font-extrabold text-slate-800 text-sm">Perfilado y Afeitado Clásico</h5>
-                            <p class="text-[11px] text-slate-500 mt-1">Tratamiento con toalla caliente</p>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button type="button" onclick="window.openSimCreateServiceModal()" class="p-1.5 rounded-lg bg-white text-slate-500 hover:text-[#D11149] border border-slate-200 cursor-pointer"><span class="material-symbols-outlined text-[16px] block">edit</span></button>
+                                <button type="button" onclick="window.openSimCta('Configurá clases con cupos y pases', 'Definí horarios específicos por clase y packs compartidos o exclusivos.', 'Premium')" class="p-1.5 rounded-lg bg-white text-slate-500 hover:text-red-600 border border-slate-200 cursor-pointer"><span class="material-symbols-outlined text-[16px] block">delete</span></button>
+                            </div>
                         </div>
-                        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                            <div>
-                                <span class="text-[10px] text-slate-400 block">Efectivo</span>
-                                <span class="font-black text-slate-900 text-sm">$4.500</span>
-                            </div>
-                            <span class="text-xs font-bold text-slate-400 line-through">$5.000</span>
+                        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-200/60 text-[11px] text-slate-600 font-semibold">
+                            <span class="bg-white px-2 py-0.5 rounded-lg border border-slate-200/80">⏱️ 45 min</span>
+                            <span class="font-extrabold text-orange-700 bg-orange-100/90 border border-orange-200 px-2 py-0.5 rounded-md text-[10px]">Tarifas por Pases</span>
+                            <span class="bg-white px-2 py-0.5 rounded-lg border border-slate-200/80">👨‍⚕️ Laura Méndez</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="bg-purple-50 text-purple-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-purple-200">Pase 8 Clases (8 cl.) x $55.000 · 🎟️ Pase Libre</span>
+                            <span class="bg-purple-50 text-purple-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-purple-200">Pase 12 Clases (12 cl.) x $75.000 · 🎟️ Pase Libre</span>
                         </div>
                     </div>
                 </div>
@@ -996,138 +1001,188 @@
     function getSimHtml_Equipo() {
         return `
             <div class="space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                <!-- Cabecera fiel a equipo.html -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
                     <div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#8B5CF6]"></span>
-                            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">Gestión de Equipo y Profesionales</h4>
-                            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-purple-100 text-purple-800">Incluido en todos los planes</span>
-                        </div>
-                        <p class="text-xs text-slate-500">Agendas diferenciadas, fotos, especialidades y permisos individuales</p>
+                        <h4 class="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                            <span class="material-symbols-outlined text-purple-600 text-[20px]">groups</span>
+                            <span>Equipo de Trabajo y Permisos</span>
+                            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">2 / 3 cuentas</span>
+                        </h4>
+                        <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">Cuentas individuales con acceso por correo, horarios propios y permisos por módulo.</p>
                     </div>
 
-                    <button type="button" onclick="window.openSimCta('¡Sumá a tu equipo de trabajo!', 'Podés configurar de 1 a +5 profesionales según tu negocio con precios especiales por volumen.', 'Básico')"
-                        class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-xs transition-all flex items-center gap-1.5 self-start sm:self-auto">
+                    <button type="button" onclick="window.openSimCta('¡Sumá a tu equipo de trabajo!', 'Cada profesional inicia sesión con su cuenta y gestiona solo los módulos que le habilites.', 'Básico')"
+                        class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs shadow-sm transition-all flex items-center gap-1.5 self-start sm:self-auto cursor-pointer">
                         <span class="material-symbols-outlined text-[16px]">person_add</span>
-                        <span>+ Agregar Profesional</span>
+                        <span>Agregar Profesional</span>
                     </button>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center font-black text-base border border-purple-200">
-                                SO
+                <!-- Tarjetas fieles a equipo.html -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-11 h-11 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center font-black text-sm border border-purple-200 shrink-0">SV</div>
+                                <div class="min-w-0">
+                                    <h5 class="font-extrabold text-slate-900 text-sm truncate">Sofía Valenzuela</h5>
+                                    <p class="text-[11px] text-slate-500 truncate">sofia@estudio.com</p>
+                                </div>
                             </div>
-                            <div>
-                                <h5 class="font-extrabold text-slate-900 text-sm">Sofía Valenzuela</h5>
-                                <p class="text-xs text-slate-500">Especialista en Coloración & Corte</p>
-                                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md mt-1 inline-block">12 servicios asignados</span>
-                            </div>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-50 text-purple-700 border border-purple-200 shrink-0">Profesional</span>
                         </div>
-                        <span class="text-xs font-bold text-slate-400">Lun a Vie</span>
+                        <div class="flex flex-wrap gap-1.5 text-[10px] font-bold">
+                            <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">✓ Calendario propio</span>
+                            <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">✓ Agenda Virtual</span>
+                            <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 border border-slate-200">✕ Ajustes globales</span>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+                            <button type="button" onclick="window.openSimCta('Permisos granulares por profesional', 'Definí qué puede ver y editar cada miembro desde Equipo de Trabajo.', 'Profesional')" class="px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-extrabold text-[11px] flex items-center gap-1 cursor-pointer"><span class="material-symbols-outlined text-[14px]">admin_panel_settings</span> Permisos</button>
+                            <button type="button" onclick="window.openSimCta('Gestión de cuentas del equipo', 'Editá datos o revocá accesos al instante.', 'Básico')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] cursor-pointer">Editar</button>
+                        </div>
                     </div>
 
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-2xl bg-orange-100 text-[#FC8712] flex items-center justify-center font-black text-base border border-orange-200">
-                                MR
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-11 h-11 rounded-2xl bg-orange-100 text-[#FC8712] flex items-center justify-center font-black text-sm border border-orange-200 shrink-0">MR</div>
+                                <div class="min-w-0">
+                                    <h5 class="font-extrabold text-slate-900 text-sm truncate">Martín Rossi</h5>
+                                    <p class="text-[11px] text-slate-500 truncate">martin@estudio.com</p>
+                                </div>
                             </div>
-                            <div>
-                                <h5 class="font-extrabold text-slate-900 text-sm">Martín Rossi</h5>
-                                <p class="text-xs text-slate-500">Barbero & Estilista Senior</p>
-                                <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md mt-1 inline-block">8 servicios asignados</span>
-                            </div>
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-50 text-purple-700 border border-purple-200 shrink-0">Profesional</span>
                         </div>
-                        <span class="text-xs font-bold text-slate-400">Mar a Sáb</span>
+                        <div class="flex flex-wrap gap-1.5 text-[10px] font-bold">
+                            <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">✓ Clases y Cupos</span>
+                            <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">✓ Servicios propios</span>
+                            <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">✓ Estadísticas</span>
+                        </div>
+                        <div class="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+                            <button type="button" onclick="window.openSimCta('Permisos granulares por profesional', 'Definí qué puede ver y editar cada miembro desde Equipo de Trabajo.', 'Profesional')" class="px-2.5 py-1 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-extrabold text-[11px] flex items-center gap-1 cursor-pointer"><span class="material-symbols-outlined text-[14px]">admin_panel_settings</span> Permisos</button>
+                            <button type="button" onclick="window.openSimCta('Gestión de cuentas del equipo', 'Editá datos o revocá accesos al instante.', 'Básico')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] cursor-pointer">Editar</button>
+                        </div>
                     </div>
-                </div>
-
-                <div class="bg-purple-50/70 p-3.5 rounded-xl border border-purple-200/80 flex items-center justify-between text-xs">
-                    <span class="text-purple-900 font-bold">💡 Descuento automático por volumen en equipos de 2 a 5 integrantes (5% OFF por cada profesional)</span>
-                    <button type="button" onclick="window.openSimCta('¡Cotizá tu equipo en segundos!', 'Probá gratis cualquier plan por 30 días sin tarjeta.', 'Básico')" class="text-purple-700 font-black hover:underline shrink-0">
-                        Probar gratis →
-                    </button>
                 </div>
             </div>
         `;
     }
 
     // ==========================================
-    // 5. SIMULACIÓN: ALUMNOS / CLASES Y CUPOS (Premium)
+    // 5. SIMULACIÓN: ALUMNOS / CLASES Y CUPOS (Fiel a clientes.html)
     // ==========================================
+    let simCuposSubTab = 'grilla';
+    window.setSimCuposSubTab = function(tab) {
+        simCuposSubTab = tab;
+        renderActiveSimulation();
+    };
+
     function getSimHtml_Cupos() {
+        const isGrilla = simCuposSubTab !== 'padron';
+        const bodyHtml = isGrilla ? `
+            <!-- Matriz tipo Excel fiel a clientes.html -->
+            <div class="bg-white rounded-2xl border border-slate-300 shadow-2xs overflow-x-auto">
+                <table class="w-full border-collapse min-w-[600px] text-left">
+                    <thead>
+                        <tr>
+                            <th class="w-24 bg-slate-200/90 border-b border-r border-slate-300 px-2.5 py-2.5 text-[10px] font-black uppercase text-slate-700 text-center">Horario</th>
+                            <th class="bg-slate-100 border-b border-r border-slate-300 px-2.5 py-2 text-center"><span class="text-[10px] font-black uppercase text-slate-500 block">Lunes</span><span class="text-xs font-black text-slate-900">16 nov</span></th>
+                            <th class="bg-slate-100 border-b border-r border-slate-300 px-2.5 py-2 text-center"><span class="text-[10px] font-black uppercase text-slate-500 block">Martes</span><span class="text-xs font-black text-slate-900">17 nov</span></th>
+                            <th class="bg-gradient-to-b from-orange-500 to-amber-500 text-white border-b border-r border-orange-400 px-2.5 py-2 text-center"><span class="text-[10px] font-black uppercase block">Miércoles · Hoy</span><span class="text-xs font-black">18 nov</span></th>
+                            <th class="bg-slate-100 border-b border-r border-slate-300 px-2.5 py-2 text-center"><span class="text-[10px] font-black uppercase text-slate-500 block">Jueves</span><span class="text-xs font-black text-slate-900">19 nov</span></th>
+                            <th class="bg-slate-100 border-b border-slate-300 px-2.5 py-2 text-center"><span class="text-[10px] font-black uppercase text-slate-500 block">Viernes</span><span class="text-xs font-black text-slate-900">20 nov</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="bg-white">
+                            <td class="bg-slate-100/90 border-b border-r border-slate-300 px-2 py-2.5 text-center"><span class="block text-[11px] font-black text-slate-800">14:00</span><span class="block text-[9px] font-bold text-slate-400">a 16:00</span></td>
+                            <td class="border-b border-r border-slate-200 p-1.5 text-center text-slate-300 text-xs">—</td>
+                            <td class="border-b border-r border-slate-200 p-1.5 align-top">
+                                <div onclick="window.openSimCta('Asistencia y cupos en vivo', 'Hacé clic en cualquier clase de la grilla para ver los inscriptos, tomar asistencia o sumar alumnos.', 'Premium')" style="background-color:#0EA5E912; border-color:#0EA5E945; border-left:4px solid #0EA5E9;" class="border rounded-lg p-2 cursor-pointer">
+                                    <span style="background-color:#0EA5E91F; color:#0EA5E9;" class="inline-block text-[9px] font-black px-1.5 py-0.5 rounded mb-1">14:30 - 15:15</span>
+                                    <h5 class="text-[11px] font-extrabold text-slate-900 truncate">Pilates Mat</h5>
+                                    <div class="flex justify-between text-[10px] mt-1 font-bold text-slate-600"><span>8/10</span><span class="text-amber-700">2 lib.</span></div>
+                                </div>
+                            </td>
+                            <td class="border-b border-r border-slate-200 p-1.5 text-center text-slate-300 text-xs bg-orange-50/30">—</td>
+                            <td class="border-b border-r border-slate-200 p-1.5 align-top">
+                                <div onclick="window.openSimCta('Asistencia y cupos en vivo', 'Hacé clic en cualquier clase de la grilla para ver los inscriptos, tomar asistencia o sumar alumnos.', 'Premium')" style="background-color:#0EA5E912; border-color:#0EA5E945; border-left:4px solid #0EA5E9;" class="border rounded-lg p-2 cursor-pointer">
+                                    <span style="background-color:#0EA5E91F; color:#0EA5E9;" class="inline-block text-[9px] font-black px-1.5 py-0.5 rounded mb-1">14:30 - 15:15</span>
+                                    <h5 class="text-[11px] font-extrabold text-slate-900 truncate">Pilates Mat</h5>
+                                    <div class="flex justify-between text-[10px] mt-1 font-bold text-slate-600"><span>6/10</span><span class="text-emerald-700">4 lib.</span></div>
+                                </div>
+                            </td>
+                            <td class="border-b border-slate-200 p-1.5 text-center text-slate-300 text-xs">—</td>
+                        </tr>
+                        <tr class="bg-slate-50/40">
+                            <td class="bg-slate-100/90 border-r border-slate-300 px-2 py-2.5 text-center"><span class="block text-[11px] font-black text-slate-800">18:00</span><span class="block text-[9px] font-bold text-slate-400">a 20:00</span></td>
+                            <td class="border-r border-slate-200 p-1.5 align-top">
+                                <div onclick="window.openSimCta('Clases simultáneas y colores propios', 'Cada actividad mantiene su color, horario y cupo independiente.', 'Premium')" style="background-color:#8B5CF612; border-color:#8B5CF645; border-left:4px solid #8B5CF6;" class="border rounded-lg p-2 cursor-pointer">
+                                    <span style="background-color:#8B5CF61F; color:#8B5CF6;" class="inline-block text-[9px] font-black px-1.5 py-0.5 rounded mb-1">19:00 - 20:00</span>
+                                    <h5 class="text-[11px] font-extrabold text-slate-900 truncate">Spinning</h5>
+                                    <div class="flex justify-between text-[10px] mt-1 font-bold text-slate-600"><span>10/10</span><span class="text-rose-600">COMPLETO</span></div>
+                                </div>
+                            </td>
+                            <td class="border-r border-slate-200 p-1.5 text-center text-slate-300 text-xs">—</td>
+                            <td class="border-r border-slate-200 p-1.5 align-top bg-orange-50/30">
+                                <div onclick="window.openSimCta('Asistencia y cupos en vivo', 'Hacé clic en cualquier clase de la grilla para ver los inscriptos, tomar asistencia o sumar alumnos.', 'Premium')" style="background-color:#10B98112; border-color:#10B98145; border-left:4px solid #10B981;" class="border rounded-lg p-2 cursor-pointer">
+                                    <span style="background-color:#10B9811F; color:#10B981;" class="inline-block text-[9px] font-black px-1.5 py-0.5 rounded mb-1">19:00 - 19:45</span>
+                                    <h5 class="text-[11px] font-extrabold text-slate-900 truncate">Running</h5>
+                                    <div class="flex justify-between text-[10px] mt-1 font-bold text-slate-600"><span>7/12</span><span class="text-emerald-700">5 lib.</span></div>
+                                </div>
+                            </td>
+                            <td class="border-r border-slate-200 p-1.5 text-center text-slate-300 text-xs">—</td>
+                            <td class="p-1.5 align-top">
+                                <div onclick="window.openSimCta('Asistencia y cupos en vivo', 'Hacé clic en cualquier clase de la grilla para ver los inscriptos, tomar asistencia o sumar alumnos.', 'Premium')" style="background-color:#10B98112; border-color:#10B98145; border-left:4px solid #10B981;" class="border rounded-lg p-2 cursor-pointer">
+                                    <span style="background-color:#10B9811F; color:#10B981;" class="inline-block text-[9px] font-black px-1.5 py-0.5 rounded mb-1">19:00 - 19:45</span>
+                                    <h5 class="text-[11px] font-extrabold text-slate-900 truncate">Running</h5>
+                                    <div class="flex justify-between text-[10px] mt-1 font-bold text-slate-600"><span>9/12</span><span class="text-emerald-700">3 lib.</span></div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        ` : `
+            <!-- Padrón de Alumnos fiel a clientes.html -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div class="bg-white p-3 rounded-xl border border-slate-200"><span class="text-[10px] font-bold text-slate-400 uppercase block">Total Alumnos</span><strong class="text-xl font-black text-slate-900">48</strong></div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200"><span class="text-[10px] font-bold text-slate-400 uppercase block">Activos</span><strong class="text-xl font-black text-emerald-600">41</strong></div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200"><span class="text-[10px] font-bold text-slate-400 uppercase block">Sin Pases</span><strong class="text-xl font-black text-amber-600">5</strong></div>
+                <div class="bg-white p-3 rounded-xl border border-slate-200"><span class="text-[10px] font-bold text-slate-400 uppercase block">Vencidos</span><strong class="text-xl font-black text-rose-600">2</strong></div>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden text-xs">
+                <div class="p-3 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                    <div><strong class="text-slate-900 block">Valentina Ramos</strong><span class="text-[11px] text-slate-400">valentina@mail.com</span></div>
+                    <span class="bg-purple-50 text-purple-800 border border-purple-200 px-2.5 py-0.5 rounded-full font-bold text-[11px]">🎟️ Pase Libre · 6 / 8 cl.</span>
+                    <button type="button" onclick="window.openSimCta('¡Recargá pases en un clic!', 'Control de vencimientos y recarga rápida para tus alumnos.', 'Premium')" class="text-orange-600 font-extrabold hover:underline cursor-pointer">+ Recargar</button>
+                </div>
+                <div class="p-3 flex flex-wrap items-center justify-between gap-2">
+                    <div><strong class="text-slate-900 block">Lucas Moreno</strong><span class="text-[11px] text-slate-400">lucas@mail.com</span></div>
+                    <span class="bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-0.5 rounded-full font-bold text-[11px]">🔒 Pilates Reformer · 2 / 4 cl.</span>
+                    <button type="button" onclick="window.openSimCta('¡Recargá pases en un clic!', 'Control de vencimientos y recarga rápida para tus alumnos.', 'Premium')" class="text-orange-600 font-extrabold hover:underline cursor-pointer">+ Recargar</button>
+                </div>
+            </div>
+        `;
+
         return `
-            <div class="space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div class="space-y-3.5">
+                <!-- Cabecera fiel a clientes.html -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
                     <div>
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#F59E0B]"></span>
-                            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">Control de Cupos, Clases y Portal de Alumnos</h4>
-                            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-amber-100 text-amber-900">Exclusivo Plan Premium</span>
-                        </div>
-                        <p class="text-xs text-slate-500">Ideal para pilates, yoga, danza, fitness, talleres y actividades grupales</p>
+                        <h4 class="font-extrabold text-slate-900 text-sm sm:text-base flex items-center gap-2">
+                            <span>Gestión de Alumnos y Clases</span>
+                            <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">Exclusivo Premium</span>
+                        </h4>
+                        <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">Grilla semanal tipo Excel, colores por actividad, Pase Libre vs. Exclusivo y Portal del Alumno.</p>
                     </div>
-
-                    <button type="button" onclick="window.openSimCta('¡Gestioná cupos y pases con Plan Premium!', 'Tus alumnos se inscriben solos a las clases grupales descontando créditos automáticamente.', 'Premium')"
-                        class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs shadow-xs transition-all flex items-center gap-1.5 self-start sm:self-auto">
-                        <span class="material-symbols-outlined text-[16px]">add_card</span>
-                        <span>+ Cargar Pases</span>
-                    </button>
-                </div>
-
-                <!-- Estado de Cupos en Vivo -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-extrabold text-slate-800">Yoga Flow Matutino (09:00 hs)</span>
-                            <span class="text-xs font-black text-amber-600">8 / 10 Cupos</span>
-                        </div>
-                        <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                            <div class="bg-amber-500 h-full rounded-full" style="width: 80%;"></div>
-                        </div>
-                        <div class="flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                            <span>Prof: Laura Méndez</span>
-                            <span class="text-emerald-700 font-bold">2 cupos libres</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-extrabold text-slate-800">Pilates Reformer (11:00 hs)</span>
-                            <span class="text-xs font-black text-rose-600">4 / 4 Cupos</span>
-                        </div>
-                        <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                            <div class="bg-[#D11149] h-full rounded-full" style="width: 100%;"></div>
-                        </div>
-                        <div class="flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                            <span>Prof: Valentina O.</span>
-                            <span class="text-rose-700 font-bold">Cupo Completo (Lista espera)</span>
-                        </div>
+                    <div class="flex items-center gap-1.5 bg-slate-200/70 p-1 rounded-xl w-fit">
+                        <button type="button" onclick="window.setSimCuposSubTab('grilla')" class="px-3 py-1.5 rounded-lg text-[11px] font-extrabold transition-all cursor-pointer ${isGrilla ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'}">Grilla Semanal</button>
+                        <button type="button" onclick="window.setSimCuposSubTab('padron')" class="px-3 py-1.5 rounded-lg text-[11px] font-extrabold transition-all cursor-pointer ${!isGrilla ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-600 hover:text-slate-900'}">Padrón de Alumnos</button>
                     </div>
                 </div>
-
-                <!-- Tabla de Alumnos Ficticia -->
-                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden text-xs">
-                    <div class="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between font-bold text-slate-600">
-                        <span>Alumno</span>
-                        <span>Pase Activo</span>
-                        <span>Vencimiento</span>
-                        <span>Acción</span>
-                    </div>
-                    <div class="p-3 border-b border-slate-100 flex items-center justify-between">
-                        <span class="font-bold text-slate-900">Valentina Ramos</span>
-                        <span class="bg-amber-50 text-amber-800 px-2 py-0.5 rounded font-bold">3 / 8 Clases</span>
-                        <span class="text-slate-500">15/11/2026</span>
-                        <button type="button" onclick="window.openSimCta('¡Recargá pases en un clic!', 'Control de vencimientos y auto-renovación para tus alumnos.', 'Premium')" class="text-amber-600 font-bold hover:underline">Recargar</button>
-                    </div>
-                    <div class="p-3 flex items-center justify-between">
-                        <span class="font-bold text-slate-900">Lucas Moreno</span>
-                        <span class="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded font-bold">Pase Libre Mensual</span>
-                        <span class="text-slate-500">30/11/2026</span>
-                        <span class="text-emerald-600 font-bold">Activo ✓</span>
-                    </div>
-                </div>
+                ${bodyHtml}
             </div>
         `;
     }
