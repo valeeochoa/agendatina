@@ -3389,6 +3389,20 @@ function cal_fetchBookedTimesWeeklyAdmin() {
     });
 }
 
+var adminWeeklyMobileMode = 'day';
+var adminWeeklyMobileDayIdx = null;
+
+window.setAdminWeeklyMobileMode = function(mode) {
+    adminWeeklyMobileMode = (mode === 'week') ? 'week' : 'day';
+    renderAdminWeeklyGrid();
+};
+
+window.goToAdminCurrentWeek = function() {
+    weekStartDate = window.getStartOfWeek(new Date());
+    adminWeeklyMobileDayIdx = null;
+    renderAdminWeeklyGrid();
+};
+
 function renderAdminWeeklyGrid() {
     const grid = document.getElementById('adminWeeklyGrid');
     if (!grid) return;
@@ -3404,6 +3418,47 @@ function renderAdminWeeklyGrid() {
     }
     const today = new Date(); today.setHours(0,0,0,0);
     const now = new Date();
+
+    // Determinar índice del día activo para vista móvil ("Día")
+    let todayIdxInWeek = -1;
+    for (let k = 0; k < 7; k++) {
+        const dCheck = new Date(weekStartDate);
+        dCheck.setDate(weekStartDate.getDate() + k);
+        if (dCheck.getTime() === today.getTime()) {
+            todayIdxInWeek = k;
+            break;
+        }
+    }
+    if (adminWeeklyMobileDayIdx === null || adminWeeklyMobileDayIdx < 0 || adminWeeklyMobileDayIdx > 6) {
+        adminWeeklyMobileDayIdx = (todayIdxInWeek !== -1) ? todayIdxInWeek : 0;
+    }
+
+    // Sincronizar botones Día / Semana y layout responsivo del grid
+    const btnDayMode = document.getElementById('btnAdminMobileDayMode');
+    const btnWeekMode = document.getElementById('btnAdminMobileWeekMode');
+    const mobileStrip = document.getElementById('adminWeeklyMobileDayStrip');
+    if (btnDayMode && btnWeekMode) {
+        if (adminWeeklyMobileMode === 'day') {
+            btnDayMode.className = 'px-2.5 py-1.5 rounded-lg bg-[#D11149] text-white transition-all shadow-2xs';
+            btnWeekMode.className = 'px-2.5 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 transition-all';
+        } else {
+            btnWeekMode.className = 'px-2.5 py-1.5 rounded-lg bg-[#D11149] text-white transition-all shadow-2xs';
+            btnDayMode.className = 'px-2.5 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 transition-all';
+        }
+    }
+    if (mobileStrip) {
+        mobileStrip.innerHTML = '';
+        if (adminWeeklyMobileMode === 'day') {
+            mobileStrip.classList.remove('hidden');
+        } else {
+            mobileStrip.classList.add('hidden');
+        }
+    }
+    if (adminWeeklyMobileMode === 'week') {
+        grid.className = 'grid grid-cols-7 gap-2 lg:gap-2.5 min-w-[780px] lg:min-w-0 w-full';
+    } else {
+        grid.className = 'grid grid-cols-1 lg:grid-cols-7 gap-2 lg:gap-2.5 w-full';
+    }
     
     if (window.currentUserIsProfOnlyOwn && window.currentProfOnlyOwnName) {
         adminWeeklySelectedProf = window.currentProfOnlyOwnName;
@@ -3497,7 +3552,36 @@ function renderAdminWeeklyGrid() {
         }
 
         const col = document.createElement('div');
-        col.className = `w-full min-w-0 flex flex-col gap-2 p-1.5 sm:p-2.5 backdrop-blur-md rounded-2xl border transition-all duration-300 ${colCardClass}`;
+        const mobileColVisibility = (adminWeeklyMobileMode === 'day' && i !== adminWeeklyMobileDayIdx) ? 'hidden lg:flex' : 'flex';
+        col.className = `w-full min-w-0 ${mobileColVisibility} flex-col gap-2 p-2 sm:p-2.5 backdrop-blur-md rounded-2xl border transition-all duration-300 ${colCardClass}`;
+
+        // Pill del día en la barra móvil (< lg)
+        if (mobileStrip && adminWeeklyMobileMode === 'day') {
+            const isActiveMobileDay = (i === adminWeeklyMobileDayIdx);
+            const stripBtn = document.createElement('button');
+            stripBtn.type = 'button';
+            stripBtn.className = `flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl border text-center transition-all cursor-pointer min-w-0 ${
+                isActiveMobileDay
+                    ? 'bg-[#D11149] border-[#D11149] text-white shadow-sm'
+                    : (isToday
+                        ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-[#D11149] dark:text-rose-300'
+                        : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200')
+            }`;
+            const badgeHtml = realAptsCount > 0
+                ? `<span class="mt-0.5 text-[9px] font-black px-1.5 rounded-full leading-tight ${isActiveMobileDay ? 'bg-white/25 text-white' : 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300'}">${realAptsCount}</span>`
+                : `<span class="mt-0.5 w-1.5 h-1.5 rounded-full ${isActiveMobileDay ? 'bg-white/60' : 'bg-transparent'}"></span>`;
+            stripBtn.innerHTML = `
+                <span class="text-[9px] font-black uppercase tracking-wider leading-none ${isActiveMobileDay ? 'text-white/90' : 'text-slate-400'}">${dayName.substring(0, 3)}</span>
+                <span class="text-sm font-black leading-tight mt-0.5">${date.getDate()}</span>
+                ${badgeHtml}
+            `;
+            const targetIdx = i;
+            stripBtn.onclick = () => {
+                adminWeeklyMobileDayIdx = targetIdx;
+                renderAdminWeeklyGrid();
+            };
+            mobileStrip.appendChild(stripBtn);
+        }
 
         const colHeader = document.createElement('div');
         colHeader.className = `text-center py-2 px-1 rounded-xl border transition-all duration-300 cursor-pointer w-full shrink-0 flex flex-col items-center justify-center relative ${headerBgClass}`;
@@ -3826,6 +3910,34 @@ function renderWeeklyCalendar() {
     const today = new Date();
     today.setHours(0,0,0,0);
 
+    const activeSvcWeekly = typeof window.getActiveCalendarServiceObj === 'function' ? window.getActiveCalendarServiceObj() : null;
+    let hasWeeklySvcCustomSchedule = false;
+    if (activeSvcWeekly && activeSvcWeekly.horarios_especificos_json) {
+        try {
+            const parsedSpecW = typeof activeSvcWeekly.horarios_especificos_json === 'string'
+                ? JSON.parse(activeSvcWeekly.horarios_especificos_json)
+                : activeSvcWeekly.horarios_especificos_json;
+            hasWeeklySvcCustomSchedule = Boolean(parsedSpecW && typeof parsedSpecW === 'object' && Object.keys(parsedSpecW).length > 0);
+        } catch (e) {}
+    }
+
+    let weeklyLegendEl = document.getElementById('weeklyServiceScheduleLegend');
+    if (hasWeeklySvcCustomSchedule && activeSvcWeekly && calendarDays.parentElement) {
+        if (!weeklyLegendEl) {
+            weeklyLegendEl = document.createElement('div');
+            weeklyLegendEl.id = 'weeklyServiceScheduleLegend';
+            calendarDays.parentElement.insertAdjacentElement('afterend', weeklyLegendEl);
+        }
+        const safeSvcW = typeof escapeHtml === 'function' ? escapeHtml(activeSvcWeekly.nombre || '') : (activeSvcWeekly.nombre || '');
+        weeklyLegendEl.className = 'mt-3 px-3 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center gap-2 text-xs font-bold text-emerald-800 dark:text-emerald-200 text-center flex-wrap w-full max-w-full';
+        weeklyLegendEl.innerHTML = `
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
+            <span class="break-words leading-snug">Días resaltados en verde: disponibles para <strong class="font-extrabold">${safeSvcW}</strong></span>
+        `;
+    } else if (weeklyLegendEl) {
+        weeklyLegendEl.remove();
+    }
+
     const dayFormatter = new Intl.DateTimeFormat('es-ES', { weekday: 'short' });
     const selectedTimeValue = cal2_selectedDate ? cal2_selectedDate.getTime() : null;
     const ignoreProfBlock = !globalSelectedProfessional || globalSelectedProfessional === 'columnas' || globalSelectedProfessional === 'Cualquiera (Sin preferencia)';
@@ -3859,30 +3971,34 @@ function renderWeeklyCalendar() {
             bgClass = 'bg-slate-100/60 dark:bg-slate-900/40';
             textClass = 'text-slate-400 dark:text-slate-600';
             borderClass = 'border-slate-200/60 dark:border-slate-800/60';
+        } else if (hasWeeklySvcCustomSchedule) {
+            bgClass = 'bg-emerald-50/90 dark:bg-emerald-950/45 shadow-2xs hover:shadow-lg hover:-translate-y-0.5 hover:border-emerald-500';
+            textClass = 'text-emerald-900 dark:text-emerald-200';
+            borderClass = 'border-emerald-400/90 dark:border-emerald-500/70';
         } else {
-            bgClass = 'bg-white dark:bg-slate-900/90 shadow-2xs hover:shadow-xl hover:-translate-y-1 hover:border-[#D11149]';
+            bgClass = 'bg-white dark:bg-slate-900/90 shadow-2xs hover:shadow-xl hover:-translate-y-0.5 hover:border-[#D11149]';
             textClass = 'text-slate-800 dark:text-slate-100';
             borderClass = 'border-emerald-300/80 dark:border-emerald-700/60';
         }
 
         let dateNumberHtml = '';
         if (isSelected) {
-            bgClass = 'selected shadow-xl shadow-[#D11149]/35 scale-[1.07] z-10';
+            bgClass = 'selected shadow-lg shadow-[#D11149]/35 scale-[1.03] sm:scale-[1.06] z-10';
             textClass = 'font-black';
-            borderClass = 'border-[3px]';
+            borderClass = 'border-2 sm:border-[3px]';
             dayDiv.style.background = 'var(--color-primario, #D11149)';
             dayDiv.style.borderColor = 'var(--color-secundario, #fc8712)';
-            dayDiv.style.boxShadow = 'inset 0 0 0 2px rgba(255, 255, 255, 0.88), 0 0 0 3px color-mix(in srgb, var(--color-secundario, #fc8712) 45%, transparent), 0 12px 24px -4px rgba(209, 17, 73, 0.45)';
-            dateNumberHtml = `<span class="cal-day-number text-base sm:text-2xl font-black" style="color: var(--color-secundario, #fc8712) !important; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);">${date.getDate()}</span>`;
+            dayDiv.style.boxShadow = 'inset 0 0 0 2px rgba(255, 255, 255, 0.85), 0 8px 18px -4px rgba(209, 17, 73, 0.45)';
+            dateNumberHtml = `<span class="cal-day-number text-sm sm:text-2xl font-black leading-none" style="color: var(--color-secundario, #fc8712) !important; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);">${date.getDate()}</span>`;
         } else if (isToday && !visuallyDisabled) {
-            dateNumberHtml = `<span class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#D11149] text-white flex items-center justify-center font-black text-sm sm:text-base shadow-xs mx-auto">${date.getDate()}</span>`;
+            dateNumberHtml = `<span class="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-[#D11149] text-white flex items-center justify-center font-black text-xs sm:text-base shadow-xs mx-auto">${date.getDate()}</span>`;
         } else if (isToday && isClosedDay) {
-            dateNumberHtml = `<span class="text-[8px] font-black uppercase bg-rose-100 text-[#D11149] px-1.5 py-0.5 rounded-full leading-none mb-0.5">HOY</span><span class="text-base sm:text-xl font-black ${textClass} opacity-65">${date.getDate()}</span><span class="text-[8px] font-black uppercase text-rose-500 leading-none">Cerrado</span>`;
+            dateNumberHtml = `<span class="text-[7px] sm:text-[8px] font-black uppercase bg-rose-100 text-[#D11149] px-1 sm:px-1.5 py-0.5 rounded-full leading-none mb-0.5">HOY</span><span class="text-sm sm:text-xl font-black ${textClass} opacity-65 leading-none">${date.getDate()}</span><span class="text-[7px] sm:text-[8px] font-black uppercase text-rose-500 leading-none mt-0.5">${hasWeeklySvcCustomSchedule ? 'Sin disp.' : 'Cerrado'}</span>`;
         } else {
-            dateNumberHtml = `<span class="text-base sm:text-2xl font-black ${textClass}">${date.getDate()}</span>`;
+            dateNumberHtml = `<span class="text-sm sm:text-2xl font-black leading-none ${textClass}">${date.getDate()}</span>`;
         }
 
-        dayDiv.className = `flex flex-col items-center justify-center py-2 px-1 sm:py-3 sm:px-2 rounded-2xl border-2 ${borderClass} ${bgClass} ${textClass} w-full min-w-0 transition-all duration-300 relative overflow-visible shadow-2xs hover:shadow-lg`;
+        dayDiv.className = `flex flex-col items-center justify-center py-2 px-0.5 sm:py-3 sm:px-2 rounded-xl sm:rounded-2xl border-2 ${borderClass} ${bgClass} ${textClass} w-full min-w-0 transition-all duration-300 relative overflow-visible shadow-2xs hover:shadow-lg`;
         
         const effectiveIsAdmin = isAdmin && !isPreviewMode;
         const isClientPastOrBlocked = !effectiveIsAdmin && (isPast || isClosedDay || isDayBlocked);
