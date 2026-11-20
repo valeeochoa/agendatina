@@ -560,6 +560,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtOld->execute([$id_negocio]);
         $oldData = $stmtOld->fetch() ?: [];
 
+        // Acción rápida: habilitar un día cerrado del negocio desde Servicios (horarios propios)
+        if (($data['action'] ?? '') === 'abrir_dia_negocio') {
+            $diaNum = isset($data['dia']) ? (string)trim($data['dia']) : '';
+            if (!in_array($diaNum, ['0','1','2','3','4','5','6'], true)) {
+                if (ob_get_length()) ob_clean();
+                echo json_encode(['success' => false, 'error' => 'Día inválido.']);
+                exit;
+            }
+            $uRoleQuick = $_SESSION['rol_en_local'] ?? 'admin';
+            if ($uRoleQuick === 'profesional') {
+                $uPermsQuick = $_SESSION['permisos'] ?? [];
+                if (empty($uPermsQuick['ajustes'])) {
+                    if (ob_get_length()) ob_clean();
+                    echo json_encode(['success' => false, 'error' => 'Solo el administrador puede modificar los días de apertura del negocio.']);
+                    exit;
+                }
+            }
+            $hOpenQ = (!empty($oldData['hora_apertura']) && $oldData['hora_apertura'] !== '00:00:00') ? substr($oldData['hora_apertura'], 0, 5) : '09:00';
+            $hCloseQ = (!empty($oldData['hora_cierre']) && $oldData['hora_cierre'] !== '00:00:00') ? substr($oldData['hora_cierre'], 0, 5) : '18:00';
+            $diasRaw = isset($oldData['dias_trabajo']) && $oldData['dias_trabajo'] !== '' ? $oldData['dias_trabajo'] : '1,2,3,4,5,6';
+            $diasArr = array_values(array_unique(array_filter(array_map('trim', explode(',', $diasRaw)), fn($v) => in_array($v, ['0','1','2','3','4','5','6'], true))));
+            if (!in_array($diaNum, $diasArr, true)) {
+                $diasArr[] = $diaNum;
+            }
+            sort($diasArr);
+            $newDiasStr = implode(',', $diasArr);
+
+            $hDetRaw = $oldData['horarios_detallados_json'] ?? '';
+            $hDetArr = !empty($hDetRaw) ? json_decode($hDetRaw, true) : null;
+            $newHDetJson = $hDetRaw;
+            if (is_array($hDetArr) && count($hDetArr) > 0) {
+                $hDetArr[$diaNum] = [
+                    'activo' => true,
+                    'tramos' => [['inicio' => $hOpenQ, 'fin' => $hCloseQ]]
+                ];
+                $newHDetJson = json_encode($hDetArr, JSON_UNESCAPED_UNICODE);
+            }
+
+            if ($oldData) {
+                $stmtUpdDay = $pdo->prepare("UPDATE configuracion_web SET dias_trabajo = :d, horarios_detallados_json = :hd WHERE id_negocio = :id");
+                $stmtUpdDay->execute(['d' => $newDiasStr, 'hd' => $newHDetJson, 'id' => $id_negocio]);
+            } else {
+                $stmtInsDay = $pdo->prepare("INSERT INTO configuracion_web (id_negocio, dias_trabajo, hora_apertura, hora_cierre, horarios_detallados_json) VALUES (:id, :d, :ho, :hc, :hd)");
+                $stmtInsDay->execute(['id' => $id_negocio, 'd' => $newDiasStr, 'ho' => $hOpenQ, 'hc' => $hCloseQ, 'hd' => $newHDetJson]);
+            }
+            if (ob_get_length()) ob_clean();
+            echo json_encode([
+                'success' => true,
+                'dias_trabajo' => $newDiasStr,
+                'horarios_detallados_json' => $newHDetJson,
+                'hora_apertura' => $hOpenQ,
+                'hora_cierre' => $hCloseQ
+            ]);
+            exit;
+        }
+
         // Validar permisos si el rol es profesional
         $userRole = $_SESSION['rol_en_local'] ?? null;
         if (!$userRole && isset($_SESSION['user_id'])) {

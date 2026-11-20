@@ -363,6 +363,27 @@
         </div>
     </div>
 
+    <!-- MODAL CONFIRMACIÓN PARA ABRIR UN DÍA CERRADO DEL NEGOCIO -->
+    <div id="openBizDayConfirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[10001] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 text-center space-y-4">
+            <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto">
+                <span class="material-symbols-outlined text-3xl">event_available</span>
+            </div>
+            <div>
+                <h3 class="text-lg font-extrabold text-slate-900" id="openBizDayModalTitle">Día cerrado en el negocio</h3>
+                <p class="text-xs text-slate-600 mt-1.5 leading-relaxed" id="openBizDayModalText"></p>
+            </div>
+            <div class="flex items-center gap-2.5 pt-2">
+                <button type="button" onclick="closeOpenBizDayModal()" class="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer">
+                    Cancelar
+                </button>
+                <button type="button" id="btnConfirmOpenBizDay" onclick="confirmOpenBizDay()" class="flex-1 py-2.5 px-3 rounded-xl bg-primary hover:bg-primary/90 text-white font-extrabold text-xs shadow-sm transition-colors cursor-pointer">
+                    Sí, abrir día
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL CREAR PROFESIONAL / EQUIPO -->
     <div id="teamModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
         <div class="bg-white rounded-3xl p-4 sm:p-6 md:p-8 max-w-md w-full shadow-2xl relative max-h-[90vh] my-auto overflow-y-auto custom-scrollbar">
@@ -484,6 +505,7 @@
                                 const canUseCupos = Boolean(isPremiumPlan && hasCuposTildado);
                                 window.canManageCuposServicio = canUseCupos;
                                 window.isPremiumPlanUser = isPremiumPlan;
+                                window.businessScheduleCfg = webCfg || {};
 
                                 // Selector exclusivo de destino (Calendario vs Portal de Alumnos) solo para Plan Premium
                                 const boxDestino = document.getElementById('boxSelectorDestinoServicio');
@@ -799,8 +821,13 @@
                 label.innerHTML = 'Precio ($) *';
                 input.placeholder = '5000';
                 if (hint) {
-                    hint.innerHTML = 'Obligatorio si no se configuran pases.';
-                    hint.className = 'text-[10px] text-slate-400 block mt-1';
+                    if (window.canManageCuposServicio) {
+                        hint.innerHTML = 'Obligatorio si no se configuran pases.';
+                        hint.className = 'text-[10px] text-slate-400 block mt-1';
+                    } else {
+                        hint.innerHTML = '';
+                        hint.className = 'hidden';
+                    }
                 }
             }
         }
@@ -903,24 +930,141 @@
             collectSvcHorariosEspecificos();
         }
 
+        let pendingBizDayToOpen = null;
+
+        function getBusinessDayBounds(dayKey) {
+            const cfg = window.businessScheduleCfg || {};
+            const numKey = String(dayKey);
+            const dayShorts = { '0': 'dom', '1': 'lun', '2': 'mar', '3': 'mie', '4': 'jue', '5': 'vie', '6': 'sab' };
+            const dayFull = { '0': 'domingo', '1': 'lunes', '2': 'martes', '3': 'miercoles', '4': 'jueves', '5': 'viernes', '6': 'sabado' };
+
+            if (cfg.horarios_detallados_json) {
+                try {
+                    const hDet = typeof cfg.horarios_detallados_json === 'string'
+                        ? JSON.parse(cfg.horarios_detallados_json)
+                        : cfg.horarios_detallados_json;
+                    if (hDet && typeof hDet === 'object' && Object.keys(hDet).length > 0) {
+                        const dInfo = hDet[numKey] !== undefined ? hDet[numKey]
+                            : (hDet[dayShorts[numKey]] !== undefined ? hDet[dayShorts[numKey]] : hDet[dayFull[numKey]]);
+                        if (dInfo !== undefined) {
+                            if (dInfo.activo === false) return { isOpen: false, tramos: [] };
+                            if (Array.isArray(dInfo.tramos) && dInfo.tramos.length > 0) {
+                                return { isOpen: true, tramos: dInfo.tramos.map(t => ({ inicio: (t.inicio || '09:00').substring(0, 5), fin: (t.fin || '18:00').substring(0, 5) })) };
+                            }
+                        }
+                    }
+                } catch(e) {}
+            }
+
+            const diasRaw = (cfg.dias_trabajo !== undefined && cfg.dias_trabajo !== null && cfg.dias_trabajo !== '') ? String(cfg.dias_trabajo) : '1,2,3,4,5,6';
+            const workingDays = diasRaw.split(',').map(v => v.trim());
+            if (!workingDays.includes(numKey)) {
+                return { isOpen: false, tramos: [] };
+            }
+            const hOpen = (cfg.hora_apertura && cfg.hora_apertura !== '00:00:00') ? String(cfg.hora_apertura).substring(0, 5) : '09:00';
+            const hClose = (cfg.hora_cierre && cfg.hora_cierre !== '00:00:00') ? String(cfg.hora_cierre).substring(0, 5) : '18:00';
+            return { isOpen: true, tramos: [{ inicio: hOpen, fin: hClose }] };
+        }
+
+        function isTramoWithinBusinessBounds(dayKey, ini, fin) {
+            const bounds = getBusinessDayBounds(dayKey);
+            if (!bounds.isOpen || !bounds.tramos.length) return { ok: false, bounds };
+            const ok = bounds.tramos.some(t => ini >= t.inicio && fin <= t.fin);
+            return { ok, bounds };
+        }
+
+        function openBizDayModal(dayKey) {
+            const dayObj = SVC_DAYS_ORDER.find(d => d.key === String(dayKey));
+            const dayLabel = dayObj ? dayObj.label : 'ese día';
+            pendingBizDayToOpen = String(dayKey);
+            const titleEl = document.getElementById('openBizDayModalTitle');
+            const textEl = document.getElementById('openBizDayModalText');
+            const btn = document.getElementById('btnConfirmOpenBizDay');
+            if (titleEl) titleEl.textContent = `Tu negocio está cerrado los ${dayLabel}`;
+            if (textEl) textEl.innerHTML = `Si cargás un horario los <strong>${dayLabel}</strong> sin abrir el negocio ese día, no se mostrará en el calendario.<br><br>¿Deseás habilitar también los <strong>${dayLabel}</strong> en los Ajustes de tu negocio?`;
+            if (btn) { btn.disabled = false; btn.textContent = `Sí, abrir ${dayLabel}`; }
+            document.getElementById('openBizDayConfirmModal')?.classList.remove('hidden');
+        }
+
+        function closeOpenBizDayModal() {
+            pendingBizDayToOpen = null;
+            document.getElementById('openBizDayConfirmModal')?.classList.add('hidden');
+        }
+
+        function confirmOpenBizDay() {
+            if (pendingBizDayToOpen === null) return;
+            const dayKey = pendingBizDayToOpen;
+            const btn = document.getElementById('btnConfirmOpenBizDay');
+            if (btn) { btn.disabled = true; btn.textContent = 'Actualizando...'; }
+
+            const fd = new FormData();
+            fd.append('action', 'abrir_dia_negocio');
+            fd.append('dia', dayKey);
+
+            fetch('backend/guardar_web.php', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(d => {
+                    if (d && d.success) {
+                        window.businessScheduleCfg = Object.assign({}, window.businessScheduleCfg || {}, {
+                            dias_trabajo: d.dias_trabajo,
+                            horarios_detallados_json: d.horarios_detallados_json,
+                            hora_apertura: d.hora_apertura,
+                            hora_cierre: d.hora_cierre
+                        });
+                        closeOpenBizDayModal();
+                        if (!svcHorariosState[dayKey]) svcHorariosState[dayKey] = { activo: true, tramos: [] };
+                        svcHorariosState[dayKey].activo = true;
+                        const defIni = d.hora_apertura || '09:00';
+                        if (svcHorariosState[dayKey].tramos.length === 0) {
+                            svcHorariosState[dayKey].tramos.push({ inicio: defIni, fin: calcEndTimeFromSvcDuration(defIni) });
+                        }
+                        renderSvcHorariosDays();
+                        if (typeof showToast === 'function') showToast('¡Listo! Se habilitó el día en Ajustes de tu negocio y ya podés configurar sus horarios.', 'success');
+                    } else {
+                        if (btn) { btn.disabled = false; btn.textContent = 'Sí, abrir día'; }
+                        if (typeof showToast === 'function') showToast((d && d.error) || 'No se pudo habilitar el día en Ajustes.', 'error');
+                    }
+                })
+                .catch(() => {
+                    if (btn) { btn.disabled = false; btn.textContent = 'Sí, abrir día'; }
+                    if (typeof showToast === 'function') showToast('Error de conexión al actualizar Ajustes.', 'error');
+                });
+        }
+
         function toggleSvcHorarioDay(dayKey, isActive) {
+            const bizBounds = getBusinessDayBounds(dayKey);
+            if (isActive && !bizBounds.isOpen) {
+                renderSvcHorariosDays();
+                openBizDayModal(dayKey);
+                return;
+            }
             if (!svcHorariosState[dayKey]) svcHorariosState[dayKey] = { activo: false, tramos: [] };
             svcHorariosState[dayKey].activo = isActive;
             if (isActive && svcHorariosState[dayKey].tramos.length === 0) {
-                svcHorariosState[dayKey].tramos.push({ inicio: '09:00', fin: calcEndTimeFromSvcDuration('09:00') });
+                const defIni = (bizBounds.tramos[0] && bizBounds.tramos[0].inicio) ? bizBounds.tramos[0].inicio : '09:00';
+                svcHorariosState[dayKey].tramos.push({ inicio: defIni, fin: calcEndTimeFromSvcDuration(defIni) });
             }
             renderSvcHorariosDays();
         }
 
         function addSvcHorarioTramo(dayKey) {
+            const bizBounds = getBusinessDayBounds(dayKey);
+            if (!bizBounds.isOpen) {
+                openBizDayModal(dayKey);
+                return;
+            }
             if (!svcHorariosState[dayKey]) svcHorariosState[dayKey] = { activo: true, tramos: [] };
             svcHorariosState[dayKey].activo = true;
             const last = svcHorariosState[dayKey].tramos[svcHorariosState[dayKey].tramos.length - 1];
-            let nextStart = '09:00';
-            if (last && last.fin) {
-                nextStart = last.fin < '22:00' ? last.fin : '18:00';
+            const defIni = (bizBounds.tramos[0] && bizBounds.tramos[0].inicio) ? bizBounds.tramos[0].inicio : '09:00';
+            const maxFin = bizBounds.tramos[bizBounds.tramos.length - 1]?.fin || '22:00';
+            let nextStart = defIni;
+            if (last && last.fin && last.fin < maxFin) {
+                nextStart = last.fin;
             }
-            svcHorariosState[dayKey].tramos.push({ inicio: nextStart, fin: calcEndTimeFromSvcDuration(nextStart) });
+            const nextFin = calcEndTimeFromSvcDuration(nextStart);
+            const finalStart = (nextFin <= maxFin) ? nextStart : defIni;
+            svcHorariosState[dayKey].tramos.push({ inicio: finalStart, fin: calcEndTimeFromSvcDuration(finalStart) });
             renderSvcHorariosDays();
         }
 
@@ -938,8 +1082,23 @@
             if (!/^\d{2}:\d{2}$/.test(val || '')) return;
             const dur = parseInt(document.getElementById('svcDuracion')?.value || 45, 10) || 45;
             if (field === 'inicio') {
-                svcHorariosState[dayKey].tramos[idx].inicio = val;
                 const autoFin = calcEndTimeFromSvcDuration(val);
+                const check = isTramoWithinBusinessBounds(dayKey, val, autoFin);
+                if (!check.ok && check.bounds.tramos.length > 0) {
+                    const rngStr = check.bounds.tramos.map(t => `${t.inicio} a ${t.fin}`).join(' / ');
+                    if (typeof showToast === 'function') {
+                        showToast(`Horario fuera de atención del negocio (${rngStr}). Elegí un horario dentro de tu franja abierta.`, 'error');
+                    }
+                    const fallbackIni = check.bounds.tramos[0].inicio;
+                    const fallbackFin = calcEndTimeFromSvcDuration(fallbackIni);
+                    svcHorariosState[dayKey].tramos[idx].inicio = fallbackIni;
+                    svcHorariosState[dayKey].tramos[idx].fin = fallbackFin;
+                    if (inputEl) inputEl.value = fallbackIni;
+                    const finInp = inputEl?.parentElement?.querySelector('.svc-tramo-fin');
+                    if (finInp) finInp.value = fallbackFin;
+                    return;
+                }
+                svcHorariosState[dayKey].tramos[idx].inicio = val;
                 svcHorariosState[dayKey].tramos[idx].fin = autoFin;
                 const finInp = inputEl?.parentElement?.querySelector('.svc-tramo-fin');
                 if (finInp) {
@@ -972,6 +1131,7 @@
             const src = svcHorariosState[sourceDayKey];
             if (!src || !src.activo || src.tramos.length === 0) return;
             ['1','2','3','4','5'].forEach(k => {
+                if (!getBusinessDayBounds(k).isOpen) return;
                 svcHorariosState[k] = {
                     activo: true,
                     tramos: src.tramos.map(t => ({ inicio: t.inicio, fin: t.fin }))
@@ -1036,8 +1196,12 @@
             if (hint && typeof formatDuracionText === 'function') hint.textContent = formatDuracionText(curDur);
             container.innerHTML = SVC_DAYS_ORDER.map(d => {
                 const dayObj = svcHorariosState[d.key] || { activo: false, tramos: [] };
-                const active = Boolean(dayObj.activo);
-                const tramosHtml = active ? dayObj.tramos.map((tr, idx) => `
+                const bizBounds = getBusinessDayBounds(d.key);
+                const isBizClosed = !bizBounds.isOpen;
+                const active = Boolean(dayObj.activo) && !isBizClosed;
+                const tramosHtml = isBizClosed
+                    ? `<span class="inline-flex items-center gap-1 text-[11px] font-bold text-slate-400"><span class="material-symbols-outlined text-[14px]">lock</span> Negocio cerrado este día</span>`
+                    : (active ? dayObj.tramos.map((tr, idx) => `
                     <div class="flex flex-wrap items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 shadow-2xs">
                         <input type="time" value="${tr.inicio}" oninput="updateSvcHorarioTramo('${d.key}', ${idx}, 'inicio', this.value, this)" onchange="updateSvcHorarioTramo('${d.key}', ${idx}, 'inicio', this.value, this)" class="svc-tramo-inicio text-xs font-bold text-slate-800 bg-transparent outline-none cursor-pointer">
                         <span class="text-[11px] font-bold text-slate-400">a</span>
@@ -1046,16 +1210,20 @@
                             <span class="material-symbols-outlined text-[15px] block">close</span>
                         </button>
                     </div>
-                `).join('') : '<span class="text-[11px] text-slate-400 italic">Sin horarios</span>';
+                `).join('') : '<span class="text-[11px] text-slate-400 italic">Sin horarios</span>');
 
                 const copyBtn = (active && dayObj.tramos.length > 0 && ['1','2','3','4','5'].includes(d.key))
                     ? `<button type="button" onclick="copySvcHorarioToWeekdays('${d.key}')" class="text-[10px] font-bold text-slate-500 hover:text-primary px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer" title="Copiar estos horarios de Lunes a Viernes">Copiar L-V</button>`
                     : '';
 
+                const actionBtn = isBizClosed
+                    ? `<button type="button" onclick="openBizDayModal('${d.key}')" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 inline-flex items-center gap-1 transition-colors cursor-pointer"><span class="material-symbols-outlined text-[14px]">lock_open</span> Abrir día</button>`
+                    : `<button type="button" onclick="addSvcHorarioTramo('${d.key}')" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 inline-flex items-center gap-1 transition-colors cursor-pointer"><span class="material-symbols-outlined text-[14px]">add</span> Horario</button>`;
+
                 const otherChipsHtml = getOtherServicesChipsForDay(d.key);
 
                 return `
-                    <div class="p-2.5 sm:p-3 rounded-xl border ${active ? 'bg-white border-slate-200' : 'bg-slate-100/60 border-slate-200/60'}">
+                    <div class="p-2.5 sm:p-3 rounded-xl border ${isBizClosed ? 'bg-slate-100/80 border-dashed border-slate-300/80 opacity-85' : (active ? 'bg-white border-slate-200' : 'bg-slate-100/60 border-slate-200/60')}">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                             <label class="inline-flex items-center gap-2 cursor-pointer min-w-[110px] shrink-0 select-none">
                                 <input type="checkbox" ${active ? 'checked' : ''} onchange="toggleSvcHorarioDay('${d.key}', this.checked)" class="w-4 h-4 accent-primary rounded cursor-pointer">
@@ -1066,9 +1234,7 @@
                             </div>
                             <div class="flex items-center gap-1 shrink-0">
                                 ${copyBtn}
-                                <button type="button" onclick="addSvcHorarioTramo('${d.key}')" class="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 inline-flex items-center gap-1 transition-colors cursor-pointer">
-                                    <span class="material-symbols-outlined text-[14px]">add</span> Horario
-                                </button>
+                                ${actionBtn}
                             </div>
                         </div>
                         ${otherChipsHtml}
