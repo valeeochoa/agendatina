@@ -600,6 +600,24 @@ window.openEditTurnoModal = function (id) {
                         </div>
                     </div>
 
+                    <div id="pendingTurnoBanner" class="p-3 sm:p-3.5 mb-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/70 hidden shrink-0 space-y-2.5">
+                        <div class="flex items-start gap-2 text-xs text-amber-900 dark:text-amber-200">
+                            <span class="material-symbols-outlined text-[18px] text-amber-600 shrink-0 mt-0.5">hourglass_top</span>
+                            <div>
+                                <p class="font-extrabold">Solicitud pendiente de confirmación</p>
+                                <p class="text-[11px] opacity-90">Confirmá este turno para dejarlo agendado definitivamente o rechazalo para liberar el horario.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" id="btnModalConfirmarPendiente" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs py-2.5 px-3 rounded-xl transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
+                                <span class="material-symbols-outlined text-[16px]">check_circle</span> Confirmar Turno
+                            </button>
+                            <button type="button" id="btnModalCancelarPendiente" class="bg-rose-100 hover:bg-rose-200 dark:bg-rose-950/60 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 font-extrabold text-xs py-2.5 px-3 rounded-xl transition-colors flex items-center justify-center gap-1 cursor-pointer">
+                                <span class="material-symbols-outlined text-[16px]">delete</span> Cancelar
+                            </button>
+                        </div>
+                    </div>
+
                     <form id="editTurnoForm" class="space-y-4 overflow-y-auto pr-1 flex-1 custom-scrollbar max-h-[68vh]">
                         <input type="hidden" id="editTurnoId" name="id">
                         
@@ -746,6 +764,30 @@ window.openEditTurnoModal = function (id) {
     if (alertEl) {
         if (isPast) alertEl.classList.remove('hidden');
         else alertEl.classList.add('hidden');
+    }
+
+    const pendingBanner = document.getElementById('pendingTurnoBanner');
+    if (pendingBanner) {
+        const isPendingFuture = (turno.estado === 'pendiente' && !isPast);
+        if (isPendingFuture) {
+            pendingBanner.classList.remove('hidden');
+            const btnConf = document.getElementById('btnModalConfirmarPendiente');
+            const btnCanc = document.getElementById('btnModalCancelarPendiente');
+            if (btnConf) {
+                btnConf.onclick = () => {
+                    window.closeEditTurnoModal();
+                    window.confirmarTurnoAdmin(id);
+                };
+            }
+            if (btnCanc) {
+                btnCanc.onclick = () => {
+                    window.closeEditTurnoModal();
+                    window.cancelarTurnoAdmin(id);
+                };
+            }
+        } else {
+            pendingBanner.classList.add('hidden');
+        }
     }
 
     const modalTitleText = document.getElementById('editModalTitleText');

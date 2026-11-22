@@ -3707,6 +3707,17 @@ function renderAdminWeeklyGrid() {
                         const profBadge = (isTodosProf && apt.profesional) ? `<span class="text-[8px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1 py-0.2 rounded border border-slate-200 dark:border-slate-700 ml-1">👤 ${apt.profesional}</span>` : '';
                         const durText = apt._dur ? `<span class="text-[8px] opacity-75 font-semibold">(${apt._dur}m)</span>` : '';
                         
+                        const quickPendingActions = (effectiveIsAdmin && isP && !isPast && !isB) ? `
+                            <div class="flex items-center gap-1 mt-1.5 pt-1 border-t border-amber-300/60 dark:border-amber-700/50">
+                                <button type="button" onclick="event.stopPropagation(); window.confirmarTurnoAdmin('${apt.id}')" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[9px] sm:text-[10px] font-extrabold py-1 px-1.5 rounded-lg transition-colors flex items-center justify-center gap-0.5 shadow-2xs cursor-pointer" title="Confirmar turno">
+                                    <span class="material-symbols-outlined text-[12px]">check_circle</span> Confirmar
+                                </button>
+                                <button type="button" onclick="event.stopPropagation(); window.cancelarTurnoAdmin('${apt.id}')" class="bg-rose-100 hover:bg-rose-200 dark:bg-rose-950/60 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 text-[9px] sm:text-[10px] font-extrabold py-1 px-1.5 rounded-lg transition-colors flex items-center justify-center cursor-pointer" title="Cancelar / Rechazar turno">
+                                    <span class="material-symbols-outlined text-[12px]">close</span>
+                                </button>
+                            </div>
+                        ` : '';
+
                         divApt.innerHTML = `
                             <div class="font-black text-[10px] leading-tight flex items-center justify-between gap-1" title="${escapeHtml(clientName)}">
                                 <span class="truncate">${escapeHtml(clientName)}</span> 
@@ -3717,6 +3728,7 @@ function renderAdminWeeklyGrid() {
                                 ${durText}
                                 ${profBadge}
                             </div>
+                            ${quickPendingActions}
                         `;
 
                         divApt.onclick = (e) => {
