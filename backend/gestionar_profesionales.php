@@ -75,30 +75,41 @@ if (!file_exists($_profMigFlag)) {
     @file_put_contents($_profMigFlag, '1');
 }
 
-// Validar rol administrativo para operaciones de escritura (POST, PUT, DELETE)
+require_once __DIR__ . '/helpers/permisos_helper.php';
+asegurarVerificacionProfesionalesPendiente($pdo);
+
+$defaultProfPerms = obtenerPermisosPorDefecto('profesional');
+$defaultAdminPerms = obtenerPermisosPorDefecto('admin');
+
+// Validar rol administrativo o permiso explícito 'equipo' para operaciones de escritura (POST, PUT, DELETE)
 $userRole = $_SESSION['rol_en_local'] ?? null;
-if (!$userRole && isset($_SESSION['user_id'])) {
-    $stmtCheckRole = $pdo->prepare("SELECT rol_en_local FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ? LIMIT 1");
+$userRawPerms = null;
+if (isset($_SESSION['user_id'])) {
+    $stmtCheckRole = $pdo->prepare("SELECT rol_en_local, permisos FROM personal_negocio WHERE id_negocio = ? AND id_usuario = ? LIMIT 1");
     $stmtCheckRole->execute([$id_negocio, $_SESSION['user_id']]);
-    $userRole = $stmtCheckRole->fetchColumn();
-    if ($userRole) $_SESSION['rol_en_local'] = $userRole;
+    $roleRow = $stmtCheckRole->fetch(PDO::FETCH_ASSOC);
+    if ($roleRow) {
+        $userRole = $roleRow['rol_en_local'];
+        $userRawPerms = $roleRow['permisos'] ?? null;
+        $_SESSION['rol_en_local'] = $userRole;
+    }
+}
+
+$canManageTeam = ($userRole === 'admin');
+if (!$canManageTeam && $userRole) {
+    $normPerms = normalizarPermisos($userRawPerms, $userRole);
+    $canManageTeam = !empty($normPerms['equipo']);
 }
 
 if ($method === 'GET') {
     @session_write_close();
 }
 
-if ($method !== 'GET' && $userRole !== 'admin') {
+if ($method !== 'GET' && !$canManageTeam) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'error' => 'Acceso denegado. Solo el administrador del negocio puede modificar el equipo y sus permisos.']);
+    echo json_encode(['success' => false, 'error' => 'Acceso denegado. Solo el administrador del negocio o un integrante con permiso de Equipo habilitado puede gestionar profesionales.']);
     exit;
 }
-
-require_once __DIR__ . '/helpers/permisos_helper.php';
-asegurarVerificacionProfesionalesPendiente($pdo);
-
-$defaultProfPerms = obtenerPermisosPorDefecto('profesional');
-$defaultAdminPerms = obtenerPermisosPorDefecto('admin');
 
 /**
  * Resolver resiliente de profesional en un negocio:

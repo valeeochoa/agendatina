@@ -502,7 +502,9 @@
                     currentLimit = teamData.limite || 5;
                     canEditPermissions = teamData.can_edit_permissions !== false;
                     const used = teamList.length;
-                    document.getElementById('planCapacityBadge').textContent = `${used} de ${currentLimit} Cuentas Ocupadas`;
+                    document.getElementById('planCapacityBadge').textContent = teamData.ilimitado
+                        ? `${used} ${used === 1 ? 'Cuenta Activa' : 'Cuentas Activas'} · ∞ Ilimitados`
+                        : `${used} de ${currentLimit} Cuentas Ocupadas`;
 
                     renderTeamGrid(teamList, servicesList, currentLimit);
                 }
