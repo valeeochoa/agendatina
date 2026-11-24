@@ -8,9 +8,9 @@ try {
         id INT PRIMARY KEY DEFAULT 1,
         precio_basico DECIMAL(10,2) DEFAULT 8889,
         precio_intermedio DECIMAL(10,2) DEFAULT 11111,
-        precio_premium DECIMAL(10,2) DEFAULT 16667
+        precio_premium DECIMAL(10,2) DEFAULT 35000
     )"); 
-    $pdo->exec("INSERT IGNORE INTO configuracion_global (id, precio_basico, precio_intermedio, precio_premium) VALUES (1, 8889, 11111, 16667)");
+    $pdo->exec("INSERT IGNORE INTO configuracion_global (id, precio_basico, precio_intermedio, precio_premium) VALUES (1, 8889, 11111, 35000)");
     
     try { $pdo->query("SELECT descuento_porcentaje FROM configuracion_global LIMIT 1"); } 
     catch(Exception $e) { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN descuento_porcentaje INT DEFAULT 10"); }
@@ -21,13 +21,25 @@ try {
     try { $pdo->query("SELECT dias_prueba_defecto FROM configuracion_global LIMIT 1"); } 
     catch(Exception $e) { try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN dias_prueba_defecto INT NOT NULL DEFAULT 30"); } catch(Exception $ex) {} }
 
-    $stmt = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(dias_prueba_defecto, 30) AS dias_prueba_defecto FROM configuracion_global ORDER BY id ASC LIMIT 1");
+    try { $pdo->query("SELECT alumnos_incluidos_premium FROM configuracion_global LIMIT 1"); }
+    catch(Exception $e) {
+        try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN alumnos_incluidos_premium INT NOT NULL DEFAULT 100"); } catch(Exception $ex) {}
+        // Migración única de precio_premium anterior (16667) al nuevo esquema ($35.000 base con 100 alumnos incluidos)
+        try { $pdo->exec("UPDATE configuracion_global SET precio_premium = 35000 WHERE ROUND(precio_premium) = 16667"); } catch(Exception $ex) {}
+    }
+
+    try { $pdo->query("SELECT precio_alumno_extra_premium FROM configuracion_global LIMIT 1"); }
+    catch(Exception $e) { try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN precio_alumno_extra_premium DECIMAL(10,2) NOT NULL DEFAULT 700"); } catch(Exception $ex) {} }
+
+    $stmt = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(dias_prueba_defecto, 30) AS dias_prueba_defecto, COALESCE(alumnos_incluidos_premium, 100) AS alumnos_incluidos_premium, COALESCE(precio_alumno_extra_premium, 700) AS precio_alumno_extra_premium FROM configuracion_global ORDER BY id ASC LIMIT 1");
     $precios = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$precios) {
         $precios = [
             'precio_basico' => 8889.0,
             'precio_intermedio' => 11111.0,
-            'precio_premium' => 16667.0,
+            'precio_premium' => 35000.0,
+            'alumnos_incluidos_premium' => 100,
+            'precio_alumno_extra_premium' => 700.0,
             'descuento_porcentaje' => 10,
             'descuento_hasta' => null,
             'dias_prueba_defecto' => 30
@@ -36,6 +48,8 @@ try {
         $precios['precio_basico'] = (float)$precios['precio_basico'];
         $precios['precio_intermedio'] = (float)$precios['precio_intermedio'];
         $precios['precio_premium'] = (float)$precios['precio_premium'];
+        $precios['alumnos_incluidos_premium'] = !empty($precios['alumnos_incluidos_premium']) ? (int)$precios['alumnos_incluidos_premium'] : 100;
+        $precios['precio_alumno_extra_premium'] = !empty($precios['precio_alumno_extra_premium']) ? (float)$precios['precio_alumno_extra_premium'] : 700.0;
         $precios['descuento_porcentaje'] = isset($precios['descuento_porcentaje']) ? (int)$precios['descuento_porcentaje'] : 0;
         $precios['dias_prueba_defecto'] = !empty($precios['dias_prueba_defecto']) ? (int)$precios['dias_prueba_defecto'] : 30;
 
@@ -55,7 +69,9 @@ try {
         'data' => [
             'precio_basico' => 8889.0,
             'precio_intermedio' => 11111.0,
-            'precio_premium' => 16667.0,
+            'precio_premium' => 35000.0,
+            'alumnos_incluidos_premium' => 100,
+            'precio_alumno_extra_premium' => 700.0,
             'descuento_porcentaje' => 10,
             'descuento_hasta' => null,
             'dias_prueba_defecto' => 30

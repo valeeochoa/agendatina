@@ -493,7 +493,7 @@
             validarCuponRegistro();
         }
 
-        window.regPricingData = { precio_basico: 8889, precio_intermedio: 11111, precio_premium: 16667, descuento_porcentaje: 10, dias_prueba_defecto: 30 };
+        window.regPricingData = { precio_basico: 8889, precio_intermedio: 11111, precio_premium: 35000, alumnos_incluidos_premium: 100, precio_alumno_extra_premium: 700, descuento_porcentaje: 10, dias_prueba_defecto: 30 };
         fetch('backend/obtener_precios.php').then(r=>r.json()).then(pData => {
             if (pData && pData.success && pData.data) {
                 window.regPricingData = pData.data;
@@ -519,7 +519,10 @@
         const pData = window.regPricingData || {};
         const rawB = parseFloat(pData.precio_basico) || 8889;
         const rawI = parseFloat(pData.precio_intermedio) || 11111;
-        const rawP = parseFloat(pData.precio_premium) || 16667;
+        const rawPVal = parseFloat(pData.precio_premium);
+        const rawP = (!isNaN(rawPVal) && rawPVal > 0 && Math.round(rawPVal) !== 16667) ? rawPVal : 35000;
+        const premAlumnosIncl = parseInt(pData.alumnos_incluidos_premium, 10) || 100;
+        const premAlumnoExtra = parseFloat(pData.precio_alumno_extra_premium) || 700;
         
         let discPct = (pData.descuento_porcentaje !== undefined && pData.descuento_porcentaje !== null) 
             ? parseInt(pData.descuento_porcentaje) 
@@ -562,12 +565,19 @@
 
         const bRes = calc(rawB);
         const iRes = calc(rawI);
-        const pRes = calc(rawP);
+        // Plan Premium: precio base fijo ($35.000) con profesionales ilimitados + hasta 100 alumnos (+$700 c/extra)
+        const pFinalBase = appliedCouponPct > 0 ? Math.round(rawP * (100 - appliedCouponPct) / 100) : Math.round(rawP);
+        const pRes = {
+            final: pFinalBase,
+            old: Math.round(rawP),
+            showOld: appliedCouponPct > 0,
+            badgeText: appliedCouponPct > 0 ? `-${appliedCouponPct}% CUPÓN` : ''
+        };
 
         const couponNoticeTag = appliedCouponPct > 0 ? `<div class="mt-1 text-[10px] font-black text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md inline-block">🏷️ Cupón ${appliedCouponCode} (-${appliedCouponPct}%)</div>` : '';
         const bPerProf = count > 1 ? `<div class="mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md inline-block">¡Queda en $${Math.round(bRes.final / count).toLocaleString('es-AR')} p/profesional!</div>` : '';
         const iPerProf = count > 1 ? `<div class="mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md inline-block">¡Queda en $${Math.round(iRes.final / count).toLocaleString('es-AR')} p/profesional!</div>` : '';
-        const pPerProf = count > 1 ? `<div class="mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md inline-block">¡Queda en $${Math.round(pRes.final / count).toLocaleString('es-AR')} p/profesional!</div>` : '';
+        const pPerProf = `<div class="mt-1 text-[11px] font-bold text-orange-700 bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-md inline-block">∞ Profesionales ilimitados · Hasta ${premAlumnosIncl} alumnos (+$${premAlumnoExtra.toLocaleString('es-AR')} c/extra)</div>`;
 
         const oldBEl = document.getElementById('regBasicOldPrice');
         if (oldBEl) oldBEl.style.display = bRes.showOld ? 'inline' : 'none';
@@ -600,7 +610,7 @@
             badgePEl.textContent = pRes.badgeText;
         }
         document.getElementById('regPremPrice').innerHTML = '$' + pRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + couponNoticeTag + pPerProf;
-        document.getElementById('regPremSubtext').textContent = `${count} ${count === 1 ? 'Profesional' : 'Profesionales'} • Clases por Cupos + Portal`;
+        document.getElementById('regPremSubtext').textContent = `Profesionales ilimitados • Hasta ${premAlumnosIncl} alumnos (+$${premAlumnoExtra.toLocaleString('es-AR')} c/extra)`;
 
         const trialDays = (pData && pData.dias_prueba_defecto) ? pData.dias_prueba_defecto : 30;
         document.querySelectorAll('.trial-days-display').forEach(el => el.textContent = trialDays);

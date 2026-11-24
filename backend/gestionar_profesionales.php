@@ -225,22 +225,29 @@ if ($method === 'GET') {
         }
         unset($p);
 
-        // Obtener el límite dictado por el plan y de la tienda (máximo 5 por el momento para todos)
+        // Obtener el límite dictado por el plan (Plan Premium incluye profesionales ilimitados)
         $stmtLimit = $pdo->prepare("SELECT max_profesionales, plan FROM negocios WHERE id = :id");
         $stmtLimit->execute(['id' => $id_negocio]);
         $bizRow = $stmtLimit->fetch(PDO::FETCH_ASSOC) ?: [];
-        $max_profesionales = (int)($bizRow['max_profesionales'] ?? 5);
-        if ($max_profesionales < 1) $max_profesionales = 5;
-        if ($max_profesionales > 5) $max_profesionales = 5;
-
         $planStr = strtolower($bizRow['plan'] ?? 'basico');
-        $canEditPermissions = (strpos($planStr, 'profesional') !== false || strpos($planStr, 'premium') !== false || strpos($planStr, 'completo') !== false);
+        $isPremiumPlan = (strpos($planStr, 'premium') !== false || strpos($planStr, 'completo') !== false);
+
+        if ($isPremiumPlan) {
+            $max_profesionales = 9999;
+        } else {
+            $max_profesionales = (int)($bizRow['max_profesionales'] ?? 5);
+            if ($max_profesionales < 1) $max_profesionales = 5;
+            if ($max_profesionales > 5) $max_profesionales = 5;
+        }
+
+        $canEditPermissions = (strpos($planStr, 'profesional') !== false || $isPremiumPlan);
 
         echo json_encode([
             'success' => true, 
             'id_negocio' => (int)$id_negocio,
             'data' => $profesionales, 
             'limite' => $max_profesionales,
+            'ilimitado' => $isPremiumPlan,
             'can_edit_permissions' => $canEditPermissions,
             'plan' => $planStr
         ]);
@@ -391,24 +398,26 @@ if ($method === 'GET') {
     try {
         $pdo->beginTransaction();
 
-        // Validar límite
+        // Validar límite (Plan Premium tiene profesionales ilimitados)
         $stmtLimit = $pdo->prepare("SELECT max_profesionales, plan FROM negocios WHERE id = :id FOR UPDATE");
         $stmtLimit->execute(['id' => $id_negocio]);
         $bizInfo = $stmtLimit->fetch(PDO::FETCH_ASSOC) ?: [];
         $planStr = strtolower($bizInfo['plan'] ?? 'basico');
+        $isPremiumPlanPost = (strpos($planStr, 'premium') !== false || strpos($planStr, 'completo') !== false);
         
         $max_profesionales = (int)($bizInfo['max_profesionales'] ?? 0);
-        if ($max_profesionales <= 1) {
-            if (strpos($planStr, 'premium') !== false) $max_profesionales = 20;
-            elseif (strpos($planStr, 'profesional') !== false) $max_profesionales = 5;
-            else $max_profesionales = 3;
+        if ($isPremiumPlanPost) {
+            $max_profesionales = 9999;
+        } elseif ($max_profesionales <= 1) {
+            if (strpos($planStr, 'profesional') !== false) $max_profesionales = 5;
+            else $max_profesionales = 1;
         }
 
         $stmtCount = $pdo->prepare("SELECT COUNT(*) FROM personal_negocio WHERE id_negocio = :id");
         $stmtCount->execute(['id' => $id_negocio]);
         $total_members = (int)$stmtCount->fetchColumn();
 
-        if ($total_members >= $max_profesionales) {
+        if (!$isPremiumPlanPost && $total_members >= $max_profesionales) {
             require_once __DIR__ . '/helpers/notificar_admin_helper.php';
             notificarSuperAdminAlert($pdo, 'Solicitud Ampliación Equipo', "El negocio intentó registrar más profesionales pero alcanzó el límite de su plan ({$max_profesionales} integrantes).", $id_negocio);
             try {

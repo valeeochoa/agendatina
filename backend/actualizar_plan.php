@@ -89,14 +89,26 @@ try {
         exit;
     }
 
-    // Calcular nuevo precio pactado para el negocio (incluyendo descuento de plataforma y por equipo del 5% por profesional)
+    // Calcular nuevo precio pactado para el negocio
+    // Plan Premium: precio base fijo ($35.000) con profesionales ilimitados + hasta 100 alumnos totales (+$700 c/extra)
     $nuevoPrecioPactado = 8889.0;
     try {
         $stmtCfg = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta FROM configuracion_global ORDER BY id ASC LIMIT 1");
         $cfgPrecios = $stmtCfg ? $stmtCfg->fetch(PDO::FETCH_ASSOC) : null;
-        if ($cfgPrecios) {
-            $rawBase = ($planNormalizado === 'Premium') ? (float)($cfgPrecios['precio_premium'] ?? 16667) :
-                       (($planNormalizado === 'Profesional') ? (float)($cfgPrecios['precio_intermedio'] ?? 11111) : (float)($cfgPrecios['precio_basico'] ?? 8889));
+        if ($planNormalizado === 'Premium') {
+            $basePrem = ($cfgPrecios && !empty($cfgPrecios['precio_premium']) && round((float)$cfgPrecios['precio_premium']) != 16667)
+                ? (float)$cfgPrecios['precio_premium']
+                : 35000.0;
+            $alumnosTotales = 0;
+            try {
+                $stmtAlu = $pdo->prepare("SELECT COUNT(*) FROM clientes_negocio WHERE id_negocio = ?");
+                $stmtAlu->execute([$id_negocio]);
+                $alumnosTotales = (int)$stmtAlu->fetchColumn();
+            } catch (Exception $eAlu) {}
+            $alumnosExtra = max(0, $alumnosTotales - 100);
+            $nuevoPrecioPactado = round($basePrem + ($alumnosExtra * 700));
+        } elseif ($cfgPrecios) {
+            $rawBase = ($planNormalizado === 'Profesional') ? (float)($cfgPrecios['precio_intermedio'] ?? 11111) : (float)($cfgPrecios['precio_basico'] ?? 8889);
 
             $discPct = isset($cfgPrecios['descuento_porcentaje']) ? (int)$cfgPrecios['descuento_porcentaje'] : 10;
             if (!empty($cfgPrecios['descuento_hasta']) && strtotime($cfgPrecios['descuento_hasta']) < time()) {
@@ -120,8 +132,13 @@ try {
     try { $pdo->query("SELECT precio_pactado FROM negocios LIMIT 1"); } 
     catch(Exception $eCol) { try { $pdo->exec("ALTER TABLE negocios ADD COLUMN precio_pactado DECIMAL(10,2) DEFAULT NULL"); } catch(Exception $eCol2) {} }
 
-    $stmtUp = $pdo->prepare("UPDATE negocios SET plan = ?, precio_pactado = ? WHERE id = ?");
-    $stmtUp->execute([$planNormalizado, $nuevoPrecioPactado, $id_negocio]);
+    if ($planNormalizado === 'Premium') {
+        $stmtUp = $pdo->prepare("UPDATE negocios SET plan = ?, precio_pactado = ?, max_profesionales = 999 WHERE id = ?");
+        $stmtUp->execute([$planNormalizado, $nuevoPrecioPactado, $id_negocio]);
+    } else {
+        $stmtUp = $pdo->prepare("UPDATE negocios SET plan = ?, precio_pactado = ? WHERE id = ?");
+        $stmtUp->execute([$planNormalizado, $nuevoPrecioPactado, $id_negocio]);
+    }
 
     // Actualizar también la sesión del usuario activo
     $_SESSION['plan'] = $planNormalizado;

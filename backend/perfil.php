@@ -276,13 +276,25 @@ try {
 
             // Cálculo de precio pactado (congelado) vs precio vigente de plataforma
             $precioVigenteSistema = 8889.0;
+            $alumnosTotalesNegocio = 0;
+            if ($isPremium) {
+                try {
+                    $stmtAluCnt = $pdo->prepare("SELECT COUNT(*) FROM clientes_negocio WHERE id_negocio = ?");
+                    $stmtAluCnt->execute([$id_negocio]);
+                    $alumnosTotalesNegocio = (int)$stmtAluCnt->fetchColumn();
+                } catch(Throwable $eAluCnt) {}
+            }
             try {
                 $stmtGlobal = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta FROM configuracion_global ORDER BY id ASC LIMIT 1");
                 $cfgG = $stmtGlobal ? $stmtGlobal->fetch(PDO::FETCH_ASSOC) : null;
-                if ($cfgG) {
-                    if ($isPremium) {
-                        $rawVigente = (float)($cfgG['precio_premium'] ?? 16667);
-                    } elseif (!$isBasic) {
+                if ($isPremium) {
+                    $basePremVig = ($cfgG && !empty($cfgG['precio_premium']) && round((float)$cfgG['precio_premium']) != 16667)
+                        ? (float)$cfgG['precio_premium']
+                        : 35000.0;
+                    $alumnosExtraVig = max(0, $alumnosTotalesNegocio - 100);
+                    $precioVigenteSistema = round($basePremVig + ($alumnosExtraVig * 700));
+                } elseif ($cfgG) {
+                    if (!$isBasic) {
                         $rawVigente = (float)($cfgG['precio_intermedio'] ?? 11111);
                     } else {
                         $rawVigente = (float)($cfgG['precio_basico'] ?? 8889);
@@ -301,6 +313,11 @@ try {
                     }
                 }
             } catch(Throwable $eGl) {}
+
+            $business['alumnos_totales'] = $alumnosTotalesNegocio;
+            $business['alumnos_incluidos_premium'] = 100;
+            $business['alumnos_extra_premium'] = max(0, $alumnosTotalesNegocio - 100);
+            $business['costo_alumnos_extra_premium'] = max(0, $alumnosTotalesNegocio - 100) * 700;
 
             if ($business['precio_pactado'] === null || (float)$business['precio_pactado'] <= 0) {
                 $business['precio_pactado'] = $precioVigenteSistema;

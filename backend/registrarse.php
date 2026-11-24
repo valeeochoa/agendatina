@@ -283,28 +283,36 @@ try {
         if ($cfgGAlta) {
             $pLower = strtolower($plan);
             if (strpos($pLower, 'premium') !== false) {
-                $rawBaseAlta = (float)($cfgGAlta['precio_premium'] ?? 16667);
-            } elseif (strpos($pLower, 'profesional') !== false || strpos($pLower, 'intermedio') !== false) {
-                $rawBaseAlta = (float)($cfgGAlta['precio_intermedio'] ?? 11111);
+                $basePremAlta = (!empty($cfgGAlta['precio_premium']) && round((float)$cfgGAlta['precio_premium']) != 16667)
+                    ? (float)$cfgGAlta['precio_premium']
+                    : 35000.0;
+                $max_profesionales = 999; // Profesionales ilimitados en Plan Premium
+                $precioPactadoAlta = ($descuentoPct > 0)
+                    ? round($basePremAlta * (100 - $descuentoPct) / 100)
+                    : round($basePremAlta);
             } else {
-                $rawBaseAlta = (float)($cfgGAlta['precio_basico'] ?? 8889);
-            }
+                if (strpos($pLower, 'profesional') !== false || strpos($pLower, 'intermedio') !== false) {
+                    $rawBaseAlta = (float)($cfgGAlta['precio_intermedio'] ?? 11111);
+                } else {
+                    $rawBaseAlta = (float)($cfgGAlta['precio_basico'] ?? 8889);
+                }
 
-            $discPctAlta = isset($cfgGAlta['descuento_porcentaje']) ? (int)$cfgGAlta['descuento_porcentaje'] : 10;
-            if (!empty($cfgGAlta['descuento_hasta']) && strtotime($cfgGAlta['descuento_hasta']) < time()) {
-                $discPctAlta = 0;
-            }
-            if ($descuentoPct > 0) {
-                $discPctAlta = max($discPctAlta, $descuentoPct);
-            }
+                $discPctAlta = isset($cfgGAlta['descuento_porcentaje']) ? (int)$cfgGAlta['descuento_porcentaje'] : 10;
+                if (!empty($cfgGAlta['descuento_hasta']) && strtotime($cfgGAlta['descuento_hasta']) < time()) {
+                    $discPctAlta = 0;
+                }
+                if ($descuentoPct > 0) {
+                    $discPctAlta = max($discPctAlta, $descuentoPct);
+                }
 
-            $precioUno = round($rawBaseAlta * (100 - $discPctAlta) / 100);
-            $profCountAlta = max(1, (int)$max_profesionales);
-            if ($profCountAlta === 1) {
-                $precioPactadoAlta = $precioUno;
-            } else {
-                $volDiscAlta = min(50, $profCountAlta * 5); // 5% por profesional
-                $precioPactadoAlta = round(($precioUno * $profCountAlta) * (1 - $volDiscAlta / 100));
+                $precioUno = round($rawBaseAlta * (100 - $discPctAlta) / 100);
+                $profCountAlta = max(1, (int)$max_profesionales);
+                if ($profCountAlta === 1) {
+                    $precioPactadoAlta = $precioUno;
+                } else {
+                    $volDiscAlta = min(50, $profCountAlta * 5); // 5% por profesional
+                    $precioPactadoAlta = round(($precioUno * $profCountAlta) * (1 - $volDiscAlta / 100));
+                }
             }
         }
     } catch(Throwable $eCfgG) {}

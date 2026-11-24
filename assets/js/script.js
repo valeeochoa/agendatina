@@ -3374,7 +3374,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Inicialización del Carrusel (Landing Page) ---
     if (document.getElementById('carouselTitle')) {
         window.numProfessionals = { basic: 1, inter: 1, prem: 1 };
-        window.pricingData = { precio_basico: 8889, precio_intermedio: 11111, precio_premium: 16667, descuento_porcentaje: 10, dias_prueba_defecto: 30 };
+        window.numPremiumAlumnos = 100;
+        window.pricingData = { precio_basico: 8889, precio_intermedio: 11111, precio_premium: 35000, alumnos_incluidos_premium: 100, precio_alumno_extra_premium: 700, descuento_porcentaje: 10, dias_prueba_defecto: 30 };
+
+        window.updatePremAlumnosCount = function (delta) {
+            const pData = window.pricingData || {};
+            const baseAlu = parseInt(pData.alumnos_incluidos_premium, 10) || 100;
+            let nextVal = (parseInt(window.numPremiumAlumnos, 10) || baseAlu) + delta;
+            if (nextVal < baseAlu) nextVal = baseAlu;
+            if (nextVal > 1000) nextVal = 1000;
+            window.numPremiumAlumnos = nextVal;
+            const disp = document.getElementById('alumnosCountDisplay_prem');
+            if (disp) disp.textContent = String(nextVal);
+            window.renderPricing();
+        };
 
         window.updateProfCount = function (change, planKey) {
             let currentVal = window.numProfessionals[planKey] || 1;
@@ -3419,7 +3432,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let rawB = parseFloat(pData.precio_basico) || 8889;
             let rawI = parseFloat(pData.precio_intermedio) || 11111;
-            let rawP = parseFloat(pData.precio_premium) || 16667;
+            let rawPVal = parseFloat(pData.precio_premium);
+            let rawP = (!isNaN(rawPVal) && rawPVal > 0 && Math.round(rawPVal) !== 16667) ? rawPVal : 35000;
+            const premAlumnosIncl = parseInt(pData.alumnos_incluidos_premium, 10) || 100;
+            const premAlumnoExtra = parseFloat(pData.precio_alumno_extra_premium) || 700;
 
             let discPct = (pData.descuento_porcentaje !== undefined && pData.descuento_porcentaje !== null)
                 ? parseInt(pData.descuento_porcentaje)
@@ -3497,14 +3513,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
             updateBox('priceBasicBox', 'priceBasicOld', b, rawB, 'text-slate-500', 'perPersonBasic', 'basic');
             updateBox('priceInterBox', 'priceInterOld', i, rawI, 'text-white/80', 'perPersonInter', 'inter');
-            updateBox('pricePremBox', 'pricePremOld', p, rawP, 'text-slate-500', 'perPersonPrem', 'prem');
+
+            // Plan Premium: precio base fijo ($35.000) + $700 por cada alumno extra sobre los 100 incluidos (profesionales ilimitados)
+            const curPremAlumnos = Math.max(premAlumnosIncl, parseInt(window.numPremiumAlumnos, 10) || premAlumnosIncl);
+            const extraAlu = Math.max(0, curPremAlumnos - premAlumnosIncl);
+            const extraAluCost = Math.round(extraAlu * premAlumnoExtra);
+            const finalPremTotal = Math.round(rawP + extraAluCost);
+
+            const premBox = document.getElementById('pricePremBox');
+            const premOld = document.getElementById('pricePremOld');
+            const premPer = document.getElementById('perPersonPrem');
+            const premAluDisp = document.getElementById('alumnosCountDisplay_prem');
+            if (premAluDisp) premAluDisp.textContent = String(curPremAlumnos);
+            if (premBox) {
+                premBox.innerHTML = `$${finalPremTotal.toLocaleString('es-AR', { maximumFractionDigits: 0 })}<span class="text-sm font-normal text-slate-500 ml-1">/mes</span>`;
+            }
+            if (premOld && premOld.parentElement) {
+                premOld.parentElement.style.display = 'none';
+            }
+            if (premPer) {
+                premPer.classList.remove('hidden');
+                if (extraAlu > 0) {
+                    premPer.innerHTML = `Base $${Math.round(rawP).toLocaleString('es-AR')} (${premAlumnosIncl} alumnos) + ${extraAlu} extra × $${Math.round(premAlumnoExtra).toLocaleString('es-AR')} (+$${extraAluCost.toLocaleString('es-AR')})`;
+                } else {
+                    premPer.innerHTML = `Incluye hasta ${premAlumnosIncl} alumnos totales (+$${Math.round(premAlumnoExtra).toLocaleString('es-AR')} por cada alumno extra)`;
+                }
+            }
 
             // Actualizar opciones del select del modal si está presente
             const selectRegPlan = document.getElementById('regPlan');
             if (selectRegPlan && selectRegPlan.options && selectRegPlan.options.length >= 3) {
                 selectRegPlan.options[0].textContent = `Plan Simple ($${b.toLocaleString('es-AR')} / mes)`;
                 selectRegPlan.options[1].textContent = `Plan Profesional ($${i.toLocaleString('es-AR')} / mes)`;
-                selectRegPlan.options[2].textContent = `Plan Premium ($${p.toLocaleString('es-AR')} / mes)`;
+                selectRegPlan.options[2].textContent = `Plan Premium ($${Math.round(rawP).toLocaleString('es-AR')} / mes · Hasta ${premAlumnosIncl} alumnos)`;
             }
 
             // Actualizar insignias de notificaciones de WhatsApp dinámicamente según cantidad de profesionales
@@ -5019,24 +5060,35 @@ window.fetchGlobalPrices = function (callback) {
         });
 };
 
-window.getEffectivePrice = function (planName, profCount = 1) {
+window.getEffectivePrice = function (planName, profCount = 1, alumnosCount = null) {
     const prices = window.globalPricesData || {
         precio_basico: 8889,
         precio_intermedio: 11111,
-        precio_premium: 16667,
+        precio_premium: 35000,
+        alumnos_incluidos_premium: 100,
+        precio_alumno_extra_premium: 700,
         descuento_porcentaje: 10
     };
 
     const p = (planName || '').toLowerCase();
+    if (p.includes('premium') || p.includes('completo')) {
+        const rawPremVal = parseFloat(prices.precio_premium);
+        const basePrem = (!isNaN(rawPremVal) && rawPremVal > 0 && Math.round(rawPremVal) !== 16667) ? rawPremVal : 35000;
+        const incl = parseInt(prices.alumnos_incluidos_premium, 10) || 100;
+        const extraUnit = parseFloat(prices.precio_alumno_extra_premium) || 700;
+        const totalAlu = (alumnosCount !== null && alumnosCount !== undefined)
+            ? parseInt(alumnosCount, 10) || 0
+            : (parseInt(window.currentBusinessData?.alumnos_totales, 10) || 0);
+        const extraAlu = Math.max(0, totalAlu - incl);
+        return Math.round(basePrem + (extraAlu * extraUnit));
+    }
+
     let rawBase = parseFloat(prices.precio_basico);
     if (isNaN(rawBase) || rawBase <= 0) rawBase = 8889;
 
     if (p.includes('profesional') || p.includes('intermedio')) {
         rawBase = parseFloat(prices.precio_intermedio);
         if (isNaN(rawBase) || rawBase <= 0) rawBase = 11111;
-    } else if (p.includes('premium') || p.includes('completo')) {
-        rawBase = parseFloat(prices.precio_premium);
-        if (isNaN(rawBase) || rawBase <= 0) rawBase = 16667;
     }
 
     let discPct = parseInt(prices.descuento_porcentaje);
