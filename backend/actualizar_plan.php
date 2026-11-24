@@ -96,9 +96,17 @@ try {
         $stmtCfg = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(alumnos_incluidos_premium, 100) AS alumnos_incluidos_premium, COALESCE(precio_alumno_extra_premium, 1000) AS precio_alumno_extra_premium, COALESCE(prem_desc_100_200, 20) AS prem_desc_100_200, COALESCE(prem_desc_300_400, 30) AS prem_desc_300_400, COALESCE(prem_desc_400_500, 40) AS prem_desc_400_500, COALESCE(prem_desc_500_600, 50) AS prem_desc_500_600 FROM configuracion_global ORDER BY id ASC LIMIT 1");
         $cfgPrecios = $stmtCfg ? $stmtCfg->fetch(PDO::FETCH_ASSOC) : null;
         if ($planNormalizado === 'Premium') {
-            $basePrem = ($cfgPrecios && !empty($cfgPrecios['precio_premium']) && round((float)$cfgPrecios['precio_premium']) != 16667)
+            $rawPrem = ($cfgPrecios && !empty($cfgPrecios['precio_premium']) && round((float)$cfgPrecios['precio_premium']) != 16667)
                 ? (float)$cfgPrecios['precio_premium']
                 : 35000.0;
+            $discPremBase = isset($cfgPrecios['descuento_porcentaje']) ? (int)$cfgPrecios['descuento_porcentaje'] : 10;
+            if (!empty($cfgPrecios['descuento_hasta']) && strtotime($cfgPrecios['descuento_hasta']) < time()) {
+                $discPremBase = 0;
+            }
+            if (!empty($business['descuento_aplicado_pct']) && (int)$business['descuento_aplicado_pct'] > 0) {
+                $discPremBase = max($discPremBase, (int)$business['descuento_aplicado_pct']);
+            }
+            $basePrem = round($rawPrem * (100 - $discPremBase) / 100);
             $inclAlu = ($cfgPrecios && !empty($cfgPrecios['alumnos_incluidos_premium'])) ? (int)$cfgPrecios['alumnos_incluidos_premium'] : 100;
             $unitExtra = ($cfgPrecios && isset($cfgPrecios['precio_alumno_extra_premium'])) ? (float)$cfgPrecios['precio_alumno_extra_premium'] : 1000.0;
             $alumnosTotales = 0;

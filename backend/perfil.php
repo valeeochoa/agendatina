@@ -292,9 +292,14 @@ try {
                 $stmtGlobal = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(alumnos_incluidos_premium, 100) AS alumnos_incluidos_premium, COALESCE(precio_alumno_extra_premium, 1000) AS precio_alumno_extra_premium, COALESCE(prem_desc_100_200, 20) AS prem_desc_100_200, COALESCE(prem_desc_300_400, 30) AS prem_desc_300_400, COALESCE(prem_desc_400_500, 40) AS prem_desc_400_500, COALESCE(prem_desc_500_600, 50) AS prem_desc_500_600 FROM configuracion_global ORDER BY id ASC LIMIT 1");
                 $cfgG = $stmtGlobal ? $stmtGlobal->fetch(PDO::FETCH_ASSOC) : null;
                 if ($isPremium) {
-                    $basePremVig = ($cfgG && !empty($cfgG['precio_premium']) && round((float)$cfgG['precio_premium']) != 16667)
+                    $rawPremVig = ($cfgG && !empty($cfgG['precio_premium']) && round((float)$cfgG['precio_premium']) != 16667)
                         ? (float)$cfgG['precio_premium']
                         : 35000.0;
+                    $discVigPrem = isset($cfgG['descuento_porcentaje']) ? (int)$cfgG['descuento_porcentaje'] : 10;
+                    if (!empty($cfgG['descuento_hasta']) && strtotime($cfgG['descuento_hasta']) < time()) {
+                        $discVigPrem = 0;
+                    }
+                    $basePremVig = round($rawPremVig * (100 - $discVigPrem) / 100);
                     $alumnosIncluidosPrem = ($cfgG && !empty($cfgG['alumnos_incluidos_premium'])) ? (int)$cfgG['alumnos_incluidos_premium'] : 100;
                     $unitExtraVig = ($cfgG && isset($cfgG['precio_alumno_extra_premium'])) ? (float)$cfgG['precio_alumno_extra_premium'] : 1000.0;
                     $alumnosExtraVig = max(0, $alumnosTotalesNegocio - $alumnosIncluidosPrem);

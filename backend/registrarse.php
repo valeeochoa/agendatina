@@ -287,9 +287,14 @@ try {
                     ? (float)$cfgGAlta['precio_premium']
                     : 35000.0;
                 $max_profesionales = 999; // Profesionales ilimitados en Plan Premium
-                $precioPactadoAlta = ($descuentoPct > 0)
-                    ? round($basePremAlta * (100 - $descuentoPct) / 100)
-                    : round($basePremAlta);
+                $discPctPrem = isset($cfgGAlta['descuento_porcentaje']) ? (int)$cfgGAlta['descuento_porcentaje'] : 10;
+                if (!empty($cfgGAlta['descuento_hasta']) && strtotime($cfgGAlta['descuento_hasta']) < time()) {
+                    $discPctPrem = 0;
+                }
+                if ($descuentoPct > 0) {
+                    $discPctPrem = max($discPctPrem, $descuentoPct);
+                }
+                $precioPactadoAlta = round($basePremAlta * (100 - $discPctPrem) / 100);
             } else {
                 if (strpos($pLower, 'profesional') !== false || strpos($pLower, 'intermedio') !== false) {
                     $rawBaseAlta = (float)($cfgGAlta['precio_intermedio'] ?? 11111);

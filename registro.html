@@ -565,19 +565,19 @@
 
         const bRes = calc(rawB);
         const iRes = calc(rawI);
-        // Plan Premium: precio base fijo ($35.000) con profesionales ilimitados + hasta 100 alumnos (+$700 c/extra)
-        const pFinalBase = appliedCouponPct > 0 ? Math.round(rawP * (100 - appliedCouponPct) / 100) : Math.round(rawP);
+        // Plan Premium: aplica descuento base global/cupón + profesionales ilimitados + hasta 100 alumnos incluidos
+        const pFinalBase = Math.round(rawP * factor);
         const pRes = {
             final: pFinalBase,
             old: Math.round(rawP),
-            showOld: appliedCouponPct > 0,
-            badgeText: appliedCouponPct > 0 ? `-${appliedCouponPct}% CUPÓN` : ''
+            showOld: discPct > 0,
+            badgeText: discPct > 0 ? `-${discPct}% OFF` : ''
         };
 
         const couponNoticeTag = appliedCouponPct > 0 ? `<div class="mt-1 text-[10px] font-black text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md inline-block">🏷️ Cupón ${appliedCouponCode} (-${appliedCouponPct}%)</div>` : '';
         const bPerProf = count > 1 ? `<div class="mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md inline-block">¡Queda en $${Math.round(bRes.final / count).toLocaleString('es-AR')} p/profesional!</div>` : '';
         const iPerProf = count > 1 ? `<div class="mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md inline-block">¡Queda en $${Math.round(iRes.final / count).toLocaleString('es-AR')} p/profesional!</div>` : '';
-        const pPerProf = `<div class="mt-1 text-[11px] font-bold text-orange-700 bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-md inline-block">∞ Profesionales ilimitados · Hasta ${premAlumnosIncl} alumnos ($${premAlumnoExtra.toLocaleString('es-AR')} c/extra · hasta -50%)</div>`;
+        const pPerProf = `<div class="mt-1 text-[11px] font-bold text-orange-700 bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-md inline-block">∞ Profesionales ilimitados · Hasta ${premAlumnosIncl} alumnos incluidos</div>`;
 
         const oldBEl = document.getElementById('regBasicOldPrice');
         if (oldBEl) oldBEl.style.display = bRes.showOld ? 'inline' : 'none';
@@ -610,7 +610,7 @@
             badgePEl.textContent = pRes.badgeText;
         }
         document.getElementById('regPremPrice').innerHTML = '$' + pRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + couponNoticeTag + pPerProf;
-        document.getElementById('regPremSubtext').textContent = `Profesionales ilimitados • Hasta ${premAlumnosIncl} alumnos ($${premAlumnoExtra.toLocaleString('es-AR')} c/extra · hasta -50%)`;
+        document.getElementById('regPremSubtext').textContent = `Profesionales ilimitados • Hasta ${premAlumnosIncl} alumnos incluidos`;
 
         const trialDays = (pData && pData.dias_prueba_defecto) ? pData.dias_prueba_defecto : 30;
         document.querySelectorAll('.trial-days-display').forEach(el => el.textContent = trialDays);

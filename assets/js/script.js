@@ -3375,7 +3375,18 @@ document.addEventListener('DOMContentLoaded', () => {
     window.calcPremiumAlumnosPricing = function (totalAlumnos, cfg = null) {
         const pData = cfg || window.pricingData || window.globalPricesData || {};
         const rawPVal = parseFloat(pData.precio_premium);
-        const base = (!isNaN(rawPVal) && rawPVal > 0 && Math.round(rawPVal) !== 16667) ? rawPVal : 35000;
+        const rawBase = (!isNaN(rawPVal) && rawPVal > 0 && Math.round(rawPVal) !== 16667) ? rawPVal : 35000;
+
+        let baseDiscPct = (pData.descuento_porcentaje !== undefined && pData.descuento_porcentaje !== null)
+            ? parseInt(pData.descuento_porcentaje, 10)
+            : 10;
+        if (isNaN(baseDiscPct) || baseDiscPct < 0) baseDiscPct = 0;
+        if (pData.descuento_hasta) {
+            const exp = new Date(String(pData.descuento_hasta).replace(/-/g, '/'));
+            if (!isNaN(exp.getTime()) && exp < new Date()) baseDiscPct = 0;
+        }
+        const base = Math.round(rawBase * (100 - baseDiscPct) / 100);
+
         const incl = parseInt(pData.alumnos_incluidos_premium, 10) || 100;
         const unitBase = (pData.precio_alumno_extra_premium !== undefined && pData.precio_alumno_extra_premium !== null)
             ? (parseFloat(pData.precio_alumno_extra_premium) || 1000)
@@ -3398,9 +3409,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const unitFinal = Math.round(unitBase * (100 - discPct) / 100);
         const extraCost = Math.round(extraCount * unitFinal);
-        const oldTotal = Math.round(base + (extraCount * unitBase));
+        const oldTotal = Math.round(rawBase + (extraCount * unitBase));
         const finalTotal = Math.round(base + extraCost);
-        return { base, incl, totalAlu, extraCount, unitBase, discPct, unitFinal, extraCost, oldTotal, finalTotal };
+        return { rawBase, baseDiscPct, base, incl, totalAlu, extraCount, unitBase, discPct, unitFinal, extraCost, oldTotal, finalTotal };
     };
 
     if (document.getElementById('carouselTitle')) {
@@ -3569,11 +3580,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 premBox.innerHTML = `$${premCalc.finalTotal.toLocaleString('es-AR', { maximumFractionDigits: 0 })}<span class="text-sm font-normal text-slate-500 ml-1">/mes</span>`;
             }
             if (premOld && premOld.parentElement) {
-                if (premCalc.extraCount > 0 && premCalc.discPct > 0) {
+                const showOld = (premCalc.extraCount > 0 && premCalc.discPct > 0) || (premCalc.baseDiscPct > 0);
+                if (showOld) {
                     premOld.textContent = `$${premCalc.oldTotal.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`;
                     premOld.parentElement.style.display = 'flex';
                     const badge = premOld.parentElement.querySelector('span:last-child');
-                    if (badge) badge.textContent = `-${premCalc.discPct}% OFF EN EXTRAS`;
+                    if (badge) {
+                        badge.textContent = premCalc.extraCount > 0 && premCalc.discPct > 0
+                            ? `-${premCalc.discPct}% OFF EN EXTRAS`
+                            : `-${premCalc.baseDiscPct}% OFF`;
+                    }
                 } else {
                     premOld.parentElement.style.display = 'none';
                 }
@@ -3583,9 +3599,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (premCalc.extraCount > 0) {
                     premPer.innerHTML = `Base $${Math.round(premCalc.base).toLocaleString('es-AR')} (${premCalc.incl} incl.) + ${premCalc.extraCount} extra × $${premCalc.unitFinal.toLocaleString('es-AR')} <span class="text-emerald-700 font-extrabold">(-${premCalc.discPct}% c/u)</span>`;
                 } else {
-                    const maxD = Math.min(50, Math.max(0, parseInt(pData.prem_desc_500_600 ?? 50, 10) || 50));
-                    const minUnit = Math.round(premCalc.unitBase * (100 - maxD) / 100);
-                    premPer.innerHTML = `Incluye hasta ${premCalc.incl} alumnos totales (extras desde $${minUnit.toLocaleString('es-AR')} c/u con hasta ${maxD}% OFF)`;
+                    premPer.innerHTML = `Incluye hasta ${premCalc.incl} alumnos en total del negocio`;
                 }
             }
 
