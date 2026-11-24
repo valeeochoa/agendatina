@@ -2456,7 +2456,8 @@ function updateProfServicesDisplay() {
 function populateProfessionalSelect() {
     const sel = document.getElementById('serviceProfessional');
     if (!sel) return;
-    const queryParam = businessSlug ? `?n=${encodeURIComponent(businessSlug)}` : '';
+    const slugVal = (typeof negocioSlug !== 'undefined' && negocioSlug) ? negocioSlug : '';
+    const queryParam = slugVal ? `?n=${encodeURIComponent(slugVal)}` : '';
     fetch('backend/gestionar_profesionales.php' + queryParam)
         .then(r => r.json())
         .then(res => {
@@ -2477,13 +2478,421 @@ function populateProfessionalSelect() {
         .catch(() => {});
 }
 
+// =========================================================================
+// HORARIOS PROPIOS POR SERVICIO EN MODAL DEL CALENDARIO (Mensual y Semanal)
+// =========================================================================
+const CAL_SVC_DAYS_ORDER = [
+    { key: '1', label: 'Lunes' },
+    { key: '2', label: 'Martes' },
+    { key: '3', label: 'Miércoles' },
+    { key: '4', label: 'Jueves' },
+    { key: '5', label: 'Viernes' },
+    { key: '6', label: 'Sábado' },
+    { key: '0', label: 'Domingo' }
+];
+let calSvcHorariosState = {};
+let calPendingBizDayToOpen = null;
+
+function calGetDefaultSvcHorariosState() {
+    const st = {};
+    CAL_SVC_DAYS_ORDER.forEach(d => { st[d.key] = { activo: false, tramos: [] }; });
+    return st;
+}
+
+function calGetSvcDurationMins() {
+    const h = parseInt(document.getElementById('serviceDurationH')?.value || 0, 10) || 0;
+    const m = parseInt(document.getElementById('serviceDurationM')?.value || 0, 10) || 0;
+    const total = (h * 60) + m;
+    return total > 0 ? total : 45;
+}
+
+function calCalcEndTimeFromDuration(startStr) {
+    const dur = calGetSvcDurationMins();
+    const parts = (startStr || '09:00').split(':').map(Number);
+    const sh = isNaN(parts[0]) ? 9 : parts[0];
+    const sm = isNaN(parts[1]) ? 0 : parts[1];
+    const endMins = Math.min(23 * 60 + 55, (sh * 60 + sm) + dur);
+    return `${String(Math.floor(endMins / 60)).padStart(2, '0')}:${String(endMins % 60).padStart(2, '0')}`;
+}
+
+function calGetBusinessDayBounds(dayKey) {
+    const cfg = window.businessWebConfig || {};
+    const numKey = String(dayKey);
+    const dayShorts = { '0': 'dom', '1': 'lun', '2': 'mar', '3': 'mie', '4': 'jue', '5': 'vie', '6': 'sab' };
+    const dayFull = { '0': 'domingo', '1': 'lunes', '2': 'martes', '3': 'miercoles', '4': 'jueves', '5': 'viernes', '6': 'sabado' };
+
+    if (cfg.horarios_detallados_json) {
+        try {
+            const hDet = typeof cfg.horarios_detallados_json === 'string'
+                ? JSON.parse(cfg.horarios_detallados_json)
+                : cfg.horarios_detallados_json;
+            if (hDet && typeof hDet === 'object' && Object.keys(hDet).length > 0) {
+                const dInfo = hDet[numKey] !== undefined ? hDet[numKey]
+                    : (hDet[dayShorts[numKey]] !== undefined ? hDet[dayShorts[numKey]] : hDet[dayFull[numKey]]);
+                if (dInfo !== undefined) {
+                    if (dInfo.activo === false) return { isOpen: false, tramos: [] };
+                    if (Array.isArray(dInfo.tramos) && dInfo.tramos.length > 0) {
+                        return { isOpen: true, tramos: dInfo.tramos.map(t => ({ inicio: (t.inicio || '09:00').substring(0, 5), fin: (t.fin || '18:00').substring(0, 5) })) };
+                    }
+                }
+            }
+        } catch (e) {}
+    }
+
+    const diasRaw = (cfg.dias_trabajo !== undefined && cfg.dias_trabajo !== null && cfg.dias_trabajo !== '') ? String(cfg.dias_trabajo) : '1,2,3,4,5,6';
+    const workingDays = diasRaw.split(',').map(v => v.trim());
+    if (!workingDays.includes(numKey)) {
+        return { isOpen: false, tramos: [] };
+    }
+    const hOpen = (cfg.hora_apertura && cfg.hora_apertura !== '00:00:00') ? String(cfg.hora_apertura).substring(0, 5) : '09:00';
+    const hClose = (cfg.hora_cierre && cfg.hora_cierre !== '00:00:00') ? String(cfg.hora_cierre).substring(0, 5) : '18:00';
+    return { isOpen: true, tramos: [{ inicio: hOpen, fin: hClose }] };
+}
+
+function calIsTramoWithinBusinessBounds(dayKey, ini, fin) {
+    const bounds = calGetBusinessDayBounds(dayKey);
+    if (!bounds.isOpen || !bounds.tramos.length) return { ok: false, bounds };
+    const ok = bounds.tramos.some(t => ini >= t.inicio && fin <= t.fin);
+    return { ok, bounds };
+}
+
+window.calOpenBizDayModal = function(dayKey) {
+    const dayObj = CAL_SVC_DAYS_ORDER.find(d => d.key === String(dayKey));
+    const dayLabel = dayObj ? dayObj.label : 'ese día';
+    calPendingBizDayToOpen = String(dayKey);
+    const titleEl = document.getElementById('calOpenBizDayModalTitle');
+    const textEl = document.getElementById('calOpenBizDayModalText');
+    const btn = document.getElementById('calBtnConfirmOpenBizDay');
+    if (titleEl) titleEl.textContent = `Tu negocio está cerrado los ${dayLabel}`;
+    if (textEl) textEl.innerHTML = `Si cargás un horario los <strong>${dayLabel}</strong> sin abrir el negocio ese día, no se mostrará en el calendario.<br><br>¿Deseás habilitar también los <strong>${dayLabel}</strong> en los Ajustes de tu negocio?`;
+    if (btn) { btn.disabled = false; btn.textContent = `Sí, abrir ${dayLabel}`; }
+    document.getElementById('calOpenBizDayConfirmModal')?.classList.remove('hidden');
+};
+
+window.calCloseOpenBizDayModal = function() {
+    calPendingBizDayToOpen = null;
+    document.getElementById('calOpenBizDayConfirmModal')?.classList.add('hidden');
+};
+
+window.calConfirmOpenBizDay = function() {
+    if (calPendingBizDayToOpen === null) return;
+    const dayKey = calPendingBizDayToOpen;
+    const btn = document.getElementById('calBtnConfirmOpenBizDay');
+    if (btn) { btn.disabled = true; btn.textContent = 'Actualizando...'; }
+
+    const fd = new FormData();
+    fd.append('action', 'abrir_dia_negocio');
+    fd.append('dia', dayKey);
+
+    fetch('backend/guardar_web.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(d => {
+            if (d && d.success) {
+                window.businessWebConfig = Object.assign({}, window.businessWebConfig || {}, {
+                    dias_trabajo: d.dias_trabajo,
+                    horarios_detallados_json: d.horarios_detallados_json,
+                    hora_apertura: d.hora_apertura,
+                    hora_cierre: d.hora_cierre
+                });
+                window.calCloseOpenBizDayModal();
+                if (!calSvcHorariosState[dayKey]) calSvcHorariosState[dayKey] = { activo: true, tramos: [] };
+                calSvcHorariosState[dayKey].activo = true;
+                const defIni = d.hora_apertura || '09:00';
+                if (calSvcHorariosState[dayKey].tramos.length === 0) {
+                    calSvcHorariosState[dayKey].tramos.push({ inicio: defIni, fin: calCalcEndTimeFromDuration(defIni) });
+                }
+                calRenderSvcHorariosDays();
+                if (typeof showToast === 'function') showToast('¡Listo! Se habilitó el día en Ajustes de tu negocio y ya podés configurar sus horarios.', 'success');
+            } else {
+                if (btn) { btn.disabled = false; btn.textContent = 'Sí, abrir día'; }
+                if (typeof showToast === 'function') showToast((d && d.error) || 'No se pudo habilitar el día en Ajustes.', 'error');
+            }
+        })
+        .catch(() => {
+            if (btn) { btn.disabled = false; btn.textContent = 'Sí, abrir día'; }
+            if (typeof showToast === 'function') showToast('Error de conexión al actualizar Ajustes.', 'error');
+        });
+};
+
+window.calToggleSvcHorariosSection = function(enabled) {
+    const body = document.getElementById('calSvcHorariosBody');
+    if (!body) return;
+    if (enabled) {
+        body.classList.remove('hidden');
+        calRenderSvcHorariosDays();
+    } else {
+        body.classList.add('hidden');
+        const inp = document.getElementById('calSvcHorariosJson');
+        if (inp) inp.value = '';
+    }
+};
+
+window.calOnSvcDurationChange = function() {
+    const toggle = document.getElementById('calSvcHorariosToggle');
+    if (!toggle || !toggle.checked) return;
+    CAL_SVC_DAYS_ORDER.forEach(d => {
+        const dayObj = calSvcHorariosState[d.key];
+        if (dayObj && dayObj.activo && Array.isArray(dayObj.tramos)) {
+            dayObj.tramos.forEach(t => {
+                if (t.inicio) t.fin = calCalcEndTimeFromDuration(t.inicio);
+            });
+        }
+    });
+    calRenderSvcHorariosDays();
+};
+
+function calLoadSvcHorarios(rawJson) {
+    calSvcHorariosState = calGetDefaultSvcHorariosState();
+    let hasAny = false;
+    try {
+        const parsed = typeof rawJson === 'string' ? JSON.parse(rawJson || 'null') : rawJson;
+        if (parsed && typeof parsed === 'object') {
+            CAL_SVC_DAYS_ORDER.forEach(d => {
+                const item = parsed[d.key];
+                if (item && item.activo && Array.isArray(item.tramos) && item.tramos.length > 0) {
+                    calSvcHorariosState[d.key] = {
+                        activo: true,
+                        tramos: item.tramos.map(t => ({ inicio: (t.inicio || '09:00').substring(0, 5), fin: (t.fin || '10:00').substring(0, 5) }))
+                    };
+                    hasAny = true;
+                }
+            });
+        }
+    } catch (e) {}
+
+    const toggle = document.getElementById('calSvcHorariosToggle');
+    if (toggle) toggle.checked = hasAny;
+    const body = document.getElementById('calSvcHorariosBody');
+    if (body) {
+        if (hasAny) body.classList.remove('hidden');
+        else body.classList.add('hidden');
+    }
+    calRenderSvcHorariosDays();
+    calCollectSvcHorarios();
+}
+
+window.calToggleSvcHorarioDay = function(dayKey, isActive) {
+    const bizBounds = calGetBusinessDayBounds(dayKey);
+    if (isActive && !bizBounds.isOpen) {
+        calRenderSvcHorariosDays();
+        window.calOpenBizDayModal(dayKey);
+        return;
+    }
+    if (!calSvcHorariosState[dayKey]) calSvcHorariosState[dayKey] = { activo: false, tramos: [] };
+    calSvcHorariosState[dayKey].activo = isActive;
+    if (isActive && calSvcHorariosState[dayKey].tramos.length === 0) {
+        const defIni = (bizBounds.tramos[0] && bizBounds.tramos[0].inicio) ? bizBounds.tramos[0].inicio : '09:00';
+        calSvcHorariosState[dayKey].tramos.push({ inicio: defIni, fin: calCalcEndTimeFromDuration(defIni) });
+    }
+    calRenderSvcHorariosDays();
+};
+
+window.calAddSvcHorarioTramo = function(dayKey) {
+    const bizBounds = calGetBusinessDayBounds(dayKey);
+    if (!bizBounds.isOpen) {
+        window.calOpenBizDayModal(dayKey);
+        return;
+    }
+    if (!calSvcHorariosState[dayKey]) calSvcHorariosState[dayKey] = { activo: true, tramos: [] };
+    calSvcHorariosState[dayKey].activo = true;
+    const last = calSvcHorariosState[dayKey].tramos[calSvcHorariosState[dayKey].tramos.length - 1];
+    const defIni = (bizBounds.tramos[0] && bizBounds.tramos[0].inicio) ? bizBounds.tramos[0].inicio : '09:00';
+    const maxFin = bizBounds.tramos[bizBounds.tramos.length - 1]?.fin || '22:00';
+    let nextStart = defIni;
+    if (last && last.fin && last.fin < maxFin) nextStart = last.fin;
+    const nextFin = calCalcEndTimeFromDuration(nextStart);
+    const finalStart = (nextFin <= maxFin) ? nextStart : defIni;
+    calSvcHorariosState[dayKey].tramos.push({ inicio: finalStart, fin: calCalcEndTimeFromDuration(finalStart) });
+    calRenderSvcHorariosDays();
+};
+
+window.calRemoveSvcHorarioTramo = function(dayKey, idx) {
+    if (!calSvcHorariosState[dayKey]) return;
+    calSvcHorariosState[dayKey].tramos.splice(idx, 1);
+    if (calSvcHorariosState[dayKey].tramos.length === 0) calSvcHorariosState[dayKey].activo = false;
+    calRenderSvcHorariosDays();
+};
+
+window.calUpdateSvcHorarioTramo = function(dayKey, idx, field, val, inputEl = null) {
+    if (!calSvcHorariosState[dayKey] || !calSvcHorariosState[dayKey].tramos[idx]) return;
+    if (!/^\d{2}:\d{2}$/.test(val || '')) return;
+    const dur = calGetSvcDurationMins();
+    if (field === 'inicio') {
+        const autoFin = calCalcEndTimeFromDuration(val);
+        const check = calIsTramoWithinBusinessBounds(dayKey, val, autoFin);
+        if (!check.ok && check.bounds.tramos.length > 0) {
+            const rngStr = check.bounds.tramos.map(t => `${t.inicio} a ${t.fin}`).join(' / ');
+            if (typeof showToast === 'function') showToast(`Horario fuera de atención del negocio (${rngStr}). Elegí un horario dentro de tu franja abierta.`, 'error');
+            const fallbackIni = check.bounds.tramos[0].inicio;
+            const fallbackFin = calCalcEndTimeFromDuration(fallbackIni);
+            calSvcHorariosState[dayKey].tramos[idx].inicio = fallbackIni;
+            calSvcHorariosState[dayKey].tramos[idx].fin = fallbackFin;
+            if (inputEl) inputEl.value = fallbackIni;
+            const finInp = inputEl?.parentElement?.querySelector('.cal-svc-tramo-fin');
+            if (finInp) finInp.value = fallbackFin;
+            return;
+        }
+        calSvcHorariosState[dayKey].tramos[idx].inicio = val;
+        calSvcHorariosState[dayKey].tramos[idx].fin = autoFin;
+        const finInp = inputEl?.parentElement?.querySelector('.cal-svc-tramo-fin');
+        if (finInp) finInp.value = autoFin;
+        else calRenderSvcHorariosDays();
+        return;
+    }
+    if (field === 'fin') {
+        const ini = calSvcHorariosState[dayKey].tramos[idx].inicio || '09:00';
+        const [sh, sm] = ini.split(':').map(Number);
+        const [eh, em] = val.split(':').map(Number);
+        const diffMins = (eh * 60 + em) - (sh * 60 + sm);
+        if (diffMins <= 0 || diffMins > dur) {
+            const autoFin = calCalcEndTimeFromDuration(ini);
+            calSvcHorariosState[dayKey].tramos[idx].fin = autoFin;
+            if (inputEl) inputEl.value = autoFin;
+            if (typeof showToast === 'function') showToast(`La duración del horario no puede superar la del servicio (${dur} min). Se ajustó a ${autoFin}.`, 'error');
+            return;
+        }
+        calSvcHorariosState[dayKey].tramos[idx].fin = val;
+    }
+};
+
+window.calCopySvcHorarioToWeekdays = function(sourceDayKey) {
+    const src = calSvcHorariosState[sourceDayKey];
+    if (!src || !src.activo || src.tramos.length === 0) return;
+    ['1', '2', '3', '4', '5'].forEach(k => {
+        if (!calGetBusinessDayBounds(k).isOpen) return;
+        calSvcHorariosState[k] = {
+            activo: true,
+            tramos: src.tramos.map(t => ({ inicio: t.inicio, fin: t.fin }))
+        };
+    });
+    calRenderSvcHorariosDays();
+};
+
+function calGetOtherServicesChipsForDay(dayKey) {
+    if (!Array.isArray(services) || services.length === 0) return '';
+    const editingId = String(document.getElementById('serviceId')?.value || '').trim();
+    const chips = [];
+    services.forEach(s => {
+        if (!s || !s.horarios_especificos_json) return;
+        if (editingId && String(s.id) === editingId) return;
+        try {
+            const hSpec = typeof s.horarios_especificos_json === 'string'
+                ? JSON.parse(s.horarios_especificos_json || 'null')
+                : s.horarios_especificos_json;
+            const dInfo = hSpec && hSpec[dayKey];
+            if (dInfo && dInfo.activo && Array.isArray(dInfo.tramos) && dInfo.tramos.length > 0) {
+                const tramosTxt = dInfo.tramos.map(t => `${t.inicio}-${t.fin}`).join(', ');
+                const dotColor = s.color || '#6366f1';
+                chips.push(`<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700/70 border border-slate-200 dark:border-slate-600 text-[10px] font-bold text-slate-700 dark:text-slate-200"><span class="w-1.5 h-1.5 rounded-full shrink-0" style="background-color:${dotColor}"></span>${escapeHtml(s.nombre)}: ${escapeHtml(tramosTxt)}</span>`);
+            }
+        } catch (e) {}
+    });
+    if (chips.length === 0) return '';
+    return `<div class="mt-2 pt-1.5 border-t border-slate-100 dark:border-slate-700/70 flex flex-wrap items-center gap-1"><span class="text-[9px] font-extrabold uppercase tracking-wider text-slate-400 mr-1">Otros servicios:</span>${chips.join('')}</div>`;
+}
+
+function calRenderSvcHorariosDays() {
+    const container = document.getElementById('calSvcHorariosDaysList');
+    if (!container) return;
+    container.innerHTML = CAL_SVC_DAYS_ORDER.map(d => {
+        const st = calSvcHorariosState[d.key] || { activo: false, tramos: [] };
+        const bizBounds = calGetBusinessDayBounds(d.key);
+        const isBizClosed = !bizBounds.isOpen;
+        const tramosHtml = (st.activo && !isBizClosed)
+            ? st.tramos.map((t, idx) => `
+                <div class="flex items-center gap-1.5 flex-wrap">
+                    <input type="time" value="${t.inicio}" onchange="window.calUpdateSvcHorarioTramo('${d.key}', ${idx}, 'inicio', this.value, this)" class="px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-xs font-bold text-slate-800 dark:text-slate-100">
+                    <span class="text-[11px] font-bold text-slate-400">a</span>
+                    <input type="time" value="${t.fin}" onchange="window.calUpdateSvcHorarioTramo('${d.key}', ${idx}, 'fin', this.value, this)" class="cal-svc-tramo-fin px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300">
+                    <button type="button" onclick="window.calRemoveSvcHorarioTramo('${d.key}', ${idx})" class="text-rose-500 hover:bg-rose-50 p-1 rounded-lg cursor-pointer" title="Quitar horario"><span class="material-symbols-outlined text-[15px]">close</span></button>
+                </div>
+            `).join('')
+            : '';
+        const otherChipsHtml = calGetOtherServicesChipsForDay(d.key);
+
+        if (isBizClosed) {
+            return `
+                <div class="p-2.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/60 border border-dashed border-slate-300 dark:border-slate-700">
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <label class="flex items-center gap-2 text-xs font-bold text-slate-400 cursor-pointer">
+                            <input type="checkbox" disabled class="rounded border-slate-300 text-slate-400">
+                            <span>${d.label}</span>
+                            <span class="text-[10px] font-extrabold text-rose-500 bg-rose-50 dark:bg-rose-950/40 px-2 py-0.5 rounded-full border border-rose-200 dark:border-rose-800/60">Negocio cerrado este día</span>
+                        </label>
+                        <button type="button" onclick="window.calOpenBizDayModal('${d.key}')" class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-1 rounded-lg cursor-pointer transition-colors">Abrir día</button>
+                    </div>
+                    ${otherChipsHtml}
+                </div>
+            `;
+        }
+
+        return `
+            <div class="p-2.5 rounded-xl bg-white dark:bg-slate-800/90 border ${st.activo ? 'border-indigo-300 dark:border-indigo-700 shadow-2xs' : 'border-slate-200 dark:border-slate-700'}">
+                <div class="flex items-center justify-between gap-2 flex-wrap">
+                    <label class="flex items-center gap-2 text-xs font-extrabold text-slate-800 dark:text-slate-100 cursor-pointer">
+                        <input type="checkbox" ${st.activo ? 'checked' : ''} onchange="window.calToggleSvcHorarioDay('${d.key}', this.checked)" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                        <span>${d.label}</span>
+                    </label>
+                    ${st.activo ? `
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" onclick="window.calAddSvcHorarioTramo('${d.key}')" class="text-[10px] font-extrabold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-2 py-1 rounded-lg cursor-pointer">+ Horario</button>
+                        <button type="button" onclick="window.calCopySvcHorarioToWeekdays('${d.key}')" class="text-[10px] font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded-lg cursor-pointer">Copiar a Lun-Vie</button>
+                    </div>
+                    ` : '<span class="text-[10px] font-semibold text-slate-400">Sin atención</span>'}
+                </div>
+                ${st.activo ? `<div class="mt-2 space-y-1.5 pl-5">${tramosHtml}</div>` : ''}
+                ${otherChipsHtml}
+            </div>
+        `;
+    }).join('');
+}
+
+function calCollectSvcHorarios() {
+    const inp = document.getElementById('calSvcHorariosJson');
+    const toggle = document.getElementById('calSvcHorariosToggle');
+    if (!inp) return;
+    if (!toggle || !toggle.checked) {
+        inp.value = '';
+        return;
+    }
+    const clean = {};
+    let hasActive = false;
+    CAL_SVC_DAYS_ORDER.forEach(d => {
+        const dayObj = calSvcHorariosState[d.key];
+        if (dayObj && dayObj.activo && Array.isArray(dayObj.tramos)) {
+            const validTramos = dayObj.tramos.filter(t => t.inicio && t.fin && t.inicio < t.fin);
+            if (validTramos.length > 0) {
+                clean[d.key] = { activo: true, tramos: validTramos };
+                hasActive = true;
+            } else {
+                clean[d.key] = { activo: false, tramos: [] };
+            }
+        } else {
+            clean[d.key] = { activo: false, tramos: [] };
+        }
+    });
+    inp.value = hasActive ? JSON.stringify(clean) : '';
+}
+
+function calIsPremiumBusinessPlan() {
+    const rawPlan = String(window.currentBusinessData?.plan || window.businessWebConfig?.plan || '').toLowerCase();
+    return rawPlan.includes('premium') || rawPlan.includes('completo') || rawPlan.includes('pro_max');
+}
+
 function openServicesModal() {
     const modal = document.getElementById('servicesModal');
     const content = document.getElementById('servicesModalContent');
+    if (!modal || !content) return;
     modal.classList.remove('hidden', 'opacity-0');
     setTimeout(() => { content.classList.remove('scale-95'); }, 10);
+
+    const isPremium = calIsPremiumBusinessPlan();
+    const destWrap = document.getElementById('calSvcDestinoWrapper');
+    const capWrap = document.getElementById('calSvcCapacidadWrapper');
+    if (destWrap) destWrap.classList.toggle('hidden', !isPremium);
+    if (capWrap) capWrap.classList.toggle('hidden', !isPremium);
+
     populateProfessionalSelect();
-    renderServicesList();
     resetServiceForm();
     renderServicesList();
 }
@@ -2739,10 +3148,22 @@ function handleServiceFormSubmit(e) {
     
     const h = parseInt(document.getElementById('serviceDurationH') ? document.getElementById('serviceDurationH').value : 0) || 0;
     const m = parseInt(document.getElementById('serviceDurationM') ? document.getElementById('serviceDurationM').value : 0) || 0;
-    if (document.getElementById('serviceDuration')) document.getElementById('serviceDuration').value = (h * 60) + m;
+    const totalDur = (h * 60) + m;
+    if (totalDur <= 0) {
+        if (typeof showToast === 'function') showToast('Ingresá una duración válida (en horas o minutos).', 'error');
+        return;
+    }
+    if (document.getElementById('serviceDuration')) document.getElementById('serviceDuration').value = totalDur;
+
+    if (typeof calCollectSvcHorarios === 'function') calCollectSvcHorarios();
 
     const formData = new FormData(form);
-    if(document.getElementById('descEditor')) formData.set('descripcion', document.getElementById('descEditor').innerHTML);
+    if (document.getElementById('descEditor')) formData.set('descripcion', document.getElementById('descEditor').innerHTML);
+    if (document.getElementById('serviceColor')) formData.set('color', document.getElementById('serviceColor').value || '#d11149');
+    if (typeof calIsPremiumBusinessPlan === 'function' && !calIsPremiumBusinessPlan()) {
+        formData.set('tipo_servicio', 'calendario');
+        formData.set('capacidad', '1');
+    }
 
     fetch('backend/gestionar_servicios.php', {
         method: 'POST',
@@ -2751,15 +3172,21 @@ function handleServiceFormSubmit(e) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            showToast('Servicio guardado y profesional verificado en el equipo', 'success');
+            showToast('Servicio guardado correctamente', 'success');
             if (typeof fetchServices === 'function') {
                 const resFetch = fetchServices();
                 if (resFetch && typeof resFetch.then === 'function') {
                     resFetch.then(() => {
-                        if (typeof initAdminWeeklyServices === 'function') initAdminWeeklyServices();
+                        if (typeof renderAdminWeeklyServices === 'function') renderAdminWeeklyServices();
+                        if (typeof renderAdminWeeklyGrid === 'function') renderAdminWeeklyGrid();
+                        if (typeof cal_renderCalendar === 'function') cal_renderCalendar();
                     });
                 } else {
-                    if (typeof initAdminWeeklyServices === 'function') initAdminWeeklyServices();
+                    setTimeout(() => {
+                        if (typeof renderAdminWeeklyServices === 'function') renderAdminWeeklyServices();
+                        if (typeof renderAdminWeeklyGrid === 'function') renderAdminWeeklyGrid();
+                        if (typeof cal_renderCalendar === 'function') cal_renderCalendar();
+                    }, 350);
                 }
             }
             resetServiceForm();
@@ -2785,6 +3212,8 @@ function editService(id) {
         if (document.getElementById('serviceDuration')) document.getElementById('serviceDuration').value = d;
         document.getElementById('servicePrice').value = service.precio || '';
         if (document.getElementById('serviceCapacidad')) document.getElementById('serviceCapacidad').value = service.capacidad || 1;
+        if (document.getElementById('serviceColor')) document.getElementById('serviceColor').value = service.color || '#d11149';
+        if (document.getElementById('serviceDescripcion')) document.getElementById('serviceDescripcion').value = service.descripcion || '';
         const tipoSvc = (service.tipo_servicio === 'alumnos' || (!service.tipo_servicio && (parseInt(service.cupo_maximo) > 1 || parseInt(service.capacidad) > 1))) ? 'alumnos' : 'calendario';
         const radCalEdit = document.getElementById(tipoSvc === 'alumnos' ? 'radioDestinoAlumnos' : 'radioDestinoCalendario');
         if (radCalEdit) radCalEdit.checked = true;
@@ -2799,7 +3228,9 @@ function editService(id) {
         }
         if(document.getElementById('serviceImagen1')) document.getElementById('serviceImagen1').value = service.imagen1 || '';
         if(document.getElementById('descEditor')) document.getElementById('descEditor').innerHTML = service.descripcion || '';
+        if (typeof calLoadSvcHorarios === 'function') calLoadSvcHorarios(service.horarios_especificos_json || null);
         document.getElementById('cancelEditBtn').classList.remove('hidden');
+        document.getElementById('serviceForm')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 }
 
@@ -2824,6 +3255,8 @@ function resetServiceForm() {
     const serviceIdInput = document.getElementById('serviceId');
     if (serviceIdInput) serviceIdInput.value = '';
     if (document.getElementById('serviceCapacidad')) document.getElementById('serviceCapacidad').value = 1;
+    if (document.getElementById('serviceColor')) document.getElementById('serviceColor').value = '#d11149';
+    if (document.getElementById('serviceDescripcion')) document.getElementById('serviceDescripcion').value = '';
     const radCalReset = document.getElementById('radioDestinoCalendario');
     if (radCalReset) radCalReset.checked = true;
     if (typeof window.onCalendarServiceTipoChange === 'function') window.onCalendarServiceTipoChange('calendario');
@@ -2846,6 +3279,7 @@ function resetServiceForm() {
     if(document.getElementById('descEditor')) document.getElementById('descEditor').innerHTML = '';
     if (document.getElementById('serviceDurationH')) document.getElementById('serviceDurationH').value = '';
     if (document.getElementById('serviceDurationM')) document.getElementById('serviceDurationM').value = '';
+    if (typeof calLoadSvcHorarios === 'function') calLoadSvcHorarios(null);
     const formTitle = document.getElementById('serviceFormTitle');
     if (formTitle) formTitle.textContent = 'Añadir Nuevo Servicio';
     const cancelBtn = document.getElementById('cancelEditBtn');
