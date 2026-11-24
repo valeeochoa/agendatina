@@ -493,7 +493,7 @@
             validarCuponRegistro();
         }
 
-        window.regPricingData = { precio_basico: 8889, precio_intermedio: 11111, precio_premium: 35000, alumnos_incluidos_premium: 100, precio_alumno_extra_premium: 700, descuento_porcentaje: 10, dias_prueba_defecto: 30 };
+        window.regPricingData = { precio_basico: 8889, precio_intermedio: 11111, precio_premium: 35000, alumnos_incluidos_premium: 100, precio_alumno_extra_premium: 1000, prem_desc_100_200: 20, prem_desc_300_400: 30, prem_desc_400_500: 40, prem_desc_500_600: 50, descuento_porcentaje: 10, dias_prueba_defecto: 30 };
         fetch('backend/obtener_precios.php').then(r=>r.json()).then(pData => {
             if (pData && pData.success && pData.data) {
                 window.regPricingData = pData.data;
@@ -522,7 +522,7 @@
         const rawPVal = parseFloat(pData.precio_premium);
         const rawP = (!isNaN(rawPVal) && rawPVal > 0 && Math.round(rawPVal) !== 16667) ? rawPVal : 35000;
         const premAlumnosIncl = parseInt(pData.alumnos_incluidos_premium, 10) || 100;
-        const premAlumnoExtra = parseFloat(pData.precio_alumno_extra_premium) || 700;
+        const premAlumnoExtra = parseFloat(pData.precio_alumno_extra_premium) || 1000;
         
         let discPct = (pData.descuento_porcentaje !== undefined && pData.descuento_porcentaje !== null) 
             ? parseInt(pData.descuento_porcentaje) 
@@ -577,7 +577,7 @@
         const couponNoticeTag = appliedCouponPct > 0 ? `<div class="mt-1 text-[10px] font-black text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md inline-block">🏷️ Cupón ${appliedCouponCode} (-${appliedCouponPct}%)</div>` : '';
         const bPerProf = count > 1 ? `<div class="mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md inline-block">¡Queda en $${Math.round(bRes.final / count).toLocaleString('es-AR')} p/profesional!</div>` : '';
         const iPerProf = count > 1 ? `<div class="mt-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md inline-block">¡Queda en $${Math.round(iRes.final / count).toLocaleString('es-AR')} p/profesional!</div>` : '';
-        const pPerProf = `<div class="mt-1 text-[11px] font-bold text-orange-700 bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-md inline-block">∞ Profesionales ilimitados · Hasta ${premAlumnosIncl} alumnos (+$${premAlumnoExtra.toLocaleString('es-AR')} c/extra)</div>`;
+        const pPerProf = `<div class="mt-1 text-[11px] font-bold text-orange-700 bg-orange-50 border border-orange-200/60 px-2 py-0.5 rounded-md inline-block">∞ Profesionales ilimitados · Hasta ${premAlumnosIncl} alumnos ($${premAlumnoExtra.toLocaleString('es-AR')} c/extra · hasta -50%)</div>`;
 
         const oldBEl = document.getElementById('regBasicOldPrice');
         if (oldBEl) oldBEl.style.display = bRes.showOld ? 'inline' : 'none';
@@ -610,7 +610,7 @@
             badgePEl.textContent = pRes.badgeText;
         }
         document.getElementById('regPremPrice').innerHTML = '$' + pRes.final.toLocaleString('es-AR') + '<span class="text-xs font-normal text-slate-500">/mes</span>' + couponNoticeTag + pPerProf;
-        document.getElementById('regPremSubtext').textContent = `Profesionales ilimitados • Hasta ${premAlumnosIncl} alumnos (+$${premAlumnoExtra.toLocaleString('es-AR')} c/extra)`;
+        document.getElementById('regPremSubtext').textContent = `Profesionales ilimitados • Hasta ${premAlumnosIncl} alumnos ($${premAlumnoExtra.toLocaleString('es-AR')} c/extra · hasta -50%)`;
 
         const trialDays = (pData && pData.dias_prueba_defecto) ? pData.dias_prueba_defecto : 30;
         document.querySelectorAll('.trial-days-display').forEach(el => el.textContent = trialDays);

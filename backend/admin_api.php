@@ -528,11 +528,24 @@ if ($method === 'GET') {
             $negocio['antiguedad_dias'] = max(0, floor((time() - $fAltaTs) / 86400));
         }
 
+        // Asegurar columnas de alumnos y descuentos progresivos del Plan Premium
+        try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN alumnos_incluidos_premium INT NOT NULL DEFAULT 100"); } catch(Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN precio_alumno_extra_premium DECIMAL(10,2) NOT NULL DEFAULT 1000"); } catch(Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_100_200 INT NOT NULL DEFAULT 20"); } catch(Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_300_400 INT NOT NULL DEFAULT 30"); } catch(Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_400_500 INT NOT NULL DEFAULT 40"); } catch(Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_500_600 INT NOT NULL DEFAULT 50"); } catch(Exception $ex) {}
+
         // Obtener la configuración global
-        $stmtConfig = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(dias_prueba_defecto, 30) AS dias_prueba_defecto FROM configuracion_global WHERE id = 1");
+        $stmtConfig = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(dias_prueba_defecto, 30) AS dias_prueba_defecto, COALESCE(alumnos_incluidos_premium, 100) AS alumnos_incluidos_premium, COALESCE(precio_alumno_extra_premium, 1000) AS precio_alumno_extra_premium, COALESCE(prem_desc_100_200, 20) AS prem_desc_100_200, COALESCE(prem_desc_300_400, 30) AS prem_desc_300_400, COALESCE(prem_desc_400_500, 40) AS prem_desc_400_500, COALESCE(prem_desc_500_600, 50) AS prem_desc_500_600 FROM configuracion_global WHERE id = 1");
         $config_global = $stmtConfig ? $stmtConfig->fetch(PDO::FETCH_ASSOC) : null;
         if (!$config_global) {
-            $config_global = ['precio_basico' => 8889, 'precio_intermedio' => 11111, 'precio_premium' => 16667, 'descuento_porcentaje' => 10, 'descuento_hasta' => null, 'dias_prueba_defecto' => 30];
+            $config_global = [
+                'precio_basico' => 8889, 'precio_intermedio' => 11111, 'precio_premium' => 35000,
+                'alumnos_incluidos_premium' => 100, 'precio_alumno_extra_premium' => 1000,
+                'prem_desc_100_200' => 20, 'prem_desc_300_400' => 30, 'prem_desc_400_500' => 40, 'prem_desc_500_600' => 50,
+                'descuento_porcentaje' => 10, 'descuento_hasta' => null, 'dias_prueba_defecto' => 30
+            ];
         } else {
             if (!empty($config_global['descuento_hasta'])) {
                 $expTime = strtotime($config_global['descuento_hasta']);
@@ -974,22 +987,34 @@ elseif ($method === 'PUT') {
         try {
             $basico = isset($data['precio_basico']) ? (float)$data['precio_basico'] : 8889;
             $intermedio = isset($data['precio_intermedio']) ? (float)$data['precio_intermedio'] : 11111;
-            $premium = isset($data['precio_premium']) ? (float)$data['precio_premium'] : 16667;
+            $premium = isset($data['precio_premium']) ? (float)$data['precio_premium'] : 35000;
             $descuento_porcentaje = isset($data['descuento_porcentaje']) ? (int)$data['descuento_porcentaje'] : 0;
             $descuento_hasta = !empty($data['descuento_hasta']) ? $data['descuento_hasta'] : null;
             $dias_prueba = isset($data['dias_prueba_defecto']) ? (int)$data['dias_prueba_defecto'] : 30;
+            $alumnos_incluidos_premium = isset($data['alumnos_incluidos_premium']) ? max(10, (int)$data['alumnos_incluidos_premium']) : 100;
+            $precio_alumno_extra_premium = isset($data['precio_alumno_extra_premium']) ? max(0, (float)$data['precio_alumno_extra_premium']) : 1000;
+            $prem_desc_100_200 = isset($data['prem_desc_100_200']) ? min(50, max(0, (int)$data['prem_desc_100_200'])) : 20;
+            $prem_desc_300_400 = isset($data['prem_desc_300_400']) ? min(50, max(0, (int)$data['prem_desc_300_400'])) : 30;
+            $prem_desc_400_500 = isset($data['prem_desc_400_500']) ? min(50, max(0, (int)$data['prem_desc_400_500'])) : 40;
+            $prem_desc_500_600 = isset($data['prem_desc_500_600']) ? min(50, max(0, (int)$data['prem_desc_500_600'])) : 50;
             
-            // Asegurar que exista la columna dias_prueba_defecto
+            // Asegurar columnas
             try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN dias_prueba_defecto INT NOT NULL DEFAULT 30"); } catch(Exception $ex) {}
+            try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN alumnos_incluidos_premium INT NOT NULL DEFAULT 100"); } catch(Exception $ex) {}
+            try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN precio_alumno_extra_premium DECIMAL(10,2) NOT NULL DEFAULT 1000"); } catch(Exception $ex) {}
+            try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_100_200 INT NOT NULL DEFAULT 20"); } catch(Exception $ex) {}
+            try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_300_400 INT NOT NULL DEFAULT 30"); } catch(Exception $ex) {}
+            try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_400_500 INT NOT NULL DEFAULT 40"); } catch(Exception $ex) {}
+            try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_500_600 INT NOT NULL DEFAULT 50"); } catch(Exception $ex) {}
 
-            $stmt = $pdo->prepare("UPDATE configuracion_global SET precio_basico = ?, precio_intermedio = ?, precio_premium = ?, descuento_porcentaje = ?, descuento_hasta = ?, dias_prueba_defecto = ? WHERE id = 1");
-            $stmt->execute([$basico, $intermedio, $premium, $descuento_porcentaje, $descuento_hasta, $dias_prueba]);
+            $stmt = $pdo->prepare("UPDATE configuracion_global SET precio_basico = ?, precio_intermedio = ?, precio_premium = ?, descuento_porcentaje = ?, descuento_hasta = ?, dias_prueba_defecto = ?, alumnos_incluidos_premium = ?, precio_alumno_extra_premium = ?, prem_desc_100_200 = ?, prem_desc_300_400 = ?, prem_desc_400_500 = ?, prem_desc_500_600 = ? WHERE id = 1");
+            $stmt->execute([$basico, $intermedio, $premium, $descuento_porcentaje, $descuento_hasta, $dias_prueba, $alumnos_incluidos_premium, $precio_alumno_extra_premium, $prem_desc_100_200, $prem_desc_300_400, $prem_desc_400_500, $prem_desc_500_600]);
             
             if ($stmt->rowCount() === 0) {
                 $check = $pdo->query("SELECT id FROM configuracion_global WHERE id = 1")->fetch();
                 if (!$check) {
-                    $pdo->prepare("INSERT INTO configuracion_global (id, precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, dias_prueba_defecto) VALUES (1, ?, ?, ?, ?, ?, ?)")
-                        ->execute([$basico, $intermedio, $premium, $descuento_porcentaje, $descuento_hasta, $dias_prueba]);
+                    $pdo->prepare("INSERT INTO configuracion_global (id, precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, dias_prueba_defecto, alumnos_incluidos_premium, precio_alumno_extra_premium, prem_desc_100_200, prem_desc_300_400, prem_desc_400_500, prem_desc_500_600) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+                        ->execute([$basico, $intermedio, $premium, $descuento_porcentaje, $descuento_hasta, $dias_prueba, $alumnos_incluidos_premium, $precio_alumno_extra_premium, $prem_desc_100_200, $prem_desc_300_400, $prem_desc_400_500, $prem_desc_500_600]);
                 }
             }
 

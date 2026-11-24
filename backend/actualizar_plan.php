@@ -93,20 +93,31 @@ try {
     // Plan Premium: precio base fijo ($35.000) con profesionales ilimitados + hasta 100 alumnos totales (+$700 c/extra)
     $nuevoPrecioPactado = 8889.0;
     try {
-        $stmtCfg = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta FROM configuracion_global ORDER BY id ASC LIMIT 1");
+        $stmtCfg = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(alumnos_incluidos_premium, 100) AS alumnos_incluidos_premium, COALESCE(precio_alumno_extra_premium, 1000) AS precio_alumno_extra_premium, COALESCE(prem_desc_100_200, 20) AS prem_desc_100_200, COALESCE(prem_desc_300_400, 30) AS prem_desc_300_400, COALESCE(prem_desc_400_500, 40) AS prem_desc_400_500, COALESCE(prem_desc_500_600, 50) AS prem_desc_500_600 FROM configuracion_global ORDER BY id ASC LIMIT 1");
         $cfgPrecios = $stmtCfg ? $stmtCfg->fetch(PDO::FETCH_ASSOC) : null;
         if ($planNormalizado === 'Premium') {
             $basePrem = ($cfgPrecios && !empty($cfgPrecios['precio_premium']) && round((float)$cfgPrecios['precio_premium']) != 16667)
                 ? (float)$cfgPrecios['precio_premium']
                 : 35000.0;
+            $inclAlu = ($cfgPrecios && !empty($cfgPrecios['alumnos_incluidos_premium'])) ? (int)$cfgPrecios['alumnos_incluidos_premium'] : 100;
+            $unitExtra = ($cfgPrecios && isset($cfgPrecios['precio_alumno_extra_premium'])) ? (float)$cfgPrecios['precio_alumno_extra_premium'] : 1000.0;
             $alumnosTotales = 0;
             try {
                 $stmtAlu = $pdo->prepare("SELECT COUNT(*) FROM clientes_negocio WHERE id_negocio = ?");
                 $stmtAlu->execute([$id_negocio]);
                 $alumnosTotales = (int)$stmtAlu->fetchColumn();
             } catch (Exception $eAlu) {}
-            $alumnosExtra = max(0, $alumnosTotales - 100);
-            $nuevoPrecioPactado = round($basePrem + ($alumnosExtra * 700));
+            $alumnosExtra = max(0, $alumnosTotales - $inclAlu);
+            $discExtra = 0;
+            if ($alumnosExtra > 0) {
+                if ($alumnosTotales >= 500) $discExtra = (int)($cfgPrecios['prem_desc_500_600'] ?? 50);
+                elseif ($alumnosTotales >= 400) $discExtra = (int)($cfgPrecios['prem_desc_400_500'] ?? 40);
+                elseif ($alumnosTotales >= 300) $discExtra = (int)($cfgPrecios['prem_desc_300_400'] ?? 30);
+                else $discExtra = (int)($cfgPrecios['prem_desc_100_200'] ?? 20);
+                $discExtra = min(50, max(0, $discExtra));
+            }
+            $unitFinal = round($unitExtra * (100 - $discExtra) / 100);
+            $nuevoPrecioPactado = round($basePrem + ($alumnosExtra * $unitFinal));
         } elseif ($cfgPrecios) {
             $rawBase = ($planNormalizado === 'Profesional') ? (float)($cfgPrecios['precio_intermedio'] ?? 11111) : (float)($cfgPrecios['precio_basico'] ?? 8889);
 

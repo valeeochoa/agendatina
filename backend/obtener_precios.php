@@ -29,9 +29,19 @@ try {
     }
 
     try { $pdo->query("SELECT precio_alumno_extra_premium FROM configuracion_global LIMIT 1"); }
-    catch(Exception $e) { try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN precio_alumno_extra_premium DECIMAL(10,2) NOT NULL DEFAULT 700"); } catch(Exception $ex) {} }
+    catch(Exception $e) { try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN precio_alumno_extra_premium DECIMAL(10,2) NOT NULL DEFAULT 1000"); } catch(Exception $ex) {} }
 
-    $stmt = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(dias_prueba_defecto, 30) AS dias_prueba_defecto, COALESCE(alumnos_incluidos_premium, 100) AS alumnos_incluidos_premium, COALESCE(precio_alumno_extra_premium, 700) AS precio_alumno_extra_premium FROM configuracion_global ORDER BY id ASC LIMIT 1");
+    try { $pdo->query("SELECT prem_desc_100_200 FROM configuracion_global LIMIT 1"); }
+    catch(Exception $e) {
+        try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_100_200 INT NOT NULL DEFAULT 20"); } catch(Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_300_400 INT NOT NULL DEFAULT 30"); } catch(Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_400_500 INT NOT NULL DEFAULT 40"); } catch(Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_500_600 INT NOT NULL DEFAULT 50"); } catch(Exception $ex) {}
+        // Migración única de precio_alumno_extra_premium anterior (700) a 1000 con descuentos progresivos
+        try { $pdo->exec("UPDATE configuracion_global SET precio_alumno_extra_premium = 1000 WHERE ROUND(precio_alumno_extra_premium) = 700"); } catch(Exception $ex) {}
+    }
+
+    $stmt = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(dias_prueba_defecto, 30) AS dias_prueba_defecto, COALESCE(alumnos_incluidos_premium, 100) AS alumnos_incluidos_premium, COALESCE(precio_alumno_extra_premium, 1000) AS precio_alumno_extra_premium, COALESCE(prem_desc_100_200, 20) AS prem_desc_100_200, COALESCE(prem_desc_300_400, 30) AS prem_desc_300_400, COALESCE(prem_desc_400_500, 40) AS prem_desc_400_500, COALESCE(prem_desc_500_600, 50) AS prem_desc_500_600 FROM configuracion_global ORDER BY id ASC LIMIT 1");
     $precios = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$precios) {
         $precios = [
@@ -39,7 +49,11 @@ try {
             'precio_intermedio' => 11111.0,
             'precio_premium' => 35000.0,
             'alumnos_incluidos_premium' => 100,
-            'precio_alumno_extra_premium' => 700.0,
+            'precio_alumno_extra_premium' => 1000.0,
+            'prem_desc_100_200' => 20,
+            'prem_desc_300_400' => 30,
+            'prem_desc_400_500' => 40,
+            'prem_desc_500_600' => 50,
             'descuento_porcentaje' => 10,
             'descuento_hasta' => null,
             'dias_prueba_defecto' => 30
@@ -49,7 +63,11 @@ try {
         $precios['precio_intermedio'] = (float)$precios['precio_intermedio'];
         $precios['precio_premium'] = (float)$precios['precio_premium'];
         $precios['alumnos_incluidos_premium'] = !empty($precios['alumnos_incluidos_premium']) ? (int)$precios['alumnos_incluidos_premium'] : 100;
-        $precios['precio_alumno_extra_premium'] = !empty($precios['precio_alumno_extra_premium']) ? (float)$precios['precio_alumno_extra_premium'] : 700.0;
+        $precios['precio_alumno_extra_premium'] = !empty($precios['precio_alumno_extra_premium']) ? (float)$precios['precio_alumno_extra_premium'] : 1000.0;
+        $precios['prem_desc_100_200'] = min(50, max(0, (int)($precios['prem_desc_100_200'] ?? 20)));
+        $precios['prem_desc_300_400'] = min(50, max(0, (int)($precios['prem_desc_300_400'] ?? 30)));
+        $precios['prem_desc_400_500'] = min(50, max(0, (int)($precios['prem_desc_400_500'] ?? 40)));
+        $precios['prem_desc_500_600'] = min(50, max(0, (int)($precios['prem_desc_500_600'] ?? 50)));
         $precios['descuento_porcentaje'] = isset($precios['descuento_porcentaje']) ? (int)$precios['descuento_porcentaje'] : 0;
         $precios['dias_prueba_defecto'] = !empty($precios['dias_prueba_defecto']) ? (int)$precios['dias_prueba_defecto'] : 30;
 
@@ -71,7 +89,11 @@ try {
             'precio_intermedio' => 11111.0,
             'precio_premium' => 35000.0,
             'alumnos_incluidos_premium' => 100,
-            'precio_alumno_extra_premium' => 700.0,
+            'precio_alumno_extra_premium' => 1000.0,
+            'prem_desc_100_200' => 20,
+            'prem_desc_300_400' => 30,
+            'prem_desc_400_500' => 40,
+            'prem_desc_500_600' => 50,
             'descuento_porcentaje' => 10,
             'descuento_hasta' => null,
             'dias_prueba_defecto' => 30

@@ -284,15 +284,30 @@ try {
                     $alumnosTotalesNegocio = (int)$stmtAluCnt->fetchColumn();
                 } catch(Throwable $eAluCnt) {}
             }
+            $alumnosIncluidosPrem = 100;
+            $alumnosExtraVig = 0;
+            $descAlumnosExtraPct = 0;
+            $costoAlumnosExtraPrem = 0;
             try {
-                $stmtGlobal = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta FROM configuracion_global ORDER BY id ASC LIMIT 1");
+                $stmtGlobal = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(alumnos_incluidos_premium, 100) AS alumnos_incluidos_premium, COALESCE(precio_alumno_extra_premium, 1000) AS precio_alumno_extra_premium, COALESCE(prem_desc_100_200, 20) AS prem_desc_100_200, COALESCE(prem_desc_300_400, 30) AS prem_desc_300_400, COALESCE(prem_desc_400_500, 40) AS prem_desc_400_500, COALESCE(prem_desc_500_600, 50) AS prem_desc_500_600 FROM configuracion_global ORDER BY id ASC LIMIT 1");
                 $cfgG = $stmtGlobal ? $stmtGlobal->fetch(PDO::FETCH_ASSOC) : null;
                 if ($isPremium) {
                     $basePremVig = ($cfgG && !empty($cfgG['precio_premium']) && round((float)$cfgG['precio_premium']) != 16667)
                         ? (float)$cfgG['precio_premium']
                         : 35000.0;
-                    $alumnosExtraVig = max(0, $alumnosTotalesNegocio - 100);
-                    $precioVigenteSistema = round($basePremVig + ($alumnosExtraVig * 700));
+                    $alumnosIncluidosPrem = ($cfgG && !empty($cfgG['alumnos_incluidos_premium'])) ? (int)$cfgG['alumnos_incluidos_premium'] : 100;
+                    $unitExtraVig = ($cfgG && isset($cfgG['precio_alumno_extra_premium'])) ? (float)$cfgG['precio_alumno_extra_premium'] : 1000.0;
+                    $alumnosExtraVig = max(0, $alumnosTotalesNegocio - $alumnosIncluidosPrem);
+                    if ($alumnosExtraVig > 0) {
+                        if ($alumnosTotalesNegocio >= 500) $descAlumnosExtraPct = (int)($cfgG['prem_desc_500_600'] ?? 50);
+                        elseif ($alumnosTotalesNegocio >= 400) $descAlumnosExtraPct = (int)($cfgG['prem_desc_400_500'] ?? 40);
+                        elseif ($alumnosTotalesNegocio >= 300) $descAlumnosExtraPct = (int)($cfgG['prem_desc_300_400'] ?? 30);
+                        else $descAlumnosExtraPct = (int)($cfgG['prem_desc_100_200'] ?? 20);
+                        $descAlumnosExtraPct = min(50, max(0, $descAlumnosExtraPct));
+                    }
+                    $unitFinalVig = round($unitExtraVig * (100 - $descAlumnosExtraPct) / 100);
+                    $costoAlumnosExtraPrem = round($alumnosExtraVig * $unitFinalVig);
+                    $precioVigenteSistema = round($basePremVig + $costoAlumnosExtraPrem);
                 } elseif ($cfgG) {
                     if (!$isBasic) {
                         $rawVigente = (float)($cfgG['precio_intermedio'] ?? 11111);
@@ -315,9 +330,10 @@ try {
             } catch(Throwable $eGl) {}
 
             $business['alumnos_totales'] = $alumnosTotalesNegocio;
-            $business['alumnos_incluidos_premium'] = 100;
-            $business['alumnos_extra_premium'] = max(0, $alumnosTotalesNegocio - 100);
-            $business['costo_alumnos_extra_premium'] = max(0, $alumnosTotalesNegocio - 100) * 700;
+            $business['alumnos_incluidos_premium'] = $alumnosIncluidosPrem;
+            $business['alumnos_extra_premium'] = $alumnosExtraVig;
+            $business['descuento_alumnos_extra_pct'] = $descAlumnosExtraPct;
+            $business['costo_alumnos_extra_premium'] = $costoAlumnosExtraPrem;
 
             if ($business['precio_pactado'] === null || (float)$business['precio_pactado'] <= 0) {
                 $business['precio_pactado'] = $precioVigenteSistema;
