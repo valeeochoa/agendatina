@@ -3286,6 +3286,127 @@ function resetServiceForm() {
     if (cancelBtn) cancelBtn.classList.add('hidden');
 }
 
+window.getServiceDepositAmount = function(svc) {
+    if (!svc) return 0;
+    const precio = parseFloat(svc.precio || 0) || 0;
+    const senaFija = parseFloat(svc.precio_sena || 0) || 0;
+    const cfg = window.businessWebConfig || {};
+    const pct = parseInt(cfg.porcentaje_sena || 0, 10) || 0;
+    const senaActiva = (cfg.reserva_sena_1h == 1 || cfg.reserva_sena_1h === true || pct > 0 || senaFija > 0);
+    if (!senaActiva) return 0;
+    if (precio > 0 && pct > 0) return Math.round(precio * (pct / 100));
+    if (senaFija > 0) return Math.round(senaFija);
+    return 0;
+};
+
+window.updateClientEditorialHeader = function(isClientMode) {
+    const shell = document.getElementById('clientEditorialShell');
+    if (!shell) return;
+    const body = document.getElementById('calBody');
+    if (!isClientMode) {
+        shell.classList.add('hidden');
+        if (body) body.style.backgroundImage = '';
+        return;
+    }
+    shell.classList.remove('hidden');
+    if (body && !document.documentElement.classList.contains('dark')) {
+        body.style.backgroundImage = 'linear-gradient(180deg, #ffffff 0%, #fafafb 58%, color-mix(in srgb, var(--color-primario, #D11149) 9%, #ffffff) 100%)';
+    }
+
+    const cfg = window.businessWebConfig || {};
+    const navNameEl = document.getElementById('navBusinessNameText');
+    const navLogoEl = document.getElementById('navBusinessLogoImg');
+    const bizName = (cfg.nombre_fantasia || cfg.nombre_negocio || (navNameEl ? navNameEl.textContent : '') || 'Reserva tu turno').trim();
+    const logoUrl = cfg.logo_url || cfg.foto_perfil || (navLogoEl && !navLogoEl.classList.contains('hidden') ? navLogoEl.getAttribute('src') : '');
+
+    const nameEl = document.getElementById('clientBizName');
+    if (nameEl && bizName) nameEl.textContent = bizName;
+    const logoEl = document.getElementById('clientBizLogoImg');
+    const monoEl = document.getElementById('clientBizMonogram');
+    if (logoEl && monoEl) {
+        if (logoUrl) {
+            logoEl.src = logoUrl;
+            logoEl.classList.remove('hidden');
+            monoEl.classList.add('hidden');
+        } else {
+            logoEl.classList.add('hidden');
+            monoEl.classList.remove('hidden');
+        }
+    }
+};
+
+window.updateWizardStepper = function(stepNum) {
+    const step = Math.max(1, Math.min(3, parseInt(stepNum, 10) || 1));
+    const names = { 1: 'Servicio', 2: 'Profesional', 3: 'Fecha y horario' };
+    const nameEl = document.getElementById('wizardStepName');
+    const countEl = document.getElementById('wizardStepCounter');
+    if (nameEl) nameEl.textContent = names[step] || 'Servicio';
+    if (countEl) countEl.textContent = `Paso ${step} de 3`;
+    for (let i = 1; i <= 3; i++) {
+        const bar = document.getElementById('wizardStepBar' + i);
+        if (!bar) continue;
+        if (i <= step) {
+            bar.className = 'h-[3px] rounded-full bg-slate-900 dark:bg-white transition-all duration-300';
+        } else {
+            bar.className = 'h-[3px] rounded-full bg-slate-200 dark:bg-slate-700 transition-all duration-300';
+        }
+    }
+};
+
+window.toggleWizardServiceSearch = function() {
+    const wrap = document.getElementById('wizardServiceSearchWrap');
+    const inp = document.getElementById('wizardServiceSearchInput');
+    if (!wrap) return;
+    wrap.classList.toggle('hidden');
+    if (!wrap.classList.contains('hidden') && inp) {
+        inp.focus();
+    } else if (inp) {
+        inp.value = '';
+        window.filterWizardServices('');
+    }
+};
+
+window.filterWizardServices = function(query) {
+    const q = String(query || '').trim().toLowerCase();
+    const sList = document.getElementById('wizardServicesList');
+    if (!sList) return;
+    const cards = sList.querySelectorAll('[data-wizard-service-name]');
+    let visibleCount = 0;
+    cards.forEach(c => {
+        const name = String(c.getAttribute('data-wizard-service-name') || '').toLowerCase();
+        const show = !q || name.includes(q);
+        c.classList.toggle('hidden', !show);
+        if (show) visibleCount++;
+    });
+    let emptySearch = document.getElementById('wizardSearchEmpty');
+    if (visibleCount === 0 && q) {
+        if (!emptySearch) {
+            emptySearch = document.createElement('div');
+            emptySearch.id = 'wizardSearchEmpty';
+            emptySearch.className = 'p-6 text-center text-xs sm:text-sm text-slate-400 bg-white rounded-2xl border border-slate-100';
+            sList.appendChild(emptySearch);
+        }
+        emptySearch.textContent = `No encontramos servicios que coincidan con "${query}".`;
+        emptySearch.classList.remove('hidden');
+    } else if (emptySearch) {
+        emptySearch.classList.add('hidden');
+    }
+};
+
+window.shareClientBookingLink = function() {
+    const shareUrl = window.location.href;
+    const bizTitle = document.getElementById('clientBizName')?.textContent || 'Agendatina';
+    if (navigator.share) {
+        navigator.share({ title: bizTitle, text: `Reservá tu turno en ${bizTitle}`, url: shareUrl }).catch(() => {});
+        return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            if (typeof showToast === 'function') showToast('¡Enlace copiado para compartir!', 'success');
+        }).catch(() => {});
+    }
+};
+
 function initWizard() {
     const effectiveIsAdmin = isAdmin && !isPreviewMode;
     const wizardOverlay = document.getElementById('wizardOverlay');
@@ -3293,6 +3414,7 @@ function initWizard() {
     const adminView = document.getElementById('adminWeeklyView');
     
     if (effectiveIsAdmin) {
+        if (typeof window.updateClientEditorialHeader === 'function') window.updateClientEditorialHeader(false);
         if (wizardOverlay) wizardOverlay.classList.add('hidden');
         if (mainContent) mainContent.classList.add('hidden');
         
@@ -3305,6 +3427,8 @@ function initWizard() {
         if (adminView) adminView.classList.add('hidden');
         if (wizardOverlay) wizardOverlay.classList.remove('hidden');
         if (mainContent) mainContent.classList.add('hidden');
+        if (typeof window.updateClientEditorialHeader === 'function') window.updateClientEditorialHeader(true);
+        if (typeof window.updateWizardStepper === 'function') window.updateWizardStepper(1);
     }
 
     const sList = document.getElementById('wizardServicesList');
@@ -3321,8 +3445,8 @@ function initWizard() {
 
         const catBar = document.createElement('div');
         catBar.id = 'wizardCategoryBar';
-        catBar.className = 'flex gap-2 overflow-x-auto pb-2 custom-scrollbar';
-        catBar.innerHTML = `<button class="px-5 py-2 rounded-full bg-primary text-white font-bold text-sm shrink-0 shadow-md">Todos los servicios</button>`;
+        catBar.className = 'flex gap-2 overflow-x-auto pb-1 custom-scrollbar';
+        catBar.innerHTML = `<button type="button" class="px-4 py-1.5 rounded-full font-medium text-xs sm:text-sm shrink-0 text-slate-900 border border-transparent shadow-2xs" style="background-color: color-mix(in srgb, var(--color-primario, #D11149) 18%, #ffffff);">Todos</button>`;
         
         wrapper.appendChild(catBar);
         sList.parentElement.insertBefore(wrapper, sList);
@@ -3333,23 +3457,23 @@ function initWizard() {
     if (uniqueServices.length === 0) {
         if (isAdmin) {
             sList.innerHTML = `
-                <div class="text-center py-8">
-                    <div class="w-16 h-16 bg-slate-50 border border-slate-200 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                        <span class="material-symbols-outlined text-3xl">spa</span>
+                <div class="text-center py-8 bg-white rounded-2xl border border-slate-100 shadow-xs px-4">
+                    <div class="w-14 h-14 bg-slate-50 border border-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                        <span class="material-symbols-outlined text-2xl">spa</span>
                     </div>
-                    <p class="text-slate-800 font-bold mb-2 text-lg">Aún no tienes servicios cargados</p>
-                    <p class="text-sm text-slate-500 mb-4">Para utilizar este calendario interactivo, necesitas agregar al menos un servicio desde tu panel de control.</p>
-                    <button type="button" onclick="window.location.href='servicios.html'" class="inline-block bg-primary text-white font-bold py-2.5 px-6 rounded-xl shadow-md shadow-primary/20 hover:bg-primary/90 transition-colors text-sm">Crear mi primer servicio</button>
+                    <p class="text-slate-900 font-semibold mb-1 text-base">Aún no tenés servicios cargados</p>
+                    <p class="text-xs sm:text-sm text-slate-500 mb-4">Agregá tu primer servicio desde el panel para empezar a recibir turnos.</p>
+                    <button type="button" onclick="window.location.href='servicios.html'" class="inline-block bg-slate-900 text-white font-medium py-2.5 px-5 rounded-xl hover:bg-slate-800 transition-colors text-xs sm:text-sm">Crear mi primer servicio</button>
                 </div>
             `;
         } else {
             sList.innerHTML = `
-                <div class="text-center py-8">
-                    <div class="w-16 h-16 bg-slate-50 border border-slate-200 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                        <span class="material-symbols-outlined text-3xl">event_busy</span>
+                <div class="text-center py-8 bg-white rounded-2xl border border-slate-100 shadow-xs px-4">
+                    <div class="w-14 h-14 bg-slate-50 border border-slate-100 text-slate-400 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                        <span class="material-symbols-outlined text-2xl">event_busy</span>
                     </div>
-                    <p class="text-slate-800 font-bold mb-2 text-lg">Servicios no disponibles</p>
-                    <p class="text-sm text-slate-500 mb-4">Este negocio aún no tiene servicios configurados en este momento. Por favor, intenta más tarde.</p>
+                    <p class="text-slate-900 font-semibold mb-1 text-base">Servicios no disponibles</p>
+                    <p class="text-xs sm:text-sm text-slate-500">Este negocio aún no tiene servicios publicados en este momento.</p>
                 </div>
             `;
         }
@@ -3359,9 +3483,11 @@ function initWizard() {
     uniqueServices.forEach(sName => {
         const sMatches = services.filter(s => s.nombre === sName);
         if (sMatches.length === 0) return;
+        const primaryMatch = sMatches[0];
         const validPrices = sMatches.map(s => parseFloat(s.precio) || 0).filter(pr => pr > 0);
-        let minPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
-        let priceDisplay = minPrice > 0 ? `Desde $${minPrice.toLocaleString('es-AR')}` : '';
+        const minPrice = validPrices.length > 0 ? Math.min(...validPrices) : 0;
+        const hasMultiplePrices = validPrices.length > 1 && Math.min(...validPrices) !== Math.max(...validPrices);
+        let priceDisplay = minPrice > 0 ? `${hasMultiplePrices ? 'Desde ' : ''}$${minPrice.toLocaleString('es-AR')}` : '';
         if (!priceDisplay) {
             const hasPkgs = sMatches.some(s => {
                 try {
@@ -3369,40 +3495,26 @@ function initWizard() {
                     return Array.isArray(pk) && pk.length > 0;
                 } catch(e) { return false; }
             });
-            if (hasPkgs) {
-                priceDisplay = 'Tarifas por Pases';
-            }
+            if (hasPkgs) priceDisplay = 'Tarifas por Pases';
         }
-        const dur = sMatches[0].duracion;
-        const formattedDur = formatDuracionText(dur);
-        const img = sMatches[0].imagen1 || sMatches[0].foto_profesional;
-        const iconToUse = sMatches[0].icono || 'local_florist';
 
-        let imgHtml = '';
-        if (img) {
-            imgHtml = `<img src="${img}" class="w-14 h-14 rounded-2xl object-cover shrink-0 border border-slate-200 shadow-xs">`;
-        } else if (iconToUse.startsWith('http') || iconToUse.startsWith('data:') || iconToUse.includes('/')) {
-            imgHtml = `<img src="${iconToUse}" class="w-14 h-14 rounded-2xl object-cover shrink-0 border border-slate-200 shadow-xs">`;
-        } else {
-            imgHtml = `
-                <div class="w-14 h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20 shadow-xs">
-                    <span class="material-symbols-outlined text-[26px]">${iconToUse}</span>
-                </div>`;
-        }
+        const dur = primaryMatch.duracion;
+        const formattedDur = formatDuracionText(dur);
+        const depositAmt = window.getServiceDepositAmount(primaryMatch);
+        const metaParts = [formattedDur];
+        if (depositAmt > 0) metaParts.push(`Seña $${depositAmt.toLocaleString('es-AR')}`);
 
         const btn = document.createElement('button');
-        btn.className = 'w-full text-left p-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-primary hover:shadow-lg hover:-translate-y-0.5 transition-all bg-white dark:bg-slate-800/80 flex justify-between items-center gap-4 group mb-3';
+        btn.type = 'button';
+        btn.setAttribute('data-wizard-service-name', sName);
+        btn.className = 'w-full text-left px-4 py-4 sm:px-5 sm:py-4.5 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-slate-300/90 shadow-[0_2px_14px_rgba(15,23,42,0.05)] hover:shadow-[0_6px_22px_rgba(15,23,42,0.08)] transition-all bg-white dark:bg-slate-900/90 flex justify-between items-center gap-4 group cursor-pointer';
         btn.innerHTML = `
-            <div class="flex items-center gap-4">
-                ${imgHtml}
-                <div>
-                    <p class="font-bold text-slate-800 dark:text-white text-lg group-hover:text-primary transition-colors">${sName}</p>
-                    <p class="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[16px] text-slate-400">schedule</span> ${formattedDur} ${priceDisplay ? '<span class="text-slate-300 dark:text-slate-600">|</span> <span class="text-emerald-600 dark:text-emerald-400 font-bold">' + priceDisplay + '</span>' : ''}
-                    </p>
-                </div>
+            <div class="min-w-0 flex-1 space-y-1">
+                <p class="font-semibold text-slate-900 dark:text-white text-[15px] sm:text-base leading-snug">${escapeHtml(sName)}</p>
+                ${priceDisplay ? `<p class="text-[15px] sm:text-base font-normal text-slate-800 dark:text-slate-200 leading-tight">${priceDisplay}</p>` : ''}
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-normal">${metaParts.join(' · ')}</p>
             </div>
-            <span class="material-symbols-outlined text-slate-300 dark:text-slate-600 group-hover:text-primary group-hover:translate-x-1 transition-transform">chevron_right</span>
+            <span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0">chevron_right</span>
         `;
         btn.onclick = () => selectWizardService(sName);
         sList.appendChild(btn);
@@ -3456,6 +3568,7 @@ function selectWizardService(sName) {
     weeklySelectedService = sName;
     document.getElementById('step1Modal').classList.add('hidden');
     document.getElementById('step2Modal').classList.remove('hidden');
+    if (typeof window.updateWizardStepper === 'function') window.updateWizardStepper(2);
 
     const pList = document.getElementById('wizardProfList');
     pList.innerHTML = '';
@@ -3474,16 +3587,17 @@ function selectWizardService(sName) {
 
     const createProfBtn = (pName, display, icon, metaText = '') => {
         const btn = document.createElement('button');
-        btn.className = 'w-full text-left p-4 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-primary hover:shadow-lg hover:-translate-y-0.5 transition-all bg-slate-50 dark:bg-slate-800 flex items-center gap-4 group mb-3';
+        btn.type = 'button';
+        btn.className = 'w-full text-left px-4 py-3.5 sm:px-5 sm:py-4 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-slate-300/90 shadow-[0_2px_14px_rgba(15,23,42,0.05)] hover:shadow-[0_6px_22px_rgba(15,23,42,0.08)] transition-all bg-white dark:bg-slate-900/90 flex items-center gap-3.5 group cursor-pointer';
         btn.innerHTML = `
-            <div class="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
-                ${icon ? `<img src="${icon}" class="w-full h-full rounded-full object-cover">` : `<span class="material-symbols-outlined text-2xl">${pName === 'Cualquiera' ? 'groups' : 'person'}</span>`}
+            <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 overflow-hidden border border-slate-100 dark:border-slate-700">
+                ${icon ? `<img src="${icon}" class="w-full h-full object-cover">` : `<span class="material-symbols-outlined text-[22px]">${pName === 'Cualquiera' ? 'groups' : 'person'}</span>`}
             </div>
             <div class="flex-1 min-w-0">
-                <p class="font-bold text-slate-800 dark:text-white text-lg group-hover:text-primary transition-colors truncate">${escapeHtml(display)}</p>
-                ${metaText ? `<p class="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">${metaText}</p>` : ''}
+                <p class="font-semibold text-slate-900 dark:text-white text-[15px] sm:text-base truncate">${escapeHtml(display)}</p>
+                ${metaText ? `<p class="text-xs font-normal text-slate-500 dark:text-slate-400 mt-0.5 truncate">${metaText}</p>` : ''}
             </div>
-            <span class="material-symbols-outlined text-slate-300 dark:text-slate-600 group-hover:text-primary group-hover:translate-x-1 transition-transform">chevron_right</span>
+            <span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0">chevron_right</span>
         `;
         btn.onclick = () => selectWizardProf(pName);
         return btn;
@@ -3493,14 +3607,16 @@ function selectWizardService(sName) {
         const baseMatch = matchingServices[0];
         const basePrice = parseFloat(baseMatch?.precio || 0);
         const baseDur = baseMatch ? formatDuracionText(baseMatch.duracion) : '';
-        const baseMeta = [baseDur, basePrice > 0 ? `$${basePrice.toLocaleString('es-AR')}` : ''].filter(Boolean).join(' • ');
+        const baseDep = window.getServiceDepositAmount(baseMatch);
+        const baseMeta = [baseDur, basePrice > 0 ? `$${basePrice.toLocaleString('es-AR')}` : '', baseDep > 0 ? `Seña $${baseDep.toLocaleString('es-AR')}` : ''].filter(Boolean).join(' · ');
         pList.appendChild(createProfBtn('Cualquiera', 'Profesional disponible', baseMatch ? (baseMatch.foto_profesional || baseMatch.imagen1) : null, baseMeta));
     } else {
         uniqueProfs.forEach(p => {
             const sMatch = matchingServices.find(s => window.isSameProf ? window.isSameProf(s.profesional, p) : ((s.profesional || '').toLowerCase().includes(p.toLowerCase()) || p.toLowerCase().includes((s.profesional || '').toLowerCase())));
             const pPrice = parseFloat(sMatch?.precio || 0);
             const pDur = sMatch ? formatDuracionText(sMatch.duracion) : '';
-            const meta = [pDur, pPrice > 0 ? `$${pPrice.toLocaleString('es-AR')}` : ''].filter(Boolean).join(' • ');
+            const pDep = window.getServiceDepositAmount(sMatch);
+            const meta = [pDur, pPrice > 0 ? `$${pPrice.toLocaleString('es-AR')}` : '', pDep > 0 ? `Seña $${pDep.toLocaleString('es-AR')}` : ''].filter(Boolean).join(' · ');
             pList.appendChild(createProfBtn(p, p, sMatch ? (sMatch.foto_profesional || sMatch.imagen1) : null, meta));
         });
     }
@@ -3509,10 +3625,12 @@ function selectWizardService(sName) {
 function backToStep1() {
     document.getElementById('step2Modal').classList.add('hidden');
     document.getElementById('step1Modal').classList.remove('hidden');
+    if (typeof window.updateWizardStepper === 'function') window.updateWizardStepper(1);
 }
 
 function selectWizardProf(pName) {
     weeklySelectedProf = pName;
+    if (typeof window.updateWizardStepper === 'function') window.updateWizardStepper(3);
     
     const wizardOverlay = document.getElementById('wizardOverlay');
     if (wizardOverlay) wizardOverlay.classList.add('hidden');
@@ -3526,7 +3644,24 @@ function selectWizardProf(pName) {
     if (sumService) sumService.textContent = weeklySelectedService;
     
     const sumProf = document.getElementById('summaryProf');
-    if (sumProf) sumProf.innerHTML = `<span class="material-symbols-outlined text-[16px]">person</span> ${pName === 'Cualquiera' ? 'Sin preferencia' : pName}`;
+    if (sumProf) sumProf.innerHTML = `<span class="material-symbols-outlined text-[15px] text-slate-400">person</span> ${pName === 'Cualquiera' ? 'Profesional disponible' : escapeHtml(pName)}`;
+
+    const sumPriceSena = document.getElementById('summaryPriceSena');
+    if (sumPriceSena) {
+        const matchedSvc = services.find(s => s.nombre === weeklySelectedService && (pName === 'Cualquiera' || (window.isSameProf ? window.isSameProf(s.profesional, pName) : s.profesional === pName)))
+            || services.find(s => s.nombre === weeklySelectedService);
+        if (matchedSvc) {
+            const pVal = parseFloat(matchedSvc.precio || 0) || 0;
+            const dVal = window.getServiceDepositAmount(matchedSvc);
+            const parts = [formatDuracionText(matchedSvc.duracion)];
+            if (pVal > 0) parts.push(`$${pVal.toLocaleString('es-AR')}`);
+            if (dVal > 0) parts.push(`Seña $${dVal.toLocaleString('es-AR')}`);
+            sumPriceSena.textContent = parts.join(' · ');
+            sumPriceSena.classList.remove('hidden');
+        } else {
+            sumPriceSena.classList.add('hidden');
+        }
+    }
     
     const wServ = document.getElementById('weeklyServicio');
     if (wServ) wServ.value = weeklySelectedService;
@@ -4313,6 +4448,7 @@ function resetWizard() {
     
     const wizardOverlay = document.getElementById('wizardOverlay');
     if (wizardOverlay) wizardOverlay.classList.remove('hidden');
+    if (typeof window.updateWizardStepper === 'function') window.updateWizardStepper(1);
 }
 
 function cal_fetchBookedTimesWeekly() {
@@ -5225,7 +5361,19 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const form = document.getElementById('weeklyBookingForm');
     if (form) {
-        fetch(negocioSlug ? `backend/guardar_web.php?n=${negocioSlug}` : `backend/guardar_web.php`).then(r => r.json()).then(conf => { if (conf) { window.businessWebConfig = Object.assign(window.businessWebConfig || {}, conf); if (typeof window.syncCouponFieldVisibility === 'function') window.syncCouponFieldVisibility(window.businessWebConfig); } }).catch(() => {});
+        fetch(negocioSlug ? `backend/guardar_web.php?n=${negocioSlug}` : `backend/guardar_web.php`).then(r => r.json()).then(conf => {
+            if (conf) {
+                window.businessWebConfig = Object.assign(window.businessWebConfig || {}, conf);
+                if (typeof window.syncCouponFieldVisibility === 'function') window.syncCouponFieldVisibility(window.businessWebConfig);
+                if ((!isAdmin || isPreviewMode) && typeof window.updateClientEditorialHeader === 'function') {
+                    window.updateClientEditorialHeader(true);
+                    const step1El = document.getElementById('step1Modal');
+                    if (step1El && !step1El.classList.contains('hidden') && Array.isArray(services) && services.length > 0) {
+                        initWizard();
+                    }
+                }
+            }
+        }).catch(() => {});
         document.getElementById('prevWeek').addEventListener('click', () => { 
             const effectiveIsAdmin = isAdmin && !isPreviewMode;
             if (!effectiveIsAdmin) {
