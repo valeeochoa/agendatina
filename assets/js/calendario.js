@@ -3290,49 +3290,18 @@ window.getServiceDepositAmount = function(svc) {
     if (!svc) return 0;
     const precio = parseFloat(svc.precio || 0) || 0;
     const senaFija = parseFloat(svc.precio_sena || 0) || 0;
+    if (senaFija > 0) return Math.round(senaFija);
     const cfg = window.businessWebConfig || {};
     const pct = parseInt(cfg.porcentaje_sena || 0, 10) || 0;
-    const senaActiva = (cfg.reserva_sena_1h == 1 || cfg.reserva_sena_1h === true || pct > 0 || senaFija > 0);
-    if (!senaActiva) return 0;
-    if (precio > 0 && pct > 0) return Math.round(precio * (pct / 100));
-    if (senaFija > 0) return Math.round(senaFija);
-    return 0;
+    const senaActiva = (cfg.reserva_sena_1h == 1 || cfg.reserva_sena_1h === true);
+    if (!senaActiva || precio <= 0 || pct <= 0 || pct >= 100) return 0;
+    return Math.round(precio * (pct / 100));
 };
 
 window.updateClientEditorialHeader = function(isClientMode) {
     const shell = document.getElementById('clientEditorialShell');
     if (!shell) return;
-    const body = document.getElementById('calBody');
-    if (!isClientMode) {
-        shell.classList.add('hidden');
-        if (body) body.style.backgroundImage = '';
-        return;
-    }
-    shell.classList.remove('hidden');
-    if (body && !document.documentElement.classList.contains('dark')) {
-        body.style.backgroundImage = 'linear-gradient(180deg, #ffffff 0%, #fafafb 58%, color-mix(in srgb, var(--color-primario, #D11149) 9%, #ffffff) 100%)';
-    }
-
-    const cfg = window.businessWebConfig || {};
-    const navNameEl = document.getElementById('navBusinessNameText');
-    const navLogoEl = document.getElementById('navBusinessLogoImg');
-    const bizName = (cfg.nombre_fantasia || cfg.nombre_negocio || (navNameEl ? navNameEl.textContent : '') || 'Reserva tu turno').trim();
-    const logoUrl = cfg.logo_url || cfg.foto_perfil || (navLogoEl && !navLogoEl.classList.contains('hidden') ? navLogoEl.getAttribute('src') : '');
-
-    const nameEl = document.getElementById('clientBizName');
-    if (nameEl && bizName) nameEl.textContent = bizName;
-    const logoEl = document.getElementById('clientBizLogoImg');
-    const monoEl = document.getElementById('clientBizMonogram');
-    if (logoEl && monoEl) {
-        if (logoUrl) {
-            logoEl.src = logoUrl;
-            logoEl.classList.remove('hidden');
-            monoEl.classList.add('hidden');
-        } else {
-            logoEl.classList.add('hidden');
-            monoEl.classList.remove('hidden');
-        }
-    }
+    shell.classList.toggle('hidden', !isClientMode);
 };
 
 window.updateWizardStepper = function(stepNum) {
@@ -3344,11 +3313,35 @@ window.updateWizardStepper = function(stepNum) {
     if (countEl) countEl.textContent = `Paso ${step} de 3`;
     for (let i = 1; i <= 3; i++) {
         const bar = document.getElementById('wizardStepBar' + i);
-        if (!bar) continue;
-        if (i <= step) {
-            bar.className = 'h-[3px] rounded-full bg-slate-900 dark:bg-white transition-all duration-300';
-        } else {
-            bar.className = 'h-[3px] rounded-full bg-slate-200 dark:bg-slate-700 transition-all duration-300';
+        if (bar) {
+            if (i <= step) {
+                bar.className = 'h-1 rounded-full bg-primary transition-all duration-300';
+            } else {
+                bar.className = 'h-1 rounded-full bg-slate-200 dark:bg-slate-700 transition-all duration-300';
+            }
+        }
+        const pill = document.getElementById('wizardStepPill' + i);
+        if (pill) {
+            const badge = pill.querySelector('span:first-child');
+            if (i < step) {
+                pill.className = 'inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400';
+                if (badge) {
+                    badge.className = 'w-5 h-5 rounded-full bg-emerald-500 text-white text-[11px] font-bold flex items-center justify-center shrink-0';
+                    badge.textContent = '✓';
+                }
+            } else if (i === step) {
+                pill.className = 'inline-flex items-center gap-1.5 text-xs font-semibold text-primary';
+                if (badge) {
+                    badge.className = 'w-5 h-5 rounded-full bg-primary text-white text-[11px] font-bold flex items-center justify-center shrink-0';
+                    badge.textContent = String(i);
+                }
+            } else {
+                pill.className = 'inline-flex items-center gap-1.5 text-xs font-medium text-slate-400';
+                if (badge) {
+                    badge.className = 'w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 text-[11px] font-bold flex items-center justify-center shrink-0';
+                    badge.textContent = String(i);
+                }
+            }
         }
     }
 };
@@ -3446,7 +3439,7 @@ function initWizard() {
         const catBar = document.createElement('div');
         catBar.id = 'wizardCategoryBar';
         catBar.className = 'flex gap-2 overflow-x-auto pb-1 custom-scrollbar';
-        catBar.innerHTML = `<button type="button" class="px-4 py-1.5 rounded-full font-medium text-xs sm:text-sm shrink-0 text-slate-900 border border-transparent shadow-2xs" style="background-color: color-mix(in srgb, var(--color-primario, #D11149) 18%, #ffffff);">Todos</button>`;
+        catBar.innerHTML = `<button type="button" class="px-4 py-1.5 rounded-full font-semibold text-xs sm:text-sm shrink-0 bg-primary/10 text-primary border border-primary/20 shadow-2xs">Todos</button>`;
         
         wrapper.appendChild(catBar);
         sList.parentElement.insertBefore(wrapper, sList);
@@ -3463,7 +3456,7 @@ function initWizard() {
                     </div>
                     <p class="text-slate-900 font-semibold mb-1 text-base">Aún no tenés servicios cargados</p>
                     <p class="text-xs sm:text-sm text-slate-500 mb-4">Agregá tu primer servicio desde el panel para empezar a recibir turnos.</p>
-                    <button type="button" onclick="window.location.href='servicios.html'" class="inline-block bg-slate-900 text-white font-medium py-2.5 px-5 rounded-xl hover:bg-slate-800 transition-colors text-xs sm:text-sm">Crear mi primer servicio</button>
+                    <button type="button" onclick="window.location.href='servicios.html'" class="inline-block bg-primary text-white font-semibold py-2.5 px-5 rounded-xl hover:opacity-95 transition-all text-xs sm:text-sm">Crear mi primer servicio</button>
                 </div>
             `;
         } else {
@@ -3501,20 +3494,25 @@ function initWizard() {
         const dur = primaryMatch.duracion;
         const formattedDur = formatDuracionText(dur);
         const depositAmt = window.getServiceDepositAmount(primaryMatch);
-        const metaParts = [formattedDur];
-        if (depositAmt > 0) metaParts.push(`Seña $${depositAmt.toLocaleString('es-AR')}`);
+        const svcImg = primaryMatch.imagen1 || '';
 
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.setAttribute('data-wizard-service-name', sName);
-        btn.className = 'w-full text-left px-4 py-4 sm:px-5 sm:py-4.5 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-slate-300/90 shadow-[0_2px_14px_rgba(15,23,42,0.05)] hover:shadow-[0_6px_22px_rgba(15,23,42,0.08)] transition-all bg-white dark:bg-slate-900/90 flex justify-between items-center gap-4 group cursor-pointer';
+        btn.className = 'w-full text-left p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 hover:border-primary/45 shadow-xs hover:shadow-md transition-all bg-white dark:bg-slate-900/90 flex items-center gap-3.5 group cursor-pointer';
         btn.innerHTML = `
-            <div class="min-w-0 flex-1 space-y-1">
-                <p class="font-semibold text-slate-900 dark:text-white text-[15px] sm:text-base leading-snug">${escapeHtml(sName)}</p>
-                ${priceDisplay ? `<p class="text-[15px] sm:text-base font-normal text-slate-800 dark:text-slate-200 leading-tight">${priceDisplay}</p>` : ''}
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-normal">${metaParts.join(' · ')}</p>
+            <div class="w-12 h-12 rounded-2xl bg-primary/10 text-primary border border-primary/15 flex items-center justify-center shrink-0 overflow-hidden">
+                ${svcImg ? `<img src="${escapeHtml(svcImg)}" alt="${escapeHtml(sName)}" class="w-full h-full object-cover">` : `<span class="material-symbols-outlined text-[22px]">spa</span>`}
             </div>
-            <span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0">chevron_right</span>
+            <div class="min-w-0 flex-1 space-y-0.5">
+                <p class="font-semibold text-slate-900 dark:text-white text-[15px] sm:text-base leading-snug truncate">${escapeHtml(sName)}</p>
+                ${priceDisplay ? `<p class="text-sm sm:text-[15px] font-bold text-slate-800 dark:text-slate-100 leading-tight">${priceDisplay}</p>` : ''}
+                <div class="flex items-center flex-wrap gap-1.5 pt-0.5">
+                    <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">${formattedDur}</span>
+                    ${depositAmt > 0 ? `<span class="text-[11px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">Seña $${depositAmt.toLocaleString('es-AR')}</span>` : ''}
+                </div>
+            </div>
+            <span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0">chevron_right</span>
         `;
         btn.onclick = () => selectWizardService(sName);
         sList.appendChild(btn);
@@ -3588,16 +3586,16 @@ function selectWizardService(sName) {
     const createProfBtn = (pName, display, icon, metaText = '') => {
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'w-full text-left px-4 py-3.5 sm:px-5 sm:py-4 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-slate-300/90 shadow-[0_2px_14px_rgba(15,23,42,0.05)] hover:shadow-[0_6px_22px_rgba(15,23,42,0.08)] transition-all bg-white dark:bg-slate-900/90 flex items-center gap-3.5 group cursor-pointer';
+        btn.className = 'w-full text-left p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 hover:border-primary/45 shadow-xs hover:shadow-md transition-all bg-white dark:bg-slate-900/90 flex items-center gap-3.5 group cursor-pointer';
         btn.innerHTML = `
-            <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center shrink-0 overflow-hidden border border-slate-100 dark:border-slate-700">
-                ${icon ? `<img src="${icon}" class="w-full h-full object-cover">` : `<span class="material-symbols-outlined text-[22px]">${pName === 'Cualquiera' ? 'groups' : 'person'}</span>`}
+            <div class="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 overflow-hidden border border-primary/15">
+                ${icon ? `<img src="${escapeHtml(icon)}" class="w-full h-full object-cover">` : `<span class="material-symbols-outlined text-[22px]">${pName === 'Cualquiera' ? 'groups' : 'person'}</span>`}
             </div>
             <div class="flex-1 min-w-0">
                 <p class="font-semibold text-slate-900 dark:text-white text-[15px] sm:text-base truncate">${escapeHtml(display)}</p>
-                ${metaText ? `<p class="text-xs font-normal text-slate-500 dark:text-slate-400 mt-0.5 truncate">${metaText}</p>` : ''}
+                ${metaText ? `<p class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5 truncate">${metaText}</p>` : ''}
             </div>
-            <span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0">chevron_right</span>
+            <span class="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0">chevron_right</span>
         `;
         btn.onclick = () => selectWizardProf(pName);
         return btn;
