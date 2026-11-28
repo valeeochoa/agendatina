@@ -4046,15 +4046,29 @@ function cal_fetchBookedTimesWeeklyAdmin() {
 
 var adminWeeklyMobileMode = 'day';
 var adminWeeklyMobileDayIdx = null;
+var adminWeeklyExpandedDay = null; // 'YYYY-MM-DD' cuando un día está expandido a ancho completo
 
 window.setAdminWeeklyMobileMode = function(mode) {
     adminWeeklyMobileMode = (mode === 'week') ? 'week' : 'day';
+    if (mode === 'week') adminWeeklyExpandedDay = null;
+    renderAdminWeeklyGrid();
+};
+
+window.toggleAdminWeeklyExpandedDay = function(dateStr) {
+    if (!dateStr) {
+        adminWeeklyExpandedDay = null;
+    } else if (adminWeeklyExpandedDay === dateStr) {
+        adminWeeklyExpandedDay = null;
+    } else {
+        adminWeeklyExpandedDay = dateStr;
+    }
     renderAdminWeeklyGrid();
 };
 
 window.goToAdminCurrentWeek = function() {
     weekStartDate = window.getStartOfWeek(new Date());
     adminWeeklyMobileDayIdx = null;
+    adminWeeklyExpandedDay = null;
     renderAdminWeeklyGrid();
 };
 
@@ -4101,15 +4115,36 @@ function renderAdminWeeklyGrid() {
             btnDayMode.className = 'px-2.5 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 transition-all';
         }
     }
+    // Verificar si adminWeeklyExpandedDay pertenece a la semana visible actual
+    let expandedInCurrentWeek = false;
+    if (adminWeeklyExpandedDay) {
+        for (let k = 0; k < 7; k++) {
+            const dCheckExp = new Date(weekStartDate);
+            dCheckExp.setDate(weekStartDate.getDate() + k);
+            if (toYYYYMMDD(dCheckExp) === adminWeeklyExpandedDay) {
+                expandedInCurrentWeek = true;
+                adminWeeklyMobileDayIdx = k;
+                break;
+            }
+        }
+        if (!expandedInCurrentWeek) adminWeeklyExpandedDay = null;
+    }
+
     if (mobileStrip) {
         mobileStrip.innerHTML = '';
-        if (adminWeeklyMobileMode === 'day') {
+        if (adminWeeklyExpandedDay) {
+            // Mostrar barra rápida de 7 días también en escritorio cuando un día está expandido
+            mobileStrip.classList.remove('hidden', 'lg:hidden');
+        } else if (adminWeeklyMobileMode === 'day') {
             mobileStrip.classList.remove('hidden');
+            mobileStrip.classList.add('lg:hidden');
         } else {
-            mobileStrip.classList.add('hidden');
+            mobileStrip.classList.add('hidden', 'lg:hidden');
         }
     }
-    if (adminWeeklyMobileMode === 'week') {
+    if (adminWeeklyExpandedDay) {
+        grid.className = 'grid grid-cols-1 gap-4 w-full';
+    } else if (adminWeeklyMobileMode === 'week') {
         grid.className = 'grid grid-cols-7 gap-2 lg:gap-2.5 min-w-[780px] lg:min-w-0 w-full';
     } else {
         grid.className = 'grid grid-cols-1 lg:grid-cols-7 gap-2 lg:gap-2.5 w-full';
@@ -4206,40 +4241,52 @@ function renderAdminWeeklyGrid() {
             dateNumContent = `<div class="text-sm sm:text-base text-slate-900 dark:text-slate-100 font-black py-0.5">${date.getDate()}</div>`;
         }
 
-        const col = document.createElement('div');
-        const mobileColVisibility = (adminWeeklyMobileMode === 'day' && i !== adminWeeklyMobileDayIdx) ? 'hidden lg:flex' : 'flex';
-        col.className = `w-full min-w-0 ${mobileColVisibility} flex-col gap-2 p-2 sm:p-2.5 backdrop-blur-md rounded-2xl border transition-all duration-300 ${colCardClass}`;
+        const isExpandedDay = (adminWeeklyExpandedDay === dateString);
 
-        // Pill del día en la barra móvil (< lg)
-        if (mobileStrip && adminWeeklyMobileMode === 'day') {
-            const isActiveMobileDay = (i === adminWeeklyMobileDayIdx);
+        // Pill del día en la barra superior (móvil en modo Día, y también PC cuando hay un día expandido)
+        if (mobileStrip && (adminWeeklyExpandedDay || adminWeeklyMobileMode === 'day')) {
+            const isActiveStripDay = adminWeeklyExpandedDay ? isExpandedDay : (i === adminWeeklyMobileDayIdx);
             const stripBtn = document.createElement('button');
             stripBtn.type = 'button';
-            stripBtn.className = `flex flex-col items-center justify-center py-1.5 px-0.5 rounded-xl border text-center transition-all cursor-pointer min-w-0 ${
-                isActiveMobileDay
+            stripBtn.className = `flex flex-col items-center justify-center py-2 px-1 rounded-xl border text-center transition-all cursor-pointer min-w-0 ${
+                isActiveStripDay
                     ? 'bg-[#D11149] border-[#D11149] text-white shadow-sm'
                     : (isToday
-                        ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-[#D11149] dark:text-rose-300'
-                        : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200')
+                        ? 'bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-[#D11149] dark:text-rose-300 hover:bg-rose-100'
+                        : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 hover:border-[#D11149]/50')
             }`;
             const badgeHtml = realAptsCount > 0
-                ? `<span class="mt-0.5 text-[9px] font-black px-1.5 rounded-full leading-tight ${isActiveMobileDay ? 'bg-white/25 text-white' : 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300'}">${realAptsCount}</span>`
-                : `<span class="mt-0.5 w-1.5 h-1.5 rounded-full ${isActiveMobileDay ? 'bg-white/60' : 'bg-transparent'}"></span>`;
+                ? `<span class="mt-0.5 text-[9px] font-black px-1.5 rounded-full leading-tight ${isActiveStripDay ? 'bg-white/25 text-white' : 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300'}">${realAptsCount}</span>`
+                : `<span class="mt-0.5 w-1.5 h-1.5 rounded-full ${isActiveStripDay ? 'bg-white/60' : 'bg-transparent'}"></span>`;
             stripBtn.innerHTML = `
-                <span class="text-[9px] font-black uppercase tracking-wider leading-none ${isActiveMobileDay ? 'text-white/90' : 'text-slate-400'}">${dayName.substring(0, 3)}</span>
-                <span class="text-sm font-black leading-tight mt-0.5">${date.getDate()}</span>
+                <span class="text-[9px] sm:text-[10px] font-black uppercase tracking-wider leading-none ${isActiveStripDay ? 'text-white/90' : 'text-slate-400'}">${dayName.substring(0, 3)}</span>
+                <span class="text-sm sm:text-base font-black leading-tight mt-0.5">${date.getDate()}</span>
                 ${badgeHtml}
             `;
             const targetIdx = i;
+            const targetDateStr = dateString;
             stripBtn.onclick = () => {
                 adminWeeklyMobileDayIdx = targetIdx;
+                if (adminWeeklyExpandedDay) {
+                    adminWeeklyExpandedDay = targetDateStr;
+                }
                 renderAdminWeeklyGrid();
             };
             mobileStrip.appendChild(stripBtn);
         }
 
+        // Si hay otro día expandido, no renderizamos las demás columnas en la grilla
+        if (adminWeeklyExpandedDay && !isExpandedDay) {
+            continue;
+        }
+
+        const col = document.createElement('div');
+        const mobileColVisibility = (!isExpandedDay && adminWeeklyMobileMode === 'day' && i !== adminWeeklyMobileDayIdx) ? 'hidden lg:flex' : 'flex';
+        col.className = isExpandedDay
+            ? `w-full min-w-0 flex flex-col gap-4 p-4 sm:p-6 backdrop-blur-md rounded-2xl border transition-all duration-300 ${colCardClass}`
+            : `w-full min-w-0 ${mobileColVisibility} flex-col gap-2 p-2 sm:p-2.5 backdrop-blur-md rounded-2xl border transition-all duration-300 ${colCardClass}`;
+
         const colHeader = document.createElement('div');
-        colHeader.className = `text-center py-2 px-1 rounded-xl border transition-all duration-300 cursor-pointer w-full shrink-0 flex flex-col items-center justify-center relative ${headerBgClass}`;
         
         let pastTag = '';
         if (isPast && !isMultiSelected) {
@@ -4248,11 +4295,45 @@ function renderAdminWeeklyGrid() {
 
         let countPill = '';
         if (realAptsCount > 0) {
-            countPill = `<span class="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-full ${isToday ? 'bg-rose-100 dark:bg-rose-950/60 text-[#D11149]' : 'bg-slate-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-300'} mt-0.5 shadow-2xs">${realAptsCount} ${realAptsCount === 1 ? 'turno' : 'turnos'}</span>`;
+            countPill = `<span class="inline-flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full ${isToday ? 'bg-rose-100 dark:bg-rose-950/60 text-[#D11149]' : 'bg-slate-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-300'} shadow-2xs">${realAptsCount} ${realAptsCount === 1 ? 'turno' : 'turnos'}</span>`;
         }
 
-        colHeader.innerHTML = `${pastTag}<div class="text-[9px] sm:text-[10px] font-black tracking-wider uppercase ${dayNameClass}">${dayName}</div>${dateNumContent}${countPill}`;
-        colHeader.onclick = () => handleDayClick(new Date(date.getTime() + 12*60*60*1000));
+        if (isExpandedDay) {
+            const fullDayTitle = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).format(date);
+            colHeader.className = `py-3 px-4 rounded-2xl border transition-all duration-300 w-full shrink-0 flex items-center justify-between gap-3 flex-wrap ${headerBgClass}`;
+            colHeader.innerHTML = `
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="text-left min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h3 class="text-base sm:text-xl font-extrabold capitalize text-slate-900 dark:text-white leading-tight">${fullDayTitle}</h3>
+                            ${isToday ? '<span class="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-[#D11149] text-white">Hoy</span>' : ''}
+                            ${pastTag}
+                            ${countPill}
+                        </div>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Vista expandida del día · Hacé clic en cualquier horario para gestionar o agregar turnos.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="event.stopPropagation(); window.toggleAdminWeeklyExpandedDay(null)" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-[#D11149] hover:text-[#D11149] text-xs font-bold shadow-2xs transition-all cursor-pointer shrink-0">
+                    <span class="material-symbols-outlined text-[16px]">close_fullscreen</span>
+                    <span>Ver semana completa</span>
+                </button>
+            `;
+        } else {
+            colHeader.className = `group text-center py-2 px-1 rounded-xl border transition-all duration-300 cursor-pointer w-full shrink-0 flex flex-col items-center justify-center relative ${headerBgClass}`;
+            colHeader.title = isMultiSelectMode ? 'Seleccionar día para bloquear' : 'Hacé clic para expandir este día';
+            colHeader.innerHTML = `
+                <span class="material-symbols-outlined text-[13px] text-slate-400 group-hover:text-[#D11149] absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity">open_in_full</span>
+                ${pastTag}<div class="text-[9px] sm:text-[10px] font-black tracking-wider uppercase ${dayNameClass}">${dayName}</div>${dateNumContent}${countPill ? `<div class="mt-0.5">${countPill}</div>` : ''}
+            `;
+            const targetDateStrClick = dateString;
+            colHeader.onclick = () => {
+                if (isMultiSelectMode) {
+                    handleDayClick(new Date(date.getTime() + 12*60*60*1000));
+                } else {
+                    window.toggleAdminWeeklyExpandedDay(targetDateStrClick);
+                }
+            };
+        }
         
         if (effectiveIsAdmin && window.isWorkingDay(date)) {
             colHeader.addEventListener('dragover', (e) => {
@@ -4276,7 +4357,9 @@ function renderAdminWeeklyGrid() {
         col.appendChild(colHeader);
         
         const slotsContainer = document.createElement('div');
-        slotsContainer.className = 'flex flex-col gap-1.5 max-h-[500px] overflow-y-auto pr-0.5 custom-scrollbar w-full flex-1';
+        slotsContainer.className = isExpandedDay
+            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full'
+            : 'flex flex-col gap-1.5 max-h-[500px] overflow-y-auto pr-0.5 custom-scrollbar w-full flex-1';
         
         const horasOcupadas = [...(cal_bookedSlots[dateString] || []), ...window.getBreakTimes(dateString)];
         const isGeneralBlock = horasOcupadas.includes('blocked_day');
@@ -4285,7 +4368,7 @@ function renderAdminWeeklyGrid() {
         
         if (!window.isWorkingDay(date) || isGeneralBlock || isProfBlock) {
             slotsContainer.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-8 px-1 text-center h-full min-h-[160px] rounded-xl bg-slate-50/80 dark:bg-slate-800/30 border border-dashed border-slate-200/80 dark:border-slate-700/80 text-slate-400">
+                <div class="col-span-full flex flex-col items-center justify-center py-8 px-1 text-center h-full min-h-[160px] rounded-xl bg-slate-50/80 dark:bg-slate-800/30 border border-dashed border-slate-200/80 dark:border-slate-700/80 text-slate-400">
                     <span class="material-symbols-outlined text-[20px] text-slate-300 dark:text-slate-600 mb-1">event_busy</span>
                     <span class="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">${!window.isWorkingDay(date) ? 'Cerrado' : 'Día Bloqueado'}</span>
                 </div>
