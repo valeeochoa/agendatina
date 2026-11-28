@@ -559,11 +559,11 @@
                     <p class="text-3xl font-extrabold font-display my-2 tracking-tight" id="paymentPrice"><span class="text-base font-normal text-slate-400">Calculando...</span></p>
                 </div>
                 
-                <div class="bg-blue-50/70 border border-blue-200 rounded-lg p-4 text-blue-900 text-xs sm:text-sm">
-                    <p class="font-bold mb-2">Datos para transferencia:</p>
-                    <p class="flex justify-between py-0.5"><span>CBU:</span> <span class="font-mono font-bold">0000003100000000000000</span></p>
-                    <p class="flex justify-between py-0.5"><span>Alias:</span> <span class="font-mono font-bold">AGENDATINA.PAGOS</span></p>
-                    <p class="flex justify-between py-0.5"><span>Titular:</span> <span class="font-medium">Agendatina S.A.</span></p>
+                <div class="bg-blue-50/70 border border-blue-200 rounded-lg p-4 text-blue-900 text-xs sm:text-sm space-y-1">
+                    <p class="font-bold mb-1.5">Datos para transferencia:</p>
+                    <p class="flex justify-between items-center gap-2 py-0.5"><span>Alias:</span> <span id="dashPagoAlias" class="font-mono font-bold">valentina.ochoa</span></p>
+                    <p class="flex justify-between items-center gap-2 py-0.5"><span>Titular:</span> <span id="dashPagoTitular" class="font-medium">Ochoa Olguin Valentina</span></p>
+                    <p id="dashPagoCbuRow" class="hidden flex justify-between items-center gap-2 py-0.5"><span>CBU / CVU:</span> <span id="dashPagoCbu" class="font-mono font-bold"></span></p>
                 </div>
 
                 <form id="receiptForm" class="flex flex-col gap-4">
@@ -772,7 +772,7 @@
 
     <!-- El container del Tour Virtual Guiado se genera e inyecta dinámicamente desde dashboard.js -->
 
-    <script src="assets/js/script.js?v=1.8.1" defer></script>
+    <script src="assets/js/script.js?v=1.8.2" defer></script>
     <script src="assets/js/dashboard.js?v=1.8.0" defer></script>
 </body>
 </html>

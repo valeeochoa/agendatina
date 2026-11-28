@@ -41,7 +41,14 @@ try {
         try { $pdo->exec("UPDATE configuracion_global SET precio_alumno_extra_premium = 1000 WHERE ROUND(precio_alumno_extra_premium) = 700"); } catch(Exception $ex) {}
     }
 
-    $stmt = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(dias_prueba_defecto, 30) AS dias_prueba_defecto, COALESCE(alumnos_incluidos_premium, 100) AS alumnos_incluidos_premium, COALESCE(precio_alumno_extra_premium, 1000) AS precio_alumno_extra_premium, COALESCE(prem_desc_100_200, 20) AS prem_desc_100_200, COALESCE(prem_desc_300_400, 30) AS prem_desc_300_400, COALESCE(prem_desc_400_500, 40) AS prem_desc_400_500, COALESCE(prem_desc_500_600, 50) AS prem_desc_500_600 FROM configuracion_global ORDER BY id ASC LIMIT 1");
+    try { $pdo->query("SELECT pago_alias FROM configuracion_global LIMIT 1"); }
+    catch(Exception $e) {
+        try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN pago_alias VARCHAR(120) NOT NULL DEFAULT 'valentina.ochoa'"); } catch(Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN pago_titular VARCHAR(160) NOT NULL DEFAULT 'Ochoa Olguin Valentina'"); } catch(Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN pago_cbu VARCHAR(60) DEFAULT ''"); } catch(Exception $ex) {}
+    }
+
+    $stmt = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(dias_prueba_defecto, 30) AS dias_prueba_defecto, COALESCE(alumnos_incluidos_premium, 100) AS alumnos_incluidos_premium, COALESCE(precio_alumno_extra_premium, 1000) AS precio_alumno_extra_premium, COALESCE(prem_desc_100_200, 20) AS prem_desc_100_200, COALESCE(prem_desc_300_400, 30) AS prem_desc_300_400, COALESCE(prem_desc_400_500, 40) AS prem_desc_400_500, COALESCE(prem_desc_500_600, 50) AS prem_desc_500_600, COALESCE(NULLIF(TRIM(pago_alias), ''), 'valentina.ochoa') AS pago_alias, COALESCE(NULLIF(TRIM(pago_titular), ''), 'Ochoa Olguin Valentina') AS pago_titular, COALESCE(TRIM(pago_cbu), '') AS pago_cbu FROM configuracion_global ORDER BY id ASC LIMIT 1");
     $precios = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$precios) {
         $precios = [
@@ -56,7 +63,10 @@ try {
             'prem_desc_500_600' => 50,
             'descuento_porcentaje' => 10,
             'descuento_hasta' => null,
-            'dias_prueba_defecto' => 30
+            'dias_prueba_defecto' => 30,
+            'pago_alias' => 'valentina.ochoa',
+            'pago_titular' => 'Ochoa Olguin Valentina',
+            'pago_cbu' => ''
         ];
     } else {
         $precios['precio_basico'] = (float)$precios['precio_basico'];
@@ -70,6 +80,9 @@ try {
         $precios['prem_desc_500_600'] = min(50, max(0, (int)($precios['prem_desc_500_600'] ?? 50)));
         $precios['descuento_porcentaje'] = isset($precios['descuento_porcentaje']) ? (int)$precios['descuento_porcentaje'] : 0;
         $precios['dias_prueba_defecto'] = !empty($precios['dias_prueba_defecto']) ? (int)$precios['dias_prueba_defecto'] : 30;
+        $precios['pago_alias'] = !empty(trim((string)($precios['pago_alias'] ?? ''))) ? trim((string)$precios['pago_alias']) : 'valentina.ochoa';
+        $precios['pago_titular'] = !empty(trim((string)($precios['pago_titular'] ?? ''))) ? trim((string)$precios['pago_titular']) : 'Ochoa Olguin Valentina';
+        $precios['pago_cbu'] = trim((string)($precios['pago_cbu'] ?? ''));
 
         if (!empty($precios['descuento_hasta'])) {
             $expTime = strtotime($precios['descuento_hasta']);
@@ -96,7 +109,10 @@ try {
             'prem_desc_500_600' => 50,
             'descuento_porcentaje' => 10,
             'descuento_hasta' => null,
-            'dias_prueba_defecto' => 30
+            'dias_prueba_defecto' => 30,
+            'pago_alias' => 'valentina.ochoa',
+            'pago_titular' => 'Ochoa Olguin Valentina',
+            'pago_cbu' => ''
         ]
     ]);
 }

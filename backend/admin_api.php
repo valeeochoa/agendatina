@@ -535,16 +535,20 @@ if ($method === 'GET') {
         try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_300_400 INT NOT NULL DEFAULT 30"); } catch(Exception $ex) {}
         try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_400_500 INT NOT NULL DEFAULT 40"); } catch(Exception $ex) {}
         try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_500_600 INT NOT NULL DEFAULT 50"); } catch(Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN pago_alias VARCHAR(120) NOT NULL DEFAULT 'valentina.ochoa'"); } catch(Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN pago_titular VARCHAR(160) NOT NULL DEFAULT 'Ochoa Olguin Valentina'"); } catch(Exception $ex) {}
+        try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN pago_cbu VARCHAR(60) DEFAULT ''"); } catch(Exception $ex) {}
 
         // Obtener la configuración global
-        $stmtConfig = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(dias_prueba_defecto, 30) AS dias_prueba_defecto, COALESCE(alumnos_incluidos_premium, 100) AS alumnos_incluidos_premium, COALESCE(precio_alumno_extra_premium, 1000) AS precio_alumno_extra_premium, COALESCE(prem_desc_100_200, 20) AS prem_desc_100_200, COALESCE(prem_desc_300_400, 30) AS prem_desc_300_400, COALESCE(prem_desc_400_500, 40) AS prem_desc_400_500, COALESCE(prem_desc_500_600, 50) AS prem_desc_500_600 FROM configuracion_global WHERE id = 1");
+        $stmtConfig = $pdo->query("SELECT precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, COALESCE(dias_prueba_defecto, 30) AS dias_prueba_defecto, COALESCE(alumnos_incluidos_premium, 100) AS alumnos_incluidos_premium, COALESCE(precio_alumno_extra_premium, 1000) AS precio_alumno_extra_premium, COALESCE(prem_desc_100_200, 20) AS prem_desc_100_200, COALESCE(prem_desc_300_400, 30) AS prem_desc_300_400, COALESCE(prem_desc_400_500, 40) AS prem_desc_400_500, COALESCE(prem_desc_500_600, 50) AS prem_desc_500_600, COALESCE(NULLIF(TRIM(pago_alias), ''), 'valentina.ochoa') AS pago_alias, COALESCE(NULLIF(TRIM(pago_titular), ''), 'Ochoa Olguin Valentina') AS pago_titular, COALESCE(TRIM(pago_cbu), '') AS pago_cbu FROM configuracion_global WHERE id = 1");
         $config_global = $stmtConfig ? $stmtConfig->fetch(PDO::FETCH_ASSOC) : null;
         if (!$config_global) {
             $config_global = [
                 'precio_basico' => 8889, 'precio_intermedio' => 11111, 'precio_premium' => 35000,
                 'alumnos_incluidos_premium' => 100, 'precio_alumno_extra_premium' => 1000,
                 'prem_desc_100_200' => 20, 'prem_desc_300_400' => 30, 'prem_desc_400_500' => 40, 'prem_desc_500_600' => 50,
-                'descuento_porcentaje' => 10, 'descuento_hasta' => null, 'dias_prueba_defecto' => 30
+                'descuento_porcentaje' => 10, 'descuento_hasta' => null, 'dias_prueba_defecto' => 30,
+                'pago_alias' => 'valentina.ochoa', 'pago_titular' => 'Ochoa Olguin Valentina', 'pago_cbu' => ''
             ];
         } else {
             if (!empty($config_global['descuento_hasta'])) {
@@ -997,6 +1001,9 @@ elseif ($method === 'PUT') {
             $prem_desc_300_400 = isset($data['prem_desc_300_400']) ? min(50, max(0, (int)$data['prem_desc_300_400'])) : 30;
             $prem_desc_400_500 = isset($data['prem_desc_400_500']) ? min(50, max(0, (int)$data['prem_desc_400_500'])) : 40;
             $prem_desc_500_600 = isset($data['prem_desc_500_600']) ? min(50, max(0, (int)$data['prem_desc_500_600'])) : 50;
+            $pago_alias = isset($data['pago_alias']) && trim((string)$data['pago_alias']) !== '' ? substr(trim((string)$data['pago_alias']), 0, 120) : 'valentina.ochoa';
+            $pago_titular = isset($data['pago_titular']) && trim((string)$data['pago_titular']) !== '' ? substr(trim((string)$data['pago_titular']), 0, 160) : 'Ochoa Olguin Valentina';
+            $pago_cbu = isset($data['pago_cbu']) ? substr(trim((string)$data['pago_cbu']), 0, 60) : '';
             
             // Asegurar columnas
             try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN dias_prueba_defecto INT NOT NULL DEFAULT 30"); } catch(Exception $ex) {}
@@ -1006,15 +1013,18 @@ elseif ($method === 'PUT') {
             try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_300_400 INT NOT NULL DEFAULT 30"); } catch(Exception $ex) {}
             try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_400_500 INT NOT NULL DEFAULT 40"); } catch(Exception $ex) {}
             try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN prem_desc_500_600 INT NOT NULL DEFAULT 50"); } catch(Exception $ex) {}
+            try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN pago_alias VARCHAR(120) NOT NULL DEFAULT 'valentina.ochoa'"); } catch(Exception $ex) {}
+            try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN pago_titular VARCHAR(160) NOT NULL DEFAULT 'Ochoa Olguin Valentina'"); } catch(Exception $ex) {}
+            try { $pdo->exec("ALTER TABLE configuracion_global ADD COLUMN pago_cbu VARCHAR(60) DEFAULT ''"); } catch(Exception $ex) {}
 
-            $stmt = $pdo->prepare("UPDATE configuracion_global SET precio_basico = ?, precio_intermedio = ?, precio_premium = ?, descuento_porcentaje = ?, descuento_hasta = ?, dias_prueba_defecto = ?, alumnos_incluidos_premium = ?, precio_alumno_extra_premium = ?, prem_desc_100_200 = ?, prem_desc_300_400 = ?, prem_desc_400_500 = ?, prem_desc_500_600 = ? WHERE id = 1");
-            $stmt->execute([$basico, $intermedio, $premium, $descuento_porcentaje, $descuento_hasta, $dias_prueba, $alumnos_incluidos_premium, $precio_alumno_extra_premium, $prem_desc_100_200, $prem_desc_300_400, $prem_desc_400_500, $prem_desc_500_600]);
+            $stmt = $pdo->prepare("UPDATE configuracion_global SET precio_basico = ?, precio_intermedio = ?, precio_premium = ?, descuento_porcentaje = ?, descuento_hasta = ?, dias_prueba_defecto = ?, alumnos_incluidos_premium = ?, precio_alumno_extra_premium = ?, prem_desc_100_200 = ?, prem_desc_300_400 = ?, prem_desc_400_500 = ?, prem_desc_500_600 = ?, pago_alias = ?, pago_titular = ?, pago_cbu = ? WHERE id = 1");
+            $stmt->execute([$basico, $intermedio, $premium, $descuento_porcentaje, $descuento_hasta, $dias_prueba, $alumnos_incluidos_premium, $precio_alumno_extra_premium, $prem_desc_100_200, $prem_desc_300_400, $prem_desc_400_500, $prem_desc_500_600, $pago_alias, $pago_titular, $pago_cbu]);
             
             if ($stmt->rowCount() === 0) {
                 $check = $pdo->query("SELECT id FROM configuracion_global WHERE id = 1")->fetch();
                 if (!$check) {
-                    $pdo->prepare("INSERT INTO configuracion_global (id, precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, dias_prueba_defecto, alumnos_incluidos_premium, precio_alumno_extra_premium, prem_desc_100_200, prem_desc_300_400, prem_desc_400_500, prem_desc_500_600) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-                        ->execute([$basico, $intermedio, $premium, $descuento_porcentaje, $descuento_hasta, $dias_prueba, $alumnos_incluidos_premium, $precio_alumno_extra_premium, $prem_desc_100_200, $prem_desc_300_400, $prem_desc_400_500, $prem_desc_500_600]);
+                    $pdo->prepare("INSERT INTO configuracion_global (id, precio_basico, precio_intermedio, precio_premium, descuento_porcentaje, descuento_hasta, dias_prueba_defecto, alumnos_incluidos_premium, precio_alumno_extra_premium, prem_desc_100_200, prem_desc_300_400, prem_desc_400_500, prem_desc_500_600, pago_alias, pago_titular, pago_cbu) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+                        ->execute([$basico, $intermedio, $premium, $descuento_porcentaje, $descuento_hasta, $dias_prueba, $alumnos_incluidos_premium, $precio_alumno_extra_premium, $prem_desc_100_200, $prem_desc_300_400, $prem_desc_400_500, $prem_desc_500_600, $pago_alias, $pago_titular, $pago_cbu]);
                 }
             }
 

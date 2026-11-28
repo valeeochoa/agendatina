@@ -2505,10 +2505,39 @@ window.renderWppQuotaWidget = function (stats) {
     }
 };
 
+window.syncDashboardPaymentTransferInfo = function (cfg) {
+    if (!cfg) return;
+    const aliasEl = document.getElementById('dashPagoAlias');
+    const titularEl = document.getElementById('dashPagoTitular');
+    const cbuRow = document.getElementById('dashPagoCbuRow');
+    const cbuEl = document.getElementById('dashPagoCbu');
+    if (aliasEl && cfg.pago_alias) aliasEl.textContent = String(cfg.pago_alias).trim();
+    if (titularEl && cfg.pago_titular) titularEl.textContent = String(cfg.pago_titular).trim();
+    if (cbuRow && cbuEl) {
+        const cbuVal = cfg.pago_cbu ? String(cfg.pago_cbu).trim() : '';
+        if (cbuVal) {
+            cbuEl.textContent = cbuVal;
+            cbuRow.classList.remove('hidden');
+        } else {
+            cbuRow.classList.add('hidden');
+        }
+    }
+};
+
 function openPaymentModal() {
     const modal = document.getElementById('paymentModal');
     const content = document.getElementById('paymentModalContent');
     if (!modal || !content) return;
+    if (window.globalPricesData && window.globalPricesData.pago_alias) {
+        window.syncDashboardPaymentTransferInfo(window.globalPricesData);
+    } else {
+        fetch('backend/obtener_precios.php').then(r => r.json()).then(res => {
+            if (res && res.success && res.data) {
+                window.globalPricesData = Object.assign(window.globalPricesData || {}, res.data);
+                window.syncDashboardPaymentTransferInfo(res.data);
+            }
+        }).catch(() => {});
+    }
     modal.classList.remove('hidden');
     setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.remove('scale-95'); }, 10);
     setTimeout(() => {

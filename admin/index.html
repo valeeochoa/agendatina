@@ -679,6 +679,28 @@
                     <p class="text-xs text-slate-500 mt-1">Días de acceso de prueba asignados al crear una cuenta gratis.</p>
                 </div>
             </div>
+
+            <div class="bg-blue-50/80 p-4 rounded-xl border border-blue-200">
+                <h3 class="text-sm font-bold text-blue-900 mb-1 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[18px] text-blue-600">account_balance</span>
+                    Datos de Transferencia (Cobro de Planes)
+                </h3>
+                <p class="text-xs text-blue-700/80 mb-3">Esta información se muestra automáticamente a todos los negocios cuando van a abonar su plan.</p>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Alias para Transferir</label>
+                        <input type="text" id="pagoAlias" required maxlength="120" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm font-mono font-bold text-slate-800" placeholder="valentina.ochoa">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Titular de la Cuenta</label>
+                        <input type="text" id="pagoTitular" required maxlength="160" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm font-semibold text-slate-800" placeholder="Ochoa Olguin Valentina">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">CBU / CVU <span class="font-normal text-slate-400">(opcional)</span></label>
+                        <input type="text" id="pagoCbu" maxlength="60" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500 outline-none text-sm font-mono text-slate-700" placeholder="Dejar vacío si preferís mostrar solo Alias y Titular">
+                    </div>
+                </div>
+            </div>
             <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-4">
                 <button type="button" onclick="closePricesModal()" class="px-6 py-3 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancelar</button>
                 <button type="submit" id="btnPricesSubmit" class="px-6 py-3 font-bold text-white bg-[#d11149] hover:bg-[#f44979] rounded-xl shadow-lg shadow-[#d11149]/20 transition-all hover:-translate-y-0.5 flex items-center gap-2"><span class="material-symbols-outlined text-[20px]">save</span> Guardar</button>
@@ -1896,6 +1918,9 @@ function openPricesModal() {
         document.getElementById('premDesc500_600').value = window.globalConfig.prem_desc_500_600 !== undefined ? window.globalConfig.prem_desc_500_600 : 50;
         document.getElementById('descuentoPorcentaje').value = window.globalConfig.descuento_porcentaje !== undefined ? window.globalConfig.descuento_porcentaje : 0;
         document.getElementById('diasPruebaDefecto').value = window.globalConfig.dias_prueba_defecto !== undefined ? window.globalConfig.dias_prueba_defecto : 30;
+        document.getElementById('pagoAlias').value = window.globalConfig.pago_alias || 'valentina.ochoa';
+        document.getElementById('pagoTitular').value = window.globalConfig.pago_titular || 'Ochoa Olguin Valentina';
+        document.getElementById('pagoCbu').value = window.globalConfig.pago_cbu || '';
         if (window.globalConfig.descuento_hasta) {
             document.getElementById('descuentoHasta').value = window.globalConfig.descuento_hasta.substring(0, 16);
         } else {
@@ -1913,6 +1938,8 @@ function openPricesModal() {
         if (!document.getElementById('premDesc500_600').value) document.getElementById('premDesc500_600').value = 50;
         if (!document.getElementById('descuentoPorcentaje').value) document.getElementById('descuentoPorcentaje').value = 0;
         if (!document.getElementById('diasPruebaDefecto').value) document.getElementById('diasPruebaDefecto').value = 30;
+        if (!document.getElementById('pagoAlias').value) document.getElementById('pagoAlias').value = 'valentina.ochoa';
+        if (!document.getElementById('pagoTitular').value) document.getElementById('pagoTitular').value = 'Ochoa Olguin Valentina';
     }
     const modal = document.getElementById('pricesModal');
     const content = document.getElementById('pricesModalContent');
@@ -1942,6 +1969,9 @@ document.getElementById('pricesForm').addEventListener('submit', function(e) {
     const pDesc = parseInt(document.getElementById('descuentoPorcentaje').value) || 0;
     const pDescHasta = document.getElementById('descuentoHasta').value || null;
     const pDiasPrueba = parseInt(document.getElementById('diasPruebaDefecto').value) || 30;
+    const pPagoAlias = (document.getElementById('pagoAlias').value || '').trim() || 'valentina.ochoa';
+    const pPagoTitular = (document.getElementById('pagoTitular').value || '').trim() || 'Ochoa Olguin Valentina';
+    const pPagoCbu = (document.getElementById('pagoCbu').value || '').trim();
 
     const payload = {
         action: 'update_prices',
@@ -1956,7 +1986,10 @@ document.getElementById('pricesForm').addEventListener('submit', function(e) {
         prem_desc_500_600: pD500,
         descuento_porcentaje: pDesc,
         descuento_hasta: pDescHasta,
-        dias_prueba_defecto: pDiasPrueba
+        dias_prueba_defecto: pDiasPrueba,
+        pago_alias: pPagoAlias,
+        pago_titular: pPagoTitular,
+        pago_cbu: pPagoCbu
     };
 
     fetch('../backend/admin_api.php', {
@@ -1979,12 +2012,15 @@ document.getElementById('pricesForm').addEventListener('submit', function(e) {
                 prem_desc_500_600: pD500,
                 descuento_porcentaje: pDesc,
                 descuento_hasta: pDescHasta,
-                dias_prueba_defecto: pDiasPrueba
+                dias_prueba_defecto: pDiasPrueba,
+                pago_alias: pPagoAlias,
+                pago_titular: pPagoTitular,
+                pago_cbu: pPagoCbu
             };
             updatePricesCardSummary(window.globalConfig);
             closePricesModal(); 
             fetchClients(); 
-            showAdminNotice('¡Precios Actualizados!', 'Los precios oficiales de los planes, descuentos y días de prueba se actualizaron correctamente.', 'prices');
+            showAdminNotice('¡Configuración Actualizada!', 'Los precios, descuentos, días de prueba y datos de transferencia se actualizaron correctamente.', 'prices');
         } else { 
             showAdminNotice('Error', data.error || 'Ocurrió un error al actualizar los precios.', 'error');
         }

@@ -111,17 +111,23 @@
                     </div>
 
                     <!-- Datos Bancarios / Alias -->
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between pt-2 gap-3">
-                        <div>
-                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Alias para Transferir</span>
-                            <span class="text-xs text-slate-400 font-medium">Mercado Pago / Banco</span>
+                    <div class="pt-2 space-y-2.5">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Alias para Transferir</span>
+                                <span class="text-xs text-slate-500 font-medium">Titular: <strong id="pagoTitularDisplay" class="text-slate-700 font-bold">Ochoa Olguin Valentina</strong></span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span id="pagoAliasDisplay" class="font-black text-base text-blue-700 bg-blue-100/90 border border-blue-200 px-4 py-2 rounded-2xl font-mono tracking-wide shadow-2xs">valentina.ochoa</span>
+                                <button type="button" id="btnCopyAlias" onclick="copyAlias()" class="px-3.5 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-2xl transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer">
+                                    <span class="material-symbols-outlined text-[16px]">content_copy</span>
+                                    <span>Copiar</span>
+                                </button>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="font-black text-base text-blue-700 bg-blue-100/90 border border-blue-200 px-4 py-2 rounded-2xl font-mono tracking-wide shadow-2xs">agendatina.pagos</span>
-                            <button type="button" id="btnCopyAlias" onclick="copyAlias()" class="px-3.5 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-2xl transition-all shadow-2xs flex items-center gap-1.5 cursor-pointer">
-                                <span class="material-symbols-outlined text-[16px]">content_copy</span>
-                                <span>Copiar</span>
-                            </button>
+                        <div id="pagoCbuRow" class="hidden flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 text-xs">
+                            <span class="font-semibold text-slate-500 uppercase tracking-wider">CBU / CVU</span>
+                            <span id="pagoCbuDisplay" class="font-mono font-bold text-slate-700"></span>
                         </div>
                     </div>
                 </div>
@@ -182,8 +188,10 @@
     <script src="assets/js/csrf.js"></script>
     <script src="assets/js/script.js"></script>
     <script>
+        window.currentPagoAlias = 'valentina.ochoa';
         function copyAlias() {
-            navigator.clipboard.writeText('agendatina.pagos').then(() => {
+            const aliasToCopy = window.currentPagoAlias || document.getElementById('pagoAliasDisplay')?.textContent?.trim() || 'valentina.ochoa';
+            navigator.clipboard.writeText(aliasToCopy).then(() => {
                 const btn = document.getElementById('btnCopyAlias');
                 if (btn) {
                     btn.innerHTML = '<span class="material-symbols-outlined text-[16px] text-emerald-600">check</span> <span class="text-emerald-700 font-bold">¡Copiado!</span>';
@@ -255,6 +263,24 @@
             fetch('backend/obtener_precios.php').then(r=>r.json()).then(priceData => {
                 if (priceData && priceData.success) {
                     window.globalPricesData = priceData.data;
+                    const pAlias = (priceData.data && priceData.data.pago_alias) ? String(priceData.data.pago_alias).trim() : 'valentina.ochoa';
+                    const pTitular = (priceData.data && priceData.data.pago_titular) ? String(priceData.data.pago_titular).trim() : 'Ochoa Olguin Valentina';
+                    const pCbu = (priceData.data && priceData.data.pago_cbu) ? String(priceData.data.pago_cbu).trim() : '';
+                    window.currentPagoAlias = pAlias;
+                    const aliasEl = document.getElementById('pagoAliasDisplay');
+                    const titularEl = document.getElementById('pagoTitularDisplay');
+                    const cbuRow = document.getElementById('pagoCbuRow');
+                    const cbuEl = document.getElementById('pagoCbuDisplay');
+                    if (aliasEl) aliasEl.textContent = pAlias;
+                    if (titularEl) titularEl.textContent = pTitular;
+                    if (cbuRow && cbuEl) {
+                        if (pCbu) {
+                            cbuEl.textContent = pCbu;
+                            cbuRow.classList.remove('hidden');
+                        } else {
+                            cbuRow.classList.add('hidden');
+                        }
+                    }
                 }
                 fetch('backend/perfil.php').then(r=>r.json()).then(data => {
                     if (!data || !data.success || !data.business) {
