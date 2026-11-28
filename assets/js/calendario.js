@@ -4548,37 +4548,39 @@ function renderWeeklyCalendar() {
         let bgClass = '', textClass = '', borderClass = 'border-slate-200/80 dark:border-slate-800/80';
 
         if (visuallyDisabled) {
-            bgClass = 'bg-slate-100/60 dark:bg-slate-900/40';
-            textClass = 'text-slate-400 dark:text-slate-600';
-            borderClass = 'border-slate-200/60 dark:border-slate-800/60';
+            bgClass = 'bg-slate-50/70 dark:bg-slate-900/35';
+            textClass = 'text-slate-300 dark:text-slate-600';
+            borderClass = 'border-slate-100 dark:border-slate-800/60';
         } else if (hasWeeklySvcCustomSchedule) {
-            bgClass = 'bg-emerald-50/90 dark:bg-emerald-950/45 shadow-2xs hover:shadow-lg hover:-translate-y-0.5 hover:border-emerald-500';
+            bgClass = 'bg-emerald-50/80 dark:bg-emerald-950/40 hover:bg-emerald-50 hover:shadow-md hover:-translate-y-0.5 hover:border-emerald-400';
             textClass = 'text-emerald-900 dark:text-emerald-200';
-            borderClass = 'border-emerald-400/90 dark:border-emerald-500/70';
+            borderClass = 'border-emerald-300/80 dark:border-emerald-600/60';
         } else {
-            bgClass = 'bg-white dark:bg-slate-900/90 shadow-2xs hover:shadow-xl hover:-translate-y-0.5 hover:border-[#D11149]';
+            bgClass = 'bg-white dark:bg-slate-800/75 hover:bg-primary/[0.03] hover:shadow-md hover:-translate-y-0.5 hover:border-primary/60';
             textClass = 'text-slate-800 dark:text-slate-100';
-            borderClass = 'border-emerald-300/80 dark:border-emerald-700/60';
+            borderClass = 'border-slate-200/90 dark:border-slate-700/80';
         }
 
         let dateNumberHtml = '';
         if (isSelected) {
-            bgClass = 'selected shadow-lg shadow-[#D11149]/35 scale-[1.03] sm:scale-[1.06] z-10';
-            textClass = 'font-black';
-            borderClass = 'border-2 sm:border-[3px]';
+            bgClass = 'selected shadow-lg shadow-primary/25 -translate-y-0.5 z-10';
+            textClass = 'text-white font-bold';
+            borderClass = 'border-transparent';
             dayDiv.style.background = 'var(--color-primario, #D11149)';
-            dayDiv.style.borderColor = 'var(--color-secundario, #fc8712)';
-            dayDiv.style.boxShadow = 'inset 0 0 0 2px rgba(255, 255, 255, 0.85), 0 8px 18px -4px rgba(209, 17, 73, 0.45)';
-            dateNumberHtml = `<span class="cal-day-number text-sm sm:text-2xl font-black leading-none" style="color: var(--color-secundario, #fc8712) !important; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);">${date.getDate()}</span>`;
+            dayDiv.style.borderColor = 'var(--color-primario, #D11149)';
+            dayDiv.style.boxShadow = '0 10px 22px -6px color-mix(in srgb, var(--color-primario, #D11149) 45%, transparent)';
+            dateNumberHtml = `<span class="cal-day-number text-base sm:text-2xl font-bold leading-none text-white">${date.getDate()}</span>`;
         } else if (isToday && !visuallyDisabled) {
-            dateNumberHtml = `<span class="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-[#D11149] text-white flex items-center justify-center font-black text-xs sm:text-base shadow-xs mx-auto">${date.getDate()}</span>`;
+            bgClass = 'bg-primary/[0.05] dark:bg-primary/15 hover:bg-primary/10 hover:shadow-md hover:-translate-y-0.5';
+            borderClass = 'border-primary/45';
+            dateNumberHtml = `<span class="text-base sm:text-2xl font-bold leading-none text-primary">${date.getDate()}</span>`;
         } else if (isToday && isClosedDay) {
-            dateNumberHtml = `<span class="text-[7px] sm:text-[8px] font-black uppercase bg-rose-100 text-[#D11149] px-1 sm:px-1.5 py-0.5 rounded-full leading-none mb-0.5">HOY</span><span class="text-sm sm:text-xl font-black ${textClass} opacity-65 leading-none">${date.getDate()}</span><span class="text-[7px] sm:text-[8px] font-black uppercase text-rose-500 leading-none mt-0.5">${hasWeeklySvcCustomSchedule ? 'Sin disp.' : 'Cerrado'}</span>`;
+            dateNumberHtml = `<span class="text-[8px] font-bold uppercase bg-rose-50 text-primary px-1.5 py-0.5 rounded-full leading-none mb-0.5">Hoy</span><span class="text-sm sm:text-xl font-bold ${textClass} opacity-65 leading-none">${date.getDate()}</span><span class="text-[8px] font-semibold uppercase text-slate-400 leading-none mt-0.5">${hasWeeklySvcCustomSchedule ? 'Sin disp.' : 'Cerrado'}</span>`;
         } else {
-            dateNumberHtml = `<span class="text-sm sm:text-2xl font-black leading-none ${textClass}">${date.getDate()}</span>`;
+            dateNumberHtml = `<span class="text-base sm:text-2xl font-bold leading-none ${textClass}">${date.getDate()}</span>`;
         }
 
-        dayDiv.className = `flex flex-col items-center justify-center py-2 px-0.5 sm:py-3 sm:px-2 rounded-xl sm:rounded-2xl border-2 ${borderClass} ${bgClass} ${textClass} w-full min-w-0 transition-all duration-300 relative overflow-visible shadow-2xs hover:shadow-lg`;
+        dayDiv.className = `flex flex-col items-center justify-center gap-1 py-3 px-1 sm:py-4 sm:px-2 rounded-2xl border ${borderClass} ${bgClass} ${textClass} w-full min-w-0 transition-all duration-200 relative overflow-visible`;
         
         const effectiveIsAdmin = isAdmin && !isPreviewMode;
         const isClientPastOrBlocked = !effectiveIsAdmin && (isPast || isClosedDay || isDayBlocked);
@@ -4594,10 +4596,10 @@ function renderWeeklyCalendar() {
             else if (visuallyDisabled) dayDiv.title = 'Sin cupos disponibles (Click para ver horarios)';
         }
         
-        const activeDot = (!visuallyDisabled && !isSelected && !isToday) ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-500 mb-0.5 animate-pulse shadow-2xs"></span>' : (isSelected ? '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/90 mb-0.5 shadow-2xs"></span>' : '<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-transparent mb-0.5"></span>');
-        const dayNameColor = isSelected ? 'text-white/90' : (isToday ? 'text-[#D11149] font-black' : 'text-slate-400 dark:text-slate-400');
+        const activeDot = (!visuallyDisabled && !isSelected) ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>' : (isSelected ? '<span class="w-1.5 h-1.5 rounded-full bg-white/90"></span>' : '<span class="w-1.5 h-1.5 rounded-full bg-transparent"></span>');
+        const dayNameColor = isSelected ? 'text-white/85' : (isToday ? 'text-primary font-bold' : 'text-slate-400 dark:text-slate-400');
         
-        dayDiv.innerHTML = `${activeDot}<span class="text-[9px] sm:text-[11px] font-black tracking-wider uppercase mb-0.5 ${dayNameColor}">${dayName}</span>${dateNumberHtml}`;
+        dayDiv.innerHTML = `<span class="text-[10px] sm:text-[11px] font-semibold tracking-wider uppercase ${dayNameColor}">${dayName}</span>${dateNumberHtml}${activeDot}`;
         fragment.appendChild(dayDiv);
     }
     calendarDays.appendChild(fragment);
@@ -4764,36 +4766,35 @@ function selectWeeklyDate(date, preserveSelected = false) {
                 preservedMatchFound2 = true;
             }
 
-            const clockIcon = '<span class="material-symbols-outlined text-[13px] sm:text-[14px] opacity-75 inline-flex shrink-0">schedule</span>';
-            slot.innerHTML = `<div class="flex items-center justify-center gap-1 sm:gap-1.5 w-full min-w-0">${clockIcon}<span class="whitespace-nowrap font-extrabold text-xs sm:text-sm tracking-tight leading-tight">${time}&nbsp;hs</span></div>${spotsText}`;
-            slot.className = `time-slot flex flex-col justify-center items-center bg-white dark:bg-slate-800/90 py-2 sm:py-2.5 px-2 sm:px-3 rounded-2xl text-xs sm:text-sm font-extrabold border-1.5 ${isThisSelected ? 'selected scale-105 border-primary' : 'border-slate-200 dark:border-slate-700'} text-slate-800 dark:text-slate-100 hover:border-[#FC8712] hover:text-[#D11149] hover:bg-rose-50/60 dark:hover:bg-rose-950/30 cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 shadow-xs min-h-[40px] w-full`;
+            slot.innerHTML = `<div class="flex items-center justify-center w-full min-w-0"><span class="whitespace-nowrap font-semibold text-xs sm:text-sm tracking-tight leading-tight">${time}&nbsp;hs</span></div>${spotsText}`;
+            slot.className = `time-slot flex flex-col justify-center items-center bg-slate-50/70 dark:bg-slate-800/80 py-2.5 sm:py-3 px-2.5 sm:px-3 rounded-xl text-xs sm:text-sm font-semibold border ${isThisSelected ? 'selected border-primary' : 'border-slate-200/90 dark:border-slate-700'} text-slate-800 dark:text-slate-100 hover:bg-white hover:border-primary/70 hover:text-primary dark:hover:bg-slate-800 cursor-pointer transition-all hover:shadow-sm hover:-translate-y-0.5 min-h-[44px] w-full`;
             if (isThisSelected) {
-                slot.classList.add('selected', 'scale-105');
+                slot.classList.add('selected');
             }
 
             slot.addEventListener('click', () => {
                 document.querySelectorAll('#weeklyTimeSlots .time-slot').forEach(el => {
                     el.classList.remove('selected', 'scale-105');
                 });
-                slot.classList.add('selected', 'scale-105');
+                slot.classList.add('selected');
                 cal2_selectedTime = time;
                 document.getElementById('weeklyHora').value = time;
             });
         } else {
             // NO DISPONIBLE: Se muestra horario con su etiqueta (Pasado o No disponible) y NO permite click/reserva
             const isPast = slotStatus.isPast;
-            const badgeText = isPast ? 'Pasado' : 'No disponible';
+            const badgeText = isPast ? 'Pasado' : 'Ocupado';
             const badgeClass = isPast 
-                ? 'bg-slate-200/80 dark:bg-slate-700/70 text-slate-500 dark:text-slate-400' 
-                : 'bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400';
+                ? 'text-slate-400 dark:text-slate-500' 
+                : 'text-rose-400 dark:text-rose-400/80';
             
             slot.innerHTML = `
                 <div class="flex flex-col items-center justify-center gap-0.5 w-full min-w-0" title="${isPast ? 'Horario pasado' : 'Turno no disponible'}">
-                    <span class="whitespace-nowrap font-bold text-xs sm:text-sm leading-tight text-slate-400 dark:text-slate-500 ${isPast ? 'line-through decoration-slate-400/60' : ''}">${time}&nbsp;hs</span>
-                    <span class="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded-full ${badgeClass} leading-none max-w-full truncate">${badgeText}</span>
+                    <span class="whitespace-nowrap font-medium text-xs sm:text-sm leading-tight text-slate-400 dark:text-slate-500 line-through decoration-slate-300 dark:decoration-slate-600">${time}&nbsp;hs</span>
+                    <span class="text-[9px] font-semibold uppercase tracking-wider ${badgeClass} leading-none max-w-full truncate">${badgeText}</span>
                 </div>
             `;
-            slot.className = 'time-slot unavailable flex flex-col justify-center items-center py-1.5 sm:py-2 px-1.5 sm:px-2 rounded-2xl text-xs sm:text-sm font-bold opacity-65 cursor-not-allowed bg-slate-100/70 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 border border-dashed border-slate-200 dark:border-slate-700 min-h-[46px] w-full overflow-hidden select-none pointer-events-none';
+            slot.className = 'time-slot unavailable flex flex-col justify-center items-center py-2 px-2 rounded-xl text-xs sm:text-sm font-medium opacity-55 cursor-not-allowed bg-slate-50/50 dark:bg-slate-800/30 text-slate-400 dark:text-slate-500 border border-slate-100 dark:border-slate-800 min-h-[44px] w-full overflow-hidden select-none pointer-events-none';
         }
 
         container.appendChild(slot);
