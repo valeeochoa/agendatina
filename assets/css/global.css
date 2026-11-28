@@ -269,8 +269,8 @@ a {
     background: linear-gradient(135deg, var(--color-primario, #D11149) 0%, #fc8712 100%) !important;
     color: #ffffff !important;
     border-color: transparent !important;
-    box-shadow: 0 12px 24px -4px rgba(209, 17, 73, 0.4) !important;
-    transform: scale(1.05);
+    box-shadow: 0 6px 16px -4px rgba(209, 17, 73, 0.4) !important;
+    transform: none;
 }
 
 .time-slot.booked {

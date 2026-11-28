@@ -4827,8 +4827,6 @@ window.applyUserCustomColors = function (pColor, sColor, extraColors, bgColor) {
         /* Día Seleccionado / Activo con Fondo Primario, Anillo Doble y Número en Color Secundario */
         .calendar-day.selected, 
         .mini-calendar-day.selected, 
-        .time-slot.selected, 
-        .mini-time-slot.selected,
         #calendarDays > div.selected,
         #weeklyCalendarDays > div.selected,
         #adminWeeklyGrid > div.selected {
@@ -4839,6 +4837,17 @@ window.applyUserCustomColors = function (pColor, sColor, extraColors, bgColor) {
             transform: scale(1.07) !important;
             z-index: 10 !important;
             box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.88), 0 0 0 3px color-mix(in srgb, ${sColor} 45%, transparent), 0 12px 24px -4px color-mix(in srgb, ${pColor} 50%, transparent) !important;
+        }
+        /* Horario Seleccionado: limpio, nítido y sin desbordar ni cortarse en contenedores con scroll */
+        .time-slot.selected,
+        .mini-time-slot.selected {
+            background: ${pColor} !important;
+            color: #ffffff !important;
+            border: 2px solid ${pColor} !important;
+            font-weight: 800 !important;
+            transform: none !important;
+            z-index: 2 !important;
+            box-shadow: 0 6px 16px -4px color-mix(in srgb, ${pColor} 45%, transparent) !important;
         }
         .calendar-day.selected .cal-day-number,
         #calendarDays > div.selected .cal-day-number,
