@@ -558,6 +558,20 @@ function isSlotAvailableForDuration(dateString, timeStr, durationMin, capacity, 
         const cap = parseInt(capacity, 10) || 1;
         if (cap <= 1) return !overlaps;
     }
+
+    // Negocio de un solo profesional (o sin filtro de profesional) con detalles exactos al minuto
+    if (!isSpecificProf && bookedDetails && (!uniqueProfs || uniqueProfs.length <= 1)) {
+        const cap = parseInt(capacity, 10) || 1;
+        if (cap <= 1) {
+            const singleBookings = bookedDetails.filter(b => !(b.cupo_maximo > 1));
+            const overlaps = singleBookings.some(b => {
+                const bStart = b.startMins;
+                const bEndWithBuf = (b.endMinsWithBuffer !== undefined) ? b.endMinsWithBuffer : (b.endMins + bufferMins);
+                return Math.max(startMins, bStart) < Math.min(endMinsWithBuffer, bEndWithBuf);
+            });
+            return !overlaps;
+        }
+    }
     
     const cap = parseInt(capacity, 10) || 1;
     for (let curMins = startMins; curMins < endMins; curMins += 15) {
@@ -659,25 +673,99 @@ function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration =
     const availableSlots = [];
     const bufferMins = Math.max(0, parseInt(window.businessWebConfig?.tiempo_entre_turnos, 10) || 0);
     const step = isServMode ? (dur + bufferMins) : ((parseInt(window.businessWebConfig?.intervalo_turnos, 10) || 30) + bufferMins);
+    const effectiveIsAdminView = (typeof isAdmin !== 'undefined' && isAdmin) && !(typeof isPreviewMode !== 'undefined' && isPreviewMode);
 
-    tramos.forEach(tramo => {
-        let curMins = tramo.start;
+    // Helper: dado un tramo [start, end] y una lista de bloqueos ocupados, calcula los huecos libres reales
+    // y genera bloques consecutivos del tamaño del servicio elegido (dur + bufferMins)
+    const addSlotsFromFreeGaps = (tramo, bookingsList) => {
+        const intervals = [];
+        (bookingsList || []).forEach(b => {
+            if (b.startMins === undefined) return;
+            const bStart = b.startMins;
+            const bEnd = (b.endMinsWithBuffer !== undefined)
+                ? b.endMinsWithBuffer
+                : ((b.endMins !== undefined ? b.endMins : (bStart + 30)) + bufferMins);
+            if (bEnd <= tramo.start || bStart >= tramo.end) return;
+            intervals.push({
+                start: Math.max(tramo.start, bStart),
+                end: Math.min(tramo.end, bEnd)
+            });
+        });
 
-        while (curMins + dur <= tramo.end) {
-            const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
-            const curM = (curMins % 60).toString().padStart(2, '0');
-            const timeSlot = `${curH}:${curM}`;
-
-            if (!availableSlots.includes(timeSlot)) {
-                availableSlots.push(timeSlot);
+        intervals.sort((a, b) => a.start - b.start);
+        const merged = [];
+        intervals.forEach(iv => {
+            if (merged.length === 0 || iv.start > merged[merged.length - 1].end) {
+                merged.push({ start: iv.start, end: iv.end });
+            } else {
+                merged[merged.length - 1].end = Math.max(merged[merged.length - 1].end, iv.end);
             }
-            curMins += step;
-        }
-    });
+        });
 
-    // Incluir también los inicios de turnos agendados para que se muestren como 'No disponible' en vez de desaparecer
-    // SOLO si caen dentro de los tramos de atención del negocio (evita horarios anómalos o fuera de horario comercial)
-    if (relevantBookings && relevantBookings.length > 0) {
+        const freeGaps = [];
+        let cursor = tramo.start;
+        merged.forEach(iv => {
+            if (iv.start > cursor) {
+                freeGaps.push({ start: cursor, end: iv.start });
+            }
+            cursor = Math.max(cursor, iv.end);
+        });
+        if (cursor < tramo.end) {
+            freeGaps.push({ start: cursor, end: tramo.end });
+        }
+
+        freeGaps.forEach(gap => {
+            let curMins = gap.start;
+            while (curMins + dur <= gap.end) {
+                const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
+                const curM = (curMins % 60).toString().padStart(2, '0');
+                const timeSlot = `${curH}:${curM}`;
+                if (!availableSlots.includes(timeSlot)) {
+                    availableSlots.push(timeSlot);
+                }
+                curMins += (dur + bufferMins);
+            }
+        });
+    };
+
+    if (isServMode && cap <= 1) {
+        // Generación inteligente por huecos libres reales del tamaño del servicio elegido
+        tramos.forEach(tramo => {
+            if (isUnionMode && teamProfs.length > 1) {
+                teamProfs.forEach(profItem => {
+                    const cleanP = String(profItem).trim().toLowerCase();
+                    const profBookings = bookedDetails.filter(b => {
+                        if (b.cupo_maximo > 1) return false;
+                        if (!b.profesional || b.profesional === 'Cualquiera (Sin preferencia)' || b.profesional === '') return true;
+                        return (typeof window.isSameProf === 'function')
+                            ? window.isSameProf(b.profesional, profItem)
+                            : String(b.profesional).trim().toLowerCase() === cleanP;
+                    });
+                    addSlotsFromFreeGaps(tramo, profBookings);
+                });
+            } else {
+                addSlotsFromFreeGaps(tramo, relevantBookings);
+            }
+        });
+    } else {
+        tramos.forEach(tramo => {
+            let curMins = tramo.start;
+
+            while (curMins + dur <= tramo.end) {
+                const curH = Math.floor(curMins / 60).toString().padStart(2, '0');
+                const curM = (curMins % 60).toString().padStart(2, '0');
+                const timeSlot = `${curH}:${curM}`;
+
+                if (!availableSlots.includes(timeSlot)) {
+                    availableSlots.push(timeSlot);
+                }
+                curMins += step;
+            }
+        });
+    }
+
+    // Incluir también los inicios de turnos agendados en vista Admin (y en modo fijo/cupos) para que nunca se oculten reservas existentes
+    if ((effectiveIsAdminView || !isServMode || cap > 1) && relevantBookings && relevantBookings.length > 0) {
         relevantBookings.forEach(b => {
             if (b.startMins !== undefined) {
                 const fallsInBusinessHours = tramos.some(tr => b.startMins >= tr.start && b.startMins < tr.end);
@@ -691,9 +779,9 @@ function computeDynamicTimeSlotsForDate(dateStr, profName = null, servDuration =
                 }
             }
         });
-        availableSlots.sort((a, b) => a.localeCompare(b));
     }
 
+    availableSlots.sort((a, b) => a.localeCompare(b));
     return availableSlots;
 }
 
