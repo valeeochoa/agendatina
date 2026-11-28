@@ -4214,18 +4214,28 @@ function renderAdminWeeklyGrid() {
                 const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), sh, sm, 0, 0);
                 const isPastSlot = isPast || (isToday && slotDate.getTime() <= now.getTime());
                 
-                // 1. Turnos que inician en este horario
-                const startingApts = dayAptsParsed.filter(a => a._rawHora === time || (a._startMins >= slotStartMins && a._startMins < slotEndMins));
+                // 1. Turnos que inician en este horario (ordenados por quién reservó primero: created_at ASC, id ASC)
+                const startingApts = dayAptsParsed
+                    .filter(a => a._rawHora === time || (a._startMins >= slotStartMins && a._startMins < slotEndMins))
+                    .sort((a, b) => {
+                        const ta = a.created_at ? new Date(String(a.created_at).replace(/-/g, '/')).getTime() : 0;
+                        const tb = b.created_at ? new Date(String(b.created_at).replace(/-/g, '/')).getTime() : 0;
+                        if (ta !== tb) return ta - tb;
+                        return (parseInt(a.id, 10) || 0) - (parseInt(b.id, 10) || 0);
+                    });
                 
                 // 2. Turnos en curso (iniciaron antes y continúan en este tramo)
                 const ongoingApts = dayAptsParsed.filter(a => a._startMins < slotStartMins && a._endMins > slotStartMins);
                 
                 const slot = document.createElement('div');
+                slot.setAttribute('data-slot-date', dateString);
+                slot.setAttribute('data-slot-time', time);
                 
                 // SI HAY TURNOS QUE EMPIEZAN AQUÍ:
                 if (startingApts.length > 0) {
                     const isAnyBlock = startingApts.every(a => a.estado === 'bloqueado');
-                    const isAnyPend = startingApts.some(a => a.estado === 'pendiente');
+                    const pendingInSlot = startingApts.filter(a => a.estado === 'pendiente');
+                    const isAnyPend = pendingInSlot.length > 0;
                     
                     let bgClass = isPast 
                         ? 'bg-slate-100/90 dark:bg-slate-800/90 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300' 
@@ -4236,11 +4246,19 @@ function renderAdminWeeklyGrid() {
                                 : 'bg-sky-50/90 dark:bg-sky-950/40 border-sky-300 dark:border-sky-800 text-sky-900 dark:text-sky-200'));
 
                     slot.className = `p-2 text-left rounded-xl border transition-all shadow-xs cursor-pointer hover:shadow-md hover:scale-[1.01] ${bgClass} w-full`;
-                    slot.innerHTML = `<div class="font-extrabold text-[11px] mb-1 flex justify-between items-center"><span class="font-black">${time} hs</span></div>`;
+                    const queueTriggerHtml = (effectiveIsAdmin && isAnyPend)
+                        ? `<button type="button" onclick="event.stopPropagation(); window.openWeeklySlotQueuePanel('${dateString}', '${time}')" class="text-[9px] font-black px-1.5 py-0.5 rounded-md bg-amber-500 hover:bg-amber-600 text-white transition-colors cursor-pointer" title="Ver solicitudes pendientes por orden de llegada">${pendingInSlot.length > 1 ? `Cola (${pendingInSlot.length})` : 'Ver cola'}</button>`
+                        : '';
+                    slot.innerHTML = `<div class="font-extrabold text-[11px] mb-1 flex justify-between items-center gap-1"><span class="font-black">${time} hs</span>${queueTriggerHtml}</div>`;
                     
+                    let pendOrderCounter = 0;
                     startingApts.forEach(apt => {
                         const isB = apt.estado === 'bloqueado';
                         const isP = apt.estado === 'pendiente';
+                        if (isP) pendOrderCounter++;
+                        const pendOrderBadge = (isP && pendingInSlot.length > 1)
+                            ? `<span class="text-[8px] font-black px-1 py-0.2 rounded bg-amber-500 text-white shrink-0">#${pendOrderCounter}</span>`
+                            : '';
                         const isAttended = typeof window.isTurnoAsistido === 'function' ? window.isTurnoAsistido(apt) : (parseInt(apt.asistio) === 1 || apt.asistio === 'si' || apt.asistio === true || apt.estado === 'atendido');
                         const isNoAsistio = parseInt(apt.no_asistio) === 1 || apt.no_asistio === 'si' || apt.no_asistio === true;
                         const clientName = apt.cliente_nombre || (apt.nombre + ' ' + (apt.apellido || '')) || (isB ? 'Bloqueo Manual' : 'Sin Nombre');
@@ -4287,7 +4305,7 @@ function renderAdminWeeklyGrid() {
 
                         divApt.innerHTML = `
                             <div class="font-black text-[10px] leading-tight flex items-center justify-between gap-1" title="${escapeHtml(clientName)}">
-                                <span class="truncate">${escapeHtml(clientName)}</span> 
+                                <span class="truncate inline-flex items-center gap-1">${pendOrderBadge}<span class="truncate">${escapeHtml(clientName)}</span></span> 
                                 ${badgePill}
                             </div>
                             <div class="truncate text-[9px] opacity-85 mt-0.5 flex items-center gap-1">
@@ -5797,9 +5815,176 @@ document.addEventListener('DOMContentLoaded', () => {
             cal_fetchBookedTimes();
         });
 
-        // Auto-selección de fecha y enfoque de turno si vienen en la URL (?date= / ?fecha= / ?focus=)
+        window.closeWeeklySlotQueuePanel = function() {
+            const panel = document.getElementById('weeklySlotQueuePanel');
+            if (panel) panel.classList.add('hidden');
+        };
+
+        window.openWeeklySlotQueuePanel = function(dateStr, timeStr, focusId = null) {
+            const panel = document.getElementById('weeklySlotQueuePanel');
+            const titleEl = document.getElementById('weeklySlotQueueTitle');
+            const countEl = document.getElementById('weeklySlotQueueCount');
+            const listEl = document.getElementById('weeklySlotQueueList');
+            if (!panel || !listEl) return;
+
+            const normHora = String(timeStr || '').trim().substring(0, 5);
+            const parts = String(dateStr || '').split('-');
+            let dateLabel = dateStr || '';
+            if (parts.length === 3) {
+                const dObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                if (!isNaN(dObj.getTime())) {
+                    dateLabel = new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).format(dObj);
+                }
+            }
+
+            if (titleEl) titleEl.textContent = normHora ? `${dateLabel} · ${normHora} hs` : dateLabel;
+
+            const sourceApts = Array.isArray(allAppointments) ? allAppointments : [];
+            const matchingPending = sourceApts
+                .filter(a => {
+                    if (!a || a.estado !== 'pendiente') return false;
+                    if (dateStr && a.fecha !== dateStr) return false;
+                    if (normHora && String(a.hora || '').trim().substring(0, 5) !== normHora) return false;
+                    return true;
+                })
+                .sort((a, b) => {
+                    const ta = a.created_at ? new Date(String(a.created_at).replace(/-/g, '/')).getTime() : 0;
+                    const tb = b.created_at ? new Date(String(b.created_at).replace(/-/g, '/')).getTime() : 0;
+                    if (ta !== tb) return ta - tb;
+                    return (parseInt(a.id, 10) || 0) - (parseInt(b.id, 10) || 0);
+                });
+
+            if (countEl) {
+                countEl.textContent = matchingPending.length === 1
+                    ? '1 pendiente'
+                    : `${matchingPending.length} pendientes (por orden de llegada)`;
+            }
+
+            if (matchingPending.length === 0) {
+                listEl.innerHTML = `<div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 text-center text-xs sm:text-sm text-slate-500 font-medium">No quedan turnos pendientes en este horario.</div>`;
+            } else {
+                listEl.innerHTML = matchingPending.map((apt, idx) => {
+                    const clientName = apt.cliente_nombre || `${apt.nombre || ''} ${apt.apellido || ''}`.trim() || 'Sin nombre';
+                    const cel = apt.cliente_celular || apt.celular || '';
+                    const isFocused = focusId && String(apt.id) === String(focusId);
+                    let createdLabel = '';
+                    if (apt.created_at) {
+                        const cDate = new Date(String(apt.created_at).replace(/-/g, '/'));
+                        if (!isNaN(cDate.getTime())) {
+                            createdLabel = `Solicitó el ${String(cDate.getDate()).padStart(2, '0')}/${String(cDate.getMonth() + 1).padStart(2, '0')} a las ${String(cDate.getHours()).padStart(2, '0')}:${String(cDate.getMinutes()).padStart(2, '0')} hs`;
+                        }
+                    }
+                    const orderBadge = idx === 0
+                        ? '<span class="px-2.5 py-0.5 rounded-full bg-amber-500 text-white text-[11px] font-black shrink-0">1° en reservar</span>'
+                        : `<span class="px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 text-[11px] font-extrabold shrink-0">${idx + 1}° en reservar</span>`;
+
+                    return `
+                        <div class="p-4 rounded-2xl border ${isFocused ? 'border-amber-400 bg-amber-50/70 dark:bg-amber-950/35 ring-2 ring-amber-300/70' : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900/60'} flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all">
+                            <div class="min-w-0 flex-1 space-y-1">
+                                <div class="flex items-center flex-wrap gap-2">
+                                    ${orderBadge}
+                                    <p class="font-bold text-slate-900 dark:text-white text-sm sm:text-base truncate">${escapeHtml(clientName)}</p>
+                                </div>
+                                <p class="text-xs text-slate-600 dark:text-slate-300 font-medium">
+                                    ${escapeHtml(apt.servicio || 'Servicio')}${apt.profesional && apt.profesional !== 'Cualquiera (Sin preferencia)' ? ` · 👤 ${escapeHtml(apt.profesional)}` : ''}${cel ? ` · 📱 ${escapeHtml(cel)}` : ''}
+                                </p>
+                                ${createdLabel ? `<p class="text-[11px] text-slate-400 dark:text-slate-500 font-medium">${createdLabel}</p>` : ''}
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <button type="button" onclick="window.confirmarTurnoAdmin('${apt.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-1.5 shadow-sm cursor-pointer">
+                                    <span class="material-symbols-outlined text-[16px]">check_circle</span> Confirmar
+                                </button>
+                                <button type="button" onclick="window.cancelarTurnoAdmin('${apt.id}')" class="bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 text-xs font-bold px-3.5 py-2.5 rounded-xl transition-all flex items-center gap-1 cursor-pointer" title="Rechazar / Cancelar">
+                                    <span class="material-symbols-outlined text-[16px]">close</span> Rechazar
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            panel.classList.remove('hidden');
+            setTimeout(() => {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 80);
+        };
+
+        window.enfocarTurnoEnCalendario = function(focusId, dateOverride = '', horaOverride = '') {
+            const urlDateParam = dateOverride || urlParams.get('date') || urlParams.get('fecha') || '';
+            const urlHoraParam = horaOverride || urlParams.get('hora') || '';
+            let attempts = 0;
+
+            const tryFocus = () => {
+                attempts++;
+                const matchedApt = focusId && Array.isArray(allAppointments)
+                    ? allAppointments.find(a => String(a.id) === String(focusId))
+                    : null;
+
+                const targetDateStr = (matchedApt && matchedApt.fecha) || urlDateParam;
+                const targetHoraStr = (matchedApt && matchedApt.hora ? String(matchedApt.hora).substring(0, 5) : '') || (urlHoraParam ? String(urlHoraParam).substring(0, 5) : '');
+
+                // Si estamos en vista semanal de administrador, posicionar semana + día móvil exacto
+                const adminViewEl = document.getElementById('adminWeeklyView');
+                const isAdminWeeklyActive = adminViewEl && !adminViewEl.classList.contains('hidden');
+
+                if (targetDateStr) {
+                    const parts = targetDateStr.split('-');
+                    if (parts.length === 3) {
+                        const parsed = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                        if (!isNaN(parsed.getTime())) {
+                            if (typeof weekStartDate !== 'undefined' && weekStartDate instanceof Date) {
+                                const newWeekStart = typeof window.getStartOfWeek === 'function' ? window.getStartOfWeek(parsed) : parsed;
+                                const diffDays = Math.round((parsed.getTime() - newWeekStart.getTime()) / (1000 * 60 * 60 * 24));
+                                const weekChanged = weekStartDate.getTime() !== newWeekStart.getTime();
+                                weekStartDate = newWeekStart;
+                                if (diffDays >= 0 && diffDays <= 6 && typeof adminWeeklyMobileDayIdx !== 'undefined') {
+                                    adminWeeklyMobileDayIdx = diffDays;
+                                }
+                                if (isAdminWeeklyActive && typeof renderAdminWeeklyGrid === 'function' && (weekChanged || attempts === 1)) {
+                                    renderAdminWeeklyGrid();
+                                } else if (!isAdminWeeklyActive && typeof renderWeeklyCalendar === 'function' && weekChanged) {
+                                    renderWeeklyCalendar();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Abrir el panel de cola de pendientes (ordenado por quién reservó primero) si corresponde en calendario semanal
+                if (isAdminWeeklyActive && targetDateStr && targetHoraStr && Array.isArray(allAppointments) && allAppointments.length > 0) {
+                    const hasPendingAtSlot = allAppointments.some(a => a && a.estado === 'pendiente' && a.fecha === targetDateStr && String(a.hora || '').substring(0, 5) === targetHoraStr);
+                    if (hasPendingAtSlot) {
+                        window.openWeeklySlotQueuePanel(targetDateStr, targetHoraStr, focusId);
+                    }
+                }
+
+                const focusEl = (focusId ? (
+                    document.getElementById('turno-' + focusId) ||
+                    document.querySelector(`[data-turno-id="${focusId}"]`) ||
+                    document.getElementById('slotcard-' + focusId) ||
+                    document.querySelector(`button[onclick*="'${focusId}'"]`)?.closest('.bg-white, .time-slot, div')
+                ) : null) || (targetDateStr && targetHoraStr ? document.querySelector(`[data-slot-date="${targetDateStr}"][data-slot-time="${targetHoraStr}"]`) : null);
+
+                if (focusEl) {
+                    focusEl.classList.add('ring-4', 'ring-amber-400', 'ring-offset-2', 'bg-amber-50/70', 'transition-all');
+                    const queuePanel = document.getElementById('weeklySlotQueuePanel');
+                    if (!queuePanel || queuePanel.classList.contains('hidden')) {
+                        focusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    setTimeout(() => {
+                        focusEl.classList.remove('ring-4', 'ring-amber-400', 'ring-offset-2', 'bg-amber-50/70');
+                    }, 5000);
+                } else if (attempts < 16) {
+                    setTimeout(tryFocus, 300);
+                }
+            };
+            setTimeout(tryFocus, 450);
+        };
+
+        // Auto-selección de fecha y enfoque de turno si vienen en la URL (?date= / ?fecha= / ?hora= / ?focus=)
         setTimeout(() => {
             const urlDate = urlParams.get('date') || urlParams.get('fecha');
+            const urlHora = urlParams.get('hora') || '';
             const urlFocus = urlParams.get('focus');
             let targetDate = new Date();
 
@@ -5810,11 +5995,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (!isNaN(parsed.getTime())) {
                         targetDate = parsed;
                         if (typeof weekStartDate !== 'undefined' && weekStartDate instanceof Date) {
-                            const d = new Date(parsed);
-                            const day = d.getDay();
-                            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-                            weekStartDate = new Date(d.setDate(diff));
+                            const newStart = typeof window.getStartOfWeek === 'function' ? window.getStartOfWeek(parsed) : parsed;
+                            weekStartDate = newStart;
+                            const diffDays = Math.round((parsed.getTime() - newStart.getTime()) / (1000 * 60 * 60 * 24));
+                            if (diffDays >= 0 && diffDays <= 6 && typeof adminWeeklyMobileDayIdx !== 'undefined') {
+                                adminWeeklyMobileDayIdx = diffDays;
+                            }
                             if (typeof renderWeeklyCalendar === 'function') renderWeeklyCalendar();
+                            if (typeof renderAdminWeeklyGrid === 'function' && document.getElementById('adminWeeklyView') && !document.getElementById('adminWeeklyView').classList.contains('hidden')) {
+                                renderAdminWeeklyGrid();
+                            }
                         }
                     }
                 }
@@ -5824,32 +6014,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 cal_selectDate(targetDate);
             }
 
-            if (urlFocus) {
-                window.enfocarTurnoEnCalendario(urlFocus);
+            if (urlFocus || (urlDate && urlHora)) {
+                window.enfocarTurnoEnCalendario(urlFocus, urlDate, urlHora);
             }
         }, 350);
-
-        window.enfocarTurnoEnCalendario = function(focusId) {
-            if (!focusId) return;
-            let attempts = 0;
-            const tryFocus = () => {
-                attempts++;
-                const focusEl = document.getElementById('turno-' + focusId) || 
-                                document.querySelector(`[data-turno-id="${focusId}"]`) ||
-                                document.getElementById('slotcard-' + focusId) ||
-                                document.querySelector(`button[onclick*="'${focusId}'"]`)?.closest('.bg-white, .time-slot, div');
-                if (focusEl) {
-                    focusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    focusEl.classList.add('ring-4', 'ring-amber-400', 'ring-offset-2', 'bg-amber-50/70', 'transition-all');
-                    setTimeout(() => {
-                        focusEl.classList.remove('ring-4', 'ring-amber-400', 'ring-offset-2', 'bg-amber-50/70');
-                    }, 4500);
-                } else if (attempts < 12) {
-                    setTimeout(tryFocus, 250);
-                }
-            };
-            setTimeout(tryFocus, 450);
-        };
 
         const manageServicesBtn = document.getElementById('manageServicesBtn');
         if(manageServicesBtn) manageServicesBtn.addEventListener('click', openServicesModal);

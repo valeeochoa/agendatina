@@ -842,15 +842,18 @@ window.confirmarTurnoAdmin = function(id) {
                 window.cargarAgenda(true);
                 if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
                 
-                // Ofrecer de inmediato avisarle al cliente por WhatsApp
-                if (data.turno && (data.turno.celular || data.turno.cliente_celular)) {
+                // Ofrecer de inmediato avisarle al cliente confirmado (y a otros pendientes del mismo horario si hubo)
+                const rechazados = Array.isArray(data.otros_pendientes_rechazados) ? data.otros_pendientes_rechazados : [];
+                if (data.turno && ((data.turno.celular || data.turno.cliente_celular) || rechazados.length > 0)) {
                     setTimeout(() => {
-                        if (typeof showConfirm === 'function') {
+                        if (typeof window.showConfirmWhatsAppQueueModal === 'function') {
+                            window.showConfirmWhatsAppQueueModal(data.turno, rechazados);
+                        } else if (typeof showConfirm === 'function') {
                             showConfirm('Avisar al Cliente', `¿Deseas enviar un WhatsApp a ${data.turno.nombre || 'el cliente'} avisándole que ya se le confirmó el turno y que se le espera el día ${data.turno.fecha} a las ${data.turno.hora} hs?`, 'Avisar por WhatsApp', 'bg-emerald-600 hover:bg-emerald-700', () => {
                                 window.enviarAvisoConfirmacion(id, data.turno);
                             });
                         }
-                    }, 400);
+                    }, 350);
                 }
             } else {
                 if (typeof showToast === 'function') showToast(data.error || 'No se pudo confirmar el turno.', 'error');

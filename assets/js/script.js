@@ -417,6 +417,117 @@ window.closeConfirm = function () {
     setTimeout(() => { if (modal) modal.classList.add('hidden'); }, 300);
 };
 
+window.showConfirmWhatsAppQueueModal = function (confirmedTurno, rejectedList = []) {
+    const existing = document.getElementById('confirmWhatsAppQueueModal');
+    if (existing) existing.remove();
+
+    const negocio = (window.currentBusinessData && (window.currentBusinessData.nombre_fantasia || window.currentBusinessData.nombre_negocio)) || 'nuestro local';
+    const formatDateDisplay = (fStr) => {
+        const parts = String(fStr || '').split('-');
+        return parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : (fStr || '');
+    };
+    const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    const confNombre = (confirmedTurno && confirmedTurno.nombre) || 'el cliente';
+    const confCel = String((confirmedTurno && (confirmedTurno.celular || confirmedTurno.cliente_celular)) || '').replace(/\D/g, '');
+    const confFecha = formatDateDisplay(confirmedTurno && confirmedTurno.fecha);
+    const confHora = String((confirmedTurno && confirmedTurno.hora) || '').substring(0, 5);
+    const confServ = (confirmedTurno && confirmedTurno.servicio) || 'tu turno';
+    const confMsg = `Hola ${confNombre}, te confirmamos tu turno en ${negocio} para el ${confFecha} a las ${confHora} hs (${confServ}). ¡Te esperamos!`;
+    const confUrl = confCel ? `https://wa.me/${confCel}?text=${encodeURIComponent(confMsg)}` : '';
+
+    const rejectedItems = Array.isArray(rejectedList) ? rejectedList : [];
+    const rejectedHtml = rejectedItems.map((r) => {
+        const rNombre = r.nombre || 'Cliente';
+        const rCel = String(r.celular || '').replace(/\D/g, '');
+        const rFecha = formatDateDisplay(r.fecha || (confirmedTurno && confirmedTurno.fecha));
+        const rHora = String(r.hora || confHora).substring(0, 5);
+        const rServ = r.servicio || confServ;
+        const rMsg = `Hola ${rNombre}, lamentamos avisarte que el turno del ${rFecha} a las ${rHora} hs para ${rServ} en ${negocio} ya no está disponible porque otra persona justo lo reservó antes. Si querés, podés elegir otro horario disponible en nuestro calendario. ¡Gracias!`;
+        const rUrl = rCel ? `https://wa.me/${rCel}?text=${encodeURIComponent(rMsg)}` : '';
+        return `
+            <div class="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-amber-50/90 dark:bg-amber-950/35 border border-amber-200/80 dark:border-amber-800/60">
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-[10px] font-black uppercase px-1.5 py-0.5 rounded-md bg-amber-200/80 text-amber-900">Turno ocupado</span>
+                        <p class="font-bold text-slate-900 dark:text-white text-sm truncate">${esc(rNombre)}</p>
+                    </div>
+                    <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5 truncate">${esc(rServ)} · ${rFecha} ${rHora} hs</p>
+                </div>
+                ${rUrl ? `
+                    <button type="button" data-wa-url="${esc(rUrl)}" onclick="window.openWaQueueNotice(this)" class="shrink-0 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-sm cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px]">chat</span>
+                        <span>Avisar a ${esc(rNombre.split(' ')[0])}</span>
+                    </button>
+                ` : `<span class="text-[11px] font-semibold text-slate-400 shrink-0">Sin celular</span>`}
+            </div>
+        `;
+    }).join('');
+
+    const modal = document.createElement('div');
+    modal.id = 'confirmWhatsAppQueueModal';
+    modal.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/55 backdrop-blur-sm p-4 animate-in fade-in duration-200';
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden">
+            <div class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[24px]">check_circle</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-900 dark:text-white text-base sm:text-lg leading-tight">¡Turno confirmado!</h3>
+                        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">${rejectedItems.length > 0 ? 'Avisá al cliente confirmado y a quienes solicitaron el mismo horario.' : 'Podés avisarle por WhatsApp que su turno fue confirmado.'}</p>
+                    </div>
+                </div>
+                <button type="button" onclick="document.getElementById('confirmWhatsAppQueueModal')?.remove()" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+            <div class="p-5 sm:p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <div>
+                    <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 mb-2">1. Avisar confirmación</p>
+                    <div class="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-emerald-50/90 dark:bg-emerald-950/35 border border-emerald-200/80 dark:border-emerald-800/60">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[10px] font-black uppercase px-1.5 py-0.5 rounded-md bg-emerald-200/80 text-emerald-900">Confirmado</span>
+                                <p class="font-bold text-slate-900 dark:text-white text-sm truncate">${esc(confNombre)}</p>
+                            </div>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5 truncate">${esc(confServ)} · ${confFecha} ${confHora} hs</p>
+                        </div>
+                        ${confUrl ? `
+                            <button type="button" data-wa-url="${esc(confUrl)}" onclick="window.openWaQueueNotice(this)" class="shrink-0 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5 shadow-sm cursor-pointer">
+                                <span class="material-symbols-outlined text-[16px]">chat</span>
+                                <span>Avisar a ${esc(confNombre.split(' ')[0])}</span>
+                            </button>
+                        ` : `<span class="text-[11px] font-semibold text-slate-400 shrink-0">Sin celular</span>`}
+                    </div>
+                </div>
+                ${rejectedItems.length > 0 ? `
+                    <div>
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-2">2. Avisar que el horario ya fue reservado antes (${rejectedItems.length})</p>
+                        <div class="space-y-2.5">${rejectedHtml}</div>
+                    </div>
+                ` : ''}
+            </div>
+            <div class="px-5 py-4 sm:px-6 bg-slate-50/80 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                <button type="button" onclick="document.getElementById('confirmWhatsAppQueueModal')?.remove()" class="px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs sm:text-sm font-bold hover:opacity-90 transition-all cursor-pointer">Listo</button>
+            </div>
+        </div>
+    `;
+    modal.addEventListener('click', (ev) => { if (ev.target === modal) modal.remove(); });
+    document.body.appendChild(modal);
+};
+
+window.openWaQueueNotice = function (btn) {
+    if (!btn) return;
+    const url = btn.getAttribute('data-wa-url');
+    if (url) window.open(url, '_blank');
+    btn.classList.remove('bg-emerald-600', 'hover:bg-emerald-700', 'bg-amber-500', 'hover:bg-amber-600');
+    btn.classList.add('bg-slate-200', 'text-slate-700', 'dark:bg-slate-700', 'dark:text-slate-200');
+    const spanTxt = btn.querySelector('span:last-child');
+    if (spanTxt) spanTxt.textContent = 'Aviso abierto ✓';
+};
+
 window.confirmarTurnoAdmin = function (id) {
     // Verificar si el turno está en el pasado
     let targetTurno = null;
@@ -444,20 +555,15 @@ window.confirmarTurnoAdmin = function (id) {
             .then(data => {
                 if (data.success) {
                     showToast('Turno confirmado exitosamente', 'success');
+                    if (typeof window.closeWeeklySlotQueuePanel === 'function') window.closeWeeklySlotQueuePanel();
                     if (typeof window.refreshCalendarData === 'function') window.refreshCalendarData();
                     if (typeof window.cargarAgenda === 'function') window.cargarAgenda();
 
-                    if (data.turno && data.turno.celular) {
-                        const fParts = data.turno.fecha.split('-');
-                        const fDisplay = fParts.length === 3 ? `${fParts[2]}/${fParts[1]}/${fParts[0]}` : data.turno.fecha;
-                        const negocio = window.currentBusinessData ? window.currentBusinessData.nombre_fantasia : 'nuestro local';
-                        const text = `Hola ${data.turno.nombre}, te confirmamos tu turno en ${negocio} para el ${fDisplay} a las ${data.turno.hora} hs (${data.turno.servicio}). ¡Te esperamos!`;
-                        const phone = data.turno.celular.replace(/\D/g, '');
-                        const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
-
+                    const rechazados = Array.isArray(data.otros_pendientes_rechazados) ? data.otros_pendientes_rechazados : [];
+                    if (data.turno && (data.turno.celular || rechazados.length > 0)) {
                         setTimeout(() => {
-                            showConfirm('Avisar al cliente', '¿Deseas enviarle un WhatsApp al cliente avisándole que su turno fue confirmado?', 'Enviar WhatsApp', 'bg-emerald-500 hover:bg-emerald-600', () => { window.open(url, '_blank'); });
-                        }, 500);
+                            window.showConfirmWhatsAppQueueModal(data.turno, rechazados);
+                        }, 350);
                     }
                 } else {
                     showToast(data.error || 'No se pudo confirmar el turno.', 'error');
@@ -1171,6 +1277,9 @@ function loadDashboardData() {
                 window.applyDashboardPermissions(window.currentUserData);
             }
 
+            // Mantener sincronizado window.currentWebData (incluyendo tipo_calendario) para navegación de notificaciones
+            window.currentWebData = Object.assign(window.currentWebData || {}, webData || {});
+
             // Sincronizar colores personalizados del perfil y la web inmediatamente en el Dashboard
             const pCol = webData.color_primario || data.color_primario || business.color_primario || (data.user && data.user.color_primario);
             const sCol = webData.color_secundario || data.color_secundario || business.color_secundario || (data.user && data.user.color_secundario);
@@ -1484,6 +1593,9 @@ function loadDashboardData() {
             if (typeof window.applyDashboardPermissions === 'function') {
                 window.applyDashboardPermissions(window.currentUserData);
             }
+
+            // Mantener sincronizado window.currentWebData (incluyendo tipo_calendario) para navegación de notificaciones
+            window.currentWebData = Object.assign(window.currentWebData || {}, webData || {});
 
             // Revelar el dashboard suavemente
             const loader = document.getElementById('dashboardLoader');
@@ -1821,16 +1933,22 @@ function checkNotifications() {
                 if (pendientes.length > 0) {
                     pendientes.forEach(t => {
                         const calPage = window.currentWebData?.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
-                        const notifLink = isBasic ? `${calPage}?date=${t.fecha}&focus=${t.id}` : `agenda.html?tab=pendientes&date=${t.fecha}&focus=${t.id}`;
+                        const horaParam = t.hora ? `&hora=${encodeURIComponent(String(t.hora).substring(0, 5))}` : '';
+                        const notifLink = isBasic
+                            ? `${calPage}?date=${encodeURIComponent(t.fecha)}${horaParam}&focus=${encodeURIComponent(t.id)}`
+                            : `agenda.html?tab=pendientes&date=${encodeURIComponent(t.fecha)}${horaParam}&focus=${encodeURIComponent(t.id)}`;
+                        const createdTs = t.created_at
+                            ? new Date(String(t.created_at).replace(/-/g, '/')).getTime()
+                            : (Date.now() + (parseInt(t.id, 10) || 0));
                         currentNotifs.push({
                             id: 'turno_' + t.id,
                             icon: 'event',
                             color: 'text-primary',
                             bg: 'bg-primary/10',
                             title: `Nuevo turno: ${t.cliente_nombre || (t.nombre + ' ' + (t.apellido || ''))}`,
-                            text: `Solicitud para el ${t.fecha} a las ${t.hora} hs.`,
+                            text: `Solicitud para el ${t.fecha} a las ${String(t.hora || '').substring(0, 5)} hs.`,
                             link: notifLink,
-                            timestamp: new Date(t.fecha.replace(/-/g, '/') + ' ' + t.hora).getTime() || Date.now()
+                            timestamp: !isNaN(createdTs) ? createdTs : Date.now()
                         });
                     });
                 }
@@ -1901,8 +2019,8 @@ function checkNotifications() {
             }
 
             currentNotifs.forEach(n => {
-                if (!notifState[n.id]) { notifState[n.id] = { ...n, read: false, deleted: false, time: Date.now() }; }
-                else { notifState[n.id].title = n.title; notifState[n.id].text = n.text; notifState[n.id].link = n.link; notifState[n.id].id_reporte = n.id_reporte; }
+                if (!notifState[n.id]) { notifState[n.id] = { ...n, read: false, deleted: false, time: n.timestamp || Date.now() }; }
+                else { notifState[n.id].title = n.title; notifState[n.id].text = n.text; notifState[n.id].link = n.link; notifState[n.id].id_reporte = n.id_reporte; if (n.timestamp) notifState[n.id].time = n.timestamp; }
             });
 
             // Auto-Limpieza: Eliminamos notificaciones huérfanas (ej. de la Demo o turnos borrados) para no mezclarlas
@@ -2004,14 +2122,16 @@ window.abrirNotificacionYNavegar = function (e, id, link) {
     const urlParts = link.split('?');
     const queryParams = new URLSearchParams(urlParts[1] || '');
     const dateVal = queryParams.get('date') || queryParams.get('fecha') || '';
+    const horaVal = queryParams.get('hora') || '';
     const focusVal = queryParams.get('focus') || (id ? id.replace('turno_', '').replace('custom_', '') : '');
     const calPage = window.currentWebData?.tipo_calendario === 'semanal' ? 'calendarioSemanal.html' : 'calendarioMensual.html';
+    const horaQuery = horaVal ? `&hora=${encodeURIComponent(horaVal)}` : '';
 
     if (id && id.startsWith('turno_')) {
         if (isBasic) {
-            finalLink = `${calPage}?date=${encodeURIComponent(dateVal)}&focus=${encodeURIComponent(focusVal)}`;
+            finalLink = `${calPage}?date=${encodeURIComponent(dateVal)}${horaQuery}&focus=${encodeURIComponent(focusVal)}`;
         } else if (isProOrPremium) {
-            finalLink = `agenda.html?tab=pendientes&date=${encodeURIComponent(dateVal)}&focus=${encodeURIComponent(focusVal)}`;
+            finalLink = `agenda.html?tab=pendientes&date=${encodeURIComponent(dateVal)}${horaQuery}&focus=${encodeURIComponent(focusVal)}`;
         }
     }
 
@@ -2023,13 +2143,12 @@ window.abrirNotificacionYNavegar = function (e, id, link) {
         window.history.pushState({}, '', finalLink);
         if (typeof checkUrlNavigationAndFocus === 'function') {
             checkUrlNavigationAndFocus();
+        } else if (typeof window.enfocarTurnoEnCalendario === 'function') {
+            window.enfocarTurnoEnCalendario(focusVal, dateVal, horaVal);
         } else if (typeof cal_selectDate === 'function' && dateVal) {
             const parts = dateVal.split('-');
             if (parts.length === 3) {
                 cal_selectDate(new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)));
-            }
-            if (focusVal && typeof window.enfocarTurnoEnCalendario === 'function') {
-                window.enfocarTurnoEnCalendario(focusVal);
             }
         } else {
             window.location.href = finalLink;

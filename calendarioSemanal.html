@@ -295,6 +295,30 @@
             </div>
         </div>
 
+        <!-- Panel Enfocado de Turnos Pendientes por Día y Horario (Ordenados por orden de llegada) -->
+        <div id="weeklySlotQueuePanel" class="hidden bg-white/95 dark:bg-slate-900/90 backdrop-blur-xl rounded-3xl border-2 border-amber-300/90 dark:border-amber-700/70 shadow-[0_14px_40px_-12px_rgba(245,158,11,0.28)] overflow-hidden animate-in fade-in duration-300">
+            <div class="px-5 py-4 sm:px-7 sm:py-5 bg-amber-50/90 dark:bg-amber-950/40 border-b border-amber-200/80 dark:border-amber-800/60 flex items-center justify-between gap-3 flex-wrap">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-11 h-11 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <span class="material-symbols-outlined text-[22px]">schedule</span>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[11px] font-extrabold uppercase tracking-wider text-amber-700 dark:text-amber-300">Solicitudes pendientes de este horario</p>
+                        <h3 id="weeklySlotQueueTitle" class="font-bold text-slate-900 dark:text-white text-base sm:text-lg capitalize leading-tight truncate">Día · Horario</h3>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <span id="weeklySlotQueueCount" class="text-xs font-extrabold px-3 py-1 rounded-full bg-amber-200/80 dark:bg-amber-900/70 text-amber-900 dark:text-amber-200">0 pendientes</span>
+                    <button type="button" onclick="window.closeWeeklySlotQueuePanel()" class="w-9 h-9 rounded-xl bg-white/80 dark:bg-slate-800 border border-amber-200 dark:border-amber-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer" title="Cerrar panel">
+                        <span class="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                </div>
+            </div>
+            <div id="weeklySlotQueueList" class="p-5 sm:p-7 space-y-3">
+                <!-- Insertado vía JS en orden de llegada (quién reservó primero) -->
+            </div>
+        </div>
+
         <!-- Grilla Semanal Responsive -->
         <div class="bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl p-5 sm:p-7 rounded-3xl shadow-[0_12px_36px_-12px_rgba(15,23,42,0.08)] border border-slate-200/80 dark:border-slate-800/90 w-full overflow-hidden">
             <div class="grid grid-cols-1 lg:grid-cols-3 items-center mb-3.5 sm:mb-4 w-full gap-2.5 sm:gap-3">
@@ -638,7 +662,7 @@
 </footer>
 
   <script src="assets/js/icon-picker.js?v=1.0.0" defer></script>
-  <script src="assets/js/script.js?v=1.6.2" defer></script>
-  <script src="assets/js/calendario.js?v=1.7.8" defer></script>
+  <script src="assets/js/script.js?v=1.6.3" defer></script>
+  <script src="assets/js/calendario.js?v=1.7.9" defer></script>
   </body>
 </html>
